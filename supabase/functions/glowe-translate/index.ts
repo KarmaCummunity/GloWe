@@ -100,7 +100,11 @@ async function readSources(
   for (const [table, g] of Object.entries(byTable)) {
     const select = [g.pk, ...g.cols].join(', ');
     const { data, error } = await svc.from(table).select(select).in(g.pk, Array.from(g.ids));
-    if (error || !data) continue;
+    if (error) {
+      console.warn('[glowe-translate] source read failed', { table, detail: error.message });
+      continue;
+    }
+    if (!data) continue;
     for (const row of data as unknown as Record<string, unknown>[]) {
       out[`${table}:${row[g.pk]}`] = row;
     }
@@ -125,13 +129,22 @@ function sourceTextFor(it: Item, rows: Record<string, Record<string, unknown>>):
   return val;
 }
 
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
 function skipped(it: Item): Result {
   return { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'skipped' };
 }
 
+function hit(it: Item, status: Status, translation: CacheRow): Result {
+  return { contentType: it.contentType, contentId: it.contentId, field: it.field, status, translation };
+}
+
 // Resolve every item to a Result, in input order. Cache hits and short-circuits
 // resolve inline; genuine misses fan out to the provider with bounded
-// concurrency, then upsert single-flight.
+// concurrency, then upsert single-flight. Per-item cache-table errors degrade
+// that one item without aborting the batch.
 async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]): Promise<Result[]> {
   const rows = await readSources(svc, items.filter(isAllowed));
   const results = new Array<Result>(items.length);
@@ -141,19 +154,28 @@ async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]):
     const text = isAllowed(it) ? sourceTextFor(it, rows) : null;
     if (text === null) { results[i] = skipped(it); continue; }
     const key = { contentType: it.contentType, contentId: it.contentId, field: it.field, targetLanguage: target };
-    const cached = await getCached(svc, key);
-    if (cached) {
-      results[i] = { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'cached', translation: cached };
-      continue;
+    // A cache-read failure degrades to a miss (still try to translate), never
+    // aborts the whole batch.
+    let cached: CacheRow | null = null;
+    try {
+      cached = await getCached(svc, key);
+    } catch (e) {
+      console.warn('[glowe-translate] cache read failed', { field: it.field, detail: errMsg(e) });
     }
+    if (cached) { results[i] = hit(it, 'cached', cached); continue; }
     misses.push({ i, it, text });
   }
-  const provider = selectProvider();
+
   const translated = await translateMany(
-    provider,
+    selectProvider(),
     misses.map((m) => ({ text: m.text, targetLanguage: target })),
     PROVIDER_CONCURRENCY,
   );
+  const failed = translated.filter((r) => r === null).length;
+  if (failed > 0) {
+    console.warn('[glowe-translate] provider misses returned null', { failed, total: misses.length });
+  }
+
   for (let k = 0; k < misses.length; k++) {
     const { i, it } = misses[k];
     const res = translated[k];
@@ -166,12 +188,14 @@ async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]):
       model: res.model,
       confidence: res.confidence,
     };
-    const inserted = await putIfAbsent(svc, row);
-    const translation = inserted ? row : (await getCached(svc, key)) ?? row;
-    results[i] = {
-      contentType: it.contentType, contentId: it.contentId, field: it.field,
-      status: inserted ? 'translated' : 'cached', translation,
-    };
+    // A cache-write failure still serves this item's fresh translation.
+    try {
+      const inserted = await putIfAbsent(svc, row);
+      results[i] = hit(it, inserted ? 'translated' : 'cached', inserted ? row : (await getCached(svc, key)) ?? row);
+    } catch (e) {
+      console.warn('[glowe-translate] cache write failed', { field: it.field, detail: errMsg(e) });
+      results[i] = hit(it, 'translated', row);
+    }
   }
   return results;
 }

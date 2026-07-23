@@ -51,6 +51,16 @@ export const SOURCE: Record<string, SourceEntry> = {
       org_description: 'org_description', org_field: 'org_field',
     },
   },
+  glowe_forum_thread: {
+    table: 'glowe_forum_threads',
+    pk: 'id',
+    fields: { title: 'title', body: 'body' },
+  },
+  glowe_forum_reply: {
+    table: 'glowe_forum_replies',
+    pk: 'id',
+    fields: { body: 'body' },
+  },
 };
 
 // Resolve a request field to its source column + optional array index. A scalar
