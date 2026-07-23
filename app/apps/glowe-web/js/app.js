@@ -7590,6 +7590,8 @@ const GLOWE_TRANSLATIONS = {
         // UGC translation toggle (FR-TRANSLATE-005)
         'Show original': 'הצג מקור',
         'Show translation': 'הצג תרגום',
+        // Loading indicator while a cold translation is in flight (FR-TRANSLATE-006)
+        'Translating…': 'מתרגם…',
         // Bilingual names (FR-GLOWE-024)
         'Name in English (optional)': 'שם באנגלית (אופציונלי)',
         'Latin / English display name': 'שם תצוגה באנגלית / לטינית',
