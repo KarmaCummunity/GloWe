@@ -16,7 +16,10 @@
     }
 
     function readIndex(storage) {
-        try { return JSON.parse(storage.getItem(INDEX) || '[]'); } catch (_e) { return []; }
+        try {
+            const parsed = JSON.parse(storage.getItem(INDEX) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_e) { return []; }
     }
     function writeIndex(storage, list) {
         try { storage.setItem(INDEX, JSON.stringify(list)); } catch (_e) { /* quota: ignore */ }
@@ -26,8 +29,10 @@
         const limit = cap > 0 ? cap : 500;
         return {
             get(k) {
-                const v = storage.getItem(PREFIX + k);
-                return v === null ? undefined : v;
+                try {
+                    const v = storage.getItem(PREFIX + k);
+                    return v === null ? undefined : v;
+                } catch (_e) { return undefined; }
             },
             put(k, value) {
                 try {
@@ -41,8 +46,10 @@
                 } catch (_e) { /* quota / private-mode: degrade to no-op */ }
             },
             clear() {
-                readIndex(storage).forEach((k) => storage.removeItem(PREFIX + k));
-                writeIndex(storage, []);
+                try {
+                    readIndex(storage).forEach((k) => storage.removeItem(PREFIX + k));
+                    writeIndex(storage, []);
+                } catch (_e) { /* no-op */ }
             },
         };
     }

@@ -41,4 +41,28 @@ describe('GloweSessionCache.create', () => {
         c.put('a', '1'); c.clear();
         expect(c.get('a')).toBe(undefined);
     });
+    it('clear() tolerates a corrupted non-array index', () => {
+        const s = fakeStorage();
+        s.setItem('gtr:index', '{}');
+        const c = GloweSessionCache.create(s, 10);
+        expect(() => c.clear()).not.toThrow();
+    });
+});
+
+function throwingStorage() {
+    return {
+        getItem: () => { throw new Error('boom'); },
+        setItem: () => { throw new Error('boom'); },
+        removeItem: () => { throw new Error('boom'); },
+    };
+}
+
+describe('GloweSessionCache degrades to no-op on storage errors', () => {
+    it('never throws from get/put/clear and reports a miss', () => {
+        const c = GloweSessionCache.create(throwingStorage(), 10);
+        expect(() => c.put('a', 'x')).not.toThrow();
+        expect(() => c.clear()).not.toThrow();
+        expect(() => c.get('a')).not.toThrow();
+        expect(c.get('a')).toBe(undefined);
+    });
 });
