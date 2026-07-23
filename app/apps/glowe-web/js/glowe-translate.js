@@ -50,12 +50,29 @@
         return { translated: translated, sourceLanguage: sourceLanguage != null ? sourceLanguage : null };
     }
 
+    // Non-Latin letter blocks (Hebrew/Arabic/Cyrillic/Greek/CJK), mirroring
+    // js/glowe-localized-name.js. Used to decide a field's script cheaply.
+    const HEBREW = /[֐-׿]/;
+    const NON_LATIN = /[֐-׿؀-ۿЀ-ӿͰ-Ͽ一-鿿]/;
+
+    // True when `text` is already in the reader's language, so no network/
+    // provider call is needed. Safe heuristic: he => has Hebrew letters;
+    // en => no non-Latin letters. Ambiguous/empty falls through to false.
+    function sameLanguageSkip(text, readerLang) {
+        const t = String(text || '').trim();
+        if (!t) return false;
+        if (readerLang === 'he') return HEBREW.test(t);
+        if (readerLang === 'en') return !NON_LATIN.test(t);
+        return false;
+    }
+
     return {
         baseLang: baseLang,
         needsTranslation: needsTranslation,
         tupleKey: tupleKey,
         cacheMapKey: cacheMapKey,
         normalizeTranslation: normalizeTranslation,
+        sameLanguageSkip: sameLanguageSkip,
         TOGGLE_LABELS: TOGGLE_LABELS,
     };
 });

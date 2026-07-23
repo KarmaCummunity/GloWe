@@ -54,3 +54,26 @@ describe('normalizeTranslation', () => {
             .toEqual({ translated: 'Hi', sourceLanguage: null });
     });
 });
+
+describe('sameLanguageSkip', () => {
+    it('he reader skips text containing Hebrew letters (incl. mixed)', () => {
+        expect(GloweTranslate.sameLanguageSkip('שלום עולם', 'he')).toBe(true);
+        expect(GloweTranslate.sameLanguageSkip('שלום world', 'he')).toBe(true);
+    });
+    it('he reader does NOT skip pure-Latin or other scripts', () => {
+        expect(GloweTranslate.sameLanguageSkip('Hello world', 'he')).toBe(false);
+        expect(GloweTranslate.sameLanguageSkip('Привет', 'he')).toBe(false);
+    });
+    it('en reader skips pure-Latin text only', () => {
+        expect(GloweTranslate.sameLanguageSkip('Hello world', 'en')).toBe(true);
+        expect(GloweTranslate.sameLanguageSkip('café 123!', 'en')).toBe(true);
+    });
+    it('en reader does NOT skip text with non-Latin letters', () => {
+        expect(GloweTranslate.sameLanguageSkip('שלום', 'en')).toBe(false);
+        expect(GloweTranslate.sameLanguageSkip('Hello שלום', 'en')).toBe(false);
+    });
+    it('never skips empty / whitespace text (let downstream short-circuit handle it)', () => {
+        expect(GloweTranslate.sameLanguageSkip('', 'he')).toBe(false);
+        expect(GloweTranslate.sameLanguageSkip('   ', 'en')).toBe(false);
+    });
+});
