@@ -1,94 +1,47 @@
-// supabase/functions/glowe-translate/index.ts — FR-TRANSLATE-005.
+// supabase/functions/glowe-translate/index.ts — FR-TRANSLATE-005 / 006.
 //
-// Demand-driven, single-target translation of one GLOWE content field. Anon is
-// allowed (GLOWE serves anonymous readers). Anti-poisoning: the text is READ
-// FROM THE SOURCE ROW with the service-role client, never from the request body,
-// so a client cannot poison the shared cache. All GLOWE source tables are
-// anon-public ("glowe public read"), so no per-user visibility check is required.
+// Demand-driven translation of GLOWE content fields. Accepts either a single
+// item (legacy) or a batch { targetLanguage, items:[...] }. Anon is allowed
+// (GLOWE serves anonymous readers). Anti-poisoning: the text is READ FROM THE
+// SOURCE ROW with the service-role client, never from the request body. The
+// batch path reads all source rows grouped by table (one query per table) and
+// fans the misses out to the provider with bounded concurrency (translateMany),
+// so N misses cost ONE client→Edge round-trip. All GLOWE source tables are
+// anon-public, so no per-user visibility check is required.
 //
-// POST { contentType, contentId, field, targetLanguage }
-//   → 200 { status:'translated'|'cached'|'skipped', translation?: {...} }
-//   → 400 { error:'invalid_body' | 'unsupported_language' }
-//   → 405 { error:'method_not_allowed' }
-//   → 502 { error:'provider_failed' }   500 { error:'internal' }
+// POST { contentType, contentId, field, targetLanguage }                  (legacy)
+//   → 200 { status:'translated'|'cached'|'skipped', translation? }
+// POST { targetLanguage, items:[{ contentType, contentId, field }] }      (batch)
+//   → 200 { results:[{ contentType, contentId, field, status, translation? }] }
+//   → 400 { error:'invalid_body'|'unsupported_language' }  405 method_not_allowed
+//   → 500 { error:'internal' }
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { corsHeaders, isAllowedOrigin } from '../_shared/cors.ts';
 import { isTranslatable, needsTranslation } from '../_shared/translation/shortcircuit.ts';
 import { selectProvider } from '../_shared/translation/provider.ts';
 import { isSupportedTarget } from '../_shared/translation/supportedLanguages.ts';
-import { getCached, putIfAbsent, type CacheKey } from './cache.ts';
+import { translateMany } from '../_shared/translation/batch.ts';
+import { resolveField, SOURCE } from '../_shared/translation/gloweSource.ts';
+import { getCached, putIfAbsent, type CacheRow } from './cache.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const MAX_INPUT = 5000;
+const PROVIDER_CONCURRENCY = 8;
 
-// content_type → source table + PK column + { field: db column }. The text we
-// translate is READ FROM THIS ROW (not client-supplied). Names (author_name,
-// organization, display_name) are deliberately absent — never translated.
-// `arrayFields` names columns stored as text[]; those accept a per-element
-// request field ("requirements.0") so each chip caches independently (AC4).
-interface SourceEntry {
-  table: string;
-  pk: string;
-  fields: Record<string, string>;
-  arrayFields?: Set<string>;
+interface Item {
+  contentType: string;
+  contentId: string;
+  field: string;
 }
-const SOURCE: Record<string, SourceEntry> = {
-  glowe_post: {
-    table: 'glowe_posts',
-    pk: 'id',
-    fields: { title: 'title', text: 'text', tags: 'tags' },
-    arrayFields: new Set(['tags']),
-  },
-  glowe_comment: {
-    table: 'glowe_comments',
-    pk: 'id',
-    fields: { text: 'text' },
-  },
-  glowe_opportunity: {
-    table: 'glowe_opportunities', pk: 'id',
-    fields: {
-      title: 'title', description: 'description',
-      requirements: 'requirements', responsibilities: 'responsibilities',
-    },
-    arrayFields: new Set(['requirements', 'responsibilities']),
-  },
-  glowe_project: {
-    table: 'glowe_projects', pk: 'id',
-    fields: { title: 'title', description: 'description' },
-  },
-  glowe_profile: {
-    table: 'glowe_profiles', pk: 'id',
-    fields: {
-      about: 'about', focus: 'focus', needs: 'needs',
-      org_description: 'org_description', org_field: 'org_field',
-    },
-  },
-  glowe_forum_thread: {
-    table: 'glowe_forum_threads', pk: 'id',
-    fields: { title: 'title', body: 'body' },
-  },
-  glowe_forum_reply: {
-    table: 'glowe_forum_replies', pk: 'id',
-    fields: { body: 'body' },
-  },
-};
-
-// Resolve a request field to its source column + optional array index. A scalar
-// field ("title") → { column, index: null }. An array element ("requirements.3")
-// → { column: 'requirements', index: 3 } iff the base is a declared arrayField.
-// Returns null for anything not in the allow-list (→ 400 invalid_body).
-function resolveField(src: SourceEntry, field: string): { column: string; index: number | null } | null {
-  const dot = field.lastIndexOf('.');
-  if (dot === -1) {
-    return src.fields[field] ? { column: src.fields[field], index: null } : null;
-  }
-  const base = field.slice(0, dot);
-  const idx = field.slice(dot + 1);
-  if (!/^\d+$/.test(idx)) return null;
-  if (!src.arrayFields?.has(base) || !src.fields[base]) return null;
-  return { column: src.fields[base], index: Number(idx) };
+type Status = 'translated' | 'cached' | 'skipped';
+interface Result {
+  contentType: string;
+  contentId: string;
+  field: string;
+  status: Status;
+  translation?: CacheRow;
 }
 
 function json(body: unknown, status: number, h: Record<string, string> = {}): Response {
@@ -98,22 +51,129 @@ function json(body: unknown, status: number, h: Record<string, string> = {}): Re
   });
 }
 
-interface Body {
-  contentType: string;
-  contentId: string;
-  field: string;
-  targetLanguage: string;
+function isItem(v: unknown): v is Item {
+  if (!v || typeof v !== 'object') return false;
+  const o = v as Record<string, unknown>;
+  return typeof o.contentType === 'string' && typeof o.contentId === 'string'
+    && typeof o.field === 'string' && !!o.contentType && !!o.contentId && !!o.field;
 }
 
-function isValid(b: unknown): b is Body {
-  if (!b || typeof b !== 'object') return false;
-  const o = b as Record<string, unknown>;
-  const src = typeof o.contentType === 'string' ? SOURCE[o.contentType] : undefined;
-  if (!src) return false;
-  if (typeof o.contentId !== 'string' || !o.contentId) return false;
-  if (typeof o.field !== 'string' || !resolveField(src, o.field)) return false;
-  if (typeof o.targetLanguage !== 'string' || !o.targetLanguage) return false;
-  return true;
+// Legacy single body OR batch body → a normalized { targetLanguage, items }.
+function toItems(raw: unknown): { targetLanguage: string; items: Item[] } | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  if (typeof o.targetLanguage !== 'string' || !o.targetLanguage) return null;
+  if (Array.isArray(o.items)) {
+    return { targetLanguage: o.targetLanguage, items: o.items.filter(isItem) };
+  }
+  if (isItem(o)) {
+    return {
+      targetLanguage: o.targetLanguage,
+      items: [{ contentType: o.contentType, contentId: o.contentId, field: o.field }],
+    };
+  }
+  return null;
+}
+
+// True iff the item's (contentType, field) is in the allow-list.
+function isAllowed(it: Item): boolean {
+  const src = SOURCE[it.contentType];
+  return !!src && !!resolveField(src, it.field);
+}
+
+// Batched source reads: one query per source table. Returns a map keyed
+// `${table}:${id}` → the row (with every requested column for that table).
+async function readSources(
+  svc: SupabaseClient,
+  items: Item[],
+): Promise<Record<string, Record<string, unknown>>> {
+  const byTable: Record<string, { pk: string; ids: Set<string>; cols: Set<string> }> = {};
+  for (const it of items) {
+    const src = SOURCE[it.contentType];
+    const r = resolveField(src, it.field);
+    if (!r) continue;
+    const g = byTable[src.table] ?? (byTable[src.table] = { pk: src.pk, ids: new Set(), cols: new Set() });
+    g.ids.add(it.contentId);
+    g.cols.add(r.column);
+  }
+  const out: Record<string, Record<string, unknown>> = {};
+  for (const [table, g] of Object.entries(byTable)) {
+    const select = [g.pk, ...g.cols].join(', ');
+    const { data, error } = await svc.from(table).select(select).in(g.pk, Array.from(g.ids));
+    if (error || !data) continue;
+    for (const row of data as unknown as Record<string, unknown>[]) {
+      out[`${table}:${row[g.pk]}`] = row;
+    }
+  }
+  return out;
+}
+
+// Source text for an item from its already-read row, or null when it is
+// missing / not a translatable string / too long. Reads the exact array
+// element for a "col.N" field.
+function sourceTextFor(it: Item, rows: Record<string, Record<string, unknown>>): string | null {
+  const src = SOURCE[it.contentType];
+  const r = resolveField(src, it.field);
+  if (!r) return null;
+  const row = rows[`${src.table}:${it.contentId}`];
+  if (!row) return null;
+  const raw = row[r.column];
+  const val = r.index === null ? raw : (Array.isArray(raw) ? raw[r.index] : undefined);
+  if (typeof val !== 'string') return null;
+  const t = val.trim();
+  if (!t || t.length > MAX_INPUT || !isTranslatable(t)) return null;
+  return val;
+}
+
+function skipped(it: Item): Result {
+  return { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'skipped' };
+}
+
+// Resolve every item to a Result, in input order. Cache hits and short-circuits
+// resolve inline; genuine misses fan out to the provider with bounded
+// concurrency, then upsert single-flight.
+async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]): Promise<Result[]> {
+  const rows = await readSources(svc, items.filter(isAllowed));
+  const results = new Array<Result>(items.length);
+  const misses: { i: number; it: Item; text: string }[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    const text = isAllowed(it) ? sourceTextFor(it, rows) : null;
+    if (text === null) { results[i] = skipped(it); continue; }
+    const key = { contentType: it.contentType, contentId: it.contentId, field: it.field, targetLanguage: target };
+    const cached = await getCached(svc, key);
+    if (cached) {
+      results[i] = { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'cached', translation: cached };
+      continue;
+    }
+    misses.push({ i, it, text });
+  }
+  const provider = selectProvider();
+  const translated = await translateMany(
+    provider,
+    misses.map((m) => ({ text: m.text, targetLanguage: target })),
+    PROVIDER_CONCURRENCY,
+  );
+  for (let k = 0; k < misses.length; k++) {
+    const { i, it } = misses[k];
+    const res = translated[k];
+    if (!res || !needsTranslation(res.detectedSourceLanguage, target)) { results[i] = skipped(it); continue; }
+    const key = { contentType: it.contentType, contentId: it.contentId, field: it.field, targetLanguage: target };
+    const row: CacheRow = {
+      ...key,
+      sourceLanguage: res.detectedSourceLanguage,
+      translatedText: res.translatedText,
+      model: res.model,
+      confidence: res.confidence,
+    };
+    const inserted = await putIfAbsent(svc, row);
+    const translation = inserted ? row : (await getCached(svc, key)) ?? row;
+    results[i] = {
+      contentType: it.contentType, contentId: it.contentId, field: it.field,
+      status: inserted ? 'translated' : 'cached', translation,
+    };
+  }
+  return results;
 }
 
 Deno.serve(async (req) => {
@@ -126,101 +186,33 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
   const hdrs = isAllowedOrigin(origin) ? corsHeaders(origin) : {};
 
-  let body: Body;
+  let raw: unknown;
   try {
-    const raw = await req.json();
-    if (!isValid(raw)) return json({ error: 'invalid_body' }, 400, hdrs);
-    body = raw;
+    raw = await req.json();
   } catch {
     return json({ error: 'invalid_body' }, 400, hdrs);
   }
-  if (!isSupportedTarget(body.targetLanguage)) {
-    return json({ error: 'unsupported_language' }, 400, hdrs);
-  }
+  const parsed = toItems(raw);
+  if (!parsed || parsed.items.length === 0) return json({ error: 'invalid_body' }, 400, hdrs);
+  if (!isSupportedTarget(parsed.targetLanguage)) return json({ error: 'unsupported_language' }, 400, hdrs);
 
   const svc = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-  const src = SOURCE[body.contentType];
-  const resolved = resolveField(src, body.field)!; // validated in isValid
-  const column = resolved.column;
-
-  // Anti-poisoning: read the source text from the row, never from the client.
-  const { data: srcRow, error: readErr } = await svc
-    .from(src.table)
-    .select(`${src.pk}, ${column}`)
-    .eq(src.pk, body.contentId)
-    .maybeSingle();
-  if (readErr) return json({ error: 'internal' }, 500, hdrs);
-  if (!srcRow) return json({ status: 'skipped' }, 200, hdrs);
-  const raw = (srcRow as unknown as Record<string, unknown>)[column];
-  // Scalar column → the value itself; array column → the requested element.
-  const sourceText = resolved.index === null
-    ? raw
-    : (Array.isArray(raw) ? raw[resolved.index] : undefined);
-  if (typeof sourceText !== 'string' || sourceText.trim().length === 0) {
-    return json({ status: 'skipped' }, 200, hdrs);
-  }
-  if (sourceText.length > MAX_INPUT || !isTranslatable(sourceText)) {
-    return json({ status: 'skipped' }, 200, hdrs);
-  }
-
-  const key: CacheKey = {
-    contentType: body.contentType,
-    contentId: body.contentId,
-    field: body.field,
-    targetLanguage: body.targetLanguage,
-  };
-
-  let cached;
+  let results: Result[];
   try {
-    cached = await getCached(svc, key);
+    results = await resolveBatch(svc, parsed.targetLanguage, parsed.items);
   } catch (e) {
-    const detail = e instanceof Error ? e.message : String(e);
-    console.error('[glowe-translate] cache read failed', { contentType: body.contentType, detail });
+    console.warn('[glowe-translate] batch failed', { detail: e instanceof Error ? e.message : String(e) });
     return json({ error: 'internal' }, 500, hdrs);
   }
-  if (cached) return json({ status: 'cached', translation: cached }, 200, hdrs);
 
-  let result;
-  try {
-    result = await selectProvider().translate({
-      text: sourceText,
-      targetLanguage: body.targetLanguage,
-    });
-  } catch (e) {
-    // Full upstream detail (e.g. Gemini quota/429 body) goes to the server log
-    // only; the client response stays generic so quota internals aren't exposed.
-    const detail = e instanceof Error ? e.message : String(e);
-    console.warn('[glowe-translate] provider failed', {
-      contentType: body.contentType,
-      field: body.field,
-      detail,
-    });
-    return json({ error: 'provider_failed' }, 502, hdrs);
+  // Legacy single-item body keeps its original response shape.
+  if (!Array.isArray((raw as Record<string, unknown>).items)) {
+    const r = results[0];
+    return json(
+      r && r.status !== 'skipped' ? { status: r.status, translation: r.translation } : { status: 'skipped' },
+      200,
+      hdrs,
+    );
   }
-
-  // Same-language no-op: store nothing, signal skipped.
-  if (!needsTranslation(result.detectedSourceLanguage, body.targetLanguage)) {
-    return json({ status: 'skipped' }, 200, hdrs);
-  }
-
-  const row = {
-    ...key,
-    sourceLanguage: result.detectedSourceLanguage,
-    translatedText: result.translatedText,
-    model: result.model,
-    confidence: result.confidence,
-  };
-  try {
-    const inserted = await putIfAbsent(svc, row); // single-flight
-    const translation = inserted ? row : (await getCached(svc, key)) ?? row;
-    return json({ status: inserted ? 'translated' : 'cached', translation }, 200, hdrs);
-  } catch (e) {
-    const detail = e instanceof Error ? e.message : String(e);
-    console.error('[glowe-translate] cache failed', {
-      contentType: body.contentType,
-      field: body.field,
-      detail,
-    });
-    return json({ error: 'internal' }, 500, hdrs);
-  }
+  return json({ results }, 200, hdrs);
 });
