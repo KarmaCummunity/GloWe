@@ -20,6 +20,7 @@
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | TRANSLATE-P3 | **Phase 3 — Chat translation (opt-in, last).** Sender-consent gate (a message is translated only if its sender opted in); per-conversation translation; LRU cache eviction for chat. | agent-fullstack | ⏳ Planned | `spec/18_translation.md` FR-TRANSLATE-004 (to be detailed) |
+| TRANSLATE-P6 | **GLOWE web translation performance.** Efficiency-first per-field ladder (same-language short-circuit → sessionStorage cache → batched DB read → batched Edge call), viewport-lookahead prefetch, and a rare localized "Translating…" indicator. | agent-fullstack | ✅ Done | `spec/18_translation.md` FR-TRANSLATE-006 |
 
 ## Shared — Research / Infra / Perf
 
