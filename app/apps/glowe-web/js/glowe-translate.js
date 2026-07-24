@@ -59,9 +59,10 @@
     }
 
     // Non-Latin letter blocks (Hebrew/Arabic/Cyrillic/Greek/CJK), mirroring
-    // js/glowe-localized-name.js. Used to decide a field's script cheaply.
-    const HEBREW = /[֐-׿]/;
-    const NON_LATIN = /[֐-׿؀-ۿЀ-ӿͰ-Ͽ一-鿿]/;
+    // js/glowe-localized-name.js. \u escapes (not literal glyphs) keep the
+    // inline-Hebrew lint guard + bidi rendering clean.
+    const HEBREW = /[\u0590-\u05FF]/;
+    const NON_LATIN = /[\u0590-\u05FF\u0600-\u06FF\u0400-\u04FF\u0370-\u03FF\u4E00-\u9FFF]/;
 
     // True when `text` is already in the reader's language, so no network/
     // provider call is needed. Safe heuristic: he => has Hebrew letters;
