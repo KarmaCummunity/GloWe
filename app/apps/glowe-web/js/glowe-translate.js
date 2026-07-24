@@ -94,7 +94,6 @@ if (typeof window !== 'undefined') {
             ? window.GloweSessionCache.create(window.sessionStorage, 500)
             : null;
         const CHUNK = 24;                        // max items per batch request
-        const LOOKAHEAD = '800px 0px';           // ~one to two screens ahead
         const INDICATOR_DELAY = 400;             // ms before "Translating…" shows
 
         function readerLang() {
@@ -363,18 +362,45 @@ if (typeof window !== 'undefined') {
             applyEntries(entries, target);
         }
 
-        // --- trigger: register cards, translate a screen or two ahead --------
+        // --- trigger: translate cards a screen or two before they're seen ----
+        // Primary signal is an IntersectionObserver lookahead (AC6). A rAF-
+        // throttled sweep — run on register, scroll and resize — is the robust
+        // fallback: it enqueues any registered card currently within the
+        // lookahead band, so the first screen starts immediately (AC7) and the
+        // feature still works where IntersectionObserver never fires.
         const pending = new Set();
-        let rafId = 0;
+        const LOOKAHEAD_PX = 800;                // ~one to two screens ahead
+        let scheduled = false;
 
-        function scheduleFlush() {
-            if (rafId) return;
-            rafId = requestAnimationFrame(function () {
-                rafId = 0;
-                const cards = Array.from(pending);
-                pending.clear();
-                if (cards.length) flush(cards);
-            });
+        function nearViewport(card) {
+            const h = window.innerHeight;
+            if (!h) return true;                 // viewport unmeasurable -> don't strand cards
+            const r = card.getBoundingClientRect();
+            return r.top < h + LOOKAHEAD_PX && r.bottom > -LOOKAHEAD_PX;
+        }
+
+        function sweep() {
+            document.querySelectorAll('[data-tr-card][data-tr-registered]:not([data-tr-done])')
+                .forEach(function (card) { if (nearViewport(card)) pending.add(card); });
+        }
+
+        function runFlush() {
+            if (!scheduled) return;
+            scheduled = false;
+            sweep();
+            const cards = Array.from(pending);
+            pending.clear();
+            if (cards.length) flush(cards);
+        }
+
+        function schedule() {
+            if (scheduled) return;
+            scheduled = true;
+            // rAF aligns the flush with paint; setTimeout is the fallback for
+            // background tabs and embedded webviews where rAF is paused. The
+            // `scheduled` guard makes whichever fires first the single winner.
+            requestAnimationFrame(runFlush);
+            setTimeout(runFlush, 32);
         }
 
         const io = ('IntersectionObserver' in window)
@@ -386,21 +412,20 @@ if (typeof window !== 'undefined') {
                     pending.add(en.target);
                     any = true;
                 });
-                if (any) scheduleFlush();
-            }, { rootMargin: LOOKAHEAD })
+                if (any) schedule();
+            }, { rootMargin: LOOKAHEAD_PX + 'px 0px' })
             : null;
 
-        // Discovery: observe each new card (or, without IntersectionObserver,
-        // fall back to translating on registration). Idempotent per card.
+        // Discovery: mark + observe each new card, then sweep (catches cards
+        // already within the lookahead band at registration). Idempotent.
         function register(rootEl) {
             const r = rootEl || document;
             if (!r.querySelectorAll) return;
             r.querySelectorAll('[data-tr-card]:not([data-tr-registered])').forEach(function (card) {
                 card.setAttribute('data-tr-registered', '1');
                 if (io) io.observe(card);
-                else pending.add(card);
             });
-            if (!io && pending.size) scheduleFlush();
+            schedule();
         }
 
         function boot() {
@@ -411,6 +436,8 @@ if (typeof window !== 'undefined') {
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
+            window.addEventListener('scroll', schedule, { passive: true });
+            window.addEventListener('resize', schedule);
         }
 
         if (document.readyState === 'loading') {
@@ -419,8 +446,8 @@ if (typeof window !== 'undefined') {
             boot();
         }
 
-        // Existing callers nudge the driver via scan(); it now registers cards
-        // with the viewport observer instead of translating immediately.
+        // Existing callers nudge the driver via scan(); it registers cards with
+        // the viewport observer + sweep instead of translating immediately.
         window.GloweTranslate.scan = register;
     })();
 }
