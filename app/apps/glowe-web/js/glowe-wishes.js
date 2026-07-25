@@ -37,6 +37,7 @@
     // Author English is kept alongside primary; render localizes via FR-GLOWE-024.
     function mapWishRow(row) {
         const area = field(row, 'impact_area', 'impactArea');
+        const createdAt = field(row, 'created_at', 'createdAt') || '';
         return {
             id: field(row, 'id', 'id'),
             type: field(row, 'wish_type', 'wishType') || 'Open Call',
@@ -47,22 +48,47 @@
             authorId: field(row, 'user_id', 'userId') || field(row, 'author_id', 'authorId') || '',
             location: row && (row.location || '') || '',
             areas: area ? [area] : [],
-            time: formatWishTime(field(row, 'created_at', 'createdAt'))
+            createdAt: createdAt,
+            time: formatWishTime(createdAt)
         };
     }
 
     // Filter mapped wishes by the board's controls.
     //   filters.type     — 'all' | <wish_type>
     //   filters.area     — 'all' | <impact_area>
-    //   filters.location — substring match (case-insensitive)
+    //   filters.location — substring match on location (case-insensitive)
+    //   filters.query    — substring match on title, body, author, location
     function filterWishes(list, filters) {
         const f = filters || {};
+        const query = (f.query || f.location || '').trim().toLowerCase();
         return (list || []).filter(function (wish) {
             if (f.type && f.type !== 'all' && wish.type !== f.type) return false;
             if (f.area && f.area !== 'all' && (wish.areas || []).indexOf(f.area) === -1) return false;
-            if (f.location && (wish.location || '').toLowerCase().indexOf(f.location.toLowerCase()) === -1) return false;
-            return true;
+            if (!query) return true;
+            const haystack = [
+                wish.title,
+                wish.description,
+                wish.author,
+                wish.location,
+                (wish.areas || []).join(' ')
+            ].join(' ').toLowerCase();
+            return haystack.indexOf(query) !== -1;
         });
+    }
+
+    // Sort mapped wishes for the board toolbar.
+    //   sort — 'newest' (default) | 'oldest' | 'title'
+    function sortWishes(list, sort) {
+        const mode = sort || 'newest';
+        const copy = (list || []).slice();
+        copy.sort(function (a, b) {
+            const aMs = Date.parse(a.createdAt || '') || 0;
+            const bMs = Date.parse(b.createdAt || '') || 0;
+            if (mode === 'oldest') return aMs - bMs;
+            if (mode === 'title') return String(a.title || '').localeCompare(String(b.title || ''));
+            return bMs - aMs;
+        });
+        return copy;
     }
 
     // Hero stats computed from the live wish list.
@@ -120,6 +146,7 @@
         isOpenWish: isOpenWish,
         mapWishRow: mapWishRow,
         filterWishes: filterWishes,
+        sortWishes: sortWishes,
         wishStats: wishStats,
         formatWishTime: formatWishTime,
         validateWishDraft: validateWishDraft,

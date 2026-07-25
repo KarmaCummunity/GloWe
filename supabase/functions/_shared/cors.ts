@@ -11,8 +11,10 @@ const DEV_ORIGINS = [
   'http://localhost:19006',
   'http://localhost:4321',
   'http://127.0.0.1:4321',
+  'http://[::1]:4321',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://[::1]:3000',
 ];
 
 // GloWe static site hosts (FR-TRANSLATE-005). Always allowed so translation

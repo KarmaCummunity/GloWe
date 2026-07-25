@@ -60,53 +60,67 @@
         </section>
 
         <section class="well-layout">
-            <div class="container">
-                <aside class="well-filters">
-                    <div class="filter-heading">
-                        <span>Refine</span>
-                        <small>Find the right request</small>
+            <div class="container wishes-board-shell">
+                <div class="wish-filter-panel" aria-label="Wish filters">
+                    <div class="wish-filter-intro">
+                        <span class="hero-kicker">Refine</span>
+                        <h2>Find the right request</h2>
+                        <p>Search, filter, and sort open needs from across the community.</p>
                     </div>
-                    <details class="filter-accordion" open>
-                        <summary><span class="filter-accordion-title">Wish Type</span></summary>
-                        <div class="filter-pill-group">
-                            <button class="filter-pill active" data-wish-type="all">All wishes</button>
-                            <button class="filter-pill" data-wish-type="Volunteers Needed">Volunteers Needed</button>
-                            <button class="filter-pill" data-wish-type="Resource Request">Resource Request</button>
-                            <button class="filter-pill" data-wish-type="Partnership Opportunity">Partnership Opportunity</button>
-                            <button class="filter-pill" data-wish-type="Looking for Mentors">Looking for Mentors</button>
-                            <button class="filter-pill" data-wish-type="Funding Support">Funding Support</button>
-                            <button class="filter-pill" data-wish-type="Knowledge Sharing">Knowledge Sharing</button>
-                            <button class="filter-pill" data-wish-type="Open Call">Open Call</button>
-                            <button class="filter-pill" data-wish-type="Equipment / Space">Equipment / Space</button>
-                            <button class="filter-pill" data-wish-type="Visibility / Media">Visibility / Media</button>
+                    <div class="wish-filter-primary">
+                        <div class="form-group wish-filter-search">
+                            <label for="wish-search">Search</label>
+                            <input id="wish-search" class="filter-input" type="search" aria-label="Search wishes" placeholder="Search by title, author, city, or topic">
                         </div>
-                    </details>
-
-                    <div class="filter-static">
-                        <h3>Location</h3>
-                        <input id="wish-location" class="filter-input" type="text" aria-label="Search by city or region" placeholder="Search by city or region">
+                        <div class="form-group wish-filter-sort">
+                            <label for="wish-sort">Sort</label>
+                            <select id="wish-sort" class="filter-input" aria-label="Sort wishes">
+                                <option value="newest">Newest first</option>
+                                <option value="oldest">Oldest first</option>
+                                <option value="title">Title A–Z</option>
+                            </select>
+                        </div>
+                        <button id="wish-filter-toggle" class="btn btn-outline wish-filter-toggle" type="button" aria-expanded="false" aria-controls="wish-filter-advanced">Filters</button>
+                        <button id="clear-wish-filters" class="btn btn-outline" type="button">Clear filters</button>
                     </div>
-
-                    <details class="filter-accordion">
-                        <summary><span class="filter-accordion-title">Impact Areas</span></summary>
-                        <div class="filter-pill-group">
-                            <button class="filter-pill active" data-impact-area="all">All areas</button>
-                            <button class="filter-pill" data-impact-area="Education">Education</button>
-                            <button class="filter-pill" data-impact-area="Climate">Climate</button>
-                            <button class="filter-pill" data-impact-area="Social Justice">Social Justice</button>
-                            <button class="filter-pill" data-impact-area="Tech for Good">Tech for Good</button>
-                            <button class="filter-pill" data-impact-area="Community Building">Community Building</button>
-                            <button class="filter-pill" data-impact-area="Health">Health</button>
-                            <button class="filter-pill" data-impact-area="Food Security">Food Security</button>
-                            <button class="filter-pill" data-impact-area="Knowledge Sharing">Knowledge Sharing</button>
-                            <button class="filter-pill" data-impact-area="Civic Innovation">Civic Innovation</button>
-                            <button class="filter-pill" data-impact-area="Business-Social Collaboration">Business-Social Collaboration</button>
-                        </div>
-                    </details>
-                    <button id="clear-wish-filters" class="btn btn-outline btn-block" type="button">Clear filters</button>
-                </aside>
+                    <div class="wish-filter-advanced" id="wish-filter-advanced">
+                        <details class="filter-accordion" open>
+                            <summary><span class="filter-accordion-title">Wish Type</span></summary>
+                            <div class="filter-pill-group">
+                                <button class="filter-pill active" data-wish-type="all">All wishes</button>
+                                <button class="filter-pill" data-wish-type="Volunteers Needed">Volunteers Needed</button>
+                                <button class="filter-pill" data-wish-type="Resource Request">Resource Request</button>
+                                <button class="filter-pill" data-wish-type="Partnership Opportunity">Partnership Opportunity</button>
+                                <button class="filter-pill" data-wish-type="Looking for Mentors">Looking for Mentors</button>
+                                <button class="filter-pill" data-wish-type="Funding Support">Funding Support</button>
+                                <button class="filter-pill" data-wish-type="Knowledge Sharing">Knowledge Sharing</button>
+                                <button class="filter-pill" data-wish-type="Open Call">Open Call</button>
+                                <button class="filter-pill" data-wish-type="Equipment / Space">Equipment / Space</button>
+                                <button class="filter-pill" data-wish-type="Visibility / Media">Visibility / Media</button>
+                                <button class="filter-pill" data-wish-type="Volunteer Offer">Volunteer Offer</button>
+                            </div>
+                        </details>
+                        <details class="filter-accordion">
+                            <summary><span class="filter-accordion-title">Impact Areas</span></summary>
+                            <div class="filter-pill-group">
+                                <button class="filter-pill active" data-impact-area="all">All areas</button>
+                                <button class="filter-pill" data-impact-area="Education">Education</button>
+                                <button class="filter-pill" data-impact-area="Climate">Climate</button>
+                                <button class="filter-pill" data-impact-area="Social Justice">Social Justice</button>
+                                <button class="filter-pill" data-impact-area="Tech for Good">Tech for Good</button>
+                                <button class="filter-pill" data-impact-area="Community Building">Community Building</button>
+                                <button class="filter-pill" data-impact-area="Health">Health</button>
+                                <button class="filter-pill" data-impact-area="Food Security">Food Security</button>
+                                <button class="filter-pill" data-impact-area="Knowledge Sharing">Knowledge Sharing</button>
+                                <button class="filter-pill" data-impact-area="Civic Innovation">Civic Innovation</button>
+                                <button class="filter-pill" data-impact-area="Business-Social Collaboration">Business-Social Collaboration</button>
+                            </div>
+                        </details>
+                    </div>
+                    <p class="filter-results-note" id="wish-results-count" aria-live="polite"></p>
+                </div>
                 <section class="wishes-column">
-                    <div class="section-toolbar">
+                    <div class="section-toolbar wishes-list-toolbar">
                         <div>
                             <span class="hero-kicker">Live needs</span>
                             <h2>Community wishes</h2>
@@ -188,6 +202,7 @@
     </div>
 
     <script src="../js/backend-config.js"></script>
+    <script src="../js/glowe-dev-auth.js"></script>
     <script src="../js/backend.js"></script>
     <script src="../js/data.js"></script>
     <script src="../js/auth.js"></script>

@@ -173,6 +173,34 @@
         return Boolean(primary) && !english && !isPrimarilyLatin(primary);
     }
 
+    // True when an opportunity row still needs an English organization fill.
+    function organizationNeedsEnglishName(row) {
+        const r = row || {};
+        const primary = trim(r.organization);
+        const english = trim(r.organizationEn != null ? r.organizationEn : r.organization_en);
+        return Boolean(primary) && !english && !isPrimarilyLatin(primary);
+    }
+
+    // Stamp missing organizationEn from owner profile patches (generate-on-read).
+    function applyOrganizationEnglishFromProfiles(items, patches) {
+        const byId = {};
+        (patches || []).forEach(function (patch) {
+            if (patch && patch.id) byId[String(patch.id)] = patch;
+        });
+        return (items || []).map(function (item) {
+            if (!item || !organizationNeedsEnglishName(item)) return item;
+            const ownerId = item.ownerId || item.userId;
+            if (!ownerId) return item;
+            const patch = byId[String(ownerId)];
+            if (!patch) return item;
+            const english = trim(patch.orgNameEn) || trim(patch.displayNameEn);
+            if (!english) return item;
+            const next = Object.assign({}, item);
+            next.organizationEn = english;
+            return next;
+        });
+    }
+
     const NAME_MARK_CLASSES = ['entity-mark', 'avatar', 'comment-avatar', 'wish-image'];
 
     function isNameMark(el) {
@@ -226,6 +254,8 @@
         englishFromProfilePatch: englishFromProfilePatch,
         applyAuthorEnglishFromProfiles: applyAuthorEnglishFromProfiles,
         authorNeedsEnglishName: authorNeedsEnglishName,
+        organizationNeedsEnglishName: organizationNeedsEnglishName,
+        applyOrganizationEnglishFromProfiles: applyOrganizationEnglishFromProfiles,
         nameForToggleView: nameForToggleView,
         applyToggleNamesInCard: applyToggleNamesInCard,
         initialsForName: initialsForName

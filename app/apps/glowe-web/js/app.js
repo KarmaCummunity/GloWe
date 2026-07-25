@@ -7,7 +7,9 @@ const LOGIN_MODAL_DEFAULT_INTRO = 'Sign in with your Google account to continue.
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        if (modalId === 'login-modal') {
+        if (modalId === 'login-modal' && typeof upgradeLoginModal === 'function') {
+            upgradeLoginModal();
+        } else if (modalId === 'login-modal') {
             const intro = modal.querySelector('.modal-intro');
             if (intro) intro.textContent = LOGIN_MODAL_DEFAULT_INTRO;
         }
@@ -71,6 +73,32 @@ function showToast(message, options) {
     toast.classList.add('visible');
     if (gloweToastTimer) clearTimeout(gloweToastTimer);
     gloweToastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+}
+
+// Auto-dismissing confirmation for completed actions (save, publish, etc.).
+function showActionToast(title, message) {
+    if (typeof document === 'undefined') return;
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    const localTitle = (dict && dict[title]) ? dict[title] : title;
+    const localMessage = message ? ((dict && dict[message]) ? dict[message] : message) : '';
+    let toast = document.getElementById('glowe-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'glowe-toast';
+        toast.className = 'glowe-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = localMessage
+        ? `<strong>${escapeHtml(localTitle)}</strong><span>${escapeHtml(localMessage)}</span>`
+        : escapeHtml(localTitle);
+    toast.classList.remove('is-error');
+    toast.classList.add('is-success');
+    void toast.offsetWidth;
+    toast.classList.add('visible');
+    if (gloweToastTimer) clearTimeout(gloweToastTimer);
+    gloweToastTimer = setTimeout(() => toast.classList.remove('visible'), 3200);
 }
 
 // ── View-only write gating (FR-GLOWE-003) ───────────────────────────────────
@@ -301,7 +329,8 @@ async function submitCreateDraft(form, options) {
         await window.gloweBackend.insertOwned(options.table, options.payload);
         closeModal(options.modalId);
         form.reset();
-        showSuccessModal(options.successTitle, options.successBody);
+        showActionToast(options.successTitle, options.successBody);
+        if (options.table === 'posts' && reloadWishBoard) await reloadWishBoard();
     } catch (_e) {
         showSuccessModal('Could not publish', options.failBody);
     }
@@ -1324,6 +1353,55 @@ async function uploadProfileImage(file) {
     return uploadProfileImageToCloudinary(file);
 }
 
+async function uploadCoverImage(file) {
+    const backend = window.gloweBackend;
+    if (backend && backend.configured() && isLoggedIn() && typeof backend.uploadCover === 'function') {
+        const url = await backend.uploadCover(file);
+        if (url) return url;
+    }
+    return uploadProfileImageToCloudinary(file);
+}
+
+function profileCoverImageUrl(profile) {
+    if (!profile) return '';
+    return profile.coverImageUrl || profile.cover_image_url || '';
+}
+
+function profileCoverStyleAttr(profile) {
+    const url = profileCoverImageUrl(profile);
+    if (!url) return '';
+    const safeUrl = String(url).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return ` style="--profile-cover-image: url('${safeUrl}')"`;
+}
+
+function renderSocialCover(profile, options = {}) {
+    const editable = Boolean(options && options.editable);
+    const extraClass = (options && options.extraClass) || '';
+    const hasCover = Boolean(profileCoverImageUrl(profile));
+    const classNames = [
+        options && options.band ? 'profile-cover-band' : 'social-cover',
+        hasCover ? 'has-cover-image' : '',
+        extraClass
+    ].filter(Boolean).join(' ');
+    const styleAttr = profileCoverStyleAttr(profile);
+    if (!editable) {
+        return `<div class="${classNames}"${styleAttr}></div>`;
+    }
+    const cameraIcon = (typeof GloweProfileUx !== 'undefined') ? GloweProfileUx.CAMERA_ICON_SVG : '';
+    return `
+        <div class="social-cover-wrap">
+            <div class="${classNames}"${styleAttr}></div>
+            <button type="button" class="social-cover-change" aria-label="Change cover photo" title="Change cover photo" onclick="openCoverEditModal()">${cameraIcon}</button>
+        </div>`;
+}
+
+function refreshOwnedProfileViews() {
+    if (typeof window.renderPersonalArea === 'function') window.renderPersonalArea();
+    if (document.getElementById('profile-content') && typeof initProfilePage === 'function') {
+        initProfilePage();
+    }
+}
+
 function renderPersonalAvatar(profile, className = 'profile-avatar') {
     const displayName = localizedProfileDisplayName(profile);
     if (profile.avatarUrl) {
@@ -1650,25 +1728,36 @@ function normalizeMainNavigation() {
     const inPages = window.location.pathname.includes('/pages/');
     const prefix = inPages ? '' : 'pages/';
     const homeHref = inPages ? '../index.html' : 'index.html';
+    const signedIn = typeof isLoggedIn === 'function' && isLoggedIn();
+    const profilePages = ['my-applications', 'connections', 'saved', 'settings'];
     // Home stays in the top nav for every session — parity with the mobile
-    // bottom-nav Home tab. Personal Area is reached via the greeting / Profile
-    // tab, not by replacing Home when signed in.
+    // bottom-nav Home tab. Profile appears in the desktop header only when signed in.
     const links = [
         { label: 'Home', href: homeHref, match: 'index' },
         { label: 'Wishing Well', href: `${prefix}wishing-well.html`, match: 'wishing-well' },
         { label: 'Organizations', href: `${prefix}organizations.html`, match: 'organizations' },
-        { label: 'Community', href: `${prefix}community.html`, match: 'community' },
-        { label: 'About', href: `${prefix}about.html`, match: 'about' }
+        { label: 'Community', href: `${prefix}community.html`, match: 'community' }
     ];
+    if (signedIn) {
+        links.push({
+            label: 'Profile',
+            href: `${prefix}my-applications.html`,
+            match: 'profile',
+            pages: profilePages
+        });
+    }
+    links.push({ label: 'About', href: `${prefix}about.html`, match: 'about' });
     const page = resolveGlowePage(window.location.pathname);
     nav.innerHTML = links.map(link => {
         const active = page === link.match
+            || (Array.isArray(link.pages) && link.pages.includes(page))
             || (link.match === 'about' && page === 'whats-next')
             || (link.match === 'community' && (page === 'forums' || page === 'discussion-group'))
             || (link.match === 'wishing-well' && (page === 'volunteer-network' || page === 'opportunities' || page === 'opportunity'));
-        return `<a href="${link.href}" class="nav-link${active ? ' active' : ''}">${link.label}</a>`;
+        return `<a href="${link.href}" class="nav-link${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>${link.label}</a>`;
     }).join('');
 }
+window.normalizeMainNavigation = normalizeMainNavigation;
 
 function ensureHeaderEnd() {
     const headerContainer = document.querySelector('.main-header .container');
@@ -1681,6 +1770,38 @@ function ensureHeaderEnd() {
     }
     return headerEnd;
 }
+
+function ensureLogoBrand() {
+    const logo = document.querySelector('.main-header .logo');
+    if (!logo) return;
+    const inPages = window.location.pathname.includes('/pages/');
+    const prefix = inPages ? '' : 'pages/';
+    let brand = logo.querySelector('.logo-brand');
+    if (!brand) {
+        const logoText = logo.querySelector('.logo-text');
+        brand = document.createElement('div');
+        brand.className = 'logo-brand';
+        if (logoText) {
+            brand.appendChild(logoText);
+        } else {
+            brand.innerHTML = '<span class="logo-text">GloWe</span>';
+        }
+        logo.appendChild(brand);
+    }
+    let greeting = brand.querySelector('.logo-user-greeting');
+    if (!greeting) {
+        greeting = document.createElement('a');
+        greeting.className = 'logo-user-greeting';
+        greeting.href = `${prefix}my-applications.html`;
+        greeting.hidden = true;
+        greeting.innerHTML = 'Hi, <span id="user-name">there</span>';
+        brand.appendChild(greeting);
+    } else {
+        greeting.href = `${prefix}my-applications.html`;
+    }
+}
+
+window.ensureLogoBrand = ensureLogoBrand;
 
 function normalizeHeaderUserMenu() {
     const headerContainer = document.querySelector('.main-header .container');
@@ -1703,10 +1824,11 @@ function normalizeHeaderUserMenu() {
     const chatIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
     const gearIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
     userMenu.innerHTML = `
-        <a class="user-greeting" href="${prefix}my-applications.html">Hi, <span id="user-name">there</span></a>
         <button class="btn btn-primary btn-small header-create-btn" type="button" onclick="openCreateMenu()">+ Create</button>
-        <a class="header-icon-btn" href="${prefix}messages.html" aria-label="Messages" title="Messages">${chatIcon}</a>
-        <a class="btn btn-outline btn-small header-settings-btn" href="${prefix}settings.html" aria-label="Settings" title="Settings"><span class="header-settings-icon">${gearIcon}</span><span class="header-settings-label">Settings</span></a>
+        <div class="header-corner-actions">
+            <a class="header-icon-btn" href="${prefix}messages.html" aria-label="Messages" title="Messages">${chatIcon}</a>
+            <a class="header-icon-btn" href="${prefix}settings.html" aria-label="Settings" title="Settings">${gearIcon}</a>
+        </div>
     `;
 }
 
@@ -1722,13 +1844,14 @@ async function applyAdminLink() {
     const inPages = window.location.pathname.includes('/pages/');
     const prefix = inPages ? '' : 'pages/';
     const shieldSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
+    const corner = userMenu.querySelector('.header-corner-actions') || userMenu;
     const link = document.createElement('a');
-    link.className = 'btn btn-outline btn-small glowe-admin-link';
+    link.className = 'header-icon-btn glowe-admin-link';
     link.href = `${prefix}admin.html`;
     link.title = 'Admin review';
     link.setAttribute('aria-label', 'Admin review');
-    link.innerHTML = `<span class="glowe-admin-icon">${shieldSvg}</span><span class="glowe-admin-label">Admin review</span>`;
-    userMenu.appendChild(link);
+    link.innerHTML = shieldSvg;
+    corner.appendChild(link);
 }
 window.applyAdminLink = applyAdminLink;
 
@@ -1744,10 +1867,11 @@ function normalizeHeaderAuthButtons() {
     if (authButtons.parentElement !== headerEnd) {
         headerEnd.appendChild(authButtons);
     }
-    // Auth is Google-only, so signing in and joining are the same action.
-    // A single combined button avoids the false "Log In vs Join" distinction.
+    const localDev = window.GloweDevAuth
+        && (window.GloweDevAuth.isActive() || window.GloweDevAuth.isLocalSupabaseConfigured());
+    const signInLabel = localDev ? 'Dev sign in' : 'Sign up / Sign in';
     authButtons.innerHTML = `
-        <button class="btn btn-primary btn-small" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
+        <button class="btn btn-primary btn-small" type="button" onclick="handleGoogleSignIn()">${signInLabel}</button>
     `;
 }
 
@@ -1835,33 +1959,38 @@ function ensureBottomNavigation() {
             label: 'Home',
             href: homeHref,
             match: 'index',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>'
+            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>'
         },
         { 
             label: 'Wishes',
             href: `${prefix}wishing-well.html`,
             match: 'wishing-well',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>'
+            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>'
         },
         { 
             label: 'Community',
             href: `${prefix}community.html`,
             match: 'community',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>'
+            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg>'
         },
         { 
             label: 'Profile',
             href: `${prefix}my-applications.html`,
             match: 'my-applications',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>'
         }
     ];
 
     const linkHtml = (link) => {
         const active = bottomNavActive(page, link.match);
+        const icon = active ? link.iconFilled : link.iconOutline;
         return `
-            <a href="${link.href}" class="bottom-nav-link${active ? ' active' : ''}">
-                <span class="nav-icon">${link.icon}</span>
+            <a href="${link.href}" class="bottom-nav-link${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>
+                <span class="nav-icon">${icon}</span>
                 <span class="nav-label">${link.label}</span>
             </a>
         `;
@@ -1880,6 +2009,7 @@ function ensureBottomNavigation() {
 }
 
 function ensureGlobalUI() {
+    ensureLogoBrand();
     normalizeHeaderAuthButtons();
     normalizeHeaderUserMenu();
     ensureGlobalFooter();
@@ -2217,6 +2347,28 @@ function ensureGlobalUI() {
         `);
     }
 
+    if (!document.getElementById('cover-edit-modal')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="cover-edit-modal" class="modal">
+                <div class="modal-content cover-edit-modal-content">
+                    <span class="close-modal" onclick="closeCoverEditModal()">&times;</span>
+                    <h2>Change cover photo</h2>
+                    <div class="cover-edit-preview-wrap">
+                        <div id="cover-edit-preview" class="cover-edit-preview" hidden></div>
+                    </div>
+                    <input type="file" id="cover-edit-file" accept="image/*" hidden onchange="handleCoverEditFileChange(event)">
+                    <small id="cover-edit-status"></small>
+                    <div class="modal-actions cover-edit-actions">
+                        <button type="button" class="btn btn-outline" onclick="triggerCoverEditReplace()">Replace</button>
+                        <button type="button" class="btn btn-outline" onclick="handleCoverEditRemove()">Remove cover</button>
+                        <button type="button" class="btn btn-primary" id="cover-edit-save-btn" onclick="handleCoverEditSave()">Save cover</button>
+                        <button type="button" class="btn btn-outline" onclick="closeCoverEditModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
     if (!document.getElementById('glowe-onboarding-modal')) {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-onboarding-modal" class="modal">
@@ -2483,7 +2635,24 @@ function upgradeLoginModal() {
     const modal = document.getElementById('login-modal');
     if (!modal) return;
     const content = modal.querySelector('.modal-content');
-    if (!content || content.dataset.googleOnly === 'true') return;
+    if (!content) return;
+
+    if (window.GloweDevAuth && (window.GloweDevAuth.isActive() || window.GloweDevAuth.isLocalSupabaseConfigured())) {
+        if (content.dataset.googleOnly === 'local-dev') {
+            if (typeof window.bindLocalDevPersonaButtons === 'function') {
+                window.bindLocalDevPersonaButtons(content);
+            }
+            return;
+        }
+        content.innerHTML = window.GloweDevAuth.loginModalHtml();
+        content.dataset.googleOnly = 'local-dev';
+        if (typeof window.bindLocalDevPersonaButtons === 'function') {
+            window.bindLocalDevPersonaButtons(content);
+        }
+        return;
+    }
+
+    if (content.dataset.googleOnly === 'true') return;
     content.innerHTML = `
         <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
         <h2>Welcome Back!</h2>
@@ -2815,10 +2984,161 @@ async function handleAvatarEditSave() {
         }
 
         closeAvatarEditModal();
-        if (typeof window.renderPersonalArea === 'function') window.renderPersonalArea();
+        refreshOwnedProfileViews();
         showToast('Profile saved');
     } catch (error) {
         setAvatarEditStatus(error.message || 'Could not save photo.', { error: true });
+    } finally {
+        if (saveBtn) saveBtn.disabled = false;
+    }
+}
+
+let coverEditPendingFile = null;
+let coverEditRemoveRequested = false;
+let coverEditPreviewObjectUrl = null;
+
+function revokeCoverEditPreviewUrl() {
+    if (coverEditPreviewObjectUrl) {
+        URL.revokeObjectURL(coverEditPreviewObjectUrl);
+        coverEditPreviewObjectUrl = null;
+    }
+}
+
+function setCoverEditStatus(message, options) {
+    const status = document.getElementById('cover-edit-status');
+    if (!status) return;
+    status.textContent = message || '';
+    const isError = Boolean(options && options.error);
+    status.classList.toggle('is-error', isError && Boolean(message));
+    status.classList.toggle('is-info', !isError && Boolean(message));
+}
+
+function updateCoverEditPreview(src) {
+    const preview = document.getElementById('cover-edit-preview');
+    if (!preview) return;
+    if (src) {
+        preview.style.backgroundImage = `url('${String(src).replace(/'/g, "\\'")}')`;
+        preview.hidden = false;
+    } else {
+        preview.style.backgroundImage = '';
+        preview.hidden = true;
+    }
+}
+
+function resetCoverEditState() {
+    coverEditPendingFile = null;
+    coverEditRemoveRequested = false;
+    revokeCoverEditPreviewUrl();
+    setCoverEditStatus('');
+    const input = document.getElementById('cover-edit-file');
+    if (input) input.value = '';
+    const saveBtn = document.getElementById('cover-edit-save-btn');
+    if (saveBtn) saveBtn.disabled = false;
+}
+
+function closeCoverEditModal() {
+    resetCoverEditState();
+    closeModal('cover-edit-modal');
+}
+
+function openCoverEditModal() {
+    ensureGlobalUI();
+    resetCoverEditState();
+    const profile = getPersonalProfile();
+    updateCoverEditPreview(profileCoverImageUrl(profile));
+    openModal('cover-edit-modal');
+}
+
+function triggerCoverEditReplace() {
+    const input = document.getElementById('cover-edit-file');
+    if (input) input.click();
+}
+
+async function handleCoverEditFileChange(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+    if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
+        setCoverEditStatus('Preparing photo...');
+        const prepared = await orgHelpers.prepareAvatarUploadFile(file);
+        if (!prepared.ok) {
+            setCoverEditStatus(prepared.error, { error: true });
+            event.target.value = '';
+            return;
+        }
+        coverEditPendingFile = prepared.file;
+        coverEditRemoveRequested = false;
+        revokeCoverEditPreviewUrl();
+        coverEditPreviewObjectUrl = URL.createObjectURL(prepared.file);
+        updateCoverEditPreview(coverEditPreviewObjectUrl);
+        setCoverEditStatus(
+            prepared.compressed ? 'Photo optimized for upload.' : '',
+            { error: false }
+        );
+        return;
+    }
+    const check = orgHelpers ? orgHelpers.validateAvatarFile(file) : { valid: true };
+    if (!check.valid) {
+        setCoverEditStatus(check.error, { error: true });
+        event.target.value = '';
+        return;
+    }
+    coverEditPendingFile = file;
+    coverEditRemoveRequested = false;
+    revokeCoverEditPreviewUrl();
+    coverEditPreviewObjectUrl = URL.createObjectURL(file);
+    updateCoverEditPreview(coverEditPreviewObjectUrl);
+    setCoverEditStatus('');
+}
+
+function handleCoverEditRemove() {
+    coverEditPendingFile = null;
+    coverEditRemoveRequested = true;
+    revokeCoverEditPreviewUrl();
+    const input = document.getElementById('cover-edit-file');
+    if (input) input.value = '';
+    updateCoverEditPreview('');
+    setCoverEditStatus('Cover will be removed when you save.', { error: false });
+}
+
+async function handleCoverEditSave() {
+    const saveBtn = document.getElementById('cover-edit-save-btn');
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+        if (coverEditRemoveRequested) {
+            setCoverEditStatus('Saving...');
+            await persistPersonalProfile({ coverImageUrl: '' });
+        } else if (coverEditPendingFile) {
+            const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+            let fileToUpload = coverEditPendingFile;
+            if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
+                const prepared = await orgHelpers.prepareAvatarUploadFile(coverEditPendingFile);
+                if (!prepared.ok) {
+                    setCoverEditStatus(prepared.error, { error: true });
+                    return;
+                }
+                fileToUpload = prepared.file;
+            } else {
+                const check = orgHelpers ? orgHelpers.validateAvatarFile(coverEditPendingFile) : { valid: true };
+                if (!check.valid) {
+                    setCoverEditStatus(check.error, { error: true });
+                    return;
+                }
+            }
+            setCoverEditStatus('Uploading...');
+            const coverImageUrl = await uploadCoverImage(fileToUpload);
+            await persistPersonalProfile({ coverImageUrl });
+        } else {
+            closeCoverEditModal();
+            return;
+        }
+
+        closeCoverEditModal();
+        refreshOwnedProfileViews();
+        showToast('Profile saved');
+    } catch (error) {
+        setCoverEditStatus(error.message || 'Could not save cover photo.', { error: true });
     } finally {
         if (saveBtn) saveBtn.disabled = false;
     }
@@ -2941,7 +3261,7 @@ async function handlePersonalProjectSubmit(event) {
     if (typeof window.renderPersonalArea === 'function') {
         window.renderPersonalArea();
     }
-    showSuccessModal(id ? 'Project updated' : 'Project added', id
+    showActionToast(id ? 'Project updated' : 'Project added', id
         ? 'Your project changes were saved.'
         : 'The project now appears in your personal area.');
 }
@@ -3001,8 +3321,15 @@ async function handleWishSubmit(event) {
         });
         closeModal('wish-modal');
         event.target.reset();
-        showSuccessModal('Wish published', 'Your need is now live on the Wishing Well.');
-        if (reloadWishBoard) await reloadWishBoard();
+        showActionToast('Wish published', 'Your need is now live on the Wishing Well.');
+        const onWishPage = resolveGlowePage(window.location.pathname) === 'wishing-well';
+        if (onWishPage) {
+            if (typeof resetWishBoardFilters === 'function') resetWishBoardFilters();
+            if (reloadWishBoard) await reloadWishBoard();
+        } else {
+            const inPages = window.location.pathname.includes('/pages/');
+            window.location.href = `${inPages ? '' : 'pages/'}wishing-well.html`;
+        }
     } catch (_e) {
         showSuccessModal('Could not publish', 'Something went wrong publishing your wish. Please try again.');
     } finally {
@@ -3072,7 +3399,7 @@ async function submitSupportOffer(form, draft) {
         redirectToChatThread(chatId);
         return;
     }
-    showSuccessModal('Offer sent', 'Your offer of support has been recorded. The organizer can follow up with you.');
+    showActionToast('Offer sent', 'Your offer of support has been recorded. The organizer can follow up with you.');
 }
 
 async function handleConnectSubmit(event) {
@@ -3093,7 +3420,7 @@ async function handleConnectSubmit(event) {
 
 function handleQuickConnect() {
     closeModal('connect-modal');
-    showSuccessModal('Draft saved', 'Your offer draft is saved in this workspace so you can return to it later.');
+    showActionToast('Draft saved', 'Your offer draft is saved in this workspace so you can return to it later.');
 }
 
 // FR-GLOWE-010 AC6 — "Reach out" contact flow. Opens a lightweight modal that,
@@ -3189,7 +3516,7 @@ function openNotificationPrefs() {
 function handleNotificationPrefs(event) {
     event.preventDefault();
     closeModal('notification-modal');
-    showSuccessModal('Preferences saved', 'GloWe will focus on action-oriented updates and avoid unnecessary noise.');
+    showActionToast('Preferences saved', 'GloWe will focus on action-oriented updates and avoid unnecessary noise.');
 }
 
 function openFundingBrief() {
@@ -3256,11 +3583,11 @@ async function handleMessageSubmit(event) {
 }
 
 function addProjectFeedback() {
-    showSuccessModal('Feedback saved', 'This recommendation can appear on the project after community moderation.');
+    showActionToast('Feedback saved', 'This recommendation can appear on the project after community moderation.');
 }
 
 function rateOrganization(name = 'this organization') {
-    showSuccessModal('Rating recorded', `Your trust signal for ${name} will help rank active organizations by involvement and documented impact.`);
+    showActionToast('Rating recorded', `Your trust signal for ${name} will help rank active organizations by involvement and documented impact.`);
 }
 
 function toggleLowDataMode() {
@@ -3467,7 +3794,7 @@ function saveItem(type, id, title, meta = '', href = '') {
             window.gloweBackend.insertOwned('saved_items', payload).catch(() => {});
         }
     }
-    showSuccessModal('Saved', `${title} was added to your saved area.`);
+    showActionToast('Saved', `${title} was added to your saved area.`);
 }
 
 function removeSavedItem(type, id) {
@@ -3890,11 +4217,12 @@ async function copyShareLink(url) {
     showSuccessModal('Copy this link', url);
 }
 
-function renderShareButton(title, path = '') {
+function renderShareButton(title, path = '', extraClass = '') {
     const safeTitle = escapeHtml(title);
     const titleArg = jsString(title);
     const pathArg = jsString(path);
-    return `<button type="button" class="post-share-button" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="Share ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
+    const cls = ['post-share-button', extraClass].filter(Boolean).join(' ');
+    return `<button type="button" class="${cls}" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="Share ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
 }
 
 // FR-GLOWE-015 AC1 — persist a report to glowe_reports. Duplicate reports on
@@ -3933,7 +4261,7 @@ async function handleReportSubmit(event) {
         await window.gloweBackend.submitReport(GloweModeration.buildReportPayload(draft));
         event.target.reset();
         closeModal('report-modal');
-        showSuccessModal('Report received', 'Thank you. We will review this with care and confidentiality.');
+        showActionToast('Report received', 'Thank you. We will review this with care and confidentiality.');
     } catch (error) {
         closeModal('report-modal');
         showReportSubmitError(error);
@@ -4168,7 +4496,7 @@ async function deleteCommunityPost(postId) {
         return;
     }
     await initCommunityPage();
-    showSuccessModal('Post deleted', 'Your post was removed from the community feed.');
+    showActionToast('Post deleted', 'Your post was removed from the community feed.');
 }
 
 // Display name for the signed-in author, falling back to their saved profile.
@@ -4207,14 +4535,16 @@ function mapProfileToOrg(profile) {
     };
 }
 
-async function fetchAndPopulate(backendFn, targetArray, mapper) {
+async function fetchAndPopulate(backendFn, targetArray, mapper, postProcess) {
     try {
         if (typeof gloweBackend === 'undefined' || !gloweBackend.configured()) return;
         const rows = await backendFn();
         if (!rows) return;
         // FR-GLOWE-015 AC5 — admin-removed content never surfaces publicly.
         const visible = rows.filter(row => !row || row.status !== 'removed');
-        targetArray.splice(0, targetArray.length, ...visible.map(mapper));
+        let mapped = visible.map(mapper);
+        if (typeof postProcess === 'function') mapped = await postProcess(mapped);
+        targetArray.splice(0, targetArray.length, ...mapped);
     } catch (_e) {
         // leave array empty; page shows empty state
     }
@@ -4287,6 +4617,31 @@ async function withEnsuredAuthorEnglishNames(items) {
     return GloweLocalizedName.applyAuthorEnglishFromProfiles(list, patches);
 }
 
+// FR-GLOWE-024 — backfill missing organization English snapshots on opportunities
+// from the publisher's glowe_profiles row (generate-on-read when still empty).
+async function withEnsuredOrganizationEnglishNames(items) {
+    const list = Array.isArray(items) ? items.filter(Boolean) : [];
+    if (!list.length) return list;
+    if (gloweReaderLang() !== 'en') return list;
+    if (typeof GloweLocalizedName === 'undefined') return list;
+    const needing = list.filter(GloweLocalizedName.organizationNeedsEnglishName);
+    if (!needing.length) return list;
+    const ids = [];
+    const seen = {};
+    needing.forEach(function (row) {
+        const id = row.ownerId || row.userId;
+        if (!id || seen[String(id)]) return;
+        seen[String(id)] = true;
+        ids.push(String(id));
+    });
+    if (!ids.length) return list;
+    const backend = window.gloweBackend;
+    if (!backend || typeof backend.ensureProfileEnglishNames !== 'function') return list;
+    const patches = await backend.ensureProfileEnglishNames(ids);
+    if (!patches || !patches.length) return list;
+    return GloweLocalizedName.applyOrganizationEnglishFromProfiles(list, patches);
+}
+
 function translationToggleSlotHtml() {
     if (typeof GloweUiConventions !== 'undefined') {
         return GloweUiConventions.translationToggleSlotHtml();
@@ -4327,6 +4682,7 @@ function renderOpportunityCard(opportunity, basePath = '') {
     const location = opportunity.location || '';
     const duration = opportunity.duration || '';
     const commitment = opportunity.commitment || '';
+    const badgeTr = (!isEvent && commitment) ? ' data-tr-field="commitment"' : '';
 
     return `
         <div class="opportunity-card" data-tr-card data-tr-type="glowe_opportunity" data-tr-id="${opportunity.id}">
@@ -4343,19 +4699,19 @@ function renderOpportunityCard(opportunity, basePath = '') {
                     ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName)}
                     <span ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>
                 </div>
-                ${badge ? `<span class="opportunity-badge" title="${escapeHtml(badge)}">${escapeHtml(badge)}</span>` : ''}
+                ${badge ? `<span class="opportunity-badge" title="${escapeHtml(badge)}"${badgeTr}>${escapeHtml(badge)}</span>` : ''}
             </div>
             ${translationToggleSlotHtml()}
             <h3 class="opportunity-title" data-tr-field="title">${escapeHtml(opportunity.title)}</h3>
             <p class="opportunity-description" data-tr-field="description">${escapeHtml(opportunity.description)}</p>
             <div class="opportunity-meta-group opportunity-details">
                 ${eventMeta}
-                ${location ? `<span class="opportunity-detail"><strong>Location:</strong> ${escapeHtml(location)}</span>` : ''}
-                ${duration ? `<span class="opportunity-detail"><strong>Duration:</strong> ${escapeHtml(duration)}</span>` : ''}
-                ${!isEvent && commitment ? `<span class="opportunity-detail"><strong>Commitment:</strong> ${escapeHtml(commitment)}</span>` : ''}
+                ${location ? `<span class="opportunity-detail"><strong>Location:</strong> <span data-tr-field="location">${escapeHtml(location)}</span></span>` : ''}
+                ${duration ? `<span class="opportunity-detail"><strong>Duration:</strong> <span data-tr-field="duration">${escapeHtml(duration)}</span></span>` : ''}
+                ${!isEvent && commitment ? `<span class="opportunity-detail"><strong>Commitment:</strong> <span data-tr-field="commitment">${escapeHtml(commitment)}</span></span>` : ''}
             </div>
             <div class="opportunity-skills">
-                ${skills.map(skill => `<span class="skill-tag" title="${escapeHtml(skill)}">${escapeHtml(skill)}</span>`).join('')}
+                ${skills.map((skill, i) => `<span class="skill-tag" title="${escapeHtml(skill)}" data-tr-field="skills.${i}">${escapeHtml(skill)}</span>`).join('')}
             </div>
             <div class="card-actions">
                 <a href="${detailHref}" class="btn btn-primary btn-small">View Details</a>
@@ -4425,19 +4781,21 @@ function renderWishCard(wish) {
         ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
             || authorPair.primary || 'GloWe Member'
         : (wish.author || 'GloWe Member');
+    const wishHref = `wishing-well.html?wish=${wish.id}`;
     return `
         <article class="wish-card" style="--tag-color: ${style.color}" data-tr-card data-tr-type="glowe_post" data-tr-id="${wish.id}">
             <details class="post-more-menu card-more-menu">
                 <summary aria-label="More wish actions">...</summary>
                 <div class="post-more-panel">
-                    ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, `wishing-well.html?wish=${wish.id}`, 'Save wish', 'post-menu-action')}
+                    ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save wish', 'post-menu-action')}
+                    <button type="button" onclick="sharePost('${jsString(wish.title)}', '${jsString(wishHref)}')">Share</button>
                     <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')">Message author</button>
                     <button type="button" onclick="openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')">Report</button>
                 </div>
             </details>
             <div class="wish-card-top">
                 <span class="wish-type" style="background:${style.color}" title="${escapeHtml(wish.type)}">${escapeHtml(wish.type)}</span>
-                ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, `wishing-well.html?wish=${wish.id}`, 'Save', 'heart-button')}
+                ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save', 'heart-button wish-save-desktop')}
             </div>
             ${translationToggleSlotHtml()}
             <button class="card-open-button" type="button" onclick="openWishDetail('${wish.id}')">
@@ -4459,7 +4817,7 @@ function renderWishCard(wish) {
             <button class="btn btn-outline btn-small" type="button" onclick="openWishDetail('${wish.id}')">Learn More</button>
             <button class="btn btn-primary btn-small" type="button" onclick="showSupportModal('${wish.id}')">Offer Support</button>
             ${wishOwnerControls(wish)}
-            ${renderShareButton(wish.title, `wishing-well.html?wish=${wish.id}`)}
+            ${renderShareButton(wish.title, wishHref, 'wish-share-action')}
         </div>
     </article>
 `;
@@ -4792,7 +5150,7 @@ async function handleInlinePostSubmit(event) {
     if (!published) return;
     closeInlineComposer();
     await initCommunityPage();
-    showSuccessModal('Post published to feed', 'The new post appears at the top of the community feed.');
+    showActionToast('Post published to feed', 'The new post appears at the top of the community feed.');
 }
 
 function initWritePostPage() {
@@ -4868,7 +5226,7 @@ function initWritePostPage() {
             author_name_en: author.english || null
         });
         if (!published) return;
-        showSuccessModal('Post connected to feed', 'Your post was saved and will appear at the top of the community feed.');
+        showActionToast('Post connected to feed', 'Your post was saved and will appear at the top of the community feed.');
         setTimeout(() => {
             window.location.href = 'community.html';
         }, 700);
@@ -4912,7 +5270,7 @@ async function initFeaturedOpportunities() {
     const container = document.getElementById('featured-opportunities');
     if (container) {
         container.innerHTML = '<p class="muted-note">Loading opportunities…</p>';
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow);
+        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         const featured = getFeaturedOpportunities().slice(0, 3);
         container.innerHTML = featured.length
             ? featured.map(opp => renderOpportunityCard(opp)).join('')
@@ -4973,6 +5331,7 @@ function selectCommunityHighlights(opportunities, posts, limit = 6) {
         if (postItems[i]) mixed.push(postItems[i]);
         if (oppItems[i]) mixed.push(oppItems[i]);
     }
+    if (limit == null || limit === Infinity) return mixed;
     return mixed.slice(0, limit);
 }
 
@@ -4982,34 +5341,86 @@ function renderMemberFeedPost(post) {
     const postId = post.id || '';
     const href = `pages/community.html#post-${encodeURIComponent(postId)}`;
     const snippet = (post.text || '').slice(0, 140);
+    const authorPair = authorNamePairFrom(post);
     const authorName = (typeof GloweLocalizedName !== 'undefined')
         ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
         : (post.authorName || 'Community Member');
     return `
-        <a class="member-feed-card" href="${href}">
-            <span class="member-feed-type">Post${post.category ? ` · ${escapeHtml(post.category)}` : ''}</span>
-            <h3>${escapeHtml(post.title || 'Community post')}</h3>
-            <p>${escapeHtml(snippet)}</p>
-            <span class="member-feed-author">${escapeHtml(authorName)}</span>
-        </a>`;
+        <article class="member-feed-card" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postId))}">
+            ${translationToggleSlotHtml()}
+            <a class="member-feed-card-link" href="${href}">
+                <span class="member-feed-type">Post${post.category ? ` · ${escapeHtml(post.category)}` : ''}</span>
+                <h3 data-tr-field="title">${escapeHtml(post.title || 'Community post')}</h3>
+                <p data-tr-field="text">${escapeHtml(snippet)}</p>
+                <span class="member-feed-author" ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
+            </a>
+        </article>`;
+}
+
+// Compact opportunity teaser for the member-home grid. The full
+// renderOpportunityCard() is too tall here: card-actions uses margin-top:auto
+// and stretches against taller post neighbours in the same grid row.
+function renderMemberFeedOpportunity(opportunity) {
+    const detailHref = `pages/opportunity.html?id=${encodeURIComponent(opportunity.id)}`;
+    const snippet = (opportunity.description || '').slice(0, 140);
+    const orgName = (typeof GloweLocalizedName !== 'undefined')
+        ? GloweLocalizedName.localizedOrganizationName(opportunity, gloweReaderLang(), 'GloWe Member')
+        : (opportunity.organization || 'GloWe Member');
+    const orgPair = orgNamePairFrom(opportunity);
+    return `
+        <article class="member-feed-card member-feed-opportunity" data-tr-card data-tr-type="glowe_opportunity" data-tr-id="${escapeHtml(String(opportunity.id))}">
+            <div class="member-feed-opportunity-header">
+                ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName, 'entity-mark')}
+                <span class="member-feed-opportunity-org" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>
+            </div>
+            ${translationToggleSlotHtml()}
+            <a class="member-feed-card-link" href="${detailHref}">
+                <span class="member-feed-type">Opportunity</span>
+                <h3 data-tr-field="title">${escapeHtml(opportunity.title || 'Opportunity')}</h3>
+                <p data-tr-field="description">${escapeHtml(snippet)}</p>
+            </a>
+        </article>`;
 }
 
 function renderMemberHighlight(entry) {
     return entry.kind === 'opportunity'
-        ? renderOpportunityCard(entry.item)
+        ? renderMemberFeedOpportunity(entry.item)
         : renderMemberFeedPost(entry.item);
 }
 
-function renderMemberHomeMarkup(firstName, activity, highlights) {
+function scheduleMemberHomeTranslation(root) {
+    if (!root || !window.GloweTranslate || typeof window.GloweTranslate.scan !== 'function') return;
+    const scan = function () {
+        // Retry cards that rendered before the Supabase client was ready.
+        root.querySelectorAll('[data-tr-card]').forEach(function (card) {
+            if (!card.querySelector('.tr-toggle')) card.removeAttribute('data-tr-done');
+        });
+        window.GloweTranslate.scan(root);
+    };
+    scan();
+    setTimeout(scan, 500);
+    setTimeout(scan, 2000);
+}
+
+function isGloweMobileHomeViewport() {
+    return window.matchMedia('(max-width: 680px)').matches;
+}
+
+function renderMemberHomeMarkup(firstName, activity, highlights, options = {}) {
+    const { communityOnly = false } = options;
     const activityBody = activity.length
         ? activity.map(renderMemberFeedPost).join('')
         : '<div class="empty-state"><h3>You have not shared anything yet</h3><p>Your posts, opportunities, and requests will gather here.</p><a class="btn btn-primary btn-small" href="pages/community.html">Write your first post</a></div>';
     const highlightsBody = highlights.length
         ? highlights.map(renderMemberHighlight).join('')
         : '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
-    return `
-        <div class="container member-home-inner">
-            <section class="member-hero">
+    const communityToolbar = communityOnly ? '' : `
+                <div class="section-toolbar">
+                    <div><h2>What is happening on GloWe</h2></div>
+                    <a class="btn btn-outline btn-small" href="pages/community.html">See all</a>
+                </div>`;
+    const personalSections = communityOnly ? '' : `
+            <section class="member-hero member-home-personal">
                 <div class="member-hero-copy">
                     <span class="hero-kicker">Your GloWe</span>
                     <h1>Welcome back, <span class="member-hero-name">${escapeHtml(firstName)}</span></h1>
@@ -5021,18 +5432,18 @@ function renderMemberHomeMarkup(firstName, activity, highlights) {
                     <button class="btn btn-outline btn-large" type="button" onclick="openWishModal()">Ask for support</button>
                 </div>
             </section>
-            <section class="member-section">
+            <section class="member-section member-home-personal">
                 <div class="section-toolbar">
                     <div><h2>Your activity</h2></div>
                     <a class="btn btn-outline btn-small" href="pages/my-applications.html">Open Personal Area</a>
                 </div>
                 <div class="member-feed-grid">${activityBody}</div>
-            </section>
-            <section class="member-section">
-                <div class="section-toolbar">
-                    <div><h2>What is happening on GloWe</h2></div>
-                    <a class="btn btn-outline btn-small" href="pages/community.html">See all</a>
-                </div>
+            </section>`;
+    return `
+        <div class="container member-home-inner${communityOnly ? ' member-home-community-only' : ''}">
+            ${personalSections}
+            <section class="member-section member-home-community">
+                ${communityToolbar}
                 <div class="member-feed-grid">${highlightsBody}</div>
             </section>
         </div>`;
@@ -5046,7 +5457,7 @@ async function initMemberHome() {
     root.innerHTML = '<div class="container"><p class="muted-note">Loading your GloWe home…</p></div>';
 
     await Promise.all([
-        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow),
+        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames),
         loadCommunityPosts(),
         loadPostComments()
     ]);
@@ -5055,9 +5466,13 @@ async function initMemberHome() {
     const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
     const firstName = localizedProfileFirstName(profile, 'there');
     const allPosts = getAllCommunityPosts();
-    const activity = selectMemberActivity(allPosts, user ? user.id : '');
-    const highlights = selectCommunityHighlights(getAllOpportunitiesForDisplay(), allPosts);
-    root.innerHTML = renderMemberHomeMarkup(firstName, activity, highlights);
+    const communityOnly = isGloweMobileHomeViewport();
+    const activity = communityOnly ? [] : selectMemberActivity(allPosts, user ? user.id : '');
+    const highlightLimit = communityOnly ? null : 6;
+    const highlights = selectCommunityHighlights(getAllOpportunitiesForDisplay(), allPosts, highlightLimit);
+    root.classList.toggle('member-home-community-only', communityOnly);
+    root.innerHTML = renderMemberHomeMarkup(firstName, activity, highlights, { communityOnly });
+    scheduleMemberHomeTranslation(root);
 }
 
 // Initialize all opportunities page
@@ -5097,7 +5512,7 @@ async function initOpportunitiesPage() {
     // Re-fetch the live board after a publish so created opportunities appear
     // with real server ids (working detail links), not a client-side copy.
     reloadOpportunities = async function () {
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow);
+        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     };
 
@@ -5146,7 +5561,7 @@ async function initOpportunitiesPage() {
     // Fetch real data then render
     if (container) {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading opportunities…</p></div>';
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow);
+        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     }
 
@@ -5268,7 +5683,7 @@ async function handleOpportunitySubmit(event) {
         closeOpportunityComposer();
         event.target.reset();
         if (reloadOpportunities) await reloadOpportunities();
-        showSuccessModal('Opportunity published', `${payload.title} was added to the opportunities board.`);
+        showActionToast('Opportunity published', `${payload.title} was added to the opportunities board.`);
     } catch (_e) {
         showSuccessModal('Could not publish', 'Something went wrong publishing your opportunity. Please try again.');
     }
@@ -5354,23 +5769,48 @@ async function initOrganizationsPage() {
 // Re-read + re-render the wish board after a create/close. Assigned when the
 // Wishing Well page initialises; a no-op elsewhere.
 let reloadWishBoard = null;
+let resetWishBoardFilters = null;
 
 async function initWishingWellPage() {
     const container = document.getElementById('wishes-list');
     const typeButtons = document.querySelectorAll('[data-wish-type]');
     const areaButtons = document.querySelectorAll('[data-impact-area]');
-    const locationInput = document.getElementById('wish-location');
+    const searchInput = document.getElementById('wish-search');
+    const sortSelect = document.getElementById('wish-sort');
     const clearBtn = document.getElementById('clear-wish-filters');
-    const filters = { type: 'all', area: 'all', location: '' };
+    const resultsCount = document.getElementById('wish-results-count');
+    const filterToggle = document.getElementById('wish-filter-toggle');
+    const advancedFilters = document.getElementById('wish-filter-advanced');
+    const filters = { type: 'all', area: 'all', query: '', sort: 'newest' };
 
     function renderWishes() {
         const helpers = (typeof GloweWishes !== 'undefined') ? GloweWishes : null;
-        const hasFilters = filters.type !== 'all' || filters.area !== 'all' || filters.location;
+        const hasFilters = filters.type !== 'all' || filters.area !== 'all' || filters.query;
         const filtered = helpers ? helpers.filterWishes(wishes, filters) : wishes;
-        container.innerHTML = filtered.length
-            ? filtered.map(renderWishCard).join('')
+        const sorted = helpers ? helpers.sortWishes(filtered, filters.sort) : filtered;
+        container.innerHTML = sorted.length
+            ? sorted.map(renderWishCard).join('')
             : hasFilters ? emptyWishFilteredHtml() : emptyWishBoardHtml();
+        if (resultsCount) {
+            resultsCount.textContent = sorted.length
+                ? `${sorted.length} wish${sorted.length === 1 ? '' : 'es'} shown`
+                : hasFilters ? 'No wishes match your filters' : '';
+        }
     }
+
+    resetWishBoardFilters = function () {
+        filters.type = 'all';
+        filters.area = 'all';
+        filters.query = '';
+        filters.sort = 'newest';
+        if (searchInput) searchInput.value = '';
+        if (sortSelect) sortSelect.value = 'newest';
+        typeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.wishType === 'all'));
+        areaButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.impactArea === 'all'));
+        if (advancedFilters) advancedFilters.classList.remove('is-open');
+        if (filterToggle) filterToggle.setAttribute('aria-expanded', 'false');
+        renderWishes();
+    };
 
     reloadWishBoard = async function () { await loadLiveWishes(); renderWishes(); };
 
@@ -5386,24 +5826,30 @@ async function initWishingWellPage() {
         this.classList.add('active');
         renderWishes();
     }));
-    if (locationInput) locationInput.addEventListener('input', function() {
-        filters.location = this.value;
+    if (searchInput) searchInput.addEventListener('input', function() {
+        filters.query = this.value.trim();
         renderWishes();
     });
-    if (clearBtn) clearBtn.addEventListener('click', function() {
-        filters.type = 'all';
-        filters.area = 'all';
-        filters.location = '';
-        if (locationInput) locationInput.value = '';
-        typeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.wishType === 'all'));
-        areaButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.impactArea === 'all'));
+    if (sortSelect) sortSelect.addEventListener('change', function() {
+        filters.sort = this.value || 'newest';
         renderWishes();
     });
+    if (filterToggle && advancedFilters) {
+        filterToggle.addEventListener('click', function() {
+            const open = advancedFilters.classList.toggle('is-open');
+            filterToggle.setAttribute('aria-expanded', String(open));
+        });
+    }
+    if (clearBtn) clearBtn.addEventListener('click', resetWishBoardFilters);
     if (container) {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
         await loadLiveWishes();
         renderWishes();
     }
+    window.addEventListener('pageshow', function onWishBoardShow(event) {
+        if (!event.persisted || !container) return;
+        reloadWishBoard();
+    });
 }
 
 function emptyWishFilteredHtml() {
@@ -5789,11 +6235,11 @@ function renderModerationReports(reports) {
 async function applyGloweReportDecision(reportId, action, targetType, targetId) {
     if (action === 'remove') {
         await window.gloweBackend.adminRemoveContent(GloweModeration.canonicalTargetType(targetType), targetId, reportId);
-        showSuccessModal('Content removed', 'The reported content is no longer publicly visible.');
+        showActionToast('Content removed', 'The reported content is no longer publicly visible.');
         return;
     }
     await window.gloweBackend.adminDismissReport(reportId);
-    showSuccessModal('Report dismissed', 'The report was closed with no action.');
+    showActionToast('Report dismissed', 'The report was closed with no action.');
 }
 
 function showModerationDecisionError(error) {
@@ -5919,7 +6365,7 @@ async function decideGloweOrg(profileId, decision) {
         return;
     }
     const verb = decision === 'approved' ? 'approved' : 'rejected';
-    showSuccessModal('Decision saved', `The organization has been ${verb}.`);
+    showActionToast('Decision saved', `The organization has been ${verb}.`);
     loadPendingOrgs();
 }
 
@@ -6022,7 +6468,7 @@ async function handleForumQuestionSubmit(event) {
         tags: group.tags,
         audience: group.title
     });
-    showSuccessModal('Question published', 'Your forum post is now visible in the forum and community feed.');
+    showActionToast('Question published', 'Your forum post is now visible in the forum and community feed.');
     form.reset();
     await reloadForumThreads();
     initForumsPage();
@@ -6196,7 +6642,7 @@ async function handleDiscussionSubmit(event, groupId) {
         tags: group.tags,
         audience: group.title
     });
-    showSuccessModal('Thread published', 'Your discussion thread now appears in the community feed and this group.');
+    showActionToast('Thread published', 'Your discussion thread now appears in the community feed and this group.');
     event.target.reset();
     await reloadForumThreads();
     initDiscussionGroupPage();
@@ -6261,6 +6707,7 @@ function _adaptDbProfile(p, projects) {
         orgDescription: p.orgDescription || '',
         orgField: p.orgField || '',
         avatarUrl: p.avatarUrl || '',
+        coverImageUrl: profileCoverImageUrl(p),
         _raw: p,
         isOwnerView: false
     };
@@ -6375,7 +6822,7 @@ function _renderProfileContent(profile, container) {
 
     container.innerHTML = `
         <section class="profile-cover profile-story-cover">
-            <div class="profile-cover-band"></div>
+            ${renderSocialCover(profile, { editable: isOwnerView, band: true })}
             <div class="profile-hero">
                 ${avatarHtml}
                 <div class="profile-summary">
@@ -6598,12 +7045,10 @@ function _renderProfileContent(profile, container) {
 }
 
 // Initialize opportunity detail page
-// FR-TRANSLATE-005 AC7 — mark the opportunity detail page's `.opportunity-main`
-// as a translatable card, then nudge the GloweTranslate driver. Title +
-// description carry scalar `data-tr-field`s here; the requirements/
-// responsibilities chips are tagged per-element by the caller before this runs.
+// FR-TRANSLATE-005 AC7 — mark the opportunity detail grid as one translatable
+// card (main + sidebar meta), then nudge the GloweTranslate driver.
 function markOpportunityDetailForTranslation(opportunityId) {
-    const card = document.querySelector('.opportunity-main');
+    const card = document.querySelector('.opportunity-detail-grid');
     if (!card || !opportunityId) return;
     card.setAttribute('data-tr-card', '');
     card.setAttribute('data-tr-type', 'glowe_opportunity');
@@ -6612,6 +7057,12 @@ function markOpportunityDetailForTranslation(opportunityId) {
     if (title) title.setAttribute('data-tr-field', 'title');
     const description = document.getElementById('opp-description');
     if (description) description.setAttribute('data-tr-field', 'description');
+    const location = document.getElementById('opp-location');
+    if (location) location.setAttribute('data-tr-field', 'location');
+    const duration = document.getElementById('opp-duration');
+    if (duration) duration.setAttribute('data-tr-field', 'duration');
+    const commitment = document.getElementById('opp-commitment');
+    if (commitment) commitment.setAttribute('data-tr-field', 'commitment');
     if (window.GloweTranslate && typeof window.GloweTranslate.scan === 'function') {
         window.GloweTranslate.scan();
     }
@@ -6630,7 +7081,7 @@ async function initOpportunityDetailPage() {
     // opportunities/events aren't present yet — fetch before the lookup.
     if (!getOpportunityByAnyId(opportunityId)
         && typeof gloweBackend !== 'undefined' && gloweBackend.configured()) {
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow);
+        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
     }
 
     const opportunity = getOpportunityByAnyId(opportunityId);
@@ -6651,12 +7102,9 @@ async function initOpportunityDetailPage() {
     document.getElementById('opp-commitment').textContent = opportunity.commitment;
     document.getElementById('opp-description').textContent = opportunity.description;
 
-    // FR-TRANSLATE-005 AC7 — requirements/responsibilities are text[] columns;
-    // tag each chip with a per-element field ("requirements.<i>") so the reader
-    // driver translates and caches every item independently. `skills` stays
-    // untranslated (short tech/label tags, excluded from the registry by AC4).
-    // Explicit empty state so a blank section reads as "nothing listed" rather
-    // than a load error (design fix #2 — Missing Empty States).
+    // FR-TRANSLATE-005 AC7 — requirements/responsibilities/skills are text[]
+    // columns; tag each chip with a per-element field so the reader driver
+    // translates and caches every item independently.
     const emptyDetail = '<li class="empty-detail">None specified for this opportunity.</li>';
 
     const requirementsList = document.getElementById('opp-requirements');
@@ -6671,12 +7119,14 @@ async function initOpportunityDetailPage() {
         ? resps.map((resp, i) => `<li data-tr-field="responsibilities.${i}">${escapeHtml(resp)}</li>`).join('')
         : emptyDetail;
 
-    // Mark the card + scan AFTER the chips exist so title, description and every
-    // array element are collected in a single pass (the card gets data-tr-done).
-    markOpportunityDetailForTranslation(opportunity.id);
-    
     const skillsContainer = document.getElementById('opp-skills');
-    skillsContainer.innerHTML = (opportunity.skills || []).map(skill => `<span class="skill-tag" title="${escapeHtml(skill)}">${escapeHtml(skill)}</span>`).join('');
+    const skillItems = (opportunity.skills || []).filter(Boolean);
+    skillsContainer.innerHTML = skillItems.length
+        ? skillItems.map((skill, i) => `<span class="skill-tag" title="${escapeHtml(skill)}" data-tr-field="skills.${i}">${escapeHtml(skill)}</span>`).join('')
+        : '';
+
+    // Mark the card + scan AFTER every tagged field exists (main + sidebar).
+    markOpportunityDetailForTranslation(opportunity.id);
     
     // Organization info
     const org = getOrganizationByName(opportunity.organization);
@@ -7246,6 +7696,11 @@ function initMyApplicationsPage() {
         const bioText = bioSrc.text || profile.shortLine || profile.about || profile.story || 'Your GloWe profile is ready to be completed.';
         const chipHtml = chip ? renderProfileStatusChipHtml(chip) : '';
         const cameraIcon = ux ? ux.CAMERA_ICON_SVG : '';
+        const isOrganization = profile.accountType === 'organization';
+        const profileTypeHtml = isOrganization
+            ? `<span class="profile-type">${escapeHtml(profile.type || 'Organization')}</span>`
+            : '';
+        const editIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
         // FR-GLOWE-024 — EN UI prefers display_name_en; HE prefers primary Hebrew name.
         const heroDisplayName = (typeof GloweLocalizedName !== 'undefined')
             ? GloweLocalizedName.localizedProfileName(profile, gloweReaderLang())
@@ -7255,7 +7710,7 @@ function initMyApplicationsPage() {
             <div class="personal-shell personal-shell--compact">
                 <div class="personal-main">
                     ${showProfileSkeleton ? personalProfileSkeletonHero() : `<section class="social-profile-hero" id="personal-profile">
-                        <div class="social-cover"></div>
+                        ${renderSocialCover(profile, { editable: true })}
                         <div class="social-profile-body">
                             <div class="social-profile-head">
                                 <div class="social-avatar-wrap">
@@ -7264,10 +7719,13 @@ function initMyApplicationsPage() {
                                 </div>
                                 <div class="social-profile-copy">
                                     <div class="social-profile-tags">
-                                        <span class="profile-type">${escapeHtml(profile.type || 'Personal workspace')}</span>
+                                        ${profileTypeHtml}
                                         ${chipHtml}
                                     </div>
-                                    <h2 ${bilingualNameAttrs(namePair.primary, namePair.english)}>${escapeHtml(heroDisplayName)}</h2>
+                                    <h2 class="social-profile-name-row">
+                                        <span ${bilingualNameAttrs(namePair.primary, namePair.english)}>${escapeHtml(heroDisplayName)}</span>
+                                        <button type="button" class="profile-name-edit-btn" aria-label="Edit profile" title="Edit profile" onclick="openEditProfile()">${editIcon}</button>
+                                    </h2>
                                     <div class="social-profile-bio" data-tr-card data-tr-type="glowe_profile" data-tr-id="${escapeHtml(profile.id || '')}">
                                         <p data-tr-field="${bioSrc.field || 'about'}">${escapeHtml(bioText)}</p>
                                     </div>
@@ -7279,10 +7737,8 @@ function initMyApplicationsPage() {
                                 <span>${escapeHtml(profile.availability || 'Team size not added yet')}</span>
                             </div>
                             <div class="personal-actions">
-                                <button class="btn btn-primary" type="button" onclick="openEditProfile()">Edit Profile</button>
                                 <button class="btn btn-outline" type="button" onclick="openPersonalProjectModal()">Add Project</button>
                                 <a class="btn btn-outline" href="community.html">Write Post</a>
-                                <a class="btn btn-outline" href="settings.html">Settings</a>
                             </div>
                         </div>
                     </section>`}
@@ -7314,12 +7770,12 @@ function initMyApplicationsPage() {
                             <div class="profile-section-heading">
                                 <span>01</span>
                                 <h2>Profile From Questionnaire</h2>
-                                ${sessionStorage.getItem(QUESTIONNAIRE_BADGE_DISMISSED_KEY) === '1' ? '' : `
+                                ${isOrganization && sessionStorage.getItem(QUESTIONNAIRE_BADGE_DISMISSED_KEY) !== '1' ? `
                                     <span class="questionnaire-type-badge">
-                                        ${escapeHtml(profile.accountType === 'organization' ? 'Organization' : 'Individual')}
+                                        ${escapeHtml('Organization')}
                                         <button type="button" class="questionnaire-badge-close" onclick="dismissQuestionnaireBadge()" aria-label="Dismiss">&times;</button>
                                     </span>
-                                `}
+                                ` : ''}
                                 <button type="button" class="section-collapse-toggle" onclick="toggleQuestionnaireProfile()" aria-expanded="${!isQuestionnaireCollapsed()}">
                                     ${isQuestionnaireCollapsed() ? 'Show details' : 'Hide details'}
                                     <span class="collapse-chevron" aria-hidden="true">▾</span>
@@ -7575,10 +8031,25 @@ async function cancelMyEvent(registrationId) {
 }
 
 const GLOWE_LANG_KEY = 'gloweLang';
-const GLOWE_RTL_LANGS = ['he'];
+
+// FR-TRANSLATE-003 — interface languages GloWe offers. Single source of truth
+// for the header picker and the Settings select. `native` is the endonym, so a
+// speaker recognizes their language without having to read English first.
+// Keep in sync with SUPPORTED_TARGET_LANGUAGES (supabase/functions/_shared/
+// translation/supportedLanguages.ts), which gates UGC translation targets.
+const GLOWE_LANGUAGES = [
+    { code: 'en', native: 'English' },
+    { code: 'he', native: 'עברית' },
+    { code: 'ru', native: 'Русский' },
+    { code: 'ar', native: 'العربية' },
+    { code: 'am', native: 'አማርኛ' }
+];
+
+const GLOWE_RTL_LANGS = ['he', 'ar'];
 
 function getGloweLanguage() {
-    return localStorage.getItem(GLOWE_LANG_KEY) || 'en';
+    const stored = localStorage.getItem(GLOWE_LANG_KEY);
+    return GLOWE_LANGUAGES.some(l => l.code === stored) ? stored : 'en';
 }
 
 // FR-GLOWE-004 — interface i18n. English is the base; only the chrome (nav,
@@ -7605,8 +8076,12 @@ const GLOWE_TRANSLATIONS = {
         'Needs changes': 'דרושים שינויים',
         'Save profile': 'שמירת פרופיל',
         'Change profile photo': 'שינוי תמונת פרופיל',
+        'Change cover photo': 'שינוי תמונת נושא',
         'Remove photo': 'הסרת תמונה',
+        'Remove cover': 'הסרת תמונת נושא',
         'Save photo': 'שמירת תמונה',
+        'Save cover': 'שמירת תמונת נושא',
+        'Cover will be removed when you save.': 'תמונת הנושא תוסר לאחר השמירה.',
         'Profile saved': 'הפרופיל נשמר',
         'Could not save profile.': 'לא ניתן לשמור את הפרופיל.',
         'Replace': 'החלפה',
@@ -7732,7 +8207,7 @@ const GLOWE_TRANSLATIONS = {
         'Open Personal Area': 'מעבר לאזור האישי',
         'Language': 'שפה',
         'Interface language': 'שפת הממשק',
-        'Choose the language for the GloWe interface. Hebrew is shown in a right-to-left (RTL) layout.': 'בחרו את שפת הממשק של GloWe. עברית מוצגת בפריסת ימין-לשמאל (RTL).',
+        'Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.': 'בחרו את שפת הממשק של GloWe. עברית וערבית מוצגות בפריסת ימין-לשמאל (RTL).',
         'English': 'אנגלית',
         'Hebrew': 'עברית',
         'Session': 'התנתקות',
@@ -8874,6 +9349,3792 @@ const GLOWE_TRANSLATIONS = {
         "The report was closed with no action.": "הדיווח נסגר ללא פעולה.",
         "Only GloWe reviewers can act on reports.": "רק בודקים של GloWe יכולים לטפל בדיווחים.",
         "Open reported item": "פתיחת הפריט שדווח"
+    },
+    ru: {
+        "Show original": "Показать оригинал",
+        "Show translation": "Показать перевод",
+        "Translating…": "Перевод…",
+        "Name in English (optional)": "Имя на английском (необязательно)",
+        "Latin / English display name": "Отображаемое имя латиницей / на английском",
+        "Latin / English name — auto-filled if left blank": "Имя латиницей / на английском — заполнится автоматически, если оставить пустым",
+        "Organization name in English (optional)": "Название организации на английском (необязательно)",
+        "Organization name in English": "Название организации на английском",
+        "English org name — auto-filled if blank": "Название организации на английском — заполнится автоматически, если оставить пустым",
+        "Complete profile": "Заполнить профиль",
+        "Pending review": "На рассмотрении",
+        "Needs changes": "Требуются изменения",
+        "Save profile": "Сохранить профиль",
+        "Change profile photo": "Изменить фото профиля",
+        "Change cover photo": "Изменить обложку",
+        "Remove cover": "Удалить обложку",
+        "Save cover": "Сохранить обложку",
+        "Cover will be removed when you save.": "Обложка будет удалена при сохранении.",
+        "Remove photo": "Удалить фото",
+        "Save photo": "Сохранить фото",
+        "Profile saved": "Профиль сохранён",
+        "Could not save profile.": "Не удалось сохранить профиль.",
+        "Replace": "Заменить",
+        "Cancel": "Отмена",
+        "Photo will be removed when you save.": "Фото будет удалено при сохранении.",
+        "Saving...": "Сохранение...",
+        "Uploading...": "Загрузка...",
+        "Preparing photo...": "Подготовка фото...",
+        "Photo optimized for upload.": "Фото оптимизировано для загрузки.",
+        "Could not read image.": "Не удалось прочитать изображение.",
+        "Could not compress image.": "Не удалось сжать изображение.",
+        "Image is too large. Try a smaller photo.": "Изображение слишком большое. Попробуйте фото меньшего размера.",
+        "Image is too large even after compression. Try a smaller photo.": "Изображение слишком большое даже после сжатия. Попробуйте фото меньшего размера.",
+        "Could not save photo.": "Не удалось сохранить фото.",
+        "Followers": "Подписчики",
+        "Following": "Подписки",
+        "+ Follow": "+ Подписаться",
+        "Following ✓": "Вы подписаны ✓",
+        "Stop following": "Отписаться",
+        "This account requires approval to follow.": "Для подписки на этот аккаунт требуется одобрение.",
+        "No followers yet": "Пока нет подписчиков",
+        "Not following anyone yet": "Вы пока ни на кого не подписаны",
+        "Sign in to follow": "Войдите, чтобы подписаться",
+        "Sign in with Google to follow profiles and stay updated on their work.": "Войдите через Google, чтобы подписываться на профили и следить за их работой.",
+        "Can't follow this profile": "Невозможно подписаться на этот профиль",
+        "Could not follow": "Не удалось подписаться",
+        "Could not unfollow": "Не удалось отписаться",
+        "Connections": "Связи",
+        "Sign in to see connections": "Войдите, чтобы увидеть связи",
+        "Show details": "Показать подробности",
+        "Hide details": "Скрыть подробности",
+        "Individual": "Частное лицо",
+        "Settings": "Настройки",
+        "Opportunities": "Возможности",
+        "My Events": "Мои мероприятия",
+        "Focus not added yet": "Направление ещё не добавлено",
+        "Saved from the GloWe community": "Сохранено из сообщества GloWe",
+        "Loading your event registrations…": "Загружаем ваши регистрации на мероприятия…",
+        "Education & Knowledge": "Образование и знания",
+        "Environment & Climate Action": "Экология и климатические действия",
+        "Health & Community Care": "Здоровье и забота о сообществе",
+        "Rights, Safety & Civic Power": "Права, безопасность и гражданская сила",
+        "A focused group for learning spaces, youth programs, multilingual knowledge sharing, and practical education tools.": "Тематическая группа для образовательных пространств, молодёжных программ, многоязычного обмена знаниями и практических учебных инструментов.",
+        "For climate, food systems, waste, restoration, repair, and local environmental action.": "Для климата, продовольственных систем, отходов, восстановления, ремонта и местных экологических инициатив.",
+        "A moderated space for wellbeing, preventive health, emergency response, and community care methods.": "Модерируемое пространство для благополучия, профилактики здоровья, реагирования на чрезвычайные ситуации и методов заботы о сообществе.",
+        "For rights-based action, civic participation, safe moderation, and community trust.": "Для правозащитной деятельности, гражданского участия, безопасной модерации и доверия в сообществе.",
+        "Youth": "Молодёжь",
+        "Repair": "Ремонт",
+        "Wellbeing": "Благополучие",
+        "Crisis Response": "Реагирование на кризис",
+        "Justice": "Справедливость",
+        "Safety": "Безопасность",
+        "Civic Action": "Гражданские действия",
+        "Home": "Главная",
+        "Personal Area": "Личный кабинет",
+        "Wishing Well": "Колодец желаний",
+        "The Wishing Well": "Колодец желаний",
+        "Wishes": "Желания",
+        "Organizations": "Организации",
+        "Community": "Сообщество",
+        "Forums": "Форумы",
+        "About": "О нас",
+        "About Us": "О нас",
+        "Profile": "Профиль",
+        "Sign up / Sign in": "Регистрация / Вход",
+        "Log In": "Войти",
+        "Log in": "Войти",
+        "Join GloWe": "Присоединиться к GloWe",
+        "Log Out": "Выйти",
+        "Hi,": "Привет,",
+        "there": "друг",
+        "Global Learning, Open Knowledge & Wisdom Exchange.": "Глобальное обучение, открытые знания и обмен мудростью.",
+        "Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.": "Соединяем локальные решения с глобальными вызовами через общие знания, солидарность и практические действия.",
+        "Quick Links": "Быстрые ссылки",
+        "Explore": "Обзор",
+        "Participate": "Участвовать",
+        "Write a post": "Написать пост",
+        "Volunteer Network": "Сеть волонтёров",
+        "What's next": "Что дальше",
+        "What Comes Next": "Что будет дальше",
+        "Built With Care": "Создано с заботой",
+        "An MVP by the GloWe community, with product and implementation support by Topaz.": "MVP-версия сообщества GloWe при продуктовой и технической поддержке Topaz.",
+        "Admin Review": "Администрирование",
+        "Terms & Community Charter": "Условия и устав сообщества",
+        "For Organizations": "Для организаций",
+        "Register Your Organization": "Зарегистрируйте вашу организацию",
+        "Post an Opportunity": "Опубликовать возможность",
+        "Connect": "Связаться",
+        "Welcome Back": "С возвращением",
+        "Welcome Back!": "С возвращением!",
+        "Sign in with your Google account to continue.": "Войдите через аккаунт Google, чтобы продолжить.",
+        "Continue with Google": "Продолжить с Google",
+        "Don't have an account?": "Нет аккаунта?",
+        "Join our community": "Присоединяйтесь к нашему сообществу",
+        "Join the GloWe Community": "Присоединяйтесь к сообществу GloWe",
+        "Sign in with your Google account to get started.": "Войдите через аккаунт Google, чтобы начать.",
+        "Already have an account?": "Уже есть аккаунт?",
+        "Success": "Готово",
+        "Your action was completed successfully.": "Действие успешно выполнено.",
+        "Continue": "Продолжить",
+        "Find your GloWe path": "Найдите свой путь в GloWe",
+        "Choose the path that matches what you want to do first.": "Выберите путь, который соответствует тому, с чего вы хотите начать.",
+        "I represent an organization": "Я представляю организацию",
+        "Create a profile, post a need, and receive structured offers.": "Создайте профиль, опубликуйте запрос и получайте структурированные предложения.",
+        "I can help": "Я могу помочь",
+        "Find wishes that match your skills, language, location, and time.": "Найдите желания, которые подходят под ваши навыки, язык, местоположение и время.",
+        "I am a business partner": "Я бизнес-партнёр",
+        "Match CSR teams, logistics, funding, or services with verified needs.": "Соединяйте команды CSR, логистику, финансирование или услуги с проверенными запросами.",
+        "Manage your account, language, and session preferences.": "Управляйте аккаунтом, языком и настройками сеанса.",
+        "Account": "Аккаунт",
+        "Name": "Имя",
+        "Email": "Эл. почта",
+        "Account type": "Тип аккаунта",
+        "Community member": "Участник сообщества",
+        "Open Personal Area": "Открыть личный кабинет",
+        "Language": "Язык",
+        "Interface language": "Язык интерфейса",
+        "Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.": "Выберите язык интерфейса GloWe. Иврит и арабский отображаются в макете справа налево (RTL).",
+        "English": "Английский",
+        "Hebrew": "Иврит",
+        "Session": "Сеанс",
+        "End your session on this device. You can sign back in any time with Google.": "Завершите сеанс на этом устройстве. Вы сможете войти снова в любой момент через Google.",
+        "Delete Account": "Удалить аккаунт",
+        "Permanently delete your GloWe profile from this community. This removes your profile details; your Google sign-in itself is not deleted, so you can sign up again later.": "Безвозвратно удалить ваш профиль GloWe из этого сообщества. Это удалит данные профиля; сам вход через Google не удаляется, поэтому вы сможете зарегистрироваться снова позже.",
+        "Type DELETE to confirm": "Введите DELETE для подтверждения",
+        "Could not delete account": "Не удалось удалить аккаунт",
+        "Something went wrong deleting your profile. Please try again.": "При удалении профиля произошла ошибка. Пожалуйста, попробуйте снова.",
+        "Sign in to manage settings": "Войдите, чтобы управлять настройками",
+        "Your account, language, and session options live here once you are signed in.": "Настройки аккаунта, языка и сеанса появятся здесь после входа.",
+        "Sign in to open your personal area": "Войдите, чтобы открыть личный кабинет",
+        "Your profile, applications, needs, and saved items live here once you are signed in.": "Ваш профиль, заявки, запросы и сохранённые элементы появятся здесь после входа.",
+        "Your GloWe": "Ваш GloWe",
+        "Welcome back,": "С возвращением,",
+        "What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.": "Что вы хотите сделать сегодня? Поделиться знаниями, опубликовать возможность или попросить поддержки у сообщества.",
+        "Share a post": "Поделиться постом",
+        "Post an opportunity": "Опубликовать возможность",
+        "Ask for support": "Попросить поддержки",
+        "Your activity": "Ваша активность",
+        "What is happening on GloWe": "Что происходит в GloWe",
+        "See all": "Показать всё",
+        "Loading your GloWe home…": "Загружаем вашу главную страницу GloWe…",
+        "You have not shared anything yet": "Вы пока ничем не поделились",
+        "Your posts, opportunities, and requests will gather here.": "Ваши посты, возможности и запросы будут собираться здесь.",
+        "Write your first post": "Напишите свой первый пост",
+        "The community is just getting started": "Сообщество только начинает свой путь",
+        "Be the first to share a post or an opportunity others can join.": "Станьте первым, кто поделится постом или возможностью, к которой смогут присоединиться другие.",
+        "Start the conversation": "Начните разговор",
+        "Community post": "Пост сообщества",
+        "Community Member": "Участник сообщества",
+        "A home for people building impact together": "Дом для тех, кто вместе создаёт перемены",
+        "You do not have to carry the work alone.": "Вам не нужно нести эту работу в одиночку.",
+        "GloWe is a warm, professional community for people, organizations, initiatives, volunteers, and partners working around the SDGs. Here you can ask for support, offer what you know, share field wisdom, and meet people who walk beside you in the work.": "GloWe — это тёплое профессиональное сообщество для людей, организаций, инициатив, волонтёров и партнёров, работающих вокруг Целей устойчивого развития (ЦУР). Здесь вы можете попросить поддержки, предложить свои знания, поделиться опытом с мест и встретить людей, которые идут рядом с вами в этой работе.",
+        "Find Your Place": "Найдите своё место",
+        "Meet the Community": "Познакомьтесь с сообществом",
+        "Ask for Support": "Попросите поддержки",
+        "You have something to give, and something to receive.": "Вам есть что дать и что получить.",
+        "You can ask": "Можно попросить",
+        "You can offer": "Можно предложить",
+        "You can learn": "Можно учиться",
+        "You can connect": "Можно объединяться",
+        "You can belong": "Можно быть своим",
+        "Three communities, one living network": "Три сообщества, одна живая сеть",
+        "Enter the Community": "Войти в сообщество",
+        "Local Community": "Местное сообщество",
+        "People who know the place": "Люди, которые знают это место",
+        "Share a local need": "Поделиться местным запросом",
+        "Expert Community": "Сообщество экспертов",
+        "People who can strengthen the work": "Люди, которые могут усилить работу",
+        "Offer your expertise": "Предложите свою экспертизу",
+        "Global Community": "Глобальное сообщество",
+        "People who help knowledge travel": "Люди, которые помогают знаниям путешествовать",
+        "Join a discussion": "Присоединиться к обсуждению",
+        "Ask with honesty": "Просить честно",
+        "Offer with care": "Предлагать с заботой",
+        "Build with solidarity": "Строить в солидарности",
+        "Start where you are": "Начните с того места, где вы есть",
+        "Choose the doorway that feels right today": "Выберите дверь, которая кажется правильной сегодня",
+        "Need support": "Нужна поддержка",
+        "Share what would help": "Расскажите, что помогло бы",
+        "Want to contribute": "Хочу внести вклад",
+        "Offer your time or expertise": "Предложите своё время или экспертизу",
+        "Offer Help": "Предложить помощь",
+        "Looking for people": "Ищу людей",
+        "Step into the community": "Войдите в сообщество",
+        "Enter Community": "Войти в сообщество",
+        "What you can do in GloWe now": "Что можно делать в GloWe уже сейчас",
+        "Create a profile": "Создать профиль",
+        "Share with the community": "Поделиться с сообществом",
+        "Use the Wishing Well": "Использовать Колодец желаний",
+        "Find ways to help": "Найти способы помочь",
+        "Values that guide the space": "Ценности, которые направляют это пространство",
+        "Solidarity": "Солидарность",
+        "Shared Knowledge": "Общие знания",
+        "Practical Action": "Практическое действие",
+        "Trust and Respect": "Доверие и уважение",
+        "The GloWe ecosystem": "Экосистема GloWe",
+        "A glimpse into the community": "Взгляд на сообщество",
+        "Read Community Posts": "Читать посты сообщества",
+        "Who is invited?": "Кто приглашён?",
+        "How GloWe is structured": "Как устроен GloWe",
+        "User Roles": "Роли пользователей",
+        "Business Model": "Бизнес-модель",
+        "Development Roadmap": "Дорожная карта развития",
+        "Trusted by the GloWe Community": "Нам доверяет сообщество GloWe",
+        "You have a place in this community.": "В этом сообществе есть место и для вас.",
+        "Bring what you know. Ask for what you need. Meet people who are working, learning, building, and caring around the SDGs.": "Принесите то, что вы знаете. Попросите то, что вам нужно. Встретьте людей, которые работают, учатся, строят и заботятся вокруг Целей устойчивого развития.",
+        "Read Community": "Читать сообщество",
+        "Open Community": "Открыть сообщество",
+        "Read What's Next": "Читать «Что дальше»",
+        "See How This Could Grow": "Посмотрите, как это может вырасти",
+        "Active threads will appear here once community members start discussions.": "Активные обсуждения появятся здесь, когда участники сообщества их начнут.",
+        "Activity": "Активность",
+        "Add Project": "Добавить проект",
+        "Advocacy": "Правозащита",
+        "All areas": "Все направления",
+        "All Fields": "Все сферы",
+        "All Groups": "Все группы",
+        "All Locations": "Все местоположения",
+        "All regions": "Все регионы",
+        "All types": "Все типы",
+        "All Types": "Все типы",
+        "All wishes": "Все желания",
+        "Applications": "Заявки",
+        "Apply for This Opportunity": "Откликнуться на эту возможность",
+        "Apply Now": "Откликнуться",
+        "Apply to opportunities or publish your own request for volunteers and collaborators.": "Откликайтесь на возможности или опубликуйте собственный запрос на волонтёров и партнёров.",
+        "Apply with your availability and relevant skills.": "Откликнитесь, указав свою доступность и подходящие навыки.",
+        "Approve": "Одобрить",
+        "Approve profiles that are ready, or send them back for changes.": "Одобряйте готовые профили или отправляйте их на доработку.",
+        "Arabic": "Арабский",
+        "Articles / media": "Статьи / медиа",
+        "As a member of the GloWe community, you agree not to:": "Как участник сообщества GloWe вы обязуетесь не:",
+        "Ask a real question, lead a focused space, share a file, or learn from people working through similar challenges.": "Задайте настоящий вопрос, ведите тематическое пространство, поделитесь файлом или учитесь у людей, решающих похожие задачи.",
+        "Ask question": "Задать вопрос",
+        "Ask, advise, lead": "Спрашивайте, советуйте, ведите",
+        "Attach file": "Прикрепить файл",
+        "Back to Community": "Назад в сообщество",
+        "Back to Feed": "Назад в ленту",
+        "Back to Wishing Well": "Назад в Колодец желаний",
+        "Backend not configured": "Бэкенд не настроен",
+        "Based on GloWe content types": "На основе типов контента GloWe",
+        "Better matching": "Более точное соответствие",
+        "Both belong here. GloWe is built for mutual support, respectful collaboration, and the quiet relief of finding people who understand the journey.": "Здесь есть место и тому, и другому. GloWe создан для взаимной поддержки, уважительного сотрудничества и тихого облегчения от встречи с людьми, которые понимают этот путь.",
+        "Browse opportunities, save what matters, contact members, and offer your professional skills, time, resources, or lived experience.": "Просматривайте возможности, сохраняйте важное, связывайтесь с участниками и предлагайте свои профессиональные навыки, время, ресурсы или личный опыт.",
+        "Browse Organizations": "Просмотр организаций",
+        "Build trust through profiles, community review, and clear next steps": "Стройте доверие через профили, проверку сообществом и понятные следующие шаги",
+        "Business-Social Collaboration": "Бизнес-социальное сотрудничество",
+        "Businesses / CSR teams": "Бизнес / команды CSR",
+        "Businesses and partners": "Бизнес и партнёры",
+        "By using the platform, you agree that:": "Используя платформу, вы соглашаетесь, что:",
+        "Change": "Изменить",
+        "Choose the right topic, add useful context, and publish it into the community feed.": "Выберите подходящую тему, добавьте полезный контекст и опубликуйте это в ленте сообщества.",
+        "Civic Innovation": "Гражданские инновации",
+        "Cleanup days worth repeating": "Дни уборки, которые стоит повторить",
+        "Clear": "Очистить",
+        "Clear filters": "Сбросить фильтры",
+        "Climate": "Климат",
+        "Close": "Закрыть",
+        "Comment": "Комментарий",
+        "comment": "комментарий",
+        "comments": "комментарии",
+        "Commitment:": "Вовлечённость:",
+        "Community Activity": "Активность сообщества",
+        "Community Building": "Развитие сообщества",
+        "Community feed": "Лента сообщества",
+        "Community Feed": "Лента сообщества",
+        "Community feed filters": "Фильтры ленты сообщества",
+        "Community first, technology second.": "Сначала сообщество, потом технологии.",
+        "Community Forums": "Форумы сообщества",
+        "Community home": "Главная сообщества",
+        "Community integrity": "Целостность сообщества",
+        "Community interactions": "Взаимодействия в сообществе",
+        "Community managers": "Менеджеры сообщества",
+        "Community members with active contributions will be featured here.": "Здесь будут показаны участники сообщества с активным вкладом.",
+        "Community reinvestment": "Реинвестирование в сообщество",
+        "Community reports": "Жалобы сообщества",
+        "Community reports will appear here.": "Жалобы сообщества появятся здесь.",
+        "Community review": "Проверка сообществом",
+        "Community support board": "Доска поддержки сообщества",
+        "Community wishes": "Желания сообщества",
+        "Connect with social and environmental work through responsible collaboration, CSR, ESG, and shared value.": "Подключайтесь к социальной и экологической работе через ответственное сотрудничество, CSR, ESG и общую ценность.",
+        "Connection suggestions": "Предложения связей",
+        "connections": "связи",
+        "Consultation request": "Запрос на консультацию",
+        "Contact": "Контакт",
+        "Content": "Контент",
+        "Context": "Контекст",
+        "Could not load queue": "Не удалось загрузить очередь",
+        "Create a password": "Создайте пароль",
+        "Create a password (min 8 characters)": "Создайте пароль (минимум 8 символов)",
+        "Create Account": "Создать аккаунт",
+        "Create Your Profile": "Создайте свой профиль",
+        "Daily workspace": "Ежедневное рабочее пространство",
+        "Describe your relevant skills and experience...": "Опишите свои подходящие навыки и опыт...",
+        "Direct conversations with volunteers, organizations, and partners live here once you are signed in.": "Личные переписки с волонтёрами, организациями и партнёрами появятся здесь после входа.",
+        "Direct conversations with volunteers, organizations, and partners.": "Личные переписки с волонтёрами, организациями и партнёрами.",
+        "Direct messaging is coming soon": "Личные сообщения скоро появятся",
+        "Discover organizations, initiatives, and partners sharing field knowledge and practical needs.": "Откройте для себя организации, инициативы и партнёров, которые делятся знаниями с мест и практическими запросами.",
+        "Discover People": "Найти людей",
+        "Discussion group": "Дискуссионная группа",
+        "Discussion groups will appear here once they are set up.": "Дискуссионные группы появятся здесь после их создания.",
+        "Discussion groups will appear here soon.": "Дискуссионные группы скоро появятся здесь.",
+        "Discussion Groups": "Дискуссионные группы",
+        "Dismiss": "Закрыть",
+        "Distribution": "Распространение",
+        "Diverse people speaking around a round table at an impact community conference": "Разные люди беседуют за круглым столом на конференции сообщества перемен",
+        "Document what happened after someone helped: what changed, what was learned, and what support is still needed.": "Опишите, что произошло после того, как кто-то помог: что изменилось, чему научились и какая поддержка ещё нужна.",
+        "Duration": "Длительность",
+        "Duration:": "Длительность:",
+        "Each community starts from its own reality: language, culture, needs, skills, and local leadership.": "Каждое сообщество начинается со своей реальности: языка, культуры, потребностей, навыков и местного лидерства.",
+        "Each part of the system is here to help impact work become more visible, connected, and supported.": "Каждая часть системы существует, чтобы работа над переменами становилась заметнее, связаннее и получала больше поддержки.",
+        "Edit profile": "Редактировать профиль",
+        "Edit Profile": "Редактировать профиль",
+        "Edit your profile, add projects, track opportunities, and manage your community activity in one place.": "Редактируйте профиль, добавляйте проекты, отслеживайте возможности и управляйте своей активностью в сообществе в одном месте.",
+        "Education": "Образование",
+        "Education, Climate, Health, Funding": "Образование, климат, здоровье, финансирование",
+        "Education, climate, mentors, Jerusalem...": "Образование, климат, менторы, Иерусалим...",
+        "Effective Date: May 30, 2026": "Дата вступления в силу: 30 мая 2026 г.",
+        "Environment": "Экология",
+        "Equipment / Space": "Оборудование / помещение",
+        "Evenings": "Вечера",
+        "Events": "Мероприятия",
+        "Every connection can end with a short outcome update.": "Каждая связь может завершиться коротким отчётом о результате.",
+        "Everyone": "Все",
+        "Example: Grant proposal checklist for small NGOs": "Например: чек-лист заявки на грант для небольших НКО",
+        "Explore Community": "Изучить сообщество",
+        "Explore possible collaborations": "Изучите возможные сотрудничества",
+        "Explore possible connections between needs, skills, organizations, and people. Each suggestion is an invitation to read, ask, and decide together.": "Изучайте возможные связи между запросами, навыками, организациями и людьми. Каждое предложение — это приглашение прочитать, спросить и решить вместе.",
+        "Fetching organizations awaiting verification.": "Загружаем организации, ожидающие проверки.",
+        "Field knowledge becomes easier to find, translate, discuss, and reuse across communities.": "Знания с мест становится легче находить, переводить, обсуждать и повторно использовать в разных сообществах.",
+        "Field stories, questions, support offers, updates, and open calls": "Истории с мест, вопросы, предложения поддержки, обновления и открытые призывы",
+        "Field update": "Обновление с места",
+        "Field wisdom, professional tools, lived experience, and multilingual learning all have value here.": "Опыт с мест, профессиональные инструменты, личный опыт и многоязычное обучение — всё это здесь ценно.",
+        "Field:": "Сфера:",
+        "Filter by region, profile type, or keywords connected to mission, field, needs, and projects.": "Фильтруйте по региону, типу профиля или ключевым словам, связанным с миссией, сферой, запросами и проектами.",
+        "Find a Group": "Найти группу",
+        "Find My Path": "Найти мой путь",
+        "Find or publish practical volunteer, work, and collaboration opportunities for social impact projects.": "Находите или публикуйте практические волонтёрские, рабочие и партнёрские возможности для проектов социальных перемен.",
+        "Find people who understand your cause, help shape your next step, and make your work visible.": "Найдите людей, которые понимают ваше дело, помогут определить следующий шаг и сделают вашу работу заметной.",
+        "Find projects, organizations, volunteers, experts, and practical needs": "Находите проекты, организации, волонтёров, экспертов и практические запросы",
+        "Find the right people": "Найдите нужных людей",
+        "Find the right request": "Найдите подходящий запрос",
+        "Find where your skills can help.": "Найдите, где ваши навыки могут пригодиться.",
+        "Flexible": "Гибкий график",
+        "Follow the work, ask, offer, and connect.": "Следите за работой, спрашивайте, предлагайте и объединяйтесь.",
+        "Follow updates": "Следить за обновлениями",
+        "Follow Updates": "Следить за обновлениями",
+        "Food Security": "Продовольственная безопасность",
+        "For questions, support, or concerns, please reach out:": "По вопросам, за поддержкой или с замечаниями обращайтесь:",
+        "For you": "Для вас",
+        "Forum Leaders": "Ведущие форумов",
+        "Forum leadership offer": "Предложение вести форум",
+        "Full Name": "Полное имя",
+        "Full-time": "Полная занятость",
+        "Funding preparation": "Подготовка к финансированию",
+        "Funding Support": "Поддержка в финансировании",
+        "Global": "Глобальный",
+        "GloWe - Global Collaboration for Social Impact": "GloWe — глобальное сотрудничество ради социальных перемен",
+        "GloWe begins as a simple MVP: profiles, posts, wishes, opportunities, and conversations. From here, we want to grow carefully, with local communities, field knowledge, and technology that serves people.": "GloWe начинается как простой MVP: профили, посты, желания, возможности и разговоры. Дальше мы хотим расти бережно — вместе с местными сообществами, знаниями с мест и технологиями, которые служат людям.",
+        "GloWe community promise": "Обещание сообщества GloWe",
+        "GloWe community value system": "Система ценностей сообщества GloWe",
+        "GloWe does not guarantee uninterrupted access or availability.": "GloWe не гарантирует бесперебойный доступ или доступность.",
+        "GloWe is built for people who meet, listen, offer, ask, and turn local experience into practical collaboration.": "GloWe создан для людей, которые встречаются, слушают, предлагают, спрашивают и превращают местный опыт в практическое сотрудничество.",
+        "GloWe is not liable for losses resulting from interruptions, errors, or misuse of the platform.": "GloWe не несёт ответственности за убытки, вызванные перебоями, ошибками или неправомерным использованием платформы.",
+        "GloWe is open to all people and organizations, regardless of age, geography, identity, or legal status.": "GloWe открыт для всех людей и организаций независимо от возраста, географии, идентичности или правового статуса.",
+        "GloWe may include links to external platforms or tools. We are not responsible for the content, privacy, or reliability of third-party services. Use them at your discretion.": "GloWe может содержать ссылки на внешние платформы или инструменты. Мы не несём ответственности за содержание, конфиденциальность или надёжность сторонних сервисов. Используйте их на своё усмотрение.",
+        "GloWe may suspend or terminate accounts that violate these Terms or the Community Integrity Charter.": "GloWe может приостановить или закрыть аккаунты, нарушающие настоящие Условия или Устав целостности сообщества.",
+        "GloWe Member": "Участник GloWe",
+        "GloWe reserves the right to:": "GloWe оставляет за собой право:",
+        "GloWe respects your privacy. Personal data will only be used to improve your experience and build relevant connections.": "GloWe уважает вашу приватность. Персональные данные используются только для улучшения вашего опыта и создания релевантных связей.",
+        "GloWe will not sell or license your content to external commercial entities without explicit consent.": "GloWe не будет продавать или лицензировать ваш контент внешним коммерческим структурам без явного согласия.",
+        "GloWe works through local roots, professional support, and global exchange.": "GloWe работает через местные корни, профессиональную поддержку и глобальный обмен.",
+        "Good intentions become stronger when they are connected to clear needs, real people, and concrete next steps.": "Добрые намерения становятся сильнее, когда они связаны с ясными запросами, реальными людьми и конкретными следующими шагами.",
+        "Grant match": "Подбор гранта",
+        "Grey knowledge library": "Библиотека «серых» знаний",
+        "Group Actions": "Действия группы",
+        "Groups": "Группы",
+        "Groups that want to document their work, find collaborators, and ask for concrete support.": "Группы, которые хотят документировать свою работу, находить партнёров и просить конкретную поддержку.",
+        "Haifa": "Хайфа",
+        "Health": "Здоровье",
+        "Healthy moderation rules": "Здоровые правила модерации",
+        "Help communities turn field experience into practical guides, short case studies, templates, and translated resources.": "Помогайте сообществам превращать опыт с мест в практические руководства, короткие кейсы, шаблоны и переведённые материалы.",
+        "Help shape what comes next.": "Помогите определить, что будет дальше.",
+        "Helpers explain what they can provide, availability, and conditions.": "Помогающие описывают, что они могут предоставить, свою доступность и условия.",
+        "Hidden content": "Скрытый контент",
+        "Hidden items": "Скрытые элементы",
+        "Hide Item": "Скрыть элемент",
+        "Hide Profile": "Скрыть профиль",
+        "How success is understood": "Как понимается успех",
+        "How the post will feel in the feed": "Как пост будет выглядеть в ленте",
+        "I am a": "Я —",
+        "I Can Help": "Я могу помочь",
+        "If you are under the legal age of majority in your country, you are using GloWe under the guidance of a mentor, parent, or educational framework.": "Если вы не достигли совершеннолетия в своей стране, вы пользуетесь GloWe под руководством наставника, родителя или образовательного учреждения.",
+        "If you witness misconduct, misinformation, or harm, report it. Use the Report button on profiles or reach out to us directly. All reports are reviewed with care and confidentiality.": "Если вы столкнулись с недопустимым поведением, дезинформацией или вредом — сообщите об этом. Используйте кнопку «Пожаловаться» в профилях или напишите нам напрямую. Все обращения рассматриваются внимательно и конфиденциально.",
+        "Impact approach": "Подход к переменам",
+        "Impact area": "Сфера влияния",
+        "Impact areas": "Сферы влияния",
+        "Impact Areas": "Сферы влияния",
+        "Impact field": "Сфера влияния",
+        "Impact follow-up": "Отслеживание результата",
+        "Impact Signals": "Сигналы влияния",
+        "Impact so far": "Результаты на данный момент",
+        "Impact stories": "Истории перемен",
+        "In cases of legal violations, authorities may be notified.": "В случае нарушений закона могут быть уведомлены компетентные органы.",
+        "Interaction": "Взаимодействие",
+        "Israel": "Израиль",
+        "Items hidden by admin review can be restored while this MVP uses local storage.": "Элементы, скрытые администратором, можно восстановить, пока эта MVP-версия использует локальное хранилище.",
+        "Items removed by admin will be listed here.": "Элементы, удалённые администратором, будут перечислены здесь.",
+        "Jerusalem": "Иерусалим",
+        "Join Group": "Вступить в группу",
+        "Join requests": "Заявки на вступление",
+        "Join the MVP": "Присоединиться к MVP",
+        "Join the Volunteer Network and find places where your skills, experience, language, or care can make someone else's work lighter.": "Присоединяйтесь к Сети волонтёров и найдите места, где ваши навыки, опыт, язык или забота могут облегчить чью-то работу.",
+        "Join with experience, questions, resources, or a willingness to help.": "Присоединяйтесь с опытом, вопросами, ресурсами или готовностью помочь.",
+        "Keep the community safe and trustworthy.": "Сохраняйте сообщество безопасным и заслуживающим доверия.",
+        "Knowledge": "Знания",
+        "Knowledge Seekers": "Искатели знаний",
+        "Knowledge Sharing": "Обмен знаниями",
+        "Languages": "Языки",
+        "Learn More": "Подробнее",
+        "Like": "Нравится",
+        "Limit access or features in cases of harm, spam, or manipulation.": "Ограничивать доступ или функции в случаях вреда, спама или манипуляций.",
+        "Live needs": "Актуальные запросы",
+        "Loading...": "Загрузка...",
+        "Loading…": "Загрузка…",
+        "Loading your profile…": "Загружаем ваш профиль…",
+        "Uploading image...": "Загрузка изображения...",
+        "Please choose an image file.": "Пожалуйста, выберите файл изображения.",
+        "Image must be under 5 MB.": "Изображение должно быть меньше 5 МБ.",
+        "Optional. JPG, PNG or WebP, up to 5 MB.": "Необязательно. JPG, PNG или WebP, до 5 МБ.",
+        "Applicants": "Кандидаты",
+        "Loading applicants…": "Загружаем кандидатов…",
+        "Could not load applicants.": "Не удалось загрузить кандидатов.",
+        "No applications yet.": "Заявок пока нет.",
+        "Accept": "Принять",
+        "Decline": "Отклонить",
+        "Could not update the application. Please try again.": "Не удалось обновить заявку. Пожалуйста, попробуйте снова.",
+        "Offers": "Предложения помощи",
+        "Loading offers…": "Загружаем предложения…",
+        "Could not load offers.": "Не удалось загрузить предложения.",
+        "No offers yet.": "Предложений пока нет.",
+        "Preferred contact:": "Предпочтительный способ связи:",
+        "Email copied to clipboard": "Эл. почта скопирована в буфер обмена",
+        "Could not copy the email.": "Не удалось скопировать адрес эл. почты.",
+        "GloWe volunteer": "Волонтёр GloWe",
+        "Availability:": "Доступность:",
+        "Skills:": "Навыки:",
+        "Motivation:": "Мотивация:",
+        "Local community circles": "Местные круги сообщества",
+        "Local organizations, initiatives, residents, volunteers, and partners bring the real context: what is needed, what already works, who should be involved, and what kind of support would actually help.": "Местные организации, инициативы, жители, волонтёры и партнёры привносят реальный контекст: что нужно, что уже работает, кого стоит вовлечь и какая поддержка действительно поможет.",
+        "Local roots": "Местные корни",
+        "Location": "Местоположение",
+        "Location:": "Местоположение:",
+        "Looking for Mentors": "Ищем менторов",
+        "Low-bandwidth friendly": "Работает при слабом интернете",
+        "Make it easier to connect a need with the right volunteer, professional skill, organization, donor, or partner.": "Упростить связь запроса с подходящим волонтёром, профессиональным навыком, организацией, донором или партнёром.",
+        "Mark Reviewed": "Отметить как проверенное",
+        "Measurement and learning": "Измерение и обучение",
+        "Members": "Участники",
+        "Members will appear here once they join this group.": "Участники появятся здесь, когда вступят в эту группу.",
+        "Message": "Сообщение",
+        "Message author": "Написать автору",
+        "Message publisher": "Написать публикатору",
+        "Message sent": "Сообщение отправлено",
+        "Your message was delivered. The organization can follow up with you.": "Ваше сообщение доставлено. Организация сможет с вами связаться.",
+        "Could not send message": "Не удалось отправить сообщение",
+        "Something went wrong sending your message. Please try again.": "При отправке сообщения произошла ошибка. Пожалуйста, попробуйте снова.",
+        "Reach Out": "Связаться",
+        "Send Message": "Отправить сообщение",
+        "Send a short message to start a conversation with this organization.": "Отправьте короткое сообщение, чтобы начать разговор с этой организацией.",
+        "Introduce yourself and explain how you would like to collaborate.": "Представьтесь и объясните, как вы хотели бы сотрудничать.",
+        "Sign in to reach out": "Войдите, чтобы связаться",
+        "Please sign in or create a free account to message this organization.": "Пожалуйста, войдите или создайте бесплатный аккаунт, чтобы написать этой организации.",
+        "Messaging needs a live connection right now. Please try again shortly.": "Для отправки сообщений сейчас нужно активное подключение. Пожалуйста, попробуйте снова через некоторое время.",
+        "Missing details": "Не хватает данных",
+        "Backend unavailable": "Сервис недоступен",
+        "Messages": "Сообщения",
+        "Methods / approaches": "Методы / подходы",
+        "Moderate discussions in order to keep the space constructive, safe, and impact-driven.": "Модерируйте обсуждения, чтобы пространство оставалось конструктивным, безопасным и нацеленным на результат.",
+        "Multilingual": "Многоязычный",
+        "Needs": "Запросы",
+        "Needs Changes": "Требуются изменения",
+        "New post": "Новый пост",
+        "New submitted profiles will appear here for review.": "Новые присланные профили появятся здесь для проверки.",
+        "No applications yet": "Заявок пока нет",
+        "No community posts yet.": "Постов сообщества пока нет.",
+        "No hidden items": "Нет скрытых элементов",
+        "No matching opportunities yet. This is where open roles and collaboration requests will appear.": "Подходящих возможностей пока нет. Здесь появятся открытые роли и запросы на сотрудничество.",
+        "No matching profiles yet": "Подходящих профилей пока нет",
+        "No opportunities found": "Возможности не найдены",
+        "No pending organizations": "Нет организаций на рассмотрении",
+        "No pending profiles": "Нет профилей на рассмотрении",
+        "No posts match this view yet": "Пока нет постов, подходящих под этот вид",
+        "No projects listed yet.": "Проекты пока не добавлены.",
+        "No projects yet. Add your first project.": "Проектов пока нет. Добавьте свой первый проект.",
+        "No replies yet. Be the first to respond.": "Ответов пока нет. Ответьте первым.",
+        "None specified for this opportunity.": "Для этой возможности не указано.",
+        "No reports yet": "Жалоб пока нет",
+        "No results": "Нет результатов",
+        "No saved items yet": "Сохранённых элементов пока нет",
+        "No threads yet": "Обсуждений пока нет",
+        "No wishes found": "Желания не найдены",
+        "Notification Preferences": "Настройки уведомлений",
+        "Offer skills, time, translation, mentoring, design, legal help, tech, research, or field knowledge.": "Предложите навыки, время, перевод, наставничество, дизайн, юридическую помощь, технологии, исследования или знания с мест.",
+        "Offer Support": "Предложить поддержку",
+        "Open": "Открыто",
+        "Open a Question": "Задать вопрос",
+        "Open Call": "Открытый призыв",
+        "Open Forums": "Открыть форумы",
+        "Open Needs": "Открытые запросы",
+        "Open Playbook": "Открыть руководство",
+        "Open reports": "Открытые жалобы",
+        "Open Volunteer Network": "Открыть Сеть волонтёров",
+        "Open wish details": "Открыть детали желания",
+        "Open wishes": "Открытые желания",
+        "open wishes are waiting for the right support.": "открытых желаний ждут нужной поддержки.",
+        "Open wishes, opportunities, posts, and discussions around real work": "Открытые желания, возможности, посты и обсуждения вокруг реальной работы",
+        "Opportunities & Applications": "Возможности и заявки",
+        "Opportunities & collaboration": "Возможности и сотрудничество",
+        "Opportunity title": "Название возможности",
+        "Opportunity type": "Тип возможности",
+        "Optional link": "Ссылка (необязательно)",
+        "Organization filters": "Фильтры организаций",
+        "Organization or project": "Организация или проект",
+        "Organization Representative": "Представитель организации",
+        "Organization review is available once the shared backend is connected.": "Проверка организаций станет доступна после подключения общего бэкенда.",
+        "Organizations & Companies": "Организации и компании",
+        "Organizations and NGOs": "Организации и НКО",
+        "Organizations and partners are reviewed before sensitive actions.": "Организации и партнёры проходят проверку перед чувствительными действиями.",
+        "Organizations awaiting verification. Approve serious requests; rejected ones stay view-only.": "Организации, ожидающие проверки. Одобряйте серьёзные заявки; отклонённые остаются в режиме просмотра.",
+        "Organize possible grants and next steps": "Организуйте возможные гранты и следующие шаги",
+        "Overview": "Обзор",
+        "Paid Full-time Role": "Оплачиваемая роль с полной занятостью",
+        "Part-time": "Частичная занятость",
+        "Part-time Role": "Роль с частичной занятостью",
+        "Participation signals": "Сигналы участия",
+        "Partnership Opportunity": "Возможность партнёрства",
+        "Password": "Пароль",
+        "Pending organizations": "Организации на рассмотрении",
+        "Pending profiles": "Профили на рассмотрении",
+        "Pending verification": "Ожидает проверки",
+        "People already acting in their communities and looking for allies, knowledge, or visibility.": "Люди, которые уже действуют в своих сообществах и ищут союзников, знания или видимость.",
+        "People looking for practical examples, field lessons, and ways to learn from what already works.": "Люди, которые ищут практические примеры, уроки с мест и способы учиться у того, что уже работает.",
+        "People who can offer time, translation, design, research, facilitation, mentoring, or professional skills.": "Люди, которые могут предложить время, перевод, дизайн, исследования, фасилитацию, наставничество или профессиональные навыки.",
+        "Please refresh and try again.": "Обновите страницу и попробуйте снова.",
+        "Possible next steps": "Возможные следующие шаги",
+        "Post": "Опубликовать",
+        "Post a clear need in the Wishing Well: volunteers, partners, knowledge, visibility, tools, space, or practical advice.": "Опубликуйте ясный запрос в Колодце желаний: волонтёры, партнёры, знания, видимость, инструменты, помещение или практический совет.",
+        "Post a Need": "Опубликовать запрос",
+        "Post a need. Find a helper. Build impact.": "Опубликуйте запрос. Найдите помощника. Создавайте перемены.",
+        "Post false, misleading, discriminatory, hateful, or violent content.": "Публиковать ложный, вводящий в заблуждение, дискриминационный, разжигающий ненависть или жестокий контент.",
+        "Post need": "Опубликовать запрос",
+        "Post Opportunity": "Опубликовать возможность",
+        "Post title": "Заголовок поста",
+        "Post Topics": "Темы поста",
+        "Post type": "Тип поста",
+        "posts": "посты",
+        "Posts": "Посты",
+        "Posts you write in the community will appear here.": "Посты, которые вы напишете в сообществе, появятся здесь.",
+        "Posts, profiles, wishes, and opportunities you want to return to later.": "Посты, профили, желания и возможности, к которым вы хотите вернуться позже.",
+        "Practical guides and field lessons": "Практические руководства и уроки с мест",
+        "Prepare a clearer post or campaign draft": "Подготовьте более ясный черновик поста или кампании",
+        "Present your mission, projects, fields of action, SDGs, needs, and the kind of collaborations you are open to.": "Представьте свою миссию, проекты, направления работы, ЦУР, запросы и виды сотрудничества, к которым вы открыты.",
+        "Pretend to be someone else.": "Выдавать себя за другого человека.",
+        "Preview": "Предпросмотр",
+        "Private conversations between volunteers, organizations, and partners are on the way. In the meantime, you can reach an organization from its profile.": "Личные переписки между волонтёрами, организациями и партнёрами скоро появятся. А пока вы можете связаться с организацией через её профиль.",
+        "Professionals, mentors, facilitators, service providers, and experienced practitioners can offer advice, services, office hours, forum leadership, tools, and practical guidance.": "Специалисты, менторы, фасилитаторы, поставщики услуг и опытные практики могут предложить консультации, услуги, приёмные часы, ведение форумов, инструменты и практические рекомендации.",
+        "Profile actions": "Действия с профилем",
+        "Profile From Questionnaire": "Профиль из анкеты",
+        "Profile not found": "Профиль не найден",
+        "Profile snapshot": "Краткий обзор профиля",
+        "Profiles": "Профили",
+        "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "Профили, посты, сообщения и сотрудничество должны поддерживать достоинство, прозрачность и ответственную заботу о сообществе.",
+        "Project-based": "Проектная работа",
+        "Project-based Collaboration": "Проектное сотрудничество",
+        "Projects": "Проекты",
+        "My Needs": "Мои запросы",
+        "No needs yet. Share what would help on the Wishing Well.": "Запросов пока нет. Расскажите в Колодце желаний, что помогло бы.",
+        "My Posts": "Мои посты",
+        "No posts yet. Share an update with the community.": "Постов пока нет. Поделитесь обновлением с сообществом.",
+        "My Opportunities": "Мои возможности",
+        "No opportunities yet. Publish one on the Volunteer Network.": "Возможностей пока нет. Опубликуйте одну в Сети волонтёров.",
+        "My Offers": "Мои предложения",
+        "No offers yet. Help someone by responding to a wish.": "Предложений пока нет. Помогите кому-то, откликнувшись на желание.",
+        "Browse Wishes": "Просмотр желаний",
+        "Public links": "Публичные ссылки",
+        "Publish a volunteer role": "Опубликовать волонтёрскую роль",
+        "Publish an opportunity": "Опубликовать возможность",
+        "Publish Opportunity": "Опубликовать возможность",
+        "Publish Thread": "Опубликовать обсуждение",
+        "Publish to Community Feed": "Опубликовать в ленте сообщества",
+        "Publish to Feed": "Опубликовать в ленте",
+        "Publish to Forum": "Опубликовать на форуме",
+        "Question": "Вопрос",
+        "Question title": "Заголовок вопроса",
+        "Questions": "Вопросы",
+        "Ramat Gan, Israel": "Рамат-Ган, Израиль",
+        "Read posts, ask questions, respond with care, and meet others who are also building social and environmental change.": "Читайте посты, задавайте вопросы, отвечайте с заботой и знакомьтесь с теми, кто тоже создаёт социальные и экологические перемены.",
+        "Ready to Make an Impact?": "Готовы менять мир к лучшему?",
+        "Ready to offer your time, skills, mentoring, translation, design, legal help, or field knowledge? Enter the volunteer space and find the right role.": "Готовы предложить своё время, навыки, наставничество, перевод, дизайн, юридическую помощь или знания с мест? Войдите в волонтёрское пространство и найдите подходящую роль.",
+        "Recent Activity": "Недавняя активность",
+        "Recognition in GloWe is about visible contribution, not empty ranking. Signals stay tied to documented activity, trust, and community review.": "Признание в GloWe — это о заметном вкладе, а не о пустых рейтингах. Сигналы остаются привязанными к задокументированной активности, доверию и проверке сообществом.",
+        "Recognize visible contribution": "Признавайте заметный вклад",
+        "Refine": "Уточнить",
+        "Region": "Регион",
+        "Registration, article, drive folder, or resource link": "Регистрация, статья, папка на диске или ссылка на ресурс",
+        "Reject": "Отклонить",
+        "Relevant Skills & Experience": "Подходящие навыки и опыт",
+        "Remote": "Удалённо",
+        "Remote tutors and safety": "Удалённые репетиторы и безопасность",
+        "Remove": "Удалить",
+        "Remove content that violates these terms or values.": "Удалять контент, нарушающий эти условия или ценности.",
+        "Reply": "Ответить",
+        "Report": "Пожаловаться",
+        "Reports from users who saw something inaccurate, harmful, or inappropriate.": "Обращения от пользователей, которые увидели что-то неточное, вредное или неуместное.",
+        "Repost": "Поделиться",
+        "Requirements": "Требования",
+        "Resource / file": "Ресурс / файл",
+        "Resource Request": "Запрос ресурса",
+        "Responsibilities": "Обязанности",
+        "Responsible tools": "Ответственные инструменты",
+        "Restore": "Восстановить",
+        "Review Impact": "Оценить результат",
+        "Review new profile submissions, respond to reports, and hide content that does not fit the GloWe community standards.": "Проверяйте новые профили, реагируйте на жалобы и скрывайте контент, который не соответствует стандартам сообщества GloWe.",
+        "Reviewers only": "Только для проверяющих",
+        "Round tables, shared knowledge.": "Круглые столы, общие знания.",
+        "Save": "Сохранить",
+        "Save Draft": "Сохранить черновик",
+        "Save opportunity": "Сохранить возможность",
+        "Save Opportunity": "Сохранить возможность",
+        "Delete post": "Удалить пост",
+        "Delete": "Удалить",
+        "Post deleted": "Пост удалён",
+        "Your post was removed from the community feed.": "Ваш пост удалён из ленты сообщества.",
+        "Could not delete": "Не удалось удалить",
+        "Something went wrong deleting your post. Please try again.": "При удалении поста произошла ошибка. Пожалуйста, попробуйте снова.",
+        "Copy link": "Копировать ссылку",
+        "Link copied": "Ссылка скопирована",
+        "The post link is on your clipboard — share it anywhere.": "Ссылка на пост в буфере обмена — делитесь ею где угодно.",
+        "Copy this link": "Скопируйте эту ссылку",
+        "Save post": "Сохранить пост",
+        "Save posts, profiles, and opportunities to return to them from this screen.": "Сохраняйте посты, профили и возможности, чтобы возвращаться к ним с этого экрана.",
+        "Save posts, profiles, wishes, and opportunities to return to them from here.": "Сохраняйте посты, профили, желания и возможности, чтобы возвращаться к ним отсюда.",
+        "Save Profile": "Сохранить профиль",
+        "Save the opportunity if you want to compare it later.": "Сохраните возможность, если хотите сравнить её позже.",
+        "Save wish": "Сохранить желание",
+        "Saved": "Сохранено",
+        "Sign in or create a free account to save items to your area.": "Войдите или создайте бесплатный аккаунт, чтобы сохранять элементы в свой раздел.",
+        "Saved items": "Сохранённые элементы",
+        "Saved Items": "Сохранённые элементы",
+        "Scope": "Объём",
+        "SDG focus areas": "Приоритетные ЦУР",
+        "Search": "Поиск",
+        "Search by city or region": "Поиск по городу или региону",
+        "Search keywords": "Поиск по ключевым словам",
+        "Search opportunities...": "Поиск возможностей...",
+        "Search organizations, companies, and initiatives": "Поиск организаций, компаний и инициатив",
+        "Search posts, topics, people, or needs...": "Поиск постов, тем, людей или запросов...",
+        "Search volunteer roles...": "Поиск волонтёрских ролей...",
+        "See how members participate": "Посмотрите, как участвуют участники",
+        "See where help is needed": "Посмотрите, где нужна помощь",
+        "Select your availability": "Выберите свою доступность",
+        "Select your role": "Выберите свою роль",
+        "Send": "Отправить",
+        "Share": "Поделиться",
+        "Share a volunteer role, paid role, mentorship request, or project-based collaboration with the GloWe community.": "Поделитесь волонтёрской ролью, оплачиваемой позицией, запросом на наставничество или проектным сотрудничеством с сообществом GloWe.",
+        "Share applied field knowledge in a format others can understand and use": "Делитесь прикладными знаниями с мест в формате, понятном и полезном для других",
+        "Share enough context so others can give useful, respectful advice.": "Дайте достаточно контекста, чтобы другие могли дать полезный и уважительный совет.",
+        "Share private or sensitive information without consent.": "Делиться личной или конфиденциальной информацией без согласия.",
+        "Share your motivation for applying...": "Расскажите о своей мотивации...",
+        "Shared knowledge": "Общие знания",
+        "Shared learning": "Совместное обучение",
+        "Sharing tools": "Инструменты обмена",
+        "Short description": "Краткое описание",
+        "Show your mission, projects, needs, opportunities, and the impact areas you work in.": "Покажите свою миссию, проекты, запросы, возможности и сферы, в которых вы работаете.",
+        "Sign in to see your messages": "Войдите, чтобы увидеть свои сообщения",
+        "Skills Needed": "Необходимые навыки",
+        "Skills or tags": "Навыки или теги",
+        "Social Activists": "Общественные активисты",
+        "Social initiatives": "Социальные инициативы",
+        "Social Justice": "Социальная справедливость",
+        "Social links": "Ссылки на соцсети",
+        "Sometimes you give. Sometimes you need help.": "Иногда вы даёте. Иногда вам нужна помощь.",
+        "Spam the platform or use it for purely promotional or exploitative purposes.": "Спамить на платформе или использовать её исключительно в рекламных или эксплуататорских целях.",
+        "Start a practical consultation": "Начните практическую консультацию",
+        "Start a thread": "Начать обсуждение",
+        "Start Conversation": "Начать разговор",
+        "Start the first conversation in this group.": "Начните первый разговор в этой группе.",
+        "Start from one useful action": "Начните с одного полезного действия",
+        "Start with one useful post, one profile, one wish, or one opportunity.": "Начните с одного полезного поста, одного профиля, одного желания или одной возможности.",
+        "Structured offers": "Структурированные предложения",
+        "Submit Application": "Отправить заявку",
+        "Support groups around a city, village, school, organization, or SDG topic. Each circle can gather needs, resources, events, and trusted members.": "Группы поддержки вокруг города, села, школы, организации или темы ЦУР. Каждый круг может собирать запросы, ресурсы, мероприятия и надёжных участников.",
+        "Support multilingual access so knowledge is not limited to English-speaking spaces": "Поддерживайте многоязычный доступ, чтобы знания не ограничивались англоязычными пространствами",
+        "Suspend or block users who repeatedly abuse the platform.": "Приостанавливать или блокировать пользователей, которые систематически злоупотребляют платформой.",
+        "Tags": "Теги",
+        "Tech for Good": "Технологии во благо",
+        "Technology": "Технологии",
+        "Technology for good": "Технологии во благо",
+        "Technology should reduce friction, not create distance. It should help people act with more clarity, trust, and care.": "Технологии должны снижать трение, а не создавать дистанцию. Они должны помогать людям действовать яснее, с большим доверием и заботой.",
+        "Tel Aviv": "Тель-Авив",
+        "Terms of Use - GloWe": "Условия использования — GloWe",
+        "Terms of Use & Community Integrity Charter": "Условия использования и Устав целостности сообщества",
+        "The information you provide is accurate and honest.": "Информация, которую вы предоставляете, точна и честна.",
+        "The MVP is here so we can learn with you: what helps, what is missing, and what should be built with care.": "MVP существует, чтобы мы могли учиться вместе с вами: что помогает, чего не хватает и что стоит строить бережно.",
+        "The next versions of GloWe should support local circles: people who meet around a real place, a real need, and a shared SDG challenge. Each local community can gather stories, tools, resources, and lessons that others may adapt.": "Следующие версии GloWe будут поддерживать местные круги: людей, которые собираются вокруг реального места, реального запроса и общей задачи ЦУР. Каждое местное сообщество может собирать истории, инструменты, ресурсы и уроки, которые другие смогут адаптировать.",
+        "The organization receives your message and can continue in GloWe messages.": "Организация получает ваше сообщение и может продолжить общение в сообщениях GloWe.",
+        "The topic tag will appear next to your name in the feed, and the post is saved into the community stream.": "Тег темы появится рядом с вашим именем в ленте, а пост сохранится в потоке сообщества.",
+        "The Wishing Well is the action layer of GloWe: verified requests, relevant helpers, and clear next steps after someone offers support.": "Колодец желаний — это слой действия в GloWe: проверенные запросы, подходящие помощники и понятные следующие шаги после того, как кто-то предложил поддержку.",
+        "These are directions, not promises. We will build them gradually, with community feedback.": "Это направления, а не обещания. Мы будем строить их постепенно, с учётом отзывов сообщества.",
+        "These Terms of Use & Community Integrity Charter may be updated occasionally. We will notify users of significant changes via email or platform notifications. Continued use signifies your agreement to the latest version.": "Настоящие Условия использования и Устав целостности сообщества могут время от времени обновляться. Мы уведомим пользователей о существенных изменениях по электронной почте или через уведомления платформы. Продолжение использования означает ваше согласие с последней версией.",
+        "This includes use in personalization, recommendation systems, and platform features built to enhance the GloWe user experience only.": "Это включает использование в персонализации, рекомендательных системах и функциях платформы, созданных исключительно для улучшения пользовательского опыта GloWe.",
+        "This is not a marketplace. It is a shared space. Ask for help. Offer help. Celebrate others' work. Seek connection, not extraction.": "Это не маркетплейс. Это общее пространство. Просите помощи. Предлагайте помощь. Отмечайте работу других. Ищите связь, а не выгоду.",
+        "This profile is not available yet, or the link points to an older demo profile.": "Этот профиль пока недоступен, или ссылка ведёт на старый демонстрационный профиль.",
+        "This queue is visible to GloWe reviewers. Ask an administrator for access.": "Эта очередь видна проверяющим GloWe. Запросите доступ у администратора.",
+        "Threads": "Обсуждения",
+        "Title": "Заголовок",
+        "To the fullest extent permitted by law:": "В максимальной степени, разрешённой законом:",
+        "Tone, humor, and expression vary across regions. Be mindful. Use inclusive language. If you are unsure, ask.": "Тон, юмор и способы выражения различаются в разных регионах. Будьте внимательны. Используйте инклюзивный язык. Если сомневаетесь — спросите.",
+        "Topic": "Тема",
+        "Topic group": "Тематическая группа",
+        "Topic Groups": "Тематические группы",
+        "Treat every member with dignity. Do not post or endorse any form of discrimination, harassment, or exclusion. Listen to diverse voices and experiences.": "Относитесь к каждому участнику с достоинством. Не публикуйте и не поддерживайте любые формы дискриминации, преследования или исключения. Прислушивайтесь к разным голосам и опыту.",
+        "Trending Discussions": "Популярные обсуждения",
+        "Trust & status": "Доверие и статус",
+        "Try a broader keyword, clear one filter, or search by impact area, location, or support need.": "Попробуйте более широкое ключевое слово, снимите один фильтр или ищите по сфере влияния, местоположению или типу нужной поддержки.",
+        "Try a different tab, search a broader word, or start the next conversation.": "Попробуйте другую вкладку, поищите по более общему слову или начните следующий разговор.",
+        "Try adjusting your filters or search terms.": "Попробуйте изменить фильтры или поисковый запрос.",
+        "Try clearing one of the filters.": "Попробуйте снять один из фильтров.",
+        "Try Flow": "Попробовать сценарий",
+        "Turn a real need into a clear call for support: volunteers, partners, knowledge, visibility, space, tools, or funding support.": "Превратите реальный запрос в ясный призыв к поддержке: волонтёры, партнёры, знания, видимость, помещение, инструменты или помощь с финансированием.",
+        "Type": "Тип",
+        "Updated today": "Обновлено сегодня",
+        "Upload copyrighted or third-party content without permission.": "Загружать защищённый авторским правом или чужой контент без разрешения.",
+        "Use digital tools to make knowledge more accessible, reduce language barriers, and support ethical collaboration.": "Используйте цифровые инструменты, чтобы сделать знания доступнее, снизить языковые барьеры и поддержать этичное сотрудничество.",
+        "Use example grant cards and a funding-brief flow to turn a real need into a clearer request, budget story, and next step.": "Используйте примеры грантовых карточек и сценарий подготовки заявки, чтобы превратить реальный запрос в более ясную просьбу, бюджетную историю и следующий шаг.",
+        "Use the forums for focused questions, peer advice, templates, field lessons, and professional guidance. Professionals can also lead topic spaces and offer office hours.": "Используйте форумы для конкретных вопросов, советов коллег, шаблонов, уроков с мест и профессиональных рекомендаций. Специалисты также могут вести тематические пространства и проводить приёмные часы.",
+        "Usually replies within 3-5 days": "Обычно отвечает в течение 3–5 дней",
+        "Verified organizations will publish freely; new submissions show up here.": "Проверенные организации публикуют свободно; новые заявки появляются здесь.",
+        "Verified profiles": "Проверенные профили",
+        "View Details": "Подробнее",
+        "View Personal Area": "Открыть личный кабинет",
+        "View Profile": "Открыть профиль",
+        "Visibility / Media": "Видимость / медиа",
+        "Volunteer": "Волонтёрство",
+        "Volunteer / Mentor": "Волонтёр / ментор",
+        "Volunteer Opportunities": "Волонтёрские возможности",
+        "Volunteer Opportunity": "Волонтёрская возможность",
+        "Volunteers": "Волонтёры",
+        "volunteers joined new projects this week.": "волонтёров присоединились к новым проектам на этой неделе.",
+        "Volunteers and professionals": "Волонтёры и специалисты",
+        "Volunteers Needed": "Нужны волонтёры",
+        "We are not just a platform. We are a community built on trust and shared purpose. By joining GloWe, you commit to these core values:": "Мы не просто платформа. Мы сообщество, построенное на доверии и общей цели. Присоединяясь к GloWe, вы принимаете эти основные ценности:",
+        "We are not responsible for actions or content posted by users.": "Мы не несём ответственности за действия или контент, публикуемые пользователями.",
+        "We are starting with a focused community space. Next, we want to grow local community circles, a practical knowledge library, and technology that helps people use knowledge for good.": "Мы начинаем с сфокусированного пространства сообщества. Дальше мы хотим вырастить местные круги сообщества, библиотеку практических знаний и технологии, которые помогают людям использовать знания во благо.",
+        "We believe impact grows when people stand with each other, listen deeply, and act with care.": "Мы верим, что перемены растут, когда люди стоят рядом друг с другом, глубоко слушают и действуют с заботой.",
+        "We do not look down or preach. We stand next to each other, listen, learn, and act together. Sometimes you give; sometimes you need help. Both are part of a healthy community.": "Мы не смотрим свысока и не поучаем. Мы стоим рядом друг с другом, слушаем, учимся и действуем вместе. Иногда вы даёте; иногда вам нужна помощь. И то, и другое — часть здорового сообщества.",
+        "We do not sell, rent, or trade your data to advertisers.": "Мы не продаём, не сдаём в аренду и не передаём ваши данные рекламодателям.",
+        "We do not want technology to replace relationships. We want it to help people find each other, document what they already know, and turn care into practical action.": "Мы не хотим, чтобы технологии заменяли отношения. Мы хотим, чтобы они помогали людям находить друг друга, фиксировать то, что они уже знают, и превращать заботу в практическое действие.",
+        "We reserve the right to moderate, remove, or report inappropriate content.": "Мы оставляем за собой право модерировать, удалять или сообщать о неуместном контенте.",
+        "Weekdays": "Будни",
+        "Weekends": "Выходные",
+        "Welcome,": "Добро пожаловать,",
+        "What comes after the MVP?": "Что будет после MVP?",
+        "What do you need help thinking through?": "В чём вам нужна помощь, чтобы всё обдумать?",
+        "What do you want to share, ask, or offer today?": "Чем вы хотите поделиться, о чём спросить или что предложить сегодня?",
+        "What GloWe makes possible": "Что делает возможным GloWe",
+        "What happens next": "Что происходит дальше",
+        "What is open now": "Что открыто сейчас",
+        "What we are learning": "Чему мы учимся",
+        "What we believe": "Во что мы верим",
+        "What we want to build next": "Что мы хотим построить дальше",
+        "When GloWe grows, one-third of future revenues will return to local communities.": "Когда GloWe вырастет, треть будущих доходов вернётся местным сообществам.",
+        "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "Когда вы публикуете контент в GloWe — текст, изображения, ссылки или описания проектов:",
+        "Who is this for?": "Для кого это?",
+        "Who We Serve": "Кому мы служим",
+        "Why do you want to volunteer?": "Почему вы хотите стать волонтёром?",
+        "Why GloWe exists": "Зачем существует GloWe",
+        "Wish Type": "Тип желания",
+        "Write a Community Post": "Написать пост сообщества",
+        "Write a reply": "Написать ответ",
+        "Write Post": "Написать пост",
+        "Write posts, ask questions, share field knowledge, publish updates, and join topic-based discussions.": "Пишите посты, задавайте вопросы, делитесь знаниями с мест, публикуйте обновления и присоединяйтесь к тематическим обсуждениям.",
+        "Write the story, request, guide, event details, or question you want the community to see.": "Напишите историю, запрос, руководство, детали мероприятия или вопрос, который вы хотите показать сообществу.",
+        "Write to the community": "Написать сообществу",
+        "You are acting in good faith and with respect for others.": "Вы действуете добросовестно и с уважением к другим.",
+        "You are not alone here": "Здесь вы не одни",
+        "You are part of a community where people can ask, offer, learn, and keep going together.": "Вы часть сообщества, где люди могут просить, предлагать, учиться и двигаться дальше вместе.",
+        "You confirm that you have the legal right to publish what you upload and assume full responsibility for it.": "Вы подтверждаете, что имеете законное право публиковать загружаемые материалы и несёте за них полную ответственность.",
+        "You grant GloWe a non-exclusive, royalty-free, worldwide, perpetual license to host, translate, display, analyze, and distribute your content within the platform.": "Вы предоставляете GloWe неисключительную, безвозмездную, всемирную, бессрочную лицензию на размещение, перевод, отображение, анализ и распространение вашего контента в рамках платформы.",
+        "You may close your account at any time.": "Вы можете закрыть свой аккаунт в любое время.",
+        "You may request deletion of your account or data at any time.": "Вы можете запросить удаление аккаунта или данных в любое время.",
+        "You retain full ownership of your intellectual property.": "Вы сохраняете полное право собственности на свою интеллектуальную собственность.",
+        "You've got something the world needs.": "У вас есть то, что нужно миру.",
+        "You're already part of GloWe.": "Вы уже часть GloWe.",
+        "Explore the community, share what you know, or pick up where you left off.": "Изучайте сообщество, делитесь тем, что знаете, или продолжите с того места, где остановились.",
+        "Your Availability": "Ваша доступность",
+        "Your Community Home": "Ваша главная сообщества",
+        "Your full name": "Ваше полное имя",
+        "Your password": "Ваш пароль",
+        "About - GloWe": "О нас — GloWe",
+        "About GloWe": "О GloWe",
+        "About the Organization": "Об организации",
+        "About This Opportunity": "Об этой возможности",
+        "Across countries, languages, and fields, members can learn from each other, translate field wisdom, adapt proven solutions, and connect local action to global SDG challenges.": "Через страны, языки и сферы участники могут учиться друг у друга, переводить опыт с мест, адаптировать проверенные решения и связывать местные действия с глобальными задачами ЦУР.",
+        "Act honestly. Share real experiences. Credit others' work where due. Information shared on GloWe should be accurate, current, and shared with intention.": "Действуйте честно. Делитесь реальным опытом. Указывайте авторство работ других, где это уместно. Информация в GloWe должна быть точной, актуальной и опубликованной осознанно.",
+        "Active Members": "Активные участники",
+        "Active projects": "Активные проекты",
+        "Active Threads": "Активные обсуждения",
+        "Admin review": "Проверка администратором",
+        "Admin Review - GloWe": "Администрирование — GloWe",
+        "A digital-human space for shared knowledge, practical connection, and gradual community growth.": "Цифровое человеческое пространство для общих знаний, практических связей и постепенного роста сообщества.",
+        "A living feed for field updates, practical questions, needs, resources, and people building impact together.": "Живая лента обновлений с мест, практических вопросов, запросов, ресурсов и людей, которые вместе создают перемены.",
+        "A practical space for volunteers, mentors, professionals, and organizations to meet around real needs, clear roles, and shared impact.": "Практическое пространство, где волонтёры, менторы, специалисты и организации встречаются вокруг реальных запросов, ясных ролей и общего результата.",
+        "A full Privacy Policy will be published separately.": "Полная политика конфиденциальности будет опубликована отдельно.",
+        "Community - GloWe": "Сообщество — GloWe",
+        "Discussion Group - GloWe": "Дискуссионная группа — GloWe",
+        "Forums - GloWe": "Форумы — GloWe",
+        "Messages - GloWe": "Сообщения — GloWe",
+        "Opportunity Details - GloWe": "Детали возможности — GloWe",
+        "Organizations - GloWe": "Организации — GloWe",
+        "Personal Area - GloWe": "Личный кабинет — GloWe",
+        "Profile - GloWe": "Профиль — GloWe",
+        "Saved - GloWe": "Сохранённое — GloWe",
+        "Settings - GloWe": "Настройки — GloWe",
+        "Volunteer Network - GloWe": "Сеть волонтёров — GloWe",
+        "Volunteer Opportunities - GloWe": "Волонтёрские возможности — GloWe",
+        "What's Next - GloWe": "Что дальше — GloWe",
+        "Wishing Well - GloWe": "Колодец желаний — GloWe",
+        "Write Post - GloWe": "Написать пост — GloWe",
+        "1. About GloWe": "1. О GloWe",
+        "2. Who Can Use GloWe": "2. Кто может пользоваться GloWe",
+        "3. Acceptable Use & Responsibilities": "3. Допустимое использование и обязанности",
+        "4. Content Rights & Licensing": "4. Права на контент и лицензирование",
+        "5. Privacy & Data": "5. Конфиденциальность и данные",
+        "6. Community Integrity Charter": "6. Устав целостности сообщества",
+        "6.1 Transparency": "6.1 Прозрачность",
+        "6.2 Respect & Inclusion": "6.2 Уважение и инклюзивность",
+        "6.3 Collaboration Over Competition": "6.3 Сотрудничество важнее конкуренции",
+        "6.4 Cultural Sensitivity": "6.4 Культурная чуткость",
+        "6.5 Community Responsibility": "6.5 Ответственность сообщества",
+        "7. Moderation & Enforcement": "7. Модерация и применение правил",
+        "8. External Links & Third-Party Services": "8. Внешние ссылки и сторонние сервисы",
+        "9. Termination": "9. Прекращение использования",
+        "10. Liability Disclaimer": "10. Ограничение ответственности",
+        "11. Updates to Terms": "11. Обновления условий",
+        "12. Contact Us": "12. Свяжитесь с нами",
+        "2026 GloWe. Built for shared knowledge, mutual support, and action that lasts.": "2026 GloWe. Создано для общих знаний, взаимной поддержки и действий, которые остаются.",
+        "Local communities already hold practical knowledge about education, health, climate, food, rights, resilience, and care. Too often, that knowledge stays locked inside one place, one language, one report, or one organization. GloWe is being built to help field-based knowledge travel: clearly, respectfully, and in ways other people can adapt.": "Местные сообщества уже обладают практическими знаниями об образовании, здоровье, климате, продовольствии, правах, устойчивости и заботе. Слишком часто эти знания остаются запертыми в одном месте, одном языке, одном отчёте или одной организации. GloWe создаётся, чтобы помочь знаниям с мест путешествовать: понятно, уважительно и так, чтобы другие могли их адаптировать.",
+        "Sign in with your Google account to get started. You can complete your profile after signing in.": "Войдите через аккаунт Google, чтобы начать. Профиль можно заполнить после входа.",
+        "Share a Wish": "Поделиться желанием",
+        "A good wish is specific enough for the right helper to say yes.": "Хорошее желание достаточно конкретно, чтобы нужный помощник сказал «да».",
+        "What do you need?": "Что вам нужно?",
+        "Wish type": "Тип желания",
+        "Select a type": "Выберите тип",
+        "Urgency": "Срочность",
+        "Choose urgency": "Выберите срочность",
+        "This week": "На этой неделе",
+        "This month": "В этом месяце",
+        "Flexible timeline": "Гибкие сроки",
+        "What would success look like?": "Как будет выглядеть успех?",
+        "Publish Wish": "Опубликовать желание",
+        "Send a clear, trusted offer so the organization can decide quickly.": "Отправьте ясное и надёжное предложение, чтобы организация могла быстро принять решение.",
+        "What can you offer?": "Что вы можете предложить?",
+        "Choose support type": "Выберите тип поддержки",
+        "Professional volunteering": "Профессиональное волонтёрство",
+        "Funding or grant help": "Помощь с финансированием или грантами",
+        "Space or equipment": "Помещение или оборудование",
+        "Business partnership": "Бизнес-партнёрство",
+        "Media or distribution": "Медиа или распространение",
+        "Availability": "Доступность",
+        "Choose availability": "Выберите доступность",
+        "Within 2 weeks": "В течение 2 недель",
+        "Send Offer": "Отправить предложение",
+        "Update the public information that helps others understand who you are and how to collaborate.": "Обновите публичную информацию, которая помогает другим понять, кто вы и как с вами сотрудничать.",
+        "Display name": "Отображаемое имя",
+        "Profile type": "Тип профиля",
+        "Country / region": "Страна / регион",
+        "Website / public link": "Сайт / публичная ссылка",
+        "Interest areas": "Сферы интересов",
+        "SDGs": "ЦУР",
+        "Short public line": "Короткая публичная строка",
+        "Mission / story": "Миссия / история",
+        "Values and goals": "Ценности и цели",
+        "Community / audience": "Сообщество / аудитория",
+        "Problem addressed": "Решаемая проблема",
+        "Solution / method": "Решение / метод",
+        "Geographic activity": "География деятельности",
+        "Open actions / looking for": "Открытые запросы / что ищете",
+        "Articles / videos / reports": "Статьи / видео / отчёты",
+        "Profile image": "Изображение профиля",
+        "Optional. When Cloudinary keys are configured, this uploads to Cloudinary.": "Необязательно. Когда ключи Cloudinary настроены, файл загружается в Cloudinary.",
+        "Save Profile Draft": "Сохранить черновик профиля",
+        "Welcome to GloWe 👋": "Добро пожаловать в GloWe 👋",
+        "Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.": "Расскажите немного о себе, чтобы сообщество знало, с кем сотрудничает. Это займёт всего минуту.",
+        "Your name": "Ваше имя",
+        "A short line about you": "Короткая строка о вас",
+        "I'm joining as": "Я присоединяюсь как",
+        "Private individual": "Частное лицо",
+        "Volunteer, donor, or community member. Full access right away.": "Волонтёр, донор или участник сообщества. Полный доступ сразу.",
+        "Organization": "Организация",
+        "NGO, nonprofit, or initiative. Reviewed before you can publish — only serious applications are accepted.": "НКО, некоммерческая организация или инициатива. Проверяется до получения права публиковать — принимаются только серьёзные заявки.",
+        "Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.": "Организации проверяются командой GloWe. До одобрения вы можете просматривать всё, но публикация возможностей, мероприятий и запросов остаётся заблокированной. Пожалуйста, предоставьте достаточно информации, чтобы мы могли отнестись к вашей заявке серьёзно.",
+        "Organization name *": "Название организации *",
+        "Registration / NGO number": "Регистрационный номер / номер НКО",
+        "Country of operation": "Страна деятельности",
+        "Cause / field": "Направление / сфера",
+        "Organization size": "Размер организации",
+        "About the organization *": "Об организации *",
+        "Contact person *": "Контактное лицо *",
+        "Contact email *": "Контактная эл. почта *",
+        "Contact phone": "Контактный телефон",
+        "Save and continue": "Сохранить и продолжить",
+        "Maybe later": "Может быть, позже",
+        "Add project": "Добавить проект",
+        "Add a project that can appear in your personal area and help others understand what you are building.": "Добавьте проект, который появится в вашем личном кабинете и поможет другим понять, что вы создаёте.",
+        "Project title": "Название проекта",
+        "Status": "Статус",
+        "Draft": "Черновик",
+        "Active": "Активный",
+        "Recruiting partners": "Набор партнёров",
+        "Needs volunteers": "Нужны волонтёры",
+        "Ready to share": "Готово к публикации",
+        "Description": "Описание",
+        "Save Project": "Сохранить проект",
+        "Edit": "Редактировать",
+        "Edit project": "Редактировать проект",
+        "Update Project": "Обновить проект",
+        "Project updated": "Проект обновлён",
+        "Your project changes were saved.": "Изменения в проекте сохранены.",
+        "Project added": "Проект добавлен",
+        "The project now appears in your personal area.": "Проект теперь отображается в вашем личном кабинете.",
+        "No event registrations yet": "Регистраций на мероприятия пока нет",
+        "Register for an event from the Volunteer Network and track it here.": "Зарегистрируйтесь на мероприятие в Сети волонтёров и следите за ним здесь.",
+        "Browse events": "Просмотр мероприятий",
+        "Event cancelled": "Мероприятие отменено",
+        "Registered": "Зарегистрирован",
+        "Pending approval": "Ожидает одобрения",
+        "Waitlisted": "В списке ожидания",
+        "Not accepted": "Не принято",
+        "Cancelled": "Отменено",
+        "Report a concern": "Сообщить о проблеме",
+        "We review every report carefully and confidentially to keep GloWe safe and professional.": "Мы рассматриваем каждое обращение внимательно и конфиденциально, чтобы GloWe оставался безопасным и профессиональным.",
+        "Reporting": "Жалоба",
+        "General concern": "Общая проблема",
+        "What should we look at?": "На что нам стоит обратить внимание?",
+        "Choose a reason": "Выберите причину",
+        "Inaccurate information": "Неточная информация",
+        "Disrespectful or discriminatory content": "Неуважительный или дискриминационный контент",
+        "Misleading promotion": "Вводящее в заблуждение продвижение",
+        "Human rights concern": "Нарушение прав человека",
+        "Other": "Другое",
+        "Details": "Подробности",
+        "Submit Report": "Отправить жалобу",
+        "Choose a rhythm that keeps GloWe useful without creating digital fatigue.": "Выберите ритм, при котором GloWe остаётся полезным и не создаёт цифровой усталости.",
+        "Opportunity of the week": "Возможность недели",
+        "High-match connection proposals": "Предложения связей с высоким соответствием",
+        "Deadline reminders": "Напоминания о сроках",
+        "Crisis-response playbooks for my region": "Руководства по реагированию на кризисы для моего региона",
+        "Preferred cadence": "Предпочтительная частота",
+        "Weekly digest": "Еженедельный дайджест",
+        "Only urgent actions": "Только срочные действия",
+        "Daily 5-minute brief": "Ежедневная 5-минутная сводка",
+        "Save Preferences": "Сохранить настройки",
+        "Mentors, space, visibility...": "Менторы, помещение, видимость...",
+        "City, region, remote, or hybrid": "Город, регион, удалённо или гибридно",
+        "Tell the community what would help.": "Расскажите сообществу, что помогло бы.",
+        "Example: 3 mentors matched, one grant draft completed, 50 families reached...": "Например: подобраны 3 ментора, готов один черновик заявки на грант, охвачено 50 семей...",
+        "Briefly explain your relevant experience, what you can offer, and what you need to know next.": "Кратко опишите свой подходящий опыт, что вы можете предложить и что вам нужно узнать дальше.",
+        "Organization or person name": "Название организации или имя человека",
+        "NGO, business, volunteer, initiative...": "НКО, бизнес, волонтёр, инициатива...",
+        "Education, health, climate...": "Образование, здоровье, климат...",
+        "Quality Education, Climate Action...": "Качественное образование, борьба с изменением климата...",
+        "One clear sentence people can understand quickly": "Одно ясное предложение, которое люди быстро поймут",
+        "Mission, current work, or what you offer.": "Миссия, текущая работа или то, что вы предлагаете.",
+        "Values, goals, leadership, or principles": "Ценности, цели, лидерство или принципы",
+        "Who do you serve, support, work with, or hope to reach?": "Кому вы служите, кого поддерживаете, с кем работаете или к кому хотите обратиться?",
+        "What problem or need are you working on?": "Над какой проблемой или потребностью вы работаете?",
+        "What do you do in practice?": "Что вы делаете на практике?",
+        "Advocacy, education, field work, research...": "Правозащита, образование, работа в поле, исследования...",
+        "Local / regional / global / remote": "Местный / региональный / глобальный / удалённый",
+        "Partners, volunteers, funding, knowledge, visibility...": "Партнёры, волонтёры, финансирование, знания, видимость...",
+        "Useful public links": "Полезные публичные ссылки",
+        "Full name": "Полное имя",
+        "One sentence people grasp quickly": "Одно предложение, которое люди быстро схватывают",
+        "Registered / public name": "Зарегистрированное / публичное название",
+        "Legal registration number": "Юридический регистрационный номер",
+        "Where you operate": "Где вы работаете",
+        "Volunteers / staff, approx.": "Волонтёры / сотрудники, примерно",
+        "Mission, who you serve, and what you'd do on GloWe.": "Миссия, кому вы служите и что вы будете делать в GloWe.",
+        "Who we should talk to": "С кем нам стоит поговорить",
+        "Optional": "Необязательно",
+        "Community resource map": "Карта ресурсов сообщества",
+        "What is the project, who does it support, and what kind of help would move it forward?": "Что это за проект, кого он поддерживает и какая помощь продвинет его вперёд?",
+        "Add context that can help our review.": "Добавьте контекст, который поможет нашей проверке.",
+        "Switch to English": "Переключиться на английский",
+        "This page outlines the terms, responsibilities, and community standards that guide your use of the GloWe platform. By accessing or interacting with this site, you agree to abide by the Terms of Use and our Community Integrity Charter. GloWe is committed to building a safe, inclusive, and impact-driven space.": "На этой странице изложены условия, обязанности и стандарты сообщества, которые определяют ваше использование платформы GloWe. Заходя на этот сайт или взаимодействуя с ним, вы соглашаетесь соблюдать Условия использования и наш Устав целостности сообщества. GloWe стремится создавать безопасное, инклюзивное и нацеленное на результат пространство.",
+        "GloWe is a global platform connecting individuals, organizations, and initiatives working to create social and environmental change. We facilitate knowledge-sharing, collaboration, and visibility for solutions that matter across languages, sectors, and geographies.": "GloWe — это глобальная платформа, соединяющая людей, организации и инициативы, которые создают социальные и экологические перемены. Мы поддерживаем обмен знаниями, сотрудничество и видимость решений, которые важны, — через языки, сектора и регионы.",
+        "Share knowledge, ask for support, and build practical impact with the community.": "Делитесь знаниями, просите поддержки и создавайте практические перемены вместе с сообществом.",
+        "More post actions": "Другие действия с постом",
+        "More wish actions": "Другие действия с желанием",
+        "More opportunity actions": "Другие действия с возможностью",
+        "More profile actions": "Другие действия с профилем",
+        "Write a thoughtful comment...": "Напишите вдумчивый комментарий...",
+        "Ask a focused question for this group": "Задайте конкретный вопрос этой группе",
+        "What do you need input on, and what kind of answers would help?": "По какому вопросу вам нужен отклик и какие ответы помогли бы?",
+        "Personal workspace": "Личное рабочее пространство",
+        "Your GloWe profile is ready to be completed.": "Ваш профиль GloWe готов к заполнению.",
+        "Community collaboration": "Сотрудничество в сообществе",
+        "Location not added yet": "Местоположение ещё не добавлено",
+        "Team size not added yet": "Размер команды ещё не добавлен",
+        "Not added yet": "Ещё не добавлено",
+        "Title / role": "Должность / роль",
+        "Organization name": "Название организации",
+        "Email verified": "Эл. почта подтверждена",
+        "Pending": "Ожидает",
+        "Accepted": "Принято",
+        "Declined": "Отклонено",
+        "Public link": "Публичная ссылка",
+        "Public line": "Публичная строка",
+        "Open to volunteers, donations, or partnerships?": "Открыты для волонтёров, пожертвований или партнёрств?",
+        "Funding / support sources": "Источники финансирования / поддержки",
+        "Annual budget / support context": "Годовой бюджет / контекст поддержки",
+        "Profile status": "Статус профиля",
+        "Personal area sections": "Разделы личного кабинета",
+        "Sign in to post a need": "Войдите, чтобы опубликовать запрос",
+        "Browsing GloWe is open to everyone. Sign in with Google to post a need and reach people ready to help.": "Просматривать GloWe может каждый. Войдите через Google, чтобы опубликовать запрос и найти людей, готовых помочь.",
+        "Sign in to post": "Войдите, чтобы опубликовать",
+        "Sign in with Google to share a post with the GloWe community.": "Войдите через Google, чтобы поделиться постом с сообществом GloWe.",
+        "Sign in to publish": "Войдите, чтобы опубликовать",
+        "Sign in with Google to publish this opportunity and start receiving applications.": "Войдите через Google, чтобы опубликовать эту возможность и начать получать заявки.",
+        "Sign in to start a discussion": "Войдите, чтобы начать обсуждение",
+        "Sign in with Google to open a new discussion thread.": "Войдите через Google, чтобы открыть новое обсуждение.",
+        "Sign in to reply": "Войдите, чтобы ответить",
+        "Sign in with Google to join this discussion.": "Войдите через Google, чтобы присоединиться к этому обсуждению.",
+        "Sign in to apply": "Войдите, чтобы откликнуться",
+        "Save your spot": "Забронируйте своё место",
+        "Ready to lend a hand?": "Готовы протянуть руку помощи?",
+        "Keep this for later": "Сохраните это на потом",
+        "Sign in with Google to save it to your list.": "Войдите через Google, чтобы сохранить это в свой список.",
+        "Sign in to continue": "Войдите, чтобы продолжить",
+        "Sign in with Google to open your personal area.": "Войдите через Google, чтобы открыть личный кабинет.",
+        "Sign in with Google to do this on GloWe.": "Войдите через Google, чтобы сделать это в GloWe.",
+        "Welcome to GloWe": "Добро пожаловать в GloWe",
+        "Welcome — you're browsing as a guest. Sign in with Google anytime to participate.": "Добро пожаловать — вы просматриваете как гость. Войдите через Google в любой момент, чтобы участвовать.",
+        "Mark as fulfilled": "Отметить как выполненное",
+        "No wishes yet": "Желаний пока нет",
+        "Post a wish": "Опубликовать желание",
+        "The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.": "Колодец желаний наполняется, когда участники сообщества публикуют запросы на поддержку, призывы к волонтёрам и возможности для сотрудничества. Станьте первым, кто расскажет, что нужно вашему проекту.",
+        "Back to wishes": "Назад к желаниям",
+        "No opportunities posted yet": "Возможности пока не опубликованы",
+        "No organizations yet": "Организаций пока нет",
+        "No matching profiles": "Нет подходящих профилей",
+        "No posts yet — share knowledge, ask for support, or open a discussion to get things going.": "Постов пока нет — поделитесь знаниями, попросите поддержки или откройте обсуждение, чтобы всё началось.",
+        "No registrations yet.": "Регистраций пока нет.",
+        "Could not load registrations.": "Не удалось загрузить регистрации.",
+        "Be the first to share a volunteer role or collaboration request with the GloWe community.": "Станьте первым, кто поделится волонтёрской ролью или запросом на сотрудничество с сообществом GloWe.",
+        "Be the first to share a volunteer role or collaboration request with the community.": "Станьте первым, кто поделится волонтёрской ролью или запросом на сотрудничество с сообществом.",
+        "Members will appear here once they join the community.": "Участники появятся здесь, когда присоединятся к сообществу.",
+        "Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.": "Организации присоединяются к GloWe, создавая профиль и проходя проверку. Первые одобренные профили появятся здесь.",
+        "The community is just getting started. Post a wish, share what you know, or reach out to someone who is working on what you care about.": "Сообщество только начинает свой путь. Опубликуйте желание, поделитесь тем, что знаете, или напишите тому, кто работает над важным для вас делом.",
+        "This section will come alive as the community grows.": "Этот раздел оживёт по мере роста сообщества.",
+        "Try a broader keyword or clear a filter.": "Попробуйте более широкое ключевое слово или снимите фильтр.",
+        "Write the first post": "Напишите первый пост",
+        "Write a message": "Написать сообщение",
+        "Loading opportunities…": "Загружаем возможности…",
+        "Loading organizations…": "Загружаем организации…",
+        "Loading posts…": "Загружаем посты…",
+        "Loading profile…": "Загружаем профиль…",
+        "Loading registrations…": "Загружаем регистрации…",
+        "Loading wishes…": "Загружаем желания…",
+        "Fetching from the community directory.": "Загружаем из каталога сообщества.",
+        "Back": "Назад",
+        "Next": "Далее",
+        "Register for event": "Зарегистрироваться на мероприятие",
+        "Sign in to register": "Войдите, чтобы зарегистрироваться",
+        "Cancel registration": "Отменить регистрацию",
+        "Cancel event": "Отменить мероприятие",
+        "Manage registrations": "Управление регистрациями",
+        "Event registration": "Регистрация на мероприятие",
+        "Message to the organizer (optional)": "Сообщение организатору (необязательно)",
+        "This event has been cancelled by the organizer.": "Это мероприятие отменено организатором.",
+        "This event has ended.": "Это мероприятие завершилось.",
+        "This event is cancelled.": "Это мероприятие отменено.",
+        "This event is no longer open for registration.": "Регистрация на это мероприятие закрыта.",
+        "Registration:": "Регистрация:",
+        "Status:": "Статус:",
+        "Type:": "Тип:",
+        "When:": "Когда:",
+        "Join link:": "Ссылка для подключения:",
+        "Offer sent": "Предложение отправлено",
+        "Structured support offer submitted.": "Структурированное предложение поддержки отправлено.",
+        "Save as draft": "Сохранить как черновик",
+        "Submit for review": "Отправить на проверку",
+        "Send code": "Отправить код",
+        "Select an area": "Выберите сферу",
+        "Choose if relevant": "Выберите, если применимо",
+        "Preferred contact": "Предпочтительный способ связи",
+        "In-app message": "Сообщение в приложении",
+        "Location (optional)": "Местоположение (необязательно)",
+        "Phone": "Телефон",
+        "Phone (optional)": "Телефон (необязательно)",
+        "WhatsApp": "WhatsApp",
+        "Public": "Публично",
+        "Public actions": "Публичные действия",
+        "Public profile and media": "Публичный профиль и медиа",
+        "Basic account": "Базовый аккаунт",
+        "Looking for": "Ищу",
+        "Impact": "Влияние",
+        "Impact update": "Обновление о результате",
+        "Draft impact update": "Черновик обновления о результате",
+        "Draft Update": "Черновик обновления",
+        "Impact, interests and methods": "Влияние, интересы и методы",
+        "Mentoring": "Наставничество",
+        "Trust": "Доверие",
+        "Trust, contact and review": "Доверие, контакты и проверка",
+        "Story": "История",
+        "Story and purpose": "История и цель",
+        "The dream": "Мечта",
+        "The conversation starts here": "Разговор начинается здесь",
+        "Connection workspace": "Пространство для связей",
+        "Profile onboarding": "Создание профиля",
+        "Organization review": "Проверка организации",
+        "Review note": "Заметка проверяющего",
+        "Relevant SDGs": "Соответствующие ЦУР",
+        "Size / team": "Размер / команда",
+        "Annual budget": "Годовой бюджет",
+        "First coordination call": "Первый координационный созвон",
+        "Both sides confirm scope, timeline, and ownership.": "Обе стороны подтверждают объём, сроки и зоны ответственности.",
+        "A short outcome note documents what changed.": "Короткая заметка о результате фиксирует, что изменилось.",
+        "When work is complete, this becomes a short public note: what was needed, who helped, what happened, and what is still needed.": "Когда работа завершена, это становится короткой публичной заметкой: что было нужно, кто помог, что произошло и что ещё требуется.",
+        "To turn a local need into a shared action that others can join, support, or learn from.": "Чтобы превратить местный запрос в общее действие, к которому другие могут присоединиться, поддержать его или научиться на нём.",
+        "Build a useful profile step by step. You can save a draft now and complete more details later.": "Создавайте полезный профиль шаг за шагом. Можно сохранить черновик сейчас и дополнить детали позже.",
+        "Choose the profile that best describes you. This changes the questions and future profile layout.": "Выберите профиль, который лучше всего вас описывает. Это меняет вопросы и будущий вид профиля.",
+        "For this MVP, the code is shown on screen and stored locally.": "В этой MVP-версии код показывается на экране и хранится локально.",
+        "I agree to keep GloWe professional, respectful, transparent, and aligned with human rights.": "Я обязуюсь поддерживать GloWe профессиональным, уважительным, прозрачным и соответствующим правам человека.",
+        "Logo or profile image": "Логотип или изображение профиля",
+        "Website / LinkedIn / Facebook": "Сайт / LinkedIn / Facebook",
+        "1 person": "1 человек",
+        "2-5 people": "2–5 человек",
+        "6-20 people": "6–20 человек",
+        "20+ people": "20+ человек",
+        "(required for rejection)": "(обязательно при отклонении)",
+        "First name *": "Имя *",
+        "Last name *": "Фамилия *",
+        "Email *": "Эл. почта *",
+        "Password *": "Пароль *",
+        "Confirm password *": "Подтвердите пароль *",
+        "Email verification code *": "Код подтверждения эл. почты *",
+        "Country *": "Страна *",
+        "Community / audience *": "Сообщество / аудитория *",
+        "Geographic activity *": "География деятельности *",
+        "Main interest areas *": "Основные сферы интересов *",
+        "Organization mission *": "Миссия организации *",
+        "Problem you address *": "Проблема, которую вы решаете *",
+        "Solution or method *": "Решение или метод *",
+        "Values and goals *": "Ценности и цели *",
+        "Short public line *": "Короткая публичная строка *",
+        "Title / role *": "Должность / роль *",
+        "All listings": "Все объявления",
+        "Events only": "Только мероприятия",
+        "Events:": "Мероприятия:",
+        "In-person events": "Очные мероприятия",
+        "Online events": "Онлайн-мероприятия",
+        "Upcoming events": "Предстоящие мероприятия",
+        "Registered members": "Зарегистрированные участники",
+        "Registered organizations": "Зарегистрированные организации",
+        "+ Create": "+ Создать",
+        "Create": "Создать",
+        "What would you like to create?": "Что вы хотите создать?",
+        "Share an update, a story, or knowledge with the community.": "Поделитесь обновлением, историей или знаниями с сообществом.",
+        "Publish a volunteering event with a date and registration.": "Опубликуйте волонтёрское мероприятие с датой и регистрацией.",
+        "Recruit volunteers for an ongoing role or project.": "Наберите волонтёров на постоянную роль или проект.",
+        "Ask the community for help, resources, or partners.": "Попросите у сообщества помощь, ресурсы или партнёров.",
+        "Offer your time and skills so organizations can find you.": "Предложите своё время и навыки, чтобы организации могли вас найти.",
+        "Event": "Мероприятие",
+        "Need": "Запрос о помощи",
+        "Volunteer Offer": "Предложение волонтёрства",
+        "Publish an event": "Опубликовать мероприятие",
+        "Events appear on the Volunteer Network with a date and registration.": "Мероприятия появляются в Сети волонтёров с датой и регистрацией.",
+        "Event title": "Название мероприятия",
+        "e.g. Community beach cleanup": "например: общественная уборка пляжа",
+        "What happens at the event, and who should come?": "Что происходит на мероприятии и кому стоит прийти?",
+        "Starts": "Начало",
+        "Ends (optional)": "Окончание (необязательно)",
+        "Format": "Формат",
+        "Location / link": "Место / ссылка",
+        "Address, city, or meeting link": "Адрес, город или ссылка на встречу",
+        "Capacity (optional)": "Вместимость (необязательно)",
+        "Leave empty for unlimited": "Оставьте пустым, чтобы не ограничивать",
+        "Registration": "Регистрация",
+        "Organizer approves each registration": "Организатор одобряет каждую регистрацию",
+        "Open — instant confirmation": "Открытая — мгновенное подтверждение",
+        "Publish Event": "Опубликовать мероприятие",
+        "Event published": "Мероприятие опубликовано",
+        "Your event is now live on the Volunteer Network.": "Ваше мероприятие опубликовано в Сети волонтёров.",
+        "Offer your help": "Предложите свою помощь",
+        "Your offer appears on the Wishing Well so organizations and members can find you.": "Ваше предложение появляется в Колодце желаний, чтобы организации и участники могли вас найти.",
+        "Headline": "Заголовок",
+        "e.g. Graphic designer offering 3 hours a week": "например: графический дизайнер предлагает 3 часа в неделю",
+        "Skills, time, equipment — anything that could help.": "Навыки, время, оборудование — всё, что может помочь.",
+        "Impact area (optional)": "Сфера влияния (необязательно)",
+        "Publish Offer": "Опубликовать предложение",
+        "Offer published": "Предложение опубликовано",
+        "Your offer is now live on the Wishing Well.": "Ваше предложение опубликовано в Колодце желаний.",
+        "Fetching your conversations.": "Загружаем ваши переписки.",
+        "No conversations yet": "Переписок пока нет",
+        "Reach out to an organization, offer help on a need, or message a community member — conversations will appear here.": "Напишите организации, предложите помощь по запросу или отправьте сообщение участнику сообщества — переписки появятся здесь.",
+        "Open the Wishing Well": "Открыть Колодец желаний",
+        "Opening the conversation.": "Открываем переписку.",
+        "Conversation unavailable": "Переписка недоступна",
+        "This conversation could not be opened.": "Не удалось открыть эту переписку.",
+        "Back to messages": "Назад к сообщениям",
+        "No messages yet. Say hello!": "Сообщений пока нет. Поздоровайтесь!",
+        "Write a message...": "Напишите сообщение...",
+        "Could not send": "Не удалось отправить",
+        "Messaging unavailable": "Сообщения недоступны",
+        "This member cannot receive direct messages yet.": "Этот участник пока не может получать личные сообщения.",
+        "Messages are unavailable": "Сообщения недоступны",
+        "Spam or misleading promotion": "Спам или вводящее в заблуждение продвижение",
+        "Harassment or hate": "Преследование или ненависть",
+        "False or misleading information": "Ложная или вводящая в заблуждение информация",
+        "Inappropriate content": "Неуместный контент",
+        "Fake profile or impersonation": "Поддельный профиль или выдача себя за другого",
+        "Already reported": "Вы уже пожаловались",
+        "You already reported this. Our team will review it.": "Вы уже пожаловались на это. Наша команда рассмотрит обращение.",
+        "Could not send report": "Не удалось отправить жалобу",
+        "Something went wrong sending your report. Please try again.": "При отправке жалобы произошла ошибка. Пожалуйста, попробуйте снова.",
+        "Reporting needs a live connection right now. Please try again shortly.": "Для отправки жалобы сейчас нужно активное подключение. Пожалуйста, попробуйте снова через некоторое время.",
+        "Sign in to report": "Войдите, чтобы пожаловаться",
+        "Sign in with Google to report this content so our team can review it.": "Войдите через Google, чтобы пожаловаться на этот контент — наша команда его рассмотрит.",
+        "Fetching community reports.": "Загружаем жалобы сообщества.",
+        "Could not load reports": "Не удалось загрузить жалобы",
+        "Remove content": "Удалить контент",
+        "Content removed": "Контент удалён",
+        "The reported content is no longer publicly visible.": "Контент, на который поступила жалоба, больше не виден публично.",
+        "Report dismissed": "Жалоба отклонена",
+        "The report was closed with no action.": "Жалоба закрыта без принятия мер.",
+        "Only GloWe reviewers can act on reports.": "Только проверяющие GloWe могут принимать меры по жалобам.",
+        "Open reported item": "Открыть элемент из жалобы"
+    },
+    ar: {
+        "Show original": "عرض النص الأصلي",
+        "Show translation": "عرض الترجمة",
+        "Translating…": "جارٍ الترجمة…",
+        "Name in English (optional)": "الاسم بالإنجليزية (اختياري)",
+        "Latin / English display name": "اسم العرض بالحروف اللاتينية / الإنجليزية",
+        "Latin / English name — auto-filled if left blank": "الاسم بالحروف اللاتينية / الإنجليزية — يُملأ تلقائيًا إذا تُرك فارغًا",
+        "Organization name in English (optional)": "اسم المؤسسة بالإنجليزية (اختياري)",
+        "Organization name in English": "اسم المؤسسة بالإنجليزية",
+        "English org name — auto-filled if blank": "اسم المؤسسة بالإنجليزية — يُملأ تلقائيًا إذا تُرك فارغًا",
+        "Complete profile": "استكمال الملف الشخصي",
+        "Pending review": "قيد المراجعة",
+        "Needs changes": "يحتاج إلى تعديلات",
+        "Save profile": "حفظ الملف الشخصي",
+        "Change profile photo": "تغيير صورة الملف الشخصي",
+        "Change cover photo": "تغيير صورة الغلاف",
+        "Remove cover": "إزالة الغلاف",
+        "Save cover": "حفظ الغلاف",
+        "Cover will be removed when you save.": "ستتم إزالة الغلاف عند الحفظ.",
+        "Remove photo": "إزالة الصورة",
+        "Save photo": "حفظ الصورة",
+        "Profile saved": "تم حفظ الملف الشخصي",
+        "Could not save profile.": "تعذّر حفظ الملف الشخصي.",
+        "Replace": "استبدال",
+        "Cancel": "إلغاء",
+        "Photo will be removed when you save.": "ستتم إزالة الصورة عند الحفظ.",
+        "Saving...": "جارٍ الحفظ...",
+        "Uploading...": "جارٍ الرفع...",
+        "Preparing photo...": "جارٍ تجهيز الصورة...",
+        "Photo optimized for upload.": "تم تحسين الصورة للرفع.",
+        "Could not read image.": "تعذّرت قراءة الصورة.",
+        "Could not compress image.": "تعذّر ضغط الصورة.",
+        "Image is too large. Try a smaller photo.": "حجم الصورة كبير جدًا. جرّب صورة أصغر.",
+        "Image is too large even after compression. Try a smaller photo.": "حجم الصورة كبير جدًا حتى بعد الضغط. جرّب صورة أصغر.",
+        "Could not save photo.": "تعذّر حفظ الصورة.",
+        "Followers": "المتابِعون",
+        "Following": "المتابَعون",
+        "+ Follow": "+ متابعة",
+        "Following ✓": "تتابعه ✓",
+        "Stop following": "إلغاء المتابعة",
+        "This account requires approval to follow.": "يتطلب هذا الحساب موافقة قبل المتابعة.",
+        "No followers yet": "لا يوجد متابِعون بعد",
+        "Not following anyone yet": "لا تتابع أحدًا بعد",
+        "Sign in to follow": "سجّل الدخول للمتابعة",
+        "Sign in with Google to follow profiles and stay updated on their work.": "سجّل الدخول عبر Google لمتابعة الملفات الشخصية والبقاء على اطلاع بعملها.",
+        "Can't follow this profile": "لا يمكن متابعة هذا الملف الشخصي",
+        "Could not follow": "تعذّرت المتابعة",
+        "Could not unfollow": "تعذّر إلغاء المتابعة",
+        "Connections": "الروابط",
+        "Sign in to see connections": "سجّل الدخول لعرض الروابط",
+        "Show details": "عرض التفاصيل",
+        "Hide details": "إخفاء التفاصيل",
+        "Individual": "فرد",
+        "Settings": "الإعدادات",
+        "Opportunities": "الفرص",
+        "My Events": "فعالياتي",
+        "Focus not added yet": "لم يُضَف مجال التركيز بعد",
+        "Saved from the GloWe community": "محفوظ من مجتمع GloWe",
+        "Loading your event registrations…": "جارٍ تحميل تسجيلاتك في الفعاليات…",
+        "Education & Knowledge": "التعليم والمعرفة",
+        "Environment & Climate Action": "البيئة والعمل المناخي",
+        "Health & Community Care": "الصحة والرعاية المجتمعية",
+        "Rights, Safety & Civic Power": "الحقوق والسلامة والقوة المدنية",
+        "A focused group for learning spaces, youth programs, multilingual knowledge sharing, and practical education tools.": "مجموعة متخصصة لمساحات التعلّم وبرامج الشباب وتبادل المعرفة متعدد اللغات وأدوات التعليم العملية.",
+        "For climate, food systems, waste, restoration, repair, and local environmental action.": "للمناخ والنظم الغذائية والنفايات والاستصلاح والإصلاح والعمل البيئي المحلي.",
+        "A moderated space for wellbeing, preventive health, emergency response, and community care methods.": "مساحة خاضعة للإشراف تُعنى بالعافية والصحة الوقائية والاستجابة للطوارئ وأساليب الرعاية المجتمعية.",
+        "For rights-based action, civic participation, safe moderation, and community trust.": "للعمل القائم على الحقوق والمشاركة المدنية والإشراف الآمن والثقة المجتمعية.",
+        "Youth": "الشباب",
+        "Repair": "الإصلاح",
+        "Wellbeing": "العافية",
+        "Crisis Response": "الاستجابة للأزمات",
+        "Justice": "العدالة",
+        "Safety": "السلامة",
+        "Civic Action": "العمل المدني",
+        "Home": "الرئيسية",
+        "Personal Area": "المنطقة الشخصية",
+        "Wishing Well": "بئر الأمنيات",
+        "The Wishing Well": "بئر الأمنيات",
+        "Wishes": "الأمنيات",
+        "Organizations": "المؤسسات",
+        "Community": "المجتمع",
+        "Forums": "المنتديات",
+        "About": "حول",
+        "About Us": "من نحن",
+        "Profile": "الملف الشخصي",
+        "Sign up / Sign in": "التسجيل / تسجيل الدخول",
+        "Log In": "تسجيل الدخول",
+        "Log in": "تسجيل الدخول",
+        "Join GloWe": "انضم إلى GloWe",
+        "Log Out": "تسجيل الخروج",
+        "Hi,": "مرحبًا،",
+        "there": "صديقنا",
+        "Global Learning, Open Knowledge & Wisdom Exchange.": "تعلّم عالمي، معرفة مفتوحة، وتبادل للحكمة.",
+        "Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.": "نربط الحلول المحلية بالتحديات العالمية عبر المعرفة المشتركة والتضامن والعمل التطبيقي.",
+        "Quick Links": "روابط سريعة",
+        "Explore": "استكشاف",
+        "Participate": "المشاركة",
+        "Write a post": "كتابة منشور",
+        "Volunteer Network": "شبكة المتطوعين",
+        "What's next": "ما التالي",
+        "What Comes Next": "ما الذي يأتي بعد ذلك",
+        "Built With Care": "بُني بعناية",
+        "An MVP by the GloWe community, with product and implementation support by Topaz.": "نسخة أولية من مجتمع GloWe، بدعم في المنتج والتنفيذ من Topaz.",
+        "Admin Review": "الإدارة والمراجعة",
+        "Terms & Community Charter": "الشروط وميثاق المجتمع",
+        "For Organizations": "للمؤسسات",
+        "Register Your Organization": "سجّل مؤسستك",
+        "Post an Opportunity": "نشر فرصة",
+        "Connect": "تواصل",
+        "Welcome Back": "أهلًا بعودتك",
+        "Welcome Back!": "أهلًا بعودتك!",
+        "Sign in with your Google account to continue.": "سجّل الدخول بحساب Google للمتابعة.",
+        "Continue with Google": "المتابعة عبر Google",
+        "Don't have an account?": "ليس لديك حساب؟",
+        "Join our community": "انضم إلى مجتمعنا",
+        "Join the GloWe Community": "انضم إلى مجتمع GloWe",
+        "Sign in with your Google account to get started.": "سجّل الدخول بحساب Google للبدء.",
+        "Already have an account?": "لديك حساب بالفعل؟",
+        "Success": "تم بنجاح",
+        "Your action was completed successfully.": "تمت العملية بنجاح.",
+        "Continue": "متابعة",
+        "Find your GloWe path": "اعثر على مسارك في GloWe",
+        "Choose the path that matches what you want to do first.": "اختر المسار الذي يناسب ما تريد البدء به.",
+        "I represent an organization": "أمثّل مؤسسة",
+        "Create a profile, post a need, and receive structured offers.": "أنشئ ملفًا شخصيًا، وانشر احتياجًا، واستقبل عروضًا منظّمة.",
+        "I can help": "يمكنني المساعدة",
+        "Find wishes that match your skills, language, location, and time.": "اعثر على أمنيات تناسب مهاراتك ولغتك وموقعك ووقتك.",
+        "I am a business partner": "أنا شريك من قطاع الأعمال",
+        "Match CSR teams, logistics, funding, or services with verified needs.": "اربط فرق المسؤولية المجتمعية أو الخدمات اللوجستية أو التمويل أو الخدمات باحتياجات موثّقة.",
+        "Manage your account, language, and session preferences.": "أدِر حسابك ولغتك وتفضيلات الجلسة.",
+        "Account": "الحساب",
+        "Name": "الاسم",
+        "Email": "البريد الإلكتروني",
+        "Account type": "نوع الحساب",
+        "Community member": "عضو في المجتمع",
+        "Open Personal Area": "فتح المنطقة الشخصية",
+        "Language": "اللغة",
+        "Interface language": "لغة الواجهة",
+        "Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.": "اختر لغة واجهة GloWe. تُعرض العبرية والعربية بتخطيط من اليمين إلى اليسار (RTL).",
+        "English": "الإنجليزية",
+        "Hebrew": "العبرية",
+        "Session": "الجلسة",
+        "End your session on this device. You can sign back in any time with Google.": "أنهِ جلستك على هذا الجهاز. يمكنك تسجيل الدخول مجددًا في أي وقت عبر Google.",
+        "Delete Account": "حذف الحساب",
+        "Permanently delete your GloWe profile from this community. This removes your profile details; your Google sign-in itself is not deleted, so you can sign up again later.": "احذف ملفك الشخصي في GloWe من هذا المجتمع نهائيًا. يؤدي ذلك إلى إزالة بيانات ملفك الشخصي؛ أما تسجيل الدخول عبر Google فلا يُحذف، ويمكنك التسجيل مرة أخرى لاحقًا.",
+        "Type DELETE to confirm": "اكتب DELETE للتأكيد",
+        "Could not delete account": "تعذّر حذف الحساب",
+        "Something went wrong deleting your profile. Please try again.": "حدث خطأ أثناء حذف ملفك الشخصي. يرجى المحاولة مرة أخرى.",
+        "Sign in to manage settings": "سجّل الدخول لإدارة الإعدادات",
+        "Your account, language, and session options live here once you are signed in.": "ستظهر هنا خيارات حسابك ولغتك وجلستك بعد تسجيل الدخول.",
+        "Sign in to open your personal area": "سجّل الدخول لفتح منطقتك الشخصية",
+        "Your profile, applications, needs, and saved items live here once you are signed in.": "سيظهر هنا ملفك الشخصي وطلباتك واحتياجاتك وعناصرك المحفوظة بعد تسجيل الدخول.",
+        "Your GloWe": "GloWe الخاص بك",
+        "Welcome back,": "أهلًا بعودتك،",
+        "What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.": "ماذا تودّ أن تفعل اليوم؟ شارك معرفة، أو انشر فرصة، أو اطلب الدعم من المجتمع.",
+        "Share a post": "مشاركة منشور",
+        "Post an opportunity": "نشر فرصة",
+        "Ask for support": "طلب الدعم",
+        "Your activity": "نشاطك",
+        "What is happening on GloWe": "ما الذي يحدث في GloWe",
+        "See all": "عرض الكل",
+        "Loading your GloWe home…": "جارٍ تحميل صفحتك الرئيسية في GloWe…",
+        "You have not shared anything yet": "لم تشارك شيئًا بعد",
+        "Your posts, opportunities, and requests will gather here.": "ستتجمع هنا منشوراتك وفرصك وطلباتك.",
+        "Write your first post": "اكتب منشورك الأول",
+        "The community is just getting started": "المجتمع في بدايته",
+        "Be the first to share a post or an opportunity others can join.": "كن أول من يشارك منشورًا أو فرصة يمكن للآخرين الانضمام إليها.",
+        "Start the conversation": "ابدأ الحوار",
+        "Community post": "منشور مجتمعي",
+        "Community Member": "عضو في المجتمع",
+        "A home for people building impact together": "بيت لمن يصنعون الأثر معًا",
+        "You do not have to carry the work alone.": "لست مضطرًا لحمل هذا العمل وحدك.",
+        "GloWe is a warm, professional community for people, organizations, initiatives, volunteers, and partners working around the SDGs. Here you can ask for support, offer what you know, share field wisdom, and meet people who walk beside you in the work.": "GloWe مجتمع دافئ ومهني للأفراد والمؤسسات والمبادرات والمتطوعين والشركاء العاملين حول أهداف التنمية المستدامة. هنا يمكنك طلب الدعم، وتقديم ما تعرفه، ومشاركة حكمة الميدان، ولقاء أشخاص يسيرون إلى جانبك في العمل.",
+        "Find Your Place": "اعثر على مكانك",
+        "Meet the Community": "تعرّف على المجتمع",
+        "Ask for Support": "اطلب الدعم",
+        "You have something to give, and something to receive.": "لديك ما تعطيه، ولديك ما تتلقاه.",
+        "You can ask": "يمكنك أن تسأل",
+        "You can offer": "يمكنك أن تقدّم",
+        "You can learn": "يمكنك أن تتعلّم",
+        "You can connect": "يمكنك أن تتواصل",
+        "You can belong": "يمكنك أن تنتمي",
+        "Three communities, one living network": "ثلاثة مجتمعات، وشبكة حيّة واحدة",
+        "Enter the Community": "ادخل إلى المجتمع",
+        "Local Community": "المجتمع المحلي",
+        "People who know the place": "أشخاص يعرفون المكان",
+        "Share a local need": "شارك احتياجًا محليًا",
+        "Expert Community": "مجتمع الخبراء",
+        "People who can strengthen the work": "أشخاص يمكنهم تعزيز العمل",
+        "Offer your expertise": "قدّم خبرتك",
+        "Global Community": "المجتمع العالمي",
+        "People who help knowledge travel": "أشخاص يساعدون المعرفة على الانتقال",
+        "Join a discussion": "انضم إلى نقاش",
+        "Ask with honesty": "اسأل بصدق",
+        "Offer with care": "قدّم باهتمام",
+        "Build with solidarity": "ابنِ بتضامن",
+        "Start where you are": "ابدأ من حيث أنت",
+        "Choose the doorway that feels right today": "اختر الباب الذي يبدو مناسبًا اليوم",
+        "Need support": "أحتاج إلى دعم",
+        "Share what would help": "شارك ما الذي سيساعدك",
+        "Want to contribute": "أريد أن أساهم",
+        "Offer your time or expertise": "قدّم وقتك أو خبرتك",
+        "Offer Help": "تقديم المساعدة",
+        "Looking for people": "أبحث عن أشخاص",
+        "Step into the community": "ادخل إلى المجتمع",
+        "Enter Community": "دخول المجتمع",
+        "What you can do in GloWe now": "ما يمكنك فعله في GloWe الآن",
+        "Create a profile": "إنشاء ملف شخصي",
+        "Share with the community": "المشاركة مع المجتمع",
+        "Use the Wishing Well": "استخدام بئر الأمنيات",
+        "Find ways to help": "إيجاد طرق للمساعدة",
+        "Values that guide the space": "القيم التي توجّه هذه المساحة",
+        "Solidarity": "التضامن",
+        "Shared Knowledge": "المعرفة المشتركة",
+        "Practical Action": "العمل التطبيقي",
+        "Trust and Respect": "الثقة والاحترام",
+        "The GloWe ecosystem": "منظومة GloWe",
+        "A glimpse into the community": "لمحة عن المجتمع",
+        "Read Community Posts": "اقرأ منشورات المجتمع",
+        "Who is invited?": "من المدعو؟",
+        "How GloWe is structured": "كيف تتكوّن GloWe",
+        "User Roles": "أدوار المستخدمين",
+        "Business Model": "نموذج العمل",
+        "Development Roadmap": "خارطة طريق التطوير",
+        "Trusted by the GloWe Community": "موضع ثقة مجتمع GloWe",
+        "You have a place in this community.": "لك مكان في هذا المجتمع.",
+        "Bring what you know. Ask for what you need. Meet people who are working, learning, building, and caring around the SDGs.": "أحضِر ما تعرفه. اطلب ما تحتاجه. التقِ بأشخاص يعملون ويتعلمون ويبنون ويهتمون حول أهداف التنمية المستدامة.",
+        "Read Community": "اقرأ المجتمع",
+        "Open Community": "افتح المجتمع",
+        "Read What's Next": "اقرأ «ما التالي»",
+        "See How This Could Grow": "شاهد كيف يمكن أن ينمو هذا",
+        "Active threads will appear here once community members start discussions.": "ستظهر النقاشات النشطة هنا بمجرد أن يبدأ أعضاء المجتمع الحوار.",
+        "Activity": "النشاط",
+        "Add Project": "إضافة مشروع",
+        "Advocacy": "المناصرة",
+        "All areas": "كل المجالات",
+        "All Fields": "كل المجالات",
+        "All Groups": "كل المجموعات",
+        "All Locations": "كل المواقع",
+        "All regions": "كل المناطق",
+        "All types": "كل الأنواع",
+        "All Types": "كل الأنواع",
+        "All wishes": "كل الأمنيات",
+        "Applications": "الطلبات",
+        "Apply for This Opportunity": "التقدّم لهذه الفرصة",
+        "Apply Now": "تقدّم الآن",
+        "Apply to opportunities or publish your own request for volunteers and collaborators.": "تقدّم للفرص أو انشر طلبك الخاص للمتطوعين والمتعاونين.",
+        "Apply with your availability and relevant skills.": "تقدّم مع بيان مدى توفرك ومهاراتك ذات الصلة.",
+        "Approve": "اعتماد",
+        "Approve profiles that are ready, or send them back for changes.": "اعتمد الملفات الجاهزة، أو أعِدها لإجراء تعديلات.",
+        "Arabic": "العربية",
+        "Articles / media": "مقالات / وسائط",
+        "As a member of the GloWe community, you agree not to:": "بصفتك عضوًا في مجتمع GloWe، فإنك توافق على عدم:",
+        "Ask a real question, lead a focused space, share a file, or learn from people working through similar challenges.": "اطرح سؤالًا حقيقيًا، أو قُد مساحة متخصصة، أو شارك ملفًا، أو تعلّم ممن يواجهون تحديات مشابهة.",
+        "Ask question": "طرح سؤال",
+        "Ask, advise, lead": "اسأل، انصح، قُد",
+        "Attach file": "إرفاق ملف",
+        "Back to Community": "العودة إلى المجتمع",
+        "Back to Feed": "العودة إلى التدفق",
+        "Back to Wishing Well": "العودة إلى بئر الأمنيات",
+        "Backend not configured": "لم يتم إعداد الخادم",
+        "Based on GloWe content types": "استنادًا إلى أنواع المحتوى في GloWe",
+        "Better matching": "مطابقة أفضل",
+        "Both belong here. GloWe is built for mutual support, respectful collaboration, and the quiet relief of finding people who understand the journey.": "كلاهما ينتمي إلى هنا. بُنيت GloWe للدعم المتبادل والتعاون المحترم، ولذلك الارتياح الهادئ حين تجد من يفهم هذه الرحلة.",
+        "Browse opportunities, save what matters, contact members, and offer your professional skills, time, resources, or lived experience.": "تصفّح الفرص، واحفظ ما يهمّك، وتواصل مع الأعضاء، وقدّم مهاراتك المهنية أو وقتك أو مواردك أو خبرتك الحياتية.",
+        "Browse Organizations": "تصفّح المؤسسات",
+        "Build trust through profiles, community review, and clear next steps": "ابنِ الثقة عبر الملفات الشخصية ومراجعة المجتمع وخطوات تالية واضحة",
+        "Business-Social Collaboration": "تعاون بين القطاع التجاري والاجتماعي",
+        "Businesses / CSR teams": "الشركات / فرق المسؤولية المجتمعية",
+        "Businesses and partners": "الشركات والشركاء",
+        "By using the platform, you agree that:": "باستخدامك المنصة، فإنك توافق على أن:",
+        "Change": "تغيير",
+        "Choose the right topic, add useful context, and publish it into the community feed.": "اختر الموضوع المناسب، وأضف سياقًا مفيدًا، وانشره في تدفق المجتمع.",
+        "Civic Innovation": "الابتكار المدني",
+        "Cleanup days worth repeating": "أيام تنظيف تستحق التكرار",
+        "Clear": "مسح",
+        "Clear filters": "مسح عوامل التصفية",
+        "Climate": "المناخ",
+        "Close": "إغلاق",
+        "Comment": "تعليق",
+        "comment": "تعليق",
+        "comments": "تعليقات",
+        "Commitment:": "الالتزام:",
+        "Community Activity": "نشاط المجتمع",
+        "Community Building": "بناء المجتمع",
+        "Community feed": "تدفق المجتمع",
+        "Community Feed": "تدفق المجتمع",
+        "Community feed filters": "عوامل تصفية تدفق المجتمع",
+        "Community first, technology second.": "المجتمع أولًا، والتقنية ثانيًا.",
+        "Community Forums": "منتديات المجتمع",
+        "Community home": "الصفحة الرئيسية للمجتمع",
+        "Community integrity": "نزاهة المجتمع",
+        "Community interactions": "التفاعلات المجتمعية",
+        "Community managers": "مديرو المجتمع",
+        "Community members with active contributions will be featured here.": "سيُعرض هنا أعضاء المجتمع أصحاب المساهمات النشطة.",
+        "Community reinvestment": "إعادة الاستثمار في المجتمع",
+        "Community reports": "بلاغات المجتمع",
+        "Community reports will appear here.": "ستظهر بلاغات المجتمع هنا.",
+        "Community review": "مراجعة المجتمع",
+        "Community support board": "لوحة الدعم المجتمعي",
+        "Community wishes": "أمنيات المجتمع",
+        "Connect with social and environmental work through responsible collaboration, CSR, ESG, and shared value.": "تواصل مع العمل الاجتماعي والبيئي عبر التعاون المسؤول والمسؤولية المجتمعية ومعايير ESG والقيمة المشتركة.",
+        "Connection suggestions": "اقتراحات للتواصل",
+        "connections": "روابط",
+        "Consultation request": "طلب استشارة",
+        "Contact": "التواصل",
+        "Content": "المحتوى",
+        "Context": "السياق",
+        "Could not load queue": "تعذّر تحميل القائمة",
+        "Create a password": "أنشئ كلمة مرور",
+        "Create a password (min 8 characters)": "أنشئ كلمة مرور (8 أحرف على الأقل)",
+        "Create Account": "إنشاء حساب",
+        "Create Your Profile": "أنشئ ملفك الشخصي",
+        "Daily workspace": "مساحة عمل يومية",
+        "Describe your relevant skills and experience...": "صِف مهاراتك وخبراتك ذات الصلة...",
+        "Direct conversations with volunteers, organizations, and partners live here once you are signed in.": "ستظهر هنا المحادثات المباشرة مع المتطوعين والمؤسسات والشركاء بعد تسجيل الدخول.",
+        "Direct conversations with volunteers, organizations, and partners.": "محادثات مباشرة مع المتطوعين والمؤسسات والشركاء.",
+        "Direct messaging is coming soon": "الرسائل المباشرة قريبًا",
+        "Discover organizations, initiatives, and partners sharing field knowledge and practical needs.": "اكتشف المؤسسات والمبادرات والشركاء الذين يشاركون معرفة الميدان والاحتياجات العملية.",
+        "Discover People": "اكتشف أشخاصًا",
+        "Discussion group": "مجموعة نقاش",
+        "Discussion groups will appear here once they are set up.": "ستظهر مجموعات النقاش هنا بمجرد إنشائها.",
+        "Discussion groups will appear here soon.": "ستظهر مجموعات النقاش هنا قريبًا.",
+        "Discussion Groups": "مجموعات النقاش",
+        "Dismiss": "إغلاق",
+        "Distribution": "التوزيع",
+        "Diverse people speaking around a round table at an impact community conference": "أشخاص متنوعون يتحدثون حول طاولة مستديرة في مؤتمر لمجتمع الأثر",
+        "Document what happened after someone helped: what changed, what was learned, and what support is still needed.": "وثّق ما حدث بعد أن ساعدك أحدهم: ما الذي تغيّر، وما الذي تعلّمتموه، وما الدعم الذي ما زال مطلوبًا.",
+        "Duration": "المدة",
+        "Duration:": "المدة:",
+        "Each community starts from its own reality: language, culture, needs, skills, and local leadership.": "كل مجتمع ينطلق من واقعه الخاص: اللغة والثقافة والاحتياجات والمهارات والقيادة المحلية.",
+        "Each part of the system is here to help impact work become more visible, connected, and supported.": "كل جزء في هذه المنظومة موجود ليجعل العمل ذا الأثر أكثر وضوحًا وارتباطًا ودعمًا.",
+        "Edit profile": "تعديل الملف الشخصي",
+        "Edit Profile": "تعديل الملف الشخصي",
+        "Edit your profile, add projects, track opportunities, and manage your community activity in one place.": "عدّل ملفك الشخصي، وأضف مشاريع، وتابع الفرص، وأدِر نشاطك المجتمعي في مكان واحد.",
+        "Education": "التعليم",
+        "Education, Climate, Health, Funding": "التعليم، المناخ، الصحة، التمويل",
+        "Education, climate, mentors, Jerusalem...": "التعليم، المناخ، الموجّهون، القدس...",
+        "Effective Date: May 30, 2026": "تاريخ السريان: 30 مايو 2026",
+        "Environment": "البيئة",
+        "Equipment / Space": "معدات / مساحة",
+        "Evenings": "المساءات",
+        "Events": "الفعاليات",
+        "Every connection can end with a short outcome update.": "يمكن أن ينتهي كل تواصل بتحديث قصير عن النتيجة.",
+        "Everyone": "الجميع",
+        "Example: Grant proposal checklist for small NGOs": "مثال: قائمة تحقق لمقترح منحة للمنظمات الصغيرة",
+        "Explore Community": "استكشف المجتمع",
+        "Explore possible collaborations": "استكشف التعاونات الممكنة",
+        "Explore possible connections between needs, skills, organizations, and people. Each suggestion is an invitation to read, ask, and decide together.": "استكشف الروابط الممكنة بين الاحتياجات والمهارات والمؤسسات والأشخاص. كل اقتراح هو دعوة للقراءة والسؤال واتخاذ القرار معًا.",
+        "Fetching organizations awaiting verification.": "جارٍ جلب المؤسسات التي تنتظر التحقق.",
+        "Field knowledge becomes easier to find, translate, discuss, and reuse across communities.": "تصبح معرفة الميدان أسهل في الإيجاد والترجمة والنقاش وإعادة الاستخدام بين المجتمعات.",
+        "Field stories, questions, support offers, updates, and open calls": "قصص من الميدان، وأسئلة، وعروض دعم، وتحديثات، ودعوات مفتوحة",
+        "Field update": "تحديث من الميدان",
+        "Field wisdom, professional tools, lived experience, and multilingual learning all have value here.": "حكمة الميدان والأدوات المهنية والخبرة الحياتية والتعلّم متعدد اللغات، كلها ذات قيمة هنا.",
+        "Field:": "المجال:",
+        "Filter by region, profile type, or keywords connected to mission, field, needs, and projects.": "صفِّ حسب المنطقة أو نوع الملف الشخصي أو الكلمات المفتاحية المرتبطة بالرسالة والمجال والاحتياجات والمشاريع.",
+        "Find a Group": "ابحث عن مجموعة",
+        "Find My Path": "اعثر على مساري",
+        "Find or publish practical volunteer, work, and collaboration opportunities for social impact projects.": "اعثر على فرص تطوع وعمل وتعاون عملية لمشاريع الأثر الاجتماعي أو انشرها.",
+        "Find people who understand your cause, help shape your next step, and make your work visible.": "اعثر على أشخاص يفهمون قضيتك، ويساعدونك في تشكيل خطوتك التالية، ويجعلون عملك مرئيًا.",
+        "Find projects, organizations, volunteers, experts, and practical needs": "اعثر على مشاريع ومؤسسات ومتطوعين وخبراء واحتياجات عملية",
+        "Find the right people": "اعثر على الأشخاص المناسبين",
+        "Find the right request": "اعثر على الطلب المناسب",
+        "Find where your skills can help.": "اعثر على المكان الذي يمكن لمهاراتك أن تساعد فيه.",
+        "Flexible": "مرن",
+        "Follow the work, ask, offer, and connect.": "تابع العمل، واسأل، وقدّم، وتواصل.",
+        "Follow updates": "متابعة التحديثات",
+        "Follow Updates": "متابعة التحديثات",
+        "Food Security": "الأمن الغذائي",
+        "For questions, support, or concerns, please reach out:": "للأسئلة أو الدعم أو الملاحظات، يرجى التواصل:",
+        "For you": "لك",
+        "Forum Leaders": "قادة المنتديات",
+        "Forum leadership offer": "عرض لقيادة منتدى",
+        "Full Name": "الاسم الكامل",
+        "Full-time": "دوام كامل",
+        "Funding preparation": "التحضير للتمويل",
+        "Funding Support": "الدعم التمويلي",
+        "Global": "عالمي",
+        "GloWe - Global Collaboration for Social Impact": "GloWe - تعاون عالمي من أجل الأثر الاجتماعي",
+        "GloWe begins as a simple MVP: profiles, posts, wishes, opportunities, and conversations. From here, we want to grow carefully, with local communities, field knowledge, and technology that serves people.": "تبدأ GloWe كنسخة أولية بسيطة: ملفات شخصية ومنشورات وأمنيات وفرص ومحادثات. ومن هنا نريد أن ننمو بعناية، مع المجتمعات المحلية ومعرفة الميدان وتقنية تخدم الناس.",
+        "GloWe community promise": "وعد مجتمع GloWe",
+        "GloWe community value system": "منظومة قيم مجتمع GloWe",
+        "GloWe does not guarantee uninterrupted access or availability.": "لا تضمن GloWe وصولًا أو توافرًا دون انقطاع.",
+        "GloWe is built for people who meet, listen, offer, ask, and turn local experience into practical collaboration.": "بُنيت GloWe لأشخاص يلتقون ويستمعون ويقدّمون ويسألون ويحوّلون الخبرة المحلية إلى تعاون عملي.",
+        "GloWe is not liable for losses resulting from interruptions, errors, or misuse of the platform.": "لا تتحمل GloWe المسؤولية عن الخسائر الناتجة عن الانقطاعات أو الأخطاء أو سوء استخدام المنصة.",
+        "GloWe is open to all people and organizations, regardless of age, geography, identity, or legal status.": "GloWe مفتوحة لجميع الأفراد والمؤسسات، بغض النظر عن العمر أو الموقع الجغرافي أو الهوية أو الوضع القانوني.",
+        "GloWe may include links to external platforms or tools. We are not responsible for the content, privacy, or reliability of third-party services. Use them at your discretion.": "قد تتضمن GloWe روابط لمنصات أو أدوات خارجية. نحن غير مسؤولين عن محتوى خدمات الطرف الثالث أو خصوصيتها أو موثوقيتها. استخدمها وفق تقديرك.",
+        "GloWe may suspend or terminate accounts that violate these Terms or the Community Integrity Charter.": "يجوز لـ GloWe تعليق أو إنهاء الحسابات التي تنتهك هذه الشروط أو ميثاق نزاهة المجتمع.",
+        "GloWe Member": "عضو في GloWe",
+        "GloWe reserves the right to:": "تحتفظ GloWe بالحق في:",
+        "GloWe respects your privacy. Personal data will only be used to improve your experience and build relevant connections.": "تحترم GloWe خصوصيتك. لن تُستخدم البيانات الشخصية إلا لتحسين تجربتك وبناء روابط ذات صلة.",
+        "GloWe will not sell or license your content to external commercial entities without explicit consent.": "لن تبيع GloWe محتواك أو ترخّصه لجهات تجارية خارجية دون موافقة صريحة.",
+        "GloWe works through local roots, professional support, and global exchange.": "تعمل GloWe عبر الجذور المحلية والدعم المهني والتبادل العالمي.",
+        "Good intentions become stronger when they are connected to clear needs, real people, and concrete next steps.": "تزداد النوايا الطيبة قوة حين ترتبط باحتياجات واضحة وأشخاص حقيقيين وخطوات تالية ملموسة.",
+        "Grant match": "مطابقة منحة",
+        "Grey knowledge library": "مكتبة المعرفة الرمادية",
+        "Group Actions": "إجراءات المجموعة",
+        "Groups": "المجموعات",
+        "Groups that want to document their work, find collaborators, and ask for concrete support.": "مجموعات ترغب في توثيق عملها وإيجاد متعاونين وطلب دعم ملموس.",
+        "Haifa": "حيفا",
+        "Health": "الصحة",
+        "Healthy moderation rules": "قواعد إشراف صحية",
+        "Help communities turn field experience into practical guides, short case studies, templates, and translated resources.": "ساعد المجتمعات على تحويل خبرة الميدان إلى أدلة عملية ودراسات حالة قصيرة وقوالب وموارد مترجمة.",
+        "Help shape what comes next.": "ساهم في تشكيل ما سيأتي.",
+        "Helpers explain what they can provide, availability, and conditions.": "يوضّح المساعدون ما يمكنهم تقديمه ومدى توفرهم وشروطهم.",
+        "Hidden content": "محتوى مخفي",
+        "Hidden items": "عناصر مخفية",
+        "Hide Item": "إخفاء العنصر",
+        "Hide Profile": "إخفاء الملف الشخصي",
+        "How success is understood": "كيف يُفهم النجاح",
+        "How the post will feel in the feed": "كيف سيبدو المنشور في التدفق",
+        "I am a": "أنا",
+        "I Can Help": "يمكنني المساعدة",
+        "If you are under the legal age of majority in your country, you are using GloWe under the guidance of a mentor, parent, or educational framework.": "إذا كنت دون سن الرشد القانوني في بلدك، فإنك تستخدم GloWe تحت إشراف موجّه أو أحد الوالدين أو إطار تعليمي.",
+        "If you witness misconduct, misinformation, or harm, report it. Use the Report button on profiles or reach out to us directly. All reports are reviewed with care and confidentiality.": "إذا لاحظت سوء سلوك أو معلومات مضللة أو ضررًا، فأبلغ عنه. استخدم زر الإبلاغ في الملفات الشخصية أو تواصل معنا مباشرة. تُراجع جميع البلاغات بعناية وسرية.",
+        "Impact approach": "نهج الأثر",
+        "Impact area": "مجال الأثر",
+        "Impact areas": "مجالات الأثر",
+        "Impact Areas": "مجالات الأثر",
+        "Impact field": "مجال الأثر",
+        "Impact follow-up": "متابعة الأثر",
+        "Impact Signals": "مؤشرات الأثر",
+        "Impact so far": "الأثر حتى الآن",
+        "Impact stories": "قصص الأثر",
+        "In cases of legal violations, authorities may be notified.": "في حالات المخالفات القانونية، قد يتم إبلاغ الجهات المختصة.",
+        "Interaction": "التفاعل",
+        "Israel": "إسرائيل",
+        "Items hidden by admin review can be restored while this MVP uses local storage.": "يمكن استعادة العناصر التي أخفتها مراجعة الإدارة ما دامت هذه النسخة الأولية تستخدم التخزين المحلي.",
+        "Items removed by admin will be listed here.": "ستُدرج هنا العناصر التي أزالتها الإدارة.",
+        "Jerusalem": "القدس",
+        "Join Group": "الانضمام إلى المجموعة",
+        "Join requests": "طلبات الانضمام",
+        "Join the MVP": "انضم إلى النسخة الأولية",
+        "Join the Volunteer Network and find places where your skills, experience, language, or care can make someone else's work lighter.": "انضم إلى شبكة المتطوعين واعثر على أماكن يمكن فيها لمهاراتك أو خبرتك أو لغتك أو اهتمامك أن يخفف عبء عمل شخص آخر.",
+        "Join with experience, questions, resources, or a willingness to help.": "انضم بخبرة أو أسئلة أو موارد أو استعداد للمساعدة.",
+        "Keep the community safe and trustworthy.": "حافظ على مجتمع آمن وجدير بالثقة.",
+        "Knowledge": "المعرفة",
+        "Knowledge Seekers": "الباحثون عن المعرفة",
+        "Knowledge Sharing": "تبادل المعرفة",
+        "Languages": "اللغات",
+        "Learn More": "اعرف المزيد",
+        "Like": "إعجاب",
+        "Limit access or features in cases of harm, spam, or manipulation.": "تقييد الوصول أو الميزات في حالات الضرر أو الرسائل المزعجة أو التلاعب.",
+        "Live needs": "احتياجات قائمة",
+        "Loading...": "جارٍ التحميل...",
+        "Loading…": "جارٍ التحميل…",
+        "Loading your profile…": "جارٍ تحميل ملفك الشخصي…",
+        "Uploading image...": "جارٍ رفع الصورة...",
+        "Please choose an image file.": "يرجى اختيار ملف صورة.",
+        "Image must be under 5 MB.": "يجب أن يكون حجم الصورة أقل من 5 ميغابايت.",
+        "Optional. JPG, PNG or WebP, up to 5 MB.": "اختياري. JPG أو PNG أو WebP، حتى 5 ميغابايت.",
+        "Applicants": "المتقدّمون",
+        "Loading applicants…": "جارٍ تحميل المتقدّمين…",
+        "Could not load applicants.": "تعذّر تحميل المتقدّمين.",
+        "No applications yet.": "لا توجد طلبات بعد.",
+        "Accept": "قبول",
+        "Decline": "رفض",
+        "Could not update the application. Please try again.": "تعذّر تحديث الطلب. يرجى المحاولة مرة أخرى.",
+        "Offers": "عروض المساعدة",
+        "Loading offers…": "جارٍ تحميل العروض…",
+        "Could not load offers.": "تعذّر تحميل العروض.",
+        "No offers yet.": "لا توجد عروض بعد.",
+        "Preferred contact:": "وسيلة التواصل المفضّلة:",
+        "Email copied to clipboard": "تم نسخ البريد الإلكتروني إلى الحافظة",
+        "Could not copy the email.": "تعذّر نسخ البريد الإلكتروني.",
+        "GloWe volunteer": "متطوع في GloWe",
+        "Availability:": "التوفر:",
+        "Skills:": "المهارات:",
+        "Motivation:": "الدافع:",
+        "Local community circles": "دوائر المجتمع المحلي",
+        "Local organizations, initiatives, residents, volunteers, and partners bring the real context: what is needed, what already works, who should be involved, and what kind of support would actually help.": "تجلب المؤسسات والمبادرات المحلية والسكان والمتطوعون والشركاء السياق الحقيقي: ما المطلوب، وما الذي ينجح فعلًا، ومن ينبغي إشراكه، وأي نوع من الدعم سيفيد حقًا.",
+        "Local roots": "جذور محلية",
+        "Location": "الموقع",
+        "Location:": "الموقع:",
+        "Looking for Mentors": "نبحث عن موجّهين",
+        "Low-bandwidth friendly": "مناسب لاتصال الإنترنت البطيء",
+        "Make it easier to connect a need with the right volunteer, professional skill, organization, donor, or partner.": "تسهيل ربط الاحتياج بالمتطوع أو المهارة المهنية أو المؤسسة أو الجهة المانحة أو الشريك المناسب.",
+        "Mark Reviewed": "وضع علامة تمت المراجعة",
+        "Measurement and learning": "القياس والتعلّم",
+        "Members": "الأعضاء",
+        "Members will appear here once they join this group.": "سيظهر الأعضاء هنا بمجرد انضمامهم إلى هذه المجموعة.",
+        "Message": "رسالة",
+        "Message author": "مراسلة الكاتب",
+        "Message publisher": "مراسلة الناشر",
+        "Message sent": "تم إرسال الرسالة",
+        "Your message was delivered. The organization can follow up with you.": "تم تسليم رسالتك. يمكن للمؤسسة متابعة التواصل معك.",
+        "Could not send message": "تعذّر إرسال الرسالة",
+        "Something went wrong sending your message. Please try again.": "حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.",
+        "Reach Out": "تواصل",
+        "Send Message": "إرسال رسالة",
+        "Send a short message to start a conversation with this organization.": "أرسل رسالة قصيرة لبدء محادثة مع هذه المؤسسة.",
+        "Introduce yourself and explain how you would like to collaborate.": "عرّف بنفسك ووضّح كيف تودّ التعاون.",
+        "Sign in to reach out": "سجّل الدخول للتواصل",
+        "Please sign in or create a free account to message this organization.": "يرجى تسجيل الدخول أو إنشاء حساب مجاني لمراسلة هذه المؤسسة.",
+        "Messaging needs a live connection right now. Please try again shortly.": "تتطلب المراسلة اتصالًا نشطًا في الوقت الحالي. يرجى المحاولة بعد قليل.",
+        "Missing details": "تفاصيل ناقصة",
+        "Backend unavailable": "الخدمة غير متاحة",
+        "Messages": "الرسائل",
+        "Methods / approaches": "الأساليب / المقاربات",
+        "Moderate discussions in order to keep the space constructive, safe, and impact-driven.": "أشرف على النقاشات للحفاظ على مساحة بنّاءة وآمنة وموجّهة نحو الأثر.",
+        "Multilingual": "متعدد اللغات",
+        "Needs": "الاحتياجات",
+        "Needs Changes": "يحتاج إلى تعديلات",
+        "New post": "منشور جديد",
+        "New submitted profiles will appear here for review.": "ستظهر هنا الملفات الشخصية المُرسلة حديثًا للمراجعة.",
+        "No applications yet": "لا توجد طلبات بعد",
+        "No community posts yet.": "لا توجد منشورات مجتمعية بعد.",
+        "No hidden items": "لا توجد عناصر مخفية",
+        "No matching opportunities yet. This is where open roles and collaboration requests will appear.": "لا توجد فرص مطابقة بعد. هنا ستظهر الأدوار المفتوحة وطلبات التعاون.",
+        "No matching profiles yet": "لا توجد ملفات شخصية مطابقة بعد",
+        "No opportunities found": "لم يتم العثور على فرص",
+        "No pending organizations": "لا توجد مؤسسات قيد الانتظار",
+        "No pending profiles": "لا توجد ملفات شخصية قيد الانتظار",
+        "No posts match this view yet": "لا توجد منشورات تطابق هذا العرض بعد",
+        "No projects listed yet.": "لم تُدرج مشاريع بعد.",
+        "No projects yet. Add your first project.": "لا توجد مشاريع بعد. أضف مشروعك الأول.",
+        "No replies yet. Be the first to respond.": "لا توجد ردود بعد. كن أول من يردّ.",
+        "None specified for this opportunity.": "لم يُحدَّد شيء لهذه الفرصة.",
+        "No reports yet": "لا توجد بلاغات بعد",
+        "No results": "لا توجد نتائج",
+        "No saved items yet": "لا توجد عناصر محفوظة بعد",
+        "No threads yet": "لا توجد نقاشات بعد",
+        "No wishes found": "لم يتم العثور على أمنيات",
+        "Notification Preferences": "تفضيلات الإشعارات",
+        "Offer skills, time, translation, mentoring, design, legal help, tech, research, or field knowledge.": "قدّم مهارات أو وقتًا أو ترجمة أو توجيهًا أو تصميمًا أو مساعدة قانونية أو تقنية أو بحثًا أو معرفة ميدانية.",
+        "Offer Support": "تقديم الدعم",
+        "Open": "مفتوح",
+        "Open a Question": "طرح سؤال",
+        "Open Call": "دعوة مفتوحة",
+        "Open Forums": "افتح المنتديات",
+        "Open Needs": "احتياجات مفتوحة",
+        "Open Playbook": "افتح الدليل",
+        "Open reports": "بلاغات مفتوحة",
+        "Open Volunteer Network": "افتح شبكة المتطوعين",
+        "Open wish details": "افتح تفاصيل الأمنية",
+        "Open wishes": "أمنيات مفتوحة",
+        "open wishes are waiting for the right support.": "أمنيات مفتوحة تنتظر الدعم المناسب.",
+        "Open wishes, opportunities, posts, and discussions around real work": "أمنيات وفرص ومنشورات ونقاشات مفتوحة حول عمل حقيقي",
+        "Opportunities & Applications": "الفرص والطلبات",
+        "Opportunities & collaboration": "الفرص والتعاون",
+        "Opportunity title": "عنوان الفرصة",
+        "Opportunity type": "نوع الفرصة",
+        "Optional link": "رابط (اختياري)",
+        "Organization filters": "عوامل تصفية المؤسسات",
+        "Organization or project": "مؤسسة أو مشروع",
+        "Organization Representative": "ممثل المؤسسة",
+        "Organization review is available once the shared backend is connected.": "تتوفر مراجعة المؤسسات بعد توصيل الخادم المشترك.",
+        "Organizations & Companies": "المؤسسات والشركات",
+        "Organizations and NGOs": "المؤسسات والمنظمات غير الحكومية",
+        "Organizations and partners are reviewed before sensitive actions.": "تُراجع المؤسسات والشركاء قبل الإجراءات الحساسة.",
+        "Organizations awaiting verification. Approve serious requests; rejected ones stay view-only.": "مؤسسات تنتظر التحقق. اعتمد الطلبات الجادة؛ أما المرفوضة فتبقى للاطّلاع فقط.",
+        "Organize possible grants and next steps": "نظّم المنح الممكنة والخطوات التالية",
+        "Overview": "نظرة عامة",
+        "Paid Full-time Role": "دور بدوام كامل مدفوع",
+        "Part-time": "دوام جزئي",
+        "Part-time Role": "دور بدوام جزئي",
+        "Participation signals": "مؤشرات المشاركة",
+        "Partnership Opportunity": "فرصة شراكة",
+        "Password": "كلمة المرور",
+        "Pending organizations": "مؤسسات قيد الانتظار",
+        "Pending profiles": "ملفات شخصية قيد الانتظار",
+        "Pending verification": "بانتظار التحقق",
+        "People already acting in their communities and looking for allies, knowledge, or visibility.": "أشخاص يعملون بالفعل في مجتمعاتهم ويبحثون عن حلفاء أو معرفة أو ظهور.",
+        "People looking for practical examples, field lessons, and ways to learn from what already works.": "أشخاص يبحثون عن أمثلة عملية ودروس من الميدان وطرق للتعلّم مما ينجح بالفعل.",
+        "People who can offer time, translation, design, research, facilitation, mentoring, or professional skills.": "أشخاص يمكنهم تقديم الوقت أو الترجمة أو التصميم أو البحث أو التيسير أو التوجيه أو مهارات مهنية.",
+        "Please refresh and try again.": "يرجى تحديث الصفحة والمحاولة مرة أخرى.",
+        "Possible next steps": "خطوات تالية ممكنة",
+        "Post": "نشر",
+        "Post a clear need in the Wishing Well: volunteers, partners, knowledge, visibility, tools, space, or practical advice.": "انشر احتياجًا واضحًا في بئر الأمنيات: متطوعون أو شركاء أو معرفة أو ظهور أو أدوات أو مساحة أو نصيحة عملية.",
+        "Post a Need": "نشر احتياج",
+        "Post a need. Find a helper. Build impact.": "انشر احتياجًا. اعثر على مساعد. اصنع أثرًا.",
+        "Post false, misleading, discriminatory, hateful, or violent content.": "نشر محتوى كاذب أو مضلل أو تمييزي أو يحضّ على الكراهية أو عنيف.",
+        "Post need": "نشر احتياج",
+        "Post Opportunity": "نشر فرصة",
+        "Post title": "عنوان المنشور",
+        "Post Topics": "مواضيع المنشور",
+        "Post type": "نوع المنشور",
+        "posts": "منشورات",
+        "Posts": "المنشورات",
+        "Posts you write in the community will appear here.": "ستظهر هنا المنشورات التي تكتبها في المجتمع.",
+        "Posts, profiles, wishes, and opportunities you want to return to later.": "منشورات وملفات شخصية وأمنيات وفرص تريد العودة إليها لاحقًا.",
+        "Practical guides and field lessons": "أدلة عملية ودروس من الميدان",
+        "Prepare a clearer post or campaign draft": "جهّز مسودة منشور أو حملة أكثر وضوحًا",
+        "Present your mission, projects, fields of action, SDGs, needs, and the kind of collaborations you are open to.": "اعرض رسالتك ومشاريعك ومجالات عملك وأهداف التنمية المستدامة واحتياجاتك ونوع التعاون الذي أنت منفتح عليه.",
+        "Pretend to be someone else.": "انتحال شخصية شخص آخر.",
+        "Preview": "معاينة",
+        "Private conversations between volunteers, organizations, and partners are on the way. In the meantime, you can reach an organization from its profile.": "المحادثات الخاصة بين المتطوعين والمؤسسات والشركاء في الطريق. في هذه الأثناء، يمكنك التواصل مع مؤسسة من خلال ملفها الشخصي.",
+        "Professionals, mentors, facilitators, service providers, and experienced practitioners can offer advice, services, office hours, forum leadership, tools, and practical guidance.": "يمكن للمهنيين والموجّهين والميسّرين ومقدّمي الخدمات وذوي الخبرة تقديم المشورة والخدمات وساعات مكتبية وقيادة المنتديات وأدوات وإرشادات عملية.",
+        "Profile actions": "إجراءات الملف الشخصي",
+        "Profile From Questionnaire": "ملف شخصي من الاستبيان",
+        "Profile not found": "لم يتم العثور على الملف الشخصي",
+        "Profile snapshot": "لمحة عن الملف الشخصي",
+        "Profiles": "الملفات الشخصية",
+        "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "ينبغي أن تدعم الملفات الشخصية والمنشورات والرسائل والتعاونات الكرامة والشفافية والرعاية المجتمعية المسؤولة.",
+        "Project-based": "قائم على مشروع",
+        "Project-based Collaboration": "تعاون قائم على مشروع",
+        "Projects": "المشاريع",
+        "My Needs": "احتياجاتي",
+        "No needs yet. Share what would help on the Wishing Well.": "لا توجد احتياجات بعد. شارك ما الذي سيساعدك في بئر الأمنيات.",
+        "My Posts": "منشوراتي",
+        "No posts yet. Share an update with the community.": "لا توجد منشورات بعد. شارك تحديثًا مع المجتمع.",
+        "My Opportunities": "فرصي",
+        "No opportunities yet. Publish one on the Volunteer Network.": "لا توجد فرص بعد. انشر واحدة في شبكة المتطوعين.",
+        "My Offers": "عروضي",
+        "No offers yet. Help someone by responding to a wish.": "لا توجد عروض بعد. ساعد أحدهم بالاستجابة لأمنية.",
+        "Browse Wishes": "تصفّح الأمنيات",
+        "Public links": "روابط عامة",
+        "Publish a volunteer role": "انشر دورًا تطوعيًا",
+        "Publish an opportunity": "انشر فرصة",
+        "Publish Opportunity": "نشر الفرصة",
+        "Publish Thread": "نشر النقاش",
+        "Publish to Community Feed": "النشر في تدفق المجتمع",
+        "Publish to Feed": "النشر في التدفق",
+        "Publish to Forum": "النشر في المنتدى",
+        "Question": "سؤال",
+        "Question title": "عنوان السؤال",
+        "Questions": "الأسئلة",
+        "Ramat Gan, Israel": "رمات غان، إسرائيل",
+        "Read posts, ask questions, respond with care, and meet others who are also building social and environmental change.": "اقرأ المنشورات، واطرح الأسئلة، وردّ باهتمام، والتقِ بآخرين يبنون أيضًا تغييرًا اجتماعيًا وبيئيًا.",
+        "Ready to Make an Impact?": "مستعد لصنع الأثر؟",
+        "Ready to offer your time, skills, mentoring, translation, design, legal help, or field knowledge? Enter the volunteer space and find the right role.": "مستعد لتقديم وقتك أو مهاراتك أو توجيهك أو ترجمتك أو تصميمك أو مساعدتك القانونية أو معرفتك الميدانية؟ ادخل مساحة التطوع واعثر على الدور المناسب.",
+        "Recent Activity": "النشاط الأخير",
+        "Recognition in GloWe is about visible contribution, not empty ranking. Signals stay tied to documented activity, trust, and community review.": "التقدير في GloWe يتعلق بالمساهمة المرئية، لا بترتيب فارغ. تبقى المؤشرات مرتبطة بنشاط موثّق وثقة ومراجعة من المجتمع.",
+        "Recognize visible contribution": "قدّر المساهمة المرئية",
+        "Refine": "تحسين",
+        "Region": "المنطقة",
+        "Registration, article, drive folder, or resource link": "تسجيل أو مقال أو مجلد على درايف أو رابط لمورد",
+        "Reject": "رفض",
+        "Relevant Skills & Experience": "المهارات والخبرات ذات الصلة",
+        "Remote": "عن بُعد",
+        "Remote tutors and safety": "المعلّمون عن بُعد والسلامة",
+        "Remove": "إزالة",
+        "Remove content that violates these terms or values.": "إزالة المحتوى الذي ينتهك هذه الشروط أو القيم.",
+        "Reply": "ردّ",
+        "Report": "إبلاغ",
+        "Reports from users who saw something inaccurate, harmful, or inappropriate.": "بلاغات من مستخدمين رأوا شيئًا غير دقيق أو ضارًا أو غير لائق.",
+        "Repost": "إعادة نشر",
+        "Requirements": "المتطلبات",
+        "Resource / file": "مورد / ملف",
+        "Resource Request": "طلب مورد",
+        "Responsibilities": "المسؤوليات",
+        "Responsible tools": "أدوات مسؤولة",
+        "Restore": "استعادة",
+        "Review Impact": "مراجعة الأثر",
+        "Review new profile submissions, respond to reports, and hide content that does not fit the GloWe community standards.": "راجع الملفات الشخصية الجديدة، واستجب للبلاغات، وأخفِ المحتوى الذي لا يتوافق مع معايير مجتمع GloWe.",
+        "Reviewers only": "للمراجعين فقط",
+        "Round tables, shared knowledge.": "طاولات مستديرة، ومعرفة مشتركة.",
+        "Save": "حفظ",
+        "Save Draft": "حفظ المسودة",
+        "Save opportunity": "حفظ الفرصة",
+        "Save Opportunity": "حفظ الفرصة",
+        "Delete post": "حذف المنشور",
+        "Delete": "حذف",
+        "Post deleted": "تم حذف المنشور",
+        "Your post was removed from the community feed.": "تمت إزالة منشورك من تدفق المجتمع.",
+        "Could not delete": "تعذّر الحذف",
+        "Something went wrong deleting your post. Please try again.": "حدث خطأ أثناء حذف منشورك. يرجى المحاولة مرة أخرى.",
+        "Copy link": "نسخ الرابط",
+        "Link copied": "تم نسخ الرابط",
+        "The post link is on your clipboard — share it anywhere.": "رابط المنشور في الحافظة — شاركه في أي مكان.",
+        "Copy this link": "انسخ هذا الرابط",
+        "Save post": "حفظ المنشور",
+        "Save posts, profiles, and opportunities to return to them from this screen.": "احفظ المنشورات والملفات الشخصية والفرص للعودة إليها من هذه الشاشة.",
+        "Save posts, profiles, wishes, and opportunities to return to them from here.": "احفظ المنشورات والملفات الشخصية والأمنيات والفرص للعودة إليها من هنا.",
+        "Save Profile": "حفظ الملف الشخصي",
+        "Save the opportunity if you want to compare it later.": "احفظ الفرصة إذا أردت مقارنتها لاحقًا.",
+        "Save wish": "حفظ الأمنية",
+        "Saved": "محفوظ",
+        "Sign in or create a free account to save items to your area.": "سجّل الدخول أو أنشئ حسابًا مجانيًا لحفظ العناصر في منطقتك.",
+        "Saved items": "العناصر المحفوظة",
+        "Saved Items": "العناصر المحفوظة",
+        "Scope": "النطاق",
+        "SDG focus areas": "مجالات التركيز في أهداف التنمية المستدامة",
+        "Search": "بحث",
+        "Search by city or region": "ابحث حسب المدينة أو المنطقة",
+        "Search keywords": "ابحث بالكلمات المفتاحية",
+        "Search opportunities...": "ابحث في الفرص...",
+        "Search organizations, companies, and initiatives": "ابحث في المؤسسات والشركات والمبادرات",
+        "Search posts, topics, people, or needs...": "ابحث في المنشورات أو المواضيع أو الأشخاص أو الاحتياجات...",
+        "Search volunteer roles...": "ابحث في الأدوار التطوعية...",
+        "See how members participate": "شاهد كيف يشارك الأعضاء",
+        "See where help is needed": "شاهد أين تُطلب المساعدة",
+        "Select your availability": "حدّد مدى توفرك",
+        "Select your role": "حدّد دورك",
+        "Send": "إرسال",
+        "Share": "مشاركة",
+        "Share a volunteer role, paid role, mentorship request, or project-based collaboration with the GloWe community.": "شارك دورًا تطوعيًا أو وظيفة مدفوعة أو طلب توجيه أو تعاونًا قائمًا على مشروع مع مجتمع GloWe.",
+        "Share applied field knowledge in a format others can understand and use": "شارك معرفة ميدانية تطبيقية بصيغة يمكن للآخرين فهمها واستخدامها",
+        "Share enough context so others can give useful, respectful advice.": "شارك سياقًا كافيًا حتى يتمكن الآخرون من تقديم نصيحة مفيدة ومحترمة.",
+        "Share private or sensitive information without consent.": "مشاركة معلومات خاصة أو حساسة دون موافقة.",
+        "Share your motivation for applying...": "شارك دافعك للتقدّم...",
+        "Shared knowledge": "معرفة مشتركة",
+        "Shared learning": "تعلّم مشترك",
+        "Sharing tools": "أدوات المشاركة",
+        "Short description": "وصف مختصر",
+        "Show your mission, projects, needs, opportunities, and the impact areas you work in.": "اعرض رسالتك ومشاريعك واحتياجاتك وفرصك ومجالات الأثر التي تعمل فيها.",
+        "Sign in to see your messages": "سجّل الدخول لعرض رسائلك",
+        "Skills Needed": "المهارات المطلوبة",
+        "Skills or tags": "مهارات أو وسوم",
+        "Social Activists": "ناشطون اجتماعيون",
+        "Social initiatives": "مبادرات اجتماعية",
+        "Social Justice": "العدالة الاجتماعية",
+        "Social links": "روابط التواصل الاجتماعي",
+        "Sometimes you give. Sometimes you need help.": "أحيانًا تعطي. وأحيانًا تحتاج إلى مساعدة.",
+        "Spam the platform or use it for purely promotional or exploitative purposes.": "إغراق المنصة برسائل مزعجة أو استخدامها لأغراض ترويجية أو استغلالية بحتة.",
+        "Start a practical consultation": "ابدأ استشارة عملية",
+        "Start a thread": "ابدأ نقاشًا",
+        "Start Conversation": "بدء محادثة",
+        "Start the first conversation in this group.": "ابدأ أول محادثة في هذه المجموعة.",
+        "Start from one useful action": "ابدأ بإجراء مفيد واحد",
+        "Start with one useful post, one profile, one wish, or one opportunity.": "ابدأ بمنشور مفيد واحد، أو ملف شخصي واحد، أو أمنية واحدة، أو فرصة واحدة.",
+        "Structured offers": "عروض منظّمة",
+        "Submit Application": "إرسال الطلب",
+        "Support groups around a city, village, school, organization, or SDG topic. Each circle can gather needs, resources, events, and trusted members.": "مجموعات دعم حول مدينة أو قرية أو مدرسة أو مؤسسة أو موضوع من أهداف التنمية المستدامة. يمكن لكل دائرة أن تجمع الاحتياجات والموارد والفعاليات والأعضاء الموثوقين.",
+        "Support multilingual access so knowledge is not limited to English-speaking spaces": "ادعم الوصول متعدد اللغات حتى لا تقتصر المعرفة على المساحات الناطقة بالإنجليزية",
+        "Suspend or block users who repeatedly abuse the platform.": "تعليق أو حظر المستخدمين الذين يسيئون استخدام المنصة بشكل متكرر.",
+        "Tags": "الوسوم",
+        "Tech for Good": "التقنية من أجل الخير",
+        "Technology": "التقنية",
+        "Technology for good": "التقنية من أجل الخير",
+        "Technology should reduce friction, not create distance. It should help people act with more clarity, trust, and care.": "ينبغي للتقنية أن تقلّل الاحتكاك لا أن تخلق مسافة. عليها أن تساعد الناس على التصرف بمزيد من الوضوح والثقة والاهتمام.",
+        "Tel Aviv": "تل أبيب",
+        "Terms of Use - GloWe": "شروط الاستخدام - GloWe",
+        "Terms of Use & Community Integrity Charter": "شروط الاستخدام وميثاق نزاهة المجتمع",
+        "The information you provide is accurate and honest.": "المعلومات التي تقدّمها دقيقة وصادقة.",
+        "The MVP is here so we can learn with you: what helps, what is missing, and what should be built with care.": "النسخة الأولية موجودة لنتعلم معك: ما الذي يساعد، وما الذي ينقص، وما الذي ينبغي بناؤه بعناية.",
+        "The next versions of GloWe should support local circles: people who meet around a real place, a real need, and a shared SDG challenge. Each local community can gather stories, tools, resources, and lessons that others may adapt.": "ينبغي أن تدعم النسخ القادمة من GloWe الدوائر المحلية: أشخاص يلتقون حول مكان حقيقي واحتياج حقيقي وتحدٍّ مشترك من أهداف التنمية المستدامة. يمكن لكل مجتمع محلي أن يجمع قصصًا وأدوات وموارد ودروسًا قد يقتبسها آخرون.",
+        "The organization receives your message and can continue in GloWe messages.": "تتلقى المؤسسة رسالتك ويمكنها المتابعة عبر رسائل GloWe.",
+        "The topic tag will appear next to your name in the feed, and the post is saved into the community stream.": "سيظهر وسم الموضوع بجانب اسمك في التدفق، ويُحفظ المنشور في تيار المجتمع.",
+        "The Wishing Well is the action layer of GloWe: verified requests, relevant helpers, and clear next steps after someone offers support.": "بئر الأمنيات هو طبقة العمل في GloWe: طلبات موثّقة، ومساعدون مناسبون، وخطوات تالية واضحة بعد أن يعرض أحدهم الدعم.",
+        "These are directions, not promises. We will build them gradually, with community feedback.": "هذه توجهات لا وعود. سنبنيها تدريجيًا، بملاحظات المجتمع.",
+        "These Terms of Use & Community Integrity Charter may be updated occasionally. We will notify users of significant changes via email or platform notifications. Continued use signifies your agreement to the latest version.": "قد تُحدَّث شروط الاستخدام وميثاق نزاهة المجتمع من حين لآخر. سنُعلم المستخدمين بالتغييرات الجوهرية عبر البريد الإلكتروني أو إشعارات المنصة. ويعني استمرار الاستخدام موافقتك على أحدث نسخة.",
+        "This includes use in personalization, recommendation systems, and platform features built to enhance the GloWe user experience only.": "يشمل ذلك الاستخدام في التخصيص وأنظمة التوصية وميزات المنصة المصممة حصريًا لتحسين تجربة المستخدم في GloWe.",
+        "This is not a marketplace. It is a shared space. Ask for help. Offer help. Celebrate others' work. Seek connection, not extraction.": "هذا ليس سوقًا. إنه مساحة مشتركة. اطلب المساعدة. قدّم المساعدة. احتفِ بعمل الآخرين. ابحث عن التواصل لا عن الاستغلال.",
+        "This profile is not available yet, or the link points to an older demo profile.": "هذا الملف الشخصي غير متاح بعد، أو أن الرابط يشير إلى ملف تجريبي قديم.",
+        "This queue is visible to GloWe reviewers. Ask an administrator for access.": "هذه القائمة مرئية لمراجعي GloWe. اطلب الوصول من أحد المسؤولين.",
+        "Threads": "النقاشات",
+        "Title": "العنوان",
+        "To the fullest extent permitted by law:": "إلى أقصى حد يسمح به القانون:",
+        "Tone, humor, and expression vary across regions. Be mindful. Use inclusive language. If you are unsure, ask.": "تختلف النبرة والفكاهة وأساليب التعبير بين المناطق. كن منتبهًا. استخدم لغة شاملة. وإذا لم تكن متأكدًا، فاسأل.",
+        "Topic": "الموضوع",
+        "Topic group": "مجموعة موضوعية",
+        "Topic Groups": "المجموعات الموضوعية",
+        "Treat every member with dignity. Do not post or endorse any form of discrimination, harassment, or exclusion. Listen to diverse voices and experiences.": "عامل كل عضو بكرامة. لا تنشر أو تؤيّد أي شكل من أشكال التمييز أو التحرش أو الإقصاء. أنصت إلى الأصوات والتجارب المتنوعة.",
+        "Trending Discussions": "النقاشات الرائجة",
+        "Trust & status": "الثقة والحالة",
+        "Try a broader keyword, clear one filter, or search by impact area, location, or support need.": "جرّب كلمة مفتاحية أوسع، أو أزل أحد عوامل التصفية، أو ابحث حسب مجال الأثر أو الموقع أو نوع الدعم المطلوب.",
+        "Try a different tab, search a broader word, or start the next conversation.": "جرّب تبويبًا آخر، أو ابحث بكلمة أوسع، أو ابدأ المحادثة التالية.",
+        "Try adjusting your filters or search terms.": "جرّب تعديل عوامل التصفية أو كلمات البحث.",
+        "Try clearing one of the filters.": "جرّب إزالة أحد عوامل التصفية.",
+        "Try Flow": "جرّب المسار",
+        "Turn a real need into a clear call for support: volunteers, partners, knowledge, visibility, space, tools, or funding support.": "حوّل احتياجًا حقيقيًا إلى دعوة واضحة للدعم: متطوعون أو شركاء أو معرفة أو ظهور أو مساحة أو أدوات أو دعم تمويلي.",
+        "Type": "النوع",
+        "Updated today": "تم التحديث اليوم",
+        "Upload copyrighted or third-party content without permission.": "رفع محتوى محمي بحقوق النشر أو يعود لطرف ثالث دون إذن.",
+        "Use digital tools to make knowledge more accessible, reduce language barriers, and support ethical collaboration.": "استخدم الأدوات الرقمية لجعل المعرفة أيسر وصولًا، وتقليل الحواجز اللغوية، ودعم التعاون الأخلاقي.",
+        "Use example grant cards and a funding-brief flow to turn a real need into a clearer request, budget story, and next step.": "استخدم بطاقات المنح النموذجية ومسار ملخّص التمويل لتحويل احتياج حقيقي إلى طلب أوضح وقصة ميزانية وخطوة تالية.",
+        "Use the forums for focused questions, peer advice, templates, field lessons, and professional guidance. Professionals can also lead topic spaces and offer office hours.": "استخدم المنتديات للأسئلة المحددة ونصائح الأقران والقوالب ودروس الميدان والإرشاد المهني. كما يمكن للمهنيين قيادة مساحات موضوعية وتقديم ساعات مكتبية.",
+        "Usually replies within 3-5 days": "يردّ عادة خلال 3-5 أيام",
+        "Verified organizations will publish freely; new submissions show up here.": "تنشر المؤسسات الموثّقة بحرية؛ أما الطلبات الجديدة فتظهر هنا.",
+        "Verified profiles": "ملفات شخصية موثّقة",
+        "View Details": "عرض التفاصيل",
+        "View Personal Area": "عرض المنطقة الشخصية",
+        "View Profile": "عرض الملف الشخصي",
+        "Visibility / Media": "الظهور / الوسائط",
+        "Volunteer": "تطوّع",
+        "Volunteer / Mentor": "متطوع / موجّه",
+        "Volunteer Opportunities": "فرص التطوع",
+        "Volunteer Opportunity": "فرصة تطوع",
+        "Volunteers": "المتطوعون",
+        "volunteers joined new projects this week.": "متطوعًا انضموا إلى مشاريع جديدة هذا الأسبوع.",
+        "Volunteers and professionals": "المتطوعون والمهنيون",
+        "Volunteers Needed": "مطلوب متطوعون",
+        "We are not just a platform. We are a community built on trust and shared purpose. By joining GloWe, you commit to these core values:": "نحن لسنا مجرد منصة. نحن مجتمع قائم على الثقة والهدف المشترك. بانضمامك إلى GloWe، فإنك تلتزم بهذه القيم الأساسية:",
+        "We are not responsible for actions or content posted by users.": "نحن غير مسؤولين عن تصرفات المستخدمين أو المحتوى الذي ينشرونه.",
+        "We are starting with a focused community space. Next, we want to grow local community circles, a practical knowledge library, and technology that helps people use knowledge for good.": "نبدأ بمساحة مجتمعية مركّزة. وبعد ذلك نريد أن ننمّي دوائر مجتمعية محلية ومكتبة معرفة عملية وتقنية تساعد الناس على استخدام المعرفة من أجل الخير.",
+        "We believe impact grows when people stand with each other, listen deeply, and act with care.": "نؤمن أن الأثر ينمو حين يقف الناس إلى جانب بعضهم، ويصغون بعمق، ويتصرفون باهتمام.",
+        "We do not look down or preach. We stand next to each other, listen, learn, and act together. Sometimes you give; sometimes you need help. Both are part of a healthy community.": "نحن لا نتعالى ولا نعِظ. نقف إلى جانب بعضنا، ونصغي، ونتعلم، ونعمل معًا. أحيانًا تعطي؛ وأحيانًا تحتاج إلى مساعدة. وكلاهما جزء من مجتمع سليم.",
+        "We do not sell, rent, or trade your data to advertisers.": "نحن لا نبيع بياناتك أو نؤجّرها أو نتاجر بها مع المعلنين.",
+        "We do not want technology to replace relationships. We want it to help people find each other, document what they already know, and turn care into practical action.": "لا نريد للتقنية أن تحل محل العلاقات. نريدها أن تساعد الناس على إيجاد بعضهم، وتوثيق ما يعرفونه فعلًا، وتحويل الاهتمام إلى عمل تطبيقي.",
+        "We reserve the right to moderate, remove, or report inappropriate content.": "نحتفظ بالحق في الإشراف على المحتوى غير اللائق أو إزالته أو الإبلاغ عنه.",
+        "Weekdays": "أيام الأسبوع",
+        "Weekends": "عطلة نهاية الأسبوع",
+        "Welcome,": "أهلًا،",
+        "What comes after the MVP?": "ماذا بعد النسخة الأولية؟",
+        "What do you need help thinking through?": "ما الذي تحتاج مساعدة في التفكير فيه؟",
+        "What do you want to share, ask, or offer today?": "ما الذي تريد مشاركته أو السؤال عنه أو تقديمه اليوم؟",
+        "What GloWe makes possible": "ما الذي تجعله GloWe ممكنًا",
+        "What happens next": "ما الذي يحدث بعد ذلك",
+        "What is open now": "ما المتاح الآن",
+        "What we are learning": "ما الذي نتعلمه",
+        "What we believe": "بماذا نؤمن",
+        "What we want to build next": "ما الذي نريد بناءه لاحقًا",
+        "When GloWe grows, one-third of future revenues will return to local communities.": "عندما تنمو GloWe، سيعود ثلث الإيرادات المستقبلية إلى المجتمعات المحلية.",
+        "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "عندما تنشر محتوى على GloWe، مثل النصوص أو الصور أو الروابط أو أوصاف المشاريع:",
+        "Who is this for?": "لمن هذا؟",
+        "Who We Serve": "من نخدم",
+        "Why do you want to volunteer?": "لماذا تريد التطوع؟",
+        "Why GloWe exists": "لماذا وُجدت GloWe",
+        "Wish Type": "نوع الأمنية",
+        "Write a Community Post": "كتابة منشور مجتمعي",
+        "Write a reply": "اكتب ردًا",
+        "Write Post": "كتابة منشور",
+        "Write posts, ask questions, share field knowledge, publish updates, and join topic-based discussions.": "اكتب منشورات، واطرح أسئلة، وشارك معرفة الميدان، وانشر تحديثات، وانضم إلى نقاشات موضوعية.",
+        "Write the story, request, guide, event details, or question you want the community to see.": "اكتب القصة أو الطلب أو الدليل أو تفاصيل الفعالية أو السؤال الذي تريد أن يراه المجتمع.",
+        "Write to the community": "اكتب إلى المجتمع",
+        "You are acting in good faith and with respect for others.": "أنك تتصرف بحسن نية واحترام للآخرين.",
+        "You are not alone here": "لست وحدك هنا",
+        "You are part of a community where people can ask, offer, learn, and keep going together.": "أنت جزء من مجتمع يمكن فيه للناس أن يسألوا ويقدّموا ويتعلموا ويمضوا قدمًا معًا.",
+        "You confirm that you have the legal right to publish what you upload and assume full responsibility for it.": "تؤكد أن لديك الحق القانوني في نشر ما ترفعه وتتحمل المسؤولية الكاملة عنه.",
+        "You grant GloWe a non-exclusive, royalty-free, worldwide, perpetual license to host, translate, display, analyze, and distribute your content within the platform.": "تمنح GloWe ترخيصًا غير حصري وخاليًا من الرسوم وعالميًا ودائمًا لاستضافة محتواك وترجمته وعرضه وتحليله وتوزيعه داخل المنصة.",
+        "You may close your account at any time.": "يمكنك إغلاق حسابك في أي وقت.",
+        "You may request deletion of your account or data at any time.": "يمكنك طلب حذف حسابك أو بياناتك في أي وقت.",
+        "You retain full ownership of your intellectual property.": "تحتفظ بالملكية الكاملة لملكيتك الفكرية.",
+        "You've got something the world needs.": "لديك ما يحتاجه العالم.",
+        "You're already part of GloWe.": "أنت بالفعل جزء من GloWe.",
+        "Explore the community, share what you know, or pick up where you left off.": "استكشف المجتمع، أو شارك ما تعرفه، أو تابع من حيث توقفت.",
+        "Your Availability": "مدى توفرك",
+        "Your Community Home": "صفحتك الرئيسية في المجتمع",
+        "Your full name": "اسمك الكامل",
+        "Your password": "كلمة المرور الخاصة بك",
+        "About - GloWe": "حول - GloWe",
+        "About GloWe": "حول GloWe",
+        "About the Organization": "عن المؤسسة",
+        "About This Opportunity": "عن هذه الفرصة",
+        "Across countries, languages, and fields, members can learn from each other, translate field wisdom, adapt proven solutions, and connect local action to global SDG challenges.": "عبر البلدان واللغات والمجالات، يمكن للأعضاء أن يتعلموا من بعضهم، ويترجموا حكمة الميدان، ويقتبسوا حلولًا مجرَّبة، ويربطوا العمل المحلي بتحديات أهداف التنمية المستدامة العالمية.",
+        "Act honestly. Share real experiences. Credit others' work where due. Information shared on GloWe should be accurate, current, and shared with intention.": "تصرّف بصدق. شارك تجارب حقيقية. انسب عمل الآخرين إليهم حيثما وجب. ينبغي أن تكون المعلومات المنشورة في GloWe دقيقة وحديثة ومشاركة بقصد.",
+        "Active Members": "الأعضاء النشطون",
+        "Active projects": "المشاريع النشطة",
+        "Active Threads": "النقاشات النشطة",
+        "Admin review": "مراجعة الإدارة",
+        "Admin Review - GloWe": "الإدارة والمراجعة - GloWe",
+        "A digital-human space for shared knowledge, practical connection, and gradual community growth.": "مساحة رقمية إنسانية للمعرفة المشتركة والتواصل العملي والنمو المجتمعي التدريجي.",
+        "A living feed for field updates, practical questions, needs, resources, and people building impact together.": "تدفق حيّ لتحديثات الميدان والأسئلة العملية والاحتياجات والموارد والأشخاص الذين يصنعون الأثر معًا.",
+        "A practical space for volunteers, mentors, professionals, and organizations to meet around real needs, clear roles, and shared impact.": "مساحة عملية يلتقي فيها المتطوعون والموجّهون والمهنيون والمؤسسات حول احتياجات حقيقية وأدوار واضحة وأثر مشترك.",
+        "A full Privacy Policy will be published separately.": "ستُنشر سياسة خصوصية كاملة بشكل منفصل.",
+        "Community - GloWe": "المجتمع - GloWe",
+        "Discussion Group - GloWe": "مجموعة نقاش - GloWe",
+        "Forums - GloWe": "المنتديات - GloWe",
+        "Messages - GloWe": "الرسائل - GloWe",
+        "Opportunity Details - GloWe": "تفاصيل الفرصة - GloWe",
+        "Organizations - GloWe": "المؤسسات - GloWe",
+        "Personal Area - GloWe": "المنطقة الشخصية - GloWe",
+        "Profile - GloWe": "الملف الشخصي - GloWe",
+        "Saved - GloWe": "المحفوظات - GloWe",
+        "Settings - GloWe": "الإعدادات - GloWe",
+        "Volunteer Network - GloWe": "شبكة المتطوعين - GloWe",
+        "Volunteer Opportunities - GloWe": "فرص التطوع - GloWe",
+        "What's Next - GloWe": "ما التالي - GloWe",
+        "Wishing Well - GloWe": "بئر الأمنيات - GloWe",
+        "Write Post - GloWe": "كتابة منشور - GloWe",
+        "1. About GloWe": "1. حول GloWe",
+        "2. Who Can Use GloWe": "2. من يمكنه استخدام GloWe",
+        "3. Acceptable Use & Responsibilities": "3. الاستخدام المقبول والمسؤوليات",
+        "4. Content Rights & Licensing": "4. حقوق المحتوى والترخيص",
+        "5. Privacy & Data": "5. الخصوصية والبيانات",
+        "6. Community Integrity Charter": "6. ميثاق نزاهة المجتمع",
+        "6.1 Transparency": "6.1 الشفافية",
+        "6.2 Respect & Inclusion": "6.2 الاحترام والشمول",
+        "6.3 Collaboration Over Competition": "6.3 التعاون قبل التنافس",
+        "6.4 Cultural Sensitivity": "6.4 الحساسية الثقافية",
+        "6.5 Community Responsibility": "6.5 المسؤولية المجتمعية",
+        "7. Moderation & Enforcement": "7. الإشراف والتطبيق",
+        "8. External Links & Third-Party Services": "8. الروابط الخارجية وخدمات الطرف الثالث",
+        "9. Termination": "9. إنهاء الاستخدام",
+        "10. Liability Disclaimer": "10. إخلاء المسؤولية",
+        "11. Updates to Terms": "11. تحديثات الشروط",
+        "12. Contact Us": "12. تواصل معنا",
+        "2026 GloWe. Built for shared knowledge, mutual support, and action that lasts.": "2026 GloWe. بُنيت من أجل معرفة مشتركة ودعم متبادل وعمل يدوم.",
+        "Local communities already hold practical knowledge about education, health, climate, food, rights, resilience, and care. Too often, that knowledge stays locked inside one place, one language, one report, or one organization. GloWe is being built to help field-based knowledge travel: clearly, respectfully, and in ways other people can adapt.": "تمتلك المجتمعات المحلية بالفعل معرفة عملية عن التعليم والصحة والمناخ والغذاء والحقوق والصمود والرعاية. وكثيرًا ما تبقى تلك المعرفة حبيسة مكان واحد أو لغة واحدة أو تقرير واحد أو مؤسسة واحدة. تُبنى GloWe لمساعدة المعرفة الميدانية على الانتقال: بوضوح واحترام، وبطرق يمكن للآخرين اقتباسها.",
+        "Sign in with your Google account to get started. You can complete your profile after signing in.": "سجّل الدخول بحساب Google للبدء. يمكنك استكمال ملفك الشخصي بعد تسجيل الدخول.",
+        "Share a Wish": "شارك أمنية",
+        "A good wish is specific enough for the right helper to say yes.": "الأمنية الجيدة محددة بما يكفي ليقول المساعد المناسب «نعم».",
+        "What do you need?": "ما الذي تحتاجه؟",
+        "Wish type": "نوع الأمنية",
+        "Select a type": "اختر نوعًا",
+        "Urgency": "درجة الاستعجال",
+        "Choose urgency": "اختر درجة الاستعجال",
+        "This week": "هذا الأسبوع",
+        "This month": "هذا الشهر",
+        "Flexible timeline": "جدول زمني مرن",
+        "What would success look like?": "كيف سيبدو النجاح؟",
+        "Publish Wish": "نشر الأمنية",
+        "Send a clear, trusted offer so the organization can decide quickly.": "أرسل عرضًا واضحًا وموثوقًا حتى تتمكن المؤسسة من اتخاذ القرار بسرعة.",
+        "What can you offer?": "ما الذي يمكنك تقديمه؟",
+        "Choose support type": "اختر نوع الدعم",
+        "Professional volunteering": "تطوّع مهني",
+        "Funding or grant help": "مساعدة في التمويل أو المنح",
+        "Space or equipment": "مساحة أو معدات",
+        "Business partnership": "شراكة تجارية",
+        "Media or distribution": "إعلام أو توزيع",
+        "Availability": "التوفر",
+        "Choose availability": "اختر مدى التوفر",
+        "Within 2 weeks": "خلال أسبوعين",
+        "Send Offer": "إرسال العرض",
+        "Update the public information that helps others understand who you are and how to collaborate.": "حدّث المعلومات العامة التي تساعد الآخرين على فهم من أنت وكيفية التعاون معك.",
+        "Display name": "اسم العرض",
+        "Profile type": "نوع الملف الشخصي",
+        "Country / region": "الدولة / المنطقة",
+        "Website / public link": "الموقع الإلكتروني / رابط عام",
+        "Interest areas": "مجالات الاهتمام",
+        "SDGs": "أهداف التنمية المستدامة",
+        "Short public line": "سطر تعريفي عام قصير",
+        "Mission / story": "الرسالة / القصة",
+        "Values and goals": "القيم والأهداف",
+        "Community / audience": "المجتمع / الجمهور",
+        "Problem addressed": "المشكلة التي تعالجها",
+        "Solution / method": "الحل / الأسلوب",
+        "Geographic activity": "النطاق الجغرافي للنشاط",
+        "Open actions / looking for": "إجراءات مفتوحة / ما تبحث عنه",
+        "Articles / videos / reports": "مقالات / مقاطع فيديو / تقارير",
+        "Profile image": "صورة الملف الشخصي",
+        "Optional. When Cloudinary keys are configured, this uploads to Cloudinary.": "اختياري. عند إعداد مفاتيح Cloudinary، يُرفع الملف إلى Cloudinary.",
+        "Save Profile Draft": "حفظ مسودة الملف الشخصي",
+        "Welcome to GloWe 👋": "أهلًا بك في GloWe 👋",
+        "Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.": "أخبرنا قليلًا عن نفسك ليعرف المجتمع مع من يتعاون. لن يستغرق الأمر سوى دقيقة.",
+        "Your name": "اسمك",
+        "A short line about you": "سطر قصير عنك",
+        "I'm joining as": "أنضم بصفتي",
+        "Private individual": "فرد",
+        "Volunteer, donor, or community member. Full access right away.": "متطوع أو متبرع أو عضو في المجتمع. وصول كامل فورًا.",
+        "Organization": "مؤسسة",
+        "NGO, nonprofit, or initiative. Reviewed before you can publish — only serious applications are accepted.": "منظمة غير حكومية أو غير ربحية أو مبادرة. تُراجع قبل أن تتمكن من النشر — لا تُقبل سوى الطلبات الجادة.",
+        "Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.": "يراجع فريق GloWe المؤسسات. وإلى حين اعتمادك يمكنك تصفّح كل شيء، لكن نشر الفرص والفعاليات والاحتياجات يبقى مغلقًا. يرجى تزويدنا بما يكفي لنأخذ طلبك على محمل الجد.",
+        "Organization name *": "اسم المؤسسة *",
+        "Registration / NGO number": "رقم التسجيل / رقم المنظمة",
+        "Country of operation": "دولة النشاط",
+        "Cause / field": "القضية / المجال",
+        "Organization size": "حجم المؤسسة",
+        "About the organization *": "عن المؤسسة *",
+        "Contact person *": "الشخص المسؤول *",
+        "Contact email *": "البريد الإلكتروني للتواصل *",
+        "Contact phone": "هاتف التواصل",
+        "Save and continue": "حفظ ومتابعة",
+        "Maybe later": "ربما لاحقًا",
+        "Add project": "إضافة مشروع",
+        "Add a project that can appear in your personal area and help others understand what you are building.": "أضف مشروعًا يظهر في منطقتك الشخصية ويساعد الآخرين على فهم ما تبنيه.",
+        "Project title": "عنوان المشروع",
+        "Status": "الحالة",
+        "Draft": "مسودة",
+        "Active": "نشط",
+        "Recruiting partners": "استقطاب شركاء",
+        "Needs volunteers": "يحتاج متطوعين",
+        "Ready to share": "جاهز للمشاركة",
+        "Description": "الوصف",
+        "Save Project": "حفظ المشروع",
+        "Edit": "تعديل",
+        "Edit project": "تعديل المشروع",
+        "Update Project": "تحديث المشروع",
+        "Project updated": "تم تحديث المشروع",
+        "Your project changes were saved.": "تم حفظ تعديلات مشروعك.",
+        "Project added": "تمت إضافة المشروع",
+        "The project now appears in your personal area.": "يظهر المشروع الآن في منطقتك الشخصية.",
+        "No event registrations yet": "لا توجد تسجيلات في فعاليات بعد",
+        "Register for an event from the Volunteer Network and track it here.": "سجّل في فعالية من شبكة المتطوعين وتابعها هنا.",
+        "Browse events": "تصفّح الفعاليات",
+        "Event cancelled": "أُلغيت الفعالية",
+        "Registered": "مسجَّل",
+        "Pending approval": "بانتظار الموافقة",
+        "Waitlisted": "في قائمة الانتظار",
+        "Not accepted": "لم يُقبل",
+        "Cancelled": "مُلغى",
+        "Report a concern": "الإبلاغ عن مشكلة",
+        "We review every report carefully and confidentially to keep GloWe safe and professional.": "نراجع كل بلاغ بعناية وسرية للحفاظ على GloWe آمنة ومهنية.",
+        "Reporting": "الإبلاغ",
+        "General concern": "مشكلة عامة",
+        "What should we look at?": "ما الذي ينبغي أن ننظر فيه؟",
+        "Choose a reason": "اختر سببًا",
+        "Inaccurate information": "معلومات غير دقيقة",
+        "Disrespectful or discriminatory content": "محتوى غير محترم أو تمييزي",
+        "Misleading promotion": "ترويج مضلل",
+        "Human rights concern": "مخاوف تتعلق بحقوق الإنسان",
+        "Other": "أخرى",
+        "Details": "التفاصيل",
+        "Submit Report": "إرسال البلاغ",
+        "Choose a rhythm that keeps GloWe useful without creating digital fatigue.": "اختر إيقاعًا يُبقي GloWe مفيدة دون أن يسبب إرهاقًا رقميًا.",
+        "Opportunity of the week": "فرصة الأسبوع",
+        "High-match connection proposals": "مقترحات تواصل عالية التطابق",
+        "Deadline reminders": "تذكيرات بالمواعيد النهائية",
+        "Crisis-response playbooks for my region": "أدلة الاستجابة للأزمات في منطقتي",
+        "Preferred cadence": "الوتيرة المفضّلة",
+        "Weekly digest": "ملخص أسبوعي",
+        "Only urgent actions": "الإجراءات العاجلة فقط",
+        "Daily 5-minute brief": "موجز يومي في 5 دقائق",
+        "Save Preferences": "حفظ التفضيلات",
+        "Mentors, space, visibility...": "موجّهون، مساحة، ظهور...",
+        "City, region, remote, or hybrid": "مدينة أو منطقة أو عن بُعد أو مختلط",
+        "Tell the community what would help.": "أخبر المجتمع بما سيساعدك.",
+        "Example: 3 mentors matched, one grant draft completed, 50 families reached...": "مثال: مطابقة 3 موجّهين، وإنجاز مسودة منحة واحدة، والوصول إلى 50 أسرة...",
+        "Briefly explain your relevant experience, what you can offer, and what you need to know next.": "اشرح بإيجاز خبرتك ذات الصلة، وما يمكنك تقديمه، وما تحتاج معرفته بعد ذلك.",
+        "Organization or person name": "اسم المؤسسة أو الشخص",
+        "NGO, business, volunteer, initiative...": "منظمة غير حكومية، شركة، متطوع، مبادرة...",
+        "Education, health, climate...": "التعليم، الصحة، المناخ...",
+        "Quality Education, Climate Action...": "التعليم الجيد، العمل المناخي...",
+        "One clear sentence people can understand quickly": "جملة واحدة واضحة يفهمها الناس بسرعة",
+        "Mission, current work, or what you offer.": "الرسالة أو العمل الحالي أو ما تقدّمه.",
+        "Values, goals, leadership, or principles": "القيم أو الأهداف أو القيادة أو المبادئ",
+        "Who do you serve, support, work with, or hope to reach?": "من تخدم أو تدعم أو تعمل معه أو تأمل الوصول إليه؟",
+        "What problem or need are you working on?": "ما المشكلة أو الاحتياج الذي تعمل عليه؟",
+        "What do you do in practice?": "ماذا تفعل عمليًا؟",
+        "Advocacy, education, field work, research...": "المناصرة، التعليم، العمل الميداني، البحث...",
+        "Local / regional / global / remote": "محلي / إقليمي / عالمي / عن بُعد",
+        "Partners, volunteers, funding, knowledge, visibility...": "شركاء، متطوعون، تمويل، معرفة، ظهور...",
+        "Useful public links": "روابط عامة مفيدة",
+        "Full name": "الاسم الكامل",
+        "One sentence people grasp quickly": "جملة واحدة يستوعبها الناس بسرعة",
+        "Registered / public name": "الاسم المسجَّل / العام",
+        "Legal registration number": "رقم التسجيل القانوني",
+        "Where you operate": "أين تعمل",
+        "Volunteers / staff, approx.": "المتطوعون / الموظفون، تقريبًا",
+        "Mission, who you serve, and what you'd do on GloWe.": "الرسالة، ومن تخدم، وما ستفعله في GloWe.",
+        "Who we should talk to": "بمن ينبغي أن نتواصل",
+        "Optional": "اختياري",
+        "Community resource map": "خريطة موارد المجتمع",
+        "What is the project, who does it support, and what kind of help would move it forward?": "ما هو المشروع، ومن يدعم، وأي نوع من المساعدة سيدفعه إلى الأمام؟",
+        "Add context that can help our review.": "أضف سياقًا يساعد في مراجعتنا.",
+        "Switch to English": "التبديل إلى الإنجليزية",
+        "This page outlines the terms, responsibilities, and community standards that guide your use of the GloWe platform. By accessing or interacting with this site, you agree to abide by the Terms of Use and our Community Integrity Charter. GloWe is committed to building a safe, inclusive, and impact-driven space.": "توضّح هذه الصفحة الشروط والمسؤوليات والمعايير المجتمعية التي توجّه استخدامك لمنصة GloWe. بدخولك هذا الموقع أو تفاعلك معه، فإنك توافق على الالتزام بشروط الاستخدام وميثاق نزاهة المجتمع. تلتزم GloWe ببناء مساحة آمنة وشاملة وموجّهة نحو الأثر.",
+        "GloWe is a global platform connecting individuals, organizations, and initiatives working to create social and environmental change. We facilitate knowledge-sharing, collaboration, and visibility for solutions that matter across languages, sectors, and geographies.": "GloWe منصة عالمية تربط الأفراد والمؤسسات والمبادرات العاملة على إحداث تغيير اجتماعي وبيئي. نحن نيسّر تبادل المعرفة والتعاون والظهور للحلول المهمة، عبر اللغات والقطاعات والمناطق الجغرافية.",
+        "Share knowledge, ask for support, and build practical impact with the community.": "شارك المعرفة، واطلب الدعم، واصنع أثرًا عمليًا مع المجتمع.",
+        "More post actions": "إجراءات أخرى للمنشور",
+        "More wish actions": "إجراءات أخرى للأمنية",
+        "More opportunity actions": "إجراءات أخرى للفرصة",
+        "More profile actions": "إجراءات أخرى للملف الشخصي",
+        "Write a thoughtful comment...": "اكتب تعليقًا مدروسًا...",
+        "Ask a focused question for this group": "اطرح سؤالًا محددًا لهذه المجموعة",
+        "What do you need input on, and what kind of answers would help?": "في أي أمر تحتاج إلى رأي، وأي نوع من الإجابات سيساعدك؟",
+        "Personal workspace": "مساحة عمل شخصية",
+        "Your GloWe profile is ready to be completed.": "ملفك الشخصي في GloWe جاهز للاستكمال.",
+        "Community collaboration": "تعاون مجتمعي",
+        "Location not added yet": "لم يُضَف الموقع بعد",
+        "Team size not added yet": "لم يُضَف حجم الفريق بعد",
+        "Not added yet": "لم يُضَف بعد",
+        "Title / role": "المسمّى / الدور",
+        "Organization name": "اسم المؤسسة",
+        "Email verified": "تم التحقق من البريد الإلكتروني",
+        "Pending": "قيد الانتظار",
+        "Accepted": "مقبول",
+        "Declined": "مرفوض",
+        "Public link": "رابط عام",
+        "Public line": "سطر عام",
+        "Open to volunteers, donations, or partnerships?": "منفتح على المتطوعين أو التبرعات أو الشراكات؟",
+        "Funding / support sources": "مصادر التمويل / الدعم",
+        "Annual budget / support context": "الميزانية السنوية / سياق الدعم",
+        "Profile status": "حالة الملف الشخصي",
+        "Personal area sections": "أقسام المنطقة الشخصية",
+        "Sign in to post a need": "سجّل الدخول لنشر احتياج",
+        "Browsing GloWe is open to everyone. Sign in with Google to post a need and reach people ready to help.": "تصفّح GloWe متاح للجميع. سجّل الدخول عبر Google لنشر احتياج والوصول إلى أشخاص مستعدين للمساعدة.",
+        "Sign in to post": "سجّل الدخول للنشر",
+        "Sign in with Google to share a post with the GloWe community.": "سجّل الدخول عبر Google لمشاركة منشور مع مجتمع GloWe.",
+        "Sign in to publish": "سجّل الدخول للنشر",
+        "Sign in with Google to publish this opportunity and start receiving applications.": "سجّل الدخول عبر Google لنشر هذه الفرصة والبدء في استقبال الطلبات.",
+        "Sign in to start a discussion": "سجّل الدخول لبدء نقاش",
+        "Sign in with Google to open a new discussion thread.": "سجّل الدخول عبر Google لفتح نقاش جديد.",
+        "Sign in to reply": "سجّل الدخول للردّ",
+        "Sign in with Google to join this discussion.": "سجّل الدخول عبر Google للانضمام إلى هذا النقاش.",
+        "Sign in to apply": "سجّل الدخول للتقدّم",
+        "Save your spot": "احجز مكانك",
+        "Ready to lend a hand?": "مستعد لمدّ يد العون؟",
+        "Keep this for later": "احتفظ بهذا لوقت لاحق",
+        "Sign in with Google to save it to your list.": "سجّل الدخول عبر Google لحفظه في قائمتك.",
+        "Sign in to continue": "سجّل الدخول للمتابعة",
+        "Sign in with Google to open your personal area.": "سجّل الدخول عبر Google لفتح منطقتك الشخصية.",
+        "Sign in with Google to do this on GloWe.": "سجّل الدخول عبر Google للقيام بذلك في GloWe.",
+        "Welcome to GloWe": "أهلًا بك في GloWe",
+        "Welcome — you're browsing as a guest. Sign in with Google anytime to participate.": "أهلًا بك — أنت تتصفّح كزائر. سجّل الدخول عبر Google في أي وقت للمشاركة.",
+        "Mark as fulfilled": "وضع علامة تم التحقيق",
+        "No wishes yet": "لا توجد أمنيات بعد",
+        "Post a wish": "انشر أمنية",
+        "The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.": "يمتلئ بئر الأمنيات عندما ينشر أعضاء المجتمع طلبات دعم ودعوات للمتطوعين وفرص تعاون. كن أول من يشارك ما يحتاجه مشروعك.",
+        "Back to wishes": "العودة إلى الأمنيات",
+        "No opportunities posted yet": "لم تُنشر فرص بعد",
+        "No organizations yet": "لا توجد مؤسسات بعد",
+        "No matching profiles": "لا توجد ملفات شخصية مطابقة",
+        "No posts yet — share knowledge, ask for support, or open a discussion to get things going.": "لا توجد منشورات بعد — شارك معرفة، أو اطلب دعمًا، أو افتح نقاشًا لتبدأ الأمور.",
+        "No registrations yet.": "لا توجد تسجيلات بعد.",
+        "Could not load registrations.": "تعذّر تحميل التسجيلات.",
+        "Be the first to share a volunteer role or collaboration request with the GloWe community.": "كن أول من يشارك دورًا تطوعيًا أو طلب تعاون مع مجتمع GloWe.",
+        "Be the first to share a volunteer role or collaboration request with the community.": "كن أول من يشارك دورًا تطوعيًا أو طلب تعاون مع المجتمع.",
+        "Members will appear here once they join the community.": "سيظهر الأعضاء هنا بمجرد انضمامهم إلى المجتمع.",
+        "Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.": "تنضم المؤسسات إلى GloWe بإنشاء ملف شخصي واستكمال التحقق. وستظهر هنا أول الملفات المعتمدة.",
+        "The community is just getting started. Post a wish, share what you know, or reach out to someone who is working on what you care about.": "المجتمع في بدايته. انشر أمنية، أو شارك ما تعرفه، أو تواصل مع شخص يعمل على ما يهمك.",
+        "This section will come alive as the community grows.": "سينبض هذا القسم بالحياة مع نمو المجتمع.",
+        "Try a broader keyword or clear a filter.": "جرّب كلمة مفتاحية أوسع أو أزل أحد عوامل التصفية.",
+        "Write the first post": "اكتب أول منشور",
+        "Write a message": "اكتب رسالة",
+        "Loading opportunities…": "جارٍ تحميل الفرص…",
+        "Loading organizations…": "جارٍ تحميل المؤسسات…",
+        "Loading posts…": "جارٍ تحميل المنشورات…",
+        "Loading profile…": "جارٍ تحميل الملف الشخصي…",
+        "Loading registrations…": "جارٍ تحميل التسجيلات…",
+        "Loading wishes…": "جارٍ تحميل الأمنيات…",
+        "Fetching from the community directory.": "جارٍ الجلب من دليل المجتمع.",
+        "Back": "رجوع",
+        "Next": "التالي",
+        "Register for event": "التسجيل في الفعالية",
+        "Sign in to register": "سجّل الدخول للتسجيل",
+        "Cancel registration": "إلغاء التسجيل",
+        "Cancel event": "إلغاء الفعالية",
+        "Manage registrations": "إدارة التسجيلات",
+        "Event registration": "التسجيل في الفعالية",
+        "Message to the organizer (optional)": "رسالة إلى المنظّم (اختياري)",
+        "This event has been cancelled by the organizer.": "أُلغيت هذه الفعالية من قِبل المنظّم.",
+        "This event has ended.": "انتهت هذه الفعالية.",
+        "This event is cancelled.": "هذه الفعالية ملغاة.",
+        "This event is no longer open for registration.": "لم يعد التسجيل في هذه الفعالية متاحًا.",
+        "Registration:": "التسجيل:",
+        "Status:": "الحالة:",
+        "Type:": "النوع:",
+        "When:": "متى:",
+        "Join link:": "رابط الانضمام:",
+        "Offer sent": "تم إرسال العرض",
+        "Structured support offer submitted.": "تم إرسال عرض دعم منظّم.",
+        "Save as draft": "حفظ كمسودة",
+        "Submit for review": "إرسال للمراجعة",
+        "Send code": "إرسال الرمز",
+        "Select an area": "اختر مجالًا",
+        "Choose if relevant": "اختر إذا كان ذا صلة",
+        "Preferred contact": "وسيلة التواصل المفضّلة",
+        "In-app message": "رسالة داخل التطبيق",
+        "Location (optional)": "الموقع (اختياري)",
+        "Phone": "الهاتف",
+        "Phone (optional)": "الهاتف (اختياري)",
+        "WhatsApp": "واتساب",
+        "Public": "عام",
+        "Public actions": "إجراءات عامة",
+        "Public profile and media": "الملف الشخصي العام والوسائط",
+        "Basic account": "حساب أساسي",
+        "Looking for": "يبحث عن",
+        "Impact": "الأثر",
+        "Impact update": "تحديث عن الأثر",
+        "Draft impact update": "مسودة تحديث عن الأثر",
+        "Draft Update": "مسودة تحديث",
+        "Impact, interests and methods": "الأثر والاهتمامات والأساليب",
+        "Mentoring": "التوجيه",
+        "Trust": "الثقة",
+        "Trust, contact and review": "الثقة والتواصل والمراجعة",
+        "Story": "القصة",
+        "Story and purpose": "القصة والغاية",
+        "The dream": "الحلم",
+        "The conversation starts here": "الحوار يبدأ من هنا",
+        "Connection workspace": "مساحة عمل للتواصل",
+        "Profile onboarding": "إعداد الملف الشخصي",
+        "Organization review": "مراجعة المؤسسة",
+        "Review note": "ملاحظة المراجعة",
+        "Relevant SDGs": "أهداف التنمية المستدامة ذات الصلة",
+        "Size / team": "الحجم / الفريق",
+        "Annual budget": "الميزانية السنوية",
+        "First coordination call": "أول مكالمة تنسيق",
+        "Both sides confirm scope, timeline, and ownership.": "يؤكد الطرفان النطاق والجدول الزمني والمسؤوليات.",
+        "A short outcome note documents what changed.": "ملاحظة قصيرة عن النتيجة توثّق ما تغيّر.",
+        "When work is complete, this becomes a short public note: what was needed, who helped, what happened, and what is still needed.": "عند اكتمال العمل، يتحول هذا إلى ملاحظة عامة قصيرة: ما الذي كان مطلوبًا، ومن ساعد، وماذا حدث، وما الذي ما زال مطلوبًا.",
+        "To turn a local need into a shared action that others can join, support, or learn from.": "لتحويل احتياج محلي إلى عمل مشترك يمكن للآخرين الانضمام إليه أو دعمه أو التعلّم منه.",
+        "Build a useful profile step by step. You can save a draft now and complete more details later.": "ابنِ ملفًا شخصيًا مفيدًا خطوة بخطوة. يمكنك حفظ مسودة الآن واستكمال التفاصيل لاحقًا.",
+        "Choose the profile that best describes you. This changes the questions and future profile layout.": "اختر الملف الشخصي الذي يصفك على أفضل نحو. هذا يغيّر الأسئلة وشكل الملف الشخصي مستقبلًا.",
+        "For this MVP, the code is shown on screen and stored locally.": "في هذه النسخة الأولية، يُعرض الرمز على الشاشة ويُخزَّن محليًا.",
+        "I agree to keep GloWe professional, respectful, transparent, and aligned with human rights.": "أوافق على الحفاظ على GloWe مهنية ومحترمة وشفافة ومتوافقة مع حقوق الإنسان.",
+        "Logo or profile image": "الشعار أو صورة الملف الشخصي",
+        "Website / LinkedIn / Facebook": "الموقع الإلكتروني / LinkedIn / Facebook",
+        "1 person": "شخص واحد",
+        "2-5 people": "2-5 أشخاص",
+        "6-20 people": "6-20 شخصًا",
+        "20+ people": "أكثر من 20 شخصًا",
+        "(required for rejection)": "(مطلوب عند الرفض)",
+        "First name *": "الاسم الأول *",
+        "Last name *": "اسم العائلة *",
+        "Email *": "البريد الإلكتروني *",
+        "Password *": "كلمة المرور *",
+        "Confirm password *": "تأكيد كلمة المرور *",
+        "Email verification code *": "رمز التحقق من البريد الإلكتروني *",
+        "Country *": "الدولة *",
+        "Community / audience *": "المجتمع / الجمهور *",
+        "Geographic activity *": "النطاق الجغرافي للنشاط *",
+        "Main interest areas *": "مجالات الاهتمام الرئيسية *",
+        "Organization mission *": "رسالة المؤسسة *",
+        "Problem you address *": "المشكلة التي تعالجها *",
+        "Solution or method *": "الحل أو الأسلوب *",
+        "Values and goals *": "القيم والأهداف *",
+        "Short public line *": "سطر تعريفي عام قصير *",
+        "Title / role *": "المسمّى / الدور *",
+        "All listings": "كل الإعلانات",
+        "Events only": "الفعاليات فقط",
+        "Events:": "الفعاليات:",
+        "In-person events": "فعاليات حضورية",
+        "Online events": "فعاليات عبر الإنترنت",
+        "Upcoming events": "الفعاليات القادمة",
+        "Registered members": "الأعضاء المسجَّلون",
+        "Registered organizations": "المؤسسات المسجَّلة",
+        "+ Create": "+ إنشاء",
+        "Create": "إنشاء",
+        "What would you like to create?": "ما الذي تريد إنشاءه؟",
+        "Share an update, a story, or knowledge with the community.": "شارك تحديثًا أو قصة أو معرفة مع المجتمع.",
+        "Publish a volunteering event with a date and registration.": "انشر فعالية تطوعية بتاريخ وتسجيل.",
+        "Recruit volunteers for an ongoing role or project.": "استقطب متطوعين لدور مستمر أو مشروع.",
+        "Ask the community for help, resources, or partners.": "اطلب من المجتمع مساعدة أو موارد أو شركاء.",
+        "Offer your time and skills so organizations can find you.": "قدّم وقتك ومهاراتك حتى تتمكن المؤسسات من إيجادك.",
+        "Event": "فعالية",
+        "Need": "طلب مساعدة",
+        "Volunteer Offer": "عرض تطوّع",
+        "Publish an event": "نشر فعالية",
+        "Events appear on the Volunteer Network with a date and registration.": "تظهر الفعاليات في شبكة المتطوعين بتاريخ وتسجيل.",
+        "Event title": "عنوان الفعالية",
+        "e.g. Community beach cleanup": "مثال: تنظيف شاطئ مجتمعي",
+        "What happens at the event, and who should come?": "ماذا يحدث في الفعالية، ومن ينبغي أن يحضر؟",
+        "Starts": "يبدأ",
+        "Ends (optional)": "ينتهي (اختياري)",
+        "Format": "الصيغة",
+        "Location / link": "الموقع / الرابط",
+        "Address, city, or meeting link": "العنوان أو المدينة أو رابط اللقاء",
+        "Capacity (optional)": "عدد المقاعد (اختياري)",
+        "Leave empty for unlimited": "اتركه فارغًا لعدد غير محدود",
+        "Registration": "التسجيل",
+        "Organizer approves each registration": "يوافق المنظّم على كل تسجيل",
+        "Open — instant confirmation": "مفتوح — تأكيد فوري",
+        "Publish Event": "نشر الفعالية",
+        "Event published": "تم نشر الفعالية",
+        "Your event is now live on the Volunteer Network.": "فعاليتك متاحة الآن في شبكة المتطوعين.",
+        "Offer your help": "قدّم مساعدتك",
+        "Your offer appears on the Wishing Well so organizations and members can find you.": "يظهر عرضك في بئر الأمنيات حتى تتمكن المؤسسات والأعضاء من إيجادك.",
+        "Headline": "العنوان الرئيسي",
+        "e.g. Graphic designer offering 3 hours a week": "مثال: مصمم جرافيك يقدّم 3 ساعات أسبوعيًا",
+        "Skills, time, equipment — anything that could help.": "مهارات، وقت، معدات — أي شيء يمكن أن يساعد.",
+        "Impact area (optional)": "مجال الأثر (اختياري)",
+        "Publish Offer": "نشر العرض",
+        "Offer published": "تم نشر العرض",
+        "Your offer is now live on the Wishing Well.": "عرضك متاح الآن في بئر الأمنيات.",
+        "Fetching your conversations.": "جارٍ جلب محادثاتك.",
+        "No conversations yet": "لا توجد محادثات بعد",
+        "Reach out to an organization, offer help on a need, or message a community member — conversations will appear here.": "تواصل مع مؤسسة، أو اعرض المساعدة في احتياج، أو راسل عضوًا في المجتمع — ستظهر المحادثات هنا.",
+        "Open the Wishing Well": "افتح بئر الأمنيات",
+        "Opening the conversation.": "جارٍ فتح المحادثة.",
+        "Conversation unavailable": "المحادثة غير متاحة",
+        "This conversation could not be opened.": "تعذّر فتح هذه المحادثة.",
+        "Back to messages": "العودة إلى الرسائل",
+        "No messages yet. Say hello!": "لا توجد رسائل بعد. ألقِ التحية!",
+        "Write a message...": "اكتب رسالة...",
+        "Could not send": "تعذّر الإرسال",
+        "Messaging unavailable": "المراسلة غير متاحة",
+        "This member cannot receive direct messages yet.": "لا يمكن لهذا العضو استقبال رسائل مباشرة بعد.",
+        "Messages are unavailable": "الرسائل غير متاحة",
+        "Spam or misleading promotion": "رسائل مزعجة أو ترويج مضلل",
+        "Harassment or hate": "تحرش أو كراهية",
+        "False or misleading information": "معلومات كاذبة أو مضللة",
+        "Inappropriate content": "محتوى غير لائق",
+        "Fake profile or impersonation": "ملف شخصي مزيف أو انتحال شخصية",
+        "Already reported": "سبق الإبلاغ",
+        "You already reported this. Our team will review it.": "لقد أبلغت عن هذا مسبقًا. سيراجعه فريقنا.",
+        "Could not send report": "تعذّر إرسال البلاغ",
+        "Something went wrong sending your report. Please try again.": "حدث خطأ أثناء إرسال بلاغك. يرجى المحاولة مرة أخرى.",
+        "Reporting needs a live connection right now. Please try again shortly.": "يتطلب الإبلاغ اتصالًا نشطًا في الوقت الحالي. يرجى المحاولة بعد قليل.",
+        "Sign in to report": "سجّل الدخول للإبلاغ",
+        "Sign in with Google to report this content so our team can review it.": "سجّل الدخول عبر Google للإبلاغ عن هذا المحتوى ليتمكن فريقنا من مراجعته.",
+        "Fetching community reports.": "جارٍ جلب بلاغات المجتمع.",
+        "Could not load reports": "تعذّر تحميل البلاغات",
+        "Remove content": "إزالة المحتوى",
+        "Content removed": "تمت إزالة المحتوى",
+        "The reported content is no longer publicly visible.": "لم يعد المحتوى المُبلَّغ عنه مرئيًا للعامة.",
+        "Report dismissed": "تم رفض البلاغ",
+        "The report was closed with no action.": "أُغلق البلاغ دون اتخاذ إجراء.",
+        "Only GloWe reviewers can act on reports.": "يمكن لمراجعي GloWe وحدهم اتخاذ إجراء بشأن البلاغات.",
+        "Open reported item": "فتح العنصر المُبلَّغ عنه"
+    },
+    am: {
+        "Show original": "ዋናውን አሳይ",
+        "Show translation": "ትርጉሙን አሳይ",
+        "Translating…": "በመተርጎም ላይ…",
+        "Name in English (optional)": "ስም በእንግሊዝኛ (አማራጭ)",
+        "Latin / English display name": "የላቲን / እንግሊዝኛ የማሳያ ስም",
+        "Latin / English name — auto-filled if left blank": "የላቲን / እንግሊዝኛ ስም — ባዶ ከተተወ በራሱ ይሞላል",
+        "Organization name in English (optional)": "የድርጅቱ ስም በእንግሊዝኛ (አማራጭ)",
+        "Organization name in English": "የድርጅቱ ስም በእንግሊዝኛ",
+        "English org name — auto-filled if blank": "የድርጅቱ ስም በእንግሊዝኛ — ባዶ ከሆነ በራሱ ይሞላል",
+        "Complete profile": "መገለጫን ያሟሉ",
+        "Pending review": "ግምገማ በመጠባበቅ ላይ",
+        "Needs changes": "ማስተካከያ ያስፈልገዋል",
+        "Save profile": "መገለጫን አስቀምጥ",
+        "Change profile photo": "የመገለጫ ፎቶ ይቀይሩ",
+        "Change cover photo": "የሽፋን ፎቶ ይቀይሩ",
+        "Remove cover": "ሽፋኑን አስወግድ",
+        "Save cover": "ሽፋኑን አስቀምጥ",
+        "Cover will be removed when you save.": "ሲያስቀምጡ ሽፋኑ ይወገዳል።",
+        "Remove photo": "ፎቶውን አስወግድ",
+        "Save photo": "ፎቶውን አስቀምጥ",
+        "Profile saved": "መገለጫው ተቀምጧል",
+        "Could not save profile.": "መገለጫውን ማስቀመጥ አልተቻለም።",
+        "Replace": "ተካ",
+        "Cancel": "ይቅር",
+        "Photo will be removed when you save.": "ሲያስቀምጡ ፎቶው ይወገዳል።",
+        "Saving...": "በማስቀመጥ ላይ...",
+        "Uploading...": "በመጫን ላይ...",
+        "Preparing photo...": "ፎቶውን በማዘጋጀት ላይ...",
+        "Photo optimized for upload.": "ፎቶው ለመጫን ተመቻችቷል።",
+        "Could not read image.": "ምስሉን ማንበብ አልተቻለም።",
+        "Could not compress image.": "ምስሉን ማጨቅ አልተቻለም።",
+        "Image is too large. Try a smaller photo.": "ምስሉ በጣም ትልቅ ነው። ያነሰ ፎቶ ይሞክሩ።",
+        "Image is too large even after compression. Try a smaller photo.": "ከታጨቀ በኋላም ምስሉ በጣም ትልቅ ነው። ያነሰ ፎቶ ይሞክሩ።",
+        "Could not save photo.": "ፎቶውን ማስቀመጥ አልተቻለም።",
+        "Followers": "ተከታዮች",
+        "Following": "የሚከተሉት",
+        "+ Follow": "+ ተከተል",
+        "Following ✓": "እየተከተሉ ነው ✓",
+        "Stop following": "መከተል አቁም",
+        "This account requires approval to follow.": "ይህን መለያ ለመከተል ፈቃድ ያስፈልጋል።",
+        "No followers yet": "እስካሁን ተከታዮች የሉም",
+        "Not following anyone yet": "እስካሁን ማንንም አልተከተሉም",
+        "Sign in to follow": "ለመከተል ይግቡ",
+        "Sign in with Google to follow profiles and stay updated on their work.": "መገለጫዎችን ለመከተል እና ሥራቸውን ለመከታተል በGoogle ይግቡ።",
+        "Can't follow this profile": "ይህን መገለጫ መከተል አይቻልም",
+        "Could not follow": "መከተል አልተቻለም",
+        "Could not unfollow": "መከተል ማቆም አልተቻለም",
+        "Connections": "ግንኙነቶች",
+        "Sign in to see connections": "ግንኙነቶችን ለማየት ይግቡ",
+        "Show details": "ዝርዝሮችን አሳይ",
+        "Hide details": "ዝርዝሮችን ደብቅ",
+        "Individual": "ግለሰብ",
+        "Settings": "ቅንብሮች",
+        "Opportunities": "ዕድሎች",
+        "My Events": "የእኔ ዝግጅቶች",
+        "Focus not added yet": "የትኩረት መስክ እስካሁን አልተጨመረም",
+        "Saved from the GloWe community": "ከGloWe ማህበረሰብ የተቀመጠ",
+        "Loading your event registrations…": "የዝግጅት ምዝገባዎችዎን በመጫን ላይ…",
+        "Education & Knowledge": "ትምህርት እና ዕውቀት",
+        "Environment & Climate Action": "አካባቢ እና የአየር ንብረት ተግባር",
+        "Health & Community Care": "ጤና እና የማህበረሰብ እንክብካቤ",
+        "Rights, Safety & Civic Power": "መብቶች፣ ደህንነት እና የዜጎች ኃይል",
+        "A focused group for learning spaces, youth programs, multilingual knowledge sharing, and practical education tools.": "ለመማሪያ ቦታዎች፣ ለወጣቶች ፕሮግራሞች፣ ለብዙ ቋንቋ ዕውቀት ልውውጥ እና ለተግባራዊ የትምህርት መሣሪያዎች ያተኮረ ቡድን።",
+        "For climate, food systems, waste, restoration, repair, and local environmental action.": "ለአየር ንብረት፣ ለምግብ ሥርዓቶች፣ ለቆሻሻ፣ ለማገገም፣ ለጥገና እና ለአካባቢያዊ የአካባቢ ተግባር።",
+        "A moderated space for wellbeing, preventive health, emergency response, and community care methods.": "ለደህንነት፣ ለመከላከያ ጤና፣ ለአስቸኳይ ጊዜ ምላሽ እና ለማህበረሰብ እንክብካቤ ዘዴዎች የሚመራ ቦታ።",
+        "For rights-based action, civic participation, safe moderation, and community trust.": "በመብት ላይ ለተመሠረተ ተግባር፣ ለዜጎች ተሳትፎ፣ ለደህንነቱ የተጠበቀ አስተዳደር እና ለማህበረሰብ እምነት።",
+        "Youth": "ወጣቶች",
+        "Repair": "ጥገና",
+        "Wellbeing": "ደህንነት",
+        "Crisis Response": "የቀውስ ምላሽ",
+        "Justice": "ፍትሕ",
+        "Safety": "ደህንነት",
+        "Civic Action": "የዜጎች ተግባር",
+        "Home": "መነሻ",
+        "Personal Area": "የግል ክፍል",
+        "Wishing Well": "የምኞት ጉድጓድ",
+        "The Wishing Well": "የምኞት ጉድጓድ",
+        "Wishes": "ምኞቶች",
+        "Organizations": "ድርጅቶች",
+        "Community": "ማህበረሰብ",
+        "Forums": "መድረኮች",
+        "About": "ስለ እኛ",
+        "About Us": "ስለ እኛ",
+        "Profile": "መገለጫ",
+        "Sign up / Sign in": "ይመዝገቡ / ይግቡ",
+        "Log In": "ይግቡ",
+        "Log in": "ይግቡ",
+        "Join GloWe": "GloWeን ይቀላቀሉ",
+        "Log Out": "ውጣ",
+        "Hi,": "ሰላም፣",
+        "there": "ወዳጃችን",
+        "Global Learning, Open Knowledge & Wisdom Exchange.": "ዓለም አቀፍ ትምህርት፣ ክፍት ዕውቀት እና የጥበብ ልውውጥ።",
+        "Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.": "በጋራ ዕውቀት፣ በአንድነት እና በተግባራዊ እርምጃ የአካባቢ መፍትሔዎችን ከዓለም አቀፍ ተግዳሮቶች ጋር እናገናኛለን።",
+        "Quick Links": "ፈጣን አገናኞች",
+        "Explore": "ያስሱ",
+        "Participate": "ይሳተፉ",
+        "Write a post": "ልጥፍ ይጻፉ",
+        "Volunteer Network": "የበጎ ፈቃደኞች መረብ",
+        "What's next": "ቀጥሎ ምን አለ",
+        "What Comes Next": "ቀጥሎ የሚመጣው",
+        "Built With Care": "በጥንቃቄ የተገነባ",
+        "An MVP by the GloWe community, with product and implementation support by Topaz.": "በGloWe ማህበረሰብ የተሠራ የመጀመሪያ ሥሪት፣ በTopaz የምርት እና የትግበራ ድጋፍ።",
+        "Admin Review": "አስተዳደር እና ግምገማ",
+        "Terms & Community Charter": "ውሎች እና የማህበረሰብ ቻርተር",
+        "For Organizations": "ለድርጅቶች",
+        "Register Your Organization": "ድርጅትዎን ይመዝግቡ",
+        "Post an Opportunity": "ዕድል ይለጥፉ",
+        "Connect": "ይገናኙ",
+        "Welcome Back": "እንኳን በደህና ተመለሱ",
+        "Welcome Back!": "እንኳን በደህና ተመለሱ!",
+        "Sign in with your Google account to continue.": "ለመቀጠል በGoogle መለያዎ ይግቡ።",
+        "Continue with Google": "በGoogle ይቀጥሉ",
+        "Don't have an account?": "መለያ የለዎትም?",
+        "Join our community": "ማህበረሰባችንን ይቀላቀሉ",
+        "Join the GloWe Community": "የGloWe ማህበረሰብን ይቀላቀሉ",
+        "Sign in with your Google account to get started.": "ለመጀመር በGoogle መለያዎ ይግቡ።",
+        "Already have an account?": "አስቀድሞ መለያ አለዎት?",
+        "Success": "ተሳክቷል",
+        "Your action was completed successfully.": "ተግባርዎ በተሳካ ሁኔታ ተጠናቅቋል።",
+        "Continue": "ቀጥል",
+        "Find your GloWe path": "የGloWe መንገድዎን ያግኙ",
+        "Choose the path that matches what you want to do first.": "መጀመሪያ ማድረግ የሚፈልጉትን የሚመጥን መንገድ ይምረጡ።",
+        "I represent an organization": "ድርጅትን እወክላለሁ",
+        "Create a profile, post a need, and receive structured offers.": "መገለጫ ይፍጠሩ፣ ፍላጎት ይለጥፉ እና የተደራጁ ቅናሾችን ይቀበሉ።",
+        "I can help": "መርዳት እችላለሁ",
+        "Find wishes that match your skills, language, location, and time.": "ከክህሎትዎ፣ ከቋንቋዎ፣ ከአካባቢዎ እና ከጊዜዎ ጋር የሚመጥኑ ምኞቶችን ያግኙ።",
+        "I am a business partner": "የንግድ አጋር ነኝ",
+        "Match CSR teams, logistics, funding, or services with verified needs.": "የCSR ቡድኖችን፣ ሎጂስቲክስን፣ የገንዘብ ድጋፍን ወይም አገልግሎቶችን ከተረጋገጡ ፍላጎቶች ጋር ያገናኙ።",
+        "Manage your account, language, and session preferences.": "መለያዎን፣ ቋንቋዎን እና የክፍለ ጊዜ ምርጫዎችዎን ያስተዳድሩ።",
+        "Account": "መለያ",
+        "Name": "ስም",
+        "Email": "ኢሜይል",
+        "Account type": "የመለያ ዓይነት",
+        "Community member": "የማህበረሰብ አባል",
+        "Open Personal Area": "የግል ክፍልን ክፈት",
+        "Language": "ቋንቋ",
+        "Interface language": "የገጽታ ቋንቋ",
+        "Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.": "የGloWe ገጽታ ቋንቋን ይምረጡ። ዕብራይስጥ እና ዐረብኛ ከቀኝ ወደ ግራ (RTL) አቀማመጥ ይታያሉ።",
+        "English": "እንግሊዝኛ",
+        "Hebrew": "ዕብራይስጥ",
+        "Session": "ክፍለ ጊዜ",
+        "End your session on this device. You can sign back in any time with Google.": "በዚህ መሣሪያ ላይ ክፍለ ጊዜዎን ያጠናቅቁ። በማንኛውም ጊዜ በGoogle እንደገና መግባት ይችላሉ።",
+        "Delete Account": "መለያን ሰርዝ",
+        "Permanently delete your GloWe profile from this community. This removes your profile details; your Google sign-in itself is not deleted, so you can sign up again later.": "የGloWe መገለጫዎን ከዚህ ማህበረሰብ በቋሚነት ይሰርዙ። ይህ የመገለጫዎን ዝርዝሮች ያስወግዳል፤ የGoogle መግቢያዎ ራሱ አይሰረዝም፣ ስለዚህ ወደፊት እንደገና መመዝገብ ይችላሉ።",
+        "Type DELETE to confirm": "ለማረጋገጥ DELETE ብለው ይጻፉ",
+        "Could not delete account": "መለያውን መሰረዝ አልተቻለም",
+        "Something went wrong deleting your profile. Please try again.": "መገለጫዎን በመሰረዝ ላይ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
+        "Sign in to manage settings": "ቅንብሮችን ለማስተዳደር ይግቡ",
+        "Your account, language, and session options live here once you are signed in.": "ከገቡ በኋላ የመለያዎ፣ የቋንቋዎ እና የክፍለ ጊዜዎ አማራጮች እዚህ ይታያሉ።",
+        "Sign in to open your personal area": "የግል ክፍልዎን ለመክፈት ይግቡ",
+        "Your profile, applications, needs, and saved items live here once you are signed in.": "ከገቡ በኋላ መገለጫዎ፣ ማመልከቻዎችዎ፣ ፍላጎቶችዎ እና የተቀመጡ ንጥሎችዎ እዚህ ይታያሉ።",
+        "Your GloWe": "የእርስዎ GloWe",
+        "Welcome back,": "እንኳን በደህና ተመለሱ፣",
+        "What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.": "ዛሬ ምን ማድረግ ይፈልጋሉ? ዕውቀት ያካፍሉ፣ ዕድል ይለጥፉ ወይም ከማህበረሰቡ ድጋፍ ይጠይቁ።",
+        "Share a post": "ልጥፍ ያካፍሉ",
+        "Post an opportunity": "ዕድል ይለጥፉ",
+        "Ask for support": "ድጋፍ ይጠይቁ",
+        "Your activity": "የእርስዎ እንቅስቃሴ",
+        "What is happening on GloWe": "በGloWe ላይ ምን እየሆነ ነው",
+        "See all": "ሁሉንም ይመልከቱ",
+        "Loading your GloWe home…": "የGloWe መነሻ ገጽዎን በመጫን ላይ…",
+        "You have not shared anything yet": "እስካሁን ምንም አላካፈሉም",
+        "Your posts, opportunities, and requests will gather here.": "ልጥፎችዎ፣ ዕድሎችዎ እና ጥያቄዎችዎ እዚህ ይሰበሰባሉ።",
+        "Write your first post": "የመጀመሪያ ልጥፍዎን ይጻፉ",
+        "The community is just getting started": "ማህበረሰቡ ገና እየጀመረ ነው",
+        "Be the first to share a post or an opportunity others can join.": "ሌሎች ሊቀላቀሉት የሚችሉትን ልጥፍ ወይም ዕድል በማካፈል የመጀመሪያው ይሁኑ።",
+        "Start the conversation": "ውይይቱን ይጀምሩ",
+        "Community post": "የማህበረሰብ ልጥፍ",
+        "Community Member": "የማህበረሰብ አባል",
+        "A home for people building impact together": "በጋራ ተጽዕኖ ለሚፈጥሩ ሰዎች ቤት",
+        "You do not have to carry the work alone.": "ሥራውን ብቻዎን መሸከም የለብዎትም።",
+        "GloWe is a warm, professional community for people, organizations, initiatives, volunteers, and partners working around the SDGs. Here you can ask for support, offer what you know, share field wisdom, and meet people who walk beside you in the work.": "GloWe በዘላቂ ልማት ግቦች ዙሪያ ለሚሠሩ ሰዎች፣ ድርጅቶች፣ ተነሳሽነቶች፣ በጎ ፈቃደኞች እና አጋሮች የሚሆን ሞቅ ያለ እና ሙያዊ ማህበረሰብ ነው። እዚህ ድጋፍ መጠየቅ፣ የሚያውቁትን ማካፈል፣ የመስክ ጥበብን ማጋራት እና በሥራው ከጎንዎ የሚራመዱ ሰዎችን ማግኘት ይችላሉ።",
+        "Find Your Place": "ቦታዎን ያግኙ",
+        "Meet the Community": "ማህበረሰቡን ይተዋወቁ",
+        "Ask for Support": "ድጋፍ ይጠይቁ",
+        "You have something to give, and something to receive.": "የሚሰጡት ነገር አለዎት፣ የሚቀበሉትም ነገር አለ።",
+        "You can ask": "መጠየቅ ይችላሉ",
+        "You can offer": "ማቅረብ ይችላሉ",
+        "You can learn": "መማር ይችላሉ",
+        "You can connect": "መገናኘት ይችላሉ",
+        "You can belong": "አባል መሆን ይችላሉ",
+        "Three communities, one living network": "ሦስት ማህበረሰቦች፣ አንድ ሕያው መረብ",
+        "Enter the Community": "ወደ ማህበረሰቡ ይግቡ",
+        "Local Community": "የአካባቢ ማህበረሰብ",
+        "People who know the place": "ቦታውን የሚያውቁ ሰዎች",
+        "Share a local need": "የአካባቢ ፍላጎት ያካፍሉ",
+        "Expert Community": "የባለሙያዎች ማህበረሰብ",
+        "People who can strengthen the work": "ሥራውን ማጠናከር የሚችሉ ሰዎች",
+        "Offer your expertise": "ሙያዎን ያቅርቡ",
+        "Global Community": "ዓለም አቀፍ ማህበረሰብ",
+        "People who help knowledge travel": "ዕውቀት እንዲዘዋወር የሚያግዙ ሰዎች",
+        "Join a discussion": "ውይይት ይቀላቀሉ",
+        "Ask with honesty": "በቅንነት መጠየቅ",
+        "Offer with care": "በአሳቢነት ማቅረብ",
+        "Build with solidarity": "በአንድነት መገንባት",
+        "Start where you are": "ካሉበት ይጀምሩ",
+        "Choose the doorway that feels right today": "ዛሬ ትክክል የሚመስለውን በር ይምረጡ",
+        "Need support": "ድጋፍ ያስፈልገኛል",
+        "Share what would help": "የሚረዳዎትን ያካፍሉ",
+        "Want to contribute": "አስተዋጽኦ ማድረግ እፈልጋለሁ",
+        "Offer your time or expertise": "ጊዜዎን ወይም ሙያዎን ያቅርቡ",
+        "Offer Help": "እርዳታ ያቅርቡ",
+        "Looking for people": "ሰዎችን እየፈለግኩ ነው",
+        "Step into the community": "ወደ ማህበረሰቡ ይግቡ",
+        "Enter Community": "ወደ ማህበረሰቡ መግቢያ",
+        "What you can do in GloWe now": "አሁን በGloWe ውስጥ ማድረግ የሚችሉት",
+        "Create a profile": "መገለጫ ይፍጠሩ",
+        "Share with the community": "ከማህበረሰቡ ጋር ያካፍሉ",
+        "Use the Wishing Well": "የምኞት ጉድጓድን ይጠቀሙ",
+        "Find ways to help": "የመርዳት መንገዶችን ያግኙ",
+        "Values that guide the space": "ይህን ቦታ የሚመሩ እሴቶች",
+        "Solidarity": "አንድነት",
+        "Shared Knowledge": "የጋራ ዕውቀት",
+        "Practical Action": "ተግባራዊ እርምጃ",
+        "Trust and Respect": "እምነት እና መከባበር",
+        "The GloWe ecosystem": "የGloWe ሥነ ምህዳር",
+        "A glimpse into the community": "ስለ ማህበረሰቡ አጭር ዕይታ",
+        "Read Community Posts": "የማህበረሰብ ልጥፎችን ያንብቡ",
+        "Who is invited?": "ማን ተጋብዟል?",
+        "How GloWe is structured": "GloWe እንዴት እንደተዋቀረ",
+        "User Roles": "የተጠቃሚ ሚናዎች",
+        "Business Model": "የንግድ ሞዴል",
+        "Development Roadmap": "የልማት የመንገድ ካርታ",
+        "Trusted by the GloWe Community": "በGloWe ማህበረሰብ የታመነ",
+        "You have a place in this community.": "በዚህ ማህበረሰብ ውስጥ ቦታ አለዎት።",
+        "Bring what you know. Ask for what you need. Meet people who are working, learning, building, and caring around the SDGs.": "የሚያውቁትን ይዘው ይምጡ። የሚያስፈልግዎትን ይጠይቁ። በዘላቂ ልማት ግቦች ዙሪያ የሚሠሩ፣ የሚማሩ፣ የሚገነቡ እና የሚያስቡ ሰዎችን ይተዋወቁ።",
+        "Read Community": "ማህበረሰቡን ያንብቡ",
+        "Open Community": "ማህበረሰቡን ክፈት",
+        "Read What's Next": "«ቀጥሎ ምን አለ» ያንብቡ",
+        "See How This Could Grow": "ይህ እንዴት ሊያድግ እንደሚችል ይመልከቱ",
+        "Active threads will appear here once community members start discussions.": "የማህበረሰብ አባላት ውይይት ሲጀምሩ ንቁ ውይይቶች እዚህ ይታያሉ።",
+        "Activity": "እንቅስቃሴ",
+        "Add Project": "ፕሮጀክት ጨምር",
+        "Advocacy": "ተሟጋችነት",
+        "All areas": "ሁሉም መስኮች",
+        "All Fields": "ሁሉም መስኮች",
+        "All Groups": "ሁሉም ቡድኖች",
+        "All Locations": "ሁሉም አካባቢዎች",
+        "All regions": "ሁሉም ክልሎች",
+        "All types": "ሁሉም ዓይነቶች",
+        "All Types": "ሁሉም ዓይነቶች",
+        "All wishes": "ሁሉም ምኞቶች",
+        "Applications": "ማመልከቻዎች",
+        "Apply for This Opportunity": "ለዚህ ዕድል ያመልክቱ",
+        "Apply Now": "አሁን ያመልክቱ",
+        "Apply to opportunities or publish your own request for volunteers and collaborators.": "ለዕድሎች ያመልክቱ ወይም ለበጎ ፈቃደኞች እና ለተባባሪዎች የራስዎን ጥያቄ ያሳትሙ።",
+        "Apply with your availability and relevant skills.": "የሚገኙበትን ጊዜ እና ተዛማጅ ክህሎቶችዎን አካተው ያመልክቱ።",
+        "Approve": "አጽድቅ",
+        "Approve profiles that are ready, or send them back for changes.": "ዝግጁ የሆኑ መገለጫዎችን ያጽድቁ ወይም ለማስተካከያ ይመልሱ።",
+        "Arabic": "ዐረብኛ",
+        "Articles / media": "ጽሑፎች / ሚዲያ",
+        "As a member of the GloWe community, you agree not to:": "የGloWe ማህበረሰብ አባል እንደመሆንዎ የሚከተሉትን ላለማድረግ ይስማማሉ፦",
+        "Ask a real question, lead a focused space, share a file, or learn from people working through similar challenges.": "እውነተኛ ጥያቄ ይጠይቁ፣ ያተኮረ ቦታ ይምሩ፣ ፋይል ያካፍሉ ወይም ተመሳሳይ ተግዳሮቶችን ከሚያልፉ ሰዎች ይማሩ።",
+        "Ask question": "ጥያቄ ይጠይቁ",
+        "Ask, advise, lead": "ይጠይቁ፣ ይምከሩ፣ ይምሩ",
+        "Attach file": "ፋይል ያያይዙ",
+        "Back to Community": "ወደ ማህበረሰቡ ተመለስ",
+        "Back to Feed": "ወደ ዥረቱ ተመለስ",
+        "Back to Wishing Well": "ወደ የምኞት ጉድጓድ ተመለስ",
+        "Backend not configured": "የኋላ ሥርዓቱ አልተዋቀረም",
+        "Based on GloWe content types": "በGloWe የይዘት ዓይነቶች ላይ የተመሠረተ",
+        "Better matching": "የተሻለ ተዛምዶ",
+        "Both belong here. GloWe is built for mutual support, respectful collaboration, and the quiet relief of finding people who understand the journey.": "ሁለቱም እዚህ ቦታ አላቸው። GloWe ለጋራ ድጋፍ፣ ለአክብሮታዊ ትብብር እና ጉዞውን የሚረዱ ሰዎችን በማግኘት ለሚመጣው ጸጥ ያለ እፎይታ የተገነባ ነው።",
+        "Browse opportunities, save what matters, contact members, and offer your professional skills, time, resources, or lived experience.": "ዕድሎችን ያስሱ፣ የሚያስፈልግዎትን ያስቀምጡ፣ አባላትን ያግኙ እና ሙያዊ ክህሎቶችዎን፣ ጊዜዎን፣ ሀብቶችዎን ወይም የሕይወት ተሞክሮዎን ያቅርቡ።",
+        "Browse Organizations": "ድርጅቶችን ያስሱ",
+        "Build trust through profiles, community review, and clear next steps": "በመገለጫዎች፣ በማህበረሰብ ግምገማ እና በግልጽ ቀጣይ እርምጃዎች እምነት ይገንቡ",
+        "Business-Social Collaboration": "የንግድ እና ማህበራዊ ትብብር",
+        "Businesses / CSR teams": "ንግዶች / የCSR ቡድኖች",
+        "Businesses and partners": "ንግዶች እና አጋሮች",
+        "By using the platform, you agree that:": "መድረኩን በመጠቀም የሚከተሉትን ይስማማሉ፦",
+        "Change": "ቀይር",
+        "Choose the right topic, add useful context, and publish it into the community feed.": "ትክክለኛውን ርዕስ ይምረጡ፣ ጠቃሚ አውድ ይጨምሩ እና ወደ ማህበረሰብ ዥረት ያሳትሙ።",
+        "Civic Innovation": "የዜጎች ፈጠራ",
+        "Cleanup days worth repeating": "መደገም የሚገባቸው የጽዳት ቀናት",
+        "Clear": "አጽዳ",
+        "Clear filters": "ማጣሪያዎችን አጽዳ",
+        "Climate": "የአየር ንብረት",
+        "Close": "ዝጋ",
+        "Comment": "አስተያየት",
+        "comment": "አስተያየት",
+        "comments": "አስተያየቶች",
+        "Commitment:": "ቁርጠኝነት፦",
+        "Community Activity": "የማህበረሰብ እንቅስቃሴ",
+        "Community Building": "የማህበረሰብ ግንባታ",
+        "Community feed": "የማህበረሰብ ዥረት",
+        "Community Feed": "የማህበረሰብ ዥረት",
+        "Community feed filters": "የማህበረሰብ ዥረት ማጣሪያዎች",
+        "Community first, technology second.": "ማህበረሰብ መጀመሪያ፣ ቴክኖሎጂ ሁለተኛ።",
+        "Community Forums": "የማህበረሰብ መድረኮች",
+        "Community home": "የማህበረሰብ መነሻ",
+        "Community integrity": "የማህበረሰብ ታማኝነት",
+        "Community interactions": "የማህበረሰብ መስተጋብሮች",
+        "Community managers": "የማህበረሰብ አስተዳዳሪዎች",
+        "Community members with active contributions will be featured here.": "ንቁ አስተዋጽኦ ያላቸው የማህበረሰብ አባላት እዚህ ይቀርባሉ።",
+        "Community reinvestment": "በማህበረሰቡ ላይ እንደገና መዋዕለ ንዋይ ማፍሰስ",
+        "Community reports": "የማህበረሰብ ሪፖርቶች",
+        "Community reports will appear here.": "የማህበረሰብ ሪፖርቶች እዚህ ይታያሉ።",
+        "Community review": "የማህበረሰብ ግምገማ",
+        "Community support board": "የማህበረሰብ ድጋፍ ሰሌዳ",
+        "Community wishes": "የማህበረሰብ ምኞቶች",
+        "Connect with social and environmental work through responsible collaboration, CSR, ESG, and shared value.": "በኃላፊነት በተሞላ ትብብር፣ በCSR፣ በESG እና በጋራ እሴት አማካኝነት ከማህበራዊ እና አካባቢያዊ ሥራ ጋር ይገናኙ።",
+        "Connection suggestions": "የግንኙነት አስተያየቶች",
+        "connections": "ግንኙነቶች",
+        "Consultation request": "የምክር ጥያቄ",
+        "Contact": "ግንኙነት",
+        "Content": "ይዘት",
+        "Context": "አውድ",
+        "Could not load queue": "ሰልፉን መጫን አልተቻለም",
+        "Create a password": "የይለፍ ቃል ይፍጠሩ",
+        "Create a password (min 8 characters)": "የይለፍ ቃል ይፍጠሩ (ቢያንስ 8 ቁምፊዎች)",
+        "Create Account": "መለያ ይፍጠሩ",
+        "Create Your Profile": "መገለጫዎን ይፍጠሩ",
+        "Daily workspace": "የዕለት ተዕለት የሥራ ቦታ",
+        "Describe your relevant skills and experience...": "ተዛማጅ ክህሎቶችዎን እና ተሞክሮዎን ይግለጹ...",
+        "Direct conversations with volunteers, organizations, and partners live here once you are signed in.": "ከገቡ በኋላ ከበጎ ፈቃደኞች፣ ከድርጅቶች እና ከአጋሮች ጋር ያሉ ቀጥተኛ ውይይቶች እዚህ ይታያሉ።",
+        "Direct conversations with volunteers, organizations, and partners.": "ከበጎ ፈቃደኞች፣ ከድርጅቶች እና ከአጋሮች ጋር ቀጥተኛ ውይይቶች።",
+        "Direct messaging is coming soon": "ቀጥተኛ መልእክት በቅርቡ ይመጣል",
+        "Discover organizations, initiatives, and partners sharing field knowledge and practical needs.": "የመስክ ዕውቀትን እና ተግባራዊ ፍላጎቶችን የሚያካፍሉ ድርጅቶችን፣ ተነሳሽነቶችን እና አጋሮችን ያግኙ።",
+        "Discover People": "ሰዎችን ያግኙ",
+        "Discussion group": "የውይይት ቡድን",
+        "Discussion groups will appear here once they are set up.": "የውይይት ቡድኖች ከተዋቀሩ በኋላ እዚህ ይታያሉ።",
+        "Discussion groups will appear here soon.": "የውይይት ቡድኖች በቅርቡ እዚህ ይታያሉ።",
+        "Discussion Groups": "የውይይት ቡድኖች",
+        "Dismiss": "ዝጋ",
+        "Distribution": "ስርጭት",
+        "Diverse people speaking around a round table at an impact community conference": "በተጽዕኖ ማህበረሰብ ጉባኤ ላይ በክብ ጠረጴዛ ዙሪያ የሚወያዩ የተለያዩ ሰዎች",
+        "Document what happened after someone helped: what changed, what was learned, and what support is still needed.": "አንድ ሰው ከረዳ በኋላ የሆነውን ይመዝግቡ፦ ምን እንደተለወጠ፣ ምን እንደተማራችሁ እና አሁንም ምን ድጋፍ እንደሚያስፈልግ።",
+        "Duration": "ቆይታ",
+        "Duration:": "ቆይታ፦",
+        "Each community starts from its own reality: language, culture, needs, skills, and local leadership.": "እያንዳንዱ ማህበረሰብ ከራሱ እውነታ ይጀምራል፦ ቋንቋ፣ ባህል፣ ፍላጎቶች፣ ክህሎቶች እና የአካባቢ አመራር።",
+        "Each part of the system is here to help impact work become more visible, connected, and supported.": "የሥርዓቱ እያንዳንዱ ክፍል የተጽዕኖ ሥራ ይበልጥ እንዲታይ፣ እንዲተሳሰር እና ድጋፍ እንዲያገኝ ለመርዳት አለ።",
+        "Edit profile": "መገለጫን አርትዕ",
+        "Edit Profile": "መገለጫን አርትዕ",
+        "Edit your profile, add projects, track opportunities, and manage your community activity in one place.": "መገለጫዎን ያርትዑ፣ ፕሮጀክቶችን ይጨምሩ፣ ዕድሎችን ይከታተሉ እና የማህበረሰብ እንቅስቃሴዎን በአንድ ቦታ ያስተዳድሩ።",
+        "Education": "ትምህርት",
+        "Education, Climate, Health, Funding": "ትምህርት፣ የአየር ንብረት፣ ጤና፣ የገንዘብ ድጋፍ",
+        "Education, climate, mentors, Jerusalem...": "ትምህርት፣ የአየር ንብረት፣ አማካሪዎች፣ ኢየሩሳሌም...",
+        "Effective Date: May 30, 2026": "የሥራ ላይ የሚውልበት ቀን፦ ግንቦት 30፣ 2026",
+        "Environment": "አካባቢ",
+        "Equipment / Space": "መሣሪያ / ቦታ",
+        "Evenings": "ምሽቶች",
+        "Events": "ዝግጅቶች",
+        "Every connection can end with a short outcome update.": "እያንዳንዱ ግንኙነት በአጭር የውጤት ዘገባ ሊጠናቀቅ ይችላል።",
+        "Everyone": "ሁሉም",
+        "Example: Grant proposal checklist for small NGOs": "ምሳሌ፦ ለአነስተኛ መንግሥታዊ ያልሆኑ ድርጅቶች የእርዳታ ጥያቄ ማረጋገጫ ዝርዝር",
+        "Explore Community": "ማህበረሰቡን ያስሱ",
+        "Explore possible collaborations": "ሊሆኑ የሚችሉ ትብብሮችን ያስሱ",
+        "Explore possible connections between needs, skills, organizations, and people. Each suggestion is an invitation to read, ask, and decide together.": "በፍላጎቶች፣ በክህሎቶች፣ በድርጅቶች እና በሰዎች መካከል ሊኖሩ የሚችሉ ግንኙነቶችን ያስሱ። እያንዳንዱ አስተያየት አብሮ ለማንበብ፣ ለመጠየቅ እና ለመወሰን የቀረበ ግብዣ ነው።",
+        "Fetching organizations awaiting verification.": "ማረጋገጫ የሚጠባበቁ ድርጅቶችን በማምጣት ላይ።",
+        "Field knowledge becomes easier to find, translate, discuss, and reuse across communities.": "የመስክ ዕውቀት በማህበረሰቦች መካከል ለማግኘት፣ ለመተርጎም፣ ለመወያየት እና እንደገና ለመጠቀም ቀላል ይሆናል።",
+        "Field stories, questions, support offers, updates, and open calls": "የመስክ ታሪኮች፣ ጥያቄዎች፣ የድጋፍ ቅናሾች፣ ዘገባዎች እና ክፍት ጥሪዎች",
+        "Field update": "የመስክ ዘገባ",
+        "Field wisdom, professional tools, lived experience, and multilingual learning all have value here.": "የመስክ ጥበብ፣ ሙያዊ መሣሪያዎች፣ የሕይወት ተሞክሮ እና ብዙ ቋንቋ ትምህርት — ሁሉም እዚህ ዋጋ አላቸው።",
+        "Field:": "መስክ፦",
+        "Filter by region, profile type, or keywords connected to mission, field, needs, and projects.": "በክልል፣ በመገለጫ ዓይነት ወይም ከተልዕኮ፣ ከመስክ፣ ከፍላጎቶች እና ከፕሮጀክቶች ጋር በተያያዙ ቁልፍ ቃላት ያጣሩ።",
+        "Find a Group": "ቡድን ያግኙ",
+        "Find My Path": "መንገዴን አግኝ",
+        "Find or publish practical volunteer, work, and collaboration opportunities for social impact projects.": "ለማህበራዊ ተጽዕኖ ፕሮጀክቶች ተግባራዊ የበጎ ፈቃድ፣ የሥራ እና የትብብር ዕድሎችን ያግኙ ወይም ያሳትሙ።",
+        "Find people who understand your cause, help shape your next step, and make your work visible.": "ዓላማዎን የሚረዱ፣ ቀጣይ እርምጃዎን እንዲቀርጹ የሚያግዙ እና ሥራዎን የሚያስተዋውቁ ሰዎችን ያግኙ።",
+        "Find projects, organizations, volunteers, experts, and practical needs": "ፕሮጀክቶችን፣ ድርጅቶችን፣ በጎ ፈቃደኞችን፣ ባለሙያዎችን እና ተግባራዊ ፍላጎቶችን ያግኙ",
+        "Find the right people": "ትክክለኛዎቹን ሰዎች ያግኙ",
+        "Find the right request": "ትክክለኛውን ጥያቄ ያግኙ",
+        "Find where your skills can help.": "ክህሎቶችዎ የሚረዱበትን ቦታ ያግኙ።",
+        "Flexible": "ተለዋዋጭ",
+        "Follow the work, ask, offer, and connect.": "ሥራውን ይከታተሉ፣ ይጠይቁ፣ ያቅርቡ እና ይገናኙ።",
+        "Follow updates": "ዘገባዎችን ይከታተሉ",
+        "Follow Updates": "ዘገባዎችን ይከታተሉ",
+        "Food Security": "የምግብ ዋስትና",
+        "For questions, support, or concerns, please reach out:": "ለጥያቄዎች፣ ለድጋፍ ወይም ለስጋቶች እባክዎ ያግኙን፦",
+        "For you": "ለእርስዎ",
+        "Forum Leaders": "የመድረክ መሪዎች",
+        "Forum leadership offer": "የመድረክ አመራር ቅናሽ",
+        "Full Name": "ሙሉ ስም",
+        "Full-time": "ሙሉ ጊዜ",
+        "Funding preparation": "ለገንዘብ ድጋፍ ዝግጅት",
+        "Funding Support": "የገንዘብ ድጋፍ",
+        "Global": "ዓለም አቀፍ",
+        "GloWe - Global Collaboration for Social Impact": "GloWe - ለማህበራዊ ተጽዕኖ ዓለም አቀፍ ትብብር",
+        "GloWe begins as a simple MVP: profiles, posts, wishes, opportunities, and conversations. From here, we want to grow carefully, with local communities, field knowledge, and technology that serves people.": "GloWe እንደ ቀላል የመጀመሪያ ሥሪት ይጀምራል፦ መገለጫዎች፣ ልጥፎች፣ ምኞቶች፣ ዕድሎች እና ውይይቶች። ከዚህ ተነስተን ከአካባቢ ማህበረሰቦች፣ ከመስክ ዕውቀት እና ሰዎችን ከሚያገለግል ቴክኖሎጂ ጋር በጥንቃቄ ማደግ እንፈልጋለን።",
+        "GloWe community promise": "የGloWe ማህበረሰብ ቃል",
+        "GloWe community value system": "የGloWe ማህበረሰብ የእሴት ሥርዓት",
+        "GloWe does not guarantee uninterrupted access or availability.": "GloWe ያልተቋረጠ ተደራሽነትን ወይም አገልግሎትን አያረጋግጥም።",
+        "GloWe is built for people who meet, listen, offer, ask, and turn local experience into practical collaboration.": "GloWe የሚገናኙ፣ የሚያዳምጡ፣ የሚያቀርቡ፣ የሚጠይቁ እና የአካባቢ ተሞክሮን ወደ ተግባራዊ ትብብር ለሚቀይሩ ሰዎች የተገነባ ነው።",
+        "GloWe is not liable for losses resulting from interruptions, errors, or misuse of the platform.": "GloWe ከመቋረጥ፣ ከስህተቶች ወይም መድረኩን አላግባብ ከመጠቀም ለሚመጡ ኪሳራዎች ተጠያቂ አይደለም።",
+        "GloWe is open to all people and organizations, regardless of age, geography, identity, or legal status.": "GloWe ዕድሜ፣ አካባቢ፣ ማንነት ወይም ሕጋዊ ሁኔታ ሳይለይ ለሁሉም ሰዎች እና ድርጅቶች ክፍት ነው።",
+        "GloWe may include links to external platforms or tools. We are not responsible for the content, privacy, or reliability of third-party services. Use them at your discretion.": "GloWe ወደ ውጫዊ መድረኮች ወይም መሣሪያዎች የሚያመሩ አገናኞችን ሊይዝ ይችላል። ለሦስተኛ ወገን አገልግሎቶች ይዘት፣ ግላዊነት ወይም አስተማማኝነት ኃላፊነት አንወስድም። በራስዎ ውሳኔ ይጠቀሙባቸው።",
+        "GloWe may suspend or terminate accounts that violate these Terms or the Community Integrity Charter.": "GloWe እነዚህን ውሎች ወይም የማህበረሰብ ታማኝነት ቻርተርን የሚጥሱ መለያዎችን ሊያግድ ወይም ሊዘጋ ይችላል።",
+        "GloWe Member": "የGloWe አባል",
+        "GloWe reserves the right to:": "GloWe የሚከተሉትን የማድረግ መብት ይጠብቃል፦",
+        "GloWe respects your privacy. Personal data will only be used to improve your experience and build relevant connections.": "GloWe ግላዊነትዎን ያከብራል። የግል መረጃ የሚውለው ተሞክሮዎን ለማሻሻል እና ተዛማጅ ግንኙነቶችን ለመገንባት ብቻ ነው።",
+        "GloWe will not sell or license your content to external commercial entities without explicit consent.": "GloWe ያለ ግልጽ ፈቃድዎ ይዘትዎን ለውጫዊ የንግድ አካላት አይሸጥም ወይም ፈቃድ አይሰጥም።",
+        "GloWe works through local roots, professional support, and global exchange.": "GloWe በአካባቢያዊ ሥሮች፣ በሙያዊ ድጋፍ እና በዓለም አቀፍ ልውውጥ ይሠራል።",
+        "Good intentions become stronger when they are connected to clear needs, real people, and concrete next steps.": "መልካም ዓላማዎች ከግልጽ ፍላጎቶች፣ ከእውነተኛ ሰዎች እና ከተጨባጭ ቀጣይ እርምጃዎች ጋር ሲተሳሰሩ ይበልጥ ይጠናከራሉ።",
+        "Grant match": "የእርዳታ ተዛምዶ",
+        "Grey knowledge library": "የግራጫ ዕውቀት ቤተ መጻሕፍት",
+        "Group Actions": "የቡድን ተግባራት",
+        "Groups": "ቡድኖች",
+        "Groups that want to document their work, find collaborators, and ask for concrete support.": "ሥራቸውን መመዝገብ፣ ተባባሪዎችን ማግኘት እና ተጨባጭ ድጋፍ መጠየቅ የሚፈልጉ ቡድኖች።",
+        "Haifa": "ሃይፋ",
+        "Health": "ጤና",
+        "Healthy moderation rules": "ጤናማ የአስተዳደር ደንቦች",
+        "Help communities turn field experience into practical guides, short case studies, templates, and translated resources.": "ማህበረሰቦች የመስክ ተሞክሮን ወደ ተግባራዊ መመሪያዎች፣ አጫጭር የጉዳይ ጥናቶች፣ አብነቶች እና ወደተተረጎሙ ሀብቶች እንዲቀይሩ ያግዙ።",
+        "Help shape what comes next.": "ቀጥሎ የሚመጣውን ለመቅረጽ ያግዙ።",
+        "Helpers explain what they can provide, availability, and conditions.": "ረዳቶች ማቅረብ የሚችሉትን፣ የሚገኙበትን ጊዜ እና ሁኔታዎችን ያብራራሉ።",
+        "Hidden content": "የተደበቀ ይዘት",
+        "Hidden items": "የተደበቁ ንጥሎች",
+        "Hide Item": "ንጥሉን ደብቅ",
+        "Hide Profile": "መገለጫን ደብቅ",
+        "How success is understood": "ስኬት እንዴት እንደሚታይ",
+        "How the post will feel in the feed": "ልጥፉ በዥረቱ ውስጥ እንዴት እንደሚታይ",
+        "I am a": "እኔ",
+        "I Can Help": "መርዳት እችላለሁ",
+        "If you are under the legal age of majority in your country, you are using GloWe under the guidance of a mentor, parent, or educational framework.": "በአገርዎ ሕጋዊ የአዋቂነት ዕድሜ ላይ ካልደረሱ፣ GloWeን የሚጠቀሙት በአማካሪ፣ በወላጅ ወይም በትምህርት ተቋም መመሪያ ሥር ነው።",
+        "If you witness misconduct, misinformation, or harm, report it. Use the Report button on profiles or reach out to us directly. All reports are reviewed with care and confidentiality.": "ተገቢ ያልሆነ ባህሪ፣ የተሳሳተ መረጃ ወይም ጉዳት ካዩ ሪፖርት ያድርጉ። በመገለጫዎች ላይ ያለውን የሪፖርት ቁልፍ ይጠቀሙ ወይም በቀጥታ ያግኙን። ሁሉም ሪፖርቶች በጥንቃቄ እና በሚስጥር ይገመገማሉ።",
+        "Impact approach": "የተጽዕኖ አቀራረብ",
+        "Impact area": "የተጽዕኖ መስክ",
+        "Impact areas": "የተጽዕኖ መስኮች",
+        "Impact Areas": "የተጽዕኖ መስኮች",
+        "Impact field": "የተጽዕኖ መስክ",
+        "Impact follow-up": "የተጽዕኖ ክትትል",
+        "Impact Signals": "የተጽዕኖ ምልክቶች",
+        "Impact so far": "እስካሁን ያለው ተጽዕኖ",
+        "Impact stories": "የተጽዕኖ ታሪኮች",
+        "In cases of legal violations, authorities may be notified.": "ሕጋዊ ጥሰቶች ሲኖሩ ለባለሥልጣናት ሊገለጽ ይችላል።",
+        "Interaction": "መስተጋብር",
+        "Israel": "እስራኤል",
+        "Items hidden by admin review can be restored while this MVP uses local storage.": "ይህ የመጀመሪያ ሥሪት የአካባቢ ማከማቻ እስከተጠቀመ ድረስ በአስተዳዳሪ ግምገማ የተደበቁ ንጥሎች ሊመለሱ ይችላሉ።",
+        "Items removed by admin will be listed here.": "በአስተዳዳሪ የተወገዱ ንጥሎች እዚህ ይዘረዘራሉ።",
+        "Jerusalem": "ኢየሩሳሌም",
+        "Join Group": "ቡድኑን ተቀላቀል",
+        "Join requests": "የመቀላቀል ጥያቄዎች",
+        "Join the MVP": "የመጀመሪያውን ሥሪት ይቀላቀሉ",
+        "Join the Volunteer Network and find places where your skills, experience, language, or care can make someone else's work lighter.": "የበጎ ፈቃደኞች መረብን ይቀላቀሉ እና ክህሎትዎ፣ ተሞክሮዎ፣ ቋንቋዎ ወይም አሳቢነትዎ የሌላውን ሰው ሥራ ሊያቀል የሚችልባቸውን ቦታዎች ያግኙ።",
+        "Join with experience, questions, resources, or a willingness to help.": "በተሞክሮ፣ በጥያቄዎች፣ በሀብቶች ወይም ለመርዳት ባለው ፈቃደኝነት ይቀላቀሉ።",
+        "Keep the community safe and trustworthy.": "ማህበረሰቡን ደህንነቱ የተጠበቀ እና የሚታመን ያድርጉ።",
+        "Knowledge": "ዕውቀት",
+        "Knowledge Seekers": "ዕውቀት ፈላጊዎች",
+        "Knowledge Sharing": "የዕውቀት ልውውጥ",
+        "Languages": "ቋንቋዎች",
+        "Learn More": "ተጨማሪ ይወቁ",
+        "Like": "ወደድኩት",
+        "Limit access or features in cases of harm, spam, or manipulation.": "ጉዳት፣ አላስፈላጊ መልእክት ወይም ማጭበርበር ሲኖር ተደራሽነትን ወይም ባህሪያትን መገደብ።",
+        "Live needs": "ንቁ ፍላጎቶች",
+        "Loading...": "በመጫን ላይ...",
+        "Loading…": "በመጫን ላይ…",
+        "Loading your profile…": "መገለጫዎን በመጫን ላይ…",
+        "Uploading image...": "ምስሉን በመጫን ላይ...",
+        "Please choose an image file.": "እባክዎ የምስል ፋይል ይምረጡ።",
+        "Image must be under 5 MB.": "ምስሉ ከ5 ሜባ በታች መሆን አለበት።",
+        "Optional. JPG, PNG or WebP, up to 5 MB.": "አማራጭ። JPG፣ PNG ወይም WebP፣ እስከ 5 ሜባ።",
+        "Applicants": "አመልካቾች",
+        "Loading applicants…": "አመልካቾችን በመጫን ላይ…",
+        "Could not load applicants.": "አመልካቾችን መጫን አልተቻለም።",
+        "No applications yet.": "እስካሁን ማመልከቻዎች የሉም።",
+        "Accept": "ተቀበል",
+        "Decline": "አትቀበል",
+        "Could not update the application. Please try again.": "ማመልከቻውን ማዘመን አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+        "Offers": "የእርዳታ ቅናሾች",
+        "Loading offers…": "ቅናሾችን በመጫን ላይ…",
+        "Could not load offers.": "ቅናሾችን መጫን አልተቻለም።",
+        "No offers yet.": "እስካሁን ቅናሾች የሉም።",
+        "Preferred contact:": "የሚመረጥ የግንኙነት መንገድ፦",
+        "Email copied to clipboard": "ኢሜይሉ ወደ ቅንጥብ ሰሌዳ ተቀድቷል",
+        "Could not copy the email.": "ኢሜይሉን መቅዳት አልተቻለም።",
+        "GloWe volunteer": "የGloWe በጎ ፈቃደኛ",
+        "Availability:": "የሚገኙበት ጊዜ፦",
+        "Skills:": "ክህሎቶች፦",
+        "Motivation:": "ተነሳሽነት፦",
+        "Local community circles": "የአካባቢ ማህበረሰብ ክቦች",
+        "Local organizations, initiatives, residents, volunteers, and partners bring the real context: what is needed, what already works, who should be involved, and what kind of support would actually help.": "የአካባቢ ድርጅቶች፣ ተነሳሽነቶች፣ ነዋሪዎች፣ በጎ ፈቃደኞች እና አጋሮች እውነተኛውን አውድ ያመጣሉ፦ ምን እንደሚያስፈልግ፣ ምን አስቀድሞ እንደሚሠራ፣ ማን መሳተፍ እንዳለበት እና ምን ዓይነት ድጋፍ በእውነት እንደሚረዳ።",
+        "Local roots": "የአካባቢ ሥሮች",
+        "Location": "አካባቢ",
+        "Location:": "አካባቢ፦",
+        "Looking for Mentors": "አማካሪዎችን እየፈለግን ነው",
+        "Low-bandwidth friendly": "ለዝቅተኛ የኢንተርኔት ፍጥነት ተስማሚ",
+        "Make it easier to connect a need with the right volunteer, professional skill, organization, donor, or partner.": "አንድን ፍላጎት ከትክክለኛው በጎ ፈቃደኛ፣ ሙያዊ ክህሎት፣ ድርጅት፣ ለጋሽ ወይም አጋር ጋር ማገናኘትን ቀላል ማድረግ።",
+        "Mark Reviewed": "እንደተገመገመ ምልክት አድርግ",
+        "Measurement and learning": "መለካት እና መማር",
+        "Members": "አባላት",
+        "Members will appear here once they join this group.": "አባላት ይህን ቡድን ሲቀላቀሉ እዚህ ይታያሉ።",
+        "Message": "መልእክት",
+        "Message author": "ለጸሐፊው መልእክት ላክ",
+        "Message publisher": "ለአሳታሚው መልእክት ላክ",
+        "Message sent": "መልእክቱ ተልኳል",
+        "Your message was delivered. The organization can follow up with you.": "መልእክትዎ ደርሷል። ድርጅቱ ሊያገኝዎት ይችላል።",
+        "Could not send message": "መልእክቱን መላክ አልተቻለም",
+        "Something went wrong sending your message. Please try again.": "መልእክትዎን በመላክ ላይ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
+        "Reach Out": "ያግኙ",
+        "Send Message": "መልእክት ላክ",
+        "Send a short message to start a conversation with this organization.": "ከዚህ ድርጅት ጋር ውይይት ለመጀመር አጭር መልእክት ይላኩ።",
+        "Introduce yourself and explain how you would like to collaborate.": "ራስዎን ያስተዋውቁ እና እንዴት መተባበር እንደሚፈልጉ ያብራሩ።",
+        "Sign in to reach out": "ለማግኘት ይግቡ",
+        "Please sign in or create a free account to message this organization.": "ለዚህ ድርጅት መልእክት ለመላክ እባክዎ ይግቡ ወይም ነጻ መለያ ይፍጠሩ።",
+        "Messaging needs a live connection right now. Please try again shortly.": "መልእክት መላክ አሁን ንቁ ግንኙነት ይፈልጋል። እባክዎ ከጥቂት ጊዜ በኋላ ይሞክሩ።",
+        "Missing details": "የጎደሉ ዝርዝሮች",
+        "Backend unavailable": "አገልግሎቱ አይገኝም",
+        "Messages": "መልእክቶች",
+        "Methods / approaches": "ዘዴዎች / አቀራረቦች",
+        "Moderate discussions in order to keep the space constructive, safe, and impact-driven.": "ቦታው ገንቢ፣ ደህንነቱ የተጠበቀ እና በተጽዕኖ የሚመራ እንዲሆን ውይይቶችን ያስተዳድሩ።",
+        "Multilingual": "ብዙ ቋንቋ",
+        "Needs": "ፍላጎቶች",
+        "Needs Changes": "ማስተካከያ ያስፈልገዋል",
+        "New post": "አዲስ ልጥፍ",
+        "New submitted profiles will appear here for review.": "አዲስ የቀረቡ መገለጫዎች ለግምገማ እዚህ ይታያሉ።",
+        "No applications yet": "እስካሁን ማመልከቻዎች የሉም",
+        "No community posts yet.": "እስካሁን የማህበረሰብ ልጥፎች የሉም።",
+        "No hidden items": "የተደበቁ ንጥሎች የሉም",
+        "No matching opportunities yet. This is where open roles and collaboration requests will appear.": "እስካሁን የሚዛመዱ ዕድሎች የሉም። ክፍት ሚናዎች እና የትብብር ጥያቄዎች እዚህ ይታያሉ።",
+        "No matching profiles yet": "እስካሁን የሚዛመዱ መገለጫዎች የሉም",
+        "No opportunities found": "ዕድሎች አልተገኙም",
+        "No pending organizations": "በመጠባበቅ ላይ ያሉ ድርጅቶች የሉም",
+        "No pending profiles": "በመጠባበቅ ላይ ያሉ መገለጫዎች የሉም",
+        "No posts match this view yet": "እስካሁን ከዚህ ዕይታ ጋር የሚዛመዱ ልጥፎች የሉም",
+        "No projects listed yet.": "እስካሁን የተዘረዘሩ ፕሮጀክቶች የሉም።",
+        "No projects yet. Add your first project.": "እስካሁን ፕሮጀክቶች የሉም። የመጀመሪያ ፕሮጀክትዎን ይጨምሩ።",
+        "No replies yet. Be the first to respond.": "እስካሁን መልሶች የሉም። መጀመሪያ የሚመልሱ ይሁኑ።",
+        "None specified for this opportunity.": "ለዚህ ዕድል ምንም አልተገለጸም።",
+        "No reports yet": "እስካሁን ሪፖርቶች የሉም",
+        "No results": "ውጤቶች የሉም",
+        "No saved items yet": "እስካሁን የተቀመጡ ንጥሎች የሉም",
+        "No threads yet": "እስካሁን ውይይቶች የሉም",
+        "No wishes found": "ምኞቶች አልተገኙም",
+        "Notification Preferences": "የማሳወቂያ ምርጫዎች",
+        "Offer skills, time, translation, mentoring, design, legal help, tech, research, or field knowledge.": "ክህሎቶችን፣ ጊዜን፣ ትርጉምን፣ አማካሪነትን፣ ዲዛይንን፣ የሕግ እርዳታን፣ ቴክኖሎጂን፣ ምርምርን ወይም የመስክ ዕውቀትን ያቅርቡ።",
+        "Offer Support": "ድጋፍ ያቅርቡ",
+        "Open": "ክፍት",
+        "Open a Question": "ጥያቄ ይክፈቱ",
+        "Open Call": "ክፍት ጥሪ",
+        "Open Forums": "መድረኮችን ክፈት",
+        "Open Needs": "ክፍት ፍላጎቶች",
+        "Open Playbook": "መመሪያውን ክፈት",
+        "Open reports": "ክፍት ሪፖርቶች",
+        "Open Volunteer Network": "የበጎ ፈቃደኞች መረብን ክፈት",
+        "Open wish details": "የምኞቱን ዝርዝሮች ክፈት",
+        "Open wishes": "ክፍት ምኞቶች",
+        "open wishes are waiting for the right support.": "ክፍት ምኞቶች ትክክለኛውን ድጋፍ እየጠበቁ ናቸው።",
+        "Open wishes, opportunities, posts, and discussions around real work": "በእውነተኛ ሥራ ዙሪያ ክፍት ምኞቶች፣ ዕድሎች፣ ልጥፎች እና ውይይቶች",
+        "Opportunities & Applications": "ዕድሎች እና ማመልከቻዎች",
+        "Opportunities & collaboration": "ዕድሎች እና ትብብር",
+        "Opportunity title": "የዕድሉ ርዕስ",
+        "Opportunity type": "የዕድሉ ዓይነት",
+        "Optional link": "አገናኝ (አማራጭ)",
+        "Organization filters": "የድርጅት ማጣሪያዎች",
+        "Organization or project": "ድርጅት ወይም ፕሮጀክት",
+        "Organization Representative": "የድርጅት ተወካይ",
+        "Organization review is available once the shared backend is connected.": "የጋራ የኋላ ሥርዓቱ ከተገናኘ በኋላ የድርጅት ግምገማ ይገኛል።",
+        "Organizations & Companies": "ድርጅቶች እና ኩባንያዎች",
+        "Organizations and NGOs": "ድርጅቶች እና መንግሥታዊ ያልሆኑ ድርጅቶች",
+        "Organizations and partners are reviewed before sensitive actions.": "ድርጅቶች እና አጋሮች ከስሱ ተግባራት በፊት ይገመገማሉ።",
+        "Organizations awaiting verification. Approve serious requests; rejected ones stay view-only.": "ማረጋገጫ የሚጠባበቁ ድርጅቶች። ቁም ነገር ያላቸውን ጥያቄዎች ያጽድቁ፤ የተቀሩት ለዕይታ ብቻ ይሆናሉ።",
+        "Organize possible grants and next steps": "ሊገኙ የሚችሉ እርዳታዎችን እና ቀጣይ እርምጃዎችን ያደራጁ",
+        "Overview": "አጠቃላይ ዕይታ",
+        "Paid Full-time Role": "የሚከፈልበት ሙሉ ጊዜ ሚና",
+        "Part-time": "ትርፍ ጊዜ",
+        "Part-time Role": "የትርፍ ጊዜ ሚና",
+        "Participation signals": "የተሳትፎ ምልክቶች",
+        "Partnership Opportunity": "የአጋርነት ዕድል",
+        "Password": "የይለፍ ቃል",
+        "Pending organizations": "በመጠባበቅ ላይ ያሉ ድርጅቶች",
+        "Pending profiles": "በመጠባበቅ ላይ ያሉ መገለጫዎች",
+        "Pending verification": "ማረጋገጫ በመጠባበቅ ላይ",
+        "People already acting in their communities and looking for allies, knowledge, or visibility.": "አስቀድመው በማህበረሰባቸው ውስጥ የሚሠሩ እና አጋሮችን፣ ዕውቀትን ወይም ተጋላጭነትን የሚፈልጉ ሰዎች።",
+        "People looking for practical examples, field lessons, and ways to learn from what already works.": "ተግባራዊ ምሳሌዎችን፣ የመስክ ትምህርቶችን እና አስቀድሞ ከሚሠራው ለመማር መንገዶችን የሚፈልጉ ሰዎች።",
+        "People who can offer time, translation, design, research, facilitation, mentoring, or professional skills.": "ጊዜ፣ ትርጉም፣ ዲዛይን፣ ምርምር፣ አመቻችነት፣ አማካሪነት ወይም ሙያዊ ክህሎቶችን ማቅረብ የሚችሉ ሰዎች።",
+        "Please refresh and try again.": "እባክዎ ገጹን አድሱ እና እንደገና ይሞክሩ።",
+        "Possible next steps": "ሊኖሩ የሚችሉ ቀጣይ እርምጃዎች",
+        "Post": "ለጥፍ",
+        "Post a clear need in the Wishing Well: volunteers, partners, knowledge, visibility, tools, space, or practical advice.": "በምኞት ጉድጓድ ውስጥ ግልጽ ፍላጎት ይለጥፉ፦ በጎ ፈቃደኞች፣ አጋሮች፣ ዕውቀት፣ ተጋላጭነት፣ መሣሪያዎች፣ ቦታ ወይም ተግባራዊ ምክር።",
+        "Post a Need": "ፍላጎት ይለጥፉ",
+        "Post a need. Find a helper. Build impact.": "ፍላጎት ይለጥፉ። ረዳት ያግኙ። ተጽዕኖ ይገንቡ።",
+        "Post false, misleading, discriminatory, hateful, or violent content.": "ሐሰተኛ፣ አሳሳች፣ አድሎአዊ፣ ጥላቻ የተሞላበት ወይም ዓመፀኛ ይዘት መለጠፍ።",
+        "Post need": "ፍላጎት ይለጥፉ",
+        "Post Opportunity": "ዕድል ይለጥፉ",
+        "Post title": "የልጥፉ ርዕስ",
+        "Post Topics": "የልጥፉ ርዕሶች",
+        "Post type": "የልጥፉ ዓይነት",
+        "posts": "ልጥፎች",
+        "Posts": "ልጥፎች",
+        "Posts you write in the community will appear here.": "በማህበረሰቡ ውስጥ የሚጽፏቸው ልጥፎች እዚህ ይታያሉ።",
+        "Posts, profiles, wishes, and opportunities you want to return to later.": "ወደፊት መመለስ የሚፈልጓቸው ልጥፎች፣ መገለጫዎች፣ ምኞቶች እና ዕድሎች።",
+        "Practical guides and field lessons": "ተግባራዊ መመሪያዎች እና የመስክ ትምህርቶች",
+        "Prepare a clearer post or campaign draft": "ይበልጥ ግልጽ የሆነ የልጥፍ ወይም የዘመቻ ረቂቅ ያዘጋጁ",
+        "Present your mission, projects, fields of action, SDGs, needs, and the kind of collaborations you are open to.": "ተልዕኮዎን፣ ፕሮጀክቶችዎን፣ የተግባር መስኮችዎን፣ የዘላቂ ልማት ግቦችን፣ ፍላጎቶችዎን እና ክፍት የሆኑባቸውን የትብብር ዓይነቶች ያቅርቡ።",
+        "Pretend to be someone else.": "ሌላ ሰው መስሎ መቅረብ።",
+        "Preview": "ቅድመ ዕይታ",
+        "Private conversations between volunteers, organizations, and partners are on the way. In the meantime, you can reach an organization from its profile.": "በበጎ ፈቃደኞች፣ በድርጅቶች እና በአጋሮች መካከል የግል ውይይቶች በመንገድ ላይ ናቸው። እስከዚያው ድረስ አንድን ድርጅት ከመገለጫው ማግኘት ይችላሉ።",
+        "Professionals, mentors, facilitators, service providers, and experienced practitioners can offer advice, services, office hours, forum leadership, tools, and practical guidance.": "ባለሙያዎች፣ አማካሪዎች፣ አመቻቾች፣ አገልግሎት ሰጪዎች እና ልምድ ያላቸው ባለሙያዎች ምክር፣ አገልግሎቶች፣ የቢሮ ሰዓታት፣ የመድረክ አመራር፣ መሣሪያዎች እና ተግባራዊ መመሪያ ማቅረብ ይችላሉ።",
+        "Profile actions": "የመገለጫ ተግባራት",
+        "Profile From Questionnaire": "ከመጠይቅ የተገኘ መገለጫ",
+        "Profile not found": "መገለጫው አልተገኘም",
+        "Profile snapshot": "የመገለጫ አጭር ዕይታ",
+        "Profiles": "መገለጫዎች",
+        "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "መገለጫዎች፣ ልጥፎች፣ መልእክቶች እና ትብብሮች ክብርን፣ ግልጽነትን እና ኃላፊነት የተሞላበት የማህበረሰብ እንክብካቤን መደገፍ አለባቸው።",
+        "Project-based": "በፕሮጀክት ላይ የተመሠረተ",
+        "Project-based Collaboration": "በፕሮጀክት ላይ የተመሠረተ ትብብር",
+        "Projects": "ፕሮጀክቶች",
+        "My Needs": "የእኔ ፍላጎቶች",
+        "No needs yet. Share what would help on the Wishing Well.": "እስካሁን ፍላጎቶች የሉም። በምኞት ጉድጓድ ላይ የሚረዳዎትን ያካፍሉ።",
+        "My Posts": "የእኔ ልጥፎች",
+        "No posts yet. Share an update with the community.": "እስካሁን ልጥፎች የሉም። ከማህበረሰቡ ጋር ዘገባ ያካፍሉ።",
+        "My Opportunities": "የእኔ ዕድሎች",
+        "No opportunities yet. Publish one on the Volunteer Network.": "እስካሁን ዕድሎች የሉም። በበጎ ፈቃደኞች መረብ ላይ አንድ ያሳትሙ።",
+        "My Offers": "የእኔ ቅናሾች",
+        "No offers yet. Help someone by responding to a wish.": "እስካሁን ቅናሾች የሉም። ለምኞት በመመለስ አንድን ሰው ይርዱ።",
+        "Browse Wishes": "ምኞቶችን ያስሱ",
+        "Public links": "የሕዝብ አገናኞች",
+        "Publish a volunteer role": "የበጎ ፈቃድ ሚና ያሳትሙ",
+        "Publish an opportunity": "ዕድል ያሳትሙ",
+        "Publish Opportunity": "ዕድሉን አሳትም",
+        "Publish Thread": "ውይይቱን አሳትም",
+        "Publish to Community Feed": "ወደ ማህበረሰብ ዥረት አሳትም",
+        "Publish to Feed": "ወደ ዥረቱ አሳትም",
+        "Publish to Forum": "ወደ መድረኩ አሳትም",
+        "Question": "ጥያቄ",
+        "Question title": "የጥያቄው ርዕስ",
+        "Questions": "ጥያቄዎች",
+        "Ramat Gan, Israel": "ራማት ጋን፣ እስራኤል",
+        "Read posts, ask questions, respond with care, and meet others who are also building social and environmental change.": "ልጥፎችን ያንብቡ፣ ጥያቄዎችን ይጠይቁ፣ በአሳቢነት ይመልሱ እና ማህበራዊ እና አካባቢያዊ ለውጥ የሚገነቡ ሌሎችን ይተዋወቁ።",
+        "Ready to Make an Impact?": "ተጽዕኖ ለመፍጠር ዝግጁ ነዎት?",
+        "Ready to offer your time, skills, mentoring, translation, design, legal help, or field knowledge? Enter the volunteer space and find the right role.": "ጊዜዎን፣ ክህሎቶችዎን፣ አማካሪነትዎን፣ ትርጉምዎን፣ ዲዛይንዎን፣ የሕግ እርዳታዎን ወይም የመስክ ዕውቀትዎን ለማቅረብ ዝግጁ ነዎት? ወደ የበጎ ፈቃድ ቦታ ይግቡ እና ትክክለኛውን ሚና ያግኙ።",
+        "Recent Activity": "የቅርብ ጊዜ እንቅስቃሴ",
+        "Recognition in GloWe is about visible contribution, not empty ranking. Signals stay tied to documented activity, trust, and community review.": "በGloWe ውስጥ ዕውቅና የሚያተኩረው በሚታይ አስተዋጽኦ ላይ እንጂ በባዶ ደረጃ አሰጣጥ ላይ አይደለም። ምልክቶች ከተመዘገበ እንቅስቃሴ፣ ከእምነት እና ከማህበረሰብ ግምገማ ጋር የተሳሰሩ ሆነው ይቀጥላሉ።",
+        "Recognize visible contribution": "የሚታይ አስተዋጽኦን ዕውቅና ይስጡ",
+        "Refine": "አጥራ",
+        "Region": "ክልል",
+        "Registration, article, drive folder, or resource link": "ምዝገባ፣ ጽሑፍ፣ የድራይቭ አቃፊ ወይም የሀብት አገናኝ",
+        "Reject": "አትቀበል",
+        "Relevant Skills & Experience": "ተዛማጅ ክህሎቶች እና ተሞክሮ",
+        "Remote": "ከርቀት",
+        "Remote tutors and safety": "የርቀት አስተማሪዎች እና ደህንነት",
+        "Remove": "አስወግድ",
+        "Remove content that violates these terms or values.": "እነዚህን ውሎች ወይም እሴቶች የሚጥስ ይዘት ማስወገድ።",
+        "Reply": "መልስ",
+        "Report": "ሪፖርት አድርግ",
+        "Reports from users who saw something inaccurate, harmful, or inappropriate.": "ትክክል ያልሆነ፣ ጎጂ ወይም ተገቢ ያልሆነ ነገር ካዩ ተጠቃሚዎች የቀረቡ ሪፖርቶች።",
+        "Repost": "እንደገና አጋራ",
+        "Requirements": "መስፈርቶች",
+        "Resource / file": "ሀብት / ፋይል",
+        "Resource Request": "የሀብት ጥያቄ",
+        "Responsibilities": "ኃላፊነቶች",
+        "Responsible tools": "ኃላፊነት የተሞላባቸው መሣሪያዎች",
+        "Restore": "መልስ",
+        "Review Impact": "ተጽዕኖን ገምግም",
+        "Review new profile submissions, respond to reports, and hide content that does not fit the GloWe community standards.": "አዲስ የቀረቡ መገለጫዎችን ይገምግሙ፣ ለሪፖርቶች ይመልሱ እና ከGloWe ማህበረሰብ መስፈርቶች ጋር የማይጣጣም ይዘትን ይደብቁ።",
+        "Reviewers only": "ለገምጋሚዎች ብቻ",
+        "Round tables, shared knowledge.": "ክብ ጠረጴዛዎች፣ የጋራ ዕውቀት።",
+        "Save": "አስቀምጥ",
+        "Save Draft": "ረቂቁን አስቀምጥ",
+        "Save opportunity": "ዕድሉን አስቀምጥ",
+        "Save Opportunity": "ዕድሉን አስቀምጥ",
+        "Delete post": "ልጥፉን ሰርዝ",
+        "Delete": "ሰርዝ",
+        "Post deleted": "ልጥፉ ተሰርዟል",
+        "Your post was removed from the community feed.": "ልጥፍዎ ከማህበረሰብ ዥረቱ ተወግዷል።",
+        "Could not delete": "መሰረዝ አልተቻለም",
+        "Something went wrong deleting your post. Please try again.": "ልጥፍዎን በመሰረዝ ላይ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
+        "Copy link": "አገናኝ ቅዳ",
+        "Link copied": "አገናኙ ተቀድቷል",
+        "The post link is on your clipboard — share it anywhere.": "የልጥፉ አገናኝ በቅንጥብ ሰሌዳዎ ላይ ነው — በየትኛውም ቦታ ያጋሩት።",
+        "Copy this link": "ይህን አገናኝ ይቅዱ",
+        "Save post": "ልጥፉን አስቀምጥ",
+        "Save posts, profiles, and opportunities to return to them from this screen.": "ልጥፎችን፣ መገለጫዎችን እና ዕድሎችን ከዚህ ማያ ገጽ ለመመለስ ያስቀምጡ።",
+        "Save posts, profiles, wishes, and opportunities to return to them from here.": "ልጥፎችን፣ መገለጫዎችን፣ ምኞቶችን እና ዕድሎችን ከዚህ ለመመለስ ያስቀምጡ።",
+        "Save Profile": "መገለጫን አስቀምጥ",
+        "Save the opportunity if you want to compare it later.": "ወደፊት ማወዳደር ከፈለጉ ዕድሉን ያስቀምጡ።",
+        "Save wish": "ምኞቱን አስቀምጥ",
+        "Saved": "ተቀምጧል",
+        "Sign in or create a free account to save items to your area.": "ንጥሎችን ወደ ክፍልዎ ለማስቀመጥ ይግቡ ወይም ነጻ መለያ ይፍጠሩ።",
+        "Saved items": "የተቀመጡ ንጥሎች",
+        "Saved Items": "የተቀመጡ ንጥሎች",
+        "Scope": "ወሰን",
+        "SDG focus areas": "የዘላቂ ልማት ግቦች የትኩረት መስኮች",
+        "Search": "ፍለጋ",
+        "Search by city or region": "በከተማ ወይም በክልል ይፈልጉ",
+        "Search keywords": "ቁልፍ ቃላትን ይፈልጉ",
+        "Search opportunities...": "ዕድሎችን ይፈልጉ...",
+        "Search organizations, companies, and initiatives": "ድርጅቶችን፣ ኩባንያዎችን እና ተነሳሽነቶችን ይፈልጉ",
+        "Search posts, topics, people, or needs...": "ልጥፎችን፣ ርዕሶችን፣ ሰዎችን ወይም ፍላጎቶችን ይፈልጉ...",
+        "Search volunteer roles...": "የበጎ ፈቃድ ሚናዎችን ይፈልጉ...",
+        "See how members participate": "አባላት እንዴት እንደሚሳተፉ ይመልከቱ",
+        "See where help is needed": "እርዳታ የሚያስፈልግበትን ይመልከቱ",
+        "Select your availability": "የሚገኙበትን ጊዜ ይምረጡ",
+        "Select your role": "ሚናዎን ይምረጡ",
+        "Send": "ላክ",
+        "Share": "አጋራ",
+        "Share a volunteer role, paid role, mentorship request, or project-based collaboration with the GloWe community.": "የበጎ ፈቃድ ሚና፣ የሚከፈልበት ሚና፣ የአማካሪነት ጥያቄ ወይም በፕሮጀክት ላይ የተመሠረተ ትብብር ከGloWe ማህበረሰብ ጋር ያካፍሉ።",
+        "Share applied field knowledge in a format others can understand and use": "የተግባር የመስክ ዕውቀትን ሌሎች ሊረዱት እና ሊጠቀሙበት በሚችሉበት መልኩ ያካፍሉ",
+        "Share enough context so others can give useful, respectful advice.": "ሌሎች ጠቃሚ እና አክብሮት የተሞላበት ምክር እንዲሰጡ በቂ አውድ ያካፍሉ።",
+        "Share private or sensitive information without consent.": "ያለ ፈቃድ የግል ወይም ስሱ መረጃ ማጋራት።",
+        "Share your motivation for applying...": "ለማመልከት ያለዎትን ተነሳሽነት ያካፍሉ...",
+        "Shared knowledge": "የጋራ ዕውቀት",
+        "Shared learning": "የጋራ ትምህርት",
+        "Sharing tools": "የማጋሪያ መሣሪያዎች",
+        "Short description": "አጭር መግለጫ",
+        "Show your mission, projects, needs, opportunities, and the impact areas you work in.": "ተልዕኮዎን፣ ፕሮጀክቶችዎን፣ ፍላጎቶችዎን፣ ዕድሎችዎን እና የሚሠሩባቸውን የተጽዕኖ መስኮች ያሳዩ።",
+        "Sign in to see your messages": "መልእክቶችዎን ለማየት ይግቡ",
+        "Skills Needed": "የሚያስፈልጉ ክህሎቶች",
+        "Skills or tags": "ክህሎቶች ወይም መለያዎች",
+        "Social Activists": "ማህበራዊ አክቲቪስቶች",
+        "Social initiatives": "ማህበራዊ ተነሳሽነቶች",
+        "Social Justice": "ማህበራዊ ፍትሕ",
+        "Social links": "የማህበራዊ ሚዲያ አገናኞች",
+        "Sometimes you give. Sometimes you need help.": "አንዳንዴ ይሰጣሉ። አንዳንዴ እርዳታ ያስፈልግዎታል።",
+        "Spam the platform or use it for purely promotional or exploitative purposes.": "መድረኩን በአላስፈላጊ መልእክቶች መሙላት ወይም ለማስተዋወቂያ ወይም ለብዝበዛ ዓላማ ብቻ መጠቀም።",
+        "Start a practical consultation": "ተግባራዊ ምክክር ይጀምሩ",
+        "Start a thread": "ውይይት ይጀምሩ",
+        "Start Conversation": "ውይይት ጀምር",
+        "Start the first conversation in this group.": "በዚህ ቡድን ውስጥ የመጀመሪያውን ውይይት ይጀምሩ።",
+        "Start from one useful action": "ከአንድ ጠቃሚ ተግባር ይጀምሩ",
+        "Start with one useful post, one profile, one wish, or one opportunity.": "በአንድ ጠቃሚ ልጥፍ፣ በአንድ መገለጫ፣ በአንድ ምኞት ወይም በአንድ ዕድል ይጀምሩ።",
+        "Structured offers": "የተደራጁ ቅናሾች",
+        "Submit Application": "ማመልከቻ አስገባ",
+        "Support groups around a city, village, school, organization, or SDG topic. Each circle can gather needs, resources, events, and trusted members.": "በከተማ፣ በመንደር፣ በትምህርት ቤት፣ በድርጅት ወይም በዘላቂ ልማት ግብ ርዕስ ዙሪያ የድጋፍ ቡድኖች። እያንዳንዱ ክብ ፍላጎቶችን፣ ሀብቶችን፣ ዝግጅቶችን እና የታመኑ አባላትን መሰብሰብ ይችላል።",
+        "Support multilingual access so knowledge is not limited to English-speaking spaces": "ዕውቀት በእንግሊዝኛ ተናጋሪ ቦታዎች ብቻ እንዳይወሰን የብዙ ቋንቋ ተደራሽነትን ይደግፉ",
+        "Suspend or block users who repeatedly abuse the platform.": "መድረኩን በተደጋጋሚ አላግባብ የሚጠቀሙ ተጠቃሚዎችን ማገድ ወይም መከልከል።",
+        "Tags": "መለያዎች",
+        "Tech for Good": "ቴክኖሎጂ ለበጎ",
+        "Technology": "ቴክኖሎጂ",
+        "Technology for good": "ቴክኖሎጂ ለበጎ",
+        "Technology should reduce friction, not create distance. It should help people act with more clarity, trust, and care.": "ቴክኖሎጂ ግጭትን መቀነስ እንጂ ርቀት መፍጠር የለበትም። ሰዎች በበለጠ ግልጽነት፣ እምነት እና አሳቢነት እንዲሠሩ ማገዝ አለበት።",
+        "Tel Aviv": "ቴል አቪቭ",
+        "Terms of Use - GloWe": "የአጠቃቀም ውሎች - GloWe",
+        "Terms of Use & Community Integrity Charter": "የአጠቃቀም ውሎች እና የማህበረሰብ ታማኝነት ቻርተር",
+        "The information you provide is accurate and honest.": "የሚያቀርቡት መረጃ ትክክለኛ እና እውነተኛ መሆኑን።",
+        "The MVP is here so we can learn with you: what helps, what is missing, and what should be built with care.": "የመጀመሪያው ሥሪት እዚህ ያለው ከእርስዎ ጋር እንድንማር ነው፦ ምን እንደሚረዳ፣ ምን እንደጎደለ እና ምን በጥንቃቄ መገንባት እንዳለበት።",
+        "The next versions of GloWe should support local circles: people who meet around a real place, a real need, and a shared SDG challenge. Each local community can gather stories, tools, resources, and lessons that others may adapt.": "የGloWe ቀጣይ ሥሪቶች የአካባቢ ክቦችን መደገፍ አለባቸው፦ በእውነተኛ ቦታ፣ በእውነተኛ ፍላጎት እና በጋራ የዘላቂ ልማት ግብ ተግዳሮት ዙሪያ የሚገናኙ ሰዎች። እያንዳንዱ የአካባቢ ማህበረሰብ ሌሎች ሊጠቀሙባቸው የሚችሉ ታሪኮችን፣ መሣሪያዎችን፣ ሀብቶችን እና ትምህርቶችን መሰብሰብ ይችላል።",
+        "The organization receives your message and can continue in GloWe messages.": "ድርጅቱ መልእክትዎን ይቀበላል እና በGloWe መልእክቶች መቀጠል ይችላል።",
+        "The topic tag will appear next to your name in the feed, and the post is saved into the community stream.": "የርዕሱ መለያ በዥረቱ ውስጥ ከስምዎ ጎን ይታያል፣ ልጥፉም በማህበረሰብ ዥረት ውስጥ ይቀመጣል።",
+        "The Wishing Well is the action layer of GloWe: verified requests, relevant helpers, and clear next steps after someone offers support.": "የምኞት ጉድጓድ የGloWe የተግባር ንብርብር ነው፦ የተረጋገጡ ጥያቄዎች፣ ተዛማጅ ረዳቶች እና አንድ ሰው ድጋፍ ካቀረበ በኋላ ግልጽ ቀጣይ እርምጃዎች።",
+        "These are directions, not promises. We will build them gradually, with community feedback.": "እነዚህ አቅጣጫዎች እንጂ ተስፋዎች አይደሉም። ከማህበረሰቡ አስተያየት ጋር ቀስ በቀስ እንገነባቸዋለን።",
+        "These Terms of Use & Community Integrity Charter may be updated occasionally. We will notify users of significant changes via email or platform notifications. Continued use signifies your agreement to the latest version.": "እነዚህ የአጠቃቀም ውሎች እና የማህበረሰብ ታማኝነት ቻርተር አልፎ አልፎ ሊዘመኑ ይችላሉ። ጉልህ ለውጦችን ለተጠቃሚዎች በኢሜይል ወይም በመድረክ ማሳወቂያዎች እናሳውቃለን። መጠቀምዎን መቀጠል የቅርብ ጊዜውን ሥሪት መቀበልዎን ያመለክታል።",
+        "This includes use in personalization, recommendation systems, and platform features built to enhance the GloWe user experience only.": "ይህ የGloWeን የተጠቃሚ ተሞክሮ ለማሻሻል ብቻ በተገነቡ የግላዊነት ማላበሻ፣ የምክረ ሐሳብ ሥርዓቶች እና የመድረክ ባህሪያት ውስጥ መጠቀምን ያካትታል።",
+        "This is not a marketplace. It is a shared space. Ask for help. Offer help. Celebrate others' work. Seek connection, not extraction.": "ይህ ገበያ አይደለም። የጋራ ቦታ ነው። እርዳታ ይጠይቁ። እርዳታ ያቅርቡ። የሌሎችን ሥራ ያክብሩ። ግንኙነትን ይፈልጉ እንጂ ብዝበዛን አይደለም።",
+        "This profile is not available yet, or the link points to an older demo profile.": "ይህ መገለጫ እስካሁን አይገኝም፣ ወይም አገናኙ ወደ አሮጌ የናሙና መገለጫ ያመራል።",
+        "This queue is visible to GloWe reviewers. Ask an administrator for access.": "ይህ ሰልፍ ለGloWe ገምጋሚዎች ይታያል። ተደራሽነት ለማግኘት አስተዳዳሪን ይጠይቁ።",
+        "Threads": "ውይይቶች",
+        "Title": "ርዕስ",
+        "To the fullest extent permitted by law:": "ሕጉ በሚፈቅደው ከፍተኛ መጠን፦",
+        "Tone, humor, and expression vary across regions. Be mindful. Use inclusive language. If you are unsure, ask.": "የአነጋገር ቃና፣ ቀልድ እና አገላለጽ በክልሎች መካከል ይለያያሉ። አስተውሉ። አካታች ቋንቋ ይጠቀሙ። እርግጠኛ ካልሆኑ ይጠይቁ።",
+        "Topic": "ርዕስ",
+        "Topic group": "የርዕስ ቡድን",
+        "Topic Groups": "የርዕስ ቡድኖች",
+        "Treat every member with dignity. Do not post or endorse any form of discrimination, harassment, or exclusion. Listen to diverse voices and experiences.": "እያንዳንዱን አባል በክብር ይያዙ። ማንኛውንም ዓይነት አድልዎ፣ ትንኮሳ ወይም ማግለል አይለጥፉ ወይም አይደግፉ። ለተለያዩ ድምፆች እና ተሞክሮዎች ጆሮ ይስጡ።",
+        "Trending Discussions": "ተወዳጅ ውይይቶች",
+        "Trust & status": "እምነት እና ሁኔታ",
+        "Try a broader keyword, clear one filter, or search by impact area, location, or support need.": "ሰፋ ያለ ቁልፍ ቃል ይሞክሩ፣ አንድ ማጣሪያ ያጽዱ ወይም በተጽዕኖ መስክ፣ በአካባቢ ወይም በሚያስፈልግ ድጋፍ ይፈልጉ።",
+        "Try a different tab, search a broader word, or start the next conversation.": "ሌላ ትር ይሞክሩ፣ ሰፋ ያለ ቃል ይፈልጉ ወይም ቀጣዩን ውይይት ይጀምሩ።",
+        "Try adjusting your filters or search terms.": "ማጣሪያዎችዎን ወይም የፍለጋ ቃላትዎን ማስተካከል ይሞክሩ።",
+        "Try clearing one of the filters.": "ከማጣሪያዎቹ አንዱን ማጽዳት ይሞክሩ።",
+        "Try Flow": "ሂደቱን ይሞክሩ",
+        "Turn a real need into a clear call for support: volunteers, partners, knowledge, visibility, space, tools, or funding support.": "እውነተኛ ፍላጎትን ወደ ግልጽ የድጋፍ ጥሪ ይለውጡ፦ በጎ ፈቃደኞች፣ አጋሮች፣ ዕውቀት፣ ተጋላጭነት፣ ቦታ፣ መሣሪያዎች ወይም የገንዘብ ድጋፍ።",
+        "Type": "ዓይነት",
+        "Updated today": "ዛሬ ተዘምኗል",
+        "Upload copyrighted or third-party content without permission.": "ያለ ፈቃድ በቅጂ መብት የተጠበቀ ወይም የሦስተኛ ወገን ይዘት መጫን።",
+        "Use digital tools to make knowledge more accessible, reduce language barriers, and support ethical collaboration.": "ዕውቀትን ይበልጥ ተደራሽ ለማድረግ፣ የቋንቋ እንቅፋቶችን ለመቀነስ እና ሥነ ምግባራዊ ትብብርን ለመደገፍ ዲጂታል መሣሪያዎችን ይጠቀሙ።",
+        "Use example grant cards and a funding-brief flow to turn a real need into a clearer request, budget story, and next step.": "እውነተኛ ፍላጎትን ወደ ይበልጥ ግልጽ ጥያቄ፣ የበጀት ታሪክ እና ቀጣይ እርምጃ ለመቀየር የናሙና የእርዳታ ካርዶችን እና የገንዘብ ድጋፍ አጭር መግለጫ ሂደትን ይጠቀሙ።",
+        "Use the forums for focused questions, peer advice, templates, field lessons, and professional guidance. Professionals can also lead topic spaces and offer office hours.": "መድረኮችን ለተወሰኑ ጥያቄዎች፣ ለአቻ ምክር፣ ለአብነቶች፣ ለመስክ ትምህርቶች እና ለሙያዊ መመሪያ ይጠቀሙ። ባለሙያዎችም የርዕስ ቦታዎችን መምራት እና የቢሮ ሰዓታት ማቅረብ ይችላሉ።",
+        "Usually replies within 3-5 days": "ብዙውን ጊዜ በ3-5 ቀናት ውስጥ ይመልሳል",
+        "Verified organizations will publish freely; new submissions show up here.": "የተረጋገጡ ድርጅቶች በነጻነት ያሳትማሉ፤ አዲስ የቀረቡት እዚህ ይታያሉ።",
+        "Verified profiles": "የተረጋገጡ መገለጫዎች",
+        "View Details": "ዝርዝሮችን ይመልከቱ",
+        "View Personal Area": "የግል ክፍልን ይመልከቱ",
+        "View Profile": "መገለጫን ይመልከቱ",
+        "Visibility / Media": "ተጋላጭነት / ሚዲያ",
+        "Volunteer": "በጎ ፈቃድ",
+        "Volunteer / Mentor": "በጎ ፈቃደኛ / አማካሪ",
+        "Volunteer Opportunities": "የበጎ ፈቃድ ዕድሎች",
+        "Volunteer Opportunity": "የበጎ ፈቃድ ዕድል",
+        "Volunteers": "በጎ ፈቃደኞች",
+        "volunteers joined new projects this week.": "በጎ ፈቃደኞች በዚህ ሳምንት አዳዲስ ፕሮጀክቶችን ተቀላቅለዋል።",
+        "Volunteers and professionals": "በጎ ፈቃደኞች እና ባለሙያዎች",
+        "Volunteers Needed": "በጎ ፈቃደኞች ያስፈልጋሉ",
+        "We are not just a platform. We are a community built on trust and shared purpose. By joining GloWe, you commit to these core values:": "እኛ መድረክ ብቻ አይደለንም። በእምነት እና በጋራ ዓላማ ላይ የተገነባ ማህበረሰብ ነን። GloWeን በመቀላቀል ለእነዚህ ዋና እሴቶች ቁርጠኛ ይሆናሉ፦",
+        "We are not responsible for actions or content posted by users.": "በተጠቃሚዎች ለሚፈጸሙ ተግባራት ወይም ለሚለጠፍ ይዘት ኃላፊነት አንወስድም።",
+        "We are starting with a focused community space. Next, we want to grow local community circles, a practical knowledge library, and technology that helps people use knowledge for good.": "በተወሰነ የማህበረሰብ ቦታ እየጀመርን ነው። ቀጥሎ የአካባቢ ማህበረሰብ ክቦችን፣ ተግባራዊ የዕውቀት ቤተ መጻሕፍትን እና ሰዎች ዕውቀትን ለበጎ እንዲጠቀሙ የሚያግዝ ቴክኖሎጂን ማሳደግ እንፈልጋለን።",
+        "We believe impact grows when people stand with each other, listen deeply, and act with care.": "ሰዎች እርስ በርስ ሲደጋገፉ፣ በጥልቀት ሲያዳምጡ እና በአሳቢነት ሲሠሩ ተጽዕኖ እንደሚያድግ እናምናለን።",
+        "We do not look down or preach. We stand next to each other, listen, learn, and act together. Sometimes you give; sometimes you need help. Both are part of a healthy community.": "አንንቅም አንሰብክም። እርስ በርስ እንደጋገፋለን፣ እናዳምጣለን፣ እንማራለን እና በጋራ እንሠራለን። አንዳንዴ ይሰጣሉ፤ አንዳንዴ እርዳታ ያስፈልግዎታል። ሁለቱም የጤናማ ማህበረሰብ አካል ናቸው።",
+        "We do not sell, rent, or trade your data to advertisers.": "ውሂብዎን ለማስታወቂያ አውጪዎች አንሸጥም፣ አናከራይም ወይም አንለውጥም።",
+        "We do not want technology to replace relationships. We want it to help people find each other, document what they already know, and turn care into practical action.": "ቴክኖሎጂ ግንኙነቶችን እንዲተካ አንፈልግም። ሰዎች እርስ በርስ እንዲገናኙ፣ አስቀድመው የሚያውቁትን እንዲመዘግቡ እና አሳቢነትን ወደ ተግባራዊ እርምጃ እንዲቀይሩ እንዲያግዝ እንፈልጋለን።",
+        "We reserve the right to moderate, remove, or report inappropriate content.": "ተገቢ ያልሆነ ይዘትን የማስተዳደር፣ የማስወገድ ወይም ሪፖርት የማድረግ መብት አለን።",
+        "Weekdays": "የሳምንቱ ቀናት",
+        "Weekends": "ቅዳሜና እሁድ",
+        "Welcome,": "እንኳን ደህና መጡ፣",
+        "What comes after the MVP?": "ከመጀመሪያው ሥሪት በኋላ ምን ይመጣል?",
+        "What do you need help thinking through?": "ለማሰብ በምን ላይ እርዳታ ያስፈልግዎታል?",
+        "What do you want to share, ask, or offer today?": "ዛሬ ምን ማካፈል፣ መጠየቅ ወይም ማቅረብ ይፈልጋሉ?",
+        "What GloWe makes possible": "GloWe የሚያስችለው",
+        "What happens next": "ቀጥሎ ምን ይሆናል",
+        "What is open now": "አሁን ክፍት የሆነው",
+        "What we are learning": "የምንማረው",
+        "What we believe": "የምናምነው",
+        "What we want to build next": "ቀጥሎ መገንባት የምንፈልገው",
+        "When GloWe grows, one-third of future revenues will return to local communities.": "GloWe ሲያድግ ከወደፊት ገቢዎች አንድ ሦስተኛው ወደ አካባቢ ማህበረሰቦች ይመለሳል።",
+        "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "በGloWe ላይ እንደ ጽሑፍ፣ ምስሎች፣ አገናኞች ወይም የፕሮጀክት መግለጫዎች ያሉ ይዘቶችን ሲያሳትሙ፦",
+        "Who is this for?": "ይህ ለማን ነው?",
+        "Who We Serve": "የምናገለግላቸው",
+        "Why do you want to volunteer?": "ለምን በጎ ፈቃደኛ መሆን ይፈልጋሉ?",
+        "Why GloWe exists": "GloWe ለምን እንደተፈጠረ",
+        "Wish Type": "የምኞት ዓይነት",
+        "Write a Community Post": "የማህበረሰብ ልጥፍ ይጻፉ",
+        "Write a reply": "መልስ ይጻፉ",
+        "Write Post": "ልጥፍ ይጻፉ",
+        "Write posts, ask questions, share field knowledge, publish updates, and join topic-based discussions.": "ልጥፎችን ይጻፉ፣ ጥያቄዎችን ይጠይቁ፣ የመስክ ዕውቀትን ያካፍሉ፣ ዘገባዎችን ያሳትሙ እና በርዕስ ላይ የተመሠረቱ ውይይቶችን ይቀላቀሉ።",
+        "Write the story, request, guide, event details, or question you want the community to see.": "ማህበረሰቡ እንዲያየው የሚፈልጉትን ታሪክ፣ ጥያቄ፣ መመሪያ፣ የዝግጅት ዝርዝር ወይም ጥያቄ ይጻፉ።",
+        "Write to the community": "ለማህበረሰቡ ይጻፉ",
+        "You are acting in good faith and with respect for others.": "በቅን ልቦና እና ለሌሎች በማክበር እየሠሩ መሆኑን።",
+        "You are not alone here": "እዚህ ብቻዎን አይደሉም",
+        "You are part of a community where people can ask, offer, learn, and keep going together.": "ሰዎች መጠየቅ፣ ማቅረብ፣ መማር እና በጋራ መቀጠል የሚችሉበት ማህበረሰብ አካል ነዎት።",
+        "You confirm that you have the legal right to publish what you upload and assume full responsibility for it.": "የሚጭኑትን የማሳተም ሕጋዊ መብት እንዳለዎት እና ሙሉ ኃላፊነቱን እንደሚወስዱ ያረጋግጣሉ።",
+        "You grant GloWe a non-exclusive, royalty-free, worldwide, perpetual license to host, translate, display, analyze, and distribute your content within the platform.": "ይዘትዎን በመድረኩ ውስጥ ለማስተናገድ፣ ለመተርጎም፣ ለማሳየት፣ ለመተንተን እና ለማሰራጨት ለGloWe ብቸኛ ያልሆነ፣ ከክፍያ ነጻ የሆነ፣ ዓለም አቀፍ እና ዘላቂ ፈቃድ ይሰጣሉ።",
+        "You may close your account at any time.": "በማንኛውም ጊዜ መለያዎን መዝጋት ይችላሉ።",
+        "You may request deletion of your account or data at any time.": "በማንኛውም ጊዜ መለያዎ ወይም ውሂብዎ እንዲሰረዝ መጠየቅ ይችላሉ።",
+        "You retain full ownership of your intellectual property.": "የአእምሮ ንብረትዎን ሙሉ ባለቤትነት ይይዛሉ።",
+        "You've got something the world needs.": "ዓለም የሚፈልገው ነገር አለዎት።",
+        "You're already part of GloWe.": "አስቀድመው የGloWe አካል ነዎት።",
+        "Explore the community, share what you know, or pick up where you left off.": "ማህበረሰቡን ያስሱ፣ የሚያውቁትን ያካፍሉ ወይም ካቆሙበት ይቀጥሉ።",
+        "Your Availability": "የሚገኙበት ጊዜ",
+        "Your Community Home": "የእርስዎ የማህበረሰብ መነሻ",
+        "Your full name": "ሙሉ ስምዎ",
+        "Your password": "የይለፍ ቃልዎ",
+        "About - GloWe": "ስለ እኛ - GloWe",
+        "About GloWe": "ስለ GloWe",
+        "About the Organization": "ስለ ድርጅቱ",
+        "About This Opportunity": "ስለዚህ ዕድል",
+        "Across countries, languages, and fields, members can learn from each other, translate field wisdom, adapt proven solutions, and connect local action to global SDG challenges.": "በአገሮች፣ በቋንቋዎች እና በመስኮች መካከል አባላት እርስ በርስ መማር፣ የመስክ ጥበብን መተርጎም፣ የተረጋገጡ መፍትሔዎችን ማላመድ እና የአካባቢ ተግባርን ከዓለም አቀፍ የዘላቂ ልማት ግቦች ተግዳሮቶች ጋር ማገናኘት ይችላሉ።",
+        "Act honestly. Share real experiences. Credit others' work where due. Information shared on GloWe should be accurate, current, and shared with intention.": "በታማኝነት ይሥሩ። እውነተኛ ተሞክሮዎችን ያካፍሉ። የሌሎችን ሥራ በተገቢው ቦታ ዕውቅና ይስጡ። በGloWe ላይ የሚጋራ መረጃ ትክክለኛ፣ ወቅታዊ እና በዓላማ የተጋራ መሆን አለበት።",
+        "Active Members": "ንቁ አባላት",
+        "Active projects": "ንቁ ፕሮጀክቶች",
+        "Active Threads": "ንቁ ውይይቶች",
+        "Admin review": "የአስተዳዳሪ ግምገማ",
+        "Admin Review - GloWe": "አስተዳደር እና ግምገማ - GloWe",
+        "A digital-human space for shared knowledge, practical connection, and gradual community growth.": "ለጋራ ዕውቀት፣ ለተግባራዊ ግንኙነት እና ለቀስ በቀስ የማህበረሰብ ዕድገት የሚሆን ዲጂታል-ሰብዓዊ ቦታ።",
+        "A living feed for field updates, practical questions, needs, resources, and people building impact together.": "ለመስክ ዘገባዎች፣ ለተግባራዊ ጥያቄዎች፣ ለፍላጎቶች፣ ለሀብቶች እና በጋራ ተጽዕኖ ለሚፈጥሩ ሰዎች የሚሆን ሕያው ዥረት።",
+        "A practical space for volunteers, mentors, professionals, and organizations to meet around real needs, clear roles, and shared impact.": "በጎ ፈቃደኞች፣ አማካሪዎች፣ ባለሙያዎች እና ድርጅቶች በእውነተኛ ፍላጎቶች፣ በግልጽ ሚናዎች እና በጋራ ተጽዕኖ ዙሪያ የሚገናኙበት ተግባራዊ ቦታ።",
+        "A full Privacy Policy will be published separately.": "ሙሉ የግላዊነት ፖሊሲ ለብቻው ይታተማል።",
+        "Community - GloWe": "ማህበረሰብ - GloWe",
+        "Discussion Group - GloWe": "የውይይት ቡድን - GloWe",
+        "Forums - GloWe": "መድረኮች - GloWe",
+        "Messages - GloWe": "መልእክቶች - GloWe",
+        "Opportunity Details - GloWe": "የዕድል ዝርዝሮች - GloWe",
+        "Organizations - GloWe": "ድርጅቶች - GloWe",
+        "Personal Area - GloWe": "የግል ክፍል - GloWe",
+        "Profile - GloWe": "መገለጫ - GloWe",
+        "Saved - GloWe": "የተቀመጡ - GloWe",
+        "Settings - GloWe": "ቅንብሮች - GloWe",
+        "Volunteer Network - GloWe": "የበጎ ፈቃደኞች መረብ - GloWe",
+        "Volunteer Opportunities - GloWe": "የበጎ ፈቃድ ዕድሎች - GloWe",
+        "What's Next - GloWe": "ቀጥሎ ምን አለ - GloWe",
+        "Wishing Well - GloWe": "የምኞት ጉድጓድ - GloWe",
+        "Write Post - GloWe": "ልጥፍ ይጻፉ - GloWe",
+        "1. About GloWe": "1. ስለ GloWe",
+        "2. Who Can Use GloWe": "2. GloWeን ማን መጠቀም ይችላል",
+        "3. Acceptable Use & Responsibilities": "3. ተቀባይነት ያለው አጠቃቀም እና ኃላፊነቶች",
+        "4. Content Rights & Licensing": "4. የይዘት መብቶች እና ፈቃድ",
+        "5. Privacy & Data": "5. ግላዊነት እና ውሂብ",
+        "6. Community Integrity Charter": "6. የማህበረሰብ ታማኝነት ቻርተር",
+        "6.1 Transparency": "6.1 ግልጽነት",
+        "6.2 Respect & Inclusion": "6.2 አክብሮት እና አካታችነት",
+        "6.3 Collaboration Over Competition": "6.3 ትብብር ከውድድር በላይ",
+        "6.4 Cultural Sensitivity": "6.4 የባህል ስሜታዊነት",
+        "6.5 Community Responsibility": "6.5 የማህበረሰብ ኃላፊነት",
+        "7. Moderation & Enforcement": "7. አስተዳደር እና ማስፈጸም",
+        "8. External Links & Third-Party Services": "8. ውጫዊ አገናኞች እና የሦስተኛ ወገን አገልግሎቶች",
+        "9. Termination": "9. ማቋረጥ",
+        "10. Liability Disclaimer": "10. የኃላፊነት ማስተባበያ",
+        "11. Updates to Terms": "11. የውሎች ዝማኔዎች",
+        "12. Contact Us": "12. ያግኙን",
+        "2026 GloWe. Built for shared knowledge, mutual support, and action that lasts.": "2026 GloWe. ለጋራ ዕውቀት፣ ለጋራ ድጋፍ እና ለዘላቂ ተግባር የተገነባ።",
+        "Local communities already hold practical knowledge about education, health, climate, food, rights, resilience, and care. Too often, that knowledge stays locked inside one place, one language, one report, or one organization. GloWe is being built to help field-based knowledge travel: clearly, respectfully, and in ways other people can adapt.": "የአካባቢ ማህበረሰቦች ስለ ትምህርት፣ ጤና፣ የአየር ንብረት፣ ምግብ፣ መብቶች፣ የመቋቋም አቅም እና እንክብካቤ ተግባራዊ ዕውቀት አስቀድሞ አላቸው። ብዙ ጊዜ ግን ያ ዕውቀት በአንድ ቦታ፣ በአንድ ቋንቋ፣ በአንድ ሪፖርት ወይም በአንድ ድርጅት ውስጥ ተቆልፎ ይቀራል። GloWe የሚገነባው የመስክ ዕውቀት እንዲዘዋወር ለመርዳት ነው፦ በግልጽ፣ በአክብሮት እና ሌሎች ሊጠቀሙበት በሚችሉበት መንገድ።",
+        "Sign in with your Google account to get started. You can complete your profile after signing in.": "ለመጀመር በGoogle መለያዎ ይግቡ። ከገቡ በኋላ መገለጫዎን ማሟላት ይችላሉ።",
+        "Share a Wish": "ምኞት ያካፍሉ",
+        "A good wish is specific enough for the right helper to say yes.": "ጥሩ ምኞት ትክክለኛው ረዳት «አዎ» እንዲል በቂ ዝርዝር ያለው ነው።",
+        "What do you need?": "ምን ያስፈልግዎታል?",
+        "Wish type": "የምኞት ዓይነት",
+        "Select a type": "ዓይነት ይምረጡ",
+        "Urgency": "አጣዳፊነት",
+        "Choose urgency": "አጣዳፊነትን ይምረጡ",
+        "This week": "በዚህ ሳምንት",
+        "This month": "በዚህ ወር",
+        "Flexible timeline": "ተለዋዋጭ የጊዜ ሰሌዳ",
+        "What would success look like?": "ስኬት ምን ይመስላል?",
+        "Publish Wish": "ምኞቱን አሳትም",
+        "Send a clear, trusted offer so the organization can decide quickly.": "ድርጅቱ በፍጥነት እንዲወስን ግልጽ እና የሚታመን ቅናሽ ይላኩ።",
+        "What can you offer?": "ምን ማቅረብ ይችላሉ?",
+        "Choose support type": "የድጋፍ ዓይነት ይምረጡ",
+        "Professional volunteering": "ሙያዊ በጎ ፈቃደኝነት",
+        "Funding or grant help": "የገንዘብ ወይም የእርዳታ ድጋፍ",
+        "Space or equipment": "ቦታ ወይም መሣሪያ",
+        "Business partnership": "የንግድ አጋርነት",
+        "Media or distribution": "ሚዲያ ወይም ስርጭት",
+        "Availability": "የሚገኙበት ጊዜ",
+        "Choose availability": "የሚገኙበትን ጊዜ ይምረጡ",
+        "Within 2 weeks": "በሁለት ሳምንት ውስጥ",
+        "Send Offer": "ቅናሹን ላክ",
+        "Update the public information that helps others understand who you are and how to collaborate.": "ሌሎች እርስዎ ማን እንደሆኑ እና እንዴት መተባበር እንደሚችሉ እንዲረዱ የሚያግዘውን የሕዝብ መረጃ ያዘምኑ።",
+        "Display name": "የማሳያ ስም",
+        "Profile type": "የመገለጫ ዓይነት",
+        "Country / region": "አገር / ክልል",
+        "Website / public link": "ድረ ገጽ / የሕዝብ አገናኝ",
+        "Interest areas": "የፍላጎት መስኮች",
+        "SDGs": "የዘላቂ ልማት ግቦች",
+        "Short public line": "አጭር የሕዝብ መግለጫ",
+        "Mission / story": "ተልዕኮ / ታሪክ",
+        "Values and goals": "እሴቶች እና ግቦች",
+        "Community / audience": "ማህበረሰብ / ተመልካች",
+        "Problem addressed": "የሚፈታው ችግር",
+        "Solution / method": "መፍትሔ / ዘዴ",
+        "Geographic activity": "የጂኦግራፊ እንቅስቃሴ",
+        "Open actions / looking for": "ክፍት ተግባራት / የሚፈልጉት",
+        "Articles / videos / reports": "ጽሑፎች / ቪዲዮዎች / ሪፖርቶች",
+        "Profile image": "የመገለጫ ምስል",
+        "Optional. When Cloudinary keys are configured, this uploads to Cloudinary.": "አማራጭ። የCloudinary ቁልፎች ሲዋቀሩ ይህ ወደ Cloudinary ይጫናል።",
+        "Save Profile Draft": "የመገለጫ ረቂቅ አስቀምጥ",
+        "Welcome to GloWe 👋": "እንኳን ወደ GloWe በደህና መጡ 👋",
+        "Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.": "ማህበረሰቡ ከማን ጋር እንደሚተባበር እንዲያውቅ ስለ እርስዎ ትንሽ ይንገሩን። አንድ ደቂቃ ብቻ ይወስዳል።",
+        "Your name": "ስምዎ",
+        "A short line about you": "ስለ እርስዎ አጭር መግለጫ",
+        "I'm joining as": "የምቀላቀለው እንደ",
+        "Private individual": "የግል ግለሰብ",
+        "Volunteer, donor, or community member. Full access right away.": "በጎ ፈቃደኛ፣ ለጋሽ ወይም የማህበረሰብ አባል። ወዲያውኑ ሙሉ ተደራሽነት።",
+        "Organization": "ድርጅት",
+        "NGO, nonprofit, or initiative. Reviewed before you can publish — only serious applications are accepted.": "መንግሥታዊ ያልሆነ ድርጅት፣ ለትርፍ ያልተቋቋመ ወይም ተነሳሽነት። ከማሳተምዎ በፊት ይገመገማል — ቁም ነገር ያላቸው ማመልከቻዎች ብቻ ይቀበላሉ።",
+        "Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.": "ድርጅቶች በGloWe ቡድን ይገመገማሉ። እስከሚጸድቁ ድረስ ሁሉንም ማሰስ ይችላሉ፣ ነገር ግን ዕድሎችን፣ ዝግጅቶችን እና ፍላጎቶችን መለጠፍ ተቆልፎ ይቆያል። እባክዎ ማመልከቻዎን በቁም ነገር እንድንመለከት በቂ መረጃ ይስጡን።",
+        "Organization name *": "የድርጅቱ ስም *",
+        "Registration / NGO number": "የምዝገባ / የድርጅት ቁጥር",
+        "Country of operation": "የሚሠሩበት አገር",
+        "Cause / field": "ዓላማ / መስክ",
+        "Organization size": "የድርጅቱ መጠን",
+        "About the organization *": "ስለ ድርጅቱ *",
+        "Contact person *": "የግንኙነት ሰው *",
+        "Contact email *": "የግንኙነት ኢሜይል *",
+        "Contact phone": "የግንኙነት ስልክ",
+        "Save and continue": "አስቀምጥ እና ቀጥል",
+        "Maybe later": "ምናልባት ወደፊት",
+        "Add project": "ፕሮጀክት ጨምር",
+        "Add a project that can appear in your personal area and help others understand what you are building.": "በግል ክፍልዎ ውስጥ ሊታይ የሚችል እና ሌሎች የሚገነቡትን እንዲረዱ የሚያግዝ ፕሮጀክት ይጨምሩ።",
+        "Project title": "የፕሮጀክቱ ርዕስ",
+        "Status": "ሁኔታ",
+        "Draft": "ረቂቅ",
+        "Active": "ንቁ",
+        "Recruiting partners": "አጋሮችን በመመልመል ላይ",
+        "Needs volunteers": "በጎ ፈቃደኞች ያስፈልጋሉ",
+        "Ready to share": "ለማጋራት ዝግጁ",
+        "Description": "መግለጫ",
+        "Save Project": "ፕሮጀክቱን አስቀምጥ",
+        "Edit": "አርትዕ",
+        "Edit project": "ፕሮጀክቱን አርትዕ",
+        "Update Project": "ፕሮጀክቱን አዘምን",
+        "Project updated": "ፕሮጀክቱ ተዘምኗል",
+        "Your project changes were saved.": "የፕሮጀክትዎ ለውጦች ተቀምጠዋል።",
+        "Project added": "ፕሮጀክቱ ተጨምሯል",
+        "The project now appears in your personal area.": "ፕሮጀክቱ አሁን በግል ክፍልዎ ውስጥ ይታያል።",
+        "No event registrations yet": "እስካሁን የዝግጅት ምዝገባዎች የሉም",
+        "Register for an event from the Volunteer Network and track it here.": "ከበጎ ፈቃደኞች መረብ ለዝግጅት ይመዝገቡ እና እዚህ ይከታተሉት።",
+        "Browse events": "ዝግጅቶችን ያስሱ",
+        "Event cancelled": "ዝግጅቱ ተሰርዟል",
+        "Registered": "ተመዝግቧል",
+        "Pending approval": "ፈቃድ በመጠባበቅ ላይ",
+        "Waitlisted": "በመጠባበቂያ ዝርዝር ውስጥ",
+        "Not accepted": "አልተቀበለም",
+        "Cancelled": "ተሰርዟል",
+        "Report a concern": "ስጋት ሪፖርት ያድርጉ",
+        "We review every report carefully and confidentially to keep GloWe safe and professional.": "GloWeን ደህንነቱ የተጠበቀ እና ሙያዊ ለማድረግ እያንዳንዱን ሪፖርት በጥንቃቄ እና በሚስጥር እንገመግማለን።",
+        "Reporting": "ሪፖርት ማድረግ",
+        "General concern": "አጠቃላይ ስጋት",
+        "What should we look at?": "ምን እንመልከት?",
+        "Choose a reason": "ምክንያት ይምረጡ",
+        "Inaccurate information": "ትክክል ያልሆነ መረጃ",
+        "Disrespectful or discriminatory content": "አክብሮት የጎደለው ወይም አድሎአዊ ይዘት",
+        "Misleading promotion": "አሳሳች ማስተዋወቂያ",
+        "Human rights concern": "የሰብዓዊ መብት ስጋት",
+        "Other": "ሌላ",
+        "Details": "ዝርዝሮች",
+        "Submit Report": "ሪፖርቱን አስገባ",
+        "Choose a rhythm that keeps GloWe useful without creating digital fatigue.": "GloWeን ጠቃሚ የሚያደርግ ነገር ግን ዲጂታል ድካም የማይፈጥር ምት ይምረጡ።",
+        "Opportunity of the week": "የሳምንቱ ዕድል",
+        "High-match connection proposals": "ከፍተኛ ተዛምዶ ያላቸው የግንኙነት ሐሳቦች",
+        "Deadline reminders": "የመጨረሻ ቀን ማስታወሻዎች",
+        "Crisis-response playbooks for my region": "ለክልሌ የቀውስ ምላሽ መመሪያዎች",
+        "Preferred cadence": "የሚመረጥ ድግግሞሽ",
+        "Weekly digest": "ሳምንታዊ ማጠቃለያ",
+        "Only urgent actions": "አጣዳፊ ተግባራት ብቻ",
+        "Daily 5-minute brief": "የዕለት 5 ደቂቃ አጭር መግለጫ",
+        "Save Preferences": "ምርጫዎችን አስቀምጥ",
+        "Mentors, space, visibility...": "አማካሪዎች፣ ቦታ፣ ተጋላጭነት...",
+        "City, region, remote, or hybrid": "ከተማ፣ ክልል፣ ከርቀት ወይም ድብልቅ",
+        "Tell the community what would help.": "ማህበረሰቡን የሚረዳዎትን ይንገሩ።",
+        "Example: 3 mentors matched, one grant draft completed, 50 families reached...": "ምሳሌ፦ 3 አማካሪዎች ተዛምደዋል፣ አንድ የእርዳታ ረቂቅ ተጠናቋል፣ 50 ቤተሰቦች ተደርሰዋል...",
+        "Briefly explain your relevant experience, what you can offer, and what you need to know next.": "ተዛማጅ ተሞክሮዎን፣ ማቅረብ የሚችሉትን እና ቀጥሎ ማወቅ የሚያስፈልግዎትን በአጭሩ ያብራሩ።",
+        "Organization or person name": "የድርጅት ወይም የሰው ስም",
+        "NGO, business, volunteer, initiative...": "መንግሥታዊ ያልሆነ ድርጅት፣ ንግድ፣ በጎ ፈቃደኛ፣ ተነሳሽነት...",
+        "Education, health, climate...": "ትምህርት፣ ጤና፣ የአየር ንብረት...",
+        "Quality Education, Climate Action...": "ጥራት ያለው ትምህርት፣ የአየር ንብረት ተግባር...",
+        "One clear sentence people can understand quickly": "ሰዎች በፍጥነት ሊረዱት የሚችሉ አንድ ግልጽ ዓረፍተ ነገር",
+        "Mission, current work, or what you offer.": "ተልዕኮ፣ የአሁኑ ሥራ ወይም የሚያቀርቡት።",
+        "Values, goals, leadership, or principles": "እሴቶች፣ ግቦች፣ አመራር ወይም መርሆዎች",
+        "Who do you serve, support, work with, or hope to reach?": "ማንን ያገለግላሉ፣ ይደግፋሉ፣ ከማን ጋር ይሠራሉ ወይም ማንን ለመድረስ ተስፋ ያደርጋሉ?",
+        "What problem or need are you working on?": "በየትኛው ችግር ወይም ፍላጎት ላይ እየሠሩ ነው?",
+        "What do you do in practice?": "በተግባር ምን ያደርጋሉ?",
+        "Advocacy, education, field work, research...": "ተሟጋችነት፣ ትምህርት፣ የመስክ ሥራ፣ ምርምር...",
+        "Local / regional / global / remote": "አካባቢያዊ / ክልላዊ / ዓለም አቀፍ / ከርቀት",
+        "Partners, volunteers, funding, knowledge, visibility...": "አጋሮች፣ በጎ ፈቃደኞች፣ የገንዘብ ድጋፍ፣ ዕውቀት፣ ተጋላጭነት...",
+        "Useful public links": "ጠቃሚ የሕዝብ አገናኞች",
+        "Full name": "ሙሉ ስም",
+        "One sentence people grasp quickly": "ሰዎች በፍጥነት የሚይዙት አንድ ዓረፍተ ነገር",
+        "Registered / public name": "የተመዘገበ / የሕዝብ ስም",
+        "Legal registration number": "ሕጋዊ የምዝገባ ቁጥር",
+        "Where you operate": "የሚሠሩበት ቦታ",
+        "Volunteers / staff, approx.": "በጎ ፈቃደኞች / ሠራተኞች፣ በግምት",
+        "Mission, who you serve, and what you'd do on GloWe.": "ተልዕኮ፣ የሚያገለግሏቸው እና በGloWe ላይ የሚያደርጉት።",
+        "Who we should talk to": "ማንን ማነጋገር እንዳለብን",
+        "Optional": "አማራጭ",
+        "Community resource map": "የማህበረሰብ ሀብት ካርታ",
+        "What is the project, who does it support, and what kind of help would move it forward?": "ፕሮጀክቱ ምንድን ነው፣ ማንን ይደግፋል፣ እና ምን ዓይነት እርዳታ ወደፊት ያራምደዋል?",
+        "Add context that can help our review.": "ግምገማችንን ሊያግዝ የሚችል አውድ ይጨምሩ።",
+        "Switch to English": "ወደ እንግሊዝኛ ቀይር",
+        "This page outlines the terms, responsibilities, and community standards that guide your use of the GloWe platform. By accessing or interacting with this site, you agree to abide by the Terms of Use and our Community Integrity Charter. GloWe is committed to building a safe, inclusive, and impact-driven space.": "ይህ ገጽ የGloWe መድረክን አጠቃቀምዎን የሚመሩ ውሎችን፣ ኃላፊነቶችን እና የማህበረሰብ መስፈርቶችን ያብራራል። ይህን ጣቢያ በመድረስ ወይም ከእሱ ጋር በመስተጋብር የአጠቃቀም ውሎችን እና የማህበረሰብ ታማኝነት ቻርተራችንን ለማክበር ይስማማሉ። GloWe ደህንነቱ የተጠበቀ፣ አካታች እና በተጽዕኖ የሚመራ ቦታ ለመገንባት ቁርጠኛ ነው።",
+        "GloWe is a global platform connecting individuals, organizations, and initiatives working to create social and environmental change. We facilitate knowledge-sharing, collaboration, and visibility for solutions that matter across languages, sectors, and geographies.": "GloWe ማህበራዊ እና አካባቢያዊ ለውጥ ለመፍጠር የሚሠሩ ግለሰቦችን፣ ድርጅቶችን እና ተነሳሽነቶችን የሚያገናኝ ዓለም አቀፍ መድረክ ነው። በቋንቋዎች፣ በዘርፎች እና በጂኦግራፊ አካባቢዎች መካከል ለሚጠቅሙ መፍትሔዎች የዕውቀት ልውውጥን፣ ትብብርን እና ተጋላጭነትን እናመቻቻለን።",
+        "Share knowledge, ask for support, and build practical impact with the community.": "ዕውቀት ያካፍሉ፣ ድጋፍ ይጠይቁ እና ከማህበረሰቡ ጋር ተግባራዊ ተጽዕኖ ይገንቡ።",
+        "More post actions": "ተጨማሪ የልጥፍ ተግባራት",
+        "More wish actions": "ተጨማሪ የምኞት ተግባራት",
+        "More opportunity actions": "ተጨማሪ የዕድል ተግባራት",
+        "More profile actions": "ተጨማሪ የመገለጫ ተግባራት",
+        "Write a thoughtful comment...": "አሳቢነት የተሞላበት አስተያየት ይጻፉ...",
+        "Ask a focused question for this group": "ለዚህ ቡድን ያተኮረ ጥያቄ ይጠይቁ",
+        "What do you need input on, and what kind of answers would help?": "በምን ላይ አስተያየት ያስፈልግዎታል፣ እና ምን ዓይነት መልሶች ይረዳሉ?",
+        "Personal workspace": "የግል የሥራ ቦታ",
+        "Your GloWe profile is ready to be completed.": "የGloWe መገለጫዎ ለማሟላት ዝግጁ ነው።",
+        "Community collaboration": "የማህበረሰብ ትብብር",
+        "Location not added yet": "አካባቢ እስካሁን አልተጨመረም",
+        "Team size not added yet": "የቡድን መጠን እስካሁን አልተጨመረም",
+        "Not added yet": "እስካሁን አልተጨመረም",
+        "Title / role": "ማዕረግ / ሚና",
+        "Organization name": "የድርጅቱ ስም",
+        "Email verified": "ኢሜይል ተረጋግጧል",
+        "Pending": "በመጠባበቅ ላይ",
+        "Accepted": "ተቀባይነት አግኝቷል",
+        "Declined": "ተቀባይነት አላገኘም",
+        "Public link": "የሕዝብ አገናኝ",
+        "Public line": "የሕዝብ መግለጫ",
+        "Open to volunteers, donations, or partnerships?": "ለበጎ ፈቃደኞች፣ ለልገሳዎች ወይም ለአጋርነቶች ክፍት ነዎት?",
+        "Funding / support sources": "የገንዘብ / የድጋፍ ምንጮች",
+        "Annual budget / support context": "ዓመታዊ በጀት / የድጋፍ አውድ",
+        "Profile status": "የመገለጫ ሁኔታ",
+        "Personal area sections": "የግል ክፍል ክፍሎች",
+        "Sign in to post a need": "ፍላጎት ለመለጠፍ ይግቡ",
+        "Browsing GloWe is open to everyone. Sign in with Google to post a need and reach people ready to help.": "GloWeን ማሰስ ለሁሉም ክፍት ነው። ፍላጎት ለመለጠፍ እና ለመርዳት ዝግጁ የሆኑ ሰዎችን ለመድረስ በGoogle ይግቡ።",
+        "Sign in to post": "ለመለጠፍ ይግቡ",
+        "Sign in with Google to share a post with the GloWe community.": "ከGloWe ማህበረሰብ ጋር ልጥፍ ለማጋራት በGoogle ይግቡ።",
+        "Sign in to publish": "ለማሳተም ይግቡ",
+        "Sign in with Google to publish this opportunity and start receiving applications.": "ይህን ዕድል ለማሳተም እና ማመልከቻዎችን መቀበል ለመጀመር በGoogle ይግቡ።",
+        "Sign in to start a discussion": "ውይይት ለመጀመር ይግቡ",
+        "Sign in with Google to open a new discussion thread.": "አዲስ የውይይት ክር ለመክፈት በGoogle ይግቡ።",
+        "Sign in to reply": "ለመመለስ ይግቡ",
+        "Sign in with Google to join this discussion.": "ይህን ውይይት ለመቀላቀል በGoogle ይግቡ።",
+        "Sign in to apply": "ለማመልከት ይግቡ",
+        "Save your spot": "ቦታዎን ያስይዙ",
+        "Ready to lend a hand?": "እጅ ለመዘርጋት ዝግጁ ነዎት?",
+        "Keep this for later": "ይህን ለወደፊት ያስቀምጡ",
+        "Sign in with Google to save it to your list.": "ወደ ዝርዝርዎ ለማስቀመጥ በGoogle ይግቡ።",
+        "Sign in to continue": "ለመቀጠል ይግቡ",
+        "Sign in with Google to open your personal area.": "የግል ክፍልዎን ለመክፈት በGoogle ይግቡ።",
+        "Sign in with Google to do this on GloWe.": "ይህን በGloWe ላይ ለማድረግ በGoogle ይግቡ።",
+        "Welcome to GloWe": "እንኳን ወደ GloWe በደህና መጡ",
+        "Welcome — you're browsing as a guest. Sign in with Google anytime to participate.": "እንኳን ደህና መጡ — እንደ እንግዳ እያሰሱ ነው። ለመሳተፍ በማንኛውም ጊዜ በGoogle ይግቡ።",
+        "Mark as fulfilled": "እንደተፈጸመ ምልክት አድርግ",
+        "No wishes yet": "እስካሁን ምኞቶች የሉም",
+        "Post a wish": "ምኞት ይለጥፉ",
+        "The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.": "የማህበረሰብ አባላት የድጋፍ ጥያቄዎችን፣ የበጎ ፈቃደኞች ጥሪዎችን እና የትብብር ዕድሎችን ሲለጥፉ የምኞት ጉድጓዱ ይሞላል። ፕሮጀክትዎ የሚያስፈልገውን በማካፈል የመጀመሪያው ይሁኑ።",
+        "Back to wishes": "ወደ ምኞቶች ተመለስ",
+        "No opportunities posted yet": "እስካሁን የተለጠፉ ዕድሎች የሉም",
+        "No organizations yet": "እስካሁን ድርጅቶች የሉም",
+        "No matching profiles": "የሚዛመዱ መገለጫዎች የሉም",
+        "No posts yet — share knowledge, ask for support, or open a discussion to get things going.": "እስካሁን ልጥፎች የሉም — ዕውቀት ያካፍሉ፣ ድጋፍ ይጠይቁ ወይም ነገሮችን ለማንቀሳቀስ ውይይት ይክፈቱ።",
+        "No registrations yet.": "እስካሁን ምዝገባዎች የሉም።",
+        "Could not load registrations.": "ምዝገባዎችን መጫን አልተቻለም።",
+        "Be the first to share a volunteer role or collaboration request with the GloWe community.": "ከGloWe ማህበረሰብ ጋር የበጎ ፈቃድ ሚና ወይም የትብብር ጥያቄ በማካፈል የመጀመሪያው ይሁኑ።",
+        "Be the first to share a volunteer role or collaboration request with the community.": "ከማህበረሰቡ ጋር የበጎ ፈቃድ ሚና ወይም የትብብር ጥያቄ በማካፈል የመጀመሪያው ይሁኑ።",
+        "Members will appear here once they join the community.": "አባላት ማህበረሰቡን ሲቀላቀሉ እዚህ ይታያሉ።",
+        "Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.": "ድርጅቶች መገለጫ በመፍጠር እና ማረጋገጫን በማጠናቀቅ GloWeን ይቀላቀላሉ። መጀመሪያ የጸደቁት መገለጫዎች እዚህ ይታያሉ።",
+        "The community is just getting started. Post a wish, share what you know, or reach out to someone who is working on what you care about.": "ማህበረሰቡ ገና እየጀመረ ነው። ምኞት ይለጥፉ፣ የሚያውቁትን ያካፍሉ ወይም ለእርስዎ በሚያሳስብዎት ጉዳይ ላይ የሚሠራ ሰው ያግኙ።",
+        "This section will come alive as the community grows.": "ማህበረሰቡ እያደገ ሲሄድ ይህ ክፍል ሕያው ይሆናል።",
+        "Try a broader keyword or clear a filter.": "ሰፋ ያለ ቁልፍ ቃል ይሞክሩ ወይም ማጣሪያ ያጽዱ።",
+        "Write the first post": "የመጀመሪያውን ልጥፍ ይጻፉ",
+        "Write a message": "መልእክት ይጻፉ",
+        "Loading opportunities…": "ዕድሎችን በመጫን ላይ…",
+        "Loading organizations…": "ድርጅቶችን በመጫን ላይ…",
+        "Loading posts…": "ልጥፎችን በመጫን ላይ…",
+        "Loading profile…": "መገለጫን በመጫን ላይ…",
+        "Loading registrations…": "ምዝገባዎችን በመጫን ላይ…",
+        "Loading wishes…": "ምኞቶችን በመጫን ላይ…",
+        "Fetching from the community directory.": "ከማህበረሰብ ማውጫ በማምጣት ላይ።",
+        "Back": "ተመለስ",
+        "Next": "ቀጣይ",
+        "Register for event": "ለዝግጅቱ ይመዝገቡ",
+        "Sign in to register": "ለመመዝገብ ይግቡ",
+        "Cancel registration": "ምዝገባን ሰርዝ",
+        "Cancel event": "ዝግጅቱን ሰርዝ",
+        "Manage registrations": "ምዝገባዎችን አስተዳድር",
+        "Event registration": "የዝግጅት ምዝገባ",
+        "Message to the organizer (optional)": "ለአዘጋጁ መልእክት (አማራጭ)",
+        "This event has been cancelled by the organizer.": "ይህ ዝግጅት በአዘጋጁ ተሰርዟል።",
+        "This event has ended.": "ይህ ዝግጅት ተጠናቋል።",
+        "This event is cancelled.": "ይህ ዝግጅት ተሰርዟል።",
+        "This event is no longer open for registration.": "ይህ ዝግጅት ለምዝገባ ክፍት አይደለም።",
+        "Registration:": "ምዝገባ፦",
+        "Status:": "ሁኔታ፦",
+        "Type:": "ዓይነት፦",
+        "When:": "መቼ፦",
+        "Join link:": "የመቀላቀያ አገናኝ፦",
+        "Offer sent": "ቅናሹ ተልኳል",
+        "Structured support offer submitted.": "የተደራጀ የድጋፍ ቅናሽ ቀርቧል።",
+        "Save as draft": "እንደ ረቂቅ አስቀምጥ",
+        "Submit for review": "ለግምገማ አስገባ",
+        "Send code": "ኮድ ላክ",
+        "Select an area": "መስክ ይምረጡ",
+        "Choose if relevant": "አግባብነት ካለው ይምረጡ",
+        "Preferred contact": "የሚመረጥ የግንኙነት መንገድ",
+        "In-app message": "በመተግበሪያ ውስጥ መልእክት",
+        "Location (optional)": "አካባቢ (አማራጭ)",
+        "Phone": "ስልክ",
+        "Phone (optional)": "ስልክ (አማራጭ)",
+        "WhatsApp": "WhatsApp",
+        "Public": "የሕዝብ",
+        "Public actions": "የሕዝብ ተግባራት",
+        "Public profile and media": "የሕዝብ መገለጫ እና ሚዲያ",
+        "Basic account": "መሠረታዊ መለያ",
+        "Looking for": "የሚፈለገው",
+        "Impact": "ተጽዕኖ",
+        "Impact update": "የተጽዕኖ ዘገባ",
+        "Draft impact update": "የተጽዕኖ ዘገባ ረቂቅ",
+        "Draft Update": "የዘገባ ረቂቅ",
+        "Impact, interests and methods": "ተጽዕኖ፣ ፍላጎቶች እና ዘዴዎች",
+        "Mentoring": "አማካሪነት",
+        "Trust": "እምነት",
+        "Trust, contact and review": "እምነት፣ ግንኙነት እና ግምገማ",
+        "Story": "ታሪክ",
+        "Story and purpose": "ታሪክ እና ዓላማ",
+        "The dream": "ሕልሙ",
+        "The conversation starts here": "ውይይቱ የሚጀምረው እዚህ ነው",
+        "Connection workspace": "የግንኙነት የሥራ ቦታ",
+        "Profile onboarding": "የመገለጫ ማስጀመሪያ",
+        "Organization review": "የድርጅት ግምገማ",
+        "Review note": "የግምገማ ማስታወሻ",
+        "Relevant SDGs": "ተዛማጅ የዘላቂ ልማት ግቦች",
+        "Size / team": "መጠን / ቡድን",
+        "Annual budget": "ዓመታዊ በጀት",
+        "First coordination call": "የመጀመሪያ የቅንጅት ጥሪ",
+        "Both sides confirm scope, timeline, and ownership.": "ሁለቱም ወገኖች ወሰኑን፣ የጊዜ ሰሌዳውን እና ባለቤትነትን ያረጋግጣሉ።",
+        "A short outcome note documents what changed.": "አጭር የውጤት ማስታወሻ የተለወጠውን ይመዘግባል።",
+        "When work is complete, this becomes a short public note: what was needed, who helped, what happened, and what is still needed.": "ሥራው ሲጠናቀቅ ይህ አጭር የሕዝብ ማስታወሻ ይሆናል፦ ምን እንደሚያስፈልግ ነበር፣ ማን እንደረዳ፣ ምን እንደሆነ እና አሁንም ምን እንደሚያስፈልግ።",
+        "To turn a local need into a shared action that others can join, support, or learn from.": "የአካባቢ ፍላጎትን ሌሎች ሊቀላቀሉት፣ ሊደግፉት ወይም ሊማሩበት ወደሚችሉ የጋራ ተግባር ለመቀየር።",
+        "Build a useful profile step by step. You can save a draft now and complete more details later.": "ጠቃሚ መገለጫ ደረጃ በደረጃ ይገንቡ። አሁን ረቂቅ አስቀምጠው ተጨማሪ ዝርዝሮችን ወደፊት ማሟላት ይችላሉ።",
+        "Choose the profile that best describes you. This changes the questions and future profile layout.": "እርስዎን በተሻለ የሚገልጸውን መገለጫ ይምረጡ። ይህ ጥያቄዎቹን እና የወደፊቱን የመገለጫ አቀማመጥ ይለውጣል።",
+        "For this MVP, the code is shown on screen and stored locally.": "በዚህ የመጀመሪያ ሥሪት ኮዱ በማያ ገጽ ላይ ይታያል እና በአካባቢው ይቀመጣል።",
+        "I agree to keep GloWe professional, respectful, transparent, and aligned with human rights.": "GloWeን ሙያዊ፣ አክብሮታዊ፣ ግልጽ እና ከሰብዓዊ መብቶች ጋር የተጣጣመ ለማድረግ እስማማለሁ።",
+        "Logo or profile image": "አርማ ወይም የመገለጫ ምስል",
+        "Website / LinkedIn / Facebook": "ድረ ገጽ / LinkedIn / Facebook",
+        "1 person": "1 ሰው",
+        "2-5 people": "2-5 ሰዎች",
+        "6-20 people": "6-20 ሰዎች",
+        "20+ people": "ከ20 በላይ ሰዎች",
+        "(required for rejection)": "(ለአለመቀበል ያስፈልጋል)",
+        "First name *": "የመጀመሪያ ስም *",
+        "Last name *": "የአባት ስም *",
+        "Email *": "ኢሜይል *",
+        "Password *": "የይለፍ ቃል *",
+        "Confirm password *": "የይለፍ ቃል ያረጋግጡ *",
+        "Email verification code *": "የኢሜይል ማረጋገጫ ኮድ *",
+        "Country *": "አገር *",
+        "Community / audience *": "ማህበረሰብ / ተመልካች *",
+        "Geographic activity *": "የጂኦግራፊ እንቅስቃሴ *",
+        "Main interest areas *": "ዋና የፍላጎት መስኮች *",
+        "Organization mission *": "የድርጅቱ ተልዕኮ *",
+        "Problem you address *": "የሚፈቱት ችግር *",
+        "Solution or method *": "መፍትሔ ወይም ዘዴ *",
+        "Values and goals *": "እሴቶች እና ግቦች *",
+        "Short public line *": "አጭር የሕዝብ መግለጫ *",
+        "Title / role *": "ማዕረግ / ሚና *",
+        "All listings": "ሁሉም ዝርዝሮች",
+        "Events only": "ዝግጅቶች ብቻ",
+        "Events:": "ዝግጅቶች፦",
+        "In-person events": "በአካል የሚደረጉ ዝግጅቶች",
+        "Online events": "የመስመር ላይ ዝግጅቶች",
+        "Upcoming events": "መጪ ዝግጅቶች",
+        "Registered members": "የተመዘገቡ አባላት",
+        "Registered organizations": "የተመዘገቡ ድርጅቶች",
+        "+ Create": "+ ፍጠር",
+        "Create": "ፍጠር",
+        "What would you like to create?": "ምን መፍጠር ይፈልጋሉ?",
+        "Share an update, a story, or knowledge with the community.": "ከማህበረሰቡ ጋር ዘገባ፣ ታሪክ ወይም ዕውቀት ያካፍሉ።",
+        "Publish a volunteering event with a date and registration.": "ቀን እና ምዝገባ ያለው የበጎ ፈቃድ ዝግጅት ያሳትሙ።",
+        "Recruit volunteers for an ongoing role or project.": "ለቀጣይ ሚና ወይም ፕሮጀክት በጎ ፈቃደኞችን ይመልምሉ።",
+        "Ask the community for help, resources, or partners.": "ከማህበረሰቡ እርዳታ፣ ሀብቶች ወይም አጋሮች ይጠይቁ።",
+        "Offer your time and skills so organizations can find you.": "ድርጅቶች እንዲያገኙዎት ጊዜዎን እና ክህሎቶችዎን ያቅርቡ።",
+        "Event": "ዝግጅት",
+        "Need": "የእርዳታ ጥያቄ",
+        "Volunteer Offer": "የበጎ ፈቃድ ቅናሽ",
+        "Publish an event": "ዝግጅት ያሳትሙ",
+        "Events appear on the Volunteer Network with a date and registration.": "ዝግጅቶች በበጎ ፈቃደኞች መረብ ላይ ከቀን እና ከምዝገባ ጋር ይታያሉ።",
+        "Event title": "የዝግጅቱ ርዕስ",
+        "e.g. Community beach cleanup": "ለምሳሌ፦ የማህበረሰብ የባህር ዳርቻ ጽዳት",
+        "What happens at the event, and who should come?": "በዝግጅቱ ላይ ምን ይሆናል፣ እና ማን መምጣት አለበት?",
+        "Starts": "ይጀምራል",
+        "Ends (optional)": "ያበቃል (አማራጭ)",
+        "Format": "ቅርጸት",
+        "Location / link": "አካባቢ / አገናኝ",
+        "Address, city, or meeting link": "አድራሻ፣ ከተማ ወይም የስብሰባ አገናኝ",
+        "Capacity (optional)": "የመቀበል አቅም (አማራጭ)",
+        "Leave empty for unlimited": "ገደብ ለሌለው ባዶ ይተዉት",
+        "Registration": "ምዝገባ",
+        "Organizer approves each registration": "አዘጋጁ እያንዳንዱን ምዝገባ ያጸድቃል",
+        "Open — instant confirmation": "ክፍት — ፈጣን ማረጋገጫ",
+        "Publish Event": "ዝግጅቱን አሳትም",
+        "Event published": "ዝግጅቱ ታትሟል",
+        "Your event is now live on the Volunteer Network.": "ዝግጅትዎ አሁን በበጎ ፈቃደኞች መረብ ላይ ንቁ ነው።",
+        "Offer your help": "እርዳታዎን ያቅርቡ",
+        "Your offer appears on the Wishing Well so organizations and members can find you.": "ድርጅቶች እና አባላት እንዲያገኙዎት ቅናሽዎ በምኞት ጉድጓድ ላይ ይታያል።",
+        "Headline": "ዋና ርዕስ",
+        "e.g. Graphic designer offering 3 hours a week": "ለምሳሌ፦ በሳምንት 3 ሰዓት የሚያቀርብ ግራፊክ ዲዛይነር",
+        "Skills, time, equipment — anything that could help.": "ክህሎቶች፣ ጊዜ፣ መሣሪያዎች — ሊረዳ የሚችል ማንኛውም ነገር።",
+        "Impact area (optional)": "የተጽዕኖ መስክ (አማራጭ)",
+        "Publish Offer": "ቅናሹን አሳትም",
+        "Offer published": "ቅናሹ ታትሟል",
+        "Your offer is now live on the Wishing Well.": "ቅናሽዎ አሁን በምኞት ጉድጓድ ላይ ንቁ ነው።",
+        "Fetching your conversations.": "ውይይቶችዎን በማምጣት ላይ።",
+        "No conversations yet": "እስካሁን ውይይቶች የሉም",
+        "Reach out to an organization, offer help on a need, or message a community member — conversations will appear here.": "ድርጅትን ያግኙ፣ ለአንድ ፍላጎት እርዳታ ያቅርቡ ወይም ለማህበረሰብ አባል መልእክት ይላኩ — ውይይቶች እዚህ ይታያሉ።",
+        "Open the Wishing Well": "የምኞት ጉድጓድን ክፈት",
+        "Opening the conversation.": "ውይይቱን በመክፈት ላይ።",
+        "Conversation unavailable": "ውይይቱ አይገኝም",
+        "This conversation could not be opened.": "ይህን ውይይት መክፈት አልተቻለም።",
+        "Back to messages": "ወደ መልእክቶች ተመለስ",
+        "No messages yet. Say hello!": "እስካሁን መልእክቶች የሉም። ሰላም ይበሉ!",
+        "Write a message...": "መልእክት ይጻፉ...",
+        "Could not send": "መላክ አልተቻለም",
+        "Messaging unavailable": "መልእክት መላክ አይገኝም",
+        "This member cannot receive direct messages yet.": "ይህ አባል እስካሁን ቀጥተኛ መልእክቶችን መቀበል አይችልም።",
+        "Messages are unavailable": "መልእክቶች አይገኙም",
+        "Spam or misleading promotion": "አላስፈላጊ መልእክት ወይም አሳሳች ማስተዋወቂያ",
+        "Harassment or hate": "ትንኮሳ ወይም ጥላቻ",
+        "False or misleading information": "ሐሰተኛ ወይም አሳሳች መረጃ",
+        "Inappropriate content": "ተገቢ ያልሆነ ይዘት",
+        "Fake profile or impersonation": "ሐሰተኛ መገለጫ ወይም ማንነት መስረቅ",
+        "Already reported": "አስቀድሞ ሪፖርት ተደርጓል",
+        "You already reported this. Our team will review it.": "ይህን አስቀድመው ሪፖርት አድርገዋል። ቡድናችን ይገመግመዋል።",
+        "Could not send report": "ሪፖርቱን መላክ አልተቻለም",
+        "Something went wrong sending your report. Please try again.": "ሪፖርትዎን በመላክ ላይ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
+        "Reporting needs a live connection right now. Please try again shortly.": "ሪፖርት ማድረግ አሁን ንቁ ግንኙነት ይፈልጋል። እባክዎ ከጥቂት ጊዜ በኋላ ይሞክሩ።",
+        "Sign in to report": "ሪፖርት ለማድረግ ይግቡ",
+        "Sign in with Google to report this content so our team can review it.": "ቡድናችን እንዲገመግመው ይህን ይዘት ሪፖርት ለማድረግ በGoogle ይግቡ።",
+        "Fetching community reports.": "የማህበረሰብ ሪፖርቶችን በማምጣት ላይ።",
+        "Could not load reports": "ሪፖርቶችን መጫን አልተቻለም",
+        "Remove content": "ይዘቱን አስወግድ",
+        "Content removed": "ይዘቱ ተወግዷል",
+        "The reported content is no longer publicly visible.": "ሪፖርት የተደረገበት ይዘት ከዚህ በኋላ ለሕዝብ አይታይም።",
+        "Report dismissed": "ሪፖርቱ ተቀባይነት አላገኘም",
+        "The report was closed with no action.": "ሪፖርቱ ያለ ምንም እርምጃ ተዘግቷል።",
+        "Only GloWe reviewers can act on reports.": "በሪፖርቶች ላይ እርምጃ መውሰድ የሚችሉት የGloWe ገምጋሚዎች ብቻ ናቸው።",
+        "Open reported item": "ሪፖርት የተደረገበትን ንጥል ክፈት"
     }
 };
 
@@ -8882,6 +13143,14 @@ function gloweDict() {
 }
 
 const GLOWE_I18N_ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
+
+// Opt-out marker for content that must stay verbatim in every locale — the
+// language picker's endonyms above all: "עברית" stays Hebrew even while the
+// rest of the page renders in Russian.
+function isGloweI18nExempt(node) {
+    const el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    return Boolean(el && el.closest && el.closest('[data-no-i18n]'));
+}
 
 function applyGloweTextNode(node, dict) {
     const raw = node.nodeValue;
@@ -8894,6 +13163,7 @@ function applyGloweTextNode(node, dict) {
 
 function applyGloweAttrs(el, dict) {
     if (!el.hasAttribute) return;
+    if (isGloweI18nExempt(el)) return;
     GLOWE_I18N_ATTRS.forEach(attr => {
         if (!el.hasAttribute(attr)) return;
         const raw = el.getAttribute(attr);
@@ -8909,7 +13179,7 @@ function translateGloweTree(root) {
     const dict = gloweDict();
     if (!dict || !root) return;
     if (root.nodeType === Node.TEXT_NODE) {
-        applyGloweTextNode(root, dict);
+        if (!isGloweI18nExempt(root)) applyGloweTextNode(root, dict);
         return;
     }
     if (root.nodeType !== Node.ELEMENT_NODE) return;
@@ -8917,8 +13187,18 @@ function translateGloweTree(root) {
         acceptNode(node) {
             const parent = node.parentNode;
             if (!parent) return NodeFilter.FILTER_REJECT;
+            if (isGloweI18nExempt(node)) return NodeFilter.FILTER_REJECT;
             if (parent.nodeName === 'SCRIPT' || parent.nodeName === 'STYLE') {
                 return NodeFilter.FILTER_REJECT;
+            }
+            // Never chrome-localize UGC fields — those are demand-translated by
+            // glowe-translate.js with a per-card "Show original" toggle.
+            let el = parent;
+            while (el && el.nodeType === Node.ELEMENT_NODE) {
+                if (el.hasAttribute && el.hasAttribute('data-tr-field')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                el = el.parentNode;
             }
             return node.nodeValue && node.nodeValue.trim()
                 ? NodeFilter.FILTER_ACCEPT
@@ -8949,12 +13229,26 @@ function applyGloweDirection() {
     const rtl = GLOWE_RTL_LANGS.includes(lang);
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
-    if (document.body) document.body.classList.toggle('lang-he', lang === 'he');
+    // Per-language body class drives script-specific typography (Hebrew, Arabic,
+    // Ethiopic) — see the typography block in css/styles.css.
+    if (document.body) {
+        GLOWE_LANGUAGES.forEach(l => document.body.classList.toggle('lang-' + l.code, l.code === lang));
+    }
+}
+
+// <title> sits outside <body>, so the tree walker never reaches it. Without
+// this the page-title keys ("Wishing Well - GloWe", …) stay unused and the
+// browser tab reads English while the page itself is localized.
+function translateGloweTitle() {
+    const dict = gloweDict();
+    const key = (document.title || '').trim();
+    if (dict && key && dict[key]) document.title = dict[key];
 }
 
 function initGloweI18n() {
     applyGloweDirection();
     if (!gloweDict()) return;
+    translateGloweTitle();
     translateGloweTree(document.body);
     startGloweI18nObserver();
 }
@@ -8967,25 +13261,35 @@ function setGloweLanguage(lang) {
     window.location.reload();
 }
 
-function toggleGloweLanguage() {
-    setGloweLanguage(getGloweLanguage() === 'he' ? 'en' : 'he');
+// A native <select> keeps the picker keyboard- and screen-reader-accessible and
+// hands mobile users the platform language list for free. Each option carries
+// its own `lang` so the browser renders the endonym with the right script font.
+function buildGloweLanguageSelect(className, ariaLabel) {
+    const current = getGloweLanguage();
+    const select = document.createElement('select');
+    select.className = className;
+    // Endonyms are never translated — "עברית" must stay Hebrew in every locale.
+    select.setAttribute('data-no-i18n', '');
+    select.setAttribute('aria-label', ariaLabel);
+    GLOWE_LANGUAGES.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.code;
+        opt.textContent = l.native;
+        opt.setAttribute('lang', l.code);
+        if (l.code === current) opt.selected = true;
+        select.appendChild(opt);
+    });
+    select.addEventListener('change', () => setGloweLanguage(select.value));
+    return select;
 }
 
-// Header language toggle — shown only for anonymous visitors.
+// Header language picker — shown only for anonymous visitors.
 // Logged-in users access language via the Settings page.
 function injectLanguageToggle() {
     const headerEnd = ensureHeaderEnd();
     if (!headerEnd || headerEnd.querySelector('.lang-toggle')) return;
-    const current = getGloweLanguage();
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'lang-toggle';
-    btn.setAttribute('data-no-i18n', '');
-    btn.setAttribute('aria-label', current === 'he' ? 'Switch to English' : 'מעבר לעברית');
-    btn.textContent = current === 'he' ? 'EN' : 'עב';
-    btn.addEventListener('click', toggleGloweLanguage);
     // Trailing edge of the header-end cluster (after auth / user-menu).
-    headerEnd.appendChild(btn);
+    headerEnd.appendChild(buildGloweLanguageSelect('lang-toggle', 'Interface language'));
 }
 
 function removeLanguageToggle() {
@@ -9037,6 +13341,7 @@ function initSettingsPage() {
                     <p><strong>Account type</strong><span>${escapeHtml(profile.type || 'Community member')}</span></p>
                 </div>
                 <a class="btn btn-outline btn-small" href="my-applications.html">Open Personal Area</a>
+                <button class="btn btn-primary btn-small" type="button" onclick="openEditProfile()">Edit Profile</button>
             </article>
 
             <article class="profile-section-card">
@@ -9044,12 +13349,11 @@ function initSettingsPage() {
                     <span>02</span>
                     <h2>Language</h2>
                 </div>
-                <p class="muted-note">Choose the language for the GloWe interface. Hebrew is shown in a right-to-left (RTL) layout.</p>
+                <p class="muted-note">Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.</p>
                 <div class="form-group">
                     <label for="settings-language">Interface language</label>
-                    <select id="settings-language" onchange="setGloweLanguage(this.value)">
-                        <option value="en"${lang === 'en' ? ' selected' : ''}>English</option>
-                        <option value="he"${lang === 'he' ? ' selected' : ''}>Hebrew</option>
+                    <select id="settings-language" data-no-i18n onchange="setGloweLanguage(this.value)">
+                        ${GLOWE_LANGUAGES.map(l => `<option value="${l.code}" lang="${l.code}"${lang === l.code ? ' selected' : ''}>${escapeHtml(l.native)}</option>`).join('')}
                     </select>
                 </div>
             </article>
@@ -9341,6 +13645,7 @@ function resolveGlowePage(pathname) {
 document.addEventListener('DOMContentLoaded', function() {
     applyGloweDirection();
     ensureGlobalUI();
+    if (typeof updateAuthUI === 'function') updateAuthUI();
     normalizeMainNavigation();
     refreshMessagesBadge();
     if (localStorage.getItem('gloweLowDataMode') === 'true') {

@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;700&display=swap');
+/* Script coverage for the reader languages (FR-TRANSLATE-003): Assistant/Heebo
+   for Hebrew, Noto Sans Arabic for Arabic, Noto Sans Ethiopic for Amharic —
+   Ethiopic in particular is absent from most system font stacks, so without it
+   Amharic renders as tofu boxes. Cyrillic is covered by Nunito. */
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap');
 
 /* ===== CSS Variables ===== */
 :root {
@@ -178,12 +182,28 @@ ul {
     min-width: 0;
 }
 
-.logo-icon {
-    width: clamp(32px, 3.2vw, 42px);
-    height: clamp(32px, 3.2vw, 42px);
-    background: url('../assets/glowe-life-flower.png') center / contain no-repeat;
-    font-size: 0;
-    flex: 0 0 auto;
+.logo-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
+}
+
+.logo-user-greeting {
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logo-user-greeting:hover {
+    color: var(--primary-color);
 }
 
 .logo-text {
@@ -191,6 +211,15 @@ ul {
     font-weight: 700;
     color: var(--primary-dark);
     letter-spacing: 0;
+    line-height: 1.1;
+}
+
+.logo-icon {
+    width: clamp(32px, 3.2vw, 42px);
+    height: clamp(32px, 3.2vw, 42px);
+    background: url('../assets/glowe-life-flower.png') center / contain no-repeat;
+    font-size: 0;
+    flex: 0 0 auto;
 }
 
 .main-nav {
@@ -226,11 +255,21 @@ ul {
     cursor: pointer;
 }
 
-.nav-link:hover,
-.nav-link.active {
+.nav-link:hover {
     color: var(--primary-dark);
     background: var(--white);
     box-shadow: 0 6px 16px rgba(15, 93, 85, 0.08);
+}
+
+.nav-link.active {
+    color: var(--white);
+    background: var(--primary-color);
+    box-shadow: 0 6px 16px rgba(15, 93, 85, 0.18);
+}
+
+.nav-link.active:hover {
+    color: var(--white);
+    background: var(--primary-dark);
 }
 
 .nav-link.active::after {
@@ -245,6 +284,7 @@ ul {
     justify-content: flex-end;
     gap: clamp(6px, 0.7vw, 10px);
     min-width: 0;
+    width: 100%;
 }
 
 .auth-buttons,
@@ -267,6 +307,20 @@ ul {
 .user-menu {
     justify-content: flex-end;
     gap: clamp(4px, 0.55vw, 8px);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.header-corner-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(6px, 0.55vw, 8px);
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+}
+
+.header-end .user-menu {
+    width: 100%;
 }
 
 .user-greeting {
@@ -285,35 +339,7 @@ a.user-greeting:hover {
     color: var(--primary-color);
 }
 
-/* Tablet+: match Messages chrome — icon-only Settings/Admin before phone breakpoint. */
-@media (max-width: 992px) {
-    .user-menu .header-settings-btn,
-    .user-menu .glowe-admin-link {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        padding: 0;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .header-settings-label,
-    .glowe-admin-label {
-        display: none;
-    }
-
-    .header-settings-icon,
-    .glowe-admin-icon {
-        display: inline-flex;
-    }
-
-    .user-greeting {
-        display: none;
-    }
-}
-
+/* Signed-in header: Messages, Settings, and Admin are icon-only at every width. */
 .header-icon-btn {
     display: inline-flex;
     align-items: center;
@@ -326,7 +352,7 @@ a.user-greeting:hover {
     color: var(--text-secondary);
     text-decoration: none;
     flex: 0 0 auto;
-    transition: color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .header-icon-btn:hover {
@@ -339,23 +365,10 @@ a.user-greeting:hover {
     height: 20px;
 }
 
-.header-settings-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.header-settings-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* Settings/Admin keep text labels on wide desktops; icons from ≤992px
-   (see tablet media query) and phones (≤680px). */
-.header-settings-icon,
-.glowe-admin-icon {
-    display: none;
+@media (max-width: 992px) {
+    .user-greeting {
+        display: none;
+    }
 }
 
 /* ===== Hero Section ===== */
@@ -1320,6 +1333,119 @@ a.user-greeting:hover {
     font-weight: 900;
 }
 
+.dev-auth-panel {
+    margin-top: 8px;
+    padding: 14px;
+    border: 1px dashed rgba(15, 93, 85, 0.35);
+    border-radius: var(--radius-md);
+    background: rgba(231, 242, 239, 0.45);
+}
+
+.dev-auth-group {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+}
+
+.dev-auth-group:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0.75rem;
+}
+
+.dev-auth-group-title {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary, #1a2e1a);
+}
+
+.dev-auth-group-hint {
+    margin: 0 0 0.65rem;
+    font-size: 0.8rem;
+    color: var(--text-muted, #5a6b5a);
+    line-height: 1.35;
+}
+
+.dev-auth-advanced {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.dev-auth-advanced summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-secondary, #3d4f3d);
+}
+
+.dev-auth-advanced[open] {
+    margin-top: 0.5rem;
+}
+
+.dev-auth-label {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.dev-auth-label code {
+    font-size: 0.78rem;
+}
+
+.dev-auth-persona-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.dev-auth-persona-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: start;
+}
+
+.dev-auth-persona-btn:hover {
+    border-color: var(--primary, #2d6a4f);
+    background: rgba(45, 106, 79, 0.06);
+}
+
+.dev-auth-persona-btn--new {
+    border-style: dashed;
+    background: rgba(45, 106, 79, 0.03);
+}
+
+.dev-auth-persona-name {
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.dev-auth-persona-type {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.dev-auth-form .form-group {
+    margin-bottom: 10px;
+}
+
+.dev-auth-footnote {
+    margin: 12px 0 0;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}
+
 .inline-field-action {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2239,6 +2365,50 @@ a.user-greeting:hover {
     border-bottom: 1px solid var(--border-color);
 }
 
+.social-cover.has-cover-image,
+.profile-cover-band.has-cover-image {
+    background:
+        linear-gradient(105deg, rgba(231, 245, 240, 0.72), rgba(252, 240, 217, 0.42), rgba(174, 217, 224, 0.52)),
+        var(--profile-cover-image) center / cover no-repeat;
+}
+
+.profile-cover-band.has-cover-image {
+    background:
+        linear-gradient(115deg, rgba(7, 63, 66, 0.28), rgba(231, 242, 239, 0.72)),
+        var(--profile-cover-image) right center / cover no-repeat;
+}
+
+.social-cover-wrap {
+    position: relative;
+}
+
+.social-cover-change {
+    position: absolute;
+    inset-inline-end: 12px;
+    inset-block-end: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--primary-dark);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.2s;
+}
+
+.social-cover-change:hover {
+    background: var(--primary-light);
+}
+
+.social-cover-change svg {
+    display: block;
+}
+
 .social-profile-body {
     display: grid;
     gap: 18px;
@@ -2344,6 +2514,50 @@ a.user-greeting:hover {
     justify-content: center;
 }
 
+.cover-edit-modal-content {
+    max-width: 520px;
+}
+
+.cover-edit-preview-wrap {
+    margin: 20px 0 12px;
+}
+
+.cover-edit-preview {
+    width: 100%;
+    min-height: 140px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background:
+        linear-gradient(105deg, rgba(231, 245, 240, 0.92), rgba(252, 240, 217, 0.62), rgba(174, 217, 224, 0.72)),
+        var(--page-photo) center / cover no-repeat;
+    box-shadow: var(--shadow-sm);
+}
+
+.cover-edit-preview[hidden] {
+    display: none;
+}
+
+#cover-edit-status {
+    display: block;
+    text-align: center;
+    min-height: 1.2em;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+#cover-edit-status.is-error {
+    color: #8a1c2b;
+    font-weight: 600;
+}
+
+#cover-edit-status.is-info {
+    color: var(--text-secondary);
+}
+
+.cover-edit-actions {
+    justify-content: center;
+}
+
 .social-profile-copy {
     min-width: 0;
     padding-bottom: 6px;
@@ -2365,6 +2579,36 @@ a.user-greeting:hover {
     font-size: clamp(1.6rem, 2.6vw, 2.4rem);
     line-height: 1.1;
     margin: 4px 0 8px;
+}
+
+.social-profile-name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 4px 0 8px;
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    line-height: 1.1;
+}
+
+.profile-name-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.profile-name-edit-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .social-profile-copy p {
@@ -2416,7 +2660,8 @@ a.user-greeting:hover {
     box-shadow: var(--shadow-sm);
 }
 
-.personal-stats-grid--compact div {
+.personal-stats-grid--compact div,
+.personal-stats-grid--compact .profile-stat-link {
     flex: 1 1 0;
     min-width: 0;
     padding: 4px 2px;
@@ -2425,6 +2670,26 @@ a.user-greeting:hover {
     border: none;
     box-shadow: none;
     border-radius: 0;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.personal-stats-grid--compact .profile-stat-link strong {
+    display: block;
+    color: var(--primary-dark);
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.personal-stats-grid--compact .profile-stat-link span {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.15;
 }
 
 .personal-stats-grid:not(.personal-stats-grid--compact) div {
@@ -2694,9 +2959,71 @@ a.user-greeting:hover {
 .well-layout .container,
 .community-layout .container {
     display: grid;
-    grid-template-columns: 292px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
     align-items: start;
+}
+
+.wishes-board-shell {
+    gap: 22px;
+}
+
+.wish-filter-panel {
+    display: grid;
+    gap: 16px;
+    padding: 22px 24px;
+    background:
+        linear-gradient(135deg, rgba(232, 247, 243, 0.88), rgba(255, 255, 255, 0.96)),
+        var(--white);
+    border: 1px solid rgba(20, 124, 117, 0.18);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 44px rgba(24, 36, 61, 0.06);
+}
+
+.wish-filter-intro h2 {
+    margin: 6px 0 8px;
+    font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+}
+
+.wish-filter-intro p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.wish-filter-primary {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.35fr) minmax(150px, 0.65fr) auto auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.wish-filter-primary .form-group {
+    margin: 0;
+}
+
+.wish-filter-advanced {
+    display: grid;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(20, 124, 117, 0.12);
+}
+
+.wish-filter-advanced .filter-pill {
+    width: auto;
+    flex: 1 1 180px;
+    margin-bottom: 0;
+    justify-content: center;
+    text-align: center;
+}
+
+.wish-filter-advanced .filter-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wishes-list-toolbar {
+    margin-top: 4px;
 }
 
 .well-filters,
@@ -3157,6 +3484,19 @@ a.user-greeting:hover {
 .glowe-toast.visible {
     opacity: 1;
     transform: translate(-50%, 0);
+}
+
+.glowe-toast strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.glowe-toast span {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0.92;
 }
 
 .glowe-toast.is-error {
@@ -4498,6 +4838,46 @@ a.user-greeting:hover {
         flex-wrap: wrap;
         gap: 8px;
         order: 2;
+    }
+
+    .wish-filter-primary {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .wish-filter-search {
+        grid-column: 1 / -1;
+    }
+
+    .wish-filter-toggle {
+        grid-column: 1;
+    }
+
+    #clear-wish-filters {
+        grid-column: 2;
+    }
+
+    .wish-filter-advanced {
+        display: none;
+    }
+
+    .wish-filter-advanced.is-open {
+        display: grid;
+    }
+
+    .wish-card-top .heart-button {
+        display: none;
+    }
+
+    .wish-card .card-actions .post-share-label {
+        display: none;
+    }
+
+    .wish-card .card-actions .post-share-button {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
     }
 
     .wishes-column {
@@ -5930,6 +6310,17 @@ a.user-greeting:hover {
     }
 }
 
+/* Wishes board — desktop keeps advanced filters open; mobile uses a toggle. */
+@media (min-width: 901px) {
+    .wish-filter-toggle {
+        display: none;
+    }
+
+    .wish-filter-advanced {
+        display: grid !important;
+    }
+}
+
 /* ===== Cross-device responsive refinements ===== */
 @media (max-width: 1180px) {
     .container {
@@ -6115,13 +6506,12 @@ a.user-greeting:hover {
     /* On phones the user-menu collapses to compact icon buttons aligned to the
        end of the header, rather than full-width text buttons. */
     .user-menu {
-        width: auto;
+        width: 100%;
         justify-content: flex-end;
         gap: 8px;
     }
 
     .user-menu .header-icon-btn,
-    .user-menu a.header-settings-btn,
     .user-menu a.glowe-admin-link {
         flex: 0 0 auto;
         width: 40px;
@@ -6129,16 +6519,6 @@ a.user-greeting:hover {
         min-width: 40px;
         padding: 0;
         border-radius: 50%;
-    }
-
-    .header-settings-label,
-    .glowe-admin-label {
-        display: none;
-    }
-
-    .header-settings-icon,
-    .glowe-admin-icon {
-        display: inline-flex;
     }
 
     .user-greeting {
@@ -6471,7 +6851,7 @@ a.user-greeting:hover {
     }
 
     .bottom-nav-link.active {
-        color: var(--primary-dark);
+        color: var(--primary-color);
     }
 
     .nav-icon {
@@ -6483,11 +6863,10 @@ a.user-greeting:hover {
     .nav-icon svg {
         width: 100%;
         height: 100%;
-        transition: transform 0.2s ease;
     }
 
-    .bottom-nav-link.active .nav-icon svg {
-        transform: scale(1.1);
+    .bottom-nav-link.active .nav-label {
+        font-weight: 800;
     }
 
     .nav-label {
@@ -6507,6 +6886,13 @@ a.user-greeting:hover {
 
     .social-cover {
         min-height: 96px;
+    }
+
+    .social-cover-change {
+        width: 32px;
+        height: 32px;
+        inset-inline-end: 8px;
+        inset-block-end: 8px;
     }
 
     .social-profile-body {
@@ -6568,11 +6954,13 @@ a.user-greeting:hover {
         padding: 6px 4px;
     }
 
-    .personal-stats-grid--compact strong {
+    .personal-stats-grid--compact strong,
+    .personal-stats-grid--compact .profile-stat-link strong {
         font-size: 0.92rem;
     }
 
-    .personal-stats-grid--compact span {
+    .personal-stats-grid--compact span,
+    .personal-stats-grid--compact .profile-stat-link span {
         font-size: 0.58rem;
     }
 
@@ -6660,15 +7048,30 @@ a.user-greeting:hover {
     margin-bottom: 16px;
 }
 
-/* ===== FR-GLOWE-004: Hebrew interface + RTL ===== */
-/* Hebrew typography. dir="rtl" on <html> handles most layout mirroring
-   (flex order, default alignment, list markers) automatically; the rules
-   below cover spots with explicit physical alignment. */
+/* ===== FR-GLOWE-004 / FR-TRANSLATE-003: localized interface + RTL ===== */
+/* dir="rtl" on <html> handles most layout mirroring (flex order, default
+   alignment, list markers) automatically; the rules below cover spots with
+   explicit physical alignment. Typography is per-script rather than per-
+   direction: Hebrew and Arabic are both RTL but need different font stacks. */
 html[dir="rtl"] body,
-body.lang-he {
-    font-family: 'Assistant', 'Heebo', 'Rubik', 'Noto Sans Hebrew', 'Inter', system-ui, sans-serif;
+body.lang-he,
+body.lang-ar,
+body.lang-am {
     line-height: 1.7;
     letter-spacing: normal;
+}
+
+body.lang-he {
+    font-family: 'Assistant', 'Heebo', 'Rubik', 'Noto Sans Hebrew', 'Inter', system-ui, sans-serif;
+}
+
+body.lang-ar {
+    font-family: 'Noto Sans Arabic', 'Noto Naskh Arabic', 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+}
+
+/* Amharic (Ge'ez script) — system stacks rarely ship Ethiopic glyphs. */
+body.lang-am {
+    font-family: 'Noto Sans Ethiopic', 'Abyssinica SIL', 'Nyala', system-ui, sans-serif;
 }
 
 html[dir="rtl"] {
@@ -6731,25 +7134,41 @@ html[dir="rtl"] textarea {
 }
 
 /* Keep brand/identifier values left-to-right inside RTL text. */
-html[dir="rtl"] .logo-text,
-html[dir="rtl"] .lang-toggle {
+html[dir="rtl"] .logo-text {
     direction: ltr;
 }
 
-/* Header language switch — visible only for anonymous visitors (removed on sign-in). */
+/* Header language picker — visible only for anonymous visitors (removed on
+   sign-in). Direction is deliberately NOT forced: the options are endonyms in
+   mixed scripts, so each <option lang> renders in its own script. */
 .lang-toggle {
     flex: 0 0 auto;
-    min-width: 42px;
+    min-width: 92px;
+    max-width: 140px;
     height: 36px;
-    padding: 0 12px;
+    padding: 0 30px 0 12px;
     border-radius: 999px;
     border: 1px solid rgba(15, 93, 85, 0.25);
-    background: var(--white);
+    background-color: var(--white);
     color: var(--primary-dark);
     font-weight: 700;
     font-size: 0.9rem;
+    font-family: inherit;
     cursor: pointer;
     transition: var(--transition);
+    /* Custom chevron so the pill keeps its shape across browsers. */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23073f42' stroke-width='1.8'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    background-size: 11px 7px;
+    text-overflow: ellipsis;
+}
+
+html[dir="rtl"] .lang-toggle {
+    padding: 0 12px 0 30px;
+    background-position: left 11px center;
 }
 
 .lang-toggle:hover {
@@ -6848,15 +7267,31 @@ body.glowe-member-home main > section:not(#member-home) {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 20px;
-    text-decoration: none;
     color: inherit;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }
 
+.member-feed-card-link {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+}
+
+.member-feed-card-link:hover {
+    text-decoration: none;
+}
+
 .member-feed-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+}
+
+.member-feed-card:hover .member-feed-card-link {
+    color: inherit;
 }
 
 .member-feed-type {
@@ -6883,12 +7318,54 @@ body.glowe-member-home main > section:not(#member-home) {
     color: var(--text-light);
 }
 
+.member-feed-opportunity-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.member-feed-opportunity-org {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.member-feed-card .tr-slot {
+    order: -1;
+    margin: 0 0 4px;
+}
+
+.member-feed-grid .opportunity-card {
+    height: auto;
+}
+
+.member-feed-grid .opportunity-card > .card-actions {
+    margin-top: 12px;
+}
+
 @media (max-width: 640px) {
     .member-hero {
         padding: 24px;
     }
     .member-hero-actions .btn {
         flex: 1 1 100%;
+    }
+}
+
+/* Phone home: community feed only — personal hero/activity live in Profile tab (FR-GLOWE-016 AC2). */
+@media (max-width: 680px) {
+    .member-home-personal {
+        display: none !important;
+    }
+
+    .member-home.member-home-community-only,
+    .member-home:has(.member-home-community-only) {
+        padding-top: 24px;
+    }
+
+    .member-home-community-only {
+        gap: 0;
     }
 }
 

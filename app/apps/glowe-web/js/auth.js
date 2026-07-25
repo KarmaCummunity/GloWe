@@ -260,30 +260,58 @@ function storeRegisteredUser(newUser, users = null) {
 }
 
 // Handle login
+async function completeSupabaseSignIn(data) {
+    const profile = await window.gloweBackend.fetchProfile();
+    const user = {
+        id: data.user.id,
+        name: profile && profile.name ? profile.name : (data.user.user_metadata && data.user.user_metadata.name) || data.user.email,
+        email: data.user.email,
+        type: profile && profile.type ? profile.type : 'member'
+    };
+    localStorage.setItem(GLOWE_USER_KEY, JSON.stringify(user));
+    if (profile) localStorage.setItem('glowePersonalProfile', JSON.stringify(profile));
+    closeModal('login-modal');
+    updateAuthUI();
+    refreshPersonalAreaIfVisible();
+    showSuccessModal('Welcome Back!', `Great to see you again, ${user.name}!`);
+    redirectPendingOpportunity();
+}
+
+async function applyMockSession(session, userOverride) {
+    if (!session || !(window.gloweBackend && window.gloweBackend.configured())) return;
+    await window.gloweBackend.setSession(session);
+    const supabaseUser = session.user;
+    let profile = null;
+    try {
+        profile = await window.gloweBackend.fetchProfile();
+    } catch (_e) {
+        profile = null;
+    }
+    const user = userOverride || gloweUserFromSupabase(supabaseUser, profile);
+    localStorage.setItem(GLOWE_USER_KEY, JSON.stringify(user));
+    if (profile) localStorage.setItem('glowePersonalProfile', JSON.stringify(profile));
+    closeModal('login-modal');
+    updateAuthUI();
+    refreshPersonalAreaIfVisible();
+    showSuccessModal('Welcome Back!', `Great to see you again, ${user.name}!`);
+    redirectPendingOpportunity();
+}
+window.applyMockSession = applyMockSession;
+
 function handleLogin(event) {
     event.preventDefault();
     
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+
+    if (window.GloweDevAuth && (window.GloweDevAuth.isActive() || window.GloweDevAuth.isLocalSupabaseConfigured())) {
+        signInAsDevPersona({ email, role: 'user', profileType: 'individual', approvalStatus: 'not_required' });
+        return;
+    }
     
     if (window.gloweBackend && window.gloweBackend.configured()) {
         window.gloweBackend.signIn(email, password)
-            .then(async (data) => {
-                const profile = await window.gloweBackend.fetchProfile();
-                const user = {
-                    id: data.user.id,
-                    name: profile && profile.name ? profile.name : (data.user.user_metadata && data.user.user_metadata.name) || data.user.email,
-                    email: data.user.email,
-                    type: profile && profile.type ? profile.type : 'member'
-                };
-                localStorage.setItem(GLOWE_USER_KEY, JSON.stringify(user));
-                if (profile) localStorage.setItem('glowePersonalProfile', JSON.stringify(profile));
-                closeModal('login-modal');
-                updateAuthUI();
-                refreshPersonalAreaIfVisible();
-                showSuccessModal('Welcome Back!', `Great to see you again, ${user.name}!`);
-                redirectPendingOpportunity();
-            })
+            .then(completeSupabaseSignIn)
             .catch((error) => {
                 alert(error.message || 'Could not log in. Please try again.');
             });
@@ -447,7 +475,79 @@ function sendRegistrationEmailCode() {
     );
 }
 
+function bindLocalDevPersonaButtons(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-dev-signin-email]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const email = button.getAttribute('data-dev-signin-email');
+            if (!email) return;
+            signInAsDevPersona({
+                email,
+                role: button.getAttribute('data-dev-signin-role') || 'user',
+                profileType: button.getAttribute('data-dev-signin-profile-type') || 'individual',
+                approvalStatus: button.getAttribute('data-dev-signin-approval') || 'not_required',
+                displayName: button.getAttribute('data-dev-signin-name') || ''
+            });
+        });
+    });
+}
+
+async function signInAsDevPersona(options = {}) {
+    if (!(window.gloweBackend && window.gloweBackend.configured())) {
+        alert('Backend is not configured.');
+        return;
+    }
+    const payload = {
+        email: options.email,
+        role: options.role || 'user',
+        profileType: options.profileType || 'individual',
+        approvalStatus: options.approvalStatus || 'not_required',
+        displayName: options.displayName || undefined
+    };
+    if (typeof window.gloweBackend.mockLogin === 'function') {
+        const result = await window.gloweBackend.mockLogin(payload).catch((err) => ({
+            error: 'network_error',
+            message: err && err.message ? err.message : 'mock-login request failed'
+        }));
+        if (result && result.session && typeof window.applyMockSession === 'function') {
+            await window.applyMockSession(result.session, result.user);
+            return;
+        }
+        if (result && result.error) {
+            console.error('mock-login failed', result);
+        }
+    }
+    const password = window.GloweDevAuth ? window.GloweDevAuth.DEFAULT_PASSWORD : '';
+    if (!password || !payload.email) {
+        alert('Local sign-in failed. Run: ./scripts/dev-up.sh');
+        return;
+    }
+    try {
+        const data = await window.gloweBackend.signIn(payload.email, password);
+        await completeSupabaseSignIn(data);
+    } catch (error) {
+        const hint = (window.GLOWE_BACKEND_CONFIG && window.GLOWE_BACKEND_CONFIG.supabaseUrl || '').includes('127.0.0.1')
+            ? ' Run ./scripts/dev-up.sh to seed users.'
+            : '';
+        alert((error.message || 'Could not log in.') + hint);
+    }
+}
+window.signInAsDevPersona = signInAsDevPersona;
+window.bindLocalDevPersonaButtons = bindLocalDevPersonaButtons;
+
 async function handleGoogleSignIn() {
+    const cfg = window.GLOWE_BACKEND_CONFIG || {};
+    const localSupabase = window.GloweDevAuth && window.GloweDevAuth.isLocalSupabaseUrl(cfg.supabaseUrl || '');
+    const devAuthActive = window.GloweDevAuth
+        && (window.GloweDevAuth.isActive() || localSupabase);
+    if (devAuthActive) {
+        if (typeof ensureGlobalUI === 'function') ensureGlobalUI();
+        if (typeof upgradeLoginModal === 'function') upgradeLoginModal();
+        if (typeof openModal === 'function') {
+            openModal('login-modal');
+        }
+        return;
+    }
     if (window.gloweBackend && window.gloweBackend.configured() && typeof window.gloweBackend.signInWithGoogle === 'function') {
         try {
             await window.gloweBackend.signInWithGoogle();
@@ -503,9 +603,11 @@ async function logout() {
 
 // Update UI based on auth state
 function updateAuthUI() {
+    if (typeof window.ensureLogoBrand === 'function') window.ensureLogoBrand();
     const authButtons = document.querySelector('.auth-buttons');
     const userMenu = document.querySelector('.user-menu');
     const userNameSpan = document.getElementById('user-name');
+    const logoGreeting = document.querySelector('.logo-user-greeting');
     
     document.body.classList.toggle('glowe-signed-in', isLoggedIn());
 
@@ -516,10 +618,9 @@ function updateAuthUI() {
             ? GloweLocalizedName.localizedProfileName(profile, getGloweLanguage())
             : (user.name || '');
         if (authButtons) authButtons.style.display = 'none';
-        if (userMenu) {
-            userMenu.style.display = 'flex';
-            if (userNameSpan) userNameSpan.textContent = (displayName || user.name || '').split(' ')[0];
-        }
+        if (userMenu) userMenu.style.display = 'flex';
+        if (logoGreeting) logoGreeting.hidden = false;
+        if (userNameSpan) userNameSpan.textContent = (displayName || user.name || '').split(' ')[0];
         // Language is managed in Settings once signed in — remove the header toggle.
         if (typeof window.removeLanguageToggle === 'function') window.removeLanguageToggle();
         // Show admin link for GLOWE admins (async; runs after render).
@@ -529,6 +630,7 @@ function updateAuthUI() {
     } else {
         if (authButtons) authButtons.style.display = 'flex';
         if (userMenu) userMenu.style.display = 'none';
+        if (logoGreeting) logoGreeting.hidden = true;
         // Anonymous visitors have no Settings page — expose the toggle in the header.
         if (typeof window.injectLanguageToggle === 'function') window.injectLanguageToggle();
     }

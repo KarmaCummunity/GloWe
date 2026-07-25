@@ -42,7 +42,7 @@ describe('mapWishRow', () => {
 
 describe('filterWishes', () => {
     const list = [
-        GloweWishes.mapWishRow(wishRow({ id: 'a', wish_type: 'Volunteers Needed', impact_area: 'Education' })),
+        GloweWishes.mapWishRow(wishRow({ id: 'a', wish_type: 'Volunteers Needed', impact_area: 'Education', title: 'Workshop help' })),
         GloweWishes.mapWishRow(wishRow({ id: 'b', wish_type: 'Funding Support', impact_area: 'Health' })),
         GloweWishes.mapWishRow(wishRow({ id: 'c', wish_type: 'Volunteers Needed', impact_area: 'Environment' }))
     ];
@@ -59,6 +59,30 @@ describe('filterWishes', () => {
     it('filters by impact area', () => {
         const ids = GloweWishes.filterWishes(list, { area: 'Health' }).map(w => w.id);
         expect(ids).toEqual(['b']);
+    });
+
+    it('filters by free-text query across title and body', () => {
+        const ids = GloweWishes.filterWishes(list, { query: 'workshop help' }).map(w => w.id);
+        expect(ids).toEqual(['a']);
+    });
+});
+
+describe('sortWishes', () => {
+    const list = [
+        GloweWishes.mapWishRow(wishRow({ id: 'old', created_at: '2026-06-01T09:00:00Z', title: 'Beta' })),
+        GloweWishes.mapWishRow(wishRow({ id: 'new', created_at: '2026-07-01T09:00:00Z', title: 'Alpha' }))
+    ];
+
+    it('sorts newest first by default', () => {
+        expect(GloweWishes.sortWishes(list, 'newest').map(w => w.id)).toEqual(['new', 'old']);
+    });
+
+    it('sorts oldest first when requested', () => {
+        expect(GloweWishes.sortWishes(list, 'oldest').map(w => w.id)).toEqual(['old', 'new']);
+    });
+
+    it('sorts by title alphabetically', () => {
+        expect(GloweWishes.sortWishes(list, 'title').map(w => w.id)).toEqual(['new', 'old']);
     });
 });
 

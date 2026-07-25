@@ -340,7 +340,10 @@ if (typeof window !== 'undefined') {
                     misses.forEach(function (m) {
                         const cn = T.normalizeTranslation(cacheMap[T.cacheMapKey(m.e.type, m.e.id, m.f.field)]);
                         if (cacheMap[T.cacheMapKey(m.e.type, m.e.id, m.f.field)]) {
-                            m.f._text = (cn && T.needsTranslation(cn.sourceLanguage, target)) ? cn.translated : '';
+                            // Apply any cached translation (applyTranslation no-ops when it
+                            // equals the source); a bad/missing source_language must not
+                            // suppress it (dev #784).
+                            m.f._text = cn ? cn.translated : '';
                         } else {
                             stillMiss.push(m);
                         }
@@ -354,7 +357,9 @@ if (typeof window !== 'undefined') {
                         const resultMap = await batchTranslate(sb, items, target);
                         stillMiss.forEach(function (m) {
                             const rn = resultMap[m.e.type + '|' + m.e.id + '|' + m.f.field] || null;
-                            m.f._text = (rn && T.needsTranslation(rn.sourceLanguage, target)) ? rn.translated : '';
+                            // rn is null only for a server 'skipped' (same-base language);
+                            // otherwise apply regardless of source_language (dev #784).
+                            m.f._text = rn ? rn.translated : '';
                         });
                         stop();
                     }

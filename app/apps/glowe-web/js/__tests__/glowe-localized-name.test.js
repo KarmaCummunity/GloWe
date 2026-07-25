@@ -185,6 +185,25 @@ describe('authorNeedsEnglishName / applyAuthorEnglishFromProfiles', () => {
     });
 });
 
+describe('organizationNeedsEnglishName / applyOrganizationEnglishFromProfiles', () => {
+    it('detects Hebrew organizations missing English', () => {
+        expect(GloweLocalizedName.organizationNeedsEnglishName({
+            organization: 'לב פתוח', organizationEn: ''
+        })).toBe(true);
+        expect(GloweLocalizedName.organizationNeedsEnglishName({
+            organization: 'לב פתוח', organization_en: 'Open Heart'
+        })).toBe(false);
+    });
+
+    it('stamps organizationEn from owner profile patches', () => {
+        const opps = GloweLocalizedName.applyOrganizationEnglishFromProfiles(
+            [{ ownerId: 'u1', organization: 'לב פתוח', organizationEn: '' }],
+            [{ id: 'u1', orgNameEn: 'Open Heart' }]
+        );
+        expect(opps[0].organizationEn).toBe('Open Heart');
+    });
+});
+
 describe('nameForToggleView / initialsForName', () => {
     it('shows primary when toggled to source, localized otherwise', () => {
         expect(GloweLocalizedName.nameForToggleView('נווה', 'Naveh', 'en', true)).toBe('נווה');

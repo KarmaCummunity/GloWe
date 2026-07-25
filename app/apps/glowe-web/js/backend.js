@@ -279,6 +279,49 @@
         return data;
     }
 
+    async function setSession(session) {
+        const supabaseClient = await getClient();
+        if (!supabaseClient || !session) return null;
+        const { data, error } = await supabaseClient.auth.setSession(session);
+        if (error) throw error;
+        return data;
+    }
+
+    async function mockLogin(payload = {}) {
+        if (!configured()) return { error: 'backend_not_configured' };
+        const url = `${config.supabaseUrl.replace(/\/$/, '')}/functions/v1/mock-login`;
+        let res;
+        try {
+            res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    apikey: config.supabaseAnonKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (err) {
+            return { error: 'network_error', message: err && err.message ? err.message : 'fetch failed' };
+        }
+        let body = null;
+        try {
+            body = await res.json();
+        } catch (_e) {
+            body = null;
+        }
+        if (!res.ok) {
+            return {
+                error: (body && body.error) || 'mock_login_failed',
+                message: (body && body.message) || `HTTP ${res.status}`,
+                status: res.status
+            };
+        }
+        if (!body || !body.session) {
+            return { error: 'no_session', message: 'mock-login returned no session' };
+        }
+        return body;
+    }
+
     // Prefer a clean same-origin return URL (no hash). If redirectTo is rejected
     // by Supabase Auth's allowlist, Google lands on site_url (pages.dev) instead
     // of local — keep this deterministic for local GloWe on :4321.
@@ -422,19 +465,29 @@
     // policy (`storage.foldername(name)[1] = auth.uid()`) permits the write.
     // Returns null when unauthenticated/unconfigured (the caller keeps the
     // Cloudinary fallback). Client-side type/size validation is done before this.
-    async function uploadAvatar(file) {
+    async function uploadProfileImageFile(file, objectPrefix) {
         const supabaseClient = await getClient();
         const user = await currentUser();
         if (!supabaseClient || !user || !file) return null;
         const extByMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
         const ext = extByMime[file.type] || 'jpg';
-        const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+        const path = `${user.id}/${objectPrefix}-${Date.now()}.${ext}`;
         const { error } = await supabaseClient.storage
             .from('glowe-avatars')
             .upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
         if (error) throw error;
         const { data } = supabaseClient.storage.from('glowe-avatars').getPublicUrl(path);
         return data ? data.publicUrl : null;
+    }
+
+    // FR-GLOWE-011 AC3 — profile avatar in `glowe-avatars` (migration 0219).
+    async function uploadAvatar(file) {
+        return uploadProfileImageFile(file, 'avatar');
+    }
+
+    // FR-GLOWE-011 — profile cover/header image (same bucket + owner folder).
+    async function uploadCover(file) {
+        return uploadProfileImageFile(file, 'cover');
     }
 
     // Post-sign-in onboarding (FR-GLOWE-002 + FR-GLOWE-024). Writes only the
@@ -1221,6 +1274,8 @@
         currentUser,
         signUp,
         signIn,
+        setSession,
+        mockLogin,
         signInWithGoogle,
         signOut,
         deleteProfile,
@@ -1230,6 +1285,7 @@
         upsertProfile,
         ensureProfileFromGoogle,
         uploadAvatar,
+        uploadCover,
         completeOnboarding,
         listPendingOrgs,
         setOrgApproval,

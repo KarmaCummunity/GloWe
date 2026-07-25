@@ -12,15 +12,24 @@ import {
 setup('mint glowe persona sessions', async () => {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
+  const { isLocalSupabaseUrl, mockLoginStorageState } = await import('../lib/mockAuth.js');
+  const useMockLogin = isLocalSupabaseUrl();
+
   let seeded = true;
   for (const [key, persona] of Object.entries(PERSONAS)) {
-    const session = await signInWithPassword(persona.email, SEED_PASSWORD);
-    if (!session) {
-      console.warn(`[glowe-setup] persona ${key} cannot sign in — run scripts/seed-glowe-dev.mjs (member specs will skip)`);
-      seeded = false;
-      continue;
+    let state = useMockLogin
+      ? await mockLoginStorageState(persona.name, { email: persona.email })
+      : null;
+    if (!state) {
+      const session = await signInWithPassword(persona.email, SEED_PASSWORD);
+      if (!session) {
+        console.warn(`[glowe-setup] persona ${key} cannot sign in — run scripts/seed-glowe-dev.mjs (member specs will skip)`);
+        seeded = false;
+        continue;
+      }
+      state = gloweStorageState(session, persona.name);
     }
-    fs.writeFileSync(stateFile(key), JSON.stringify(gloweStorageState(session, persona.name)));
+    fs.writeFileSync(stateFile(key), JSON.stringify(state));
   }
 
   // Optional admin persona: the CI E2E user (super_admin ⇒ GloWe admin).
