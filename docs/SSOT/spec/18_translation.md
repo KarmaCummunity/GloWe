@@ -122,3 +122,24 @@ GLOWE's user-generated content (posts, opportunities/events, wishes, projects, o
 - AC9. Graceful degradation + cost bounds: only content currently rendered to the reader is translated (no bulk pre-translation); a session skip-map prevents re-firing a `(content_id, field, lang)` that resolved to skip/failure; a provider/network failure leaves the original text in place with no error UI.
 
 > **Note (FR-GLOWE-024 / D-179):** GloWe person and organization **display names** are handled separately from this UGC translation path. They use bilingual storage columns (`display_name_en`, `org_name_en`, and content snapshots) rather than `glowe_content_translations`. AC4's exclusion of proper names from the translate allow-list remains intentional.
+
+## FR-TRANSLATE-006 — GLOWE web translation performance (✅ Done)
+
+> **Status:** ✅ Done. Efficiency-first cold path + viewport prefetch + a rare localized loading indicator over the FR-TRANSLATE-005 substrate. Design: `docs/superpowers/specs/2026-07-19-glowe-web-translation-performance-design.md`; plan: `docs/superpowers/plans/2026-07-19-glowe-web-translation-performance.md`. Reuses `glowe_content_translations` (no migration, no new table). The KC path (`translate`, `content_translations`, `get_post_translations`) is untouched.
+
+A per-field decision ladder in `js/glowe-translate.js` — (1) same-language short-circuit → (2) sessionStorage cache → (3) batched DB cache read → (4) one batched `glowe-translate` call for the genuine misses — triggered by an IntersectionObserver lookahead with a scroll/resize sweep and a `setTimeout` flush fallback (so it fires in background tabs / embedded webviews where `requestAnimationFrame` is paused). A discreet, interface-language "Translating…" indicator appears only for cold misses still unresolved after 400ms.
+
+**Acceptance Criteria.**
+
+- AC1. Same-language short-circuit: a pure helper (`sameLanguageSkip`) decides from a field's source text + reader language whether it is already in the reader's language (Hebrew script ⇒ `he`; no non-Latin letters ⇒ `en`); a match makes no network call and renders no indicator. Unit-tested (he/en/mixed/non-Latin/empty).
+- AC2. Bounded `sessionStorage` cache (`GloweSessionCache`) keyed `(type,id,field,target)` stores resolved translations **and** same-language decisions (`''` sentinel), so re-renders and cross-page navigation cost zero network; cleared on interface-language switch; degrades to a no-op on storage errors.
+- AC3. The visible batch reads the DB cache with a single `.in('content_id', ids)` query (existing behavior, preserved).
+- AC4. `glowe-translate` accepts a batch body `{ targetLanguage, items[] }` (legacy single body + shape preserved); reads all source rows server-side grouped by table (anti-poisoning), fans misses out to the provider with bounded concurrency (`translateMany`) in one Edge round-trip, upserts single-flight, returns index-aligned results; the client sends all misses for a window as one request (≤24/chunk).
+- AC5. No path awaits misses sequentially per card; a slow/failed batch degrades silently to source text and never blocks rendering.
+- AC6. An IntersectionObserver lookahead (~1–2 screens) is the primary trigger; a rAF-throttled sweep of registered cards (run on register + scroll + resize) is the robust fallback, so the feature works where IntersectionObserver never fires.
+- AC7. The flush is scheduled on `requestAnimationFrame` with a `setTimeout` fallback (whichever fires first), so the initial visible window resolves promptly and is not stranded in background tabs / webviews.
+- AC8. A field unresolved 400ms after entering the translate path shows a discreet localized "Translating…" line in the reserved `.tr-slot` (interface language via `GLOWE_TRANSLATIONS`, `aria-live`), removed on resolve; warm / same-language / session-cache paths never render it; the source→translation swap causes no layout shift.
+- AC9. Graceful degradation + cost bounds: only near-viewport content is translated (no bulk pre-translation, no translate-on-publish); provider/network failure leaves source text in place with no error UI; the session skip-map prevents re-firing a resolved skip/failure.
+- AC10. No schema change; the source registry + `translateMany` helper live under `supabase/functions/_shared/translation/` so `glowe-translate` shares logic (duplication gate); names are never translated; the KC path is unchanged.
+
+**Related.** `glowe-translate.js` driver; `glowe-session-cache.js`; `supabase/functions/_shared/translation/{batch,gloweSource}.ts`; `supabase/functions/glowe-translate/index.ts`. Verified end-to-end against dev (batch Edge contract + cached he→en swap + toggle + same-language short-circuit).

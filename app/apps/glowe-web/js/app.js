@@ -8061,6 +8061,8 @@ const GLOWE_TRANSLATIONS = {
         // UGC translation toggle (FR-TRANSLATE-005)
         'Show original': 'הצג מקור',
         'Show translation': 'הצג תרגום',
+        // Loading indicator while a cold translation is in flight (FR-TRANSLATE-006)
+        'Translating…': 'מתרגם…',
         // Bilingual names (FR-GLOWE-024)
         'Name in English (optional)': 'שם באנגלית (אופציונלי)',
         'Latin / English display name': 'שם תצוגה באנגלית / לטינית',
@@ -9351,6 +9353,7 @@ const GLOWE_TRANSLATIONS = {
     ru: {
         "Show original": "Показать оригинал",
         "Show translation": "Показать перевод",
+        "Translating…": "Перевод…",
         "Name in English (optional)": "Имя на английском (необязательно)",
         "Latin / English display name": "Отображаемое имя латиницей / на английском",
         "Latin / English name — auto-filled if left blank": "Имя латиницей / на английском — заполнится автоматически, если оставить пустым",
@@ -10612,6 +10615,7 @@ const GLOWE_TRANSLATIONS = {
     ar: {
         "Show original": "عرض النص الأصلي",
         "Show translation": "عرض الترجمة",
+        "Translating…": "جارٍ الترجمة…",
         "Name in English (optional)": "الاسم بالإنجليزية (اختياري)",
         "Latin / English display name": "اسم العرض بالحروف اللاتينية / الإنجليزية",
         "Latin / English name — auto-filled if left blank": "الاسم بالحروف اللاتينية / الإنجليزية — يُملأ تلقائيًا إذا تُرك فارغًا",
@@ -11873,6 +11877,7 @@ const GLOWE_TRANSLATIONS = {
     am: {
         "Show original": "ዋናውን አሳይ",
         "Show translation": "ትርጉሙን አሳይ",
+        "Translating…": "በመተርጎም ላይ…",
         "Name in English (optional)": "ስም በእንግሊዝኛ (አማራጭ)",
         "Latin / English display name": "የላቲን / እንግሊዝኛ የማሳያ ስም",
         "Latin / English name — auto-filled if left blank": "የላቲን / እንግሊዝኛ ስም — ባዶ ከተተወ በራሱ ይሞላል",
