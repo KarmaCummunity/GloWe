@@ -108,36 +108,60 @@ function gloweUserFromSupabase(supabaseUser, profile = null) {
     };
 }
 
-async function syncSupabaseSession() {
+async function resolveSupabaseUserFromBridge(authEvent, sessionFromEvent) {
+    // Prefer the session handed to onAuthStateChange — it is local and avoids a
+    // network getUser() race that falsely reports null during rapid Home reloads
+    // (which then cleared gloweUser and flashed the guest marketing home).
+    if (sessionFromEvent && sessionFromEvent.user) {
+        return sessionFromEvent.user;
+    }
+    if (authEvent === 'SIGNED_OUT') return null;
+
+    const client = await window.gloweBackend.getClient();
+    if (!client || !client.auth) return null;
+
+    // getSession() reads persisted local storage; do NOT use getUser() here —
+    // getUser() hits the network and can return null while the JWT is still valid.
+    if (typeof client.auth.getSession === 'function') {
+        const { data } = await client.auth.getSession();
+        if (data && data.session && data.session.user) return data.session.user;
+        return null;
+    }
+
+    // Fallback for older clients.
+    return window.gloweBackend.currentUser();
+}
+
+function applySignedOutBridge(wasLoggedIn) {
+    clearGloweIdentity();
+    if (wasLoggedIn) {
+        updateAuthUI();
+        // Prefer in-place UI swap over location.reload(): a reload while Home is
+        // being tapped repeatedly re-enters the guest HTML shell and stacks
+        // async races. Pages that need a full re-render still refresh via
+        // updateAuthUI / refreshPersonalAreaIfVisible.
+        refreshPersonalAreaIfVisible();
+        return;
+    }
+    refreshPersonalAreaIfVisible();
+}
+
+async function syncSupabaseSession(authEvent, sessionFromEvent) {
     if (!(window.gloweBackend && window.gloweBackend.configured())) return;
 
     let supabaseUser = null;
     try {
-        supabaseUser = await window.gloweBackend.currentUser();
+        supabaseUser = await resolveSupabaseUserFromBridge(authEvent, sessionFromEvent);
     } catch (error) {
+        // Transient bridge failure — keep the cached gloweUser so we never flash
+        // the guest home for a still-signed-in member.
         return;
     }
 
     if (!supabaseUser) {
-        // Supabase reports signed out — clear ALL stale local identity (incl. the
-        // cached personal profile), not just gloweUser.
-        const wasLoggedIn = isLoggedIn();
-        clearGloweIdentity();
-        if (wasLoggedIn) {
-            updateAuthUI();
-            // The page already rendered member content (e.g. the Community
-            // sidebar reads getPersonalProfile() synchronously at load, before
-            // this async bridge resolves). Clearing storage alone leaves that
-            // stale DOM in place, so force a reload to re-render as anonymous.
-            // After the reload gloweUser is gone → wasLoggedIn is false → no loop.
-            // logout() clears identity *before* it triggers signOut, so this path
-            // never fires during an explicit logout (which redirects on its own).
-            window.location.reload();
-            return;
-        }
-        // Already anonymous (e.g. logout() cleared identity before this fired):
-        // just refresh the Personal Area to reflect the signed-out state.
-        refreshPersonalAreaIfVisible();
+        // Only tear down when Supabase confirms there is no local session
+        // (SIGNED_OUT or getSession() empty). Never on a flaky getUser().
+        applySignedOutBridge(isLoggedIn());
         return;
     }
 
@@ -181,10 +205,10 @@ async function attachSupabaseAuthListener() {
         return;
     }
     if (!client || !client.auth || typeof client.auth.onAuthStateChange !== 'function') return;
-    client.auth.onAuthStateChange(() => {
+    client.auth.onAuthStateChange((event, session) => {
         // Defer to avoid the supabase-js deadlock when calling client methods
         // from inside the auth-state callback.
-        setTimeout(() => { syncSupabaseSession(); }, 0);
+        setTimeout(() => { syncSupabaseSession(event, session); }, 0);
     });
 }
 
@@ -639,6 +663,14 @@ function updateAuthUI() {
     // the nav builder so login/logout flips the primary tab without a reload.
     if (typeof window.normalizeMainNavigation === 'function') {
         window.normalizeMainNavigation();
+    }
+    // FR-GLOWE-016 AC2 — swap guest ↔ member home immediately on auth change.
+    if (typeof window.refreshHomeForAuthState === 'function') {
+        window.refreshHomeForAuthState();
+    }
+    // FR-GLOWE-016 / TD-180 — refresh + (re)subscribe the chat unread badge.
+    if (typeof window.refreshMessagesBadge === 'function') {
+        window.refreshMessagesBadge();
     }
 }
 

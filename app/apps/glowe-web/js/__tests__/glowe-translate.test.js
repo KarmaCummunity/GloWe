@@ -77,3 +77,56 @@ describe('sameLanguageSkip', () => {
         expect(GloweTranslate.sameLanguageSkip('   ', 'en')).toBe(false);
     });
 });
+
+describe('acceptTranslation', () => {
+    it('rejects Hebrew→Hebrew paraphrases for a Hebrew reader', () => {
+        expect(GloweTranslate.acceptTranslation('חינוך', 'השכלה', 'he', null)).toBe(false);
+        expect(GloweTranslate.acceptTranslation('חינוך', 'הַשְׂכָּלָה', 'he', 'he')).toBe(false);
+    });
+    it('accepts Latin→Hebrew for a Hebrew reader', () => {
+        expect(GloweTranslate.acceptTranslation('Education', 'חינוך', 'he', 'en')).toBe(true);
+        expect(GloweTranslate.acceptTranslation('Education', 'השכלה', 'he', null)).toBe(true);
+    });
+    it('rejects identical / nikud-only diffs', () => {
+        expect(GloweTranslate.acceptTranslation('שלום', 'שלום', 'he', null)).toBe(false);
+        expect(GloweTranslate.acceptTranslation('שלום', 'שָׁלוֹם', 'en', 'he')).toBe(false);
+    });
+    it('rejects when sourceLanguage base matches target', () => {
+        expect(GloweTranslate.acceptTranslation('Hello', 'Hi there', 'en', 'en')).toBe(false);
+    });
+
+    it('accepts English→Hebrew even when a prior poison used sourceLanguage=he', () => {
+        // Live source is Latin; a stale cache row tagged source_language=he must
+        // not be applied (needsTranslation he→he is false).
+        expect(GloweTranslate.acceptTranslation(
+            'Volunteer mentor for garden kickoff',
+            'מנטור מתנדב לפתיחת הגינה',
+            'he',
+            'he'
+        )).toBe(false);
+        expect(GloweTranslate.acceptTranslation(
+            'Volunteer mentor for garden kickoff',
+            'מנטור מתנדב לפתיחת הגינה',
+            'he',
+            'en'
+        )).toBe(true);
+    });
+
+    it('rejects identical English stubs cached under target=he', () => {
+        expect(GloweTranslate.acceptTranslation(
+            'Volunteer mentor for garden kickoff',
+            'Volunteer mentor for garden kickoff',
+            'he',
+            'en'
+        )).toBe(false);
+    });
+});
+describe('isPrimaryContentField', () => {
+    it('marks title/description/mission as primary; meta chips as not', () => {
+        expect(GloweTranslate.isPrimaryContentField('title')).toBe(true);
+        expect(GloweTranslate.isPrimaryContentField('org_description')).toBe(true);
+        expect(GloweTranslate.isPrimaryContentField('org_field')).toBe(false);
+        expect(GloweTranslate.isPrimaryContentField('skills.0')).toBe(false);
+        expect(GloweTranslate.isPrimaryContentField('location')).toBe(false);
+    });
+});

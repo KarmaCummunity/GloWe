@@ -32,8 +32,21 @@ const FROM_ENV = RAW
 
 export const ALLOWED_ORIGINS: string[] = [...new Set([...DEV_ORIGINS, ...GLOWE_ORIGINS, ...FROM_ENV])];
 
+// Local loopback on any port (Live Server, Vite, Cursor preview, etc.) and
+// Cloudflare Pages preview deploys (https://<hash>.karma-community.pages.dev)
+// must reach glowe-translate — a silent CORS miss shows "Translating…" then
+// drops with no translation and no app log.
+const LOCAL_LOOPBACK =
+  /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+const GLOWE_PAGES_PREVIEW =
+  /^https:\/\/([a-z0-9-]+\.)?karma-community\.pages\.dev$/i;
+
 export function isAllowedOrigin(origin: string | null): boolean {
-  return origin !== null && ALLOWED_ORIGINS.includes(origin);
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (LOCAL_LOOPBACK.test(origin)) return true;
+  if (GLOWE_PAGES_PREVIEW.test(origin)) return true;
+  return false;
 }
 
 export function corsHeaders(origin: string | null): Record<string, string> {

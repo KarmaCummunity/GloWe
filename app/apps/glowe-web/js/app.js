@@ -971,7 +971,7 @@ async function loadMyWishes() {
     if (!orgs || !wishesApi) return;
     let rows = [];
     try { rows = await backend.listOwned('posts'); } catch (_e) { rows = []; }
-    backendMyWishes = orgs.myWishPosts(rows || []).map(wishesApi.mapWishRow);
+    backendMyWishes = orgs.myWishPosts(rows || []).map(row => wishesApi.mapWishRow(row, gloweLocaleTag()));
 }
 
 function getMyWishesForView() {
@@ -2014,6 +2014,7 @@ function ensureGlobalUI() {
     normalizeHeaderUserMenu();
     ensureGlobalFooter();
     ensureBottomNavigation();
+    bindHomeSelfNavGuard();
 
     if (!document.getElementById('login-modal')) {
         document.body.insertAdjacentHTML('beforeend', `
@@ -3821,6 +3822,16 @@ function savedToggleButtonHtml(type, id, title, meta, href, saveLabel, className
     return `<button class="${cls}" type="button" aria-pressed="${saved}" data-save-label="${escapeHtml(saveLabel)}" onclick="toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${escapeHtml(label)}</button>`;
 }
 
+// Icon-only save control for card headers (org directory). Keeps the SVG on
+// toggle — refreshSavedToggleButton only flips aria/class for this variant.
+function savedToggleIconHtml(type, id, title, meta, href, saveLabel) {
+    const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+    const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
+    const label = saved ? 'Saved' : (saveLabel || 'Save');
+    const cls = 'save-icon-btn' + (saved ? ' is-saved' : '');
+    return `<button class="${cls}" type="button" aria-pressed="${saved}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" data-save-label="${escapeHtml(saveLabel || 'Save')}" onclick="event.preventDefault(); event.stopPropagation(); toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${BOOKMARK_ICON_SVG}</button>`;
+}
+
 // Flip a rendered toggle button in place after a save/unsave (avoids a full list
 // re-render / scroll reset). Setting textContent replaces the text node, which the
 // i18n MutationObserver catches and localizes.
@@ -3829,7 +3840,13 @@ function refreshSavedToggleButton(btn, type, id) {
     const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
     btn.setAttribute('aria-pressed', String(saved));
     btn.classList.toggle('is-saved', saved);
-    btn.textContent = saved ? 'Saved' : (btn.getAttribute('data-save-label') || 'Save');
+    const label = saved ? 'Saved' : (btn.getAttribute('data-save-label') || 'Save');
+    if (btn.classList.contains('save-icon-btn')) {
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+        return;
+    }
+    btn.textContent = label;
 }
 
 // FR-GLOWE-013 AC2 — toggle a card's saved state: unsave when already saved, else
@@ -4092,7 +4109,7 @@ function withGroupStats(groups) {
 function formatThreadActivity(createdAt) {
     if (!createdAt) return 'Just now';
     const d = new Date(createdAt);
-    return isNaN(d.getTime()) ? 'Just now' : d.toLocaleDateString();
+    return isNaN(d.getTime()) ? 'Just now' : d.toLocaleDateString(gloweLocaleTag());
 }
 
 function savePostComment(postId, text) {
@@ -4171,6 +4188,7 @@ function getAllCommunityPosts() {
 // bare "Copy link" — desktop browsers without navigator.share fall back to a
 // silent clipboard copy + toast. (FR-GLOWE-008 AC5; design fix #9.)
 const SHARE_ICON_SVG = '<svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
+const BOOKMARK_ICON_SVG = '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
 
 // Familiar visual anchors for the post actions (Jakob's Law; design fix #8).
 const COMMENT_ICON_SVG = '<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
@@ -4222,7 +4240,7 @@ function renderShareButton(title, path = '', extraClass = '') {
     const titleArg = jsString(title);
     const pathArg = jsString(path);
     const cls = ['post-share-button', extraClass].filter(Boolean).join(' ');
-    return `<button type="button" class="${cls}" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="Share ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
+    return `<button type="button" class="${cls}" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="${escapeHtml(gloweText('Share'))} ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
 }
 
 // FR-GLOWE-015 AC1 — persist a report to glowe_reports. Duplicate reports on
@@ -4359,7 +4377,7 @@ function wishOffersHtml(views) {
         return `${header}<p class="muted-note">No offers yet.</p>`;
     }
     const rows = views.map(function (v) {
-        const date = v.createdAt ? new Date(v.createdAt).toLocaleDateString() : '';
+        const date = v.createdAt ? new Date(v.createdAt).toLocaleDateString(gloweLocaleTag()) : '';
         return `
         <li class="applicant-row">
             <div class="applicant-head">
@@ -4368,7 +4386,7 @@ function wishOffersHtml(views) {
             ${v.offerText ? `<p class="applicant-field">${escapeHtml(v.offerText)}</p>` : ''}
             ${v.availability ? `<p class="applicant-field"><strong>Availability:</strong> ${escapeHtml(v.availability)}</p>` : ''}
             ${v.contactPreference ? `<p class="applicant-field"><strong>Preferred contact:</strong> ${escapeHtml(v.contactPreference)}</p>` : ''}
-            ${date ? `<p class="applicant-meta">Offered ${escapeHtml(date)}</p>` : ''}
+            ${date ? `<p class="applicant-meta">${gloweText('Offered')} ${escapeHtml(date)}</p>` : ''}
             ${connectButtonHtml(v) ? `<div class="applicant-actions">${connectButtonHtml(v)}</div>` : ''}
         </li>`;
     }).join('');
@@ -4663,9 +4681,25 @@ function uniqueCardMeta(values) {
     return (values || []).filter(Boolean);
 }
 
+// Prefer extensionless page paths when attaching a query string. Local `serve`
+// clean-URL mode 301-redirects `foo.html?x=1` → `/foo` and drops the query,
+// which made org profile links open "Profile not found" while hosted Cloudflare
+// Pages kept working.
+function glowePageHref(path, query) {
+    const clean = String(path || '').replace(/\.html$/i, '');
+    if (query == null || query === '') return clean;
+    const q = String(query).replace(/^\?/, '');
+    return q ? `${clean}?${q}` : clean;
+}
+
+function directoryUi() {
+    return (typeof GloweUiConventions !== 'undefined') ? GloweUiConventions : null;
+}
+
 function renderOpportunityCard(opportunity, basePath = '') {
+    const ui = directoryUi();
     const titleForMessage = jsString(opportunity.title);
-    const detailHref = `${basePath}pages/opportunity.html?id=${encodeURIComponent(opportunity.id)}`;
+    const detailHref = glowePageHref(`${basePath}pages/opportunity.html`, `id=${encodeURIComponent(opportunity.id)}`);
     const skills = Array.isArray(opportunity.skills) ? opportunity.skills : [];
     const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
     const isEvent = events ? events.isEvent(opportunity) : false;
@@ -4673,107 +4707,119 @@ function renderOpportunityCard(opportunity, basePath = '') {
         ? GloweLocalizedName.localizedOrganizationName(opportunity, gloweReaderLang(), 'GloWe Member')
         : (opportunity.organization || 'GloWe Member');
     const orgPair = orgNamePairFrom(opportunity);
-    const badge = isEvent
-        ? (events.eventTypeLabel(opportunity.eventType) || 'Event')
-        : (opportunity.commitment || '');
-    const eventMeta = isEvent
-        ? `<span class="opportunity-detail"><strong>When:</strong> ${escapeHtml(events.formatEventDate(opportunity))}</span>`
-        : '';
     const location = opportunity.location || '';
     const duration = opportunity.duration || '';
     const commitment = opportunity.commitment || '';
-    const badgeTr = (!isEvent && commitment) ? ' data-tr-field="commitment"' : '';
-
-    return `
-        <div class="opportunity-card" data-tr-card data-tr-type="glowe_opportunity" data-tr-id="${opportunity.id}">
-            <details class="post-more-menu card-more-menu">
+    // Commitment enums are chrome i18n keys — omit data-tr-field so gloweLang can localize.
+    const eventMeta = isEvent
+        ? `<span class="opportunity-detail"><strong>When:</strong> ${escapeHtml(events.formatEventDate(opportunity, gloweLocaleTag()))}</span>`
+        : '';
+    const detailBits = [
+        eventMeta,
+        location ? `<span class="opportunity-detail"><strong>Location:</strong> <span data-tr-field="location">${escapeHtml(location)}</span></span>` : '',
+        duration ? `<span class="opportunity-detail"><strong>Duration:</strong> <span data-tr-field="duration">${escapeHtml(duration)}</span></span>` : '',
+        !isEvent && commitment
+            ? `<span class="opportunity-detail"><strong>Commitment:</strong> <span>${escapeHtml(commitment)}</span></span>`
+            : ''
+    ].filter(Boolean).join('');
+    const eventChip = isEvent
+        ? `<span class="skill-tag directory-card-meta-chip">${escapeHtml(events.eventTypeLabel(opportunity.eventType) || 'Event')}</span>`
+        : '';
+    const skillTags = skills.map((skill, i) =>
+        `<span class="skill-tag" title="${escapeHtml(skill)}" data-tr-field="skills.${i}">${escapeHtml(skill)}</span>`
+    ).join('');
+    const avatarHtml = (ui ? ui.avatarWrapHtml(
+        renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName),
+        { verified: false }
+    ) : renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName))
+        + `<span class="directory-card-org-name" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>`;
+    // Save lives in the ⋯ menu only (no header bookmark icon).
+    const moreMenuHtml = `
+            <details class="post-more-menu card-more-menu directory-card-more">
                 <summary aria-label="More opportunity actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save opportunity', 'post-menu-action')}
                     <button type="button" onclick="openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')">Message publisher</button>
                     <button type="button" onclick="openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')">Report</button>
                 </div>
-            </details>
-            <div class="opportunity-header">
-                <div class="opportunity-org">
-                    ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName)}
-                    <span ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>
-                </div>
-                ${badge ? `<span class="opportunity-badge" title="${escapeHtml(badge)}"${badgeTr}>${escapeHtml(badge)}</span>` : ''}
-            </div>
-            ${translationToggleSlotHtml()}
-            <h3 class="opportunity-title" data-tr-field="title">${escapeHtml(opportunity.title)}</h3>
-            <p class="opportunity-description" data-tr-field="description">${escapeHtml(opportunity.description)}</p>
-            <div class="opportunity-meta-group opportunity-details">
-                ${eventMeta}
-                ${location ? `<span class="opportunity-detail"><strong>Location:</strong> <span data-tr-field="location">${escapeHtml(location)}</span></span>` : ''}
-                ${duration ? `<span class="opportunity-detail"><strong>Duration:</strong> <span data-tr-field="duration">${escapeHtml(duration)}</span></span>` : ''}
-                ${!isEvent && commitment ? `<span class="opportunity-detail"><strong>Commitment:</strong> <span data-tr-field="commitment">${escapeHtml(commitment)}</span></span>` : ''}
-            </div>
-            <div class="opportunity-skills">
-                ${skills.map((skill, i) => `<span class="skill-tag" title="${escapeHtml(skill)}" data-tr-field="skills.${i}">${escapeHtml(skill)}</span>`).join('')}
-            </div>
-            <div class="card-actions">
-                <a href="${detailHref}" class="btn btn-primary btn-small">View Details</a>
-                ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save Opportunity')}
-                ${renderShareButton(opportunity.title, detailHref)}
-            </div>
-        </div>
-    `;
+            </details>`;
+    const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions';
+    const cardSpec = {
+        href: detailHref,
+        ariaLabel: opportunity.title || 'Opportunity',
+        trType: 'glowe_opportunity',
+        trId: opportunity.id,
+        moreMenuHtml,
+        avatarHtml,
+        titleHtml: `<h3 class="opportunity-title" data-tr-field="title">${escapeHtml(opportunity.title)}</h3>`,
+        descriptionHtml: `<p class="opportunity-description" data-tr-field="description">${escapeHtml(opportunity.description)}</p>`,
+        detailsHtml: detailBits ? `<div class="opportunity-meta-group opportunity-details">${detailBits}</div>` : '',
+        skillsHtml: (eventChip || skillTags) ? `<div class="opportunity-skills">${eventChip}${skillTags}</div>` : '',
+        actionsHtml: `<div class="${actionsClass}">${renderShareButton(opportunity.title, detailHref)}</div>`
+    };
+    if (ui) return ui.directoryCardHtml(cardSpec);
+    return `<article class="opportunity-card directory-card">${cardSpec.titleHtml}${cardSpec.actionsHtml}</article>`;
 }
 
-// Render organization card
+// Render organization card — same directory shell as opportunity cards.
 function renderOrganizationCard(organization, basePath = '') {
-    const profileHref = `${basePath}pages/profile.html?id=${organization.id}`;
-    const saveLabel = (typeof GloweUiConventions !== 'undefined')
-        ? GloweUiConventions.saveLabelFor('profile')
-        : 'Save';
+    const ui = directoryUi();
+    const profileHref = glowePageHref(`${basePath}pages/profile.html`, `id=${encodeURIComponent(organization.id)}`);
     const orgPair = orgNamePairFrom(organization);
     const placeBits = uniqueCardMeta([organization.location, organization.scope]);
+    const volunteerCount = String(organization.volunteers || 0);
     const detailHtml = [
         ...placeBits.map((v) => `<span class="opportunity-detail">${escapeHtml(v)}</span>`),
-        `<span class="opportunity-detail">${escapeHtml(String(organization.volunteers || 0))} volunteers</span>`
+        // Split count + label so i18n can translate the exact key "volunteers".
+        `<span class="opportunity-detail">${escapeHtml(volunteerCount)} <span>volunteers</span></span>`
     ].join('');
     const skillTags = uniqueCardMeta([
         organization.type || 'Organization',
         organization.impactArea || ''
-    ]);
-    const skillsHtml = skillTags.map((tag, i) => {
+    ]).map((tag, i) => {
         const tr = i === 0 ? ' data-tr-field="org_field"' : '';
         return `<span class="skill-tag"${tr}>${escapeHtml(tag)}</span>`;
     }).join('');
-    return `
-        <div class="opportunity-card" data-tr-card data-tr-type="glowe_profile" data-tr-id="${organization.id}">
-            <details class="post-more-menu card-more-menu">
+    const avatarInner = renderLocalizedEntityMark(orgPair.primary, orgPair.english, organization.name);
+    const avatarHtml = ui
+        ? ui.avatarWrapHtml(avatarInner, { verified: true })
+        : `<span class="directory-avatar-wrap" title="Verified">${avatarInner}</span>`;
+    // Save lives in the ⋯ menu only (no header bookmark icon).
+    const moreMenuHtml = `
+            <details class="post-more-menu card-more-menu directory-card-more">
                 <summary aria-label="More profile actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('profile', organization.id, organization.name, organization.type || 'Organization', profileHref, 'Save profile', 'post-menu-action')}
                     <button type="button" onclick="openPrivateMessage('${jsString(organization.name)}', '${jsString(organization.id)}')">Message</button>
                     <button type="button" onclick="openReportModal('profile', '${organization.id}', '${jsString(organization.name)}')">Report</button>
                 </div>
-            </details>
-            <div class="opportunity-header">
-                <div class="opportunity-org">
-                    ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, organization.name)}
-                </div>
-                <span class="opportunity-badge">${escapeHtml(organization.status || 'Approved')}</span>
-            </div>
-            ${translationToggleSlotHtml()}
-            <h3 class="opportunity-title" data-follow-name="${organization.id}" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(organization.name)}</h3>
-            <p class="opportunity-description" data-tr-field="${organization.missionField}">${escapeHtml(organization.mission)}</p>
-            <div class="opportunity-details">${detailHtml}</div>
-            <div class="opportunity-skills">${skillsHtml}</div>
-            <div class="${cardActionsClassName()}">
-                <a href="${profileHref}" class="btn btn-outline btn-small">View Profile</a>
-                <button class="btn btn-primary btn-small" type="button" onclick="openReachOutModal('${organization.id}', '${jsString(organization.name)}')">Reach Out</button>
-                <span class="follow-slot" data-follow-slot="${organization.id}"></span>
-                ${savedToggleButtonHtml('profile', organization.id, organization.name, organization.type || 'Organization', profileHref, saveLabel)}
-            </div>
-        </div>
-    `;
+            </details>`;
+    const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions org-card-actions';
+    const cardSpec = {
+        href: profileHref,
+        ariaLabel: organization.name,
+        trType: 'glowe_profile',
+        trId: organization.id,
+        moreMenuHtml,
+        avatarHtml,
+        titleHtml: `<h3 class="opportunity-title" data-follow-name="${organization.id}" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(organization.name)}</h3>`,
+        descriptionHtml: `<p class="opportunity-description" data-tr-field="${organization.missionField}">${escapeHtml(organization.mission)}</p>`,
+        detailsHtml: `<div class="opportunity-details">${detailHtml}</div>`,
+        skillsHtml: `<div class="opportunity-skills">${skillTags}</div>`,
+        actionsHtml: `<div class="${actionsClass}">`
+            + `<button class="btn btn-primary btn-small" type="button" onclick="openReachOutModal('${organization.id}', '${jsString(organization.name)}')">Reach Out</button>`
+            + `<span class="follow-slot" data-follow-slot="${organization.id}"></span>`
+            + `</div>`
+    };
+    if (ui) return ui.directoryCardHtml(cardSpec);
+    return `<article class="opportunity-card directory-card">${cardSpec.titleHtml}${cardSpec.actionsHtml}</article>`;
 }
 
+// Wish board cards share the org/opportunity directory shell (FR-GLOWE-006 /
+// AC9): small avatar in the header; Save + Share only inside the ⋯ menu (no
+// white circle / heart / footer Share); stretch link opens the wish detail modal.
 function renderWishCard(wish) {
+    const ui = directoryUi();
     const style = wishTypeStyles[wish.type] || { color: '#E3F5F0' };
     const areas = Array.isArray(wish.areas) ? wish.areas : [];
     const authorPair = authorNamePairFrom(wish);
@@ -4781,10 +4827,10 @@ function renderWishCard(wish) {
         ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
             || authorPair.primary || 'GloWe Member'
         : (wish.author || 'GloWe Member');
-    const wishHref = `wishing-well.html?wish=${wish.id}`;
-    return `
-        <article class="wish-card" style="--tag-color: ${style.color}" data-tr-card data-tr-type="glowe_post" data-tr-id="${wish.id}">
-            <details class="post-more-menu card-more-menu">
+    const wishHref = glowePageHref('wishing-well.html', `wish=${encodeURIComponent(wish.id)}`);
+    // Save + Share live in the ⋯ menu only (no oversized footer Share button).
+    const moreMenuHtml = `
+            <details class="post-more-menu card-more-menu directory-card-more">
                 <summary aria-label="More wish actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save wish', 'post-menu-action')}
@@ -4792,35 +4838,38 @@ function renderWishCard(wish) {
                     <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')">Message author</button>
                     <button type="button" onclick="openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')">Report</button>
                 </div>
-            </details>
-            <div class="wish-card-top">
-                <span class="wish-type" style="background:${style.color}" title="${escapeHtml(wish.type)}">${escapeHtml(wish.type)}</span>
-                ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save', 'heart-button wish-save-desktop')}
-            </div>
-            ${translationToggleSlotHtml()}
-            <button class="card-open-button" type="button" onclick="openWishDetail('${wish.id}')">
-                ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'wish-image')}
-                <span class="sr-only">Open wish details</span>
-            </button>
-            <h3><button type="button" data-tr-field="title" onclick="openWishDetail('${wish.id}')">${escapeHtml(wish.title)}</button></h3>
-            <a class="wish-author" href="profile.html?id=${wish.authorId}">
-                ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName)}
-                <span ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
-                <small>${escapeHtml(wish.time)}</small>
-            </a>
-            <p data-tr-field="text">${escapeHtml(wish.description)}</p>
-            <div class="opportunity-details">
-                <span class="opportunity-detail">${escapeHtml(wish.location)}</span>
-                <span class="opportunity-detail">${escapeHtml(areas.join(', '))}</span>
-            </div>
-        <div class="card-actions">
-            <button class="btn btn-outline btn-small" type="button" onclick="openWishDetail('${wish.id}')">Learn More</button>
-            <button class="btn btn-primary btn-small" type="button" onclick="showSupportModal('${wish.id}')">Offer Support</button>
-            ${wishOwnerControls(wish)}
-            ${renderShareButton(wish.title, wishHref, 'wish-share-action')}
-        </div>
-    </article>
-`;
+            </details>`;
+    const avatarInner = renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName);
+    const avatarHtml = (ui
+        ? ui.avatarWrapHtml(avatarInner, { verified: false })
+        : avatarInner)
+        + `<span class="directory-card-org-name" ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>`;
+    const detailHtml = uniqueCardMeta([wish.location, areas.join(', '), wish.time])
+        .map((v) => `<span class="opportunity-detail">${escapeHtml(v)}</span>`)
+        .join('');
+    const typeTag = wish.type
+        ? `<span class="skill-tag directory-card-meta-chip" style="background:${style.color}" title="${escapeHtml(wish.type)}">${escapeHtml(wish.type)}</span>`
+        : '';
+    const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions';
+    const cardSpec = {
+        href: wishHref,
+        ariaLabel: wish.title || 'Open wish details',
+        stretchOnclick: `event.preventDefault(); openWishDetail('${wish.id}')`,
+        trType: 'glowe_post',
+        trId: wish.id,
+        moreMenuHtml,
+        avatarHtml,
+        titleHtml: `<h3 class="opportunity-title" data-tr-field="title">${escapeHtml(wish.title)}</h3>`,
+        descriptionHtml: `<p class="opportunity-description" data-tr-field="text">${escapeHtml(wish.description)}</p>`,
+        detailsHtml: detailHtml ? `<div class="opportunity-details">${detailHtml}</div>` : '',
+        skillsHtml: typeTag ? `<div class="opportunity-skills">${typeTag}</div>` : '',
+        actionsHtml: `<div class="${actionsClass}">`
+            + `<button class="btn btn-primary btn-small" type="button" onclick="showSupportModal('${wish.id}')">Offer Support</button>`
+            + wishOwnerControls(wish)
+            + `</div>`
+    };
+    if (ui) return ui.directoryCardHtml(cardSpec);
+    return `<article class="opportunity-card directory-card">${cardSpec.titleHtml}${cardSpec.actionsHtml}</article>`;
 }
 
 function renderProjectCard(project, options) {
@@ -4852,6 +4901,129 @@ function formatCommentCount(count) {
     return `${n} comments`;
 }
 
+// BCP-47 tag for Intl/toLocaleDateString calls. GLOWE_LANGUAGES codes ('en',
+// 'he', 'ru', 'ar', 'am') already are valid BCP-47 primary tags, so this is a
+// pass-through today — named separately so a future switch to a more specific
+// region tag (e.g. 'he-IL') only touches one place.
+function gloweLocaleTag() {
+    return getGloweLanguage();
+}
+
+// GLOWE_TRANSLATIONS['Post'] already carries the verb sense ("Publish") for the
+// compose/submit buttons, so the post-type badge's noun sense ("a post") needs
+// its own small map — reusing that key would render the badge as "Publish |
+// Knowledge Share" instead of "Post | Knowledge Share".
+const GLOWE_POST_NOUN = { he: 'פוסט', ru: 'Пост', ar: 'منشور', am: 'ልጥፍ' };
+
+// The post-type badge concatenates a static "Post" label with post.category in
+// one template literal, which collapses into a single DOM text node that the
+// passive i18n walker (translateGloweTree) can never match against a
+// dictionary key — so it always rendered in English regardless of interface
+// language. Build the localized string here instead. Forum-originated posts
+// store category as "<Label> | <Group Title>", where the group title is real
+// content and must stay verbatim — only the recognized prefix is translated.
+function glowePostTypeLabel(category, separator) {
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    const postWord = GLOWE_POST_NOUN[getGloweLanguage()] || 'Post';
+    const raw = String(category || '').trim();
+    if (!raw) return postWord;
+    const sepIdx = raw.indexOf(' | ');
+    const label = sepIdx === -1
+        ? ((dict && dict[raw]) || raw)
+        : ((dict && dict[raw.slice(0, sepIdx)]) || raw.slice(0, sepIdx)) + raw.slice(sepIdx);
+    return `${postWord}${separator || ' | '}${label}`;
+}
+
+// Same problem as glowePostTypeLabel() above: a static "<Label>:" prefix glued
+// to a dynamic value in one template literal never reaches the i18n walker as
+// an isolated text node, so it always rendered in English. Look the label up
+// in the shared dict directly instead.
+function glowePrefixedLabel(key) {
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    return `${(dict && dict[key]) || key}:`;
+}
+
+// Same problem again, mirrored: a count glued in FRONT of a static label
+// ("3 volunteers connected") — the count comes first this time, but it still
+// collapses into one text node the i18n walker can never match.
+function gloweCountedLabel(count, key) {
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    return `${count} ${(dict && dict[key]) || key}`;
+}
+
+// Plain dict lookup with English fallback, for a JS-level fallback string
+// that isn't itself glued to a dynamic value (unlike the helpers below) but
+// still needs a translation before it's used as one.
+function gloweText(key) {
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    return (dict && dict[key]) || key;
+}
+
+// A dynamic value sandwiched between a static prefix and suffix ("The work
+// responds to needs connected to X and helps make local knowledge easier to
+// access and act on.") — same weld problem, just with text on both sides.
+function gloweSandwichedLabel(prefixKey, value, suffixKey) {
+    const dict = typeof gloweDict === 'function' ? gloweDict() : null;
+    const prefix = (dict && dict[prefixKey]) || prefixKey;
+    const suffix = (dict && dict[suffixKey]) || suffixKey;
+    return `${prefix}${value}${suffix}`;
+}
+
+// TD-141 — admin/self-facing badges (report status, report/saved-item target
+// type) rendered the raw DB enum value verbatim with no label at all, so
+// there was no English word for translateGloweTree to match. These maps give
+// each enum value an English label, which then goes through the normal dict
+// lookup. 'post' reuses GLOWE_POST_NOUN — same "Post" verb/noun collision as
+// glowePostTypeLabel() above.
+const GLOWE_REPORT_STATUS_LABEL = { open: 'Open', dismissed: 'Dismissed', actioned: 'Actioned' };
+const GLOWE_TARGET_TYPE_LABEL = {
+    post: null, opportunity: 'Opportunity', profile: 'Profile',
+    comment: 'Comment', thread: 'Thread', reply: 'Reply', general: 'General'
+};
+const GLOWE_SAVED_ITEM_TYPE_LABEL = { post: null, profile: 'Profile', wish: 'Wish', opportunity: 'Opportunity' };
+
+function gloweEnumLabel(map, key) {
+    const label = map[String(key || '')];
+    if (label === null) return GLOWE_POST_NOUN[getGloweLanguage()] || 'Post';
+    return gloweText(label || key);
+}
+
+// Session-only: which post comment threads the viewer opened this visit.
+// Survives community re-renders (post/comment submit) without localStorage.
+const gloweExpandedPostComments = new Set();
+
+function isPostCommentsExpanded(postId) {
+    return gloweExpandedPostComments.has(String(postId));
+}
+
+function expandPostComments(postId) {
+    gloweExpandedPostComments.add(String(postId));
+}
+
+function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick = false } = {}) {
+    const commentPair = authorNamePairFrom(comment);
+    const commentAuthor = (typeof GloweLocalizedName !== 'undefined')
+        ? GloweLocalizedName.resolveLocalizedName(commentPair.primary, commentPair.english, gloweReaderLang())
+        : (comment.author || 'Community Member');
+    const commentId = comment.id || '';
+    const trAttrs = commentId
+        ? ` data-tr-card data-tr-type="glowe_comment" data-tr-id="${escapeHtml(String(commentId))}"`
+        : '';
+    const leadClass = lead ? ' comment-row--lead' : '';
+    const openAttrs = openOnClick
+        ? ` role="button" tabindex="0" onclick="openPostComments('${jsString(postId)}')"`
+        : '';
+    return `
+                    <article class="comment-row${leadClass}"${trAttrs}${openAttrs}>
+                        ${renderLocalizedEntityMark(commentPair.primary, commentPair.english, commentAuthor, 'comment-avatar')}
+                        <div>
+                            ${commentId ? translationToggleSlotHtml() : ''}
+                            <strong ${bilingualNameAttrs(commentPair.primary, commentPair.english)}>${escapeHtml(commentAuthor)}</strong>
+                            <p${commentId ? ' data-tr-field="text"' : ''}>${escapeHtml(comment.text)}</p>
+                        </div>
+                    </article>`;
+}
+
 // Pre-existing render hotspot (owner menu + comments + tags); this PR only
 // added the action icons/count + share button, not the underlying complexity.
 // fallow-ignore-next-line complexity
@@ -4864,6 +5036,7 @@ function renderPostCard(post) {
     const tags = Array.isArray(post.tags) ? post.tags : [];
     const postId = post.id || getPostId(post);
     const comments = getPostCommentsFor(postId);
+    const commentsExpanded = isPostCommentsExpanded(postId);
     const viewer = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
     const ownsPost = (typeof GlowePosts !== 'undefined')
         ? GlowePosts.isPostOwner(post, viewer && viewer.id)
@@ -4876,25 +5049,18 @@ function renderPostCard(post) {
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
-    const commentsHtml = comments.slice(0, 3).map((comment) => {
-        const commentPair = authorNamePairFrom(comment);
-        const commentAuthor = (typeof GloweLocalizedName !== 'undefined')
-            ? GloweLocalizedName.resolveLocalizedName(commentPair.primary, commentPair.english, gloweReaderLang())
-            : (comment.author || 'Community Member');
-        const commentId = comment.id || '';
-        const trAttrs = commentId
-            ? ` data-tr-card data-tr-type="glowe_comment" data-tr-id="${escapeHtml(String(commentId))}"`
-            : '';
-        return `
-                    <article class="comment-row"${trAttrs}>
-                        ${renderLocalizedEntityMark(commentPair.primary, commentPair.english, commentAuthor, 'comment-avatar')}
-                        <div>
-                            ${commentId ? translationToggleSlotHtml() : ''}
-                            <strong ${bilingualNameAttrs(commentPair.primary, commentPair.english)}>${escapeHtml(commentAuthor)}</strong>
-                            <p${commentId ? ' data-tr-field="text"' : ''}>${escapeHtml(comment.text)}</p>
-                        </div>
-                    </article>`;
-    }).join('');
+    const leadComment = comments[0];
+    const extraComments = comments.slice(1);
+    const leadHtml = leadComment
+        ? renderPostCommentRow(leadComment, { lead: true, postId, openOnClick: !commentsExpanded })
+        : '';
+    const extraHtml = extraComments.length
+        ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
+        : '';
+    const moreCommentsHtml = comments.length > 1
+        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${postId}')">${escapeHtml(gloweText('See all comments'))}</button>`
+        : '';
+    const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
     return `
         <article class="post-card" id="post-${postId}" data-tr-card data-tr-type="glowe_post" data-tr-id="${postId}">
             <details class="post-more-menu">
@@ -4912,27 +5078,29 @@ function renderPostCard(post) {
                     ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
                     <span>
                         <strong ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</strong>
-                        <small>${post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'now'}</small>
+                        <small>${post.createdAt ? new Date(post.createdAt).toLocaleDateString(gloweLocaleTag()) : gloweText('now')}</small>
                     </span>
                 </a>
-                <span class="post-type-tag" title="Post | ${escapeHtml(post.category)}">Post | ${escapeHtml(post.category)}</span>
+                <span class="post-type-tag" title="${escapeHtml(glowePostTypeLabel(post.category))}">${escapeHtml(glowePostTypeLabel(post.category))}</span>
             </div>
             ${translationToggleSlotHtml()}
             <h3 data-tr-field="title">${escapeHtml(post.title)}</h3>
             <p data-tr-field="text">${escapeHtml(post.text)}</p>
             ${tagsHtml}
             <div class="post-engagement-row">
-                <span class="comment-summary" aria-live="polite">${formatCommentCount(comments.length)}</span>
+                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
             </div>
             <div class="post-actions">
-                <button type="button" onclick="focusCommentBox('${postId}')">${COMMENT_ICON_SVG}<span>Comment</span>${comments.length ? `<span class="action-count">${comments.length}</span>` : ''}</button>
+                <button type="button" onclick="openPostComments('${postId}')">${COMMENT_ICON_SVG}<span>Comment</span>${comments.length ? `<span class="action-count">${comments.length}</span>` : ''}</button>
                 <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')">${SEND_ICON_SVG}<span>Send</span></button>
                 ${renderShareButton(post.title, `community.html?post=${encodeURIComponent(postId)}`)}
             </div>
-            <div class="post-comments" id="comments-${postId}">
-                ${commentsHtml}
+            <div class="post-comments${collapsedClass}" id="comments-${postId}">
+                ${leadHtml}
+                ${extraHtml}
+                ${moreCommentsHtml}
                 <form class="comment-form" onsubmit="handlePostComment(event, '${postId}')">
-                    <input id="comment-input-${postId}" aria-label="Write a thoughtful comment..." placeholder="Write a thoughtful comment..." required>
+                    <input id="comment-input-${postId}" aria-label="Write a thoughtful comment..." placeholder="Write a thoughtful comment..." required onfocus="revealPostComments('${postId}')">
                     <button type="submit">Post</button>
                 </form>
             </div>
@@ -4948,10 +5116,25 @@ function focusCommentBox(postId) {
     }
 }
 
+function revealPostComments(postId) {
+    expandPostComments(postId);
+    const thread = document.getElementById(`comments-${postId}`);
+    if (thread) {
+        thread.classList.remove('is-collapsed');
+        thread.classList.add('is-expanded');
+    }
+}
+
+function openPostComments(postId) {
+    revealPostComments(postId);
+    focusCommentBox(postId);
+}
+
 function handlePostComment(event, postId) {
     event.preventDefault();
     const input = event.target.querySelector('input');
     if (!input || !input.value.trim()) return;
+    expandPostComments(postId);
     savePostComment(postId, input.value);
     initCommunityPage();
     setTimeout(() => focusCommentBox(postId), 0);
@@ -5011,7 +5194,7 @@ function renderGrantRecommendation(grant) {
                 <span class="capability-label">Grant match</span>
                 <h3>${grant.fund}</h3>
                 <p>${grant.focus}</p>
-                <small>Deadline: ${grant.deadline}</small>
+                <small>${glowePrefixedLabel('Deadline')} ${grant.deadline}</small>
                 <a class="btn btn-outline btn-small" href="pages/whats-next.html">Learn More</a>
             </div>
         </article>
@@ -5189,8 +5372,8 @@ function initWritePostPage() {
                 <h3>${title}</h3>
                 <p>${body}</p>
                 <div class="opportunity-details">
-                    <span class="opportunity-detail">Audience: ${audience}</span>
-                    <span class="opportunity-detail">Tags: ${tags}</span>
+                    <span class="opportunity-detail">${glowePrefixedLabel('Audience')} ${audience}</span>
+                    <span class="opportunity-detail">${glowePrefixedLabel('Tags')} ${tags}</span>
                 </div>
                 <div class="post-actions">
                     <button type="button">Like</button>
@@ -5249,7 +5432,7 @@ function renderApplicationCard(application) {
         <div class="application-card">
             <div class="application-info">
                 <h3>${escapeHtml(title)}</h3>
-                <p>${escapeHtml(org)}${appliedAt ? ` • Applied on ${new Date(appliedAt).toLocaleDateString()}` : ''}</p>
+                <p>${escapeHtml(org)}${appliedAt ? ` • ${gloweText('Applied on')} ${new Date(appliedAt).toLocaleDateString(gloweLocaleTag())}` : ''}</p>
             </div>
             <span class="application-status ${statusClass}">${escapeHtml(application.status || '')}</span>
         </div>
@@ -5260,10 +5443,62 @@ function renderApplicationCard(application) {
 async function initFeaturedOpportunities() {
     // FR-GLOWE-016 AC2 — signed-in members get a personalized home in the same
     // page container; guests fall through to the marketing home below untouched.
-    if (typeof isLoggedIn === 'function' && isLoggedIn()) {
-        await initMemberHome();
-        return;
-    }
+    // Auth flips (login/logout without navigation) re-enter via refreshHomeForAuthState
+    // from updateAuthUI(); the auth-key guard prevents a double fetch on first paint.
+    await refreshHomeForAuthState();
+}
+
+// Track which home shell is currently rendered so login/logout can swap it
+// without a full page reload (FR-GLOWE-016 AC2).
+let _gloweHomeAuthKey = null;
+// Generation token: stale guest/member inits must not tear down a newer shell
+// (rapid Home taps used to stack async initGuestHome over initMemberHome).
+let _gloweHomeGen = 0;
+
+function teardownMemberHome() {
+    document.body.classList.remove('glowe-member-home');
+    const root = document.getElementById('member-home');
+    if (!root) return;
+    root.hidden = true;
+    root.innerHTML = '';
+    root.classList.remove('member-home-community-only');
+}
+
+function isHomeHref(href) {
+    if (!href) return false;
+    const clean = String(href).split(/[?#]/)[0];
+    if (!clean || clean === '#') return false;
+    return /(^|\/)index\.html?$/.test(clean)
+        || clean === './'
+        || clean === '/'
+        || /\/glowe\/?$/.test(clean);
+}
+
+// FR-GLOWE-016 AC2 — tapping Home while already on Home must not full-reload
+// the marketing HTML shell (that is what caused the guest flash).
+function bindHomeSelfNavGuard() {
+    if (window.__gloweHomeSelfNavBound) return;
+    window.__gloweHomeSelfNavBound = true;
+    document.addEventListener('click', function onHomeSelfNav(event) {
+        if (event.defaultPrevented) return;
+        if (event.button !== 0) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        const anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+        if (!anchor) return;
+        if (typeof resolveGlowePage !== 'function') return;
+        if (resolveGlowePage(window.location.pathname) !== 'index') return;
+        if (!isHomeHref(anchor.getAttribute('href'))) return;
+        event.preventDefault();
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+    }, true);
+}
+
+async function initGuestHome(gen = _gloweHomeGen) {
+    if (gen !== _gloweHomeGen) return;
+    teardownMemberHome();
+    // Drop the pre-paint member expectation so guest marketing can show
+    // (e.g. stale gloweUser cleared by syncSupabaseSession).
+    if (window.GloweAuthPaint) window.GloweAuthPaint.clearExpectMemberPaint();
 
     const COMING_SOON = '<p class="muted-note">This section will come alive as the community grows.</p>';
 
@@ -5271,11 +5506,14 @@ async function initFeaturedOpportunities() {
     if (container) {
         container.innerHTML = '<p class="muted-note">Loading opportunities…</p>';
         await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
+        if (gen !== _gloweHomeGen) return;
         const featured = getFeaturedOpportunities().slice(0, 3);
         container.innerHTML = featured.length
             ? featured.map(opp => renderOpportunityCard(opp)).join('')
             : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the community.</p><a class="btn btn-primary btn-small" href="pages/opportunities.html">Post an opportunity</a></div>';
     }
+
+    if (gen !== _gloweHomeGen) return;
 
     const dailyContainer = document.getElementById('daily-actions');
     if (dailyContainer) dailyContainer.innerHTML = dailyActions.length ? dailyActions.map(renderDailyActionCard).join('') : COMING_SOON;
@@ -5307,6 +5545,26 @@ async function initFeaturedOpportunities() {
     const roadmapContainer = document.getElementById('roadmap-phases');
     if (roadmapContainer) roadmapContainer.innerHTML = roadmapPhases.length ? roadmapPhases.map(renderRoadmapPhase).join('') : COMING_SOON;
 }
+
+// Swap guest ↔ member home immediately when auth state changes (no reload).
+async function refreshHomeForAuthState(options = {}) {
+    if (typeof resolveGlowePage === 'function' && resolveGlowePage(window.location.pathname) !== 'index') {
+        return;
+    }
+    const loggedIn = typeof isLoggedIn === 'function' && isLoggedIn();
+    const user = loggedIn && typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    const key = loggedIn ? ('in:' + (user && user.id ? user.id : '')) : 'out';
+    if (!options.force && key === _gloweHomeAuthKey) return;
+    const gen = ++_gloweHomeGen;
+    _gloweHomeAuthKey = key;
+    if (loggedIn) {
+        await initMemberHome(gen);
+        return;
+    }
+    await initGuestHome(gen);
+}
+window.refreshHomeForAuthState = refreshHomeForAuthState;
+window.isHomeHref = isHomeHref;
 
 // --- Member home (FR-GLOWE-016 AC2) -----------------------------------------
 // Pure selector: the member's own posts, newest first, capped.
@@ -5349,7 +5607,7 @@ function renderMemberFeedPost(post) {
         <article class="member-feed-card" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postId))}">
             ${translationToggleSlotHtml()}
             <a class="member-feed-card-link" href="${href}">
-                <span class="member-feed-type">Post${post.category ? ` · ${escapeHtml(post.category)}` : ''}</span>
+                <span class="member-feed-type">${escapeHtml(glowePostTypeLabel(post.category, ' · '))}</span>
                 <h3 data-tr-field="title">${escapeHtml(post.title || 'Community post')}</h3>
                 <p data-tr-field="text">${escapeHtml(snippet)}</p>
                 <span class="member-feed-author" ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
@@ -5449,9 +5707,12 @@ function renderMemberHomeMarkup(firstName, activity, highlights, options = {}) {
         </div>`;
 }
 
-async function initMemberHome() {
+async function initMemberHome(gen = _gloweHomeGen) {
+    if (gen !== _gloweHomeGen) return;
     const root = document.getElementById('member-home');
     if (!root) return;
+    // Hide marketing immediately — before any await — so a concurrent guest
+    // init cannot win the race and flash the unregistered home.
     document.body.classList.add('glowe-member-home');
     root.hidden = false;
     root.innerHTML = '<div class="container"><p class="muted-note">Loading your GloWe home…</p></div>';
@@ -5461,8 +5722,10 @@ async function initMemberHome() {
         loadCommunityPosts(),
         loadPostComments()
     ]);
+    if (gen !== _gloweHomeGen) return;
 
     const profile = await getLocalizedPersonalProfile();
+    if (gen !== _gloweHomeGen) return;
     const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
     const firstName = localizedProfileFirstName(profile, 'there');
     const allPosts = getAllCommunityPosts();
@@ -5472,6 +5735,8 @@ async function initMemberHome() {
     const highlights = selectCommunityHighlights(getAllOpportunitiesForDisplay(), allPosts, highlightLimit);
     root.classList.toggle('member-home-community-only', communityOnly);
     root.innerHTML = renderMemberHomeMarkup(firstName, activity, highlights, { communityOnly });
+    // Member shell owns the hide now — drop the pre-paint class.
+    if (window.GloweAuthPaint) window.GloweAuthPaint.clearExpectMemberPaint();
     scheduleMemberHomeTranslation(root);
 }
 
@@ -5792,9 +6057,16 @@ async function initWishingWellPage() {
             ? sorted.map(renderWishCard).join('')
             : hasFilters ? emptyWishFilteredHtml() : emptyWishBoardHtml();
         if (resultsCount) {
-            resultsCount.textContent = sorted.length
-                ? `${sorted.length} wish${sorted.length === 1 ? '' : 'es'} shown`
-                : hasFilters ? 'No wishes match your filters' : '';
+            // Split count from label so translateGloweTree can match exact keys
+            // ("wish shown" / "wishes shown") — a welded "N wishes shown" never
+            // hits the dictionary (same pattern as org "volunteers").
+            if (sorted.length === 1) {
+                resultsCount.innerHTML = '1 <span>wish shown</span>';
+            } else if (sorted.length > 0) {
+                resultsCount.innerHTML = `${sorted.length} <span>wishes shown</span>`;
+            } else {
+                resultsCount.textContent = hasFilters ? 'No wishes match your filters' : '';
+            }
         }
     }
 
@@ -5845,6 +6117,8 @@ async function initWishingWellPage() {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
         await loadLiveWishes();
         renderWishes();
+        const deepWish = new URLSearchParams(window.location.search).get('wish');
+        if (deepWish) openWishDetail(deepWish);
     }
     window.addEventListener('pageshow', function onWishBoardShow(event) {
         if (!event.persisted || !container) return;
@@ -5896,8 +6170,8 @@ async function loadLiveWishes() {
     // (post_type='offer', FR-GLOWE-016), newest first as returned by listAll.
     const create = (typeof GloweCreate !== 'undefined') ? GloweCreate : null;
     let mapped = (rows || []).reduce((acc, row) => {
-        if (helpers.isOpenWish(row)) acc.push(helpers.mapWishRow(row));
-        else if (create && create.isOpenOffer(row)) acc.push({ ...helpers.mapWishRow(row), type: 'Volunteer Offer' });
+        if (helpers.isOpenWish(row)) acc.push(helpers.mapWishRow(row, gloweLocaleTag()));
+        else if (create && create.isOpenOffer(row)) acc.push({ ...helpers.mapWishRow(row, gloweLocaleTag()), type: 'Volunteer Offer' });
         return acc;
     }, []);
     mapped = await withEnsuredAuthorEnglishNames(mapped);
@@ -6218,11 +6492,11 @@ function renderModerationReports(reports) {
                 </div>` : '';
         return `
             <article class="admin-card">
-                <span class="post-type-tag">${escapeHtml(report.status)}</span>
+                <span class="post-type-tag">${escapeHtml(gloweEnumLabel(GLOWE_REPORT_STATUS_LABEL, report.status))}</span>
                 <h3>${escapeHtml(reasonLabel(report.reason))}</h3>
-                <p><strong>${escapeHtml(report.targetType)}</strong> | ${escapeHtml(report.targetId)}</p>
+                <p><strong>${escapeHtml(gloweEnumLabel(GLOWE_TARGET_TYPE_LABEL, report.targetType))}</strong> | ${escapeHtml(report.targetId)}</p>
                 <p>${escapeHtml(report.note || 'No additional details were provided.')}</p>
-                <small>Reporter: ${escapeHtml(report.reporterName)} | ${report.createdAt ? new Date(report.createdAt).toLocaleString() : ''}</small>
+                <small>${glowePrefixedLabel('Reporter')} ${escapeHtml(report.reporterName)} | ${report.createdAt ? new Date(report.createdAt).toLocaleString(gloweLocaleTag()) : ''}</small>
                 ${targetHref ? `<p><a href="${targetHref}" target="_blank" rel="noopener">Open reported item</a></p>` : ''}
                 ${actions}
             </article>
@@ -6299,16 +6573,16 @@ function renderPendingOrgs(orgs) {
         const id = escapeHtml(org.id);
         const orgName = escapeHtml(org.orgName || org.name || 'Unnamed organization');
         const submittedDate = org.orgSubmittedAt
-            ? new Date(org.orgSubmittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            ? new Date(org.orgSubmittedAt).toLocaleDateString(gloweLocaleTag(), { day: '2-digit', month: 'short', year: 'numeric' })
             : '';
         const detail = (label, value) => value
-            ? `<p><strong>${label}:</strong> ${escapeHtml(value)}</p>` : '';
+            ? `<p><strong>${escapeHtml(gloweText(label))}:</strong> ${escapeHtml(value)}</p>` : '';
         return `
             <details class="admin-org-accordion">
                 <summary class="admin-org-summary">
                     <span class="admin-org-summary-name">${orgName}</span>
                     <span class="admin-org-summary-meta">${escapeHtml(org.orgField || '')}${org.orgField && org.orgCountry ? ' · ' : ''}${escapeHtml(org.orgCountry || '')}</span>
-                    ${submittedDate ? `<span class="admin-org-summary-date">Submitted ${submittedDate}</span>` : ''}
+                    ${submittedDate ? `<span class="admin-org-summary-date">${gloweText('Submitted')} ${submittedDate}</span>` : ''}
                     <span class="admin-org-summary-chevron" aria-hidden="true">▾</span>
                 </summary>
                 <div class="admin-org-detail">
@@ -6408,8 +6682,8 @@ function initForumsPage() {
             ? forumGroups.map(group => `
                 <a class="forum-group-card" href="discussion-group.html?group=${group.id}">
                     <div class="forum-group-stats">
-                        ${group.members > 0 ? `<span>${group.members} members</span>` : ''}
-                        ${group.posts > 0 ? `<span>${group.posts} posts</span>` : ''}
+                        ${group.members > 0 ? `<span>${gloweCountedLabel(group.members, 'members')}</span>` : ''}
+                        ${group.posts > 0 ? `<span>${gloweCountedLabel(group.posts, 'posts')}</span>` : ''}
                     </div>
                     <h3>${escapeHtml(group.title)}</h3>
                     <p>${escapeHtml(group.description)}</p>
@@ -6426,7 +6700,7 @@ function initForumsPage() {
                         <span class="post-type-tag">${escapeHtml(thread.group.title)}</span>
                         ${translationToggleSlotHtml()}
                         <h3><a href="discussion-group.html?group=${thread.group.id}" data-tr-field="title">${escapeHtml(thread.title)}</a></h3>
-                        <p>${thread.replies || 0} replies | Last active ${escapeHtml(formatThreadActivity(thread.createdAt))}</p>
+                        <p>${gloweCountedLabel(thread.replies || 0, 'replies')} | ${gloweText('Last active')} ${escapeHtml(formatThreadActivity(thread.createdAt))}</p>
                     </div>
                     <a class="btn btn-outline btn-small" href="discussion-group.html?group=${thread.group.id}">Open</a>
                 </article>
@@ -6498,10 +6772,10 @@ function initSavedPage() {
         container.innerHTML = items.length ? items.map(item => `
             <article class="saved-item-card">
                 <div>
-                    <span class="post-type-tag">${item.type}</span>
+                    <span class="post-type-tag">${escapeHtml(gloweEnumLabel(GLOWE_SAVED_ITEM_TYPE_LABEL, item.type))}</span>
                     <h3>${escapeHtml(item.title)}</h3>
                     <p>${escapeHtml(item.meta || 'Saved from the GloWe community')}</p>
-                    <small>Saved ${new Date(item.savedAt).toLocaleDateString()}</small>
+                    <small>${gloweText('Saved')} ${new Date(item.savedAt).toLocaleDateString(gloweLocaleTag())}</small>
                 </div>
                 <div class="saved-card-actions">
                     ${item.href ? `<a class="btn btn-primary btn-small" href="${item.href}">Open</a>` : ''}
@@ -6540,8 +6814,8 @@ function renderDiscussionThread(thread, group, allReplies) {
                 <span class="post-type-tag">${escapeHtml(formatThreadActivity(thread.createdAt))}</span>
                 ${translationToggleSlotHtml()}
                 <h3 data-tr-field="title">${escapeHtml(thread.title)}</h3>
-                <p data-tr-field="body">${thread.body ? escapeHtml(thread.body) : `Discussion from members of ${escapeHtml(group.title)}.`}</p>
-                <p class="thread-reply-count">${replies.length} replies</p>
+                <p data-tr-field="body">${thread.body ? escapeHtml(thread.body) : gloweSandwichedLabel('Discussion from members of ', escapeHtml(group.title), '.')}</p>
+                <p class="thread-reply-count">${gloweCountedLabel(replies.length, 'replies')}</p>
                 <ul class="thread-reply-list">${replyItems}</ul>
                 <form class="inline-reply-form" onsubmit="handleReplySubmit(event, '${jsString(thread.id)}')">
                     <input class="reply-input" required placeholder="Write a reply">
@@ -6579,9 +6853,9 @@ function initDiscussionGroupPage() {
         <div class="post-tag-row">${group.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join('')}</div>
         ${group.members > 0 || group.posts > 0 || groupThreads.length > 0 ? `
         <div class="group-stats-row">
-            ${group.members > 0 ? `<span>${group.members} members</span>` : ''}
-            ${group.posts > 0 ? `<span>${group.posts} posts</span>` : ''}
-            ${groupThreads.length > 0 ? `<span>${groupThreads.length} active threads</span>` : ''}
+            ${group.members > 0 ? `<span>${gloweCountedLabel(group.members, 'members')}</span>` : ''}
+            ${group.posts > 0 ? `<span>${gloweCountedLabel(group.posts, 'posts')}</span>` : ''}
+            ${groupThreads.length > 0 ? `<span>${gloweCountedLabel(groupThreads.length, 'active threads')}</span>` : ''}
         </div>` : ''}
     `;
     members.innerHTML = people.length > 0
@@ -6806,11 +7080,21 @@ function _renderProfileContent(profile, container) {
         ? 'Ethical business, practical access, community benefit, and responsible technology.'
         : 'Transparency, dignity, collaboration, and shared learning.');
     const communityText = profile.community || profile.audience || profile.collaboration || 'Organizations, volunteers, partners, and communities looking for useful collaboration.';
-    const problemText = profile.problem || `The work responds to needs connected to ${profile.impactArea || 'community impact'} and helps make local knowledge easier to access and act on.`;
+    // Plain fallback strings below (methodsText/publicActionsText/learningText)
+    // render as standalone, isolated text nodes with no dynamic value spliced
+    // in — translateGloweTree() picks them up automatically once the exact
+    // string is a dictionary key, same as any other static chrome text.
+    // problemText/progressText DO splice in a runtime value, so they need the
+    // weld-safe helpers (see glowePostTypeLabel() above for why).
+    const problemText = profile.problem || gloweSandwichedLabel(
+        'The work responds to needs connected to ',
+        profile.impactArea || gloweText('community impact'),
+        ' and helps make local knowledge easier to access and act on.'
+    );
     const solutionText = profile.solution || profile.collaboration || missionText;
     const methodsText = profile.methods || profile.scope || 'Community work, partnerships, shared knowledge, and practical field-based action.';
     const publicActionsText = profile.publicActions || profile.needs || profile.collaboration || 'Open to relevant conversations and collaboration through GloWe.';
-    const progressText = profile.impact || `${profile.volunteers || primaryStat || 0} people connected through projects, opportunities, or community activity.`;
+    const progressText = profile.impact || gloweCountedLabel(profile.volunteers || primaryStat || 0, 'people connected through projects, opportunities, or community activity.');
     const learningText = profile.learning || 'This profile can add more field insights, measurement notes, and lessons learned as the work develops.';
     const mediaLinks = profile.media || profile.website || profile.publicLink || '';
     const trustStatus = _publicTrustStatusLabel(profile, isOrg);
@@ -6965,7 +7249,7 @@ function _renderProfileContent(profile, container) {
                     <div class="profile-post-list">
                         ${profilePosts.length ? profilePosts.map(post => `
                             <article>
-                                <span class="post-type-tag">Post | ${post.category}</span>
+                                <span class="post-type-tag">${escapeHtml(glowePostTypeLabel(post.category))}</span>
                                 <h3>${post.title}</h3>
                                 <p>${post.text}</p>
                             </article>
@@ -6997,14 +7281,14 @@ function _renderProfileContent(profile, container) {
                     <div class="profile-check-list">
                         <span>${escapeHtml(trustStatus)}</span>
                         <span>Usually replies within 3-5 days</span>
-                        <span>${isOrg ? `${profile.volunteers} volunteers connected` : `${projects.length} projects listed`}</span>
+                        <span>${isOrg ? gloweCountedLabel(profile.volunteers, 'volunteers connected') : gloweCountedLabel(projects.length, 'projects listed')}</span>
                     </div>
                 </article>
 
                 <article class="org-info-card">
                     <h4>${isOrg ? 'Impact signals' : 'What I offer'}</h4>
                     <p>${escapeHtml(isOrg ? profile.impactArea : tags.join(', '))}</p>
-                    <h4>Impact Signals</h4>
+                    <h4>Impact signals</h4>
                     <div class="impact-signals">
                         ${impactSignals.slice(0, 4).map(signal => `
                             <span title="${signal.metric}">
@@ -7242,7 +7526,7 @@ function opportunityApplicantsHtml(views) {
     }
     const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
     const rows = views.map(function (v) {
-        const date = v.appliedAt ? new Date(v.appliedAt).toLocaleDateString() : '';
+        const date = v.appliedAt ? new Date(v.appliedAt).toLocaleDateString(gloweLocaleTag()) : '';
         const canDecide = orgHelpers ? orgHelpers.canDecideApplication(v.status) : v.status === 'Pending';
         const decideButtons = canDecide ? `
                 <button class="btn btn-primary btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">Accept</button>
@@ -7259,7 +7543,7 @@ function opportunityApplicantsHtml(views) {
             ${v.availability ? `<p class="applicant-field"><strong>Availability:</strong> ${escapeHtml(v.availability)}</p>` : ''}
             ${v.skills ? `<p class="applicant-field"><strong>Skills:</strong> ${escapeHtml(v.skills)}</p>` : ''}
             ${v.motivation ? `<p class="applicant-field"><strong>Motivation:</strong> ${escapeHtml(v.motivation)}</p>` : ''}
-            ${date ? `<p class="applicant-meta">Applied ${escapeHtml(date)}</p>` : ''}
+            ${date ? `<p class="applicant-meta">${gloweText('Applied')} ${escapeHtml(date)}</p>` : ''}
             ${actions}
         </li>`;
     }).join('');
@@ -7326,7 +7610,7 @@ function setupEventRegistration(opportunity, events) {
     card.innerHTML = `
         <h3>Event registration</h3>
         <div class="opportunity-details">
-            <span class="opportunity-detail"><strong>When:</strong> ${escapeHtml(events.formatEventDate(opportunity))}</span>
+            <span class="opportunity-detail"><strong>When:</strong> ${escapeHtml(events.formatEventDate(opportunity, gloweLocaleTag()))}</span>
             <span class="opportunity-detail"><strong>Type:</strong> ${escapeHtml(typeLabel)}</span>
             <span class="opportunity-detail"><strong>Registration:</strong> ${escapeHtml(modeLabel)}</span>
         </div>
@@ -7526,7 +7810,7 @@ function organizerRegistrationRowHtml(reg, events) {
     const name = reg.registrant_name || reg.submitted_email || 'Registrant';
     const contact = [reg.submitted_email, reg.submitted_phone].filter(Boolean).join(' · ');
     const statusLabel = events.registrationStatusLabel(reg.status) || reg.status;
-    const note = reg.rejection_note ? `<p class="muted-note">Reason: ${escapeHtml(reg.rejection_note)}</p>` : '';
+    const note = reg.rejection_note ? `<p class="muted-note">${glowePrefixedLabel('Reason')} ${escapeHtml(reg.rejection_note)}</p>` : '';
     const actions = events.canDecideRegistration(reg.status)
         ? `<div class="organizer-actions">
                <button class="btn btn-small btn-primary" type="button" data-decide="accept" data-reg="${escapeHtml(reg.id)}">Accept</button>
@@ -7885,7 +8169,7 @@ function initMyApplicationsPage() {
                             <div class="saved-mini-grid">
                                 ${savedPreview.length ? savedPreview.map(item => `
                                     <article class="saved-mini-card">
-                                        <span class="post-type-tag">${item.type}</span>
+                                        <span class="post-type-tag">${escapeHtml(gloweEnumLabel(GLOWE_SAVED_ITEM_TYPE_LABEL, item.type))}</span>
                                         <h3>${escapeHtml(item.title)}</h3>
                                         <p>${escapeHtml(item.meta || 'Saved from the GloWe community')}</p>
                                         <div class="saved-card-actions">
@@ -7911,7 +8195,7 @@ function initMyApplicationsPage() {
                             <div class="profile-post-list">
                                 ${savedPosts.length ? savedPosts.map(post => `
                                     <article>
-                                        <span class="post-type-tag">Post | ${post.category}</span>
+                                        <span class="post-type-tag">${escapeHtml(glowePostTypeLabel(post.category))}</span>
                                         <h3>${post.title}</h3>
                                         <p>${post.text}</p>
                                     </article>
@@ -8000,7 +8284,7 @@ function renderMyEventCard(row, events) {
         <article class="personal-list-item my-event-item">
             <div>
                 <a href="${detailHref}"><h3>${escapeHtml(event.title)}</h3></a>
-                <p class="muted-note">${escapeHtml(event.organization || '')} · ${escapeHtml(events.formatEventDate(event))}</p>
+                <p class="muted-note">${escapeHtml(event.organization || '')} · ${escapeHtml(events.formatEventDate(event, gloweLocaleTag()))}</p>
                 <span class="status-badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
             </div>
             ${canCancel ? `<button class="btn btn-outline btn-small" type="button" onclick="cancelMyEvent('${reg.id}')">Cancel</button>` : ''}
@@ -8058,255 +8342,9 @@ function getGloweLanguage() {
 // English text nodes / attribute values produced by the page or by app.js.
 const GLOWE_TRANSLATIONS = {
     he: {
-        // UGC translation toggle (FR-TRANSLATE-005)
-        'Show original': 'הצג מקור',
-        'Show translation': 'הצג תרגום',
-        // Loading indicator while a cold translation is in flight (FR-TRANSLATE-006)
-        'Translating…': 'מתרגם…',
-        // Bilingual names (FR-GLOWE-024)
-        'Name in English (optional)': 'שם באנגלית (אופציונלי)',
-        'Latin / English display name': 'שם תצוגה באנגלית / לטינית',
-        'Latin / English name — auto-filled if left blank': 'שם באנגלית / לטינית — ימולא אוטומטית אם יישאר ריק',
-        'Organization name in English (optional)': 'שם הארגון באנגלית (אופציונלי)',
-        'Organization name in English': 'שם הארגון באנגלית',
-        'English org name — auto-filled if blank': 'שם הארגון באנגלית — ימולא אוטומטית אם ריק',
-        // FR-GLOWE-011 profile completion UX
-        'Complete profile': 'השלם פרופיל',
-        'Pending review': 'ממתין לאישור',
-        'Needs changes': 'דרושים שינויים',
-        'Save profile': 'שמירת פרופיל',
-        'Change profile photo': 'שינוי תמונת פרופיל',
-        'Change cover photo': 'שינוי תמונת נושא',
-        'Remove photo': 'הסרת תמונה',
-        'Remove cover': 'הסרת תמונת נושא',
-        'Save photo': 'שמירת תמונה',
-        'Save cover': 'שמירת תמונת נושא',
-        'Cover will be removed when you save.': 'תמונת הנושא תוסר לאחר השמירה.',
-        'Profile saved': 'הפרופיל נשמר',
-        'Could not save profile.': 'לא ניתן לשמור את הפרופיל.',
-        'Replace': 'החלפה',
-        'Cancel': 'ביטול',
-        'Photo will be removed when you save.': 'התמונה תוסר בעת השמירה.',
-        'Saving...': 'שומר...',
-        'Uploading...': 'מעלה...',
-        'Preparing photo...': 'מכין את התמונה...',
-        'Photo optimized for upload.': 'התמונה עברה אופטימיזציה להעלאה.',
-        'Could not read image.': 'לא ניתן לקרוא את התמונה.',
-        'Could not compress image.': 'לא ניתן לדחוס את התמונה.',
-        'Image is too large. Try a smaller photo.': 'התמונה גדולה מדי. נסו תמונה קטנה יותר.',
-        'Image is too large even after compression. Try a smaller photo.': 'התמונה גדולה מדי גם אחרי דחיסה. נסו תמונה קטנה יותר.',
-        'Could not save photo.': 'לא ניתן לשמור את התמונה.',
-        // Personal-area nav + labels (were rendering in English on the Hebrew UI)
-        'Followers': 'עוקבים',
-        'Following': 'במעקב',
-        '+ Follow': '+ עקבו',
-        'Following ✓': 'עוקבים ✓',
-        'Stop following': 'הפסק לעקוב',
-        'This account requires approval to follow.': 'חשבון זה דורש אישור כדי לעקוב.',
-        'No followers yet': 'אין עוקבים עדיין',
-        'Not following anyone yet': 'לא עוקבים אחרי אף אחד עדיין',
-        'Sign in to follow': 'התחברו כדי לעקוב',
-        'Sign in with Google to follow profiles and stay updated on their work.': 'התחברו עם Google כדי לעקוב אחרי פרופילים ולהישאר מעודכנים בעבודתם.',
-        "Can't follow this profile": 'לא ניתן לעקוב אחרי הפרופיל הזה',
-        'Could not follow': 'לא ניתן לעקוב',
-        'Could not unfollow': 'לא ניתן להפסיק לעקוב',
-        'Connections': 'קשרים',
-        'Sign in to see connections': 'התחברו כדי לראות קשרים',
-        'Show details': 'הצג פרטים',
-        'Hide details': 'הסתר פרטים',
-        'Individual': 'פרטי',
-        'Settings': 'הגדרות',
-        'Opportunities': 'הזדמנויות',
-        'My Events': 'האירועים שלי',
-        'Focus not added yet': 'תחום מיקוד טרם נוסף',
-        'Saved from the GloWe community': 'נשמר מקהילת GloWe',
-        'Loading your event registrations…': 'טוען את ההרשמות שלך לאירועים…',
-        // Discussion / topic groups (fixed taxonomy shown on Community + Forums)
-        'Education & Knowledge': 'חינוך וידע',
-        'Environment & Climate Action': 'סביבה ופעולה אקלימית',
-        'Health & Community Care': 'בריאות וטיפול קהילתי',
-        'Rights, Safety & Civic Power': 'זכויות, בטיחות וכוח אזרחי',
-        'A focused group for learning spaces, youth programs, multilingual knowledge sharing, and practical education tools.': 'קבוצה ממוקדת למרחבי למידה, תוכניות נוער, שיתוף ידע רב-לשוני וכלים חינוכיים מעשיים.',
-        'For climate, food systems, waste, restoration, repair, and local environmental action.': 'לאקלים, מערכות מזון, פסולת, שיקום, תיקון ופעולה סביבתית מקומית.',
-        'A moderated space for wellbeing, preventive health, emergency response, and community care methods.': 'מרחב מנוהל לרווחה, בריאות מונעת, מענה לחירום ושיטות טיפול קהילתי.',
-        'For rights-based action, civic participation, safe moderation, and community trust.': 'לפעולה מבוססת זכויות, השתתפות אזרחית, ניהול שיח בטוח ואמון קהילתי.',
-        'Youth': 'נוער',
-        'Repair': 'תיקון',
-        'Wellbeing': 'רווחה',
-        'Crisis Response': 'מענה לחירום',
-        'Justice': 'צדק',
-        'Safety': 'בטיחות',
-        'Civic Action': 'פעולה אזרחית',
-        // Header / navigation
-        'Home': 'בית',
-        'Personal Area': 'האזור האישי',
-        'Wishing Well': 'באר המשאלות',
-        'The Wishing Well': 'באר המשאלות',
-        'Wishes': 'משאלות',
-        'Organizations': 'ארגונים',
-        'Community': 'קהילה',
-        'Forums': 'פורומים',
-        'About': 'אודות',
-        'About Us': 'עלינו',
-        'Profile': 'פרופיל',
-        'Sign up / Sign in': 'הרשמה / כניסה',
-        'Log In': 'כניסה',
-        'Log in': 'כניסה',
-        'Join GloWe': 'הצטרפו ל-GloWe',
-        'Log Out': 'התנתקות',
-        'Hi,': 'שלום,',
-        'there': 'חבר/ה',
-        // Footer
-        'Global Learning, Open Knowledge & Wisdom Exchange.': 'למידה גלובלית, ידע פתוח וחילופי חוכמה.',
-        'Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.': 'מחברים פתרונות מקומיים לאתגרים גלובליים דרך ידע משותף, סולידריות ופעולה מעשית.',
-        'Quick Links': 'קישורים מהירים',
-        'Explore': 'ניווט',
-        'Participate': 'להשתתף',
-        'Write a post': 'כתיבת פוסט',
-        'Volunteer Network': 'רשת המתנדבים',
-        "What's next": 'מה הלאה',
-        'What Comes Next': 'מה צופן העתיד',
-        'Built With Care': 'נבנה באהבה',
-        'An MVP by the GloWe community, with product and implementation support by Topaz.': 'גרסת MVP של קהילת GloWe, בליווי מוצר ופיתוח של Topaz.',
-        'Admin Review': 'ניהול ובקרה',
-        'Terms & Community Charter': 'תנאים ואמנת קהילה',
-        'For Organizations': 'לארגונים',
-        'Register Your Organization': 'רישום הארגון שלכם',
-        'Post an Opportunity': 'פרסום הזדמנות',
-        'Connect': 'יצירת קשר',
-        // Auth + shared modals
-        'Welcome Back': 'ברוכים השבים',
-        'Welcome Back!': 'ברוכים השבים!',
-        'Sign in with your Google account to continue.': 'התחברו עם חשבון Google כדי להמשיך.',
-        'Continue with Google': 'המשך עם Google',
-        "Don't have an account?": 'אין לכם חשבון?',
-        'Join our community': 'הצטרפו לקהילה',
-        'Join the GloWe Community': 'הצטרפו לקהילת GloWe',
-        'Sign in with your Google account to get started.': 'התחברו עם חשבון Google כדי להתחיל.',
-        'Already have an account?': 'כבר יש לכם חשבון?',
-        'Success': 'הצלחה',
-        'Your action was completed successfully.': 'הפעולה הושלמה בהצלחה.',
-        'Continue': 'המשך',
-        // Onboarding
-        'Find your GloWe path': 'מצאו את הדרך שלכם ב-GloWe',
-        'Choose the path that matches what you want to do first.': 'בחרו את הדרך שמתאימה למה שתרצו לעשות קודם.',
-        'I represent an organization': 'אני מייצג/ת ארגון',
-        'Create a profile, post a need, and receive structured offers.': 'יצירת פרופיל, פרסום צורך וקבלת הצעות מסודרות.',
-        'I can help': 'אני יכול/ה לעזור',
-        'Find wishes that match your skills, language, location, and time.': 'איתור משאלות שמתאימות לכישורים, לשפה, למיקום ולזמן שלכם.',
-        'I am a business partner': 'אני שותף/ה עסקי/ת',
-        'Match CSR teams, logistics, funding, or services with verified needs.': 'התאמת צוותי CSR, לוגיסטיקה, מימון או שירותים לצרכים מאומתים.',
-        // Settings
-        'Settings': 'הגדרות',
-        'Manage your account, language, and session preferences.': 'ניהול החשבון, השפה והעדפות ההתחברות שלכם.',
-        'Account': 'חשבון',
-        'Name': 'שם',
-        'Email': 'דוא"ל',
-        'Account type': 'סוג חשבון',
-        'Community member': 'חבר/ת קהילה',
-        'Open Personal Area': 'מעבר לאזור האישי',
-        'Language': 'שפה',
-        'Interface language': 'שפת הממשק',
-        'Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.': 'בחרו את שפת הממשק של GloWe. עברית וערבית מוצגות בפריסת ימין-לשמאל (RTL).',
-        'English': 'אנגלית',
-        'Hebrew': 'עברית',
-        'Session': 'התנתקות',
-        'End your session on this device. You can sign back in any time with Google.': 'סיום ההתחברות במכשיר זה. תוכלו להתחבר מחדש בכל עת באמצעות Google.',
-        'Delete Account': 'מחיקת חשבון',
-        'Permanently delete your GloWe profile from this community. This removes your profile details; your Google sign-in itself is not deleted, so you can sign up again later.': 'מחיקה לצמיתות של פרופיל GloWe שלכם מהקהילה. פעולה זו מסירה את פרטי הפרופיל; חשבון ההתחברות של Google עצמו אינו נמחק, כך שתוכלו להירשם מחדש בעתיד.',
-        'Type DELETE to confirm': 'הקלידו DELETE לאישור',
-        'Could not delete account': 'לא ניתן למחוק את החשבון',
-        'Something went wrong deleting your profile. Please try again.': 'משהו השתבש במחיקת הפרופיל. אנא נסו שוב.',
-        'Sign in to manage settings': 'התחברו כדי לנהל הגדרות',
-        'Your account, language, and session options live here once you are signed in.': 'החשבון, השפה ואפשרויות ההתחברות יופיעו כאן לאחר הכניסה.',
-        'Sign in to open your personal area': 'התחברו כדי לפתוח את האזור האישי',
-        'Your profile, applications, needs, and saved items live here once you are signed in.': 'הפרופיל, הבקשות, הצרכים והפריטים השמורים שלכם יופיעו כאן לאחר הכניסה.',
-        // Member home (FR-GLOWE-016)
-        'Your GloWe': 'ה-GloWe שלכם',
-        'Welcome back,': 'ברוכים השבים,',
-        'What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.': 'מה תרצו לעשות היום? לשתף ידע, לפרסם הזדמנות, או לבקש תמיכה מהקהילה.',
-        'Share a post': 'שיתוף פוסט',
-        'Post an opportunity': 'פרסום הזדמנות',
-        'Ask for support': 'בקשת תמיכה',
-        'Your activity': 'הפעילות שלכם',
-        'What is happening on GloWe': 'מה קורה ב-GloWe',
-        'See all': 'הצגת הכול',
-        'Loading your GloWe home…': 'טוען את ה-GloWe שלכם…',
-        'You have not shared anything yet': 'עדיין לא שיתפתם דבר',
-        'Your posts, opportunities, and requests will gather here.': 'הפוסטים, ההזדמנויות והבקשות שלכם יופיעו כאן.',
-        'Write your first post': 'כתבו את הפוסט הראשון שלכם',
-        'The community is just getting started': 'הקהילה רק מתחילה',
-        'Be the first to share a post or an opportunity others can join.': 'היו הראשונים לשתף פוסט או הזדמנות שאחרים יוכלו להצטרף אליהם.',
-        'Start the conversation': 'פתחו את השיחה',
-        'Community post': 'פוסט קהילתי',
-        'Community Member': 'חבר/ת קהילה',
-        // Home — hero + intro
-        'A home for people building impact together': 'בית לאנשים שיוצרים השפעה ביחד',
-        'You do not have to carry the work alone.': 'אתם לא צריכים לשאת את העבודה לבד.',
-        'GloWe is a warm, professional community for people, organizations, initiatives, volunteers, and partners working around the SDGs. Here you can ask for support, offer what you know, share field wisdom, and meet people who walk beside you in the work.': 'GloWe היא קהילה חמה ומקצועית לאנשים, ארגונים, יוזמות, מתנדבים ושותפים שפועלים סביב יעדי הקיימות (SDGs). כאן אפשר לבקש תמיכה, להציע את הידע שלכם, לחלוק חוכמת שטח ולפגוש אנשים שצועדים לצידכם בעבודה.',
-        'Find Your Place': 'מצאו את מקומכם',
-        'Meet the Community': 'הכירו את הקהילה',
-        'Ask for Support': 'בקשו תמיכה',
-        'You have something to give, and something to receive.': 'יש לכם מה לתת, ויש לכם מה לקבל.',
-        'You can ask': 'אפשר לבקש',
-        'You can offer': 'אפשר להציע',
-        'You can learn': 'אפשר ללמוד',
-        'You can connect': 'אפשר להתחבר',
-        'You can belong': 'אפשר להשתייך',
-        // Home — community layers
-        'Three communities, one living network': 'שלוש קהילות, רשת חיה אחת',
-        'Enter the Community': 'כניסה לקהילה',
-        'Local Community': 'קהילה מקומית',
-        'People who know the place': 'אנשים שמכירים את המקום',
-        'Share a local need': 'שיתוף צורך מקומי',
-        'Expert Community': 'קהילת מומחים',
-        'People who can strengthen the work': 'אנשים שיכולים לחזק את העבודה',
-        'Offer your expertise': 'הציעו את המומחיות שלכם',
-        'Global Community': 'קהילה גלובלית',
-        'People who help knowledge travel': 'אנשים שעוזרים לידע לנדוד',
-        'Join a discussion': 'הצטרפו לדיון',
-        'Ask with honesty': 'לבקש בכנות',
-        'Offer with care': 'להציע באכפתיות',
-        'Build with solidarity': 'לבנות מתוך סולידריות',
-        // Home — journey
-        'Start where you are': 'התחילו מהמקום שבו אתם נמצאים',
-        'Choose the doorway that feels right today': 'בחרו את הדלת שמרגישה נכונה היום',
-        'Need support': 'זקוקים לתמיכה',
-        'Share what would help': 'שתפו במה שיעזור',
-        'Want to contribute': 'רוצים לתרום',
-        'Offer your time or expertise': 'הציעו מהזמן או מהמומחיות שלכם',
-        'Offer Help': 'הצעת עזרה',
-        'Looking for people': 'מחפשים אנשים',
-        'Step into the community': 'היכנסו לקהילה',
-        'Enter Community': 'כניסה לקהילה',
-        // Home — values + sections
-        'What you can do in GloWe now': 'מה אפשר לעשות ב-GloWe עכשיו',
-        'Create a profile': 'יצירת פרופיל',
-        'Share with the community': 'שיתוף עם הקהילה',
-        'Use the Wishing Well': 'שימוש בבאר המשאלות',
-        'Find ways to help': 'מצאו דרכים לעזור',
-        'Values that guide the space': 'הערכים שמנחים את המרחב',
-        'Solidarity': 'סולידריות',
-        'Shared Knowledge': 'ידע משותף',
-        'Practical Action': 'פעולה מעשית',
-        'Trust and Respect': 'אמון וכבוד',
-        'The GloWe ecosystem': 'המערכת האקולוגית של GloWe',
-        // Home — CTA + misc
-        'A glimpse into the community': 'הצצה אל הקהילה',
-        'Read Community Posts': 'קראו פוסטים מהקהילה',
-        'Who is invited?': 'מי מוזמן?',
-        'How GloWe is structured': 'איך GloWe בנויה',
-        'User Roles': 'תפקידי משתמשים',
-        'Business Model': 'מודל עסקי',
-        'Development Roadmap': 'מפת דרכים לפיתוח',
-        'Trusted by the GloWe Community': 'זוכה לאמון קהילת GloWe',
-        'You have a place in this community.': 'יש לכם מקום בקהילה הזו.',
-        'Bring what you know. Ask for what you need. Meet people who are working, learning, building, and caring around the SDGs.': 'הביאו את מה שאתם יודעים. בקשו את מה שאתם צריכים. פגשו אנשים שעובדים, לומדים, בונים ואכפת להם, סביב יעדי הקיימות.',
-        'Read Community': 'קראו את הקהילה',
-        'Open Community': 'פתחו את הקהילה',
-        'Read What\'s Next': 'קראו מה הלאה',
-        'See How This Could Grow': 'ראו איך זה יכול לצמוח',
-        // ===== Inner pages (FR-GLOWE-005 phase 2) =====
+        "Can't follow this profile": "לא ניתן לעקוב אחרי הפרופיל הזה",
+        "What's next": "מה הלאה",
+        "Don't have an account?": "אין לכם חשבון?",
         "Active threads will appear here once community members start discussions.": "שרשורים פעילים יופיעו כאן ברגע שחברי הקהילה יתחילו דיונים.",
         "Activity": "פעילות",
         "Add Project": "הוספת פרויקט",
@@ -8670,6 +8708,7 @@ const GLOWE_TRANSLATIONS = {
         "Profile From Questionnaire": "פרופיל מתוך שאלון",
         "Profile not found": "הפרופיל לא נמצא",
         "Profile snapshot": "תמונת מצב של הפרופיל",
+        "Profile summary": "תקציר פרופיל",
         "Profiles": "פרופילים",
         "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "פרופילים, פוסטים, הודעות ושיתופי פעולה צריכים לתמוך בכבוד, בשקיפות ובאכפתיות קהילתית אחראית.",
         "Project-based": "מבוסס פרויקט",
@@ -8879,6 +8918,7 @@ const GLOWE_TRANSLATIONS = {
         "Who We Serve": "את מי אנחנו משרתים",
         "Why do you want to volunteer?": "למה אתם רוצים להתנדב?",
         "Why GloWe exists": "למה GloWe קיימת",
+        "Wish filters": "מסנני משאלות",
         "Wish Type": "סוג משאלה",
         "Write a Community Post": "כתיבת פוסט קהילתי",
         "Write a reply": "כתבו תגובה",
@@ -8949,7 +8989,6 @@ const GLOWE_TRANSLATIONS = {
         "11. Updates to Terms": "11. עדכונים לתנאים",
         "12. Contact Us": "12. יצירת קשר",
         "2026 GloWe. Built for shared knowledge, mutual support, and action that lasts.": "2026 GloWe. נבנתה למען ידע משותף, תמיכה הדדית ופעולה שנשארת.",
-        // ===== Inner pages batch 2 (shared modals, onboarding, terms, personal area) =====
         "Local communities already hold practical knowledge about education, health, climate, food, rights, resilience, and care. Too often, that knowledge stays locked inside one place, one language, one report, or one organization. GloWe is being built to help field-based knowledge travel: clearly, respectfully, and in ways other people can adapt.": "קהילות מקומיות כבר מחזיקות בידע מעשי על חינוך, בריאות, אקלים, מזון, זכויות, חוסן ואכפתיות. לעיתים קרובות מדי הידע הזה נשאר נעול במקום אחד, בשפה אחת, בדוח אחד או בארגון אחד. GloWe נבנית כדי לעזור לידע מהשטח לנדוד: בבהירות, בכבוד ובדרכים שאחרים יכולים להתאים לעצמם.",
         "Sign in with your Google account to get started. You can complete your profile after signing in.": "התחברו עם חשבון Google כדי להתחיל. תוכלו להשלים את הפרופיל שלכם לאחר הכניסה.",
         "Share a Wish": "שיתוף משאלה",
@@ -8965,7 +9004,7 @@ const GLOWE_TRANSLATIONS = {
         "What would success look like?": "איך תיראה הצלחה?",
         "Publish Wish": "פרסום משאלה",
         "Send a clear, trusted offer so the organization can decide quickly.": "שלחו הצעה ברורה ואמינה כדי שהארגון יוכל להחליט במהירות.",
-        "What can you offer?": "מה אתם יכולים להציע?",
+        "What can you offer?": "מה תוכלו להציע?",
         "Choose support type": "בחרו סוג תמיכה",
         "Professional volunteering": "התנדבות מקצועית",
         "Funding or grant help": "סיוע במימון או במענקים",
@@ -9129,27 +9168,7 @@ const GLOWE_TRANSLATIONS = {
         "Annual budget / support context": "תקציב שנתי / הקשר תמיכה",
         "Profile status": "סטטוס הפרופיל",
         "Personal area sections": "מקטעי האזור האישי",
-        // FR-GLOWE-023 — guest peek + contextual join
-        'Sign in to post a need': 'התחברו כדי לפרסם צורך',
-        'Browsing GloWe is open to everyone. Sign in with Google to post a need and reach people ready to help.': 'הגלישה ב-GloWe פתוחה לכולם. התחברו עם גוגל כדי לפרסם צורך ולהגיע לאנשים שמוכנים לעזור.',
-        'Sign in to post': 'התחברו כדי לפרסם',
-        'Sign in with Google to share a post with the GloWe community.': 'התחברו עם גוגל כדי לשתף פוסט עם קהילת GloWe.',
-        'Sign in to publish': 'התחברו כדי לפרסם',
-        'Sign in with Google to publish this opportunity and start receiving applications.': 'התחברו עם גוגל כדי לפרסם את ההזדמנות ולהתחיל לקבל מועמדויות.',
-        'Sign in to start a discussion': 'התחברו כדי לפתוח דיון',
-        'Sign in with Google to open a new discussion thread.': 'התחברו עם גוגל כדי לפתוח שרשור דיון חדש.',
-        'Sign in to reply': 'התחברו כדי להשיב',
-        'Sign in with Google to join this discussion.': 'התחברו עם גוגל כדי להצטרף לדיון.',
-        'Sign in to apply': 'התחברו כדי להגיש מועמדות',
-        'Save your spot': 'שמרו את מקומכם',
-        'Ready to lend a hand?': 'מוכנים לעזור?',
-        'Keep this for later': 'שמרו לאחר כך',
-        'Sign in with Google to save it to your list.': 'התחברו עם גוגל כדי לשמור לרשימה שלכם.',
-        'Sign in to continue': 'התחברו כדי להמשיך',
-        'Sign in with Google to open your personal area.': 'התחברו עם גוגל כדי לפתוח את האזור האישי שלכם.',
-        'Sign in with Google to do this on GloWe.': 'התחברו עם גוגל כדי לעשות זאת ב-GloWe.',
-        'Welcome to GloWe': 'ברוכים הבאים ל-GloWe',
-        "Welcome — you're browsing as a guest. Sign in with Google anytime to participate.": 'ברוכים הבאים — אתם גולשים כאורח. התחברו עם גוגל בכל רגע כדי להשתתף.',
+        "Welcome — you're browsing as a guest. Sign in with Google anytime to participate.": "ברוכים הבאים — אתם גולשים כאורח. התחברו עם גוגל בכל רגע כדי להשתתף.",
         "Mark as fulfilled": "סמנו כמומש",
         "No wishes yet": "עדיין אין משאלות",
         "Post a wish": "פרסמו משאלה",
@@ -9305,7 +9324,6 @@ const GLOWE_TRANSLATIONS = {
         "Your offer appears on the Wishing Well so organizations and members can find you.": "ההצעה שלכם מופיעה בבאר המשאלות כדי שארגונים וחברים ימצאו אתכם.",
         "Headline": "כותרת",
         "e.g. Graphic designer offering 3 hours a week": "לדוגמה: מעצב גרפי מציע 3 שעות בשבוע",
-        "What can you offer?": "מה תוכלו להציע?",
         "Skills, time, equipment — anything that could help.": "כישורים, זמן, ציוד — כל דבר שיכול לעזור.",
         "Impact area (optional)": "תחום השפעה (לא חובה)",
         "Publish Offer": "פרסום הצעה",
@@ -9319,10 +9337,8 @@ const GLOWE_TRANSLATIONS = {
         "Conversation unavailable": "השיחה אינה זמינה",
         "This conversation could not be opened.": "לא הצלחנו לפתוח את השיחה הזו.",
         "Back to messages": "חזרה להודעות",
-        "Back": "חזרה",
         "No messages yet. Say hello!": "אין הודעות עדיין. אמרו שלום!",
         "Write a message...": "כתבו הודעה...",
-        "Send": "שליחה",
         "Could not send": "השליחה נכשלה",
         "Messaging unavailable": "שליחת הודעות אינה זמינה",
         "This member cannot receive direct messages yet.": "החבר הזה עדיין לא יכול לקבל הודעות ישירות.",
@@ -9348,7 +9364,438 @@ const GLOWE_TRANSLATIONS = {
         "Report dismissed": "הדיווח נדחה",
         "The report was closed with no action.": "הדיווח נסגר ללא פעולה.",
         "Only GloWe reviewers can act on reports.": "רק בודקים של GloWe יכולים לטפל בדיווחים.",
-        "Open reported item": "פתיחת הפריט שדווח"
+        "Open reported item": "פתיחת הפריט שדווח",
+        "+ Follow": "+ עקבו",
+        "A focused group for learning spaces, youth programs, multilingual knowledge sharing, and practical education tools.": "קבוצה ממוקדת למרחבי למידה, תוכניות נוער, שיתוף ידע רב-לשוני וכלים חינוכיים מעשיים.",
+        "A glimpse into the community": "הצצה אל הקהילה",
+        "A home for people building impact together": "בית לאנשים שיוצרים השפעה ביחד",
+        "A moderated space for wellbeing, preventive health, emergency response, and community care methods.": "מרחב מנוהל לרווחה, בריאות מונעת, מענה לחירום ושיטות טיפול קהילתי.",
+        "About": "אודות",
+        "About Us": "עלינו",
+        "Account": "חשבון",
+        "Account type": "סוג חשבון",
+        "Admin Review": "ניהול ובקרה",
+        "Already have an account?": "כבר יש לכם חשבון?",
+        "An MVP by the GloWe community, with product and implementation support by Topaz.": "גרסת MVP של קהילת GloWe, בליווי מוצר ופיתוח של Topaz.",
+        "Ask for support": "בקשת תמיכה",
+        "Ask for Support": "בקשו תמיכה",
+        "Ask with honesty": "לבקש בכנות",
+        "Audience": "קהל יעד",
+        "Be the first to share a post or an opportunity others can join.": "היו הראשונים לשתף פוסט או הזדמנות שאחרים יוכלו להצטרף אליהם.",
+        "Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.": "מחברים פתרונות מקומיים לאתגרים גלובליים דרך ידע משותף, סולידריות ופעולה מעשית.",
+        "Bring what you know. Ask for what you need. Meet people who are working, learning, building, and caring around the SDGs.": "הביאו את מה שאתם יודעים. בקשו את מה שאתם צריכים. פגשו אנשים שעובדים, לומדים, בונים ואכפת להם, סביב יעדי הקיימות.",
+        "Browsing GloWe is open to everyone. Sign in with Google to post a need and reach people ready to help.": "הגלישה ב-GloWe פתוחה לכולם. התחברו עם גוגל כדי לפרסם צורך ולהגיע לאנשים שמוכנים לעזור.",
+        "Build with solidarity": "לבנות מתוך סולידריות",
+        "Built With Care": "נבנה באהבה",
+        "Business Model": "מודל עסקי",
+        "Change cover photo": "שינוי תמונת נושא",
+        "Change profile photo": "שינוי תמונת פרופיל",
+        "Choose the doorway that feels right today": "בחרו את הדלת שמרגישה נכונה היום",
+        "Choose the language for the GloWe interface. Hebrew and Arabic are shown in a right-to-left (RTL) layout.": "בחרו את שפת הממשק של GloWe. עברית וערבית מוצגות בפריסת ימין-לשמאל (RTL).",
+        "Choose the path that matches what you want to do first.": "בחרו את הדרך שמתאימה למה שתרצו לעשות קודם.",
+        "Civic Action": "פעולה אזרחית",
+        "Community": "קהילה",
+        "Community Discussion": "דיון קהילתי",
+        "Community member": "חבר/ת קהילה",
+        "Community Member": "חבר/ת קהילה",
+        "Community post": "פוסט קהילתי",
+        "Complete profile": "השלם פרופיל",
+        "Connection Request": "בקשת קשר",
+        "Connections": "קשרים",
+        "Continue": "המשך",
+        "Continue with Google": "המשך עם Google",
+        "Could not compress image.": "לא ניתן לדחוס את התמונה.",
+        "Could not delete account": "לא ניתן למחוק את החשבון",
+        "Could not follow": "לא ניתן לעקוב",
+        "Could not read image.": "לא ניתן לקרוא את התמונה.",
+        "Could not save photo.": "לא ניתן לשמור את התמונה.",
+        "Could not save profile.": "לא ניתן לשמור את הפרופיל.",
+        "Could not unfollow": "לא ניתן להפסיק לעקוב",
+        "Cover will be removed when you save.": "תמונת הנושא תוסר לאחר השמירה.",
+        "Create a profile": "יצירת פרופיל",
+        "Create a profile, post a need, and receive structured offers.": "יצירת פרופיל, פרסום צורך וקבלת הצעות מסודרות.",
+        "Crisis Response": "מענה לחירום",
+        "Deadline": "מועד אחרון",
+        "Delete Account": "מחיקת חשבון",
+        "Development Roadmap": "מפת דרכים לפיתוח",
+        "Discussion": "דיון",
+        "Education & Knowledge": "חינוך וידע",
+        "Email": "דוא\"ל",
+        "End your session on this device. You can sign back in any time with Google.": "סיום ההתחברות במכשיר זה. תוכלו להתחבר מחדש בכל עת באמצעות Google.",
+        "English": "אנגלית",
+        "English org name — auto-filled if blank": "שם הארגון באנגלית — ימולא אוטומטית אם ריק",
+        "Enter Community": "כניסה לקהילה",
+        "Enter the Community": "כניסה לקהילה",
+        "Environment & Climate Action": "סביבה ופעולה אקלימית",
+        "Event / Webinar": "אירוע / וובינר",
+        "Expert Community": "קהילת מומחים",
+        "Explore": "ניווט",
+        "Filters": "מסננים",
+        "Find ways to help": "מצאו דרכים לעזור",
+        "Find wishes that match your skills, language, location, and time.": "איתור משאלות שמתאימות לכישורים, לשפה, למיקום ולזמן שלכם.",
+        "Find your GloWe path": "מצאו את הדרך שלכם ב-GloWe",
+        "Find Your Place": "מצאו את מקומכם",
+        "Focus not added yet": "תחום מיקוד טרם נוסף",
+        "Followers": "עוקבים",
+        "Following": "במעקב",
+        "Following ✓": "עוקבים ✓",
+        "For climate, food systems, waste, restoration, repair, and local environmental action.": "לאקלים, מערכות מזון, פסולת, שיקום, תיקון ופעולה סביבתית מקומית.",
+        "For Organizations": "לארגונים",
+        "For rights-based action, civic participation, safe moderation, and community trust.": "לפעולה מבוססת זכויות, השתתפות אזרחית, ניהול שיח בטוח ואמון קהילתי.",
+        "Forums": "פורומים",
+        "Global Community": "קהילה גלובלית",
+        "Global Learning, Open Knowledge & Wisdom Exchange.": "למידה גלובלית, ידע פתוח וחילופי חוכמה.",
+        "GloWe is a warm, professional community for people, organizations, initiatives, volunteers, and partners working around the SDGs. Here you can ask for support, offer what you know, share field wisdom, and meet people who walk beside you in the work.": "GloWe היא קהילה חמה ומקצועית לאנשים, ארגונים, יוזמות, מתנדבים ושותפים שפועלים סביב יעדי הקיימות (SDGs). כאן אפשר לבקש תמיכה, להציע את הידע שלכם, לחלוק חוכמת שטח ולפגוש אנשים שצועדים לצידכם בעבודה.",
+        "Grant / Open Call": "מענק / קול קורא",
+        "Health & Community Care": "בריאות וטיפול קהילתי",
+        "Hebrew": "עברית",
+        "Hi,": "שלום,",
+        "Hide details": "הסתר פרטים",
+        "Home": "בית",
+        "How GloWe is structured": "איך GloWe בנויה",
+        "I am a business partner": "אני שותף/ה עסקי/ת",
+        "I can help": "אני יכול/ה לעזור",
+        "I represent an organization": "אני מייצג/ת ארגון",
+        "Image is too large even after compression. Try a smaller photo.": "התמונה גדולה מדי גם אחרי דחיסה. נסו תמונה קטנה יותר.",
+        "Image is too large. Try a smaller photo.": "התמונה גדולה מדי. נסו תמונה קטנה יותר.",
+        "Individual": "פרטי",
+        "Interface language": "שפת הממשק",
+        "Join a discussion": "הצטרפו לדיון",
+        "Join GloWe": "הצטרפו ל-GloWe",
+        "Join our community": "הצטרפו לקהילה",
+        "Join the GloWe Community": "הצטרפו לקהילת GloWe",
+        "Justice": "צדק",
+        "Keep this for later": "שמרו לאחר כך",
+        "Knowledge Share": "שיתוף ידע",
+        "Language": "שפה",
+        "Latin / English display name": "שם תצוגה באנגלית / לטינית",
+        "Latin / English name — auto-filled if left blank": "שם באנגלית / לטינית — ימולא אוטומטית אם יישאר ריק",
+        "Loading your GloWe home…": "טוען את ה-GloWe שלכם…",
+        "Local Community": "קהילה מקומית",
+        "Log in": "כניסה",
+        "Log In": "כניסה",
+        "Log Out": "התנתקות",
+        "Looking for people": "מחפשים אנשים",
+        "Manage your account, language, and session preferences.": "ניהול החשבון, השפה והעדפות ההתחברות שלכם.",
+        "Match CSR teams, logistics, funding, or services with verified needs.": "התאמת צוותי CSR, לוגיסטיקה, מימון או שירותים לצרכים מאומתים.",
+        "Meet the Community": "הכירו את הקהילה",
+        "Name": "שם",
+        "Name in English (optional)": "שם באנגלית (אופציונלי)",
+        "Need support": "זקוקים לתמיכה",
+        "Needs changes": "דרושים שינויים",
+        "Newest first": "חדשים קודם",
+        "No followers yet": "אין עוקבים עדיין",
+        "No wishes match your filters": "אין משאלות שמתאימות למסננים",
+        "Not following anyone yet": "לא עוקבים אחרי אף אחד עדיין",
+        "Offer Help": "הצעת עזרה",
+        "Offer with care": "להציע באכפתיות",
+        "Offer your expertise": "הציעו את המומחיות שלכם",
+        "Offer your time or expertise": "הציעו מהזמן או מהמומחיות שלכם",
+        "Oldest first": "ישנים קודם",
+        "Open Community": "פתחו את הקהילה",
+        "Open Personal Area": "מעבר לאזור האישי",
+        "Opportunities": "הזדמנויות",
+        "Organization name in English": "שם הארגון באנגלית",
+        "Organization name in English (optional)": "שם הארגון באנגלית (אופציונלי)",
+        "Organizations": "ארגונים",
+        "Participate": "להשתתף",
+        "Pending review": "ממתין לאישור",
+        "People who can strengthen the work": "אנשים שיכולים לחזק את העבודה",
+        "People who help knowledge travel": "אנשים שעוזרים לידע לנדוד",
+        "People who know the place": "אנשים שמכירים את המקום",
+        "Permanently delete your GloWe profile from this community. This removes your profile details; your Google sign-in itself is not deleted, so you can sign up again later.": "מחיקה לצמיתות של פרופיל GloWe שלכם מהקהילה. פעולה זו מסירה את פרטי הפרופיל; חשבון ההתחברות של Google עצמו אינו נמחק, כך שתוכלו להירשם מחדש בעתיד.",
+        "Personal Area": "האזור האישי",
+        "Photo optimized for upload.": "התמונה עברה אופטימיזציה להעלאה.",
+        "Photo will be removed when you save.": "התמונה תוסר בעת השמירה.",
+        "Post an opportunity": "פרסום הזדמנות",
+        "Post an Opportunity": "פרסום הזדמנות",
+        "Practical Action": "פעולה מעשית",
+        "Preparing photo...": "מכין את התמונה...",
+        "Professional Guide": "מדריך מקצועי",
+        "Profile": "פרופיל",
+        "Profile saved": "הפרופיל נשמר",
+        "Quick Links": "קישורים מהירים",
+        "Read Community": "קראו את הקהילה",
+        "Read Community Posts": "קראו פוסטים מהקהילה",
+        "Read What's Next": "קראו מה הלאה",
+        "Ready to lend a hand?": "מוכנים לעזור?",
+        "Reason": "סיבה",
+        "Register Your Organization": "רישום הארגון שלכם",
+        "Remove cover": "הסרת תמונת נושא",
+        "Remove photo": "הסרת תמונה",
+        "Repair": "תיקון",
+        "Replace": "החלפה",
+        "Reporter": "מדווח",
+        "Rights, Safety & Civic Power": "זכויות, בטיחות וכוח אזרחי",
+        "Safety": "בטיחות",
+        "Save cover": "שמירת תמונת נושא",
+        "Save photo": "שמירת תמונה",
+        "Save your spot": "שמרו את מקומכם",
+        "Saved from the GloWe community": "נשמר מקהילת GloWe",
+        "Saving...": "שומר...",
+        "Search by title, author, city, or topic": "חיפוש לפי כותרת, מחבר/ת, עיר או נושא",
+        "Search wishes": "חיפוש משאלות",
+        "Search, filter, and sort open needs from across the community.": "חפשו, סננו ומיינו צרכים פתוחים מכל הקהילה.",
+        "See all": "הצגת הכול",
+        "See all comments": "הצגת כל התגובות",
+        "See How This Could Grow": "ראו איך זה יכול לצמוח",
+        "Session": "התנתקות",
+        "Settings": "הגדרות",
+        "Share a local need": "שיתוף צורך מקומי",
+        "Share a post": "שיתוף פוסט",
+        "Share what would help": "שתפו במה שיעזור",
+        "Share with the community": "שיתוף עם הקהילה",
+        "Shared Knowledge": "ידע משותף",
+        "Show details": "הצג פרטים",
+        "Show original": "הצג מקור",
+        "Show translation": "הצג תרגום",
+        "Sign in to apply": "התחברו כדי להגיש מועמדות",
+        "Sign in to continue": "התחברו כדי להמשיך",
+        "Sign in to follow": "התחברו כדי לעקוב",
+        "Sign in to manage settings": "התחברו כדי לנהל הגדרות",
+        "Sign in to open your personal area": "התחברו כדי לפתוח את האזור האישי",
+        "Sign in to post": "התחברו כדי לפרסם",
+        "Sign in to post a need": "התחברו כדי לפרסם צורך",
+        "Sign in to publish": "התחברו כדי לפרסם",
+        "Sign in to reply": "התחברו כדי להשיב",
+        "Sign in to see connections": "התחברו כדי לראות קשרים",
+        "Sign in to start a discussion": "התחברו כדי לפתוח דיון",
+        "Sign in with Google to do this on GloWe.": "התחברו עם גוגל כדי לעשות זאת ב-GloWe.",
+        "Sign in with Google to follow profiles and stay updated on their work.": "התחברו עם Google כדי לעקוב אחרי פרופילים ולהישאר מעודכנים בעבודתם.",
+        "Sign in with Google to join this discussion.": "התחברו עם גוגל כדי להצטרף לדיון.",
+        "Sign in with Google to open a new discussion thread.": "התחברו עם גוגל כדי לפתוח שרשור דיון חדש.",
+        "Sign in with Google to open your personal area.": "התחברו עם גוגל כדי לפתוח את האזור האישי שלכם.",
+        "Sign in with Google to publish this opportunity and start receiving applications.": "התחברו עם גוגל כדי לפרסם את ההזדמנות ולהתחיל לקבל מועמדויות.",
+        "Sign in with Google to save it to your list.": "התחברו עם גוגל כדי לשמור לרשימה שלכם.",
+        "Sign in with Google to share a post with the GloWe community.": "התחברו עם גוגל כדי לשתף פוסט עם קהילת GloWe.",
+        "Sign in with your Google account to get started.": "התחברו עם חשבון Google כדי להתחיל.",
+        "Sign up / Sign in": "הרשמה / כניסה",
+        "Solidarity": "סולידריות",
+        "Something went wrong deleting your profile. Please try again.": "משהו השתבש במחיקת הפרופיל. אנא נסו שוב.",
+        "Sort": "מיון",
+        "Sort wishes": "מיון משאלות",
+        "Start where you are": "התחילו מהמקום שבו אתם נמצאים",
+        "Step into the community": "היכנסו לקהילה",
+        "Stop following": "הפסק לעקוב",
+        "Success": "הצלחה",
+        "Success Story": "סיפור הצלחה",
+        "Terms & Community Charter": "תנאים ואמנת קהילה",
+        "The community is just getting started": "הקהילה רק מתחילה",
+        "The GloWe ecosystem": "המערכת האקולוגית של GloWe",
+        "The Wishing Well": "באר המשאלות",
+        "there": "חבר/ה",
+        "This account requires approval to follow.": "חשבון זה דורש אישור כדי לעקוב.",
+        "Three communities, one living network": "שלוש קהילות, רשת חיה אחת",
+        "Title A–Z": "כותרת א–ת",
+        "Translating…": "מתרגם…",
+        "Trust and Respect": "אמון וכבוד",
+        "Trusted by the GloWe Community": "זוכה לאמון קהילת GloWe",
+        "Type DELETE to confirm": "הקלידו DELETE לאישור",
+        "Uploading...": "מעלה...",
+        "Use the Wishing Well": "שימוש בבאר המשאלות",
+        "User Roles": "תפקידי משתמשים",
+        "Values that guide the space": "הערכים שמנחים את המרחב",
+        "Verified": "מאומת",
+        "Volunteer Network": "רשת המתנדבים",
+        "volunteers": "מתנדבים",
+        "Want to contribute": "רוצים לתרום",
+        "Welcome Back": "ברוכים השבים",
+        "Welcome back,": "ברוכים השבים,",
+        "Welcome Back!": "ברוכים השבים!",
+        "Welcome to GloWe": "ברוכים הבאים ל-GloWe",
+        "Wellbeing": "רווחה",
+        "What Comes Next": "מה צופן העתיד",
+        "What is happening on GloWe": "מה קורה ב-GloWe",
+        "What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.": "מה תרצו לעשות היום? לשתף ידע, לפרסם הזדמנות, או לבקש תמיכה מהקהילה.",
+        "What you can do in GloWe now": "מה אפשר לעשות ב-GloWe עכשיו",
+        "Who is invited?": "מי מוזמן?",
+        "wish shown": "משאלה מוצגת",
+        "Wishes": "משאלות",
+        "wishes shown": "משאלות מוצגות",
+        "Wishing Well": "באר המשאלות",
+        "Write a post": "כתיבת פוסט",
+        "Write your first post": "כתבו את הפוסט הראשון שלכם",
+        "You can ask": "אפשר לבקש",
+        "You can belong": "אפשר להשתייך",
+        "You can connect": "אפשר להתחבר",
+        "You can learn": "אפשר ללמוד",
+        "You can offer": "אפשר להציע",
+        "You do not have to carry the work alone.": "אתם לא צריכים לשאת את העבודה לבד.",
+        "You have a place in this community.": "יש לכם מקום בקהילה הזו.",
+        "You have not shared anything yet": "עדיין לא שיתפתם דבר",
+        "You have something to give, and something to receive.": "יש לכם מה לתת, ויש לכם מה לקבל.",
+        "Your account, language, and session options live here once you are signed in.": "החשבון, השפה ואפשרויות ההתחברות יופיעו כאן לאחר הכניסה.",
+        "Your action was completed successfully.": "הפעולה הושלמה בהצלחה.",
+        "Your activity": "הפעילות שלכם",
+        "Your GloWe": "ה-GloWe שלכם",
+        "Your posts, opportunities, and requests will gather here.": "הפוסטים, ההזדמנויות והבקשות שלכם יופיעו כאן.",
+        "Your profile, applications, needs, and saved items live here once you are signed in.": "הפרופיל, הבקשות, הצרכים והפריטים השמורים שלכם יופיעו כאן לאחר הכניסה.",
+        "Youth": "נוער",
+        "Values": "ערכים",
+        "Problem": "בעיה",
+        "Solution": "פתרון",
+        "Size / availability": "גודל / זמינות",
+        "Not specified yet": "טרם צוין",
+        "Through participation, useful connections, project progress, and community feedback.": "דרך השתתפות, קשרים מועילים, התקדמות בפרויקטים ומשוב מהקהילה.",
+        "Contact through GloWe messages": "יצירת קשר דרך הודעות GloWe",
+        "Community impact": "השפעה קהילתית",
+        "Open to coordination": "פתוחים לתיאום",
+        "Impact signals": "סימני השפעה",
+        "What I offer": "מה אני מציע/ה",
+        "Bio": "ביוגרפיה",
+        "Size": "גודל",
+        "Country": "מדינה",
+        "Website": "אתר אינטרנט",
+        "Field / sector": "תחום / מגזר",
+        "Size (optional)": "גודל (אופציונלי)",
+        "Contact name": "שם איש קשר",
+        "Contact email": "אימייל ליצירת קשר",
+        "Contact phone (optional)": "טלפון ליצירת קשר (אופציונלי)",
+        "A few words about you and what you're working on": "כמה מילים עליכם ועל מה שאתם עובדים עליו",
+        "Education, health, environment...": "חינוך, בריאות, סביבה...",
+        "What does your organization do?": "מה הארגון שלכם עושה?",
+        "e.g. 1-10, 11-50": "לדוגמה 1-10, 11-50",
+        "Contact person": "איש קשר",
+        "Dev sign in": "כניסת פיתוח",
+        "Local dev sign-in": "כניסת פיתוח מקומית",
+        "Google OAuth is disabled on the local Supabase stack. Pick a test persona below — each option mints a real Supabase session (same as production after sign-in).": "Google OAuth מושבת בסביבת ה-Supabase המקומית. בחרו דמות בדיקה למטה — כל אפשרות יוצרת סשן Supabase אמיתי (כמו בסביבת הייצור לאחר כניסה).",
+        "Generated automatically — change if you like": "נוצר אוטומטית — אפשר לשנות אם תרצו",
+        "Organization mission": "משימת הארגון",
+        "Community you serve": "הקהילה שאתם משרתים",
+        "Problem you address": "הבעיה שאתם מטפלים בה",
+        "Solution or method": "פתרון או שיטה",
+        "Business purpose": "מטרת העסק",
+        "Business values": "ערכי העסק",
+        "Customers / community": "לקוחות / קהילה",
+        "Social or environmental problem": "בעיה חברתית או סביבתית",
+        "Product, service, or impact model": "מוצר, שירות או מודל השפעה",
+        "Team / company size": "גודל הצוות / החברה",
+        "Initiative story": "סיפור היוזמה",
+        "Values and people behind it": "ערכים והאנשים מאחורי היוזמה",
+        "Problem or need": "בעיה או צורך",
+        "What you do in practice": "מה אתם עושים בפועל",
+        "People involved": "אנשים מעורבים",
+        "Volunteer introduction": "הצגה עצמית של המתנדב/ת",
+        "How you like to volunteer": "איך אתם אוהבים להתנדב",
+        "Preferred causes / communities": "מטרות / קהילות מועדפות",
+        "Causes close to your heart": "מטרות שקרובות ללבכם",
+        "Support you can offer": "תמיכה שאתם יכולים להציע",
+        "Monthly availability": "זמינות חודשית",
+        "Professional background": "רקע מקצועי",
+        "Professional values": "ערכים מקצועיים",
+        "Who you can support": "את מי אתם יכולים לתמוך",
+        "Challenges you can help solve": "אתגרים שאתם יכולים לעזור לפתור",
+        "Services, volunteering, or forum leadership": "שירותים, התנדבות או הובלת פורום",
+        "Availability / service model": "זמינות / מודל שירות",
+        "Collaboration": "שיתוף פעולה",
+        "Joint Projects": "פרויקטים משותפים",
+        "Active Account": "חשבון פעיל",
+        "Shared Content": "תוכן משותף",
+        "Expert Writer": "כותב/ת מומחה/ית",
+        "Professional Knowledge": "ידע מקצועי",
+        "Leading Volunteer": "מתנדב/ת מוביל/ה",
+        "Volunteer Hours": "שעות התנדבות",
+        "Active Learner": "לומד/ת פעיל/ה",
+        "Knowledge Discovery": "גילוי ידע",
+        "Community Bridge": "גשר קהילתי",
+        "Connections Made": "קשרים שנוצרו",
+        "Documented Impact": "השפעה מתועדת",
+        "Case Studies": "מקרי בוחן",
+        "Diversity & Inclusion": "גיוון והכלה",
+        "Diverse Collaborations": "שיתופי פעולה מגוונים",
+        "Projects created or managed in partnership": "פרויקטים שנוצרו או נוהלו בשותפות",
+        "Posts, articles, videos, and comments published": "פוסטים, מאמרים, סרטונים ותגובות שפורסמו",
+        "Professional posts or articles shared": "פוסטים או מאמרים מקצועיים ששותפו",
+        "Hours of consulting, mentoring, or activity": "שעות של ייעוץ, חונכות או פעילות",
+        "Articles, pages, and projects explored": "מאמרים, עמודים ופרויקטים שנחקרו",
+        "People and organizations introduced to one another": "אנשים וארגונים שחוברו זה לזה",
+        "Success stories with impact evidence": "סיפורי הצלחה עם עדויות להשפעה",
+        "Cross-community, cross-country, or cross-sector collaborations": "שיתופי פעולה בין-קהילתיים, בין-ארציים או בין-מגזריים",
+        "volunteers connected": "מתנדבים מחוברים",
+        "projects listed": "פרויקטים רשומים",
+        // Profile-view fallback sentences (fix/language-gap-sweep, round 2)
+        "Verified organization": "ארגון מאומת",
+        "community impact": "השפעה קהילתית",
+        "This profile can add more field insights, measurement notes, and lessons learned as the work develops.": "ניתן להוסיף לפרופיל הזה עוד תובנות מהשטח, הערות מדידה ולקחים שנלמדו ככל שהעבודה מתפתחת.",
+        "Community work, partnerships, shared knowledge, and practical field-based action.": "עבודה קהילתית, שותפויות, ידע משותף ופעולה מעשית בשטח.",
+        "Open to relevant conversations and collaboration through GloWe.": "פתוחים לשיחות רלוונטיות ולשיתופי פעולה דרך GloWe.",
+        "people connected through projects, opportunities, or community activity.": "אנשים שהתחברו דרך פרויקטים, הזדמנויות או פעילות קהילתית.",
+        "The work responds to needs connected to ": "העבודה נענית לצרכים הקשורים ל",
+        " and helps make local knowledge easier to access and act on.": " ומסייעת להנגיש ידע מקומי ולפעול על פיו.",
+        // wishTypeStyles labels (data.js) missing from an earlier partial harvest
+        "Call for Help": "קריאה לעזרה",
+        "Looking for Collaboration": "מחפשים שיתוף פעולה",
+        "Support Needed": "נדרשת תמיכה",
+        "Sharing Knowledge": "שיתוף ידע",
+        "Call for Collaboration": "קריאה לשיתוף פעולה",
+        "Media & Visibility": "מדיה וחשיפה",
+        "Project Spotlight": "זרקור על פרויקט",
+        "We're Hiring": "אנחנו מגייסים",
+        // Date-locale-bug follow-up (event type + relative-time + applied/offered labels)
+        "Online": "מקוון",
+        "In person": "פרונטלי",
+        "now": "עכשיו",
+        "Offered": "הוצע",
+        "Applied": "הוגשה מועמדות",
+        "Applied on": "הוגש בתאריך",
+        // index.html home-page marketing copy + member-feed Opportunity badge
+        "Opportunity": "הזדמנות",
+        "Your GloWe home": "העמוד הביתי שלכם ב-GloWe",
+        "GloWe was created as a home for impact communities: a place to make work visible, build trust, share multilingual knowledge, and turn local needs into collaborative action. You can arrive with a project, a question, a skill, a story, or a need. There is room for all of it.": "GloWe נוצר כבית לקהילות השפעה: מקום להפוך עבודה לגלויה, לבנות אמון, לשתף ידע רב-לשוני ולהפוך צרכים מקומיים לפעולה משותפת. אפשר להגיע עם פרויקט, שאלה, מיומנות, סיפור או צורך. יש מקום לכל זה.",
+        "Our community is built around practical exchange: professional volunteers, proven solutions, multilingual knowledge, local and global collaboration, tools and resources, donor and client access, social-business integration, and peer-to-peer inspiration.": "הקהילה שלנו בנויה סביב חילופין מעשיים: מתנדבים מקצועיים, פתרונות מוכחים, ידע רב-לשוני, שיתוף פעולה מקומי וגלובלי, כלים ומשאבים, גישה לתורמים וללקוחות, שילוב עסקים-חברתיים והשראה מעמית לעמית.",
+        // TD-141 — report/saved-item target-type + status enum labels
+        "Wish": "משאלה",
+        "Thread": "דיון",
+        "General": "כללי",
+        "Dismissed": "נדחה",
+        "Actioned": "טופל",
+        // Forums page welded counts (members/posts/replies/Last active)
+        "members": "חברים",
+        "replies": "תגובות",
+        "Last active": "פעילות אחרונה",
+        "Discussion from members of ": "דיון מחברי ",
+        // discussion-group.html group-stats row
+        "active threads": "דיונים פעילים",
+        // opportunity.html org-mission fallback text
+        "This local opportunity was published by a GloWe community member and is ready for interested volunteers or collaborators.": "ההזדמנות המקומית הזו פורסמה על ידי חבר קהילת GloWe ומוכנה למתנדבים או שותפים מעוניינים.",
+        // connections.html title + intro + follow-ui error state
+        "Connections - GloWe": "קשרים - GloWe",
+        "Followers and people this profile follows on GloWe.": "עוקבים ואנשים שהפרופיל הזה עוקב אחריהם ב-GloWe.",
+        "Missing user id.": "חסר מזהה משתמש.",
+        // admin.html — never previously translated (moderation + health tabs)
+        "Review new profile submissions, respond to reports, and monitor production health from one place.": "סקרו הגשות פרופיל חדשות, הגיבו לדיווחים ועקבו אחר בריאות המערכת ממקום אחד.",
+        "Moderation": "פיקוח",
+        "System health": "תקינות המערכת",
+        "Field": "תחום",
+        "Submitted": "הוגש",
+        "Production probes": "בדיקות ייצור",
+        "Read-only checks against the live GloWe site. Refreshed after each deploy and every 15 minutes.": "בדיקות לקריאה בלבד מול אתר GloWe החי. מתעדכן אחרי כל פריסה וכל 15 דקות.",
+        "No data": "אין נתונים",
+        "Refresh": "רענון",
+        "Open this tab to load probes": "פתחו את הכרטיסייה הזו כדי לטעון את הבדיקות",
+        "Health data loads on demand so moderation stays fast.": "נתוני התקינות נטענים לפי דרישה כדי שהפיקוח יישאר מהיר.",
+        "Recent probe history": "היסטוריית בדיקות אחרונה",
+        "Check": "בדיקה",
+        "Latency": "זמן תגובה",
+        "Version": "גרסה",
+        "Checked at": "נבדק בשעה",
+        "Detail": "פרטים",
+        "Admin sections": "אזורי ניהול",
+        "Explain the decision — especially required when rejecting": "הסבירו את ההחלטה — נדרש במיוחד בעת דחייה",
+        // registrationProfileFields publicPrompt/fundingLabel/budgetLabel for
+        // business/initiative/volunteer/professional — reachable via
+        // renderQuestionnaireProfile() on the Personal Area page (ngo's were
+        // already covered by an earlier harvest, the other 4 types were not)
+        "Open to collaborations, products, services, or CSR partnerships?": "פתוחים לשיתופי פעולה, מוצרים, שירותים או שותפויות CSR?",
+        "Business model / support sources": "מודל עסקי / מקורות תמיכה",
+        "Looking for volunteers, mentors, partners, or visibility?": "מחפשים מתנדבים, מנטורים, שותפים או חשיפה?",
+        "Current support / resources": "תמיכה / משאבים נוכחיים",
+        "Can people contact you directly through GloWe?": "אפשר ליצור איתכם קשר ישירות דרך GloWe?",
+        "Preferred communication": "אופן תקשורת מועדף",
+        "Support needs / accessibility notes": "צרכי תמיכה / הערות נגישות",
+        "Open to volunteering, paid services, forum leadership, or community support?": "פתוחים להתנדבות, שירותים בתשלום, הובלת פורום או תמיכה קהילתית?",
+        "Preferred engagement": "אופן מעורבות מועדף",
+        "Rates / pro-bono policy": "תעריפים / מדיניות פרו-בונו",
     },
     ru: {
         "Show original": "Показать оригинал",
@@ -9511,6 +9958,7 @@ const GLOWE_TRANSLATIONS = {
         "Your activity": "Ваша активность",
         "What is happening on GloWe": "Что происходит в GloWe",
         "See all": "Показать всё",
+        "See all comments": "Показать все комментарии",
         "Loading your GloWe home…": "Загружаем вашу главную страницу GloWe…",
         "You have not shared anything yet": "Вы пока ничем не поделились",
         "Your posts, opportunities, and requests will gather here.": "Ваши посты, возможности и запросы будут собираться здесь.",
@@ -9942,6 +10390,7 @@ const GLOWE_TRANSLATIONS = {
         "Profile From Questionnaire": "Профиль из анкеты",
         "Profile not found": "Профиль не найден",
         "Profile snapshot": "Краткий обзор профиля",
+        "Profile summary": "Сводка профиля",
         "Profiles": "Профили",
         "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "Профили, посты, сообщения и сотрудничество должны поддерживать достоинство, прозрачность и ответственную заботу о сообществе.",
         "Project-based": "Проектная работа",
@@ -10149,6 +10598,7 @@ const GLOWE_TRANSLATIONS = {
         "Who We Serve": "Кому мы служим",
         "Why do you want to volunteer?": "Почему вы хотите стать волонтёром?",
         "Why GloWe exists": "Зачем существует GloWe",
+        "Wish filters": "Фильтры желаний",
         "Wish Type": "Тип желания",
         "Write a Community Post": "Написать пост сообщества",
         "Write a reply": "Написать ответ",
@@ -10610,7 +11060,198 @@ const GLOWE_TRANSLATIONS = {
         "Report dismissed": "Жалоба отклонена",
         "The report was closed with no action.": "Жалоба закрыта без принятия мер.",
         "Only GloWe reviewers can act on reports.": "Только проверяющие GloWe могут принимать меры по жалобам.",
-        "Open reported item": "Открыть элемент из жалобы"
+        "Open reported item": "Открыть элемент из жалобы",
+        "Audience": "Аудитория",
+        "Community Discussion": "Обсуждение в сообществе",
+        "Connection Request": "Запрос на связь",
+        "Deadline": "Крайний срок",
+        "Discussion": "Обсуждение",
+        "Event / Webinar": "Мероприятие / вебинар",
+        "Filters": "Фильтры",
+        "Grant / Open Call": "Грант / открытый конкурс",
+        "Knowledge Share": "Обмен знаниями",
+        "Newest first": "Сначала новые",
+        "No wishes match your filters": "Нет желаний по выбранным фильтрам",
+        "Oldest first": "Сначала старые",
+        "Professional Guide": "Профессиональное руководство",
+        "Reason": "Причина",
+        "Reporter": "Автор жалобы",
+        "Search by title, author, city, or topic": "Поиск по названию, автору, городу или теме",
+        "Search wishes": "Поиск желаний",
+        "Search, filter, and sort open needs from across the community.": "Ищите, фильтруйте и сортируйте открытые запросы сообщества.",
+        "Sort": "Сортировка",
+        "Sort wishes": "Сортировать желания",
+        "Success Story": "История успеха",
+        "Title A–Z": "Название А–Я",
+        "Verified": "Проверено",
+        "volunteers": "волонтёров",
+        "wish shown": "желание показано",
+        "wishes shown": "желаний показано",
+        "Values": "Ценности",
+        "Problem": "Проблема",
+        "Solution": "Решение",
+        "Size / availability": "Размер / доступность",
+        "Not specified yet": "Пока не указано",
+        "Through participation, useful connections, project progress, and community feedback.": "Через участие, полезные связи, прогресс проектов и отзывы сообщества.",
+        "Contact through GloWe messages": "Связаться через сообщения GloWe",
+        "Community impact": "Влияние на сообщество",
+        "Open to coordination": "Открыты для координации",
+        "Impact signals": "Показатели влияния",
+        "What I offer": "Что я предлагаю",
+        "Bio": "О себе",
+        "Size": "Размер",
+        "Country": "Страна",
+        "Website": "Веб-сайт",
+        "Field / sector": "Сфера / отрасль",
+        "Size (optional)": "Размер (необязательно)",
+        "Contact name": "Контактное имя",
+        "Contact email": "Контактный email",
+        "Contact phone (optional)": "Контактный телефон (необязательно)",
+        "A few words about you and what you're working on": "Несколько слов о вас и над чем вы работаете",
+        "Education, health, environment...": "Образование, здоровье, экология...",
+        "What does your organization do?": "Чем занимается ваша организация?",
+        "e.g. 1-10, 11-50": "например 1-10, 11-50",
+        "Contact person": "Контактное лицо",
+        "Dev sign in": "Вход для разработки",
+        "Local dev sign-in": "Локальный вход для разработки",
+        "Google OAuth is disabled on the local Supabase stack. Pick a test persona below — each option mints a real Supabase session (same as production after sign-in).": "Google OAuth отключён в локальном стеке Supabase. Выберите тестовый профиль ниже — каждый вариант создаёт настоящую сессию Supabase (как в продакшене после входа).",
+        "Generated automatically — change if you like": "Создано автоматически — можно изменить",
+        "Organization mission": "Миссия организации",
+        "Community you serve": "Сообщество, которому вы служите",
+        "Problem you address": "Проблема, которую вы решаете",
+        "Solution or method": "Решение или метод",
+        "Business purpose": "Цель бизнеса",
+        "Business values": "Ценности бизнеса",
+        "Customers / community": "Клиенты / сообщество",
+        "Social or environmental problem": "Социальная или экологическая проблема",
+        "Product, service, or impact model": "Продукт, услуга или модель воздействия",
+        "Team / company size": "Размер команды / компании",
+        "Initiative story": "История инициативы",
+        "Values and people behind it": "Ценности и люди, стоящие за инициативой",
+        "Problem or need": "Проблема или потребность",
+        "What you do in practice": "Что вы делаете на практике",
+        "People involved": "Вовлечённые люди",
+        "Volunteer introduction": "Представление волонтёра",
+        "How you like to volunteer": "Как вы предпочитаете волонтёрить",
+        "Preferred causes / communities": "Предпочитаемые направления / сообщества",
+        "Causes close to your heart": "Направления, важные для вас",
+        "Support you can offer": "Поддержка, которую вы можете предложить",
+        "Monthly availability": "Ежемесячная доступность",
+        "Professional background": "Профессиональный опыт",
+        "Professional values": "Профессиональные ценности",
+        "Who you can support": "Кому вы можете помочь",
+        "Challenges you can help solve": "Задачи, в решении которых вы можете помочь",
+        "Services, volunteering, or forum leadership": "Услуги, волонтёрство или ведение форума",
+        "Availability / service model": "Доступность / модель услуг",
+        "Collaboration": "Сотрудничество",
+        "Joint Projects": "Совместные проекты",
+        "Active Account": "Активный аккаунт",
+        "Shared Content": "Опубликованный контент",
+        "Expert Writer": "Эксперт-автор",
+        "Professional Knowledge": "Профессиональные знания",
+        "Leading Volunteer": "Ведущий волонтёр",
+        "Volunteer Hours": "Часы волонтёрства",
+        "Active Learner": "Активный ученик",
+        "Knowledge Discovery": "Открытие знаний",
+        "Community Bridge": "Мост между сообществами",
+        "Connections Made": "Установленные связи",
+        "Documented Impact": "Задокументированное влияние",
+        "Case Studies": "Тематические исследования",
+        "Diversity & Inclusion": "Многообразие и инклюзия",
+        "Diverse Collaborations": "Разнообразные сотрудничества",
+        "Projects created or managed in partnership": "Проекты, созданные или управляемые в партнёрстве",
+        "Posts, articles, videos, and comments published": "Опубликованные посты, статьи, видео и комментарии",
+        "Professional posts or articles shared": "Опубликованные профессиональные посты или статьи",
+        "Hours of consulting, mentoring, or activity": "Часы консультаций, наставничества или активности",
+        "Articles, pages, and projects explored": "Изученные статьи, страницы и проекты",
+        "People and organizations introduced to one another": "Люди и организации, знакомство между которыми состоялось",
+        "Success stories with impact evidence": "Истории успеха с доказательствами влияния",
+        "Cross-community, cross-country, or cross-sector collaborations": "Межобщинные, межстрановые или межотраслевые сотрудничества",
+        "volunteers connected": "волонтёров на связи",
+        "projects listed": "проектов в списке",
+        // Profile-view fallback sentences (fix/language-gap-sweep, round 2)
+        "Verified organization": "Проверенная организация",
+        "community impact": "влияние на сообщество",
+        "This profile can add more field insights, measurement notes, and lessons learned as the work develops.": "К этому профилю можно добавить больше полевых наблюдений, заметок по измерению результатов и извлечённых уроков по мере развития работы.",
+        "Community work, partnerships, shared knowledge, and practical field-based action.": "Работа с сообществом, партнёрства, обмен знаниями и практические действия на местах.",
+        "Open to relevant conversations and collaboration through GloWe.": "Открыты к обсуждению и сотрудничеству через GloWe.",
+        "people connected through projects, opportunities, or community activity.": "людей подключились через проекты, возможности или активность в сообществе.",
+        "The work responds to needs connected to ": "Работа отвечает на потребности, связанные с ",
+        " and helps make local knowledge easier to access and act on.": ", и помогает сделать местные знания более доступными и применимыми на практике.",
+        // wishTypeStyles labels (data.js) missing from an earlier partial harvest
+        "Call for Help": "Призыв о помощи",
+        "Looking for Collaboration": "Ищем сотрудничество",
+        "Support Needed": "Требуется поддержка",
+        "Sharing Knowledge": "Обмен знаниями",
+        "Call for Collaboration": "Призыв к сотрудничеству",
+        "Media & Visibility": "Медиа и узнаваемость",
+        "Project Spotlight": "В центре внимания: проект",
+        "We're Hiring": "Мы нанимаем",
+        // Date-locale-bug follow-up (event type + relative-time + applied/offered labels)
+        "Online": "Онлайн",
+        "In person": "Очно",
+        "now": "сейчас",
+        "Offered": "Предложено",
+        "Applied": "Подано",
+        "Applied on": "Подано",
+        // index.html home-page marketing copy + member-feed Opportunity badge
+        "Opportunity": "Возможность",
+        "Your GloWe home": "Ваша домашняя страница GloWe",
+        "GloWe was created as a home for impact communities: a place to make work visible, build trust, share multilingual knowledge, and turn local needs into collaborative action. You can arrive with a project, a question, a skill, a story, or a need. There is room for all of it.": "GloWe был создан как дом для сообществ влияния: место, где делают работу видимой, строят доверие, делятся многоязычными знаниями и превращают локальные потребности в совместные действия. Можно прийти с проектом, вопросом, навыком, историей или потребностью. Здесь есть место для всего этого.",
+        "Our community is built around practical exchange: professional volunteers, proven solutions, multilingual knowledge, local and global collaboration, tools and resources, donor and client access, social-business integration, and peer-to-peer inspiration.": "Наше сообщество построено вокруг практического обмена: профессиональные волонтёры, проверенные решения, многоязычные знания, локальное и глобальное сотрудничество, инструменты и ресурсы, доступ к донорам и клиентам, интеграция социального бизнеса и вдохновение от равного к равному.",
+        // TD-141 — report/saved-item target-type + status enum labels
+        "Wish": "Пожелание",
+        "Thread": "Тема",
+        "General": "Общее",
+        "Dismissed": "Отклонено",
+        "Actioned": "Обработано",
+        // Forums page welded counts (members/posts/replies/Last active)
+        "members": "участников",
+        "replies": "ответов",
+        "Last active": "Последняя активность",
+        "Discussion from members of ": "Обсуждение от участников ",
+        // discussion-group.html group-stats row
+        "active threads": "активных тем",
+        // opportunity.html org-mission fallback text
+        "This local opportunity was published by a GloWe community member and is ready for interested volunteers or collaborators.": "Эта локальная возможность опубликована участником сообщества GloWe и готова для заинтересованных волонтёров или партнёров.",
+        // connections.html title + intro + follow-ui error state
+        "Connections - GloWe": "Связи - GloWe",
+        "Followers and people this profile follows on GloWe.": "Подписчики и люди, за которыми следит этот профиль в GloWe.",
+        "Missing user id.": "Отсутствует идентификатор пользователя.",
+        // admin.html — never previously translated (moderation + health tabs)
+        "Review new profile submissions, respond to reports, and monitor production health from one place.": "Просматривайте новые заявки на профиль, отвечайте на жалобы и следите за состоянием системы в одном месте.",
+        "Moderation": "Модерация",
+        "System health": "Состояние системы",
+        "Field": "Сфера",
+        "Submitted": "Отправлено",
+        "Production probes": "Проверки продакшена",
+        "Read-only checks against the live GloWe site. Refreshed after each deploy and every 15 minutes.": "Проверки только для чтения на живом сайте GloWe. Обновляется после каждого деплоя и каждые 15 минут.",
+        "No data": "Нет данных",
+        "Refresh": "Обновить",
+        "Open this tab to load probes": "Откройте эту вкладку, чтобы загрузить проверки",
+        "Health data loads on demand so moderation stays fast.": "Данные о состоянии загружаются по запросу, чтобы модерация оставалась быстрой.",
+        "Recent probe history": "История последних проверок",
+        "Check": "Проверка",
+        "Latency": "Задержка",
+        "Version": "Версия",
+        "Checked at": "Проверено в",
+        "Detail": "Детали",
+        "Admin sections": "Разделы администрирования",
+        "Explain the decision — especially required when rejecting": "Объясните решение — особенно важно при отклонении",
+        // registrationProfileFields publicPrompt/fundingLabel/budgetLabel for
+        // business/initiative/volunteer/professional — reachable via
+        // renderQuestionnaireProfile() on the Personal Area page (ngo's were
+        // already covered by an earlier harvest, the other 4 types were not)
+        "Open to collaborations, products, services, or CSR partnerships?": "Открыты к сотрудничеству, продуктам, услугам или партнёрствам в сфере КСО?",
+        "Business model / support sources": "Бизнес-модель / источники поддержки",
+        "Looking for volunteers, mentors, partners, or visibility?": "Ищете волонтёров, наставников, партнёров или узнаваемость?",
+        "Current support / resources": "Текущая поддержка / ресурсы",
+        "Can people contact you directly through GloWe?": "Могут ли люди связаться с вами напрямую через GloWe?",
+        "Preferred communication": "Предпочитаемый способ связи",
+        "Support needs / accessibility notes": "Потребности в поддержке / заметки о доступности",
+        "Open to volunteering, paid services, forum leadership, or community support?": "Открыты к волонтёрству, платным услугам, ведению форума или поддержке сообщества?",
+        "Preferred engagement": "Предпочитаемый формат участия",
+        "Rates / pro-bono policy": "Расценки / политика pro-bono",
     },
     ar: {
         "Show original": "عرض النص الأصلي",
@@ -10773,6 +11414,7 @@ const GLOWE_TRANSLATIONS = {
         "Your activity": "نشاطك",
         "What is happening on GloWe": "ما الذي يحدث في GloWe",
         "See all": "عرض الكل",
+        "See all comments": "عرض كل التعليقات",
         "Loading your GloWe home…": "جارٍ تحميل صفحتك الرئيسية في GloWe…",
         "You have not shared anything yet": "لم تشارك شيئًا بعد",
         "Your posts, opportunities, and requests will gather here.": "ستتجمع هنا منشوراتك وفرصك وطلباتك.",
@@ -11204,6 +11846,7 @@ const GLOWE_TRANSLATIONS = {
         "Profile From Questionnaire": "ملف شخصي من الاستبيان",
         "Profile not found": "لم يتم العثور على الملف الشخصي",
         "Profile snapshot": "لمحة عن الملف الشخصي",
+        "Profile summary": "ملخص الملف الشخصي",
         "Profiles": "الملفات الشخصية",
         "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "ينبغي أن تدعم الملفات الشخصية والمنشورات والرسائل والتعاونات الكرامة والشفافية والرعاية المجتمعية المسؤولة.",
         "Project-based": "قائم على مشروع",
@@ -11411,6 +12054,7 @@ const GLOWE_TRANSLATIONS = {
         "Who We Serve": "من نخدم",
         "Why do you want to volunteer?": "لماذا تريد التطوع؟",
         "Why GloWe exists": "لماذا وُجدت GloWe",
+        "Wish filters": "عوامل تصفية الأمنيات",
         "Wish Type": "نوع الأمنية",
         "Write a Community Post": "كتابة منشور مجتمعي",
         "Write a reply": "اكتب ردًا",
@@ -11872,7 +12516,198 @@ const GLOWE_TRANSLATIONS = {
         "Report dismissed": "تم رفض البلاغ",
         "The report was closed with no action.": "أُغلق البلاغ دون اتخاذ إجراء.",
         "Only GloWe reviewers can act on reports.": "يمكن لمراجعي GloWe وحدهم اتخاذ إجراء بشأن البلاغات.",
-        "Open reported item": "فتح العنصر المُبلَّغ عنه"
+        "Open reported item": "فتح العنصر المُبلَّغ عنه",
+        "Audience": "الجمهور",
+        "Community Discussion": "نقاش مجتمعي",
+        "Connection Request": "طلب تواصل",
+        "Deadline": "الموعد النهائي",
+        "Discussion": "نقاش",
+        "Event / Webinar": "فعالية / ندوة عبر الإنترنت",
+        "Filters": "عوامل التصفية",
+        "Grant / Open Call": "منحة / دعوة مفتوحة",
+        "Knowledge Share": "مشاركة المعرفة",
+        "Newest first": "الأحدث أولاً",
+        "No wishes match your filters": "لا توجد أمنيات تطابق عوامل التصفية",
+        "Oldest first": "الأقدم أولاً",
+        "Professional Guide": "دليل مهني",
+        "Reason": "السبب",
+        "Reporter": "المُبلّغ",
+        "Search by title, author, city, or topic": "ابحث حسب العنوان أو الكاتب أو المدينة أو الموضوع",
+        "Search wishes": "البحث في الأمنيات",
+        "Search, filter, and sort open needs from across the community.": "ابحث وصِف وصنّف الاحتياجات المفتوحة من أنحاء المجتمع.",
+        "Sort": "ترتيب",
+        "Sort wishes": "ترتيب الأمنيات",
+        "Success Story": "قصة نجاح",
+        "Title A–Z": "العنوان أ–ي",
+        "Verified": "موثّق",
+        "volunteers": "متطوعون",
+        "wish shown": "أمنية معروضة",
+        "wishes shown": "أمنيات معروضة",
+        "Values": "القيم",
+        "Problem": "المشكلة",
+        "Solution": "الحل",
+        "Size / availability": "الحجم / التوفر",
+        "Not specified yet": "لم يُحدَّد بعد",
+        "Through participation, useful connections, project progress, and community feedback.": "من خلال المشاركة، والعلاقات المفيدة، وتقدّم المشاريع، وملاحظات المجتمع.",
+        "Contact through GloWe messages": "التواصل عبر رسائل GloWe",
+        "Community impact": "الأثر المجتمعي",
+        "Open to coordination": "منفتحون على التنسيق",
+        "Impact signals": "مؤشرات الأثر",
+        "What I offer": "ما أقدمه",
+        "Bio": "نبذة",
+        "Size": "الحجم",
+        "Country": "البلد",
+        "Website": "الموقع الإلكتروني",
+        "Field / sector": "المجال / القطاع",
+        "Size (optional)": "الحجم (اختياري)",
+        "Contact name": "اسم جهة الاتصال",
+        "Contact email": "البريد الإلكتروني للتواصل",
+        "Contact phone (optional)": "هاتف التواصل (اختياري)",
+        "A few words about you and what you're working on": "بضع كلمات عنك وعمّا تعمل عليه",
+        "Education, health, environment...": "التعليم، الصحة، البيئة...",
+        "What does your organization do?": "ماذا تفعل مؤسستكم؟",
+        "e.g. 1-10, 11-50": "مثال 1-10، 11-50",
+        "Contact person": "الشخص المسؤول",
+        "Dev sign in": "تسجيل دخول المطورين",
+        "Local dev sign-in": "تسجيل الدخول التطويري المحلي",
+        "Google OAuth is disabled on the local Supabase stack. Pick a test persona below — each option mints a real Supabase session (same as production after sign-in).": "تم تعطيل Google OAuth في بيئة Supabase المحلية. اختر شخصية اختبار أدناه — كل خيار ينشئ جلسة Supabase حقيقية (كما في بيئة الإنتاج بعد تسجيل الدخول).",
+        "Generated automatically — change if you like": "تم الإنشاء تلقائيًا — يمكنك التغيير إذا أردت",
+        "Organization mission": "رسالة المؤسسة",
+        "Community you serve": "المجتمع الذي تخدمونه",
+        "Problem you address": "المشكلة التي تعالجونها",
+        "Solution or method": "الحل أو الأسلوب",
+        "Business purpose": "هدف العمل",
+        "Business values": "قيم العمل",
+        "Customers / community": "العملاء / المجتمع",
+        "Social or environmental problem": "مشكلة اجتماعية أو بيئية",
+        "Product, service, or impact model": "منتج أو خدمة أو نموذج تأثير",
+        "Team / company size": "حجم الفريق / الشركة",
+        "Initiative story": "قصة المبادرة",
+        "Values and people behind it": "القيم والأشخاص وراء المبادرة",
+        "Problem or need": "مشكلة أو حاجة",
+        "What you do in practice": "ما تفعلونه عمليًا",
+        "People involved": "الأشخاص المشاركون",
+        "Volunteer introduction": "تعريف المتطوع",
+        "How you like to volunteer": "كيف تفضل التطوع",
+        "Preferred causes / communities": "القضايا / المجتمعات المفضلة",
+        "Causes close to your heart": "القضايا القريبة من قلبك",
+        "Support you can offer": "الدعم الذي يمكنك تقديمه",
+        "Monthly availability": "التوفر الشهري",
+        "Professional background": "الخلفية المهنية",
+        "Professional values": "القيم المهنية",
+        "Who you can support": "من يمكنك دعمه",
+        "Challenges you can help solve": "التحديات التي يمكنك المساعدة في حلها",
+        "Services, volunteering, or forum leadership": "خدمات أو تطوع أو قيادة منتدى",
+        "Availability / service model": "التوفر / نموذج الخدمة",
+        "Collaboration": "التعاون",
+        "Joint Projects": "مشاريع مشتركة",
+        "Active Account": "حساب نشط",
+        "Shared Content": "محتوى مُشارك",
+        "Expert Writer": "كاتب خبير",
+        "Professional Knowledge": "معرفة مهنية",
+        "Leading Volunteer": "متطوع رائد",
+        "Volunteer Hours": "ساعات التطوع",
+        "Active Learner": "متعلم نشط",
+        "Knowledge Discovery": "اكتشاف المعرفة",
+        "Community Bridge": "جسر مجتمعي",
+        "Connections Made": "روابط تم إنشاؤها",
+        "Documented Impact": "أثر موثّق",
+        "Case Studies": "دراسات حالة",
+        "Diversity & Inclusion": "التنوع والشمول",
+        "Diverse Collaborations": "تعاونات متنوعة",
+        "Projects created or managed in partnership": "مشاريع تم إنشاؤها أو إدارتها بالشراكة",
+        "Posts, articles, videos, and comments published": "منشورات ومقالات وفيديوهات وتعليقات تم نشرها",
+        "Professional posts or articles shared": "منشورات أو مقالات مهنية تمت مشاركتها",
+        "Hours of consulting, mentoring, or activity": "ساعات من الاستشارة أو الإرشاد أو النشاط",
+        "Articles, pages, and projects explored": "مقالات وصفحات ومشاريع تم استكشافها",
+        "People and organizations introduced to one another": "أشخاص ومؤسسات تم التعريف بينهم",
+        "Success stories with impact evidence": "قصص نجاح مع أدلة على الأثر",
+        "Cross-community, cross-country, or cross-sector collaborations": "تعاونات بين المجتمعات أو الدول أو القطاعات",
+        "volunteers connected": "متطوعون مرتبطون",
+        "projects listed": "مشاريع مدرجة",
+        // Profile-view fallback sentences (fix/language-gap-sweep, round 2)
+        "Verified organization": "مؤسسة موثّقة",
+        "community impact": "الأثر المجتمعي",
+        "This profile can add more field insights, measurement notes, and lessons learned as the work develops.": "يمكن لهذا الملف الشخصي إضافة المزيد من الرؤى الميدانية وملاحظات القياس والدروس المستفادة مع تطور العمل.",
+        "Community work, partnerships, shared knowledge, and practical field-based action.": "العمل المجتمعي، والشراكات، وتبادل المعرفة، والعمل الميداني العملي.",
+        "Open to relevant conversations and collaboration through GloWe.": "منفتحون على المحادثات ذات الصلة والتعاون عبر GloWe.",
+        "people connected through projects, opportunities, or community activity.": "أشخاص تواصلوا من خلال المشاريع أو الفرص أو النشاط المجتمعي.",
+        "The work responds to needs connected to ": "يستجيب العمل للاحتياجات المرتبطة بـ",
+        " and helps make local knowledge easier to access and act on.": "، ويساعد في جعل المعرفة المحلية أسهل وصولًا وتطبيقًا.",
+        // wishTypeStyles labels (data.js) missing from an earlier partial harvest
+        "Call for Help": "نداء للمساعدة",
+        "Looking for Collaboration": "نبحث عن تعاون",
+        "Support Needed": "الدعم مطلوب",
+        "Sharing Knowledge": "مشاركة المعرفة",
+        "Call for Collaboration": "دعوة للتعاون",
+        "Media & Visibility": "الإعلام والظهور",
+        "Project Spotlight": "تسليط الضوء على مشروع",
+        "We're Hiring": "نحن نوظّف",
+        // Date-locale-bug follow-up (event type + relative-time + applied/offered labels)
+        "Online": "عبر الإنترنت",
+        "In person": "حضوريًا",
+        "now": "الآن",
+        "Offered": "تم العرض في",
+        "Applied": "تم التقديم في",
+        "Applied on": "تم التقديم بتاريخ",
+        // index.html home-page marketing copy + member-feed Opportunity badge
+        "Opportunity": "فرصة",
+        "Your GloWe home": "صفحتك الرئيسية في GloWe",
+        "GloWe was created as a home for impact communities: a place to make work visible, build trust, share multilingual knowledge, and turn local needs into collaborative action. You can arrive with a project, a question, a skill, a story, or a need. There is room for all of it.": "تأسست GloWe لتكون بيتًا لمجتمعات الأثر: مكانًا لإظهار العمل، وبناء الثقة، ومشاركة المعرفة متعددة اللغات، وتحويل الاحتياجات المحلية إلى عمل جماعي. يمكنك الوصول بمشروع، أو سؤال، أو مهارة، أو قصة، أو حاجة. هناك مكان لكل ذلك.",
+        "Our community is built around practical exchange: professional volunteers, proven solutions, multilingual knowledge, local and global collaboration, tools and resources, donor and client access, social-business integration, and peer-to-peer inspiration.": "يقوم مجتمعنا على التبادل العملي: متطوعون محترفون، حلول مثبتة، معرفة متعددة اللغات، تعاون محلي وعالمي، أدوات وموارد، الوصول إلى المانحين والعملاء، تكامل الأعمال الاجتماعية، والإلهام من الأقران.",
+        // TD-141 — report/saved-item target-type + status enum labels
+        "Wish": "أمنية",
+        "Thread": "نقاش",
+        "General": "عام",
+        "Dismissed": "مرفوض",
+        "Actioned": "تم التعامل معه",
+        // Forums page welded counts (members/posts/replies/Last active)
+        "members": "أعضاء",
+        "replies": "ردود",
+        "Last active": "آخر نشاط",
+        "Discussion from members of ": "نقاش من أعضاء ",
+        // discussion-group.html group-stats row
+        "active threads": "نقاشات نشطة",
+        // opportunity.html org-mission fallback text
+        "This local opportunity was published by a GloWe community member and is ready for interested volunteers or collaborators.": "تم نشر هذه الفرصة المحلية من قبل عضو في مجتمع GloWe وهي جاهزة للمتطوعين أو المتعاونين المهتمين.",
+        // connections.html title + intro + follow-ui error state
+        "Connections - GloWe": "الروابط - GloWe",
+        "Followers and people this profile follows on GloWe.": "المتابعون والأشخاص الذين يتابعهم هذا الملف الشخصي على GloWe.",
+        "Missing user id.": "معرّف المستخدم مفقود.",
+        // admin.html — never previously translated (moderation + health tabs)
+        "Review new profile submissions, respond to reports, and monitor production health from one place.": "راجع طلبات الملفات الجديدة، وردّ على البلاغات، وراقب صحة الإنتاج من مكان واحد.",
+        "Moderation": "الإشراف",
+        "System health": "صحة النظام",
+        "Field": "المجال",
+        "Submitted": "تم الإرسال في",
+        "Production probes": "فحوصات الإنتاج",
+        "Read-only checks against the live GloWe site. Refreshed after each deploy and every 15 minutes.": "فحوصات للقراءة فقط على موقع GloWe المباشر. يتم التحديث بعد كل نشر وكل 15 دقيقة.",
+        "No data": "لا توجد بيانات",
+        "Refresh": "تحديث",
+        "Open this tab to load probes": "افتح هذا التبويب لتحميل الفحوصات",
+        "Health data loads on demand so moderation stays fast.": "تُحمَّل بيانات الصحة عند الطلب حتى يبقى الإشراف سريعًا.",
+        "Recent probe history": "سجل الفحوصات الأخيرة",
+        "Check": "الفحص",
+        "Latency": "زمن الاستجابة",
+        "Version": "الإصدار",
+        "Checked at": "تم الفحص في",
+        "Detail": "التفاصيل",
+        "Admin sections": "أقسام الإدارة",
+        "Explain the decision — especially required when rejecting": "اشرح القرار — مطلوب بشكل خاص عند الرفض",
+        // registrationProfileFields publicPrompt/fundingLabel/budgetLabel for
+        // business/initiative/volunteer/professional — reachable via
+        // renderQuestionnaireProfile() on the Personal Area page (ngo's were
+        // already covered by an earlier harvest, the other 4 types were not)
+        "Open to collaborations, products, services, or CSR partnerships?": "منفتحون على التعاون أو المنتجات أو الخدمات أو شراكات المسؤولية الاجتماعية؟",
+        "Business model / support sources": "نموذج العمل / مصادر الدعم",
+        "Looking for volunteers, mentors, partners, or visibility?": "تبحث عن متطوعين أو موجهين أو شركاء أو ظهور؟",
+        "Current support / resources": "الدعم / الموارد الحالية",
+        "Can people contact you directly through GloWe?": "هل يمكن للأشخاص التواصل معك مباشرة عبر GloWe؟",
+        "Preferred communication": "طريقة التواصل المفضلة",
+        "Support needs / accessibility notes": "احتياجات الدعم / ملاحظات إمكانية الوصول",
+        "Open to volunteering, paid services, forum leadership, or community support?": "منفتح على التطوع أو الخدمات مدفوعة الأجر أو قيادة المنتدى أو دعم المجتمع؟",
+        "Preferred engagement": "طريقة المشاركة المفضلة",
+        "Rates / pro-bono policy": "الأسعار / سياسة العمل التطوعي المجاني",
     },
     am: {
         "Show original": "ዋናውን አሳይ",
@@ -12035,6 +12870,7 @@ const GLOWE_TRANSLATIONS = {
         "Your activity": "የእርስዎ እንቅስቃሴ",
         "What is happening on GloWe": "በGloWe ላይ ምን እየሆነ ነው",
         "See all": "ሁሉንም ይመልከቱ",
+        "See all comments": "ሁሉንም አስተያየቶች ይመልከቱ",
         "Loading your GloWe home…": "የGloWe መነሻ ገጽዎን በመጫን ላይ…",
         "You have not shared anything yet": "እስካሁን ምንም አላካፈሉም",
         "Your posts, opportunities, and requests will gather here.": "ልጥፎችዎ፣ ዕድሎችዎ እና ጥያቄዎችዎ እዚህ ይሰበሰባሉ።",
@@ -12466,6 +13302,7 @@ const GLOWE_TRANSLATIONS = {
         "Profile From Questionnaire": "ከመጠይቅ የተገኘ መገለጫ",
         "Profile not found": "መገለጫው አልተገኘም",
         "Profile snapshot": "የመገለጫ አጭር ዕይታ",
+        "Profile summary": "የመገለጫ ማጠቃለያ",
         "Profiles": "መገለጫዎች",
         "Profiles, posts, messages, and collaborations should support dignity, transparency, and responsible community care.": "መገለጫዎች፣ ልጥፎች፣ መልእክቶች እና ትብብሮች ክብርን፣ ግልጽነትን እና ኃላፊነት የተሞላበት የማህበረሰብ እንክብካቤን መደገፍ አለባቸው።",
         "Project-based": "በፕሮጀክት ላይ የተመሠረተ",
@@ -12673,6 +13510,7 @@ const GLOWE_TRANSLATIONS = {
         "Who We Serve": "የምናገለግላቸው",
         "Why do you want to volunteer?": "ለምን በጎ ፈቃደኛ መሆን ይፈልጋሉ?",
         "Why GloWe exists": "GloWe ለምን እንደተፈጠረ",
+        "Wish filters": "የምኞት ማጣሪያዎች",
         "Wish Type": "የምኞት ዓይነት",
         "Write a Community Post": "የማህበረሰብ ልጥፍ ይጻፉ",
         "Write a reply": "መልስ ይጻፉ",
@@ -13134,7 +13972,198 @@ const GLOWE_TRANSLATIONS = {
         "Report dismissed": "ሪፖርቱ ተቀባይነት አላገኘም",
         "The report was closed with no action.": "ሪፖርቱ ያለ ምንም እርምጃ ተዘግቷል።",
         "Only GloWe reviewers can act on reports.": "በሪፖርቶች ላይ እርምጃ መውሰድ የሚችሉት የGloWe ገምጋሚዎች ብቻ ናቸው።",
-        "Open reported item": "ሪፖርት የተደረገበትን ንጥል ክፈት"
+        "Open reported item": "ሪፖርት የተደረገበትን ንጥል ክፈት",
+        "Audience": "ታዳሚ",
+        "Community Discussion": "የማህበረሰብ ውይይት",
+        "Connection Request": "የግንኙነት ጥያቄ",
+        "Deadline": "የመጨረሻ ቀን",
+        "Discussion": "ውይይት",
+        "Event / Webinar": "ዝግጅት / ዌቢናር",
+        "Filters": "ማጣሪያዎች",
+        "Grant / Open Call": "እርዳታ / ክፍት ጥሪ",
+        "Knowledge Share": "የእውቀት ልውውጥ",
+        "Newest first": "አዲሶች መጀመሪያ",
+        "No wishes match your filters": "ከማጣሪያዎችዎ ጋር የሚዛመድ ምኞት የለም",
+        "Oldest first": "አሮጌዎች መጀመሪያ",
+        "Professional Guide": "ሙያዊ መመሪያ",
+        "Reason": "ምክንያት",
+        "Reporter": "ሪፖርት አድራጊ",
+        "Search by title, author, city, or topic": "በርዕስ፣ በጸሐፊ፣ በከተማ ወይም በርዕሰ ጉዳይ ይፈልጉ",
+        "Search wishes": "ምኞቶችን ፈልግ",
+        "Search, filter, and sort open needs from across the community.": "ከማህበረሰቡ ክፍት ፍላጎቶችን ይፈልጉ፣ ያጣሩ እና ይደርድሩ።",
+        "Sort": "ደርድር",
+        "Sort wishes": "ምኞቶችን ደርድር",
+        "Success Story": "የስኬት ታሪክ",
+        "Title A–Z": "ርዕስ ሀ–ፐ",
+        "Verified": "የተረጋገጠ",
+        "volunteers": "በጎ ፈቃደኞች",
+        "wish shown": "ምኞት ታይቷል",
+        "wishes shown": "ምኞቶች ታይተዋል",
+        "Values": "እሴቶች",
+        "Problem": "ችግር",
+        "Solution": "መፍትሔ",
+        "Size / availability": "መጠን / ተገኝነት",
+        "Not specified yet": "እስካሁን አልተገለጸም",
+        "Through participation, useful connections, project progress, and community feedback.": "በተሳትፎ፣ ጠቃሚ ግንኙነቶች፣ የፕሮጀክት እድገት እና የማህበረሰብ አስተያየት አማካኝነት።",
+        "Contact through GloWe messages": "በGloWe መልእክቶች በኩል ያግኙ",
+        "Community impact": "የማህበረሰብ ተጽዕኖ",
+        "Open to coordination": "ለቅንጅት ክፍት",
+        "Impact signals": "የተጽዕኖ ምልክቶች",
+        "What I offer": "የማቀርበው",
+        "Bio": "የግል መረጃ",
+        "Size": "መጠን",
+        "Country": "ሀገር",
+        "Website": "ድህረ ገጽ",
+        "Field / sector": "መስክ / ዘርፍ",
+        "Size (optional)": "መጠን (አማራጭ)",
+        "Contact name": "የአድራሻ ስም",
+        "Contact email": "የአድራሻ ኢሜይል",
+        "Contact phone (optional)": "የአድራሻ ስልክ (አማራጭ)",
+        "A few words about you and what you're working on": "ስለ እርስዎ እና እየሰሩበት ስላለው ጥቂት ቃላት",
+        "Education, health, environment...": "ትምህርት፣ ጤና፣ አካባቢ...",
+        "What does your organization do?": "ድርጅትዎ ምን ይሰራል?",
+        "e.g. 1-10, 11-50": "ለምሳሌ 1-10, 11-50",
+        "Contact person": "አድራሻ ሰው",
+        "Dev sign in": "የገንቢ መግቢያ",
+        "Local dev sign-in": "የአካባቢ ገንቢ መግቢያ",
+        "Google OAuth is disabled on the local Supabase stack. Pick a test persona below — each option mints a real Supabase session (same as production after sign-in).": "Google OAuth በአካባቢያዊ Supabase ስታክ ላይ ተሰናክሏል። ከዚህ በታች የሙከራ ማንነት ይምረጡ — እያንዳንዱ አማራጭ እውነተኛ የSupabase ክፍለ ጊዜ ይፈጥራል (እንደ ምርት አካባቢ ከመግባት በኋላ)።",
+        "Generated automatically — change if you like": "በራስ-ሰር ተፈጥሯል — ከፈለጉ ይቀይሩ",
+        "Organization mission": "የድርጅቱ ተልዕኮ",
+        "Community you serve": "የሚያገለግሉት ማህበረሰብ",
+        "Problem you address": "የሚፈቱት ችግር",
+        "Solution or method": "መፍትሔ ወይም ዘዴ",
+        "Business purpose": "የንግድ ዓላማ",
+        "Business values": "የንግድ እሴቶች",
+        "Customers / community": "ደንበኞች / ማህበረሰብ",
+        "Social or environmental problem": "ማህበራዊ ወይም አካባቢያዊ ችግር",
+        "Product, service, or impact model": "ምርት፣ አገልግሎት ወይም የተጽዕኖ ሞዴል",
+        "Team / company size": "የቡድን / ኩባንያ መጠን",
+        "Initiative story": "የተነሳሽነት ታሪክ",
+        "Values and people behind it": "እሴቶች እና ከኋላ ያሉ ሰዎች",
+        "Problem or need": "ችግር ወይም ፍላጎት",
+        "What you do in practice": "በተግባር የሚያደርጉት",
+        "People involved": "የተሳተፉ ሰዎች",
+        "Volunteer introduction": "የበጎ ፈቃደኛ መግቢያ",
+        "How you like to volunteer": "እንዴት መባል እንደሚፈልጉ",
+        "Preferred causes / communities": "የተመረጡ ዓላማዎች / ማህበረሰቦች",
+        "Causes close to your heart": "ለልብዎ ቅርብ የሆኑ ዓላማዎች",
+        "Support you can offer": "ሊያቀርቡት የሚችሉት ድጋፍ",
+        "Monthly availability": "ወርሃዊ ተገኝነት",
+        "Professional background": "ሙያዊ ዳራ",
+        "Professional values": "ሙያዊ እሴቶች",
+        "Who you can support": "ሊደግፉት የሚችሉት",
+        "Challenges you can help solve": "ሊፈቱ የሚችሉ ተግዳሮቶች",
+        "Services, volunteering, or forum leadership": "አገልግሎቶች፣ በጎ ፈቃደኝነት ወይም የመድረክ አመራር",
+        "Availability / service model": "ተገኝነት / የአገልግሎት ሞዴል",
+        "Collaboration": "ትብብር",
+        "Joint Projects": "የጋራ ፕሮጀክቶች",
+        "Active Account": "ንቁ መለያ",
+        "Shared Content": "የተጋራ ይዘት",
+        "Expert Writer": "ባለሙያ ጸሐፊ",
+        "Professional Knowledge": "ሙያዊ እውቀት",
+        "Leading Volunteer": "መሪ በጎ ፈቃደኛ",
+        "Volunteer Hours": "የበጎ ፈቃድ ሰዓታት",
+        "Active Learner": "ንቁ ተማሪ",
+        "Knowledge Discovery": "የእውቀት ግኝት",
+        "Community Bridge": "የማህበረሰብ ድልድይ",
+        "Connections Made": "የተፈጠሩ ግንኙነቶች",
+        "Documented Impact": "የተመዘገበ ተጽዕኖ",
+        "Case Studies": "የጉዳይ ጥናቶች",
+        "Diversity & Inclusion": "ብዝሃነት እና ማካተት",
+        "Diverse Collaborations": "የተለያዩ ትብብሮች",
+        "Projects created or managed in partnership": "በሽርክና የተፈጠሩ ወይም የተመሩ ፕሮጀክቶች",
+        "Posts, articles, videos, and comments published": "የታተሙ ልጥፎች፣ ጽሑፎች፣ ቪዲዮዎች እና አስተያየቶች",
+        "Professional posts or articles shared": "የተጋሩ ሙያዊ ልጥፎች ወይም ጽሑፎች",
+        "Hours of consulting, mentoring, or activity": "የምክር፣ የአማካሪነት ወይም የእንቅስቃሴ ሰዓታት",
+        "Articles, pages, and projects explored": "የተዳሱ ጽሑፎች፣ ገጾች እና ፕሮጀክቶች",
+        "People and organizations introduced to one another": "እርስ በርስ የተዋወቁ ሰዎች እና ድርጅቶች",
+        "Success stories with impact evidence": "ተጽዕኖ ማስረጃ ያላቸው የስኬት ታሪኮች",
+        "Cross-community, cross-country, or cross-sector collaborations": "በማህበረሰቦች፣ በሀገራት ወይም በዘርፎች መካከል ያሉ ትብብሮች",
+        "volunteers connected": "የተገናኙ በጎ ፈቃደኞች",
+        "projects listed": "የተዘረዘሩ ፕሮጀክቶች",
+        // Profile-view fallback sentences (fix/language-gap-sweep, round 2)
+        "Verified organization": "የተረጋገጠ ድርጅት",
+        "community impact": "የማህበረሰብ ተጽዕኖ",
+        "This profile can add more field insights, measurement notes, and lessons learned as the work develops.": "ይህ መገለጫ ስራው እየዳበረ ሲሄድ ተጨማሪ የመስክ ግንዛቤዎችን፣ የመለኪያ ማስታወሻዎችን እና የተማሩ ትምህርቶችን ማከል ይችላል።",
+        "Community work, partnerships, shared knowledge, and practical field-based action.": "የማህበረሰብ ስራ፣ ሽርክናዎች፣ የተጋራ እውቀት እና ተግባራዊ የመስክ እርምጃ።",
+        "Open to relevant conversations and collaboration through GloWe.": "ተዛማጅ ውይይቶች እና በGloWe በኩል ለሚደረግ ትብብር ክፍት ነን።",
+        "people connected through projects, opportunities, or community activity.": "በፕሮጀክቶች፣ በዕድሎች ወይም በማህበረሰብ እንቅስቃሴ የተገናኙ ሰዎች።",
+        "The work responds to needs connected to ": "ስራው ከ",
+        " and helps make local knowledge easier to access and act on.": " ጋር የተያያዙ ፍላጎቶች ምላሽ ይሰጣል፣ የአካባቢ እውቀትን ለማግኘት እና በተግባር ለማዋል ቀላል ያደርጋል።",
+        // wishTypeStyles labels (data.js) missing from an earlier partial harvest
+        "Call for Help": "የእርዳታ ጥሪ",
+        "Looking for Collaboration": "ትብብር እየፈለግን ነው",
+        "Support Needed": "ድጋፍ ያስፈልጋል",
+        "Sharing Knowledge": "የእውቀት ልውውጥ",
+        "Call for Collaboration": "ለትብብር ጥሪ",
+        "Media & Visibility": "ሚዲያ እና ታይነት",
+        "Project Spotlight": "የፕሮጀክት ትኩረት",
+        "We're Hiring": "እየቀጠርን ነው",
+        // Date-locale-bug follow-up (event type + relative-time + applied/offered labels)
+        "Online": "በመስመር ላይ",
+        "In person": "በአካል",
+        "now": "አሁን",
+        "Offered": "የቀረበበት",
+        "Applied": "የተመዘገበበት",
+        "Applied on": "የተመዘገበበት ቀን",
+        // index.html home-page marketing copy + member-feed Opportunity badge
+        "Opportunity": "ዕድል",
+        "Your GloWe home": "የእርስዎ የGloWe መነሻ ገጽ",
+        "GloWe was created as a home for impact communities: a place to make work visible, build trust, share multilingual knowledge, and turn local needs into collaborative action. You can arrive with a project, a question, a skill, a story, or a need. There is room for all of it.": "GloWe እንደ ተጽዕኖ ማህበረሰቦች መኖሪያ ተፈጠረ፦ ስራን ለማሳየት፣ እምነትን ለመገንባት፣ ባለብዙ ቋንቋ እውቀትን ለማጋራት እና የአካባቢ ፍላጎቶችን ወደ የጋራ እርምጃ ለመቀየር የሚያስችል ቦታ። በፕሮጀክት፣ በጥያቄ፣ በክህሎት፣ በታሪክ ወይም በፍላጎት መምጣት ይችላሉ። ለሁሉም ነገር ቦታ አለ።",
+        "Our community is built around practical exchange: professional volunteers, proven solutions, multilingual knowledge, local and global collaboration, tools and resources, donor and client access, social-business integration, and peer-to-peer inspiration.": "ማህበረሰባችን በተግባራዊ ልውውጥ ላይ የተመሰረተ ነው፦ ሙያዊ በጎ ፈቃደኞች፣ የተረጋገጡ መፍትሄዎች፣ ባለብዙ ቋንቋ እውቀት፣ የአካባቢና ዓለም አቀፍ ትብብር፣ መሳሪያዎችና ሀብቶች፣ ለለጋሾችና ደንበኞች ተደራሽነት፣ የማህበራዊ ንግድ ውህደት እና ከእኩዮች የሚገኝ መነሳሳት።",
+        // TD-141 — report/saved-item target-type + status enum labels
+        "Wish": "ምኞት",
+        "Thread": "ውይይት",
+        "General": "አጠቃላይ",
+        "Dismissed": "ውድቅ ተደርጓል",
+        "Actioned": "እርምጃ ተወስዷል",
+        // Forums page welded counts (members/posts/replies/Last active)
+        "members": "አባላት",
+        "replies": "ምላሾች",
+        "Last active": "መጨረሻ ንቁ የነበረበት",
+        "Discussion from members of ": "ውይይት ከ",
+        // discussion-group.html group-stats row
+        "active threads": "ንቁ ውይይቶች",
+        // opportunity.html org-mission fallback text
+        "This local opportunity was published by a GloWe community member and is ready for interested volunteers or collaborators.": "ይህ የአካባቢ ዕድል በGloWe ማህበረሰብ አባል የተለጠፈ ሲሆን ፍላጎት ላላቸው በጎ ፈቃደኞች ወይም ተባባሪዎች ዝግጁ ነው።",
+        // connections.html title + intro + follow-ui error state
+        "Connections - GloWe": "ግንኙነቶች - GloWe",
+        "Followers and people this profile follows on GloWe.": "ይህ መገለጫ በGloWe ላይ የሚከተላቸው ተከታዮች እና ሰዎች።",
+        "Missing user id.": "የተጠቃሚ መታወቂያ ይጎድላል።",
+        // admin.html — never previously translated (moderation + health tabs)
+        "Review new profile submissions, respond to reports, and monitor production health from one place.": "አዲስ የመገለጫ ማመልከቻዎችን ይገምግሙ፣ ለሪፖርቶች ምላሽ ይስጡ እና የምርት ጤናን ከአንድ ቦታ ይከታተሉ።",
+        "Moderation": "ቁጥጥር",
+        "System health": "የስርዓት ጤንነት",
+        "Field": "መስክ",
+        "Submitted": "የቀረበበት",
+        "Production probes": "የምርት ምርመራዎች",
+        "Read-only checks against the live GloWe site. Refreshed after each deploy and every 15 minutes.": "በቀጥታ በGloWe ጣቢያ ላይ የንባብ-ብቻ ምርመራዎች። ከእያንዳንዱ ማሰማራት በኋላ እና በየ15 ደቂቃው ይታደሳል።",
+        "No data": "መረጃ የለም",
+        "Refresh": "አድስ",
+        "Open this tab to load probes": "ምርመራዎችን ለመጫን ይህን ትር ይክፈቱ",
+        "Health data loads on demand so moderation stays fast.": "ቁጥጥሩ ፈጣን ሆኖ እንዲቆይ የጤንነት መረጃ በፍላጎት ይጫናል።",
+        "Recent probe history": "የቅርብ ጊዜ የምርመራ ታሪክ",
+        "Check": "ምርመራ",
+        "Latency": "መዘግየት",
+        "Version": "ስሪት",
+        "Checked at": "የተመረመረበት ሰዓት",
+        "Detail": "ዝርዝር",
+        "Admin sections": "የአስተዳደር ክፍሎች",
+        "Explain the decision — especially required when rejecting": "ውሳኔውን ያብራሩ — በተለይ ውድቅ ሲደረግ ያስፈልጋል",
+        // registrationProfileFields publicPrompt/fundingLabel/budgetLabel for
+        // business/initiative/volunteer/professional — reachable via
+        // renderQuestionnaireProfile() on the Personal Area page (ngo's were
+        // already covered by an earlier harvest, the other 4 types were not)
+        "Open to collaborations, products, services, or CSR partnerships?": "ለትብብር፣ ምርቶች፣ አገልግሎቶች ወይም የCSR ሽርክናዎች ክፍት ነው?",
+        "Business model / support sources": "የንግድ ሞዴል / የድጋፍ ምንጮች",
+        "Looking for volunteers, mentors, partners, or visibility?": "በጎ ፈቃደኞችን፣ አማካሪዎችን፣ አጋሮችን ወይም ታይነትን እየፈለጉ ነው?",
+        "Current support / resources": "የአሁኑ ድጋፍ / ሀብቶች",
+        "Can people contact you directly through GloWe?": "ሰዎች በቀጥታ በGloWe በኩል ሊያገኙዎት ይችላሉ?",
+        "Preferred communication": "የተመረጠ ግንኙነት",
+        "Support needs / accessibility notes": "የድጋፍ ፍላጎቶች / የተደራሽነት ማስታወሻዎች",
+        "Open to volunteering, paid services, forum leadership, or community support?": "ለበጎ ፈቃደኝነት፣ ለሚከፈልባቸው አገልግሎቶች፣ ለመድረክ አመራር ወይም ለማህበረሰብ ድጋፍ ክፍት ነው?",
+        "Preferred engagement": "የተመረጠ ተሳትፎ",
+        "Rates / pro-bono policy": "ዋጋዎች / የበጎ አድራጎት ፖሊሲ",
     }
 };
 
@@ -13247,10 +14276,24 @@ function translateGloweTitle() {
 
 function initGloweI18n() {
     applyGloweDirection();
-    if (!gloweDict()) return;
+    const reveal = function revealGloweI18n() {
+        if (window.GloweBootPaint) window.GloweBootPaint.clearI18nPendingPaint();
+        else if (window.GloweAuthPaint) window.GloweAuthPaint.clearI18nPendingPaint();
+    };
+    if (!gloweDict()) {
+        reveal();
+        return;
+    }
     translateGloweTitle();
     translateGloweTree(document.body);
     startGloweI18nObserver();
+    // Reveal on the next frame after the translated tree is committed, so the
+    // first visible paint is already localized (no EN flash on tab switches).
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(function () { requestAnimationFrame(reveal); });
+    } else {
+        reveal();
+    }
 }
 
 function setGloweLanguage(lang) {
@@ -13480,7 +14523,7 @@ function renderChatInboxRow(chat, profiles) {
     const name = chatCounterpartName(chat, profiles);
     const rowClass = chat.unread ? ' has-unread' : '';
     const preview = String(chat.previewText || '').slice(0, 90);
-    const time = GloweMessages.formatChatTime(chat.previewAt || chat.lastMessageAt);
+    const time = GloweMessages.formatChatTime(chat.previewAt || chat.lastMessageAt, undefined, gloweLocaleTag());
     return `
         <a class="chat-inbox-row${rowClass}" href="messages.html?chat=${encodeURIComponent(chat.chatId)}">
             ${renderEntityMark(name, 'avatar')}
@@ -13501,10 +14544,11 @@ async function renderChatInbox(container) {
     const backend = window.gloweBackend;
     const me = await backend.currentUser().catch(() => null);
     if (!me) return;
-    const rows = await backend.kcListMyChats().catch(() => []);
+    const rows = await backend.kcListMyChats(200).catch(() => []);
     let chats = GloweMessages.inboxRows(rows, me.id);
     if (!chats.length) {
         chatEmptyInboxState(container);
+        if (typeof refreshMessagesBadge === 'function') refreshMessagesBadge({ skipSubscribe: true });
         return;
     }
     const chatIds = chats.map(c => c.chatId);
@@ -13515,6 +14559,7 @@ async function renderChatInbox(container) {
     ]);
     chats = GloweMessages.attachUnread(GloweMessages.attachPreviews(chats, previews), unread);
     container.innerHTML = `<div class="chat-inbox-list">${chats.map(chat => renderChatInboxRow(chat, profiles)).join('')}</div>`;
+    if (typeof refreshMessagesBadge === 'function') refreshMessagesBadge({ skipSubscribe: true });
 }
 
 // Resolve the counterpart's display identity for the thread header. Falls
@@ -13533,7 +14578,7 @@ function renderChatBubbles(messages) {
     return messages.map(m => `
         <div class="chat-bubble${m.mine ? ' mine' : ''}${m.isSystem ? ' system' : ''}">
             <p>${escapeHtml(m.text)}</p>
-            <small>${escapeHtml(GloweMessages.formatChatTime(m.createdAt))}</small>
+            <small>${escapeHtml(GloweMessages.formatChatTime(m.createdAt, undefined, gloweLocaleTag()))}</small>
         </div>
     `).join('');
 }
@@ -13569,7 +14614,9 @@ async function renderChatThread(container, chatId) {
     `;
     const scroller = document.getElementById('chat-thread-messages');
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
-    backend.kcMarkChatRead(chatId).catch(() => {});
+    backend.kcMarkChatRead(chatId).catch(() => {}).finally(() => {
+        if (typeof refreshMessagesBadge === 'function') refreshMessagesBadge({ skipSubscribe: true });
+    });
 }
 
 async function handleChatSend(event, chatId) {
@@ -13617,15 +14664,75 @@ function applyMessagesBadge(total) {
     const badge = document.createElement('span');
     badge.className = 'chat-unread-badge';
     badge.textContent = messagesBadgeCount(total);
+    badge.setAttribute('aria-label', messagesBadgeCount(total) + ' unread');
     anchor.appendChild(badge);
 }
 
-// Header unread badge (FR-GLOWE-016) — total unread messages across chats.
-async function refreshMessagesBadge() {
-    if (!backendReady() || !gloweIsLoggedIn()) return;
-    const total = await window.gloweBackend.kcUnreadTotal().catch(() => 0);
-    applyMessagesBadge(total);
+let _inboxBadgeUnsub = null;
+let _inboxBadgeRefreshInFlight = false;
+let _inboxBadgeRefreshQueued = false;
+
+function stopInboxBadgeRealtime() {
+    if (typeof _inboxBadgeUnsub === 'function') {
+        try { _inboxBadgeUnsub(); } catch (_e) { /* ignore */ }
+    }
+    _inboxBadgeUnsub = null;
 }
+
+async function ensureInboxBadgeRealtime() {
+    if (!backendReady() || !gloweIsLoggedIn()) {
+        stopInboxBadgeRealtime();
+        return;
+    }
+    if (_inboxBadgeUnsub || typeof window.gloweBackend.kcSubscribeInboxChanges !== 'function') return;
+    _inboxBadgeUnsub = await window.gloweBackend.kcSubscribeInboxChanges(function () {
+        refreshMessagesBadge({ skipSubscribe: true });
+    }).catch(function () { return null; });
+}
+
+// Header unread badge (FR-GLOWE-016) — sum of unreads on inbox-visible chats
+// only (excludes support / hidden threads GloWe does not list). Refreshes on
+// auth change + realtime message INSERT/UPDATE (KC parity / TD-180).
+async function refreshMessagesBadge(options = {}) {
+    if (!backendReady() || !gloweIsLoggedIn()) {
+        applyMessagesBadge(0);
+        stopInboxBadgeRealtime();
+        return;
+    }
+    if (_inboxBadgeRefreshInFlight) {
+        _inboxBadgeRefreshQueued = true;
+        return;
+    }
+    _inboxBadgeRefreshInFlight = true;
+    try {
+        const backend = window.gloweBackend;
+        const me = await backend.currentUser().catch(() => null);
+        if (!me) {
+            applyMessagesBadge(0);
+            return;
+        }
+        const rows = await backend.kcListMyChats(200).catch(() => []);
+        const chats = (window.GloweMessages && GloweMessages.inboxRows)
+            ? GloweMessages.inboxRows(rows, me.id)
+            : [];
+        if (!chats.length) {
+            applyMessagesBadge(0);
+        } else {
+            const counts = await backend.kcUnreadCounts(chats.map(c => c.chatId)).catch(() => []);
+            const withUnread = GloweMessages.attachUnread(chats, counts);
+            applyMessagesBadge(GloweMessages.sumUnread(withUnread));
+        }
+    } finally {
+        _inboxBadgeRefreshInFlight = false;
+        if (_inboxBadgeRefreshQueued) {
+            _inboxBadgeRefreshQueued = false;
+            refreshMessagesBadge(options);
+            return;
+        }
+    }
+    if (!options.skipSubscribe) await ensureInboxBadgeRealtime();
+}
+window.refreshMessagesBadge = refreshMessagesBadge;
 
 // Derive the logical page key from a pathname, tolerant of both
 // extension-style URLs (local: /pages/settings.html) and clean URLs
@@ -13647,7 +14754,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ensureGlobalUI();
     if (typeof updateAuthUI === 'function') updateAuthUI();
     normalizeMainNavigation();
-    refreshMessagesBadge();
     if (localStorage.getItem('gloweLowDataMode') === 'true') {
         document.body.classList.add('low-data-mode');
     }

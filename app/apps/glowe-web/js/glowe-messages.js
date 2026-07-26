@@ -70,6 +70,14 @@
         });
     }
 
+    // Header badge total — sum of inbox-visible chat unreads only (excludes
+    // support / hidden threads that GloWe does not list in the inbox).
+    function sumUnread(chats) {
+        return (Array.isArray(chats) ? chats : []).reduce(function (total, chat) {
+            return total + (Number(chat && chat.unread) || 0);
+        }, 0);
+    }
+
     // First message seeded into a need/offer conversation — carries the item's
     // title so the owner knows the context (FR-GLOWE-016 AC6).
     function buildFirstMessage(kind, title, text) {
@@ -99,7 +107,7 @@
     }
 
     // Friendly inbox timestamp: time for today, date otherwise.
-    function formatChatTime(value, nowMs) {
+    function formatChatTime(value, nowMs, locale) {
         if (!value) return '';
         const ms = Date.parse(value);
         if (Number.isNaN(ms)) return '';
@@ -110,8 +118,8 @@
             && then.getDate() === now.getDate();
         try {
             return sameDay
-                ? then.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-                : then.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                ? then.toLocaleTimeString(locale || undefined, { hour: '2-digit', minute: '2-digit' })
+                : then.toLocaleDateString(locale || undefined, { month: 'short', day: 'numeric' });
         } catch (_e) {
             return then.toISOString().slice(0, 10);
         }
@@ -130,6 +138,7 @@
         inboxRows: inboxRows,
         attachPreviews: attachPreviews,
         attachUnread: attachUnread,
+        sumUnread: sumUnread,
         buildFirstMessage: buildFirstMessage,
         mapMessageRow: mapMessageRow,
         mapMessageRows: mapMessageRows,

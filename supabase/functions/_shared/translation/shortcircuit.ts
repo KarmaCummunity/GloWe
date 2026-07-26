@@ -28,3 +28,17 @@ export function needsTranslation(source: string | null, target: string): boolean
   if (!source) return true;
   return baseLang(source) !== baseLang(target);
 }
+
+// Script heuristics mirroring glowe-translate.js sameLanguageSkip — blocks
+// he→he / en→en provider calls when detection is null or wrong.
+const HEBREW = /[\u0590-\u05FF]/;
+const NON_LATIN = /[\u0590-\u05FF\u0600-\u06FF\u0400-\u04FF\u0370-\u03FF\u4E00-\u9FFF]/;
+
+/** True when `text` already matches the target language's script. */
+export function sameLanguageSkip(text: string, readerLang: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  if (readerLang === 'he') return HEBREW.test(t);
+  if (readerLang === 'en') return !NON_LATIN.test(t);
+  return false;
+}

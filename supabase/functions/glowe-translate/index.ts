@@ -18,24 +18,28 @@
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { corsHeaders, isAllowedOrigin } from '../_shared/cors.ts';
-import { isTranslatable, needsTranslation } from '../_shared/translation/shortcircuit.ts';
+import { isTranslatable, needsTranslation, sameLanguageSkip } from '../_shared/translation/shortcircuit.ts';
 import { selectProvider } from '../_shared/translation/provider.ts';
 import { isSupportedTarget } from '../_shared/translation/supportedLanguages.ts';
 import { translateMany } from '../_shared/translation/batch.ts';
 import { resolveField, SOURCE } from '../_shared/translation/gloweSource.ts';
-import { getCached, putIfAbsent, type CacheRow } from './cache.ts';
+import { getCached, putIfAbsent, deleteCached, type CacheRow } from './cache.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const MAX_INPUT = 5000;
-const PROVIDER_CONCURRENCY = 8;
+// Google's keyless endpoint rate-limits hard under burst; keep fan-out small
+// and rely on MyMemory fallback inside GoogleFreeProvider for residual 429s.
+const PROVIDER_CONCURRENCY = 2;
 
 interface Item {
   contentType: string;
   contentId: string;
   field: string;
 }
-type Status = 'translated' | 'cached' | 'skipped';
+// `error` = provider/network miss (retryable on the client). `skipped` =
+// intentional short-circuit (same language / empty / non-translatable).
+type Status = 'translated' | 'cached' | 'skipped' | 'error';
 interface Result {
   contentType: string;
   contentId: string;
@@ -137,8 +141,22 @@ function skipped(it: Item): Result {
   return { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'skipped' };
 }
 
+function errored(it: Item): Result {
+  return { contentType: it.contentType, contentId: it.contentId, field: it.field, status: 'error' };
+}
+
 function hit(it: Item, status: Status, translation: CacheRow): Result {
   return { contentType: it.contentType, contentId: it.contentId, field: it.field, status, translation };
+}
+
+// True when a cached row is safe to serve for this source→target. Rejects
+// identical-text stubs and mis-tagged rows (e.g. source_language=he while the
+// live source is Latin and the reader wants Hebrew).
+function isUsableCache(text: string, target: string, cached: CacheRow): boolean {
+  const out = (cached.translatedText || '').trim();
+  if (!out || out === text.trim()) return false;
+  if (cached.sourceLanguage && !needsTranslation(cached.sourceLanguage, target)) return false;
+  return true;
 }
 
 // Resolve every item to a Result, in input order. Cache hits and short-circuits
@@ -162,7 +180,19 @@ async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]):
     } catch (e) {
       console.warn('[glowe-translate] cache read failed', { field: it.field, detail: errMsg(e) });
     }
-    if (cached) { results[i] = hit(it, 'cached', cached); continue; }
+    if (sameLanguageSkip(text, target)) { results[i] = skipped(it); continue; }
+    if (cached) {
+      if (isUsableCache(text, target, cached)) {
+        results[i] = hit(it, 'cached', cached);
+        continue;
+      }
+      // Drop poison / identical stubs so putIfAbsent can insert a fresh row.
+      try {
+        await deleteCached(svc, key);
+      } catch (e) {
+        console.warn('[glowe-translate] cache delete failed', { field: it.field, detail: errMsg(e) });
+      }
+    }
     misses.push({ i, it, text });
   }
 
@@ -179,7 +209,19 @@ async function resolveBatch(svc: SupabaseClient, target: string, items: Item[]):
   for (let k = 0; k < misses.length; k++) {
     const { i, it } = misses[k];
     const res = translated[k];
-    if (!res || !needsTranslation(res.detectedSourceLanguage, target)) { results[i] = skipped(it); continue; }
+    if (!res) {
+      results[i] = errored(it);
+      continue;
+    }
+    if (!needsTranslation(res.detectedSourceLanguage, target)) {
+      results[i] = skipped(it);
+      continue;
+    }
+    // Never persist a no-op "translation" (provider echoed the source).
+    if ((res.translatedText || '').trim() === misses[k].text.trim()) {
+      results[i] = skipped(it);
+      continue;
+    }
     const key = { contentType: it.contentType, contentId: it.contentId, field: it.field, targetLanguage: target };
     const row: CacheRow = {
       ...key,
@@ -232,11 +274,10 @@ Deno.serve(async (req) => {
   // Legacy single-item body keeps its original response shape.
   if (!Array.isArray((raw as Record<string, unknown>).items)) {
     const r = results[0];
-    return json(
-      r && r.status !== 'skipped' ? { status: r.status, translation: r.translation } : { status: 'skipped' },
-      200,
-      hdrs,
-    );
+    if (r && (r.status === 'translated' || r.status === 'cached') && r.translation) {
+      return json({ status: r.status, translation: r.translation }, 200, hdrs);
+    }
+    return json({ status: r?.status === 'error' ? 'error' : 'skipped' }, 200, hdrs);
   }
   return json({ results }, 200, hdrs);
 });
