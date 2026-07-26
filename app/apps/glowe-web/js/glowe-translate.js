@@ -64,7 +64,7 @@
     const HEBREW = /[\u0590-\u05FF]/;
     const NON_LATIN = /[\u0590-\u05FF\u0600-\u06FF\u0400-\u04FF\u0370-\u03FF\u4E00-\u9FFF]/;
     // Hebrew cantillation / nikud marks — strip before equality so
-    // "חינוך" vs "הִנּוּךְ" (or synonym+nikud paraphrases) can be detected.
+    // base vs nikud-marked forms (or synonym+nikud paraphrases) can be detected.
     const HEBREW_MARKS = /[\u0591-\u05C7]/g;
 
     // True when `text` is already in the reader's language, so no network/
@@ -95,7 +95,7 @@
 
     // Gate for applying a candidate translation to the DOM. Blocks:
     // - empty / identical strings (incl. nikud-only diffs)
-    // - source already in reader language (stops he→he paraphrases like חינוך→השכלה)
+    // - source already in reader language (stops he→he paraphrases)
     // - explicit same-base sourceLanguage from cache/provider when present
     function acceptTranslation(source, translated, target, sourceLanguage) {
         const src = String(source || '').trim();
@@ -359,7 +359,7 @@ if (typeof window !== 'undefined') {
         // apply; '' meaning resolved with no translation (remember in session
         // cache); or undefined meaning unresolved (leave the source, cache
         // nothing). Toggle only for primary content fields — meta chips may
-        // translate silently without "הצג מקור" on an otherwise-Hebrew card.
+        // translate silently without a "Show original" toggle on an otherwise-Hebrew card.
         function applyEntries(entries, target) {
             entries.forEach(function (e) {
                 let showToggle = false;
