@@ -957,11 +957,36 @@
     }
 
     // Global unread total for the header badge (excludes hidden chats).
+    // Note: includes support-thread unreads; GloWe's header badge prefers
+    // summing inbox-visible chats via kcUnreadCounts instead (FR-GLOWE-016).
     async function kcUnreadTotal() {
         const ctx = await kcContext();
         if (!ctx) return 0;
         const { data, error } = await ctx.supabaseClient.rpc('rpc_chat_unread_total');
         return error ? 0 : Number(data) || 0;
+    }
+
+    // Realtime inbox hook (KC-parity): fire `onChange` on message INSERT/UPDATE
+    // so the header badge / inbox can refresh. Debounced 200ms like mobile.
+    // Returns an unsubscribe function (no-op when not authenticated).
+    async function kcSubscribeInboxChanges(onChange) {
+        const ctx = await kcContext();
+        if (!ctx || typeof onChange !== 'function') return function () {};
+        let timer = null;
+        const fire = function () {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function () { onChange(); }, 200);
+        };
+        const topic = 'glowe-inbox:' + ctx.user.id + ':' + Math.random().toString(36).slice(2, 10);
+        const channel = ctx.supabaseClient
+            .channel(topic)
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, fire)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, fire)
+            .subscribe();
+        return function () {
+            if (timer) clearTimeout(timer);
+            void ctx.supabaseClient.removeChannel(channel);
+        };
     }
 
     async function kcGetMessages(chatId, limit = 50) {
@@ -1319,6 +1344,7 @@
         kcLastMessages,
         kcUnreadCounts,
         kcUnreadTotal,
+        kcSubscribeInboxChanges,
         kcGetMessages,
         kcSendMessage,
         kcMarkChatRead,

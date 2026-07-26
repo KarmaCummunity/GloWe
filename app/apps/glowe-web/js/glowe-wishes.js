@@ -21,12 +21,12 @@
             && field(row, 'status', 'status') === 'open';
     }
 
-    function formatWishTime(value) {
+    function formatWishTime(value, locale) {
         if (!value) return '';
         const ms = value instanceof Date ? value.getTime() : Date.parse(value);
         if (Number.isNaN(ms)) return '';
         try {
-            return new Date(ms).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            return new Date(ms).toLocaleDateString(locale || undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         } catch (_e) {
             return new Date(ms).toISOString().slice(0, 10);
         }
@@ -35,7 +35,7 @@
     // Map a glowe_posts row to the wish view model the board renders. glowe_posts
     // has no location column (0215), so location is best-effort from raw fields.
     // Author English is kept alongside primary; render localizes via FR-GLOWE-024.
-    function mapWishRow(row) {
+    function mapWishRow(row, locale) {
         const area = field(row, 'impact_area', 'impactArea');
         const createdAt = field(row, 'created_at', 'createdAt') || '';
         return {
@@ -49,7 +49,7 @@
             location: row && (row.location || '') || '',
             areas: area ? [area] : [],
             createdAt: createdAt,
-            time: formatWishTime(createdAt)
+            time: formatWishTime(createdAt, locale)
         };
     }
 

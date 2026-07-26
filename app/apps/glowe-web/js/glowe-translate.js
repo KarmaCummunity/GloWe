@@ -63,6 +63,9 @@
     // inline-Hebrew lint guard + bidi rendering clean.
     const HEBREW = /[\u0590-\u05FF]/;
     const NON_LATIN = /[\u0590-\u05FF\u0600-\u06FF\u0400-\u04FF\u0370-\u03FF\u4E00-\u9FFF]/;
+    // Hebrew cantillation / nikud marks — strip before equality so
+    // base vs nikud-marked forms (or synonym+nikud paraphrases) can be detected.
+    const HEBREW_MARKS = /[\u0591-\u05C7]/g;
 
     // True when `text` is already in the reader's language, so no network/
     // provider call is needed. Safe heuristic: he => has Hebrew letters;
@@ -75,6 +78,35 @@
         return false;
     }
 
+    function stripHebrewMarks(text) {
+        return String(text || '').replace(HEBREW_MARKS, '').replace(/\s+/g, ' ').trim();
+    }
+
+    // Fields that warrant a card-level "Show original" toggle. Meta chips
+    // (org_field, location, duration, skills.*) may still translate silently.
+    const PRIMARY_CONTENT_FIELDS = {
+        title: 1, description: 1, text: 1, body: 1,
+        about: 1, org_description: 1, mission: 1
+    };
+
+    function isPrimaryContentField(field) {
+        return !!PRIMARY_CONTENT_FIELDS[String(field || '')];
+    }
+
+    // Gate for applying a candidate translation to the DOM. Blocks:
+    // - empty / identical strings (incl. nikud-only diffs)
+    // - source already in reader language (stops he→he paraphrases)
+    // - explicit same-base sourceLanguage from cache/provider when present
+    function acceptTranslation(source, translated, target, sourceLanguage) {
+        const src = String(source || '').trim();
+        const out = String(translated || '').trim();
+        if (!out || out === src) return false;
+        if (stripHebrewMarks(out) === stripHebrewMarks(src)) return false;
+        if (sameLanguageSkip(src, target)) return false;
+        if (sourceLanguage && !needsTranslation(sourceLanguage, target)) return false;
+        return true;
+    }
+
     return {
         baseLang: baseLang,
         needsTranslation: needsTranslation,
@@ -82,6 +114,9 @@
         cacheMapKey: cacheMapKey,
         normalizeTranslation: normalizeTranslation,
         sameLanguageSkip: sameLanguageSkip,
+        stripHebrewMarks: stripHebrewMarks,
+        isPrimaryContentField: isPrimaryContentField,
+        acceptTranslation: acceptTranslation,
         TOGGLE_LABELS: TOGGLE_LABELS,
     };
 });
@@ -96,6 +131,10 @@ if (typeof window !== 'undefined') {
             : null;
         const CHUNK = 24;                        // max items per batch request
         const INDICATOR_DELAY = 400;             // ms before "Translating…" shows
+        const RETRY_DELAY_MS = 2500;             // backoff after provider `error`
+        const MAX_CARD_RETRIES = 4;              // then leave source text (AC9)
+        const cardRetries = new WeakMap();       // card → attempt count
+        let retryTimer = null;
 
         function readerLang() {
             const fn = window.getGloweLanguage;
@@ -148,13 +187,18 @@ if (typeof window !== 'undefined') {
                     .select('content_type, content_id, field, translated_text, source_language')
                     .eq('target_language', target)
                     .in('content_id', ids);
-                if (error || !data) return {};
+                if (error) {
+                    console.warn('[glowe-translate] cache read failed', error);
+                    return {};
+                }
+                if (!data) return {};
                 const map = {};
                 data.forEach(function (r) {
                     map[T.cacheMapKey(r.content_type, r.content_id, r.field)] = r;
                 });
                 return map;
-            } catch (_e) {
+            } catch (err) {
+                console.warn('[glowe-translate] cache read threw', err);
                 return {};
             }
         }
@@ -262,8 +306,9 @@ if (typeof window !== 'undefined') {
         }
 
         // --- step 4: one batched translate call for the genuine misses ------
-        // Chunks to <=CHUNK items/request. Maps results by (type|id|field);
-        // failures/skips resolve to null (render source) and join the skip-set.
+        // Chunks to <=CHUNK items/request. Maps results by (type|id|field).
+        // Intentional `skipped` joins the permanent skip-set; provider `error`
+        // stays out so a later flush can retry after backoff.
         async function batchTranslate(sb, items, target) {
             const map = {};
             for (let i = 0; i < items.length; i += CHUNK) {
@@ -272,14 +317,40 @@ if (typeof window !== 'undefined') {
                     const { data, error } = await sb.functions.invoke('glowe-translate', {
                         body: { targetLanguage: target, items: chunk },
                     });
-                    if (error || !data || !Array.isArray(data.results)) continue;
+                    if (error || !data || !Array.isArray(data.results)) {
+                        // Most common silent miss: CORS (Origin not allow-listed) —
+                        // the Edge call succeeds server-side but the browser hides
+                        // the body, so we get error/null here with no translation.
+                        console.warn('[glowe-translate] batch invoke failed', {
+                            target: target,
+                            count: chunk.length,
+                            error: error || null,
+                            dataType: data == null ? 'null' : typeof data,
+                        });
+                        continue;
+                    }
                     data.results.forEach(function (r) {
                         const k = r.contentType + '|' + r.contentId + '|' + r.field;
+                        if (r.status === 'error') {
+                            console.warn('[glowe-translate] provider error (will retry)', {
+                                contentId: r.contentId,
+                                field: r.field,
+                                target: target,
+                            });
+                            map[k] = null;
+                            return;
+                        }
                         const norm = (r.status !== 'skipped') ? T.normalizeTranslation(r.translation) : null;
                         map[k] = norm;
-                        if (!norm) skip.add(T.tupleKey(r.contentType, r.contentId, r.field, target));
+                        if (!norm) {
+                            // Intentional skip (same-lang / empty / echo) — don't
+                            // re-hit Edge for this tuple this session.
+                            skip.add(T.tupleKey(r.contentType, r.contentId, r.field, target));
+                        }
                     });
-                } catch (_e) { /* leave source text in place */ }
+                } catch (err) {
+                    console.warn('[glowe-translate] batch invoke threw', err);
+                }
             }
             return map;
         }
@@ -287,23 +358,31 @@ if (typeof window !== 'undefined') {
         // Apply each field's resolution. `f._text` is: a translated string to
         // apply; '' meaning resolved with no translation (remember in session
         // cache); or undefined meaning unresolved (leave the source, cache
-        // nothing). Injects the toggle once per card that applied a translation.
+        // nothing). Toggle only for primary content fields — meta chips may
+        // translate silently without a "Show original" toggle on an otherwise-Hebrew card.
         function applyEntries(entries, target) {
             entries.forEach(function (e) {
-                let any = false;
+                let showToggle = false;
                 e.fields.forEach(function (f) {
                     if (typeof f._text !== 'string') return;   // unresolved -> leave source
                     const key = scKey(e.type, e.id, f.field, target);
                     if (f._text) {
+                        if (!T.acceptTranslation(f._source, f._text, target, f._sourceLanguage || null)) {
+                            // Do NOT session-cache '' here — a rejected candidate
+                            // may be poison; next paint should be allowed to retry.
+                            f._text = '';
+                            return;
+                        }
                         if (applyTranslation(f.el, f._source, f._text)) {
-                            any = true;
+                            if (T.isPrimaryContentField(f.field)) showToggle = true;
                             if (SC && key) SC.put(key, f._text);
                         }
-                    } else if (SC && key) {
-                        SC.put(key, '');   // '' sentinel: resolved, no translation needed
+                    } else if (SC && key && T.sameLanguageSkip(f._source, target)) {
+                        // '' sentinel only for intentional same-language skips.
+                        SC.put(key, '');
                     }
                 });
-                if (any) injectToggle(e.card, target);
+                if (showToggle) injectToggle(e.card, target);
             });
         }
 
@@ -321,30 +400,49 @@ if (typeof window !== 'undefined') {
                 e.fields.forEach(function (f) {
                     const source = (f.el.textContent || '').trim();
                     f._source = source;
+                    f._sourceLanguage = null;
                     if (!source || T.sameLanguageSkip(source, target)) { f._text = ''; return; }
                     const key = scKey(e.type, e.id, f.field, target);
                     const pre = (SC && key) ? SC.get(key) : undefined;
-                    if (pre !== undefined) { f._text = pre; return; }   // translated string or '' sentinel
+                    if (pre !== undefined) {
+                        // Non-empty hit must still pass acceptTranslation.
+                        if (pre && T.acceptTranslation(source, pre, target, null)) {
+                            f._text = pre;
+                            return;
+                        }
+                        // '' sentinel is only valid while source is still same-lang;
+                        // a stale '' over Latin text (poison recovery) must retry.
+                        if (pre === '' && T.sameLanguageSkip(source, target)) {
+                            f._text = '';
+                            return;
+                        }
+                        // Fall through to network (ignore stale/poison session).
+                    }
                     if (skip.has(T.tupleKey(e.type, e.id, f.field, target))) { f._text = ''; return; }
                     misses.push({ e: e, f: f });
                 });
             });
 
+            let hadProviderMiss = false;
             if (misses.length) {
                 const sb = await client();
-                if (sb) {
+                if (!sb) {
+                    console.warn('[glowe-translate] no backend client; leaving source text');
+                    hadProviderMiss = true;
+                } else {
                     // Step 3: batched DB cache read for the miss ids.
                     const ids = Array.from(new Set(misses.map(function (m) { return m.e.id; })));
                     const cacheMap = await readCache(sb, ids, target);
                     const stillMiss = [];
                     misses.forEach(function (m) {
-                        const cn = T.normalizeTranslation(cacheMap[T.cacheMapKey(m.e.type, m.e.id, m.f.field)]);
-                        if (cacheMap[T.cacheMapKey(m.e.type, m.e.id, m.f.field)]) {
-                            // Apply any cached translation (applyTranslation no-ops when it
-                            // equals the source); a bad/missing source_language must not
-                            // suppress it (dev #784).
-                            m.f._text = cn ? cn.translated : '';
+                        const raw = cacheMap[T.cacheMapKey(m.e.type, m.e.id, m.f.field)];
+                        const cn = T.normalizeTranslation(raw);
+                        if (cn && T.acceptTranslation(m.f._source, cn.translated, target, cn.sourceLanguage)) {
+                            m.f._text = cn.translated;
+                            m.f._sourceLanguage = cn.sourceLanguage;
                         } else {
+                            // Missing OR rejected poison → ask Edge (which deletes
+                            // unusable rows and re-translates).
                             stillMiss.push(m);
                         }
                     });
@@ -357,15 +455,63 @@ if (typeof window !== 'undefined') {
                         const resultMap = await batchTranslate(sb, items, target);
                         stillMiss.forEach(function (m) {
                             const rn = resultMap[m.e.type + '|' + m.e.id + '|' + m.f.field] || null;
-                            // rn is null only for a server 'skipped' (same-base language);
-                            // otherwise apply regardless of source_language (dev #784).
-                            m.f._text = rn ? rn.translated : '';
+                            if (rn && T.acceptTranslation(m.f._source, rn.translated, target, rn.sourceLanguage)) {
+                                m.f._text = rn.translated;
+                                m.f._sourceLanguage = rn.sourceLanguage;
+                            } else {
+                                // Unresolved foreign text — leave undefined so we
+                                // can clear data-tr-done and retry (not '' which
+                                // would look "settled" to applyEntries).
+                                if (!T.sameLanguageSkip(m.f._source, target)
+                                    && !skip.has(T.tupleKey(m.e.type, m.e.id, m.f.field, target))) {
+                                    hadProviderMiss = true;
+                                    m.f._text = undefined;
+                                } else {
+                                    m.f._text = '';
+                                }
+                            }
                         });
                         stop();
                     }
                 }
             }
             applyEntries(entries, target);
+
+            // Cards that still need a foreign→reader translation: unlock and
+            // re-queue with backoff (provider 429 / network blip). Cap retries
+            // so a permanently broken provider does not spin forever (AC9).
+            let needsRetry = false;
+            entries.forEach(function (e) {
+                const stillNeeds = e.fields.some(function (f) {
+                    if (!f._source || T.sameLanguageSkip(f._source, target)) return false;
+                    if (f.el.getAttribute('data-tr-translated')) return false;
+                    if (skip.has(T.tupleKey(e.type, e.id, f.field, target))) return false;
+                    return typeof f._text !== 'string' || f._text === '';
+                });
+                if (!stillNeeds) return;
+                const n = (cardRetries.get(e.card) || 0) + 1;
+                cardRetries.set(e.card, n);
+                if (n > MAX_CARD_RETRIES) {
+                    console.warn('[glowe-translate] giving up after retries', {
+                        id: e.id,
+                        attempts: n,
+                    });
+                    e.card.setAttribute('data-tr-done', '1');
+                    return;
+                }
+                e.card.removeAttribute('data-tr-done');
+                pending.add(e.card);
+                needsRetry = true;
+            });
+            if (needsRetry || hadProviderMiss) scheduleRetry();
+        }
+
+        function scheduleRetry() {
+            if (retryTimer) return;
+            retryTimer = setTimeout(function () {
+                retryTimer = null;
+                schedule();
+            }, RETRY_DELAY_MS);
         }
 
         // --- trigger: translate cards a screen or two before they're seen ----
@@ -396,7 +542,14 @@ if (typeof window !== 'undefined') {
             sweep();
             const cards = Array.from(pending);
             pending.clear();
-            if (cards.length) flush(cards);
+            if (!cards.length) return;
+            // Await so a follow-up sweep can pick up remaining / retry cards.
+            Promise.resolve(flush(cards)).then(function () {
+                schedule();
+            }).catch(function (err) {
+                console.warn('[glowe-translate] flush threw', err);
+                scheduleRetry();
+            });
         }
 
         function schedule() {

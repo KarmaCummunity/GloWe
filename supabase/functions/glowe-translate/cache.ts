@@ -49,6 +49,18 @@ export async function putIfAbsent(svc: SupabaseClient, row: CacheRow): Promise<b
   throw new Error(`putIfAbsent: ${error.message}`);
 }
 
+/** Drop a cache row so a fresh translate can insert (poison / identical-text recovery). */
+export async function deleteCached(svc: SupabaseClient, key: CacheKey): Promise<void> {
+  const { error } = await svc
+    .from('glowe_content_translations')
+    .delete()
+    .eq('content_type', key.contentType)
+    .eq('content_id', key.contentId)
+    .eq('field', key.field)
+    .eq('target_language', key.targetLanguage);
+  if (error) throw new Error(`deleteCached: ${error.message}`);
+}
+
 function mapRow(d: Record<string, unknown>): CacheRow {
   return {
     contentType: d.content_type as string,

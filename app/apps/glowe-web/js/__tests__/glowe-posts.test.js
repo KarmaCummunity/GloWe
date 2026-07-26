@@ -159,6 +159,47 @@ describe('mergeCommentLists', () => {
     });
 });
 
+describe('commentsForCardDisplay', () => {
+    const comments = [
+        { id: 'c1', text: 'Lead' },
+        { id: 'c2', text: 'Two' },
+        { id: 'c3', text: 'Three' }
+    ];
+
+    it('returns only the leading comment when collapsed', () => {
+        expect(GlowePosts.commentsForCardDisplay(comments, false).map(c => c.id)).toEqual(['c1']);
+    });
+
+    it('returns the full list when expanded', () => {
+        expect(GlowePosts.commentsForCardDisplay(comments, true).map(c => c.id))
+            .toEqual(['c1', 'c2', 'c3']);
+    });
+
+    it('handles empty input', () => {
+        expect(GlowePosts.commentsForCardDisplay([], false)).toEqual([]);
+        expect(GlowePosts.commentsForCardDisplay(null, true)).toEqual([]);
+    });
+});
+
+describe('truncateCommentPreview', () => {
+    it('leaves short text unchanged', () => {
+        expect(GlowePosts.truncateCommentPreview('Hello world', 120)).toBe('Hello world');
+    });
+
+    it('truncates long text on a word boundary with an ellipsis', () => {
+        const long = 'Alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo';
+        const out = GlowePosts.truncateCommentPreview(long, 40);
+        expect(out.endsWith('…')).toBe(true);
+        expect(out.length).toBeLessThanOrEqual(41);
+        expect(out).not.toMatch(/\s…$/);
+    });
+
+    it('tolerates blank input', () => {
+        expect(GlowePosts.truncateCommentPreview('', 40)).toBe('');
+        expect(GlowePosts.truncateCommentPreview(null, 40)).toBe('');
+    });
+});
+
 describe('normalizePostDraft', () => {
     it('builds a community insert payload with array tags and trimmed fields', () => {
         expect(GlowePosts.normalizePostDraft({

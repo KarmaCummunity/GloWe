@@ -53,6 +53,16 @@ describe('attachPreviews / attachUnread', () => {
     expect(out[0].unread).toBe(0);
     expect(out[1].unread).toBe(3);
   });
+
+  it('sums inbox-visible unreads for the header badge', () => {
+    expect(GloweMessages.sumUnread([])).toBe(0);
+    expect(GloweMessages.sumUnread(null)).toBe(0);
+    expect(GloweMessages.sumUnread([
+      { chatId: 'c1', unread: 2 },
+      { chatId: 'c2', unread: 0 },
+      { chatId: 'c3', unread: 5 }
+    ])).toBe(7);
+  });
 });
 
 describe('buildFirstMessage', () => {

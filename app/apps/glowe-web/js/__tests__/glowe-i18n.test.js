@@ -108,4 +108,24 @@ describe('GLOWE_TRANSLATIONS', () => {
             expect(TRANSLATIONS[code]['Show translation'], code).toBeTruthy();
         }
     });
+
+    it('localizes the Wishing Well filter chrome in every language', () => {
+        const keys = [
+            'Search, filter, and sort open needs from across the community.',
+            'Search by title, author, city, or topic',
+            'Sort',
+            'Newest first',
+            'Oldest first',
+            'Title A–Z',
+            'Filters',
+            'No wishes match your filters',
+            'wish shown',
+            'wishes shown'
+        ];
+        for (const code of TRANSLATED) {
+            for (const key of keys) {
+                expect(TRANSLATIONS[code][key], `${code}: ${key}`).toBeTruthy();
+            }
+        }
+    });
 });

@@ -17,8 +17,13 @@ export async function translateMany(
   const worker = async () => {
     while (next < inputs.length) {
       const i = next++;
-      try { out[i] = await provider.translate(inputs[i]); }
-      catch { out[i] = null; }
+      try {
+        out[i] = await provider.translate(inputs[i]);
+      } catch (e) {
+        const detail = e instanceof Error ? e.message : String(e);
+        console.warn('[translateMany] provider item failed', { i, detail: detail.slice(0, 200) });
+        out[i] = null;
+      }
     }
   };
   for (let w = 0; w < n; w++) workers.push(worker());

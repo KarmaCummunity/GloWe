@@ -20,6 +20,13 @@
     --background: #f6f7f4;
     --white: #ffffff;
     --border-color: #dce8e3;
+    /* Shared content-card surface (org / opportunity / wish / community / home). */
+    --card-surface: #e3ede9;
+    --card-surface-hover: #dce8e3;
+    --card-border: #b7cbc3;
+    --card-border-hover: #a5bdb4;
+    --card-shadow: 0 4px 16px rgba(7, 63, 66, 0.09);
+    --card-shadow-hover: 0 8px 22px rgba(7, 63, 66, 0.12);
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 12px 26px rgba(7, 63, 66, 0.08);
     --shadow-lg: 0 18px 38px rgba(7, 63, 66, 0.12);
@@ -776,7 +783,9 @@ a.user-greeting:hover {
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 24px;
     margin-bottom: 40px;
-    align-items: stretch;
+    /* Hug content height — stretch + margin-top:auto left huge empty bands
+       inside shorter directory cards (dead space). */
+    align-items: start;
 }
 
 .opportunity-composer-section {
@@ -813,11 +822,11 @@ a.user-greeting:hover {
     position: relative;
     display: flex;
     flex-direction: column;
-    background: var(--white);
+    background: var(--card-surface);
     border-radius: var(--radius-md);
     padding: 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
     transition: var(--transition);
 }
 
@@ -837,6 +846,12 @@ a.user-greeting:hover {
     margin-top: auto;
 }
 
+/* Directory cards hug content — do not stretch the action row away from body. */
+.directory-card.opportunity-card > .card-actions,
+.directory-card > .directory-card-actions {
+    margin-top: 12px;
+}
+
 .card-more-menu {
     top: 12px;
     right: 12px;
@@ -848,7 +863,9 @@ a.user-greeting:hover {
 
 .opportunity-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .opportunity-header {
@@ -865,6 +882,78 @@ a.user-greeting:hover {
     gap: 8px;
     font-size: 0.9rem;
     color: var(--text-secondary);
+    min-width: 0;
+}
+
+.directory-card-org-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 12rem;
+}
+
+.directory-card-meta-chip {
+    margin: -4px 0 12px;
+}
+
+/* Directory listing cards (org + opportunity): tighter chrome; surface tokens
+   come from the shared content-card palette (--card-surface*). */
+.directory-card {
+    padding: 14px 16px 14px;
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    overflow: visible;
+}
+
+.directory-card:hover {
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.directory-card .opportunity-header {
+    margin-bottom: 8px;
+    padding-right: 0;
+    padding-inline: 0;
+    align-items: center;
+}
+
+.directory-card .opportunity-title {
+    margin-bottom: 6px;
+    font-size: 1.12rem;
+    line-height: 1.3;
+}
+
+.directory-card .opportunity-description {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.directory-card .opportunity-details {
+    margin-bottom: 10px;
+    gap: 6px 12px;
+}
+
+.directory-card .opportunity-meta-group {
+    padding: 8px 10px;
+}
+
+.directory-card .opportunity-skills {
+    margin-bottom: 12px;
+    gap: 6px;
+}
+
+.directory-card .tr-slot:not(:empty) {
+    margin: 0 0 4px;
+}
+
+.directory-card > .card-actions,
+.directory-card > .directory-card-actions {
+    margin-top: 12px;
 }
 
 /* Keep metadata badges on a single scannable line (design fix #7 — Tags/Pills
@@ -882,6 +971,211 @@ a.user-greeting:hover {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.org-card-header-actions,
+.directory-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+/* Tiny verified tick on the org avatar (replaces the text "Verified" pill). */
+.org-avatar-wrap,
+.directory-avatar-wrap {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.org-verified-tick,
+.directory-verified-tick {
+    position: absolute;
+    inset-inline-end: -2px;
+    bottom: -2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-dark, #073f42);
+    color: #fff;
+    border: 2px solid var(--white, #fff);
+    box-shadow: 0 0 0 1px rgba(7, 63, 66, 0.12);
+    pointer-events: none;
+}
+
+.org-verified-tick svg,
+.directory-verified-tick svg {
+    display: block;
+}
+
+/* Stretched link sits above static content so the whole card opens detail;
+   interactive chrome (⋯ menu, save, CTAs, follow) stays above the link. */
+.org-directory-card .org-card-stretch-link,
+.directory-card .directory-card-stretch-link,
+.directory-card .org-card-stretch-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.org-directory-card .card-more-menu,
+.org-directory-card .org-card-header-actions,
+.org-directory-card .tr-slot,
+.org-directory-card .org-card-actions,
+.directory-card .card-more-menu,
+.directory-card .directory-card-header-actions,
+.directory-card .org-card-header-actions,
+.directory-card .tr-slot,
+.directory-card .directory-card-actions,
+.directory-card .org-card-actions {
+    position: relative;
+    z-index: 2;
+}
+
+/* ⋯ menu lives in the header (opposite avatar) — not corner-absolute.
+   Beat html[dir=rtl] .card-more-menu { left:12px } so relative layout stays put. */
+.directory-card .directory-card-more,
+.directory-card .card-more-menu.directory-card-more,
+html[dir="rtl"] .directory-card .directory-card-more,
+html[dir="rtl"] .directory-card .card-more-menu.directory-card-more {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    inset: auto;
+}
+
+.directory-card .directory-card-more[open] {
+    z-index: 40;
+}
+
+/* Elevate the whole header-actions stacking context while the menu is open,
+   otherwise .tr-slot / title (siblings at z-index 2) paint through the panel. */
+.directory-card .directory-card-header-actions:has(.directory-card-more[open]) {
+    z-index: 40;
+}
+
+/* Opaque, elevated panel — no bleed-through from card text underneath. */
+.directory-card .post-more-panel {
+    top: calc(100% + 6px);
+    right: 0;
+    left: auto;
+    min-width: 200px;
+    padding: 6px;
+    gap: 2px;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    border: 1px solid #b7cbc3;
+    border-radius: 12px;
+    box-shadow:
+        0 16px 40px rgba(7, 63, 66, 0.22),
+        0 2px 8px rgba(7, 63, 66, 0.1);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    isolation: isolate;
+    z-index: 50;
+    mix-blend-mode: normal;
+}
+
+html[dir="rtl"] .directory-card .post-more-panel {
+    right: auto;
+    left: 0;
+}
+
+.directory-card .post-more-panel button {
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 11px 14px;
+    border-radius: 8px;
+}
+
+.directory-card .post-more-panel button:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.directory-card .post-more-menu summary {
+    width: 28px;
+    height: 28px;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    /* Text "..." sits optically low in some fonts — nudge up for true center. */
+    padding: 0 0 2px;
+}
+
+.directory-card .post-more-menu summary:hover,
+.directory-card .post-more-menu[open] summary {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: var(--primary-dark);
+}
+
+.org-card-actions,
+.directory-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.org-card-actions > .btn,
+.directory-card-actions > .btn,
+.directory-card-actions > a.btn,
+.directory-card-actions > .post-share-button {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+}
+
+.save-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.save-icon-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-dark);
+}
+
+.save-icon-btn.is-saved {
+    color: var(--primary-dark);
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.save-icon-btn .save-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.save-icon-btn.is-saved .save-icon {
+    fill: currentColor;
 }
 
 .opportunity-title {
@@ -934,13 +1228,14 @@ a.user-greeting:hover {
 }
 
 .skill-tag {
-    background-color: var(--background);
+    background-color: var(--white);
     color: var(--text-secondary);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
     white-space: nowrap;
     max-width: 100%;
+    border: 1px solid var(--card-border);
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -1908,7 +2203,7 @@ a.user-greeting:hover {
 }
 
 /* ===== Opportunity Detail Page ===== */
-.opportunity-detail {
+section.opportunity-detail {
     padding: 60px 0;
 }
 
@@ -2648,48 +2943,35 @@ a.user-greeting:hover {
     gap: 16px;
 }
 
+/* Own Personal Area + public profile: same equal metric tiles (incl. follow links). */
 .personal-stats-grid--compact {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 2px;
-    padding: 8px 10px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-}
-
-.personal-stats-grid--compact div,
-.personal-stats-grid--compact .profile-stat-link {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 4px 2px;
-    text-align: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.25rem, 1fr));
+    gap: 10px;
+    padding: 0;
     background: transparent;
     border: none;
     box-shadow: none;
-    border-radius: 0;
+}
+
+.personal-stats-grid--compact > div,
+.personal-stats-grid--compact > .profile-stat-link {
+    min-width: 0;
     display: block;
-    color: inherit;
+    padding: 12px 8px;
+    text-align: center;
     text-decoration: none;
+    color: inherit;
+    background: rgba(251, 254, 253, 0.95);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: none;
 }
 
-.personal-stats-grid--compact .profile-stat-link strong {
-    display: block;
-    color: var(--primary-dark);
-    font-size: 1rem;
-    font-weight: 900;
-    line-height: 1.1;
-}
-
-.personal-stats-grid--compact .profile-stat-link span {
-    display: block;
-    margin-top: 2px;
-    color: var(--text-secondary);
-    font-size: 0.62rem;
-    font-weight: 700;
-    line-height: 1.15;
+.personal-stats-grid--compact > .profile-stat-link:hover,
+.personal-stats-grid--compact > .profile-stat-link:focus-visible {
+    border-color: var(--primary, #1a6b5c);
+    outline: none;
 }
 
 .personal-stats-grid:not(.personal-stats-grid--compact) div {
@@ -2704,7 +2986,7 @@ a.user-greeting:hover {
 }
 
 .personal-stats-grid--compact strong {
-    font-size: 1rem;
+    font-size: 1.35rem;
     font-weight: 900;
 }
 
@@ -2715,10 +2997,10 @@ a.user-greeting:hover {
 
 .personal-stats-grid--compact span {
     display: block;
-    margin-top: 2px;
-    font-size: 0.62rem;
+    margin-top: 4px;
+    font-size: 0.72rem;
     font-weight: 700;
-    line-height: 1.15;
+    line-height: 1.2;
 }
 
 .personal-card-header {
@@ -3164,18 +3446,48 @@ a.user-greeting:hover {
     gap: 18px;
 }
 
+/* Desktop wishing board: two cards per row (single column on narrow viewports). */
+@media (min-width: 900px) {
+    .wishes-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 20px;
+    }
+
+    .wishes-list > .directory-card,
+    .wishes-list > .wish-card {
+        height: 100%;
+    }
+}
+
 .wish-card,
 .post-card,
 .project-card,
 .composer-card {
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-md);
     padding: 22px;
-    box-shadow: 0 10px 30px rgba(24, 36, 61, 0.06);
+    box-shadow: var(--card-shadow);
     display: flex;
     flex-direction: column;
     height: 100%;
+    transition: var(--transition);
+}
+
+/* Composer stays a writing surface (white) — not a content card. */
+.composer-card {
+    background: var(--white);
+    border-color: var(--border-color);
+    box-shadow: 0 10px 30px rgba(24, 36, 61, 0.06);
+}
+
+.wish-card:hover,
+.post-card:hover,
+.project-card:hover {
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .wish-card {
@@ -3787,6 +4099,7 @@ a.user-greeting:hover {
 .post-comments {
     margin-top: 16px;
     padding-top: 16px;
+    padding-bottom: 16px;
     border-top: 1px solid var(--border-color);
 }
 
@@ -3795,6 +4108,59 @@ a.user-greeting:hover {
     color: var(--text-secondary);
     font-weight: 800;
     font-size: 0.86rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: inherit;
+}
+
+.comment-summary:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.comment-thread-toggle {
+    display: inline-flex;
+    align-items: center;
+    margin: 4px 0 2px;
+    border: 0;
+    background: transparent;
+    color: var(--primary-dark);
+    font: inherit;
+    font-weight: 800;
+    font-size: 0.86rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.comment-thread-toggle:hover {
+    text-decoration: underline;
+}
+
+.post-comments.is-collapsed .comment-thread-extra {
+    display: none;
+}
+
+.post-comments.is-expanded .comment-thread-toggle {
+    display: none;
+}
+
+.post-comments.is-collapsed .comment-row--lead {
+    cursor: pointer;
+}
+
+.post-comments.is-collapsed .comment-row--lead p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.post-comments.is-expanded .comment-row--lead {
+    cursor: default;
 }
 
 .comment-row {
@@ -3861,10 +4227,19 @@ a.user-greeting:hover {
     display: grid;
     gap: 12px;
     padding: 18px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-md);
-    box-shadow: 0 10px 30px rgba(24, 36, 61, 0.05);
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+}
+
+.forum-group-card:hover,
+.thread-row:hover,
+.saved-item-card:hover {
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .forum-group-card {
@@ -4316,29 +4691,47 @@ a.user-greeting:hover {
 
 .profile-stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 10px;
     padding: 0 28px 28px;
     margin-top: 0;
 }
 
-.profile-stats div {
+/* Style every metric cell the same — plain <div> and follow <a> links. */
+.profile-stats > div,
+.profile-stats > .profile-stat-link {
     min-width: 0;
+    display: block;
     background: rgba(251, 254, 253, 0.95);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 18px;
+    padding: 14px 10px;
     text-align: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.profile-stats > .profile-stat-link:hover,
+.profile-stats > .profile-stat-link:focus-visible {
+    border-color: var(--primary, #1a6b5c);
+    outline: none;
 }
 
 .profile-stats strong {
     display: block;
-    font-size: 1.8rem;
+    font-size: 1.55rem;
+    font-weight: 900;
+    line-height: 1.1;
     color: var(--primary-dark);
 }
 
 .profile-stats span {
+    display: block;
+    margin-top: 4px;
     color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 .trust-panel {
@@ -4795,7 +5188,6 @@ a.user-greeting:hover {
     }
 
     .profile-stats {
-        grid-template-columns: repeat(2, 1fr);
         padding: 0 22px 22px;
     }
 
@@ -5917,12 +6309,24 @@ a.user-greeting:hover {
 .community-feed-header,
 .community-feed-controls,
 .linkedin-composer,
-.feed-filter-bar,
-.linkedin-community-layout .post-card {
+.feed-filter-bar {
     background: var(--white);
     border: 1px solid rgba(15, 93, 85, 0.12);
     border-radius: var(--radius-md);
     box-shadow: 0 8px 24px rgba(24, 36, 61, 0.06);
+}
+
+.linkedin-community-layout .post-card {
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+}
+
+.linkedin-community-layout .post-card:hover {
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
 }
 
 .community-feed-header {
@@ -6187,6 +6591,12 @@ a.user-greeting:hover {
 .linkedin-community-layout .post-comments {
     margin-left: 18px;
     margin-right: 18px;
+    padding-bottom: 18px;
+}
+
+.linkedin-community-layout .post-engagement-row {
+    margin-left: 18px;
+    margin-right: 18px;
 }
 
 .linkedin-community-layout .person-row {
@@ -6277,8 +6687,9 @@ a.user-greeting:hover {
 }
 
 @media (max-width: 560px) {
-    .profile-stats {
-        grid-template-columns: 1fr;
+    .profile-stats,
+    .personal-stats-grid--compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .well-summary-panel {
@@ -6802,7 +7213,6 @@ a.user-greeting:hover {
     }
 
     .profile-stats {
-        grid-template-columns: 1fr;
         padding: 0 20px 20px;
     }
 }
@@ -6951,17 +7361,22 @@ a.user-greeting:hover {
     }
 
     .personal-stats-grid--compact {
-        padding: 6px 4px;
+        gap: 8px;
+    }
+
+    .personal-stats-grid--compact > div,
+    .personal-stats-grid--compact > .profile-stat-link {
+        padding: 10px 6px;
     }
 
     .personal-stats-grid--compact strong,
     .personal-stats-grid--compact .profile-stat-link strong {
-        font-size: 0.92rem;
+        font-size: 1.15rem;
     }
 
     .personal-stats-grid--compact span,
     .personal-stats-grid--compact .profile-stat-link span {
-        font-size: 0.58rem;
+        font-size: 0.66rem;
     }
 
     .personal-nav--scroll a {
@@ -7121,9 +7536,30 @@ html[dir="rtl"] .post-more-panel {
     left: 0;
 }
 
+/* .linkedin-community-layout .post-author-row reserves clearance on the same
+   side .post-more-menu sits on so the badge text doesn't run under the round
+   "..." button. .post-more-menu already flips to the left in RTL above, but
+   this padding didn't — the badge kept reserving space on the (now empty)
+   right and had none on the left, so the menu overlapped it (FR-GLOWE-016). */
+html[dir="rtl"] .linkedin-community-layout .post-author-row {
+    padding-right: 18px;
+    padding-left: 62px;
+}
+
+@media (max-width: 760px) {
+    html[dir="rtl"] .linkedin-community-layout .post-author-row {
+        padding-right: 18px;
+        padding-left: 58px;
+    }
+}
+
 html[dir="rtl"] .opportunity-header {
     padding-right: 0;
     padding-left: 44px;
+}
+
+html[dir="rtl"] .directory-card .opportunity-header {
+    padding-left: 0;
 }
 
 /* Inputs/selects keep their own direction so placeholders sit on the right. */
@@ -7197,6 +7633,32 @@ body.glowe-signed-in .glowe-member-only {
 }
 
 /* ===== Member home (FR-GLOWE-016) ===== */
+/* FOUC guard: glowe-auth-paint.js sets html.glowe-expect-member synchronously
+   in <head> when localStorage has gloweUser, so navigating to Home never
+   flashes the guest marketing shell before initMemberHome() runs. */
+html.glowe-expect-member body.home-page-body main > section:not(#member-home) {
+    display: none !important;
+}
+
+html.glowe-expect-member body.home-page-body #member-home[hidden] {
+    display: block !important;
+    min-height: 40vh;
+}
+
+html.glowe-expect-member body.home-page-body .auth-buttons {
+    display: none !important;
+}
+
+/* FR-GLOWE-005 — hide English source chrome until translateGloweTree finishes.
+   Early head script sets html.glowe-i18n-pending for non-English locales. */
+html.glowe-i18n-pending body {
+    visibility: hidden;
+}
+
+html.glowe-i18n-pending {
+    background: var(--background, #f7f4ef);
+}
+
 /* When a signed-in member is on the home page, the marketing sections are
    hidden and the personalized member-home section takes over the same container. */
 body.glowe-member-home main > section:not(#member-home) {
@@ -7263,12 +7725,12 @@ body.glowe-member-home main > section:not(#member-home) {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-md);
     padding: 20px;
     color: inherit;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--card-shadow);
     transition: var(--transition);
 }
 
@@ -7286,7 +7748,9 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 .member-feed-card:hover {
-    box-shadow: var(--shadow-md);
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
     transform: translateY(-2px);
 }
 
