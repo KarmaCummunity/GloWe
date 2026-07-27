@@ -66,10 +66,68 @@
                         <li>Support multilingual access so knowledge is not limited to English-speaking spaces</li>
                         <li>Build trust through profiles, community review, and clear next steps</li>
                     </ul>
-                    <div class="about-next-callout">
+                    <div class="about-next-callout" id="about-whats-next">
                         <h2>What comes after the MVP?</h2>
                         <p>We are starting with a focused community space. Next, we want to grow local community circles, a practical knowledge library, and technology that helps people use knowledge for good.</p>
-                        <a class="btn btn-outline" href="whats-next.html">Read What's Next</a>
+                        <button
+                            class="btn btn-outline"
+                            type="button"
+                            id="about-whats-next-toggle"
+                            aria-expanded="false"
+                            aria-controls="about-whats-next-panel"
+                            onclick="toggleWhatsNextExpand()"
+                        >Read What's Next</button>
+                        <div id="about-whats-next-panel" class="about-whats-next-panel" hidden>
+                            <h3>What we want to build next</h3>
+                            <p>GloWe begins as a simple MVP: profiles, posts, wishes, opportunities, and conversations. From here, we want to grow carefully, with local communities, field knowledge, and technology that serves people.</p>
+                            <h3>Community first, technology second.</h3>
+                            <p>We do not want technology to replace relationships. We want it to help people find each other, document what they already know, and turn care into practical action.</p>
+                            <div class="next-principle-list about-whats-next-principles">
+                                <article>
+                                    <span>01</span>
+                                    <h4>Local roots</h4>
+                                    <p>Each community starts from its own reality: language, culture, needs, skills, and local leadership.</p>
+                                </article>
+                                <article>
+                                    <span>02</span>
+                                    <h4>Shared learning</h4>
+                                    <p>Field knowledge becomes easier to find, translate, discuss, and reuse across communities.</p>
+                                </article>
+                                <article>
+                                    <span>03</span>
+                                    <h4>Responsible tools</h4>
+                                    <p>Technology should reduce friction, not create distance. It should help people act with more clarity, trust, and care.</p>
+                                </article>
+                            </div>
+                            <h3>Possible next steps</h3>
+                            <p class="section-subtitle">These are directions, not promises. We will build them gradually, with community feedback.</p>
+                            <div class="next-roadmap-grid about-whats-next-roadmap">
+                                <article>
+                                    <h4>Local community circles</h4>
+                                    <p>Support groups around a city, village, school, organization, or SDG topic. Each circle can gather needs, resources, events, and trusted members.</p>
+                                </article>
+                                <article>
+                                    <h4>Grey knowledge library</h4>
+                                    <p>Help communities turn field experience into practical guides, short case studies, templates, and translated resources.</p>
+                                </article>
+                                <article>
+                                    <h4>Better matching</h4>
+                                    <p>Make it easier to connect a need with the right volunteer, professional skill, organization, donor, or partner.</p>
+                                </article>
+                                <article>
+                                    <h4>Impact stories</h4>
+                                    <p>Document what happened after someone helped: what changed, what was learned, and what support is still needed.</p>
+                                </article>
+                                <article>
+                                    <h4>Technology for good</h4>
+                                    <p>Use digital tools to make knowledge more accessible, reduce language barriers, and support ethical collaboration.</p>
+                                </article>
+                                <article>
+                                    <h4>Community reinvestment</h4>
+                                    <p>When GloWe grows, one-third of future revenues will return to local communities.</p>
+                                </article>
+                            </div>
+                        </div>
                     </div>
                     
                     <h2>Who We Serve</h2>
@@ -95,7 +153,15 @@
                             <p>People who can offer time, translation, design, research, facilitation, mentoring, or professional skills.</p>
                         </div>
                     </div>
-                    
+
+                    <div class="about-team-section" id="about-team">
+                        <h2>Our team</h2>
+                        <p>A small founding partnership building GloWe — product, community, and the technology behind it.</p>
+                        <div id="about-team-list" class="about-team-list" aria-live="polite">
+                            <p class="about-team-loading">Loading the team…</p>
+                        </div>
+                    </div>
+
                     <div class="about-join-cta glowe-guest-only" style="text-align: center; margin-top: 48px;">
                         <h2>You've got something the world needs.</h2>
                         <p style="margin-bottom: 24px;">Join with experience, questions, resources, or a willingness to help.</p>
@@ -201,6 +267,7 @@
     <script src="../js/glowe-guest.js"></script>
     <script src="../js/glowe-localized-name.js"></script>
     <script src="../js/glowe-ui-conventions.js"></script>
+    <script src="../js/glowe-about-team.js"></script>
     <script src="../js/glowe-version.js"></script>
     <script src="../js/app.js"></script>
     <script src="../js/glowe-session-cache.js"></script>

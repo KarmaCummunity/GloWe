@@ -4187,6 +4187,13 @@ section.opportunity-detail {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
     margin-top: 12px;
+    align-items: center;
+}
+
+.comment-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .comment-form input {
@@ -4197,7 +4204,7 @@ section.opportunity-detail {
     font: inherit;
 }
 
-.comment-form button {
+.comment-form button[type="submit"] {
     border: 1px solid var(--primary-color);
     border-radius: 999px;
     padding: 10px 16px;
@@ -4206,6 +4213,35 @@ section.opportunity-detail {
     font: inherit;
     font-weight: 800;
     cursor: pointer;
+}
+
+.comment-send-chat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--primary-dark);
+    cursor: pointer;
+}
+
+.comment-send-chat:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.comment-send-chat:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.comment-send-chat .action-icon {
+    width: 18px;
+    height: 18px;
 }
 
 .topic-groups-list {
@@ -5792,6 +5828,157 @@ section.opportunity-detail {
 .about-next-callout {
     margin: 34px 0;
     background: var(--primary-light);
+}
+
+.about-team-section {
+    margin-top: 48px;
+}
+
+.about-team-section > p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 24px;
+}
+
+.about-team-loading,
+.about-team-error,
+.about-team-empty {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.about-team-error button {
+    margin-inline-start: 8px;
+}
+
+.about-team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.about-team-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.about-team-card-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.about-team-card-link:hover .about-team-name {
+    color: var(--primary-dark);
+}
+
+.about-team-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+    background: var(--primary-light);
+}
+
+.about-team-avatar--initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-dark);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+}
+
+.about-team-meta {
+    min-width: 0;
+}
+
+.about-team-name {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+}
+
+.about-team-role {
+    margin: 0;
+    color: var(--primary-dark);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.about-team-bio {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+.about-team-profile-cta {
+    align-self: flex-start;
+    color: var(--primary-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.about-team-profile-cta:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+    .about-team-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.about-whats-next-panel {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(15, 93, 85, 0.18);
+}
+
+.about-whats-next-panel[hidden] {
+    display: none !important;
+}
+
+.about-whats-next-panel h3 {
+    margin: 0 0 10px;
+    font-size: 1.15rem;
+}
+
+.about-whats-next-panel > p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 18px;
+}
+
+.about-whats-next-principles {
+    margin: 0 0 24px;
+}
+
+.about-whats-next-roadmap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 4px;
+}
+
+.about-whats-next-roadmap h4,
+.about-whats-next-principles h4 {
+    margin: 0 0 8px;
+    font-size: 1.02rem;
+}
+
+@media (max-width: 700px) {
+    .about-whats-next-roadmap {
+        grid-template-columns: 1fr;
+    }
 }
 
 .legal-hero {
@@ -7713,6 +7900,138 @@ body.glowe-member-home main > section:not(#member-home) {
     display: flex;
     flex-direction: column;
     gap: 18px;
+}
+
+.home-feed-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 900px) {
+    .home-feed-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        align-items: stretch;
+    }
+}
+
+.home-feed-list > .post-card--feed {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 420px;
+    max-height: 420px;
+    overflow: hidden;
+}
+
+.home-feed-list .post-card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 18px;
+    overflow: hidden;
+}
+
+.home-feed-list .post-card--feed h3,
+.home-feed-list .post-card-body h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin: 8px 0 0;
+    font-size: 1.15rem;
+    line-height: 1.35;
+}
+
+.home-feed-list .post-card-excerpt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    flex: 0 1 auto;
+}
+
+.home-feed-list .post-read-more {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.home-feed-list .post-engagement-row,
+.home-feed-list .post-comments {
+    flex-shrink: 0;
+}
+
+.home-feed-list .post-comments {
+    margin-top: auto;
+}
+
+.home-feed-title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.home-feed-title-link:hover {
+    text-decoration: underline;
+}
+
+.home-feed-list .member-feed-card {
+    max-width: 100%;
+}
+
+.member-home-community.linkedin-community-layout .post-card,
+.guest-home-feed.linkedin-community-layout .post-card {
+    position: relative;
+    padding: 0;
+    overflow: visible;
+}
+
+.member-home-community.linkedin-community-layout .post-author-row,
+.guest-home-feed.linkedin-community-layout .post-author-row {
+    align-items: flex-start;
+    padding: 18px 62px 0 18px;
+}
+
+.member-home-community.linkedin-community-layout .post-card h3,
+.member-home-community.linkedin-community-layout .post-card > p,
+.member-home-community.linkedin-community-layout .post-tag-row,
+.guest-home-feed.linkedin-community-layout .post-card h3,
+.guest-home-feed.linkedin-community-layout .post-card > p,
+.guest-home-feed.linkedin-community-layout .post-tag-row {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.member-home-community.linkedin-community-layout .post-card h3,
+.guest-home-feed.linkedin-community-layout .post-card h3 {
+    font-size: 1.22rem;
+    margin-top: 12px;
+}
+
+.member-home-community.linkedin-community-layout .post-card > p,
+.guest-home-feed.linkedin-community-layout .post-card > p {
+    color: var(--text-secondary);
+    line-height: 1.62;
+}
+
+.member-home-community.linkedin-community-layout .post-actions,
+.guest-home-feed.linkedin-community-layout .post-actions {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.member-home-community.linkedin-community-layout .post-comments,
+.guest-home-feed.linkedin-community-layout .post-comments {
+    margin-left: 18px;
+    margin-right: 18px;
 }
 
 .member-feed-grid {

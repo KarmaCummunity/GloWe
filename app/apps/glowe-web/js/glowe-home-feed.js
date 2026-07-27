@@ -47,14 +47,14 @@
                 return 'pages/opportunity.html?id=' + safeId;
             case KINDS.wish:
             case KINDS.volunteer_offer:
-                return 'pages/wishing-well.html';
+                return 'pages/wishing-well.html?wish=' + safeId;
             case KINDS.forum_group:
                 return 'pages/discussion-group.html?group=' + safeId;
             case KINDS.forum_thread:
                 return 'pages/discussion-group.html?group=' + encodeURIComponent(String(groupId || ''));
             case KINDS.post:
             default:
-                return 'pages/community.html#post-' + safeId;
+                return 'pages/community.html?post=' + safeId;
         }
     }
 
@@ -66,6 +66,7 @@
             snippet: partial.snippet || '',
             createdAt: partial.createdAt || '',
             authorLabel: partial.authorLabel || '',
+            authorId: partial.authorId == null ? '' : String(partial.authorId),
             commentCount: Number(partial.commentCount) || 0,
             saveCount: Number(partial.saveCount) || 0,
             hrefPath: partial.hrefPath || '',
@@ -104,6 +105,7 @@
                 snippet: snippetOf(fields.snippetSrc || ''),
                 createdAt: fields.createdAt || '',
                 authorLabel: fields.authorLabel || '',
+                authorId: fields.authorId || '',
                 commentCount: fields.commentCount != null
                     ? fields.commentCount
                     : commentCountFor(commentsByPostId, sid),
@@ -124,6 +126,7 @@
                 snippetSrc: p.text || p.body,
                 createdAt: p.createdAt || p.created_at,
                 authorLabel: p.authorName || p.author_name,
+                authorId: p.authorId || p.user_id || '',
                 tagKey: 'Post',
                 category: p.category
             });
@@ -139,6 +142,7 @@
                 snippetSrc: opp.description,
                 createdAt: opp.createdAt || opp.created_at,
                 authorLabel: opp.organization || opp.organizationName,
+                authorId: opp.ownerId || opp.user_id || '',
                 commentCount: 0,
                 saveCount: saveCountFor(saveCountsByKey, kind, id)
                     || saveCountFor(saveCountsByKey, 'opportunity', id),
@@ -153,6 +157,7 @@
                 snippetSrc: w.text || w.description || w.body,
                 createdAt: w.createdAt || w.created_at,
                 authorLabel: w.authorName || w.author_name,
+                authorId: w.authorId || w.user_id || '',
                 tagKey: 'Wish'
             });
         });
@@ -164,6 +169,7 @@
                 snippetSrc: o.text || o.description || o.body,
                 createdAt: o.createdAt || o.created_at,
                 authorLabel: o.authorName || o.author_name,
+                authorId: o.authorId || o.user_id || '',
                 tagKey: 'Volunteer Offer'
             });
         });
@@ -186,6 +192,7 @@
                 snippetSrc: t.body,
                 createdAt: t.createdAt || t.created_at,
                 authorLabel: t.authorName || t.author_name,
+                authorId: t.authorId || t.user_id || '',
                 commentCount: Number(t.replies) || 0,
                 tagKey: 'Discussion',
                 groupId: t.groupId || t.group_id || ''

@@ -580,6 +580,19 @@
         return data || [];
     }
 
+    // Public About team roster (KC view about_team_profiles). FR-GLOWE-027.
+    async function listAboutTeam() {
+        const supabaseClient = await getClient();
+        if (!supabaseClient) return null;
+        const { data, error } = await supabaseClient
+            .from('about_team_profiles')
+            .select('role_key, sort_order, user_id, display_name, avatar_url, share_handle')
+            .order('sort_order', { ascending: true })
+            .limit(20);
+        if (error) throw error;
+        return data || [];
+    }
+
     // Fetch approved organization profiles from glowe_profiles.
     async function listApprovedOrgs() {
         const supabaseClient = await getClient();
@@ -1317,6 +1330,7 @@
         fetchAdminCounts,
         isGloweAdmin,
         listAll,
+        listAboutTeam,
         listApprovedOrgs,
         listMembers,
         listOwned,

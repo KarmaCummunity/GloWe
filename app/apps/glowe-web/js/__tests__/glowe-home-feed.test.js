@@ -71,6 +71,16 @@ describe('pageSlice', () => {
     });
 });
 
+describe('defaultHref', () => {
+    it('links wishes and offers to the wishing well detail query', () => {
+        expect(GloweHomeFeed.defaultHref('wish', 'w1')).toBe('pages/wishing-well.html?wish=w1');
+        expect(GloweHomeFeed.defaultHref('volunteer_offer', 'o1')).toBe('pages/wishing-well.html?wish=o1');
+    });
+
+    it('links community posts to the community post query', () => {
+        expect(GloweHomeFeed.defaultHref('post', 'p1')).toBe('pages/community.html?post=p1');
+    });
+});
 describe('normalizeFeedSources', () => {
     it('splits opportunities into opportunity vs event via isEvent', () => {
         const out = GloweHomeFeed.normalizeFeedSources({

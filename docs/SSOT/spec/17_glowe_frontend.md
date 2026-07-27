@@ -224,7 +224,7 @@ The Community page (`pages/community.html`) and Write Post page (`pages/write-po
 - AC2. ✅ **Search/filter.** The existing keyword search and tag/category filters apply client-side to the fetched post list.
 - AC3. ✅ **Create.** The Write Post page form and the inline composer persist to `glowe_posts` via `insertOwned('posts', payload)` with `post_type = 'community'` (shared `submitCommunityPost`). Required: `title`, `text`. Optional: `category`, `tags[]`, `audience`, `language`, `link`. `canCreateContent()` gate enforced.
 - AC4. ✅ **Comments.** Comment **create** persists via `insertOwned('comments', { post_id, text, author_name })`; comment **display** now reads from `glowe_comments` — `loadPostComments()` (in `initCommunityPage`/`initMemberHome`) fetches via `listAll('comments')` and `GlowePosts.groupCommentsByPost` groups by `post_id`. `getPostCommentsFor(postId)` prefers backend rows and merges any local-only comment just posted (`GlowePosts.mergeCommentLists`, deduped by author+text) for instant feedback; localStorage is the offline/demo fallback when the backend is unconfigured. **Collapsed by default (2026-07-27):** the feed card shows one leading comment (2-line clamp) plus the composer; the full thread opens when the viewer taps Comment / the comment count / "See all comments", or focuses the composer (`openPostComments` / `revealPostComments`).
-- AC5. ✅ **Share.** Every post-type card (community post, wish, opportunity, forum thread) renders **one** familiar Share icon button (`renderShareButton` → `sharePost(title, path)`). It invokes the platform's native share sheet via the Web Share API (`navigator.share({ title, text, url })`) — the same mechanism every app uses — and on desktop browsers without `navigator.share` falls back **silently** to copying the resolved absolute URL to the clipboard and confirming with a lightweight toast (`showToast`, with `showSuccessModal` as the copy-blocked fallback). `AbortError` (user dismissed the sheet) is a no-op. The prior per-network buttons (Facebook/LinkedIn/X/WhatsApp) and the separate "Copy link" control are removed. Supersedes `D-67` per `D-177`.
+- AC5. ✅ **Share.** Every post-type card (community post, wish, opportunity, forum thread) exposes **Share** via the familiar share action (`sharePost(title, path)` → Web Share API, clipboard+toast fallback). On **community post cards**, Share lives in the ⋯ menu (PM 2026-07-27 — action row removed; comment box is the comment entry; Send-to-chat sits beside the Post button). Other directory cards may keep a Share control in the footer/actions row. Supersedes `D-67` per `D-177`.
 - AC6. ✅ **Author attribution.** Post cards display `author_name` (mapped from the row). Pre-Phase-B / anonymous rows fall back to "Community Member". (Join to `glowe_profiles.display_name` deferred; `author_name` is stamped at create from the signed-in profile.)
 - AC7. ✅ **Delete own post.** The post author sees a "Delete post" CTA in the post more-menu (owner-only via `GlowePosts.isPostOwner`); `deleteCommunityPost` calls `removeOwned('posts', { id })` (RLS owner-scoped, hard-delete) then reloads the feed.
 - AC8. ✅ **Translations.** All Phase-B community-feed strings (create, delete-flow, share/copy-link) are in `GLOWE_TRANSLATIONS.he`. The comment-read path adds no new user-facing copy (comment text is user content; the "N comments" chrome was already localized).
@@ -546,3 +546,17 @@ Decision: D-181. Design: `docs/SSOT/archive/superpowers/specs/2026-07-19-app-sem
 - AC3. Counts link to connections lists for self and others.
 - AC4. Guest follow opens contextual join (`follow-profile`).
 - AC5. Private targets: no Follow button + approval note.
+
+## FR-GLOWE-027 — About team roster (partners → public profiles)
+
+**Status.** ✅ Done
+
+The GloWe About page surfaces the founding partnership with deep-links to each partner's public GloWe profile. Roster rows live in the shared KC table `about_team_members` (public view `about_team_profiles`); role titles and short bios are interface copy (FR-GLOWE-005 dictionary keys), not DB columns. Email→user linkage stays in seed SQL only.
+
+**Acceptance Criteria.**
+- AC1. **Live roster.** `pages/about.html` loads `about_team_profiles` (anon-readable) and renders active members ordered by `sort_order`.
+- AC2. **Partners.** Seeded roles: `founder` → `michal.foux97@gmail.com` (Founder & CEO); `tech_partner` → `karmacommunity2.0@gmail.com` (Technology partner & product developer). Migration `0235`.
+- AC3. **Profile links.** Each card links to `profile.html?id=<user_id>` (view exposes `user_id`). Name and avatar come from the linked `public.users` row.
+- AC4. **Translations.** Section chrome + role titles/bios are keys in `GLOWE_TRANSLATIONS` for he/ru/ar/am.
+- AC5. **Failure.** Backend/empty errors fail soft (retry or empty copy); the rest of About still renders.
+- AC6. **What's Next inline expand.** About's "Read What's Next" expands the full roadmap copy **in place** on the same About page (no modal, no navigation to `whats-next.html`). Toggle collapses with "Show less". The standalone `whats-next.html` remains reachable from footer/home for deep links.
