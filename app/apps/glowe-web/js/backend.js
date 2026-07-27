@@ -474,7 +474,11 @@
         const path = `${user.id}/${objectPrefix}-${Date.now()}.${ext}`;
         const { error } = await supabaseClient.storage
             .from('glowe-avatars')
-            .upload(path, file, { contentType: file.type || 'image/jpeg', upsert: true });
+            .upload(path, file, {
+                contentType: file.type || 'image/jpeg',
+                upsert: true,
+                cacheControl: '31536000'
+            });
         if (error) throw error;
         const { data } = supabaseClient.storage.from('glowe-avatars').getPublicUrl(path);
         return data ? data.publicUrl : null;

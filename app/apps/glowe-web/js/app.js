@@ -1395,11 +1395,39 @@ function renderSocialCover(profile, options = {}) {
         </div>`;
 }
 
-function refreshOwnedProfileViews() {
+function patchCoverImagesInDom(profile) {
+    const url = profileCoverImageUrl(profile);
+    const nodes = document.querySelectorAll('.social-cover, .profile-cover-band');
+    nodes.forEach((el) => {
+        if (url) {
+            const safeUrl = String(url).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            el.style.setProperty('--profile-cover-image', `url('${safeUrl}')`);
+            el.classList.add('has-cover-image');
+        } else {
+            el.style.removeProperty('--profile-cover-image');
+            el.classList.remove('has-cover-image');
+        }
+    });
+}
+
+function refreshOwnedProfileViews(options) {
+    const coverOnly = Boolean(options && options.coverOnly);
+    if (coverOnly) {
+        patchCoverImagesInDom(getPersonalProfile());
+        return;
+    }
     if (typeof window.renderPersonalArea === 'function') window.renderPersonalArea();
     if (document.getElementById('profile-content') && typeof initProfilePage === 'function') {
         initProfilePage();
     }
+}
+
+function profileImageUploadOptions(kind) {
+    const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+    if (!orgHelpers) return null;
+    if (kind === 'cover' && orgHelpers.PROFILE_COVER_UPLOAD) return orgHelpers.PROFILE_COVER_UPLOAD;
+    if (orgHelpers.PROFILE_AVATAR_UPLOAD) return orgHelpers.PROFILE_AVATAR_UPLOAD;
+    return null;
 }
 
 function renderPersonalAvatar(profile, className = 'profile-avatar') {
@@ -2907,9 +2935,10 @@ async function handleAvatarEditFileChange(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+    const uploadOpts = profileImageUploadOptions('avatar');
     if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
         setAvatarEditStatus('Preparing photo...');
-        const prepared = await orgHelpers.prepareAvatarUploadFile(file);
+        const prepared = await orgHelpers.prepareAvatarUploadFile(file, uploadOpts || undefined);
         if (!prepared.ok) {
             setAvatarEditStatus(prepared.error, { error: true });
             event.target.value = '';
@@ -2960,24 +2989,17 @@ async function handleAvatarEditSave() {
             setAvatarEditStatus('Saving...');
             await persistPersonalProfile({ avatarUrl: '' });
         } else if (avatarEditPendingFile) {
+            // File was already prepared on select — do not compress twice.
             const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-            let fileToUpload = avatarEditPendingFile;
-            if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
-                const prepared = await orgHelpers.prepareAvatarUploadFile(avatarEditPendingFile);
-                if (!prepared.ok) {
-                    setAvatarEditStatus(prepared.error, { error: true });
-                    return;
-                }
-                fileToUpload = prepared.file;
-            } else {
-                const check = orgHelpers ? orgHelpers.validateAvatarFile(avatarEditPendingFile) : { valid: true };
-                if (!check.valid) {
-                    setAvatarEditStatus(check.error, { error: true });
-                    return;
-                }
+            const check = orgHelpers
+                ? orgHelpers.validateAvatarFile(avatarEditPendingFile)
+                : { valid: true };
+            if (!check.valid) {
+                setAvatarEditStatus(check.error, { error: true });
+                return;
             }
             setAvatarEditStatus('Uploading...');
-            const avatarUrl = await uploadProfileImage(fileToUpload);
+            const avatarUrl = await uploadProfileImage(avatarEditPendingFile);
             await persistPersonalProfile({ avatarUrl });
         } else {
             closeAvatarEditModal();
@@ -3059,9 +3081,10 @@ async function handleCoverEditFileChange(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+    const uploadOpts = profileImageUploadOptions('cover');
     if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
         setCoverEditStatus('Preparing photo...');
-        const prepared = await orgHelpers.prepareAvatarUploadFile(file);
+        const prepared = await orgHelpers.prepareAvatarUploadFile(file, uploadOpts || undefined);
         if (!prepared.ok) {
             setCoverEditStatus(prepared.error, { error: true });
             event.target.value = '';
@@ -3111,24 +3134,17 @@ async function handleCoverEditSave() {
             setCoverEditStatus('Saving...');
             await persistPersonalProfile({ coverImageUrl: '' });
         } else if (coverEditPendingFile) {
+            // Already prepared on select with PROFILE_COVER_UPLOAD — upload once.
             const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-            let fileToUpload = coverEditPendingFile;
-            if (orgHelpers && typeof orgHelpers.prepareAvatarUploadFile === 'function') {
-                const prepared = await orgHelpers.prepareAvatarUploadFile(coverEditPendingFile);
-                if (!prepared.ok) {
-                    setCoverEditStatus(prepared.error, { error: true });
-                    return;
-                }
-                fileToUpload = prepared.file;
-            } else {
-                const check = orgHelpers ? orgHelpers.validateAvatarFile(coverEditPendingFile) : { valid: true };
-                if (!check.valid) {
-                    setCoverEditStatus(check.error, { error: true });
-                    return;
-                }
+            const check = orgHelpers
+                ? orgHelpers.validateAvatarFile(coverEditPendingFile)
+                : { valid: true };
+            if (!check.valid) {
+                setCoverEditStatus(check.error, { error: true });
+                return;
             }
             setCoverEditStatus('Uploading...');
-            const coverImageUrl = await uploadCoverImage(fileToUpload);
+            const coverImageUrl = await uploadCoverImage(coverEditPendingFile);
             await persistPersonalProfile({ coverImageUrl });
         } else {
             closeCoverEditModal();
@@ -3136,7 +3152,8 @@ async function handleCoverEditSave() {
         }
 
         closeCoverEditModal();
-        refreshOwnedProfileViews();
+        // Cover-only DOM patch — avoid rebuilding the whole Personal Area HTML.
+        refreshOwnedProfileViews({ coverOnly: true });
         showToast('Profile saved');
     } catch (error) {
         setCoverEditStatus(error.message || 'Could not save cover photo.', { error: true });

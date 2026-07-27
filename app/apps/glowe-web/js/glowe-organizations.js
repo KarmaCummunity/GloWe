@@ -390,6 +390,29 @@
         });
     }
 
+    // Profile photo presets (FR-GLOWE-011). Covers are wide hero images — always
+    // downscale so phone camera originals do not stall upload + CSS paint.
+    const PROFILE_AVATAR_UPLOAD = {
+        maxBytes: 5 * 1024 * 1024,
+        maxDimension: 1024,
+        alwaysDownscale: true
+    };
+    const PROFILE_COVER_UPLOAD = {
+        maxBytes: 1024 * 1024,
+        maxDimension: 1600,
+        alwaysDownscale: true
+    };
+
+    function imageFitsUploadLimits(file, image, options) {
+        const opts = options || {};
+        const maxBytes = opts.maxBytes || 5 * 1024 * 1024;
+        const maxDimension = opts.maxDimension || 1024;
+        const type = String(file.type || '');
+        const typeOk = type === 'image/jpeg' || type === 'image/webp';
+        const edge = Math.max(Number(image.width) || 0, Number(image.height) || 0);
+        return typeOk && Number(file.size) <= maxBytes && edge > 0 && edge <= maxDimension;
+    }
+
     // Resize/re-encode heavy photos in the browser so uploads stay under the
     // storage cap without blocking the user.
     async function compressAvatarImageFile(file, options) {
@@ -397,8 +420,11 @@
         const maxBytes = opts.maxBytes || 5 * 1024 * 1024;
         const outputType = opts.outputType || 'image/jpeg';
         const image = await loadAvatarImage(file);
+        if (opts.skipIfFits && imageFitsUploadLimits(file, image, opts)) {
+            return file;
+        }
         let maxDimension = opts.maxDimension || 1024;
-        let quality = typeof opts.quality === 'number' ? opts.quality : 0.85;
+        let quality = typeof opts.quality === 'number' ? opts.quality : 0.82;
 
         for (let attempt = 0; attempt < 8; attempt += 1) {
             const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
@@ -418,35 +444,52 @@
                     lastModified: Date.now()
                 });
             }
-            if (quality > 0.45) quality -= 0.15;
+            if (quality > 0.45) quality -= 0.12;
             else maxDimension = Math.max(256, Math.round(maxDimension * 0.75));
         }
         throw new Error('Image is too large. Try a smaller photo.');
     }
 
-    // Validate type and return the file as-is, or compress automatically when
-    // it exceeds `maxBytes` (browser only).
+    // Validate type and return the file as-is, or compress when oversize /
+    // alwaysDownscale (browser only). Cover uploads pass PROFILE_COVER_UPLOAD.
     async function prepareAvatarUploadFile(file, options) {
-        const maxBytes = (options && options.maxBytes) || 5 * 1024 * 1024;
+        const opts = options || {};
+        const maxBytes = opts.maxBytes || 5 * 1024 * 1024;
+        const maxDimension = opts.maxDimension || 1024;
+        const alwaysDownscale = Boolean(opts.alwaysDownscale);
         if (!file) return { ok: false, error: 'Please choose an image file.' };
         if (!isAvatarImageFile(file)) {
             return { ok: false, error: 'Please choose an image file.' };
         }
-        if (Number(file.size) <= maxBytes) {
+        if (!alwaysDownscale && Number(file.size) <= maxBytes) {
             return { ok: true, file: file, compressed: false };
         }
         if (typeof document === 'undefined') {
-            return { ok: false, error: 'Image must be under 5 MB.' };
+            if (Number(file.size) > maxBytes) {
+                return { ok: false, error: 'Image must be under 5 MB.' };
+            }
+            return { ok: true, file: file, compressed: false };
         }
         try {
-            const compressed = await compressAvatarImageFile(file, { maxBytes: maxBytes });
+            // Let the "Preparing photo…" status paint before canvas work.
+            await new Promise(function (resolve) { setTimeout(resolve, 0); });
+            const compressed = await compressAvatarImageFile(file, {
+                maxBytes: maxBytes,
+                maxDimension: maxDimension,
+                quality: typeof opts.quality === 'number' ? opts.quality : 0.82,
+                skipIfFits: true
+            });
             if (compressed.size > maxBytes) {
                 return {
                     ok: false,
                     error: 'Image is too large even after compression. Try a smaller photo.'
                 };
             }
-            return { ok: true, file: compressed, compressed: true };
+            return {
+                ok: true,
+                file: compressed,
+                compressed: compressed !== file
+            };
         } catch (error) {
             return {
                 ok: false,
@@ -488,6 +531,8 @@
         shouldShowProfileSkeleton: shouldShowProfileSkeleton,
         isAvatarImageFile: isAvatarImageFile,
         validateAvatarFile: validateAvatarFile,
-        prepareAvatarUploadFile: prepareAvatarUploadFile
+        prepareAvatarUploadFile: prepareAvatarUploadFile,
+        PROFILE_AVATAR_UPLOAD: PROFILE_AVATAR_UPLOAD,
+        PROFILE_COVER_UPLOAD: PROFILE_COVER_UPLOAD
     };
 });

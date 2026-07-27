@@ -26,6 +26,8 @@ const {
     validateAvatarFile,
     prepareAvatarUploadFile,
     isAvatarImageFile,
+    PROFILE_AVATAR_UPLOAD,
+    PROFILE_COVER_UPLOAD,
     mapApplicantRow,
     mapApplicantRows,
     canDecideApplication,
@@ -542,6 +544,37 @@ describe('prepareAvatarUploadFile', () => {
         });
         expect(result.ok).toBe(false);
         expect(result.error).toMatch(/5 MB/);
+    });
+
+    it('exposes avatar and cover upload presets', () => {
+        expect(PROFILE_AVATAR_UPLOAD).toMatchObject({
+            maxDimension: 1024,
+            alwaysDownscale: true
+        });
+        expect(PROFILE_COVER_UPLOAD).toMatchObject({
+            maxBytes: 1024 * 1024,
+            maxDimension: 1600,
+            alwaysDownscale: true
+        });
+    });
+
+    it('with alwaysDownscale keeps small files when canvas is unavailable', async () => {
+        const file = { type: 'image/jpeg', size: 400 * 1024, name: 'cover.jpg' };
+        await expect(prepareAvatarUploadFile(file, PROFILE_COVER_UPLOAD)).resolves.toEqual({
+            ok: true,
+            file,
+            compressed: false
+        });
+    });
+
+    it('with cover preset rejects files over the cover byte budget without canvas', async () => {
+        const result = await prepareAvatarUploadFile({
+            type: 'image/jpeg',
+            size: 2 * 1024 * 1024,
+            name: 'cover.jpg'
+        }, PROFILE_COVER_UPLOAD);
+        expect(result.ok).toBe(false);
+        expect(result.error).toMatch(/5 MB|too large|compress/i);
     });
 });
 
