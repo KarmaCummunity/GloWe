@@ -2522,6 +2522,14 @@ function ensureGlobalUI() {
         `);
     }
 
+    if (!document.getElementById('post-detail-modal')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="post-detail-modal" class="modal">
+                <div class="modal-content modal-wide" id="post-detail-content"></div>
+            </div>
+        `);
+    }
+
     if (!document.getElementById('report-modal')) {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="report-modal" class="modal">
@@ -4141,6 +4149,43 @@ function getPostId(post, index = 0) {
     return post.id || `${post.authorId || 'post'}-${String(post.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`;
 }
 
+function communityPostDeepLinkId() {
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get('post');
+    if (fromQuery) return String(fromQuery);
+    const hash = String(window.location.hash || '').replace(/^#/, '');
+    if (hash.startsWith('post-')) return hash.slice(5);
+    return '';
+}
+
+function communityPostDetailHref(postId, pageBase) {
+    const base = pageBase || '';
+    return `${base}community.html?post=${encodeURIComponent(String(postId || ''))}`;
+}
+
+function focusCommunityPost(postId) {
+    const id = String(postId || '');
+    if (!id) return false;
+    expandPostComments(id);
+    const el = document.getElementById('post-' + id);
+    if (!el) return false;
+    revealPostComments(id);
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+}
+
+function scheduleFocusCommunityPost(postId) {
+    const id = String(postId || '');
+    if (!id) return;
+    let attempts = 0;
+    function tryFocus() {
+        attempts += 1;
+        if (focusCommunityPost(id) || attempts >= 10) return;
+        setTimeout(tryFocus, 100);
+    }
+    requestAnimationFrame(tryFocus);
+}
+
 function getOpportunityByAnyId(id) {
     return opportunities.find(opp => String(opp.id) === String(id));
 }
@@ -4333,6 +4378,62 @@ function openWishDetail(wishId) {
     `;
     openModal('wish-detail-modal');
     renderWishOffers(wish);
+}
+
+// FR-GLOWE-016 AC2 — open a community post from the home discovery feed without
+// losing context on a bare Community tab navigation.
+// fallow-ignore-next-line complexity
+function openCommunityPostDetail(postId) {
+    ensureGlobalUI();
+    const id = String(postId || '');
+    const base = gloweePagePrefix();
+    const post = findCommunityPostById(id);
+    if (!post) {
+        window.location.assign(communityPostDetailHref(id, base));
+        return;
+    }
+    const content = document.getElementById('post-detail-content');
+    if (!content) {
+        window.location.assign(communityPostDetailHref(id, base));
+        return;
+    }
+    const authorPair = authorNamePairFrom(post);
+    const authorName = (typeof GloweLocalizedName !== 'undefined')
+        ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
+        : (post.authorName || 'Community Member');
+    const postIdSafe = post.id || getPostId(post);
+    const tags = Array.isArray(post.tags) ? post.tags : [];
+    const tagsHtml = tags.length
+        ? `<div class="post-tag-row">${tags.map((tag, i) =>
+            `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
+        ).join('')}</div>`
+        : '';
+    const communityLink = communityPostDetailHref(postIdSafe, base);
+    const commentCount = getPostCommentsFor(postIdSafe).length;
+    content.innerHTML = `
+        <button class="close-modal" type="button" aria-label="Close post" onclick="closeModal('post-detail-modal')">&times;</button>
+        <div class="wish-detail-scroll post-detail-scroll" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postIdSafe))}">
+            <div class="wish-detail-hero">
+                <span class="post-type-tag" title="${escapeHtml(glowePostTypeLabel(post.category))}">${escapeHtml(glowePostTypeLabel(post.category))}</span>
+                <h2 data-tr-field="title">${escapeHtml(post.title)}</h2>
+                <span class="wish-author">
+                    ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
+                    <span ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
+                    <small>${post.createdAt ? new Date(post.createdAt).toLocaleDateString(gloweLocaleTag()) : gloweText('now')}</small>
+                </span>
+            </div>
+            ${translationToggleSlotHtml()}
+            <p class="wish-detail-description" data-tr-field="text">${escapeHtml(post.text)}</p>
+            ${tagsHtml}
+            <div class="card-actions wish-detail-actions">
+                <a class="btn btn-primary" href="${escapeHtml(communityLink)}">${escapeHtml(gloweText('Enter Community'))}</a>
+                <button class="btn btn-outline" type="button" onclick="closeModal('post-detail-modal')">${escapeHtml(gloweText('Close'))}</button>
+            </div>
+            ${commentCount ? `<p class="muted-note">${escapeHtml(formatCommentCount(commentCount))}</p>` : ''}
+        </div>
+    `;
+    openModal('post-detail-modal');
+    if (typeof translateGloweTree === 'function') translateGloweTree(content);
 }
 
 // FR-GLOWE-012 AC3 — resolve whether the current viewer owns this wish, so the
@@ -5027,12 +5128,14 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
 // Pre-existing render hotspot (owner menu + comments + tags); this PR only
 // added the action icons/count + share button, not the underlying complexity.
 // fallow-ignore-next-line complexity
-function renderPostCard(post) {
+function renderPostCard(post, pageBase, options) {
+    const base = pageBase || '';
+    const compact = Boolean(options && options.compact);
     const authorPair = authorNamePairFrom(post);
     const authorName = (typeof GloweLocalizedName !== 'undefined')
         ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
         : (post.authorName || 'Community Member');
-    const profileHref = post.authorId ? `profile.html?id=${post.authorId}` : '#';
+    const profileHref = post.authorId ? `${base}profile.html?id=${post.authorId}` : '#';
     const tags = Array.isArray(post.tags) ? post.tags : [];
     const postId = post.id || getPostId(post);
     const comments = getPostCommentsFor(postId);
@@ -5044,30 +5147,37 @@ function renderPostCard(post) {
     const deleteButton = ownsPost
         ? `<button type="button" class="post-delete-action" onclick="deleteCommunityPost('${postId}')">Delete post</button>`
         : '';
-    const tagsHtml = tags.length
+    const tagsHtml = (!compact && tags.length)
         ? `<div class="post-tag-row">${tags.map((tag, i) =>
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
     const leadComment = comments[0];
     const extraComments = comments.slice(1);
-    const leadHtml = leadComment
+    const leadHtml = (!compact && leadComment)
         ? renderPostCommentRow(leadComment, { lead: true, postId, openOnClick: !commentsExpanded })
         : '';
-    const extraHtml = extraComments.length
+    const extraHtml = (!compact && extraComments.length)
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
         : '';
-    const moreCommentsHtml = comments.length > 1
+    const moreCommentsHtml = (!compact && comments.length > 1)
         ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${postId}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
+    const detailHref = communityPostDetailHref(postId, base);
+    const sharePath = detailHref;
     const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
+    const readMoreHtml = compact
+        ? `<a class="post-read-more" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(gloweText('Read more'))}</a>`
+        : '';
+    const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
     return `
-        <article class="post-card" id="post-${postId}" data-tr-card data-tr-type="glowe_post" data-tr-id="${postId}">
+        <article class="${cardClass}" id="post-${postId}" data-tr-card data-tr-type="glowe_post" data-tr-id="${postId}">
             <details class="post-more-menu">
                 <summary aria-label="More post actions">...</summary>
                 <div class="post-more-panel">
-                    ${savedToggleButtonHtml('post', postId, post.title, post.category, `community.html#post-${postId}`, 'Save post', 'post-menu-action')}
+                    ${savedToggleButtonHtml('post', postId, post.title, post.category, communityPostDetailHref(postId, base), 'Save post', 'post-menu-action')}
                     ${savedToggleButtonHtml('profile', post.authorId || authorName, authorName, 'Community profile', profileHref, 'Save profile', 'post-menu-action')}
+                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(post.title)}', '${jsString(sharePath)}')">Share</button>
                     <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')">Message</button>
                     <button type="button" onclick="openReportModal('post', '${postId}', '${jsString(post.title)}')">Report</button>
                     ${deleteButton}
@@ -5084,24 +5194,26 @@ function renderPostCard(post) {
                 <span class="post-type-tag" title="${escapeHtml(glowePostTypeLabel(post.category))}">${escapeHtml(glowePostTypeLabel(post.category))}</span>
             </div>
             ${translationToggleSlotHtml()}
-            <h3 data-tr-field="title">${escapeHtml(post.title)}</h3>
+            ${compact ? `<div class="post-card-body">
+                <h3 data-tr-field="title"><a class="home-feed-title-link" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(post.title)}</a></h3>
+                <p class="post-card-excerpt" data-tr-field="text">${escapeHtml(post.text)}</p>
+                ${readMoreHtml}
+            </div>` : `<h3 data-tr-field="title">${escapeHtml(post.title)}</h3>
             <p data-tr-field="text">${escapeHtml(post.text)}</p>
-            ${tagsHtml}
+            ${tagsHtml}`}
             <div class="post-engagement-row">
                 <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
-            </div>
-            <div class="post-actions">
-                <button type="button" onclick="openPostComments('${postId}')">${COMMENT_ICON_SVG}<span>Comment</span>${comments.length ? `<span class="action-count">${comments.length}</span>` : ''}</button>
-                <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')">${SEND_ICON_SVG}<span>Send</span></button>
-                ${renderShareButton(post.title, `community.html?post=${encodeURIComponent(postId)}`)}
             </div>
             <div class="post-comments${collapsedClass}" id="comments-${postId}">
                 ${leadHtml}
                 ${extraHtml}
                 ${moreCommentsHtml}
                 <form class="comment-form" onsubmit="handlePostComment(event, '${postId}')">
-                    <input id="comment-input-${postId}" aria-label="Write a thoughtful comment..." placeholder="Write a thoughtful comment..." required onfocus="revealPostComments('${postId}')">
-                    <button type="submit">Post</button>
+                    <input id="comment-input-${postId}" aria-label="${escapeHtml(gloweText('Write a thoughtful comment...'))}" placeholder="${escapeHtml(gloweText('Write a thoughtful comment...'))}" required onfocus="revealPostComments('${postId}')">
+                    <div class="comment-form-actions">
+                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}">${SEND_ICON_SVG}</button>
+                        <button type="submit">${escapeHtml(gloweText('Post'))}</button>
+                    </div>
                 </form>
             </div>
         </article>
@@ -5136,7 +5248,11 @@ function handlePostComment(event, postId) {
     if (!input || !input.value.trim()) return;
     expandPostComments(postId);
     savePostComment(postId, input.value);
-    initCommunityPage();
+    if (document.getElementById('community-feed')) {
+        initCommunityPage();
+    } else {
+        refreshHomeFeedPostCard(postId);
+    }
     setTimeout(() => focusCommentBox(postId), 0);
 }
 
@@ -5455,9 +5571,15 @@ let _gloweHomeAuthKey = null;
 // (rapid Home taps used to stack async initGuestHome over initMemberHome).
 let _gloweHomeGen = 0;
 
+// fallow-ignore-next-line complexity
 function teardownMemberHome() {
     document.body.classList.remove('glowe-member-home');
     const root = document.getElementById('member-home');
+    if (root && root._homeFeedObserver) {
+        try { root._homeFeedObserver.disconnect(); } catch (_e) { /* ignore */ }
+        root._homeFeedObserver = null;
+        root._homeFeed = null;
+    }
     if (!root) return;
     root.hidden = true;
     root.innerHTML = '';
@@ -5502,11 +5624,23 @@ async function initGuestHome(gen = _gloweHomeGen) {
 
     const COMING_SOON = '<p class="muted-note">This section will come alive as the community grows.</p>';
 
+    try {
+        const sources = await loadHomeFeedSources();
+        if (gen !== _gloweHomeGen) return;
+        const HF = window.GloweHomeFeed;
+        const ranked = HF ? HF.buildHomeFeed(sources, { nowMs: Date.now() }) : [];
+        renderGuestHomeFeedPeek(ranked);
+    } catch (_e) {
+        if (gen !== _gloweHomeGen) return;
+        const el = document.getElementById('guest-home-feed');
+        if (el) {
+            el.hidden = false;
+            el.innerHTML = homeFeedEmptyHtml();
+        }
+    }
+
     const container = document.getElementById('featured-opportunities');
     if (container) {
-        container.innerHTML = '<p class="muted-note">Loading opportunities…</p>';
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
-        if (gen !== _gloweHomeGen) return;
         const featured = getFeaturedOpportunities().slice(0, 3);
         container.innerHTML = featured.length
             ? featured.map(opp => renderOpportunityCard(opp)).join('')
@@ -5566,90 +5700,167 @@ async function refreshHomeForAuthState(options = {}) {
 window.refreshHomeForAuthState = refreshHomeForAuthState;
 window.isHomeHref = isHomeHref;
 
-// --- Member home (FR-GLOWE-016 AC2) -----------------------------------------
-// Pure selector: the member's own posts, newest first, capped.
-function selectMemberActivity(posts, userId, limit = 3) {
-    if (!userId) return [];
-    return posts
-        .filter(post => String(post.authorId) === String(userId))
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .slice(0, limit);
+// --- Member home (FR-GLOWE-016 AC2) — unified discovery feed ---------------
+
+function homeFeedEmptyHtml() {
+    return '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
 }
 
-// Pure selector: one unified, recency-interleaved glimpse across the catalog.
-function selectCommunityHighlights(opportunities, posts, limit = 6) {
-    const oppItems = opportunities.map(item => ({ kind: 'opportunity', item }));
-    const postItems = posts
-        .slice()
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .map(item => ({ kind: 'post', item }));
-    const mixed = [];
-    const max = Math.max(oppItems.length, postItems.length);
-    for (let i = 0; i < max; i++) {
-        if (postItems[i]) mixed.push(postItems[i]);
-        if (oppItems[i]) mixed.push(oppItems[i]);
+function findCommunityPostById(postId) {
+    const id = String(postId || '');
+    return getAllCommunityPosts().find(function (p) {
+        return String(p.id || getPostId(p)) === id;
+    }) || null;
+}
+
+// fallow-ignore-next-line complexity
+function refreshHomeFeedPostCard(postId) {
+    const el = document.getElementById('post-' + postId);
+    if (!el || !el.closest('#home-feed-grid')) return;
+    const root = el.closest('#member-home') || el.closest('#guest-home-feed');
+    const post = findCommunityPostById(postId);
+    if (!post) return;
+    el.outerHTML = renderPostCard(post, 'pages/', { compact: true });
+    if (root) scheduleMemberHomeTranslation(root);
+}
+
+// fallow-ignore-next-line complexity
+function renderHomeFeedCard(item) {
+    const HF = window.GloweHomeFeed;
+    const kind = (item && item.kind) || 'post';
+    const id = (item && item.id) || '';
+    if (kind === 'post') {
+        const post = findCommunityPostById(id);
+        if (post) return renderPostCard(post, 'pages/', { compact: true });
     }
-    if (limit == null || limit === Infinity) return mixed;
-    return mixed.slice(0, limit);
+    return renderHomeDiscoveryCard(item);
 }
 
-// Compact card for the member feed. Links resolve from the site root (home page),
-// so they point into pages/* unlike the /pages/-local renderPostCard.
-function renderMemberFeedPost(post) {
-    const postId = post.id || '';
-    const href = `pages/community.html#post-${encodeURIComponent(postId)}`;
-    const snippet = (post.text || '').slice(0, 140);
-    const authorPair = authorNamePairFrom(post);
-    const authorName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
-        : (post.authorName || 'Community Member');
-    return `
-        <article class="member-feed-card" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postId))}">
-            ${translationToggleSlotHtml()}
-            <a class="member-feed-card-link" href="${href}">
-                <span class="member-feed-type">${escapeHtml(glowePostTypeLabel(post.category, ' · '))}</span>
-                <h3 data-tr-field="title">${escapeHtml(post.title || 'Community post')}</h3>
-                <p data-tr-field="text">${escapeHtml(snippet)}</p>
-                <span class="member-feed-author" ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
-            </a>
-        </article>`;
+// fallow-ignore-next-line complexity
+function homeFeedSaveType(kind) {
+    if (kind === 'opportunity' || kind === 'event') return 'opportunity';
+    if (kind === 'wish' || kind === 'volunteer_offer') return 'wish';
+    if (kind === 'forum_thread' || kind === 'forum_group') return 'forum';
+    return 'post';
 }
 
-// Compact opportunity teaser for the member-home grid. The full
-// renderOpportunityCard() is too tall here: card-actions uses margin-top:auto
-// and stretches against taller post neighbours in the same grid row.
-function renderMemberFeedOpportunity(opportunity) {
-    const detailHref = `pages/opportunity.html?id=${encodeURIComponent(opportunity.id)}`;
-    const snippet = (opportunity.description || '').slice(0, 140);
-    const orgName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.localizedOrganizationName(opportunity, gloweReaderLang(), 'GloWe Member')
-        : (opportunity.organization || 'GloWe Member');
-    const orgPair = orgNamePairFrom(opportunity);
+function homeFeedLocalizedText(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return gloweText(raw);
+}
+
+// Home discovery card for non-community kinds (wish / opportunity / forum…).
+// fallow-ignore-next-line complexity
+function renderHomeDiscoveryCard(item) {
+    const HF = window.GloweHomeFeed;
+    const kind = (item && item.kind) || 'post';
+    const id = (item && item.id) || '';
+    const href = (item && item.hrefPath) || (HF ? HF.defaultHref(kind, id, item) : '#');
+    const tag = gloweText((item && item.tagKey) || 'Post');
+    const isCatalog = kind === 'forum_group';
+    const titleRaw = (item && item.title) || 'GloWe';
+    const snippetRaw = (item && item.snippet) || '';
+    // Forum groups are admin chrome (seeded EN keys in GLOWE_TRANSLATIONS) — not UGC.
+    const title = isCatalog ? homeFeedLocalizedText(titleRaw) : titleRaw;
+    const snippet = isCatalog ? homeFeedLocalizedText(snippetRaw) : snippetRaw;
+    const authorRaw = (item && item.authorLabel) || 'GloWe Member';
+    const authorName = homeFeedLocalizedText(authorRaw) || authorRaw;
+    const authorId = (item && item.authorId) || '';
+    const createdAt = (item && item.createdAt) || '';
+    const dateLabel = createdAt
+        ? new Date(createdAt).toLocaleDateString(gloweLocaleTag())
+        : gloweText('now');
+    const profileHref = authorId ? `pages/profile.html?id=${encodeURIComponent(authorId)}` : href;
+    const authorPair = { primary: authorName, english: '' };
+    const trType = isCatalog
+        ? ''
+        : (kind === 'opportunity' || kind === 'event')
+            ? 'glowe_opportunity'
+            : kind === 'forum_thread'
+                ? 'glowe_forum_thread'
+                : (kind === 'wish' || kind === 'volunteer_offer')
+                    ? 'glowe_post'
+                    : 'glowe_post';
+    const field = (kind === 'opportunity' || kind === 'event')
+        ? 'description'
+        : (kind === 'forum_thread' ? 'body' : 'text');
+    const saveType = homeFeedSaveType(kind);
+    const cardId = `home-${kind}-${id}`;
+    const saveBtn = typeof savedToggleButtonHtml === 'function'
+        ? savedToggleButtonHtml(saveType, id, titleRaw, tag, href, 'Save', 'post-menu-action')
+        : '';
+    const trAttrs = isCatalog
+        ? ''
+        : ` data-tr-card data-tr-type="${trType}" data-tr-id="${escapeHtml(String(id))}"`;
+    const titleField = isCatalog ? '' : ' data-tr-field="title"';
+    const bodyField = isCatalog ? '' : ` data-tr-field="${field}"`;
+    const trSlot = isCatalog ? '' : (typeof translationToggleSlotHtml === 'function' ? translationToggleSlotHtml() : '');
+    const postLabel = escapeHtml(gloweText('Post'));
+    const commentPlaceholder = escapeHtml(gloweText('Write a thoughtful comment...'));
+    const isWishKind = kind === 'wish' || kind === 'volunteer_offer';
+    const detailClick = isWishKind
+        ? ` onclick="event.preventDefault(); openWishDetail('${jsString(id)}')"`
+        : (kind === 'post' ? ` onclick="event.preventDefault(); openCommunityPostDetail('${jsString(id)}')"` : '');
     return `
-        <article class="member-feed-card member-feed-opportunity" data-tr-card data-tr-type="glowe_opportunity" data-tr-id="${escapeHtml(String(opportunity.id))}">
-            <div class="member-feed-opportunity-header">
-                ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName, 'entity-mark')}
-                <span class="member-feed-opportunity-org" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>
+        <article class="post-card post-card--feed home-feed-discovery-card" id="${escapeHtml(cardId)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
+            <details class="post-more-menu">
+                <summary aria-label="More post actions">...</summary>
+                <div class="post-more-panel">
+                    ${saveBtn}
+                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(titleRaw)}', '${jsString(href)}')">Share</button>
+                    <a class="post-menu-action" href="${escapeHtml(href)}">Open</a>
+                    ${authorId ? `<button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId)}')">Message</button>` : ''}
+                    <button type="button" onclick="openReportModal('${jsString(saveType)}', '${jsString(id)}', '${jsString(titleRaw)}')">Report</button>
+                </div>
+            </details>
+            <div class="post-author-row">
+                <a class="post-author" href="${escapeHtml(profileHref)}">
+                    ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
+                    <span>
+                        <strong ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</strong>
+                        <small>${escapeHtml(dateLabel)}</small>
+                    </span>
+                </a>
+                <span class="post-type-tag" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>
             </div>
-            ${translationToggleSlotHtml()}
-            <a class="member-feed-card-link" href="${detailHref}">
-                <span class="member-feed-type">Opportunity</span>
-                <h3 data-tr-field="title">${escapeHtml(opportunity.title || 'Opportunity')}</h3>
-                <p data-tr-field="description">${escapeHtml(snippet)}</p>
-            </a>
+            ${trSlot}
+            <div class="post-card-body">
+                <h3${titleField}><a class="home-feed-title-link" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(title)}</a></h3>
+                <p class="post-card-excerpt"${bodyField}>${escapeHtml(snippet)}</p>
+                <a class="post-read-more" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(gloweText('Read more'))}</a>
+            </div>
+            <div class="post-engagement-row">
+                <span class="comment-summary muted-note">${escapeHtml(gloweText('Join the conversation'))}</span>
+            </div>
+            <div class="post-comments is-expanded">
+                <form class="comment-form" onsubmit="handleHomeDiscoveryEngage(event, '${jsString(kind)}', '${jsString(id)}', '${jsString(authorName)}', '${jsString(authorId)}', '${jsString(href)}')">
+                    <input aria-label="${commentPlaceholder}" placeholder="${commentPlaceholder}" required>
+                    <div class="comment-form-actions">
+                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId)}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}"${authorId ? '' : ' disabled'}>${SEND_ICON_SVG}</button>
+                        <button type="submit">${postLabel}</button>
+                    </div>
+                </form>
+            </div>
         </article>`;
 }
 
-function renderMemberHighlight(entry) {
-    return entry.kind === 'opportunity'
-        ? renderMemberFeedOpportunity(entry.item)
-        : renderMemberFeedPost(entry.item);
+// fallow-ignore-next-line complexity
+function handleHomeDiscoveryEngage(event, kind, id, authorName, authorId, href) {
+    event.preventDefault();
+    const input = event.target && event.target.querySelector('input');
+    const note = input && input.value ? String(input.value).trim() : '';
+    if (authorId) {
+        openPrivateMessage(authorName || 'this member', authorId);
+        if (input) input.value = '';
+        return;
+    }
+    if (href) window.location.href = href;
 }
 
 function scheduleMemberHomeTranslation(root) {
     if (!root || !window.GloweTranslate || typeof window.GloweTranslate.scan !== 'function') return;
     const scan = function () {
-        // Retry cards that rendered before the Supabase client was ready.
         root.querySelectorAll('[data-tr-card]').forEach(function (card) {
             if (!card.querySelector('.tr-toggle')) card.removeAttribute('data-tr-done');
         });
@@ -5660,82 +5871,135 @@ function scheduleMemberHomeTranslation(root) {
     setTimeout(scan, 2000);
 }
 
-function isGloweMobileHomeViewport() {
-    return window.matchMedia('(max-width: 680px)').matches;
-}
-
-function renderMemberHomeMarkup(firstName, activity, highlights, options = {}) {
-    const { communityOnly = false } = options;
-    const activityBody = activity.length
-        ? activity.map(renderMemberFeedPost).join('')
-        : '<div class="empty-state"><h3>You have not shared anything yet</h3><p>Your posts, opportunities, and requests will gather here.</p><a class="btn btn-primary btn-small" href="pages/community.html">Write your first post</a></div>';
-    const highlightsBody = highlights.length
-        ? highlights.map(renderMemberHighlight).join('')
-        : '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
-    const communityToolbar = communityOnly ? '' : `
+function renderMemberHomeMarkup(feedHtml) {
+    return `
+        <div class="container member-home-inner member-home-community-only">
+            <section class="member-section member-home-community linkedin-community-layout">
                 <div class="section-toolbar">
                     <div><h2>What is happening on GloWe</h2></div>
-                    <a class="btn btn-outline btn-small" href="pages/community.html">See all</a>
-                </div>`;
-    const personalSections = communityOnly ? '' : `
-            <section class="member-hero member-home-personal">
-                <div class="member-hero-copy">
-                    <span class="hero-kicker">Your GloWe</span>
-                    <h1>Welcome back, <span class="member-hero-name">${escapeHtml(firstName)}</span></h1>
-                    <p>What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.</p>
                 </div>
-                <div class="member-hero-actions">
-                    <a class="btn btn-primary btn-large" href="pages/community.html">Share a post</a>
-                    <a class="btn btn-outline btn-large" href="pages/opportunities.html">Post an opportunity</a>
-                    <button class="btn btn-outline btn-large" type="button" onclick="openWishModal()">Ask for support</button>
-                </div>
-            </section>
-            <section class="member-section member-home-personal">
-                <div class="section-toolbar">
-                    <div><h2>Your activity</h2></div>
-                    <a class="btn btn-outline btn-small" href="pages/my-applications.html">Open Personal Area</a>
-                </div>
-                <div class="member-feed-grid">${activityBody}</div>
-            </section>`;
-    return `
-        <div class="container member-home-inner${communityOnly ? ' member-home-community-only' : ''}">
-            ${personalSections}
-            <section class="member-section member-home-community">
-                ${communityToolbar}
-                <div class="member-feed-grid">${highlightsBody}</div>
+                <div class="feed-list home-feed-list" id="home-feed-grid">${feedHtml}</div>
+                <div id="home-feed-sentinel" class="home-feed-sentinel" aria-hidden="true"></div>
+                <p id="home-feed-end" class="muted-note home-feed-end" hidden>You're caught up</p>
             </section>
         </div>`;
+}
+
+// fallow-ignore-next-line complexity
+function attachHomeFeedObserver(root) {
+    const sentinel = root.querySelector('#home-feed-sentinel');
+    const grid = root.querySelector('#home-feed-grid');
+    const endEl = root.querySelector('#home-feed-end');
+    const HF = window.GloweHomeFeed;
+    if (!sentinel || !grid || !HF || !window.IntersectionObserver) return;
+    if (root._homeFeedObserver) {
+        try { root._homeFeedObserver.disconnect(); } catch (_e) { /* ignore */ }
+    }
+    // fallow-ignore-next-line complexity
+    const io = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (e) { return e.isIntersecting; })) return;
+        const st = root._homeFeed;
+        if (!st || st.done) {
+            if (endEl) endEl.hidden = false;
+            io.disconnect();
+            return;
+        }
+        const page = HF.pageSlice(st.items, st.offset, HF.PAGE_SIZE_NEXT);
+        grid.insertAdjacentHTML('beforeend', page.items.map(renderHomeFeedCard).join(''));
+        st.offset = page.nextOffset;
+        st.done = page.done;
+        if (page.done && endEl) endEl.hidden = false;
+        scheduleMemberHomeTranslation(root);
+    }, { rootMargin: '240px 0px' });
+    io.observe(sentinel);
+    root._homeFeedObserver = io;
+}
+
+async function loadHomeFeedSources() {
+    await Promise.all([
+        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames),
+        loadCommunityPosts(),
+        loadPostComments(),
+        loadLiveWishes(),
+        loadForumGroups(),
+        loadForumThreads()
+    ]);
+    const wishRows = Array.isArray(wishes) ? wishes : [];
+    const openWishes = wishRows.filter(function (w) { return w && w.type !== 'Volunteer Offer'; });
+    const openOffers = wishRows.filter(function (w) { return w && w.type === 'Volunteer Offer'; });
+    return {
+        posts: getAllCommunityPosts(),
+        opportunities: getAllOpportunitiesForDisplay(),
+        wishes: openWishes,
+        offers: openOffers,
+        forumGroups: getForumGroups(),
+        forumThreads: getForumThreads(),
+        commentsByPostId: backendPostComments || {},
+        saveCountsByKey: {},
+        isEvent: function (opp) {
+            return typeof GloweEvents !== 'undefined' && GloweEvents.isEvent(opp);
+        }
+    };
+}
+
+function hideGuestHomeFeed() {
+    const el = document.getElementById('guest-home-feed');
+    if (el) {
+        el.hidden = true;
+        el.innerHTML = '';
+    }
+}
+
+// fallow-ignore-next-line complexity
+function renderGuestHomeFeedPeek(ranked) {
+    const el = document.getElementById('guest-home-feed');
+    const HF = window.GloweHomeFeed;
+    if (!el || !HF) return;
+    const preview = HF.pageSlice(ranked, 0, HF.GUEST_PREVIEW_LIMIT);
+    el.hidden = false;
+    el.classList.add('linkedin-community-layout');
+    el.innerHTML = `
+        <div class="section-toolbar"><div><h2>What is happening on GloWe</h2></div></div>
+        <div class="feed-list home-feed-list">${preview.items.length ? preview.items.map(renderHomeFeedCard).join('') : homeFeedEmptyHtml()}</div>
+        <div class="guest-home-feed-cta">
+            <p>Join GloWe to see more and take part.</p>
+            <button type="button" class="btn btn-primary" onclick="handleGoogleSignIn()">Continue with Google</button>
+        </div>`;
+    if (typeof translateGloweTree === 'function') translateGloweTree(el);
+    scheduleMemberHomeTranslation(el);
 }
 
 async function initMemberHome(gen = _gloweHomeGen) {
     if (gen !== _gloweHomeGen) return;
     const root = document.getElementById('member-home');
     if (!root) return;
-    // Hide marketing immediately — before any await — so a concurrent guest
-    // init cannot win the race and flash the unregistered home.
     document.body.classList.add('glowe-member-home');
+    hideGuestHomeFeed();
     root.hidden = false;
+    root.classList.add('member-home-community-only');
     root.innerHTML = '<div class="container"><p class="muted-note">Loading your GloWe home…</p></div>';
 
-    await Promise.all([
-        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames),
-        loadCommunityPosts(),
-        loadPostComments()
-    ]);
+    const sources = await loadHomeFeedSources();
     if (gen !== _gloweHomeGen) return;
 
-    const profile = await getLocalizedPersonalProfile();
-    if (gen !== _gloweHomeGen) return;
-    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    const firstName = localizedProfileFirstName(profile, 'there');
-    const allPosts = getAllCommunityPosts();
-    const communityOnly = isGloweMobileHomeViewport();
-    const activity = communityOnly ? [] : selectMemberActivity(allPosts, user ? user.id : '');
-    const highlightLimit = communityOnly ? null : 6;
-    const highlights = selectCommunityHighlights(getAllOpportunitiesForDisplay(), allPosts, highlightLimit);
-    root.classList.toggle('member-home-community-only', communityOnly);
-    root.innerHTML = renderMemberHomeMarkup(firstName, activity, highlights, { communityOnly });
-    // Member shell owns the hide now — drop the pre-paint class.
+    const HF = window.GloweHomeFeed;
+    const ranked = HF
+        ? HF.buildHomeFeed(sources, { nowMs: Date.now() })
+        : [];
+    const page = HF
+        ? HF.pageSlice(ranked, 0, HF.PAGE_SIZE_FIRST)
+        : { items: [], nextOffset: 0, done: true };
+    const feedHtml = page.items.length
+        ? page.items.map(renderHomeFeedCard).join('')
+        : homeFeedEmptyHtml();
+    root.innerHTML = renderMemberHomeMarkup(feedHtml);
+    root._homeFeed = { items: ranked, offset: page.nextOffset, done: page.done };
+    if (page.done) {
+        const endEl = root.querySelector('#home-feed-end');
+        if (endEl && page.items.length) endEl.hidden = false;
+    } else {
+        attachHomeFeedObserver(root);
+    }
     if (window.GloweAuthPaint) window.GloweAuthPaint.clearExpectMemberPaint();
     scheduleMemberHomeTranslation(root);
 }
@@ -6215,13 +6479,21 @@ async function initCommunityPage() {
         if (!container) return;
         const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
         const activeFilter = document.querySelector('[data-feed-filter].active')?.dataset.feedFilter || 'all';
-        const posts = getAllCommunityPosts().filter(post => {
+        const deepId = communityPostDeepLinkId();
+        let posts = getAllCommunityPosts().filter(post => {
             const searchable = `${post.title || ''} ${post.category || ''} ${post.text || ''} ${(post.tags || []).join(' ')}`.toLowerCase();
             return postMatchesFilter(post, activeFilter) && (!query || searchable.includes(query));
         });
+        if (deepId) {
+            const pinned = findCommunityPostById(deepId);
+            if (pinned && !posts.some(function (p) { return String(p.id) === String(deepId); })) {
+                posts = [pinned, ...posts];
+            }
+        }
         container.innerHTML = posts.length
             ? posts.map(renderPostCard).join('')
             : '<div class="empty-state"><h3>The conversation starts here</h3><p>No posts yet — share knowledge, ask for support, or open a discussion to get things going.</p><button class="btn btn-primary btn-small" type="button" onclick="openInlineComposer()">Write the first post</button></div>';
+        if (deepId) scheduleFocusCommunityPost(deepId);
     }
 
     if (searchInput) searchInput.addEventListener('input', renderFeed);
@@ -7075,7 +7347,9 @@ function _renderProfileContent(profile, container) {
     const primaryStat = isOrg ? profile.volunteers : profilePosts.length;
     const primaryStatLabel = isOrg ? 'Volunteers' : 'Posts';
     const opportunityCount = isOrg ? profile.opportunities || relatedOpportunities.length : relatedOpportunities.length;
-    const missionText = profile.mission || profile.story || profile.bio || 'A GloWe community profile sharing work, knowledge, and opportunities for impact.';
+    const missionFallback = 'A GloWe community profile sharing work, knowledge, and opportunities for impact.';
+    const missionRaw = String(profile.mission || profile.story || profile.bio || '').trim();
+    const missionText = missionRaw || missionFallback;
     const valuesText = profile.values || (profile.type && profile.type.toLowerCase().includes('business')
         ? 'Ethical business, practical access, community benefit, and responsible technology.'
         : 'Transparency, dignity, collaboration, and shared learning.');
@@ -7100,9 +7374,11 @@ function _renderProfileContent(profile, container) {
     const trustStatus = _publicTrustStatusLabel(profile, isOrg);
     const safeContact = profile.email || 'Contact through GloWe messages';
 
-    // FR-TRANSLATE-005 AC7 — DB profiles carry `_tr`; tag the mission prose so the
-    // reader driver translates it. Static profiles have no source row, so no attr.
-    const missionFieldAttr = profile._tr ? ` data-tr-field="${profile._tr.missionField}"` : '';
+    // FR-TRANSLATE-005 AC7 — only tag real user prose for UGC translate. Chrome
+    // fallbacks must stay free of data-tr-field so translateGloweTree can localize.
+    const missionFieldAttr = (profile._tr && missionRaw)
+        ? ` data-tr-field="${profile._tr.missionField}"`
+        : '';
 
     container.innerHTML = `
         <section class="profile-cover profile-story-cover">
@@ -7269,7 +7545,7 @@ function _renderProfileContent(profile, container) {
                 <article class="org-info-card">
                     <h4>Profile snapshot</h4>
                     <div class="profile-info-list compact">
-                        <p><strong>Location</strong><span>${escapeHtml(profile.location || profile.country || 'Not specified')}</span></p>
+                        <p><strong>Location</strong><span>${escapeHtml(profile.location || profile.country || 'Not specified yet')}</span></p>
                         <p><strong>Scope</strong><span>${escapeHtml(profile.scope || profile.availability || 'Open to coordination')}</span></p>
                         <p><strong>Impact area</strong><span>${escapeHtml(profile.impactArea || tags.join(', ') || 'Community impact')}</span></p>
                         <p><strong>Public links</strong><span>${renderProfileLinkList(mediaLinks)}</span></p>
@@ -7326,6 +7602,7 @@ function _renderProfileContent(profile, container) {
         });
     }
     loadProfilePublicFollowCounts(profile.id, container);
+    if (typeof translateGloweTree === 'function') translateGloweTree(container);
 }
 
 // Initialize opportunity detail page
@@ -8916,6 +9193,17 @@ const GLOWE_TRANSLATIONS = {
         "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "כאשר אתם מפרסמים תוכן ב-GloWe, כגון טקסט, תמונות, קישורים או תיאורי פרויקטים:",
         "Who is this for?": "למי זה מיועד?",
         "Who We Serve": "את מי אנחנו משרתים",
+        "Our team": "הצוות שלנו",
+        "A small founding partnership building GloWe — product, community, and the technology behind it.": "שותפות מייסדת קטנה שבונה את GloWe — מוצר, קהילה והטכנולוגיה מאחוריהם.",
+        "Loading the team…": "טוענים את הצוות…",
+        "We couldn't load the team. Please try again.": "לא הצלחנו לטעון את הצוות. נסו שוב.",
+        "Retry": "נסו שוב",
+        "Founder & CEO": "המייסדת והמנכ״לית",
+        "Michal leads GloWe as founder and CEO — building a community where field knowledge and mutual support can travel further.": "מיכל מובילה את GloWe כמייסדת ומנכ״לית — בונה קהילה שבה ידע מהשטח ותמיכה הדדית יכולים להגיע רחוק יותר.",
+        "Technology partner & product developer": "שותף טכנולוגי ומפתח המוצר",
+        "Nave is the technology partner and product developer — shaping the platform that connects people, knowledge, and practical action.": "נוה הוא השותף הטכנולוגי ומפתח המוצר — מעצב את הפלטפורמה שמחברת אנשים, ידע ופעולה מעשית.",
+        "View profile": "לפרופיל",
+        "No team members to show yet.": "עדיין אין חברי צוות להצגה.",
         "Why do you want to volunteer?": "למה אתם רוצים להתנדב?",
         "Why GloWe exists": "למה GloWe קיימת",
         "Wish filters": "מסנני משאלות",
@@ -9438,6 +9726,11 @@ const GLOWE_TRANSLATIONS = {
         "Focus not added yet": "תחום מיקוד טרם נוסף",
         "Followers": "עוקבים",
         "Following": "במעקב",
+        "Forum": "פורום",
+        "Join GloWe to see more and take part.": "הצטרפו ל-GloWe כדי לראות עוד ולהשתתף.",
+        "Join the conversation": "הצטרפו לשיחה",
+        "Read more": "קרא עוד",
+        "You're caught up": "סיימתם לעבור על הכל",
         "Following ✓": "עוקבים ✓",
         "For climate, food systems, waste, restoration, repair, and local environmental action.": "לאקלים, מערכות מזון, פסולת, שיקום, תיקון ופעולה סביבתית מקומית.",
         "For Organizations": "לארגונים",
@@ -9518,6 +9811,7 @@ const GLOWE_TRANSLATIONS = {
         "Read Community": "קראו את הקהילה",
         "Read Community Posts": "קראו פוסטים מהקהילה",
         "Read What's Next": "קראו מה הלאה",
+        "Show less": "הצג פחות",
         "Ready to lend a hand?": "מוכנים לעזור?",
         "Reason": "סיבה",
         "Register Your Organization": "רישום הארגון שלכם",
@@ -9636,6 +9930,10 @@ const GLOWE_TRANSLATIONS = {
         "Solution": "פתרון",
         "Size / availability": "גודל / זמינות",
         "Not specified yet": "טרם צוין",
+        "Transparency, dignity, collaboration, and shared learning.": "שקיפות, כבוד, שיתוף פעולה ולמידה משותפת.",
+        "Organizations, volunteers, partners, and communities looking for useful collaboration.": "ארגונים, מתנדבים, שותפים וקהילות שמחפשות שיתוף פעולה מועיל.",
+        "Ethical business, practical access, community benefit, and responsible technology.": "עסק אתי, נגישות מעשית, תועלת לקהילה וטכנולוגיה אחראית.",
+        "A GloWe community profile sharing work, knowledge, and opportunities for impact.": "פרופיל קהילת GloWe שמשתף עבודה, ידע והזדמנויות להשפעה.",
         "Through participation, useful connections, project progress, and community feedback.": "דרך השתתפות, קשרים מועילים, התקדמות בפרויקטים ומשוב מהקהילה.",
         "Contact through GloWe messages": "יצירת קשר דרך הודעות GloWe",
         "Community impact": "השפעה קהילתית",
@@ -9834,6 +10132,11 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "Не удалось сохранить фото.",
         "Followers": "Подписчики",
         "Following": "Подписки",
+        "Forum": "Форум",
+        "Join GloWe to see more and take part.": "Присоединяйтесь к GloWe, чтобы увидеть больше и участвовать.",
+        "Join the conversation": "Присоединяйтесь к разговору",
+        "Read more": "Читать дальше",
+        "You're caught up": "Вы всё просмотрели",
         "+ Follow": "+ Подписаться",
         "Following ✓": "Вы подписаны ✓",
         "Stop following": "Отписаться",
@@ -10028,6 +10331,7 @@ const GLOWE_TRANSLATIONS = {
         "Read Community": "Читать сообщество",
         "Open Community": "Открыть сообщество",
         "Read What's Next": "Читать «Что дальше»",
+        "Show less": "Показать меньше",
         "See How This Could Grow": "Посмотрите, как это может вырасти",
         "Active threads will appear here once community members start discussions.": "Активные обсуждения появятся здесь, когда участники сообщества их начнут.",
         "Activity": "Активность",
@@ -10596,6 +10900,17 @@ const GLOWE_TRANSLATIONS = {
         "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "Когда вы публикуете контент в GloWe — текст, изображения, ссылки или описания проектов:",
         "Who is this for?": "Для кого это?",
         "Who We Serve": "Кому мы служим",
+        "Our team": "Наша команда",
+        "A small founding partnership building GloWe — product, community, and the technology behind it.": "Небольшое партнёрство основателей, строящее GloWe — продукт, сообщество и технологию за ними.",
+        "Loading the team…": "Загружаем команду…",
+        "We couldn't load the team. Please try again.": "Не удалось загрузить команду. Попробуйте снова.",
+        "Retry": "Повторить",
+        "Founder & CEO": "Основательница и CEO",
+        "Michal leads GloWe as founder and CEO — building a community where field knowledge and mutual support can travel further.": "Михаль возглавляет GloWe как основательница и CEO — создаёт сообщество, где полевые знания и взаимная поддержка могут распространяться дальше.",
+        "Technology partner & product developer": "Технологический партнёр и разработчик продукта",
+        "Nave is the technology partner and product developer — shaping the platform that connects people, knowledge, and practical action.": "Наве — технологический партнёр и разработчик продукта; он формирует платформу, которая соединяет людей, знания и практические действия.",
+        "View profile": "К профилю",
+        "No team members to show yet.": "Пока нет участников команды для отображения.",
         "Why do you want to volunteer?": "Почему вы хотите стать волонтёром?",
         "Why GloWe exists": "Зачем существует GloWe",
         "Wish filters": "Фильтры желаний",
@@ -11092,6 +11407,10 @@ const GLOWE_TRANSLATIONS = {
         "Solution": "Решение",
         "Size / availability": "Размер / доступность",
         "Not specified yet": "Пока не указано",
+        "Transparency, dignity, collaboration, and shared learning.": "Прозрачность, достоинство, сотрудничество и совместное обучение.",
+        "Organizations, volunteers, partners, and communities looking for useful collaboration.": "Организации, волонтёры, партнёры и сообщества, ищущие полезное сотрудничество.",
+        "Ethical business, practical access, community benefit, and responsible technology.": "Этичный бизнес, практический доступ, польза для сообщества и ответственная технология.",
+        "A GloWe community profile sharing work, knowledge, and opportunities for impact.": "Профиль сообщества GloWe, делящийся работой, знаниями и возможностями для воздействия.",
         "Through participation, useful connections, project progress, and community feedback.": "Через участие, полезные связи, прогресс проектов и отзывы сообщества.",
         "Contact through GloWe messages": "Связаться через сообщения GloWe",
         "Community impact": "Влияние на сообщество",
@@ -11290,6 +11609,11 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "تعذّر حفظ الصورة.",
         "Followers": "المتابِعون",
         "Following": "المتابَعون",
+        "Forum": "منتدى",
+        "Join GloWe to see more and take part.": "انضموا إلى GloWe لرؤية المزيد والمشاركة.",
+        "Join the conversation": "انضموا إلى المحادثة",
+        "Read more": "اقرأ المزيد",
+        "You're caught up": "اطّلعتم على كل شيء",
         "+ Follow": "+ متابعة",
         "Following ✓": "تتابعه ✓",
         "Stop following": "إلغاء المتابعة",
@@ -11484,6 +11808,7 @@ const GLOWE_TRANSLATIONS = {
         "Read Community": "اقرأ المجتمع",
         "Open Community": "افتح المجتمع",
         "Read What's Next": "اقرأ «ما التالي»",
+        "Show less": "عرض أقل",
         "See How This Could Grow": "شاهد كيف يمكن أن ينمو هذا",
         "Active threads will appear here once community members start discussions.": "ستظهر النقاشات النشطة هنا بمجرد أن يبدأ أعضاء المجتمع الحوار.",
         "Activity": "النشاط",
@@ -12052,6 +12377,17 @@ const GLOWE_TRANSLATIONS = {
         "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "عندما تنشر محتوى على GloWe، مثل النصوص أو الصور أو الروابط أو أوصاف المشاريع:",
         "Who is this for?": "لمن هذا؟",
         "Who We Serve": "من نخدم",
+        "Our team": "فريقنا",
+        "A small founding partnership building GloWe — product, community, and the technology behind it.": "شراكة تأسيسية صغيرة تبني GloWe — المنتج والمجتمع والتقنية خلفهما.",
+        "Loading the team…": "جارٍ تحميل الفريق…",
+        "We couldn't load the team. Please try again.": "تعذّر تحميل الفريق. حاول مرة أخرى.",
+        "Retry": "إعادة المحاولة",
+        "Founder & CEO": "المؤسِّسة والمديرة التنفيذية",
+        "Michal leads GloWe as founder and CEO — building a community where field knowledge and mutual support can travel further.": "ميخال تقود GloWe كمؤسِّسة ومديرة تنفيذية — تبني مجتمعًا يمكن فيه للمعرفة الميدانية والدعم المتبادل أن يصل أبعد.",
+        "Technology partner & product developer": "شريك تقني ومطوّر المنتج",
+        "Nave is the technology partner and product developer — shaping the platform that connects people, knowledge, and practical action.": "نافيه هو الشريك التقني ومطوّر المنتج — يصوغ المنصة التي تربط الناس والمعرفة والعمل العملي.",
+        "View profile": "عرض الملف",
+        "No team members to show yet.": "لا يوجد أعضاء فريق للعرض بعد.",
         "Why do you want to volunteer?": "لماذا تريد التطوع؟",
         "Why GloWe exists": "لماذا وُجدت GloWe",
         "Wish filters": "عوامل تصفية الأمنيات",
@@ -12548,6 +12884,10 @@ const GLOWE_TRANSLATIONS = {
         "Solution": "الحل",
         "Size / availability": "الحجم / التوفر",
         "Not specified yet": "لم يُحدَّد بعد",
+        "Transparency, dignity, collaboration, and shared learning.": "الشفافية والكرامة والتعاون والتعلّم المشترك.",
+        "Organizations, volunteers, partners, and communities looking for useful collaboration.": "منظمات ومتطوعون وشركاء ومجتمعات تبحث عن تعاون مفيد.",
+        "Ethical business, practical access, community benefit, and responsible technology.": "أعمال أخلاقية، وصول عملي، فائدة مجتمعية، وتقنية مسؤولة.",
+        "A GloWe community profile sharing work, knowledge, and opportunities for impact.": "ملف مجتمعي في GloWe يشارك العمل والمعرفة وفرص التأثير.",
         "Through participation, useful connections, project progress, and community feedback.": "من خلال المشاركة، والعلاقات المفيدة، وتقدّم المشاريع، وملاحظات المجتمع.",
         "Contact through GloWe messages": "التواصل عبر رسائل GloWe",
         "Community impact": "الأثر المجتمعي",
@@ -12746,6 +13086,11 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "ፎቶውን ማስቀመጥ አልተቻለም።",
         "Followers": "ተከታዮች",
         "Following": "የሚከተሉት",
+        "Forum": "መድረክ",
+        "Join GloWe to see more and take part.": "ተጨማሪ ለማየትና ለመሳተፍ ወደ GloWe ይቀላቀሉ።",
+        "Join the conversation": "ወደ ውይይቱ ይቀላቀሉ",
+        "Read more": "ተጨማሪ ያንቡ",
+        "You're caught up": "ሁሉንም አይተዋል",
         "+ Follow": "+ ተከተል",
         "Following ✓": "እየተከተሉ ነው ✓",
         "Stop following": "መከተል አቁም",
@@ -12940,6 +13285,7 @@ const GLOWE_TRANSLATIONS = {
         "Read Community": "ማህበረሰቡን ያንብቡ",
         "Open Community": "ማህበረሰቡን ክፈት",
         "Read What's Next": "«ቀጥሎ ምን አለ» ያንብቡ",
+        "Show less": "ያነሰ አሳይ",
         "See How This Could Grow": "ይህ እንዴት ሊያድግ እንደሚችል ይመልከቱ",
         "Active threads will appear here once community members start discussions.": "የማህበረሰብ አባላት ውይይት ሲጀምሩ ንቁ ውይይቶች እዚህ ይታያሉ።",
         "Activity": "እንቅስቃሴ",
@@ -13508,6 +13854,17 @@ const GLOWE_TRANSLATIONS = {
         "When you publish content, such as text, images, links, or project descriptions, on GloWe:": "በGloWe ላይ እንደ ጽሑፍ፣ ምስሎች፣ አገናኞች ወይም የፕሮጀክት መግለጫዎች ያሉ ይዘቶችን ሲያሳትሙ፦",
         "Who is this for?": "ይህ ለማን ነው?",
         "Who We Serve": "የምናገለግላቸው",
+        "Our team": "ቡድናችን",
+        "A small founding partnership building GloWe — product, community, and the technology behind it.": "GloWeን የሚገነባ ትንሽ የመስራችነት ትብብር — ምርት፣ ማህበረሰብ እና ከኋላ ያለው ቴክኖሎጂ።",
+        "Loading the team…": "ቡድኑ እየተጫነ ነው…",
+        "We couldn't load the team. Please try again.": "ቡድኑን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+        "Retry": "እንደገና ይሞክሩ",
+        "Founder & CEO": "መስራች እና ዋና ሥራ አስፈጻሚ",
+        "Michal leads GloWe as founder and CEO — building a community where field knowledge and mutual support can travel further.": "ሚካል GloWeን እንደ መስራች እና ዋና ሥራ አስፈጻሚ ታስተዳድራለች — በመስክ ዕውቀት እና በወገንተኛ ድጋፍ ርቀት ሊጓዙ የሚችሉ ማህበረሰብ ታሰራለች።",
+        "Technology partner & product developer": "የቴክኖሎጂ አጋር እና የምርት አበልጫዊ",
+        "Nave is the technology partner and product developer — shaping the platform that connects people, knowledge, and practical action.": "ናቬ የቴክኖሎጂ አጋር እና የምርት አበልጫዊ ነው — ሰዎችን፣ ዕውቀትን እና ተግባራዊ እርምጃን የሚያገናኝ መድረክን ይቅረጽላል።",
+        "View profile": "መገለጫ ይመልከቱ",
+        "No team members to show yet.": "እስካሁን የሚታዩ የቡድን አባላት የሉም።",
         "Why do you want to volunteer?": "ለምን በጎ ፈቃደኛ መሆን ይፈልጋሉ?",
         "Why GloWe exists": "GloWe ለምን እንደተፈጠረ",
         "Wish filters": "የምኞት ማጣሪያዎች",
@@ -14004,6 +14361,10 @@ const GLOWE_TRANSLATIONS = {
         "Solution": "መፍትሔ",
         "Size / availability": "መጠን / ተገኝነት",
         "Not specified yet": "እስካሁን አልተገለጸም",
+        "Transparency, dignity, collaboration, and shared learning.": "ግልጽነት፣ ክብር፣ ትብብር እና የጋራ ትምህርት።",
+        "Organizations, volunteers, partners, and communities looking for useful collaboration.": "ጠቃሚ ትብብር የሚፈልጉ ድርጅቶች፣ በጎ ፈቃደኞች፣ አጋሮች እና ማህበረሰቦች።",
+        "Ethical business, practical access, community benefit, and responsible technology.": "ሥነ-ምግባራዊ ንግድ፣ ተግባራዊ መዳረሻ፣ የማህበረሰብ ጥቅም እና ኃላፊነት ያለው ቴክኖሎጂ።",
+        "A GloWe community profile sharing work, knowledge, and opportunities for impact.": "ስራ፣ እውቀት እና የተጽዕኖ እድሎችን የሚያጋራ የGloWe ማህበረሰብ መገለጫ።",
         "Through participation, useful connections, project progress, and community feedback.": "በተሳትፎ፣ ጠቃሚ ግንኙነቶች፣ የፕሮጀክት እድገት እና የማህበረሰብ አስተያየት አማካኝነት።",
         "Contact through GloWe messages": "በGloWe መልእክቶች በኩል ያግኙ",
         "Community impact": "የማህበረሰብ ተጽዕኖ",
@@ -14734,6 +15095,66 @@ async function refreshMessagesBadge(options = {}) {
 }
 window.refreshMessagesBadge = refreshMessagesBadge;
 
+// About page — expand What's Next inline (FR-GLOWE-027 AC6).
+// fallow-ignore-next-line complexity
+function toggleWhatsNextExpand() {
+    const panel = document.getElementById('about-whats-next-panel');
+    const btn = document.getElementById('about-whats-next-toggle');
+    if (!panel || !btn) return;
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    const nextOpen = !open;
+    btn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+    panel.hidden = !nextOpen;
+    btn.textContent = nextOpen ? 'Show less' : 'Read What\'s Next';
+    if (typeof translateGloweTree === 'function') {
+        translateGloweTree(btn);
+        if (nextOpen) translateGloweTree(panel);
+    }
+    if (nextOpen) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+window.toggleWhatsNextExpand = toggleWhatsNextExpand;
+
+// fallow-ignore-next-line complexity
+async function initAboutPage() {
+    const listEl = document.getElementById('about-team-list');
+    if (!listEl) return;
+    const api = window.GloweAboutTeam;
+    const backend = window.gloweBackend;
+    if (!api || !backend || typeof backend.listAboutTeam !== 'function') {
+        listEl.innerHTML = '<p class="about-team-empty">No team members to show yet.</p>';
+        return;
+    }
+
+    function paintError() {
+        listEl.innerHTML =
+            '<p class="about-team-error">We couldn\'t load the team. Please try again.' +
+            ' <button type="button" class="btn btn-outline btn-small" id="about-team-retry">Retry</button></p>';
+        const btn = document.getElementById('about-team-retry');
+        if (btn) btn.addEventListener('click', function () { initAboutPage(); });
+    }
+
+    try {
+        if (!backend.configured || !backend.configured()) {
+            listEl.innerHTML = '<p class="about-team-empty">No team members to show yet.</p>';
+            return;
+        }
+        listEl.innerHTML = '<p class="about-team-loading">Loading the team…</p>';
+        const rows = await backend.listAboutTeam();
+        const members = api.mapTeamRows(rows || []);
+        if (!members.length) {
+            listEl.innerHTML = '<p class="about-team-empty">No team members to show yet.</p>';
+            return;
+        }
+        listEl.innerHTML = api.teamListHtml(members);
+        if (typeof translateGloweTree === 'function') translateGloweTree(listEl);
+    } catch (_err) {
+        paintError();
+        if (typeof translateGloweTree === 'function') translateGloweTree(listEl);
+    }
+}
+
 // Derive the logical page key from a pathname, tolerant of both
 // extension-style URLs (local: /pages/settings.html) and clean URLs
 // (Cloudflare Pages on dev/prod: /glowe/pages/settings).
@@ -14749,6 +15170,7 @@ function resolveGlowePage(pathname) {
 }
 
 // Page initialization
+// fallow-ignore-next-line complexity
 document.addEventListener('DOMContentLoaded', function() {
     applyGloweDirection();
     ensureGlobalUI();
@@ -14792,6 +15214,8 @@ document.addEventListener('DOMContentLoaded', function() {
         initMessagesPage();
     } else if (page === 'connections') {
         initConnectionsPage();
+    } else if (page === 'about') {
+        initAboutPage();
     }
 
     // Translate the now-rendered chrome + page, then watch for later injections.

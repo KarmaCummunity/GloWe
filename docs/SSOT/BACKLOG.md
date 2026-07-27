@@ -12,6 +12,7 @@
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | GLOWE.B | **Phase B — Live Content Layer (specced 2026-06-29)** — connect all existing pages to real Supabase persistence: Wishing Well, Volunteer Network, Community Feed, Forums, Organizations Directory, Profile Management, Applications & Offers, Saved Items, Direct Messaging (stub), Moderation. New migrations for `glowe_forum_groups`, `glowe_forum_threads`, `glowe_forum_replies`, `glowe_offers`, `glowe_reports`. PRD: `docs/SSOT/archive/superpowers/specs/2026-06-29-glowe-mvp-prd.md`; SRS: `docs/SSOT/archive/superpowers/specs/2026-06-29-glowe-mvp-srs.md` | agent-fullstack | ⏳ Planned | `spec/17_glowe_frontend.md` FR-GLOWE-006..015 |
+| GLOWE.HOME-FEED | **Unified Home discovery feed** — feed-only member home; hot+diversity ranking; progressive 10/+8; guest peek 10 + join CTA; no org profiles | agent-fullstack | ✅ Done | `spec/17_glowe_frontend.md` FR-GLOWE-016 AC2; D-184 |
 | GLOWE.C | **Phase C — convergence** — GloWe as primary frontend, unified schema, KC mobile deprecated | agent-fullstack | ⏳ Planned | `spec/17_glowe_frontend.md` (Phase C) |
 | GLOWE.GUEST-B | **Guest conversion Mode B (progressive disclosure)** — let the guest fill the action form and wall only at final submit, preserving input for auto-submit after sign-in | agent-fullstack | ⏳ Planned [blocked: needs explicit PM instruction per D-68] | `spec/17_glowe_frontend.md` FR-GLOWE-023 AC7 |
 

@@ -1398,10 +1398,23 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
+## D-184 — GloWe Home is a unified discovery feed (2026-07-27)
+
+**Decision.** Signed-in Home is feed-only: one unified card chrome for posts, opportunities, events, wishes, volunteer offers, forum groups, and forum threads (org profiles excluded). Ranking is client-side hot(score) = recency + comments + saves, then a diversity pass; progressive paging is 10 then +8. Guests see a 10-item peek + join CTA on the marketing home. A server RPC may replace the client merge later without changing card renderers.
+
+**Rationale.** PM asked for one coherent discovery surface instead of mismatched card layouts and a desktop 6-item "See all" gate. Client merge reuses existing `listAll` loaders for MVP speed (hybrid Phase 1).
+
+**Alternatives rejected.** Keep capped posts+opportunities strip; include org directory cards on Home; dump the full catalog without progressive load.
+
+**Affected.** `app/apps/glowe-web/js/glowe-home-feed*.js`, `app.js`, `index.html`, `styles.css`; FR-GLOWE-016 AC2; design/plan under `docs/SSOT/archive/superpowers/{specs,plans}/2026-07-27-glowe-unified-home-feed*`.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |
 | 4.14 | 2026-07-22 | Added `D-183` (GloWe follow on KC `follow_edges` via `backend.js` + `glowe-follow.js`; public MVP only; FR-GLOWE-026). |
 | 4.13 | 2026-07-22 | Added `D-182` (GloWe prod synthetics → `glowe_health_checks` + admin health panel; `INFRA-QA-W7`). |
 | 4.12 | 2026-07-19 | Added `D-181` (app-wide semver + auto patch on `dev` push; GloWe footer `vX.Y.Z`; FR-GLOWE-025). |
