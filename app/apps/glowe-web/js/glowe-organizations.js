@@ -252,6 +252,9 @@
             skills: field(row, 'skills', 'skills') || '',
             motivation: field(row, 'motivation', 'motivation') || '',
             status: field(row, 'status', 'status') || 'Pending',
+            // Set only on Waitlisted rows (migration 0237); the inbox shows it so
+            // the owner promotes in the order people signed up.
+            waitlistPosition: field(row, 'waitlist_position', 'waitlistPosition') || null,
             appliedAt: field(row, 'created_at', 'createdAt') || ''
         };
     }
@@ -283,10 +286,15 @@
     }
 
     // FR-GLOWE-012 AC2 — an application can be accepted/declined by the owner
-    // only while it is still awaiting a decision (Pending). Already-decided rows
-    // (Accepted / Declined / Waitlisted / Cancelled) show no action buttons.
+    // while it is still awaiting a decision. That means Pending, and — since
+    // migration 0237 gave plain opportunities the same capacity rules events
+    // have — also Waitlisted: when a seat frees up the owner promotes from the
+    // waitlist through the very same buttons. Settled rows (Accepted / Declined
+    // / Cancelled) show no actions.
+    const DECIDABLE_APPLICATION_STATUSES = ['Pending', 'Waitlisted'];
+
     function canDecideApplication(status) {
-        return String(status || '') === 'Pending';
+        return DECIDABLE_APPLICATION_STATUSES.indexOf(String(status || '')) !== -1;
     }
 
     // FR-GLOWE-012 AC4 — the "Connect" CTA (copy contact email) only renders when

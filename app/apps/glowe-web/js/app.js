@@ -6212,6 +6212,21 @@ function openOpportunityComposer() {
                     <input id="opportunity-requirements" placeholder="Languages, experience, availability">
                 </div>
             </div>
+            <div class="form-grid-2">
+                <!-- FR-GLOWE-012 AC8 — deliberately the same two controls, with the
+                     same wording, as the event composer: one concept, one vocabulary. -->
+                <div class="form-group">
+                    <label for="opportunity-registration">Registration</label>
+                    <select id="opportunity-registration">
+                        <option value="gated">Organizer approves each registration</option>
+                        <option value="open">Open — instant confirmation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="opportunity-capacity">Capacity (optional)</label>
+                    <input id="opportunity-capacity" type="number" min="1" placeholder="Leave empty for unlimited">
+                </div>
+            </div>
             <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Publish Opportunity</button>
                 <button class="btn btn-outline" type="button" onclick="closeOpportunityComposer()">Cancel</button>
@@ -6248,7 +6263,12 @@ async function handleOpportunitySubmit(event) {
         duration: document.getElementById('opportunity-duration').value,
         description: document.getElementById('opportunity-description').value,
         skills: document.getElementById('opportunity-skills').value,
-        requirements: document.getElementById('opportunity-requirements').value
+        requirements: document.getElementById('opportunity-requirements').value,
+        // FR-GLOWE-012 AC5 — the owner picks whether to vet applicants one by
+        // one or let everyone in, and how many places exist. The server applies
+        // both (migration 0237); these controls just express the intent.
+        registration_mode: fieldValue('opportunity-registration'),
+        capacity: fieldValue('opportunity-capacity')
     };
     const check = helpers ? helpers.validateOpportunityDraft(draft) : { valid: Boolean(draft.title) };
     if (!check.valid) { showSuccessModal('Missing details', check.error || 'Please complete the opportunity.'); return; }
@@ -6261,8 +6281,11 @@ async function handleOpportunitySubmit(event) {
         event.target.reset();
         if (reloadOpportunities) await reloadOpportunities();
         showActionToast('Opportunity published', `${payload.title} was added to the opportunities board.`);
-    } catch (_e) {
-        showSuccessModal('Could not publish', 'Something went wrong publishing your opportunity. Please try again.');
+    } catch (err) {
+        // insertOwned() already maps the server guards (0236) to readable copy —
+        // show that instead of a generic failure, so "your organization is not
+        // approved yet" does not read as "something went wrong".
+        showSuccessModal('Could not publish', backend.describeBackendError(err));
     }
 }
 
@@ -7836,6 +7859,11 @@ async function initOpportunityDetailPage() {
     // The owner manages applicants instead of applying to their own opportunity.
     const ownerViewing = !isEvent && isLoggedIn() && isOpportunityOwner(opportunity);
 
+    // FR-GLOWE-012 AC5 — say up front how registration works here. The event
+    // panel prints its own live "X of Y places" line, so this is for plain
+    // opportunities only.
+    if (!isEvent) renderRegistrationTerms(opportunity);
+
     // Events use the registration panel; plain opportunities keep the apply-modal.
     const applyBtn = document.getElementById('apply-btn');
     if (applyBtn && !isEvent && !ownerViewing) {
@@ -7852,6 +7880,18 @@ async function initOpportunityDetailPage() {
 
     if (isEvent) setupEventRegistration(opportunity, events);
     else if (ownerViewing) renderOpportunityApplicants(opportunity);
+}
+
+// Fill the sidebar registration-terms line, or leave it hidden when the listing
+// runs on the defaults (organizer approves, unlimited places).
+function renderRegistrationTerms(opportunity) {
+    const el = document.getElementById('opp-registration-terms');
+    const helpers = (typeof GloweOpportunities !== 'undefined') ? GloweOpportunities : null;
+    if (!el || !helpers) return;
+    const label = helpers.registrationTermsLabel(opportunity, gloweText);
+    if (!label) { el.hidden = true; return; }
+    el.innerHTML = `<strong>${escapeHtml(gloweText('Registration:'))}</strong> ${escapeHtml(label)}`;
+    el.hidden = false;
 }
 
 // FR-GLOWE-012 AC1 — true when the signed-in user published this opportunity.
@@ -7920,8 +7960,11 @@ function opportunityApplicantsHtml(views) {
     const rows = views.map(function (v) {
         const date = v.appliedAt ? new Date(v.appliedAt).toLocaleDateString(gloweLocaleTag()) : '';
         const canDecide = orgHelpers ? orgHelpers.canDecideApplication(v.status) : v.status === 'Pending';
+        // A waitlisted applicant is promoted with the same Accept button; the
+        // server re-checks capacity and only moves them up if a seat is free.
+        const acceptLabel = v.status === 'Waitlisted' ? 'Give a place' : 'Accept';
         const decideButtons = canDecide ? `
-                <button class="btn btn-primary btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">Accept</button>
+                <button class="btn btn-primary btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">${acceptLabel}</button>
                 <button class="btn btn-outline btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Declined">Decline</button>` : '';
         const connectButton = connectButtonHtml(v);
         const actions = (decideButtons || connectButton) ? `
@@ -7930,7 +7973,7 @@ function opportunityApplicantsHtml(views) {
         <li class="applicant-row">
             <div class="applicant-head">
                 <strong>${escapeHtml(v.name || 'GloWe volunteer')}</strong>
-                <span class="applicant-status status-${escapeHtml(String(v.status).toLowerCase())}">${escapeHtml(v.status)}</span>
+                <span class="applicant-status status-${escapeHtml(String(v.status).toLowerCase())}">${escapeHtml(v.status)}${v.waitlistPosition ? ' #' + escapeHtml(String(v.waitlistPosition)) : ''}</span>
             </div>
             ${v.availability ? `<p class="applicant-field"><strong>Availability:</strong> ${escapeHtml(v.availability)}</p>` : ''}
             ${v.skills ? `<p class="applicant-field"><strong>Skills:</strong> ${escapeHtml(v.skills)}</p>` : ''}
@@ -7983,12 +8026,19 @@ async function handleConnectEmail(email) {
 async function handleApplicationDecision(opportunity, applicationId, decision) {
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) return;
+    let row = null;
     try {
-        await backend.updateApplicationStatus(applicationId, decision);
-    } catch (_e) {
+        row = await backend.updateApplicationStatus(applicationId, decision);
+    } catch (err) {
         const area = document.getElementById('opp-applicants');
-        if (area) area.insertAdjacentHTML('afterbegin', '<p class="event-register-error">Could not update the application. Please try again.</p>');
+        if (area) area.insertAdjacentHTML('afterbegin', `<p class="event-register-error">${escapeHtml(backend.describeBackendError(err))}</p>`);
         return;
+    }
+    // An accept past capacity comes back as 'Waitlisted' (migration 0237) —
+    // tell the owner rather than letting the list silently disagree with the
+    // button they just pressed.
+    if (decision === 'Accepted' && row && row.status === 'Waitlisted') {
+        showActionToast('Added to the waitlist', 'All places are taken, so this applicant is next in line.');
     }
     renderOpportunityApplicants(opportunity);
 }
@@ -8119,6 +8169,7 @@ async function submitEventRegistration(event, opportunity) {
     event.preventDefault();
     const backend = window.gloweBackend;
     const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
+    const helpers = (typeof GloweOpportunities !== 'undefined') ? GloweOpportunities : null;
     if (!backend || !backend.configured() || !events) return;
     const submitBtn = event.target.querySelector('button[type="submit"]');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Registering...'; }
@@ -8128,28 +8179,18 @@ async function submitEventRegistration(event, opportunity) {
             phone: document.getElementById('event-reg-phone').value,
             comment: document.getElementById('event-reg-comment').value
         });
-        const accepted = row && row.status === 'Accepted';
-        showSuccessModal(
-            accepted ? 'You are registered!' : 'Registration submitted',
-            accepted
-                ? 'Your spot is confirmed. Manage it from your personal area.'
-                : 'Your registration is pending review by the organizer.'
-        );
+        // Shares the apply-flow copy so a full event says "waitlist" instead of
+        // the old "pending review", which was wrong once capacity kicked in.
+        const outcome = helpers
+            ? helpers.applicationOutcomeMessage(row && row.status, row && row.waitlist_position, gloweText)
+            : { title: 'Application sent', body: 'You can track the status in your personal area.' };
+        showSuccessModal(outcome.title, outcome.body);
         renderEventRegisterArea(opportunity, events);
     } catch (err) {
         const area = document.getElementById('event-register-area');
-        if (area) area.insertAdjacentHTML('afterbegin', `<p class="event-register-error">${escapeHtml(registrationErrorMessage(err))}</p>`);
+        if (area) area.insertAdjacentHTML('afterbegin', `<p class="event-register-error">${escapeHtml(backend.describeBackendError(err))}</p>`);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Register for event'; }
     }
-}
-
-// Map a Postgres/PostgREST error from glowe_register_for_event to friendly copy.
-function registrationErrorMessage(err) {
-    const raw = (err && (err.message || err.error_description)) || '';
-    if (raw.includes('already have an active registration')) return 'You are already registered for this event.';
-    if (raw.includes('not open for registration') || raw.includes('already ended')) return 'This event is no longer open for registration.';
-    if (raw.includes('sign in')) return 'Please sign in to register.';
-    return 'Could not complete your registration. Please try again.';
 }
 
 // ── Organizer portal (FR-GLOWE-007-E) ──────────────────────────────────────
@@ -8283,17 +8324,27 @@ async function handleApplicationSubmit(event) {
     const skills = document.getElementById('apply-skills').value;
     const motivation = document.getElementById('apply-motivation').value;
 
+    // FR-GLOWE-012 AC5 — the server decides the outcome from the listing's
+    // registration_mode and capacity (migration 0237). An 'open' listing
+    // confirms on the spot, a full one waitlists, a 'gated' one stays pending.
+    // This used to be a direct insert that hardcoded 'Pending', which is why an
+    // opportunity could never be run on "everyone can join" terms.
+    let status = 'Pending';
+    let waitlistPosition = null;
     if (backend && backend.configured()) {
         try {
-            await backend.insertOwned('applications', {
-                opportunity_id: String(opportunityId),
-                availability,
-                skills,
-                motivation,
-                status: 'Pending'
+            const row = await backend.applyToOpportunity(opportunityId, {
+                availability, skills, motivation
             });
-        } catch (_e) {
-            showSuccessModal('Could not apply', 'Something went wrong submitting your application. Please try again.');
+            if (row) {
+                status = row.status || 'Pending';
+                waitlistPosition = row.waitlist_position || null;
+            }
+        } catch (err) {
+            const detail = (backend.describeBackendError && backend.describeBackendError(err))
+                || 'Something went wrong submitting your application. Please try again.';
+            closeModal('apply-modal');
+            showSuccessModal('Could not apply', detail);
             return;
         }
     }
@@ -8308,16 +8359,16 @@ async function handleApplicationSubmit(event) {
         availability,
         skills,
         motivation,
-        status: 'Pending',
+        status,
         appliedAt: new Date().toISOString()
     });
     saveApplications(applications);
 
     closeModal('apply-modal');
-    showSuccessModal(
-        'Application Submitted!',
-        'Your application has been submitted successfully. You can track its status in your personal area.'
-    );
+    const outcome = helpers
+        ? helpers.applicationOutcomeMessage(status, waitlistPosition, gloweText)
+        : { title: 'Application sent', body: 'You can track the status in your personal area.' };
+    showSuccessModal(outcome.title, outcome.body);
 }
 
 // Initialize my applications page
@@ -9720,6 +9771,22 @@ const GLOWE_TRANSLATIONS = {
         "Registration": "הרשמה",
         "Organizer approves each registration": "המארגן מאשר כל הרשמה",
         "Open — instant confirmation": "פתוח — אישור מיידי",
+        "Places:": "מקומות:",
+        "Instant registration": "הרשמה מיידית",
+        "Instant registration — no approval needed": "הרשמה מיידית — ללא צורך באישור",
+        "The organizer approves each applicant": "המארגן מאשר כל מועמד",
+        "You are in": "אתם בפנים",
+        "Your place is confirmed. The organizer has your details and will be in touch.": "המקום שלכם מאושר. הפרטים שלכם אצל המארגן והוא ייצור קשר.",
+        "You are on the waitlist": "אתם ברשימת ההמתנה",
+        "All places are taken right now. We will let you know if one opens up.": "כל המקומות תפוסים כרגע. נעדכן אם יתפנה מקום.",
+        "Your place in line:": "המקום שלכם בתור:",
+        "Application sent": "הבקשה נשלחה",
+        "The organizer reviews each applicant personally. You can track the status in your personal area.": "המארגן בוחן כל מועמד באופן אישי. אפשר לעקוב אחרי הסטטוס באזור האישי.",
+        "Give a place": "שריון מקום",
+        "Added to the waitlist": "נוסף לרשימת ההמתנה",
+        "All places are taken, so this applicant is next in line.": "כל המקומות תפוסים, כך שהמועמד הזה הבא בתור.",
+        "Could not apply": "לא ניתן להגיש בקשה",
+        "Could not publish": "הפרסום לא הצליח",
         "Publish Event": "פרסום אירוע",
         "Event published": "האירוע פורסם",
         "Your event is now live on the Volunteer Network.": "האירוע שלכם עלה לרשת ההתנדבות.",
@@ -11444,6 +11511,22 @@ const GLOWE_TRANSLATIONS = {
         "Registration": "Регистрация",
         "Organizer approves each registration": "Организатор одобряет каждую регистрацию",
         "Open — instant confirmation": "Открытая — мгновенное подтверждение",
+        "Places:": "Мест:",
+        "Instant registration": "Мгновенная регистрация",
+        "Instant registration — no approval needed": "Мгновенная регистрация — подтверждение не требуется",
+        "The organizer approves each applicant": "Организатор подтверждает каждого кандидата",
+        "You are in": "Вы участвуете",
+        "Your place is confirmed. The organizer has your details and will be in touch.": "Ваше место подтверждено. У организатора есть ваши данные, он свяжется с вами.",
+        "You are on the waitlist": "Вы в списке ожидания",
+        "All places are taken right now. We will let you know if one opens up.": "Сейчас все места заняты. Мы сообщим, если место освободится.",
+        "Your place in line:": "Ваше место в очереди:",
+        "Application sent": "Заявка отправлена",
+        "The organizer reviews each applicant personally. You can track the status in your personal area.": "Организатор рассматривает каждого кандидата лично. Статус можно отслеживать в личном разделе.",
+        "Give a place": "Дать место",
+        "Added to the waitlist": "Добавлено в список ожидания",
+        "All places are taken, so this applicant is next in line.": "Все места заняты, поэтому этот кандидат следующий в очереди.",
+        "Could not apply": "Не удалось отправить заявку",
+        "Could not publish": "Не удалось опубликовать",
         "Publish Event": "Опубликовать мероприятие",
         "Event published": "Мероприятие опубликовано",
         "Your event is now live on the Volunteer Network.": "Ваше мероприятие опубликовано в Сети волонтёров.",
@@ -12921,6 +13004,22 @@ const GLOWE_TRANSLATIONS = {
         "Registration": "التسجيل",
         "Organizer approves each registration": "يوافق المنظّم على كل تسجيل",
         "Open — instant confirmation": "مفتوح — تأكيد فوري",
+        "Places:": "المقاعد:",
+        "Instant registration": "تسجيل فوري",
+        "Instant registration — no approval needed": "تسجيل فوري — بدون حاجة إلى موافقة",
+        "The organizer approves each applicant": "المنظّم يوافق على كل متقدّم",
+        "You are in": "تم قبولك",
+        "Your place is confirmed. The organizer has your details and will be in touch.": "مقعدك مؤكّد. لدى المنظّم بياناتك وسيتواصل معك.",
+        "You are on the waitlist": "أنت على قائمة الانتظار",
+        "All places are taken right now. We will let you know if one opens up.": "جميع المقاعد محجوزة حاليًا. سنبلغك إذا توفّر مقعد.",
+        "Your place in line:": "مكانك في القائمة:",
+        "Application sent": "تم إرسال الطلب",
+        "The organizer reviews each applicant personally. You can track the status in your personal area.": "يراجع المنظّم كل متقدّم شخصيًا. يمكنك متابعة الحالة في منطقتك الشخصية.",
+        "Give a place": "منح مقعد",
+        "Added to the waitlist": "أُضيف إلى قائمة الانتظار",
+        "All places are taken, so this applicant is next in line.": "جميع المقاعد محجوزة، لذا هذا المتقدّم هو التالي في القائمة.",
+        "Could not apply": "لم يتم إرسال الطلب",
+        "Could not publish": "لم يتم النشر",
         "Publish Event": "نشر الفعالية",
         "Event published": "تم نشر الفعالية",
         "Your event is now live on the Volunteer Network.": "فعاليتك متاحة الآن في شبكة المتطوعين.",
@@ -14398,6 +14497,22 @@ const GLOWE_TRANSLATIONS = {
         "Registration": "ምዝገባ",
         "Organizer approves each registration": "አዘጋጁ እያንዳንዱን ምዝገባ ያጸድቃል",
         "Open — instant confirmation": "ክፍት — ፈጣን ማረጋገጫ",
+        "Places:": "ቦታዎች፦",
+        "Instant registration": "ፈጣን ምዝገባ",
+        "Instant registration — no approval needed": "ፈጣን ምዝገባ — ማጽደቅ አያስፈልግም",
+        "The organizer approves each applicant": "አዘጋጁ እያንዳንዱን አመልካች ያጸድቃል",
+        "You are in": "ተቀብለዋል",
+        "Your place is confirmed. The organizer has your details and will be in touch.": "ቦታዎ ተረጋግጧል። አዘጋጁ መረጃዎን አለው እና ያገኝዎታል።",
+        "You are on the waitlist": "በመጠባበቂያ ዝርዝር ላይ ነዎት",
+        "All places are taken right now. We will let you know if one opens up.": "በአሁኑ ጊዜ ሁሉም ቦታዎች ተይዘዋል። ቦታ ሲከፈት እናሳውቅዎታለን።",
+        "Your place in line:": "በተራው ውስጥ ያለዎት ቦታ፦",
+        "Application sent": "ማመልከቻው ተልኳል",
+        "The organizer reviews each applicant personally. You can track the status in your personal area.": "አዘጋጁ እያንዳንዱን አመልካች በግል ይመረምራል። ሁኔታውን በግል ቦታዎ መከታተል ይችላሉ።",
+        "Give a place": "ቦታ ስጥ",
+        "Added to the waitlist": "በመጠባበቂያ ዝርዝር ውስጥ ተጨምሯል",
+        "All places are taken, so this applicant is next in line.": "ሁሉም ቦታዎች ተይዘዋል፤ ስለዚህ ይህ አመልካች ቀጣዩ ነው።",
+        "Could not apply": "ማመልከት አልተቻለም",
+        "Could not publish": "ማተም አልተቻለም",
         "Publish Event": "ዝግጅቱን አሳትም",
         "Event published": "ዝግጅቱ ታትሟል",
         "Your event is now live on the Volunteer Network.": "ዝግጅትዎ አሁን በበጎ ፈቃደኞች መረብ ላይ ንቁ ነው።",

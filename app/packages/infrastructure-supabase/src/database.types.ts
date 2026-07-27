@@ -4536,6 +4536,40 @@ export type Database = {
         Args: { p_id: string; p_report_id?: string; p_type: string }
         Returns: undefined
       }
+      glowe_apply_to_opportunity: {
+        Args: {
+          p_availability?: string
+          p_comment?: string
+          p_email?: string
+          p_motivation?: string
+          p_opportunity_id: string
+          p_phone?: string
+          p_skills?: string
+        }
+        Returns: {
+          availability: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          motivation: string | null
+          opportunity_id: string
+          rejection_note: string | null
+          skills: string | null
+          status: string
+          submitted_comment: string | null
+          submitted_email: string | null
+          submitted_phone: string | null
+          user_id: string
+          waitlist_position: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "glowe_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       glowe_assert_can_create: {
         Args: { p_kind: string; p_user_id: string }
         Returns: undefined
@@ -4628,6 +4662,7 @@ export type Database = {
           skills: string
           status: string
           user_id: string
+          waitlist_position: number
         }[]
       }
       glowe_list_event_registrations: {
@@ -4708,6 +4743,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      glowe_next_waitlist_position: {
+        Args: { p_capacity: number; p_opportunity_id: string }
+        Returns: number
       }
       glowe_register_for_event: {
         Args: {

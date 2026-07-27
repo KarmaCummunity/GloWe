@@ -81,6 +81,8 @@
                                 <span class="opportunity-detail"><strong>Location:</strong> <span id="opp-location"></span></span>
                                 <span class="opportunity-detail"><strong>Duration:</strong> <span id="opp-duration"></span></span>
                                 <span class="opportunity-detail"><strong>Commitment:</strong> <span id="opp-commitment"></span></span>
+                                <!-- FR-GLOWE-012 AC5 — how registration works here (instant vs. approved one by one, places available) -->
+                                <span class="opportunity-detail" id="opp-registration-terms" hidden></span>
                             </div>
                             <button id="apply-btn" class="btn btn-primary btn-large btn-block">Apply Now</button>
                         </div>
@@ -209,6 +211,9 @@
     <script src="../js/glowe-events.js"></script>
     <script src="../js/glowe-opportunities.js"></script>
     <script src="../js/glowe-wishes.js"></script>
+    <!-- Owner inboxes (applicants / offers) map their RPC rows through
+         GloweOrganizations; without it the page renders an empty inbox. -->
+    <script src="../js/glowe-organizations.js"></script>
     <script src="../js/glowe-moderation.js"></script>
     <script src="../js/glowe-create.js"></script>
     <script src="../js/glowe-messages.js"></script>

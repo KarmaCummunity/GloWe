@@ -722,6 +722,15 @@
             'Approval is decided by a GloWe reviewer.'],
         [/registration must start as Pending/i,
             'Registrations cannot approve themselves.'],
+        // Registration outcomes (migration 0237).
+        [/already have an active registration/i,
+            'You have already signed up for this one.'],
+        [/cannot register for your own listing/i,
+            'This is your own listing — you can manage applicants from the page instead.'],
+        [/not open for registration|already ended/i,
+            'This listing is no longer open for registration.'],
+        [/sign in/i,
+            'Please sign in to continue.'],
         [/server-managed fields/i,
             'Some of those fields are managed by GloWe and cannot be set here.'],
         [/permission denied/i,
@@ -802,9 +811,34 @@
         return null;
     }
 
-    // Register the current user for an event via the SECURITY DEFINER RPC
-    // (migration 0212). The server routes open→Accepted / gated→Pending and
-    // validates event state; the resolved value is the new glowe_applications row.
+    // FR-GLOWE-012 AC5 — the single apply/RSVP entry point (migration 0237).
+    // Serves plain volunteering opportunities and events alike; pass whichever
+    // field set the form collected. The RETURNED status is authoritative: an
+    // 'open' listing confirms instantly, a full one waitlists, a 'gated' one
+    // stays Pending. Never assume 'Pending' the way the old direct insert did.
+    async function applyToOpportunity(opportunityId, {
+        email = '', phone = '', comment = '',
+        availability = '', skills = '', motivation = ''
+    } = {}) {
+        const supabaseClient = await getClient();
+        if (!supabaseClient) return null;
+        const { data, error } = await supabaseClient.rpc('glowe_apply_to_opportunity', {
+            p_opportunity_id: String(opportunityId),
+            p_email: email ? String(email) : null,
+            p_phone: phone ? String(phone) : null,
+            p_comment: comment ? String(comment) : null,
+            p_availability: availability ? String(availability) : null,
+            p_skills: skills ? String(skills) : null,
+            p_motivation: motivation ? String(motivation) : null
+        });
+        if (error) throw toFriendlyError(error, 'apply to ' + opportunityId);
+        return data;
+    }
+
+    // Event RSVP. Goes through the event-only SQL wrapper rather than straight
+    // to glowe_apply_to_opportunity, because that wrapper adds the one check the
+    // unified RPC cannot make: that the target really is an event and not a
+    // plain volunteering opportunity. Same return shape, same outcome rules.
     async function registerForEvent(opportunityId, { email = '', phone = '', comment = '' } = {}) {
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
@@ -814,7 +848,7 @@
             p_phone: phone ? String(phone) : null,
             p_comment: comment ? String(comment) : null
         });
-        if (error) throw error;
+        if (error) throw toFriendlyError(error, 'register for event ' + opportunityId);
         return data;
     }
 
@@ -867,7 +901,9 @@
 
     // FR-GLOWE-012 AC2 — opportunity owner accepts/declines an application
     // (migration 0221). Owner-scoped SECURITY DEFINER RPC; decision must be
-    // 'Accepted' or 'Declined'. Returns the updated glowe_applications row.
+    // 'Accepted' or 'Declined'. Returns the updated glowe_applications row — and
+    // since migration 0237 an accept can come back 'Waitlisted' when the
+    // opportunity is at capacity, so callers must read the returned status.
     async function updateApplicationStatus(applicationId, decision) {
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
@@ -875,7 +911,7 @@
             p_application_id: String(applicationId),
             p_decision: String(decision)
         });
-        if (error) throw error;
+        if (error) throw toFriendlyError(error, 'decide application ' + applicationId);
         return data;
     }
 
@@ -1456,6 +1492,7 @@
         removeOwned,
         updateOwned,
         describeBackendError,
+        applyToOpportunity,
         registerForEvent,
         cancelRegistration,
         listMyRegistrations,
