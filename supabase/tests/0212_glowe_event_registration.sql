@@ -49,6 +49,11 @@ end $$;
 do $$
 begin
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000212a1', 'glowe_org12');
+  -- Since migration 0236 only an APPROVED organization may publish an event,
+  -- so the author needs a matching glowe_profiles row (it was implicit before).
+  insert into public.glowe_profiles (id, display_name, account_type, approval_status, onboarding_complete)
+  values ('00000000-0000-0000-0000-0000000212a1', 'Org Twelve', 'organization', 'approved', true);
+
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000212b1', 'glowe_reg12');
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000212b2', 'glowe_reg12b');
 end $$;

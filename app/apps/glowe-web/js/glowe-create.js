@@ -10,43 +10,67 @@
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     root.GloweCreate = api;
 })(typeof self !== 'undefined' ? self : this, function () {
+    // ── Capability matrix ───────────────────────────────────────────────────
+    // Browser mirror of public.glowe_can_create() (migration 0236). The database
+    // is the enforcement point; this copy exists so the create menu renders
+    // without a round trip. Both are pinned to the same table by
+    // supabase/tests/0236_glowe_publish_guards.sql and
+    // js/__tests__/glowe-create.test.js — if you change one, change all three.
+    //
+    // `kind` is the server-side content kind, not the UI id:
+    //   'community' | 'wish' | 'outreach' | 'offer' → glowe_posts.post_type
+    //   'opportunity' | 'event'                     → glowe_opportunities
+    function canCreate(accountType, approvalStatus, kind) {
+        // FR-GLOWE-003: an organization is view-only until a reviewer approves it.
+        if (accountType === 'organization' && approvalStatus !== 'approved') return false;
+        // Calls FOR volunteers are hosted by an organization; an event is an
+        // opportunity carrying a date (D-66).
+        if (kind === 'opportunity' || kind === 'event') return accountType === 'organization';
+        // A volunteer offer is an individual offering their own time. Accounts
+        // that skipped onboarding have no account type and count as individuals.
+        if (kind === 'offer') return (accountType || 'individual') !== 'organization';
+        // Needs, community posts and outreach are open to both account types.
+        return true;
+    }
+
     // AC7 — modular type registry: adding a create type is one entry here.
     // `surface` names the Phase-B feature that persists the item; the DOM layer
-    // dispatches on `id`.
+    // dispatches on `id`; `kind` ties the entry to the server-side matrix above
+    // so eligibility is derived, never restated.
     const GLOWE_CREATE_TYPES = [
         {
             id: 'post',
+            kind: 'community',
             label: 'Post',
             description: 'Share an update, a story, or knowledge with the community.',
-            accountTypes: ['organization', 'individual'],
             surface: 'community'
         },
         {
             id: 'event',
+            kind: 'event',
             label: 'Event',
             description: 'Publish a volunteering event with a date and registration.',
-            accountTypes: ['organization'],
             surface: 'opportunities'
         },
         {
             id: 'opportunity',
+            kind: 'opportunity',
             label: 'Volunteer Opportunity',
             description: 'Recruit volunteers for an ongoing role or project.',
-            accountTypes: ['organization'],
             surface: 'opportunities'
         },
         {
             id: 'need',
+            kind: 'wish',
             label: 'Need',
             description: 'Ask the community for help, resources, or partners.',
-            accountTypes: ['organization', 'individual'],
             surface: 'wishes'
         },
         {
             id: 'offer',
+            kind: 'offer',
             label: 'Volunteer Offer',
             description: 'Offer your time and skills so organizations can find you.',
-            accountTypes: ['individual'],
             surface: 'wishes'
         }
     ];
@@ -60,13 +84,14 @@
         if (!loggedIn) return { state: 'anon', types: [] };
         const p = profile || {};
         const accountType = p.accountType === 'organization' ? 'organization' : 'individual';
-        if (accountType === 'organization' && p.approvalStatus !== 'approved') {
+        const approvalStatus = p.approvalStatus;
+        if (accountType === 'organization' && approvalStatus !== 'approved') {
             return { state: 'unverified', types: [] };
         }
         return {
             state: 'ok',
             types: GLOWE_CREATE_TYPES.filter(function (t) {
-                return t.accountTypes.indexOf(accountType) !== -1;
+                return canCreate(accountType, approvalStatus, t.kind);
             })
         };
     }
@@ -185,6 +210,7 @@
 
     return {
         GLOWE_CREATE_TYPES: GLOWE_CREATE_TYPES,
+        canCreate: canCreate,
         createMenuState: createMenuState,
         findCreateType: findCreateType,
         validateEventDraft: validateEventDraft,

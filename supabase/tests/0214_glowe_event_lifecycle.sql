@@ -46,6 +46,11 @@ begin perform set_config('request.jwt.claims', jsonb_build_object('sub', p_id::t
 do $$
 begin
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000214a1', 'glowe_org14');
+  -- Since migration 0236 only an APPROVED organization may publish an event,
+  -- so the author needs a matching glowe_profiles row (it was implicit before).
+  insert into public.glowe_profiles (id, display_name, account_type, approval_status, onboarding_complete)
+  values ('00000000-0000-0000-0000-0000000214a1', 'Org Fourteen', 'organization', 'approved', true);
+
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000214b1', 'glowe_reg14a');
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000214b2', 'glowe_reg14b');
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000000214b3', 'glowe_reg14c');

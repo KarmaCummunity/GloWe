@@ -111,14 +111,38 @@
         };
     }
 
-    function fromProfileRow(row) {
+    // Migration 0236 revoked client SELECT on the PII columns of glowe_profiles
+    // (email, raw_profile, org contact details, registration number, reviewer
+    // notes). `select('*')` therefore fails for client roles — every read must
+    // name its columns, and this is the one list that does it. Keep it in sync
+    // with the `grant select (...)` block in 0236 and the glowe_public_profiles
+    // view; supabase/tests/0236_glowe_publish_guards.sql pins both ends.
+    const PROFILE_PUBLIC_COLUMNS = [
+        'id', 'display_name', 'display_name_en', 'avatar_url',
+        'account_type', 'approval_status', 'onboarding_complete',
+        'profile_type', 'profile_status', 'public_link', 'country',
+        'focus', 'about', 'needs', 'location', 'languages', 'availability', 'skills',
+        'org_name', 'org_name_en', 'org_website', 'org_country', 'org_field',
+        'org_description', 'org_size', 'created_at', 'updated_at'
+    ].join(', ');
+
+    // Other people's profiles come from the projection view, never the base
+    // table: the view carries the same row policy but cannot accidentally grow
+    // a private column later.
+    const PROFILES_PUBLIC_VIEW = 'glowe_public_profiles';
+
+    // `privateRow` is the owner-only slice from glowe_get_self_private_fields().
+    // It is absent for every profile except your own, so orgContactEmail and
+    // friends are empty strings on public profiles — by design (0236).
+    function fromProfileRow(row, privateRow = null) {
         if (!row) return null;
+        const priv = privateRow || {};
         return {
-            ...(row.raw_profile || {}),
+            ...(priv.raw_profile || {}),
             id: row.id,
             name: row.display_name,
             nameEn: row.display_name_en || '',
-            email: row.email,
+            email: priv.email || '',
             type: row.profile_type,
             focus: row.focus,
             about: row.about,
@@ -137,17 +161,26 @@
             orgName: row.org_name || '',
             orgNameEn: row.org_name_en || '',
             orgWebsite: row.org_website || '',
-            orgRegistrationNumber: row.org_registration_number || '',
             orgCountry: row.org_country || '',
             orgField: row.org_field || '',
             orgDescription: row.org_description || '',
-            orgContactName: row.org_contact_name || '',
-            orgContactEmail: row.org_contact_email || '',
-            orgContactPhone: row.org_contact_phone || '',
             orgSize: row.org_size || '',
-            orgSubmittedAt: row.org_submitted_at || null,
-            orgReviewNote: row.org_review_note || ''
+            // Owner-only fields (migration 0236). Empty on other people's profiles.
+            orgRegistrationNumber: priv.org_registration_number || '',
+            orgContactName: priv.org_contact_name || '',
+            orgContactEmail: priv.org_contact_email || '',
+            orgContactPhone: priv.org_contact_phone || '',
+            orgSubmittedAt: priv.org_submitted_at || null,
+            orgReviewedAt: priv.org_reviewed_at || null,
+            orgReviewNote: priv.org_review_note || ''
         };
+    }
+
+    // Admin RPCs (glowe_list_pending_orgs) are SECURITY DEFINER and return the
+    // full row including the private columns, so reviewers keep reading them
+    // straight off the row rather than through the owner-only RPC.
+    function fromReviewerProfileRow(row) {
+        return fromProfileRow(row, row);
     }
 
     function toProjectRow(payload = {}) {
@@ -384,17 +417,28 @@
         return true;
     }
 
+    // Own profile. Two round trips in parallel: the public columns off the base
+    // table (the row policy always lets you see yourself) plus the owner-only
+    // PII slice, which is the only way to read email / org contact details /
+    // org_review_note since migration 0236.
     async function fetchProfile() {
         const supabaseClient = await getClient();
         const user = await currentUser();
         if (!supabaseClient || !user) return null;
-        const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle();
-        if (error) throw error;
-        return fromProfileRow(data);
+        const [rowRes, privRes] = await Promise.all([
+            supabaseClient
+                .from(tbl('profiles'))
+                .select(PROFILE_PUBLIC_COLUMNS)
+                .eq('id', user.id)
+                .maybeSingle(),
+            supabaseClient.rpc('glowe_get_self_private_fields')
+        ]);
+        if (rowRes.error) throw rowRes.error;
+        if (privRes.error) {
+            // Non-fatal: the public half of the profile is still usable.
+            console.warn('glowe_get_self_private_fields failed:', privRes.error.message);
+        }
+        return fromProfileRow(rowRes.data, privRes.data || null);
     }
 
     async function upsertProfile(profile, explicitUser = null) {
@@ -426,13 +470,16 @@
             );
         }
         const payload = profilePayload(merged, user);
+        // Writing the PII columns is still allowed for their owner; only SELECT
+        // was revoked (0236), so the returning clause must name public columns.
+        // The private half is echoed back from the payload we just sent.
         const { data, error } = await supabaseClient
             .from(tbl('profiles'))
             .upsert(payload)
-            .select()
+            .select(PROFILE_PUBLIC_COLUMNS)
             .single();
         if (error) throw error;
-        return fromProfileRow(data);
+        return fromProfileRow(data, { email: payload.email, raw_profile: payload.raw_profile });
     }
 
     // FR-GLOWE-023 — register the member from the Google identity on first sign-in
@@ -459,10 +506,10 @@
         const { data, error } = await supabaseClient
             .from(tbl('profiles'))
             .upsert(payload)
-            .select()
+            .select(PROFILE_PUBLIC_COLUMNS)
             .maybeSingle();
         if (error) { console.warn('ensureProfileFromGoogle failed (non-fatal):', error.message); return null; }
-        return fromProfileRow(data);
+        return fromProfileRow(data, { email: payload.email });
     }
 
     // FR-GLOWE-011 AC3 — upload a profile image to the `glowe-avatars` Storage
@@ -543,10 +590,19 @@
         const { data, error } = await supabaseClient
             .from(tbl('profiles'))
             .upsert(payload)
-            .select()
+            .select(PROFILE_PUBLIC_COLUMNS)
             .single();
         if (error) throw error;
-        return fromProfileRow(data);
+        // Echo the private half back from the payload rather than re-reading it
+        // through glowe_get_self_private_fields() — we just wrote these values.
+        return fromProfileRow(data, {
+            email: payload.email,
+            org_registration_number: payload.org_registration_number,
+            org_contact_name: payload.org_contact_name,
+            org_contact_email: payload.org_contact_email,
+            org_contact_phone: payload.org_contact_phone,
+            org_submitted_at: payload.org_submitted_at
+        });
     }
 
     // Org review queue (FR-GLOWE-003). Both RPCs are reviewer-gated server-side
@@ -558,7 +614,7 @@
         if (!supabaseClient) return null;
         const { data, error } = await supabaseClient.rpc('glowe_list_pending_orgs');
         if (error) throw error;
-        return (data || []).map(fromProfileRow);
+        return (data || []).map(fromReviewerProfileRow);
     }
 
     async function setOrgApproval(profileId, decision, note = '') {
@@ -570,7 +626,7 @@
             p_note: note ? String(note) : null
         });
         if (error) throw error;
-        return fromProfileRow(data);
+        return fromReviewerProfileRow(data);
     }
 
     // Fetch all public records from a table (no user filter). RLS on the table
@@ -604,13 +660,13 @@
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
         const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .select('*')
+            .from(PROFILES_PUBLIC_VIEW)
+            .select(PROFILE_PUBLIC_COLUMNS)
             .eq('account_type', 'organization')
             .eq('approval_status', 'approved')
             .order('created_at', { ascending: false });
         if (error) throw error;
-        return (data || []).map(fromProfileRow);
+        return (data || []).map((row) => fromProfileRow(row));
     }
 
     // Fetch individual profiles (volunteers / members).
@@ -618,12 +674,12 @@
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
         const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .select('*')
+            .from(PROFILES_PUBLIC_VIEW)
+            .select(PROFILE_PUBLIC_COLUMNS)
             .eq('account_type', 'individual')
             .order('created_at', { ascending: false });
         if (error) throw error;
-        return (data || []).map(fromProfileRow);
+        return (data || []).map((row) => fromProfileRow(row));
     }
 
     async function listOwned(table) {
@@ -639,6 +695,41 @@
         return data;
     }
 
+    // The server-side guards (migrations 0205, 0211, 0236) raise Postgres errors
+    // whose text is precise but not presentable. Translate the ones an ordinary
+    // user can actually trigger; anything unrecognised keeps its original
+    // message so real bugs stay debuggable instead of being masked.
+    const BACKEND_ERROR_COPY = [
+        [/glowe_publish_forbidden/i,
+            'Your account cannot publish this yet. Organizations need to be approved first, and volunteering opportunities and events are organization-only.'],
+        [/rate_limit_exceeded/i,
+            'That is a lot of activity in a short time. Please wait a few minutes and try again.'],
+        [/approval_status is admin-managed/i,
+            'Approval is decided by a GloWe reviewer.'],
+        [/registration must start as Pending/i,
+            'Registrations cannot approve themselves.'],
+        [/server-managed fields/i,
+            'Some of those fields are managed by GloWe and cannot be set here.'],
+        [/permission denied/i,
+            'You do not have access to that information.']
+    ];
+
+    function describeBackendError(error) {
+        const raw = String((error && (error.message || error.hint)) || '');
+        const match = BACKEND_ERROR_COPY.find(([pattern]) => pattern.test(raw));
+        return match ? match[1] : (raw || 'Something went wrong. Please try again.');
+    }
+
+    // Keeps the original error as `cause` and logs it, so the console still has
+    // the exact Postgres message while the UI shows the friendly one.
+    function toFriendlyError(error, context) {
+        console.warn('[glowe:backend] ' + (context || 'request') + ' rejected:', error);
+        const friendly = new Error(describeBackendError(error));
+        friendly.code = error && error.code;
+        friendly.cause = error;
+        return friendly;
+    }
+
     async function insertOwned(table, payload) {
         const supabaseClient = await getClient();
         const user = await currentUser();
@@ -649,7 +740,7 @@
             .insert({ ...row, user_id: user.id })
             .select()
             .single();
-        if (error) throw error;
+        if (error) throw toFriendlyError(error, 'insert ' + table);
         return data;
     }
 
@@ -1068,7 +1159,7 @@
         const ctx = await kcContext();
         if (!ctx || !userIds.length) return {};
         const result = await ctx.supabaseClient
-            .from(tbl('profiles'))
+            .from(PROFILES_PUBLIC_VIEW)
             .select('id, display_name, display_name_en, avatar_url, account_type, org_name, org_name_en')
             .in('id', userIds);
         const out = {};
@@ -1268,21 +1359,28 @@
     async function fetchAdminCounts() {
         const supabaseClient = await getClient();
         if (!supabaseClient) return { members: 0, orgs: 0 };
+        // Counts only — select a single granted column so the query does not
+        // touch the PII columns revoked in migration 0236.
         const [membersRes, orgsRes] = await Promise.all([
-            supabaseClient.from(tbl('profiles')).select('*', { count: 'exact', head: true })
+            supabaseClient.from(tbl('profiles')).select('id', { count: 'exact', head: true })
                 .eq('account_type', 'individual'),
-            supabaseClient.from(tbl('profiles')).select('*', { count: 'exact', head: true })
+            supabaseClient.from(tbl('profiles')).select('id', { count: 'exact', head: true })
                 .eq('account_type', 'organization')
         ]);
         return { members: membersRes.count || 0, orgs: orgsRes.count || 0 };
     }
 
+    // Someone else's profile page. Reads the public projection, which hides
+    // unapproved organizations entirely. Viewing your own id is routed to
+    // fetchProfile() so a pending org can still open its own profile.
     async function fetchProfileById(id) {
         const supabaseClient = await getClient();
         if (!supabaseClient || !id) return null;
+        const user = await currentUser();
+        if (user && user.id === id) return fetchProfile();
         const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .select('*')
+            .from(PROFILES_PUBLIC_VIEW)
+            .select(PROFILE_PUBLIC_COLUMNS)
             .eq('id', id)
             .maybeSingle();
         if (error) throw error;
@@ -1343,6 +1441,7 @@
         insertOwned,
         removeOwned,
         updateOwned,
+        describeBackendError,
         registerForEvent,
         cancelRegistration,
         listMyRegistrations,
