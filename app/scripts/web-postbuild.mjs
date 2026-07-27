@@ -12,6 +12,9 @@
 //   fail-safe-closed, same convention as `isDevEnvironment()` in
 //   `apps/mobile/src/config/environment.ts`) the KC root serves the real KC web
 //   app; GLOWE remains available at /glowe for anyone who navigates there.
+// - D-188 (2026-07-27): after copy, minify + content-hash GloWe JS/CSS (esbuild)
+//   and write site-root Cloudflare `_headers` for long-cache hashed assets /
+//   no-cache HTML. Source tree under apps/glowe-web stays unhashed for local serve.
 // See: https://developers.cloudflare.com/pages/configuration/redirects/
 //
 // TO GATE KC BEHIND /glowe AGAIN ON PROD: set EXPO_PUBLIC_ENVIRONMENT=development
@@ -20,11 +23,13 @@
 import { writeFileSync, readFileSync, existsSync, cpSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { minifyAndHashGloweAssets, GLOWE_CF_HEADERS } from './glowe-minify-hash.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(here, '..');
 const distDir = resolve(appRoot, 'apps', 'mobile', 'dist');
 const redirectsPath = resolve(distDir, '_redirects');
+const headersPath = resolve(distDir, '_headers');
 
 // Same semantics as `isDevEnvironment()`: only the literal 'development' value
 // opts in; anything else (unset, 'production', a typo) fails safe to "serve KC".
@@ -38,14 +43,23 @@ if (!existsSync(distDir)) {
 // Mount the GloWe static site at /glowe (skip dev-only tooling files).
 const gloweSrc = resolve(here, '..', 'apps', 'glowe-web');
 const gloweDest = resolve(distDir, 'glowe');
-const skip = new Set(['node_modules', 'package.json', 'README.md']);
+const skip = new Set(['node_modules', 'package.json', 'README.md', '__tests__']);
 if (existsSync(gloweSrc)) {
   cpSync(gloweSrc, gloweDest, {
     recursive: true,
-    filter: (src) => !skip.has(src.split('/').pop()),
+    filter: (src) => {
+      const base = src.split('/').pop();
+      if (skip.has(base)) return false;
+      // Nested vitest trees under js/__tests__
+      if (src.includes(`${gloweSrc}/js/__tests__`) || src.endsWith('/js/__tests__')) {
+        return false;
+      }
+      return true;
+    },
   });
   console.log(`[web-postbuild] copied GloWe → ${gloweDest}`);
   stampGloweAppVersion(gloweDest);
+  await minifyAndHashGloweAssets(gloweDest, { gloweSrc });
 } else {
   console.warn(`[web-postbuild] GloWe source not found at ${gloweSrc} — skipping /glowe mount`);
 }
@@ -73,6 +87,10 @@ function stampGloweAppVersion(gloweDestDir) {
   );
   console.log(`[web-postbuild] stamped GloWe version ${version} → ${out}`);
 }
+
+// Cloudflare Pages reads `_headers` only at the publish root (not dist/glowe/).
+writeFileSync(headersPath, GLOWE_CF_HEADERS, 'utf8');
+console.log(`[web-postbuild] wrote ${headersPath}`);
 
 // _redirects strategy:
 // Cloudflare Pages applies ALL _redirects rules before serving static files

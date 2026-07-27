@@ -1424,17 +1424,27 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
-## D-186 — GloWe has one registration path for opportunities and events (2026-07-27)
+## D-187 — GloWe transactional email via outbox + Resend (2026-07-27)
 
-**Decision.** Volunteering opportunities and events share a single apply/RSVP entry point, `public.glowe_apply_to_opportunity()` (migration `0237`), which reads `registration_mode` and `capacity` off the listing and returns the resolved status: `open` → `Accepted`, `open` at capacity → `Waitlisted` with a position, `gated` → `Pending`. Seat allocation lives in one place, `public.glowe_next_waitlist_position()`, shared by the apply RPC and both decision RPCs. `glowe_register_for_event()` survives as a thin event-only wrapper (it still asserts the target is an event) so existing callers and the 0212–0214 regression tests are untouched. The browser never assumes an outcome: it renders whatever status the server returns.
+**Decision.** GloWe launch notifications (org approved/rejected; application accepted/declined) are enqueued in Postgres (`glowe_email_outbox`, migration `0239`) inside the same transaction as the decision RPC, then dispatched asynchronously by pg_net to a new Edge Function `glowe-notify`, which sends via Resend. Waitlisted and pending states never enqueue email.
 
-**Rationale.** The two halves of FR-GLOWE-012 had drifted. Events went through an RPC that honoured `registration_mode`; plain opportunities were a direct `INSERT` from `app.js` with a hardcoded `'Pending'`, so an organization literally could not offer an opportunity on "everyone can join" terms even though the column existed. Capacity was worse: only checked when an organizer accepted an event registration by hand, so open-mode events could be filled past their stated capacity and plain opportunities could always be overfilled. The PM requirement — the post owner chooses between approving one by one and letting everyone in — was only half implemented.
+**Rationale.** Users had no off-platform signal when an admin decided their org application or when an opportunity owner accepted/declined them. In-app status chips exist but are easy to miss before launch. The `notifications_outbox` + `dispatch-notification` pattern is already proven in KC; GloWe gets a parallel, email-specific outbox so Resend templates and retry logic stay isolated from push notifications.
 
-**Consequence (deliberate).** Accepting an applicant into a full listing now returns `Waitlisted` instead of overfilling, for both decision RPCs; the owner is told. An applicant already holding a waitlist place keeps that place when such an accept fails, rather than being sent to the back of the queue. `glowe_list_applications_for_opportunity()` gained a `waitlist_position` column (a `DROP`/`CREATE`, since a `RETURNS TABLE` change is not replaceable in place) and orders the waitlist group by it.
+**Consequence.** Requires `RESEND_API_KEY`, `GLOWE_FROM_EMAIL`, and `GLOWE_SITE_URL` secrets on the Supabase project. Without Resend configured, decisions still commit; rows remain pending with `last_error`. Org/applicant email resolution is best-effort (`org_contact_email` / `submitted_email` / profile / auth.users); blank addresses skip enqueue silently.
 
-**Alternatives rejected.** Give plain opportunities their own capacity RPC (two rules to keep in sync — the exact drift being fixed); enforce capacity only at decision time (leaves open mode overfillable); make the browser compute the outcome and write the status (the client is not a trustworthy enforcement point — see D-185).
+**Alternatives rejected.** Browser-only toasts (user may not be on-site); synchronous send inside the RPC (blocks the transaction on third-party latency); reuse `notifications_outbox` with a new push channel (wrong transport, couples unrelated coalescing rules).
 
-**Affected.** `supabase/migrations/0237_glowe_unified_registration.sql`, `supabase/tests/0237_glowe_unified_registration.sql`, `app/apps/glowe-web/js/{app.js,backend.js,glowe-opportunities.js,glowe-organizations.js}`, `pages/opportunity.html`; FR-GLOWE-012 AC5–AC8, FR-GLOWE-007-C.
+---
+
+## D-188 — GloWe deploy minify + content-hash; vendored supabase-js (2026-07-27)
+
+**Decision.** Cloudflare Pages deploys of GloWe run an esbuild minify + content-hash step inside `app/scripts/web-postbuild.mjs` (helper `glowe-minify-hash.mjs`) on the *copied* `dist/glowe/` tree only. Source files under `app/apps/glowe-web/**` keep stable unhashed paths so local `serve` on :4321 needs no build. Built HTML is rewritten to hashed `js/*` / `css/*` names; `asset-manifest.json` is emitted for ops. Site-root `_headers` (publish root) give hashed JS/CSS long immutable cache and HTML `max-age=0, must-revalidate`. `@supabase/supabase-js` UMD is vendored at `js/vendor/supabase-js-2.105.3.js` (pinned); `backend-config.js` loads that path instead of jsDelivr.
+
+**Rationale.** Fixed asset URLs + no cache headers caused stale JS after deploys; the floating jsDelivr `@2` tag sat on the auth critical path without pin or SRI.
+
+**Alternatives rejected.** Full bundler/SPA rewrite; query-string `?v=` cache bust only; keep CDN with SRI (still a third-party dependency on login).
+
+**Affected.** `app/scripts/{web-postbuild,glowe-minify-hash}.mjs`, `app/apps/glowe-web/{_headers,js/backend-config.js,js/vendor/*}`, FR-GLOWE-001 AC7; GLOWE.LAUNCH-2 Wave 2.2 / 2.5.
 
 ---
 
@@ -1451,9 +1461,23 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Rationale.** PM wants automated E2E every dev version and a clear prod vs integration split without renaming the stable `dev` branch that already acts as GloWe's production line. A dedicated `staging` branch + Cloudflare branch alias is simpler than PR-preview URLs (no per-PR secret wiring) and keeps `dev` deploys user-visible only after an explicit promotion.
 
-**Alternatives rejected.** Treat `karma-community-kc.com/glowe` as GloWe prod (currently lags `dev`); run E2E only on `dev` → `main` release PRs (too late in the cycle); Maestro for web (Playwright suite already exists).
+**Alternatives rejected.** Treat `karma-community-kc.com/glowe` as GloWe prod (currently v1.0.4 vs `dev` v1.3.7 — stale); run E2E only on `dev` → `main` release PRs (too late in the cycle); Maestro for web (Playwright suite already exists).
 
 **Affected.** `.github/workflows/{ci-e2e-glowe,deploy-web}.yml`, `tests/e2e/journeys/glowe-visual.spec.ts`, `docs/SSOT/{ENVIRONMENTS,TESTING}.md`, GitHub vars `GLOWE_STAGING_URL`.
+
+---
+
+## D-186 — GloWe has one registration path for opportunities and events (2026-07-27)
+
+**Decision.** Volunteering opportunities and events share a single apply/RSVP entry point, `public.glowe_apply_to_opportunity()` (migration `0237`), which reads `registration_mode` and `capacity` off the listing and returns the resolved status: `open` → `Accepted`, `open` at capacity → `Waitlisted` with a position, `gated` → `Pending`. Seat allocation lives in one place, `public.glowe_next_waitlist_position()`, shared by the apply RPC and both decision RPCs. `glowe_register_for_event()` survives as a thin event-only wrapper (it still asserts the target is an event) so existing callers and the 0212–0214 regression tests are untouched. The browser never assumes an outcome: it renders whatever status the server returns.
+
+**Rationale.** The two halves of FR-GLOWE-012 had drifted. Events went through an RPC that honoured `registration_mode`; plain opportunities were a direct `INSERT` from `app.js` with a hardcoded `'Pending'`, so an organization literally could not offer an opportunity on "everyone can join" terms even though the column existed. Capacity was worse: only checked when an organizer accepted an event registration by hand, so open-mode events could be filled past their stated capacity and plain opportunities could always be overfilled. The PM requirement — the post owner chooses between approving one by one and letting everyone in — was only half implemented.
+
+**Consequence (deliberate).** Accepting an applicant into a full listing now returns `Waitlisted` instead of overfilling, for both decision RPCs; the owner is told. An applicant already holding a waitlist place keeps that place when such an accept fails, rather than being sent to the back of the queue. `glowe_list_applications_for_opportunity()` gained a `waitlist_position` column (a `DROP`/`CREATE`, since a `RETURNS TABLE` change is not replaceable in place) and orders the waitlist group by it.
+
+**Alternatives rejected.** Give plain opportunities their own capacity RPC (two rules to keep in sync — the exact drift being fixed); enforce capacity only at decision time (leaves open mode overfillable); make the browser compute the outcome and write the status (the client is not a trustworthy enforcement point — see D-185).
+
+**Affected.** `supabase/migrations/0237_glowe_unified_registration.sql`, `supabase/tests/0237_glowe_unified_registration.sql`, `app/apps/glowe-web/js/{app.js,backend.js,glowe-opportunities.js,glowe-organizations.js}`, `pages/opportunity.html`; FR-GLOWE-012 AC5–AC8, FR-GLOWE-007-C.
 
 ---
 
@@ -1461,7 +1485,9 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
+| 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
+| 4.19 | 2026-07-27 | Added `D-188` (GloWe postbuild minify + content-hash + `_headers`; vendored pinned supabase-js; FR-GLOWE-001 AC7 / GLOWE.LAUNCH-2). |
+| 4.18 | 2026-07-27 | Added `D-187` (GloWe transactional email outbox + `glowe-notify`/Resend; FR-GLOWE-003 AC9 / FR-GLOWE-012 AC9). |
 | 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
 | 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |
 | 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |

@@ -50,6 +50,9 @@ importers:
 
   apps/glowe-web:
     devDependencies:
+      esbuild:
+        specifier: ^0.25.12
+        version: 0.25.12
       vitest:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@25.9.1)(@vitest/coverage-v8@4.1.8)(jsdom@25.0.1)(vite@6.4.3(@types/node@25.9.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.4))

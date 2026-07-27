@@ -212,76 +212,7 @@ async function attachSupabaseAuthListener() {
     });
 }
 
-function readRegistrationImageAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-function resizeRegistrationImage(file, maxSize = 420, quality = 0.82) {
-    return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => {
-            const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.max(1, Math.round(image.width * scale));
-            canvas.height = Math.max(1, Math.round(image.height * scale));
-            const context = canvas.getContext('2d');
-            context.drawImage(image, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
-            URL.revokeObjectURL(image.src);
-        };
-        image.onerror = reject;
-        image.src = URL.createObjectURL(file);
-    });
-}
-
-async function getRegistrationAvatarUrl(form) {
-    const input = form.querySelector('#register-logo');
-    const file = input && input.files ? input.files[0] : null;
-    if (!file) return '';
-
-    if (typeof uploadProfileImageToCloudinary === 'function') {
-        try {
-            return await uploadProfileImageToCloudinary(file);
-        } catch (error) {
-            console.warn('Cloudinary registration upload failed; saving image locally for this MVP session.', error);
-        }
-    }
-
-    try {
-        return await resizeRegistrationImage(file);
-    } catch (error) {
-        console.warn('Could not resize registration image; using original file for this MVP session.', error);
-        return readRegistrationImageAsDataUrl(file);
-    }
-}
-
-function storeRegisteredUser(newUser, users = null) {
-    const write = (userToStore, usersToStore) => {
-        if (usersToStore) localStorage.setItem(GLOWE_USERS_KEY, JSON.stringify(usersToStore));
-        localStorage.setItem(GLOWE_USER_KEY, JSON.stringify(userToStore));
-        localStorage.setItem('glowePersonalProfile', JSON.stringify(buildPersonalProfileFromRegistration(userToStore)));
-    };
-
-    try {
-        write(newUser, users);
-    } catch (error) {
-        if (!newUser.avatarUrl) throw error;
-        const userWithoutImage = { ...newUser, avatarUrl: '' };
-        const usersWithoutImage = users
-            ? users.map(user => user.id === newUser.id ? userWithoutImage : user)
-            : null;
-        write(userWithoutImage, usersWithoutImage);
-        alert('Your account was saved, but the profile image was too large for local demo storage. You can upload it again after Cloudinary is configured.');
-        return userWithoutImage;
-    }
-
-    return newUser;
-}
+// Wave 1.6 — email/password registration helpers removed (Google-only, D-61 / TD-143).
 
 // Handle login
 async function completeSupabaseSignIn(data) {
@@ -322,181 +253,28 @@ async function applyMockSession(session, userOverride) {
 }
 window.applyMockSession = applyMockSession;
 
+// Wave 1.6 — production auth is Google-only (FR-GLOWE-001 / D-61). Dev local
+// personas still use the email form via GloweDevAuth; every other path routes
+// to Google OAuth. The fake email-verification modal is gone.
 function handleLogin(event) {
     event.preventDefault();
-    
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-
     if (window.GloweDevAuth && (window.GloweDevAuth.isActive() || window.GloweDevAuth.isLocalSupabaseConfigured())) {
+        const emailEl = document.getElementById('login-email');
+        const email = emailEl ? emailEl.value : '';
         signInAsDevPersona({ email, role: 'user', profileType: 'individual', approvalStatus: 'not_required' });
         return;
     }
-    
-    if (window.gloweBackend && window.gloweBackend.configured()) {
-        window.gloweBackend.signIn(email, password)
-            .then(completeSupabaseSignIn)
-            .catch((error) => {
-                alert(error.message || 'Could not log in. Please try again.');
-            });
-        return;
-    }
-
-    // Local fallback when Supabase is not configured.
-    const users = JSON.parse(localStorage.getItem(GLOWE_USERS_KEY) || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-        localStorage.setItem(GLOWE_USER_KEY, JSON.stringify(user));
-        closeModal('login-modal');
-        updateAuthUI();
-        refreshPersonalAreaIfVisible();
-        showSuccessModal('Welcome Back!', `Great to see you again, ${user.name}!`);
-        
-        // Check if there's a pending redirect
-        const pendingOpportunity = sessionStorage.getItem('pendingOpportunityApplication');
-        if (pendingOpportunity) {
-            sessionStorage.removeItem('pendingOpportunityApplication');
-            redirectPendingOpportunity(pendingOpportunity);
-        }
-    } else {
-        alert('Invalid email or password. Please try again.');
-    }
+    if (typeof handleGoogleSignIn === 'function') handleGoogleSignIn();
 }
 
-// Handle registration
 async function handleRegister(event) {
     event.preventDefault();
-    const form = event.target;
-    const getValue = (selector) => form.querySelector(selector) ? form.querySelector(selector).value.trim() : '';
-    const checkedValues = (name) => [...form.querySelectorAll(`input[name="${name}"]:checked`)].map(input => input.value);
-
-    const firstName = getValue('#register-first-name');
-    const lastName = getValue('#register-last-name');
-    const title = getValue('#register-title');
-    const organizationName = getValue('#register-organization-name');
-    const legacyName = getValue('#register-name');
-    const name = [firstName, lastName].filter(Boolean).join(' ') || legacyName || organizationName;
-    const email = getValue('#register-email');
-    const password = getValue('#register-password');
-    const passwordConfirm = getValue('#register-password-confirm');
-    const emailCode = getValue('#register-email-code');
-    const expectedEmailCode = sessionStorage.getItem(`glowe-email-code:${email}`);
-    if (passwordConfirm && password !== passwordConfirm) {
-        alert('Passwords do not match. Please confirm your password again.');
-        return;
-    }
-    if (form.querySelector('#register-email-code') && (!expectedEmailCode || emailCode !== expectedEmailCode)) {
-        alert('Please enter the verification code that was sent for this email.');
-        return;
-    }
-    const type = form.querySelector('input[name="type"]:checked')
-        ? form.querySelector('input[name="type"]:checked').value
-        : getValue('#register-type');
-    const profileTypeLabel = window.registrationProfileFields && window.registrationProfileFields[type]
-        ? window.registrationProfileFields[type].label
-        : type;
-    
-    // Create new user
-    const newUser = {
-        id: Date.now(),
-        name,
-        firstName,
-        lastName,
-        title,
-        organizationName,
-        email,
-        password,
-        emailVerified: Boolean(expectedEmailCode && emailCode === expectedEmailCode),
-        type,
-        profileTypeLabel,
-        country: getValue('#register-country'),
-        publicLink: getValue('#register-public-link'),
-        size: getValue('#register-size'),
-        story: getValue('#register-story'),
-        values: getValue('#register-values'),
-        community: getValue('#register-community'),
-        problem: getValue('#register-problem'),
-        solution: getValue('#register-solution'),
-        interests: checkedValues('interests'),
-        sdgs: checkedValues('sdgs'),
-        methods: getValue('#register-methods'),
-        shortLine: getValue('#register-short-line'),
-        location: getValue('#register-location'),
-        socials: getValue('#register-socials'),
-        media: getValue('#register-media'),
-        publicActions: getValue('#register-public-actions'),
-        funding: getValue('#register-funding'),
-        annualBudget: getValue('#register-annual-budget'),
-        avatarUrl: await getRegistrationAvatarUrl(form),
-        reviewStatus: getValue('#register-review-status') || 'Save as draft',
-        profileStatus: (getValue('#register-review-status') || '').includes('Submit') ? 'Pending review' : 'Draft',
-        createdAt: new Date().toISOString()
-    };
-    
-    if (window.gloweBackend && window.gloweBackend.configured()) {
-        window.gloweBackend.signUp({ email, password, profile: newUser })
-            .then(() => {
-                storeRegisteredUser(newUser);
-                closeModal('register-modal');
-                updateAuthUI();
-                refreshPersonalAreaIfVisible();
-                showSuccessModal(
-                    newUser.profileStatus === 'Pending review' ? 'Profile sent for review' : 'Profile draft saved',
-                    `Welcome to GloWe, ${name}. Your profile was saved and can be edited from the personal area.`
-                );
-                redirectPendingOpportunity();
-            })
-            .catch((error) => {
-                alert(error.message || 'Could not create account. Please try again.');
-            });
-        return;
-    }
-
-    // Check if email already exists in the local fallback store.
-    const users = JSON.parse(localStorage.getItem(GLOWE_USERS_KEY) || '[]');
-    if (users.find(u => u.email === email)) {
-        alert('An account with this email already exists.');
-        return;
-    }
-
-    users.push(newUser);
-    storeRegisteredUser(newUser, users);
-    
-    closeModal('register-modal');
-    updateAuthUI();
-    refreshPersonalAreaIfVisible();
-    showSuccessModal(
-        newUser.profileStatus === 'Pending review' ? 'Profile sent for review' : 'Profile draft saved',
-        `Welcome to GloWe, ${name}. Your long profile onboarding was saved and can be edited from the personal area.`
-    );
-    
-    // Check if there's a pending redirect
-    const pendingOpportunity = sessionStorage.getItem('pendingOpportunityApplication');
-    if (pendingOpportunity) {
-        sessionStorage.removeItem('pendingOpportunityApplication');
-        redirectPendingOpportunity(pendingOpportunity);
-    }
+    if (typeof handleGoogleSignIn === 'function') handleGoogleSignIn();
 }
 
 function sendRegistrationEmailCode() {
-    const form = document.getElementById('register-form');
-    if (!form) return;
-    const emailInput = form.querySelector('#register-email');
-    const codeInput = form.querySelector('#register-email-code');
-    const email = emailInput ? emailInput.value.trim() : '';
-    if (!email) {
-        alert('Add your email first, then we can send the verification code.');
-        if (emailInput) emailInput.focus();
-        return;
-    }
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    sessionStorage.setItem(`glowe-email-code:${email}`, code);
-    if (codeInput) codeInput.value = code;
-    showSuccessModal(
-        'Verification code sent',
-        `MVP preview: use code ${code}. When email delivery is connected, this code will be sent to ${email}.`
-    );
+    // No-op: fake email verification removed in Wave 1.6.
+    if (typeof handleGoogleSignIn === 'function') handleGoogleSignIn();
 }
 
 function bindLocalDevPersonaButtons(root) {

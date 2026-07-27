@@ -1,18 +1,20 @@
 // FR-TRANSLATE-003 — interface i18n coverage guard.
 //
-// app.js is a browser script (touches window/document at load), so it cannot be
-// imported here. Instead the two i18n literals are extracted from the source by
-// brace matching and evaluated in isolation — they are pure data.
+// Locale dictionaries live in i18n/{he,ru,ar,am}.json (Wave 2.3 / TD-186).
+// English is the source language: its strings are the keys, so there is no
+// en.json. Language registry + RTL list still come from app.js literals.
 //
 // The point of this test: a new UI string added to `he` but forgotten in
 // ru/ar/am silently falls back to English for those readers. That regression is
 // invisible in review, so it is asserted here instead.
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const APP_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'app.js');
+const HERE = dirname(fileURLToPath(import.meta.url));
+const APP_JS = join(HERE, '..', 'app.js');
+const I18N_DIR = join(HERE, '..', '..', 'i18n');
 const source = readFileSync(APP_JS, 'utf8');
 
 // Brace-match the object/array literal that follows `declaration`, skipping over
@@ -43,8 +45,18 @@ function extractLiteral(src, declaration, open, close) {
     throw new Error(`unterminated literal for: ${declaration}`);
 }
 
+function loadLocaleBundles() {
+    const files = readdirSync(I18N_DIR).filter((name) => name.endsWith('.json'));
+    const out = {};
+    for (const name of files) {
+        const code = name.replace(/\.json$/, '');
+        out[code] = JSON.parse(readFileSync(join(I18N_DIR, name), 'utf8'));
+    }
+    return out;
+}
+
 const LANGUAGES = extractLiteral(source, 'const GLOWE_LANGUAGES = [', '[', ']');
-const TRANSLATIONS = extractLiteral(source, 'const GLOWE_TRANSLATIONS = {', '{', '}');
+const TRANSLATIONS = loadLocaleBundles();
 const RTL = extractLiteral(source, 'const GLOWE_RTL_LANGS = [', '[', ']');
 
 // English is the source language: its strings are the keys, so it has no dict.
@@ -74,7 +86,14 @@ describe('GLOWE_LANGUAGES', () => {
     });
 });
 
-describe('GLOWE_TRANSLATIONS', () => {
+describe('GLOWE_TRANSLATIONS (i18n/*.json)', () => {
+    it('keeps app.js free of an inline locale dictionary', () => {
+        // Empty shell is fine; a multi-lang object literal would re-bloat app.js.
+        expect(source).toMatch(/const GLOWE_TRANSLATIONS = \{\s*\};/);
+        expect(source).toContain('loadGloweLocaleDict');
+        expect(source).not.toMatch(/"Continue with Google":\s*"/);
+    });
+
     it('ships a dictionary for every non-English language', () => {
         expect(Object.keys(TRANSLATIONS).sort()).toEqual([...TRANSLATED].sort());
     });
@@ -121,6 +140,33 @@ describe('GLOWE_TRANSLATIONS', () => {
             'No wishes match your filters',
             'wish shown',
             'wishes shown'
+        ];
+        for (const code of TRANSLATED) {
+            for (const key of keys) {
+                expect(TRANSLATIONS[code][key], `${code}: ${key}`).toBeTruthy();
+            }
+        }
+    });
+
+    it('localizes the Organizations directory filter chrome in every language', () => {
+        const keys = [
+            'Clear filters',
+            'Filters',
+            'Profile type',
+            'Field / sector',
+            'All fields',
+            'Tel Aviv area',
+            'Jerusalem area',
+            'Haifa & North',
+            'South & Negev',
+            'Global / Remote',
+            'NGO / Nonprofit',
+            'Company / Impact Business',
+            'Social Initiative / Project',
+            'No profiles match your filters',
+            'profile shown',
+            'profiles shown',
+            'Try a broader keyword or clear a filter.'
         ];
         for (const code of TRANSLATED) {
             for (const key of keys) {

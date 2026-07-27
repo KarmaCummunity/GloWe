@@ -25,6 +25,7 @@ const {
     shouldShowProfileSkeleton,
     validateAvatarFile,
     prepareAvatarUploadFile,
+    prepareCoverUploadFile,
     isAvatarImageFile,
     mapApplicantRow,
     mapApplicantRows,
@@ -542,6 +543,22 @@ describe('prepareAvatarUploadFile', () => {
         });
         expect(result.ok).toBe(false);
         expect(result.error).toMatch(/5 MB/);
+    });
+});
+
+describe('prepareCoverUploadFile', () => {
+    it('returns the file unchanged when it is small enough', async () => {
+        const file = { type: 'image/jpeg', size: 800 * 1024, name: 'cover.jpg' };
+        await expect(prepareCoverUploadFile(file)).resolves.toEqual({
+            ok: true,
+            file,
+            compressed: false
+        });
+    });
+
+    it('rejects a missing file', async () => {
+        const result = await prepareCoverUploadFile(null);
+        expect(result.ok).toBe(false);
     });
 });
 

@@ -23,6 +23,7 @@
 3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**`, and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
 5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+6. **Verify live before calling GloWe work done.** Green CI and a merged PR are not the same claim as "the user can see this now." For any GloWe UI/UX change: verify locally in a browser before the PR merges, and after merge confirm the change is actually live at `dev.karma-community.pages.dev/glowe` (GloWe's production front door — see [`ENVIRONMENTS.md`](./docs/SSOT/ENVIRONMENTS.md)) before reporting done. Don't declare success from a merged PR or green checks alone.
 
 Doc map for humans: [`docs/README.md`](./docs/README.md).
 

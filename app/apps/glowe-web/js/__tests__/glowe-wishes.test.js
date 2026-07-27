@@ -122,9 +122,30 @@ describe('buildWishText', () => {
         expect(text).toContain('Location: Haifa');
     });
 
+    it('uses localized labels when a locale is provided', () => {
+        const text = GloweWishes.buildWishText(
+            { details: 'עזרה', success: 'מנטור אחד', location: 'מרחוק' },
+            'he'
+        );
+        expect(text).toContain('איך תיראה הצלחה: מנטור אחד');
+        expect(text).toContain('מיקום: מרחוק');
+        expect(text).not.toContain('Success looks like:');
+    });
+
     it('omits empty optional parts', () => {
         expect(GloweWishes.buildWishText({ details: 'Only this' })).toBe('Only this');
         expect(GloweWishes.buildWishText({})).toBe('');
+    });
+});
+
+describe('formatWishDescription', () => {
+    it('re-localizes stored English labels for Hebrew readers', () => {
+        const stored = 'מחפש מתכנתים\n\nSuccess looks like: מתכנת אחד\n\nLocation: מרחוק';
+        const text = GloweWishes.formatWishDescription(stored, 'he');
+        expect(text).toContain('איך תיראה הצלחה: מתכנת אחד');
+        expect(text).toContain('מיקום: מרחוק');
+        expect(text).not.toContain('Success looks like:');
+        expect(text).not.toContain('Location:');
     });
 });
 

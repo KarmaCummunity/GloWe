@@ -72,7 +72,9 @@
             snippet: partial.snippet || '',
             createdAt: partial.createdAt || '',
             authorLabel: partial.authorLabel || '',
+            authorNameEn: partial.authorNameEn || '',
             authorId: partial.authorId == null ? '' : String(partial.authorId),
+            authorAvatarUrl: partial.authorAvatarUrl || '',
             commentCount: Number(partial.commentCount) || 0,
             saveCount: Number(partial.saveCount) || 0,
             hrefPath: partial.hrefPath || '',
@@ -80,6 +82,56 @@
             category: partial.category || '',
             groupId: partial.groupId || ''
         };
+    }
+
+    // Wish/offer view models use `author` (mapWishRow); community posts use
+    // `authorName`. Accept both so the home feed does not fall back to the
+    // generic "GloWe Member" label for live content.
+    function authorLabelOf(row) {
+        if (!row) return '';
+        return String(
+            row.authorLabel
+            || row.authorName
+            || row.author_name
+            || row.author
+            || row.organization
+            || row.organizationName
+            || ''
+        ).trim();
+    }
+
+    function authorNameEnOf(row) {
+        if (!row) return '';
+        return String(
+            row.authorNameEn
+            || row.author_name_en
+            || row.authorEn
+            || row.organizationEn
+            || row.organization_en
+            || ''
+        ).trim();
+    }
+
+    function authorAvatarOf(row) {
+        if (!row) return '';
+        return String(
+            row.authorAvatarUrl
+            || row.author_avatar_url
+            || row.avatarUrl
+            || row.avatar_url
+            || ''
+        ).trim();
+    }
+
+    function authorIdOf(row) {
+        if (!row) return '';
+        return String(
+            row.authorId
+            || row.user_id
+            || row.userId
+            || row.ownerId
+            || ''
+        ).trim();
     }
 
     function saveCountFor(saveCountsByKey, kind, id) {
@@ -113,7 +165,9 @@
                 snippet: snippetOf(fields.snippetSrc || ''),
                 createdAt: fields.createdAt || '',
                 authorLabel: fields.authorLabel || '',
+                authorNameEn: fields.authorNameEn || '',
                 authorId: fields.authorId || '',
+                authorAvatarUrl: fields.authorAvatarUrl || '',
                 commentCount: fields.commentCount != null
                     ? fields.commentCount
                     : commentCountFor(commentsByPostId, sid),
@@ -133,8 +187,10 @@
                 title: p.title,
                 snippetSrc: p.text || p.body,
                 createdAt: p.createdAt || p.created_at,
-                authorLabel: p.authorName || p.author_name,
-                authorId: p.authorId || p.user_id || '',
+                authorLabel: authorLabelOf(p),
+                authorNameEn: authorNameEnOf(p),
+                authorId: authorIdOf(p),
+                authorAvatarUrl: authorAvatarOf(p),
                 tagKey: 'Post',
                 category: p.category
             });
@@ -149,8 +205,10 @@
                 title: opp.title,
                 snippetSrc: opp.description,
                 createdAt: opp.createdAt || opp.created_at,
-                authorLabel: opp.organization || opp.organizationName,
-                authorId: opp.ownerId || opp.user_id || '',
+                authorLabel: authorLabelOf(opp),
+                authorNameEn: authorNameEnOf(opp),
+                authorId: authorIdOf(opp),
+                authorAvatarUrl: authorAvatarOf(opp),
                 commentCount: 0,
                 saveCount: saveCountFor(saveCountsByKey, kind, id)
                     || saveCountFor(saveCountsByKey, 'opportunity', id),
@@ -164,8 +222,10 @@
                 title: w.title,
                 snippetSrc: w.text || w.description || w.body,
                 createdAt: w.createdAt || w.created_at,
-                authorLabel: w.authorName || w.author_name,
-                authorId: w.authorId || w.user_id || '',
+                authorLabel: authorLabelOf(w),
+                authorNameEn: authorNameEnOf(w),
+                authorId: authorIdOf(w),
+                authorAvatarUrl: authorAvatarOf(w),
                 tagKey: 'Wish'
             });
         });
@@ -176,8 +236,10 @@
                 title: o.title,
                 snippetSrc: o.text || o.description || o.body,
                 createdAt: o.createdAt || o.created_at,
-                authorLabel: o.authorName || o.author_name,
-                authorId: o.authorId || o.user_id || '',
+                authorLabel: authorLabelOf(o),
+                authorNameEn: authorNameEnOf(o),
+                authorId: authorIdOf(o),
+                authorAvatarUrl: authorAvatarOf(o),
                 tagKey: 'Volunteer Offer'
             });
         });
@@ -199,8 +261,10 @@
                 title: t.title,
                 snippetSrc: t.body,
                 createdAt: t.createdAt || t.created_at,
-                authorLabel: t.authorName || t.author_name,
-                authorId: t.authorId || t.user_id || '',
+                authorLabel: authorLabelOf(t),
+                authorNameEn: authorNameEnOf(t),
+                authorId: authorIdOf(t),
+                authorAvatarUrl: authorAvatarOf(t),
                 commentCount: Number(t.replies) || 0,
                 tagKey: 'Discussion',
                 groupId: t.groupId || t.group_id || ''

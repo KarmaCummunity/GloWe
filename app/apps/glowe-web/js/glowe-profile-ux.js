@@ -30,6 +30,23 @@
         rejected: { kind: 'needs_changes', label: 'Needs changes', action: 'edit' }
     };
 
+    // FR-GLOWE-003 AC8 — when an org is rejected the owner sees the reviewer's
+    // note in-product (migration 0236 already exposes it via
+    // glowe_get_self_private_fields). Returns null unless the viewer owns a
+    // rejected organization with something to show.
+    function orgReviewBanner(profile) {
+        const p = profile || {};
+        if (p.accountType !== 'organization' || p.approvalStatus !== 'rejected') return null;
+        const note = trim(p.orgReviewNote);
+        return {
+            title: 'Your organization application needs changes',
+            lead: note
+                ? 'The review team left a note about what to fix before resubmitting:'
+                : 'Update your organization details, then contact us if you need help resubmitting.',
+            note
+        };
+    }
+
     function profileStatusChip(profile, options) {
         if (!(options && options.isOwner)) return null;
         const p = profile || {};
@@ -91,6 +108,7 @@
         profileStatusChip: profileStatusChip,
         profileBioSource: profileBioSource,
         publicTrustStatusLabel: publicTrustStatusLabel,
+        orgReviewBanner: orgReviewBanner,
         CAMERA_ICON_SVG: CAMERA_ICON_SVG,
         projectOwnerActionsHtml: projectOwnerActionsHtml
     };
