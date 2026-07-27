@@ -7734,6 +7734,33 @@ body.glowe-member-home main > section:not(#member-home) {
     transition: var(--transition);
 }
 
+.guest-home-feed {
+    padding: 28px 0 8px;
+}
+
+.guest-home-feed .section-toolbar {
+    margin-bottom: 16px;
+}
+
+.guest-home-feed-cta {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    margin-top: 20px;
+    padding: 16px 0 8px;
+}
+
+.home-feed-sentinel {
+    height: 1px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.home-feed-end {
+    margin-top: 12px;
+    text-align: center;
+}
+
 .member-feed-card-link {
     display: flex;
     flex-direction: column;

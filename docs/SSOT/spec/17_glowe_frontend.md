@@ -422,26 +422,15 @@ FR-GLOWE-014 outreach-post model; aligns with D-61). Full design:
   immediately so the tap is never a dead end. `profile` stays the public profile view; none are
   force-guarded to a redirect. (Revised 2026-07-16 — previously used a hard `requireGloweMember()`
   redirect to the guest home, which read as a broken tab to first-time visitors.)
-- AC2. **Adaptive home (done).** Signed-in members see a personal hero ("Welcome back, {first
-  name}" + create CTAs), a "Your activity" rail (their own posts, filtered by `authorId`), and a
-  unified "What's happening" feed (recency-interleaved opportunities + posts, capped) in place of
-  the marketing home; guests keep the marketing home untouched. **Auth flips (login/logout) swap
-  guest ↔ member home immediately via `refreshHomeForAuthState()` from `updateAuthUI()` — no
-  manual reload required.** **On phone viewports (≤680px, same
-  breakpoint as the bottom nav), the signed-in home shows only the community "What's happening"
-  feed** — personal hero and "Your activity" are omitted so Home stays community-first; members
-  reach personal content via the Profile tab. The member view renders into a
-  hidden `#member-home` section revealed by `initMemberHome()`; a `body.glowe-member-home` class
-  hides the marketing sections. **No guest-home FOUC (hardened 2026-07-26):**
+- AC2. **Adaptive home (done — unified discovery feed, 2026-07-27).** Signed-in members see a **feed-only** Home on all viewports: one unified "What is happening on GloWe" discovery feed (no personal hero, no "Your activity", no "See all" cap). Cards share one chrome; kinds differ by tag. Sources: community posts, opportunities, events (`start_at`), open wishes, volunteer offers, forum groups, forum threads — **not** organization profiles. Ordering: client hot score (recency + comments + saves) + type diversity (`js/glowe-home-feed.js`); progressive load **10** then **+8** via IntersectionObserver. Guests keep the marketing shell plus a **10-item** ranked peek (`#guest-home-feed`) and a Continue-with-Google CTA (FR-GLOWE-023). **Auth flips** still swap guest ↔ member via `refreshHomeForAuthState()`. Member view still uses `#member-home` + `body.glowe-member-home`. **No guest-home FOUC (hardened 2026-07-26):**
   (1) `js/glowe-auth-paint.js` runs in `index.html` `<head>` and sets `html.glowe-expect-member`
   when `localStorage.gloweUser` **or** a persisted `glowe-auth-v1` session is present, before first
   paint; (2) `syncSupabaseSession` uses `onAuthStateChange`'s session / `getSession()` — never a
   flaky network `getUser()` null — so it cannot clear identity and flash guest during rapid Home
   reloads; (3) Home self-taps are no-ops (no full reload); (4) home shell swaps use a generation
   token so a stale `initGuestHome` cannot tear down a newer member shell. Empty states are creation
-  CTAs. Selectors (`selectMemberActivity`, `selectCommunityHighlights`) are pure; cards reuse
-  `renderOpportunityCard` (root-relative) plus a compact `renderMemberFeedPost`. Per-segment
-  personalization deferred to Phase B real content.
+  CTAs. Pure helpers live in `GloweHomeFeed` (`buildHomeFeed` / `pageSlice` / diversify). Server-ranked
+  RPC is Phase 2 (see design). Design: `docs/SSOT/archive/superpowers/specs/2026-07-27-glowe-unified-home-feed-design.md`.
 - AC2b. **Header chat unread badge (done, 2026-07-26).** The header messages icon badge counts
   only **inbox-visible** DM unreads (same filter as `GloweMessages.inboxRows` — excludes support
   threads and viewer-hidden chats), so an empty Messages inbox shows no badge. Count refreshes on

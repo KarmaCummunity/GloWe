@@ -5458,6 +5458,11 @@ let _gloweHomeGen = 0;
 function teardownMemberHome() {
     document.body.classList.remove('glowe-member-home');
     const root = document.getElementById('member-home');
+    if (root && root._homeFeedObserver) {
+        try { root._homeFeedObserver.disconnect(); } catch (_e) { /* ignore */ }
+        root._homeFeedObserver = null;
+        root._homeFeed = null;
+    }
     if (!root) return;
     root.hidden = true;
     root.innerHTML = '';
@@ -5502,11 +5507,23 @@ async function initGuestHome(gen = _gloweHomeGen) {
 
     const COMING_SOON = '<p class="muted-note">This section will come alive as the community grows.</p>';
 
+    try {
+        const sources = await loadHomeFeedSources();
+        if (gen !== _gloweHomeGen) return;
+        const HF = window.GloweHomeFeed;
+        const ranked = HF ? HF.buildHomeFeed(sources, { nowMs: Date.now() }) : [];
+        renderGuestHomeFeedPeek(ranked);
+    } catch (_e) {
+        if (gen !== _gloweHomeGen) return;
+        const el = document.getElementById('guest-home-feed');
+        if (el) {
+            el.hidden = false;
+            el.innerHTML = homeFeedEmptyHtml();
+        }
+    }
+
     const container = document.getElementById('featured-opportunities');
     if (container) {
-        container.innerHTML = '<p class="muted-note">Loading opportunities…</p>';
-        await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
-        if (gen !== _gloweHomeGen) return;
         const featured = getFeaturedOpportunities().slice(0, 3);
         container.innerHTML = featured.length
             ? featured.map(opp => renderOpportunityCard(opp)).join('')
@@ -5566,90 +5583,44 @@ async function refreshHomeForAuthState(options = {}) {
 window.refreshHomeForAuthState = refreshHomeForAuthState;
 window.isHomeHref = isHomeHref;
 
-// --- Member home (FR-GLOWE-016 AC2) -----------------------------------------
-// Pure selector: the member's own posts, newest first, capped.
-function selectMemberActivity(posts, userId, limit = 3) {
-    if (!userId) return [];
-    return posts
-        .filter(post => String(post.authorId) === String(userId))
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .slice(0, limit);
+// --- Member home (FR-GLOWE-016 AC2) — unified discovery feed ---------------
+
+function homeFeedEmptyHtml() {
+    return '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
 }
 
-// Pure selector: one unified, recency-interleaved glimpse across the catalog.
-function selectCommunityHighlights(opportunities, posts, limit = 6) {
-    const oppItems = opportunities.map(item => ({ kind: 'opportunity', item }));
-    const postItems = posts
-        .slice()
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .map(item => ({ kind: 'post', item }));
-    const mixed = [];
-    const max = Math.max(oppItems.length, postItems.length);
-    for (let i = 0; i < max; i++) {
-        if (postItems[i]) mixed.push(postItems[i]);
-        if (oppItems[i]) mixed.push(oppItems[i]);
-    }
-    if (limit == null || limit === Infinity) return mixed;
-    return mixed.slice(0, limit);
-}
-
-// Compact card for the member feed. Links resolve from the site root (home page),
-// so they point into pages/* unlike the /pages/-local renderPostCard.
-function renderMemberFeedPost(post) {
-    const postId = post.id || '';
-    const href = `pages/community.html#post-${encodeURIComponent(postId)}`;
-    const snippet = (post.text || '').slice(0, 140);
-    const authorPair = authorNamePairFrom(post);
-    const authorName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
-        : (post.authorName || 'Community Member');
+function renderHomeFeedCard(item) {
+    const HF = window.GloweHomeFeed;
+    const kind = (item && item.kind) || 'post';
+    const id = (item && item.id) || '';
+    const href = (item && item.hrefPath) || (HF ? HF.defaultHref(kind, id, item) : '#');
+    const tag = kind === 'post'
+        ? glowePostTypeLabel((item && item.category) || '', ' · ')
+        : gloweText((item && item.tagKey) || 'Post');
+    const title = escapeHtml((item && item.title) || 'GloWe');
+    const snippet = escapeHtml((item && item.snippet) || '');
+    const author = escapeHtml((item && item.authorLabel) || '');
+    const trType = (kind === 'opportunity' || kind === 'event')
+        ? 'glowe_opportunity'
+        : (kind === 'forum_thread' || kind === 'forum_group')
+            ? 'glowe_forum_thread'
+            : 'glowe_post';
+    const field = (kind === 'opportunity' || kind === 'event') ? 'description' : 'text';
     return `
-        <article class="member-feed-card" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postId))}">
-            ${translationToggleSlotHtml()}
-            <a class="member-feed-card-link" href="${href}">
-                <span class="member-feed-type">${escapeHtml(glowePostTypeLabel(post.category, ' · '))}</span>
-                <h3 data-tr-field="title">${escapeHtml(post.title || 'Community post')}</h3>
-                <p data-tr-field="text">${escapeHtml(snippet)}</p>
-                <span class="member-feed-author" ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
+        <article class="home-feed-card member-feed-card" data-tr-card data-tr-type="${trType}" data-tr-id="${escapeHtml(String(id))}" data-feed-kind="${escapeHtml(kind)}">
+            ${typeof translationToggleSlotHtml === 'function' ? translationToggleSlotHtml() : ''}
+            <a class="member-feed-card-link" href="${escapeHtml(href)}">
+                <span class="member-feed-type">${escapeHtml(tag)}</span>
+                <h3 data-tr-field="title">${title}</h3>
+                <p data-tr-field="${field}">${snippet}</p>
+                ${author ? `<span class="member-feed-author">${author}</span>` : ''}
             </a>
         </article>`;
-}
-
-// Compact opportunity teaser for the member-home grid. The full
-// renderOpportunityCard() is too tall here: card-actions uses margin-top:auto
-// and stretches against taller post neighbours in the same grid row.
-function renderMemberFeedOpportunity(opportunity) {
-    const detailHref = `pages/opportunity.html?id=${encodeURIComponent(opportunity.id)}`;
-    const snippet = (opportunity.description || '').slice(0, 140);
-    const orgName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.localizedOrganizationName(opportunity, gloweReaderLang(), 'GloWe Member')
-        : (opportunity.organization || 'GloWe Member');
-    const orgPair = orgNamePairFrom(opportunity);
-    return `
-        <article class="member-feed-card member-feed-opportunity" data-tr-card data-tr-type="glowe_opportunity" data-tr-id="${escapeHtml(String(opportunity.id))}">
-            <div class="member-feed-opportunity-header">
-                ${renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName, 'entity-mark')}
-                <span class="member-feed-opportunity-org" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>
-            </div>
-            ${translationToggleSlotHtml()}
-            <a class="member-feed-card-link" href="${detailHref}">
-                <span class="member-feed-type">Opportunity</span>
-                <h3 data-tr-field="title">${escapeHtml(opportunity.title || 'Opportunity')}</h3>
-                <p data-tr-field="description">${escapeHtml(snippet)}</p>
-            </a>
-        </article>`;
-}
-
-function renderMemberHighlight(entry) {
-    return entry.kind === 'opportunity'
-        ? renderMemberFeedOpportunity(entry.item)
-        : renderMemberFeedPost(entry.item);
 }
 
 function scheduleMemberHomeTranslation(root) {
     if (!root || !window.GloweTranslate || typeof window.GloweTranslate.scan !== 'function') return;
     const scan = function () {
-        // Retry cards that rendered before the Supabase client was ready.
         root.querySelectorAll('[data-tr-card]').forEach(function (card) {
             if (!card.querySelector('.tr-toggle')) card.removeAttribute('data-tr-done');
         });
@@ -5660,82 +5631,131 @@ function scheduleMemberHomeTranslation(root) {
     setTimeout(scan, 2000);
 }
 
-function isGloweMobileHomeViewport() {
-    return window.matchMedia('(max-width: 680px)').matches;
-}
-
-function renderMemberHomeMarkup(firstName, activity, highlights, options = {}) {
-    const { communityOnly = false } = options;
-    const activityBody = activity.length
-        ? activity.map(renderMemberFeedPost).join('')
-        : '<div class="empty-state"><h3>You have not shared anything yet</h3><p>Your posts, opportunities, and requests will gather here.</p><a class="btn btn-primary btn-small" href="pages/community.html">Write your first post</a></div>';
-    const highlightsBody = highlights.length
-        ? highlights.map(renderMemberHighlight).join('')
-        : '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
-    const communityToolbar = communityOnly ? '' : `
+function renderMemberHomeMarkup(feedHtml) {
+    return `
+        <div class="container member-home-inner member-home-community-only">
+            <section class="member-section member-home-community">
                 <div class="section-toolbar">
                     <div><h2>What is happening on GloWe</h2></div>
-                    <a class="btn btn-outline btn-small" href="pages/community.html">See all</a>
-                </div>`;
-    const personalSections = communityOnly ? '' : `
-            <section class="member-hero member-home-personal">
-                <div class="member-hero-copy">
-                    <span class="hero-kicker">Your GloWe</span>
-                    <h1>Welcome back, <span class="member-hero-name">${escapeHtml(firstName)}</span></h1>
-                    <p>What would you like to do today? Share knowledge, post an opportunity, or ask the community for support.</p>
                 </div>
-                <div class="member-hero-actions">
-                    <a class="btn btn-primary btn-large" href="pages/community.html">Share a post</a>
-                    <a class="btn btn-outline btn-large" href="pages/opportunities.html">Post an opportunity</a>
-                    <button class="btn btn-outline btn-large" type="button" onclick="openWishModal()">Ask for support</button>
-                </div>
-            </section>
-            <section class="member-section member-home-personal">
-                <div class="section-toolbar">
-                    <div><h2>Your activity</h2></div>
-                    <a class="btn btn-outline btn-small" href="pages/my-applications.html">Open Personal Area</a>
-                </div>
-                <div class="member-feed-grid">${activityBody}</div>
-            </section>`;
-    return `
-        <div class="container member-home-inner${communityOnly ? ' member-home-community-only' : ''}">
-            ${personalSections}
-            <section class="member-section member-home-community">
-                ${communityToolbar}
-                <div class="member-feed-grid">${highlightsBody}</div>
+                <div class="member-feed-grid" id="home-feed-grid">${feedHtml}</div>
+                <div id="home-feed-sentinel" class="home-feed-sentinel" aria-hidden="true"></div>
+                <p id="home-feed-end" class="muted-note home-feed-end" hidden>You're caught up</p>
             </section>
         </div>`;
+}
+
+function attachHomeFeedObserver(root) {
+    const sentinel = root.querySelector('#home-feed-sentinel');
+    const grid = root.querySelector('#home-feed-grid');
+    const endEl = root.querySelector('#home-feed-end');
+    const HF = window.GloweHomeFeed;
+    if (!sentinel || !grid || !HF || !window.IntersectionObserver) return;
+    if (root._homeFeedObserver) {
+        try { root._homeFeedObserver.disconnect(); } catch (_e) { /* ignore */ }
+    }
+    const io = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (e) { return e.isIntersecting; })) return;
+        const st = root._homeFeed;
+        if (!st || st.done) {
+            if (endEl) endEl.hidden = false;
+            io.disconnect();
+            return;
+        }
+        const page = HF.pageSlice(st.items, st.offset, HF.PAGE_SIZE_NEXT);
+        grid.insertAdjacentHTML('beforeend', page.items.map(renderHomeFeedCard).join(''));
+        st.offset = page.nextOffset;
+        st.done = page.done;
+        if (page.done && endEl) endEl.hidden = false;
+        scheduleMemberHomeTranslation(root);
+    }, { rootMargin: '240px 0px' });
+    io.observe(sentinel);
+    root._homeFeedObserver = io;
+}
+
+async function loadHomeFeedSources() {
+    await Promise.all([
+        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames),
+        loadCommunityPosts(),
+        loadPostComments(),
+        loadLiveWishes(),
+        loadForumGroups(),
+        loadForumThreads()
+    ]);
+    const wishRows = Array.isArray(wishes) ? wishes : [];
+    const openWishes = wishRows.filter(function (w) { return w && w.type !== 'Volunteer Offer'; });
+    const openOffers = wishRows.filter(function (w) { return w && w.type === 'Volunteer Offer'; });
+    return {
+        posts: getAllCommunityPosts(),
+        opportunities: getAllOpportunitiesForDisplay(),
+        wishes: openWishes,
+        offers: openOffers,
+        forumGroups: getForumGroups(),
+        forumThreads: getForumThreads(),
+        commentsByPostId: backendPostComments || {},
+        saveCountsByKey: {},
+        isEvent: function (opp) {
+            return typeof GloweEvents !== 'undefined' && GloweEvents.isEvent(opp);
+        }
+    };
+}
+
+function hideGuestHomeFeed() {
+    const el = document.getElementById('guest-home-feed');
+    if (el) {
+        el.hidden = true;
+        el.innerHTML = '';
+    }
+}
+
+function renderGuestHomeFeedPeek(ranked) {
+    const el = document.getElementById('guest-home-feed');
+    const HF = window.GloweHomeFeed;
+    if (!el || !HF) return;
+    const preview = HF.pageSlice(ranked, 0, HF.GUEST_PREVIEW_LIMIT);
+    el.hidden = false;
+    el.innerHTML = `
+        <div class="section-toolbar"><div><h2>What is happening on GloWe</h2></div></div>
+        <div class="member-feed-grid">${preview.items.length ? preview.items.map(renderHomeFeedCard).join('') : homeFeedEmptyHtml()}</div>
+        <div class="guest-home-feed-cta">
+            <p>Join GloWe to see more and take part.</p>
+            <button type="button" class="btn btn-primary" onclick="handleGoogleSignIn()">Continue with Google</button>
+        </div>`;
+    if (typeof translateGloweTree === 'function') translateGloweTree(el);
+    scheduleMemberHomeTranslation(el);
 }
 
 async function initMemberHome(gen = _gloweHomeGen) {
     if (gen !== _gloweHomeGen) return;
     const root = document.getElementById('member-home');
     if (!root) return;
-    // Hide marketing immediately — before any await — so a concurrent guest
-    // init cannot win the race and flash the unregistered home.
     document.body.classList.add('glowe-member-home');
+    hideGuestHomeFeed();
     root.hidden = false;
+    root.classList.add('member-home-community-only');
     root.innerHTML = '<div class="container"><p class="muted-note">Loading your GloWe home…</p></div>';
 
-    await Promise.all([
-        fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames),
-        loadCommunityPosts(),
-        loadPostComments()
-    ]);
+    const sources = await loadHomeFeedSources();
     if (gen !== _gloweHomeGen) return;
 
-    const profile = await getLocalizedPersonalProfile();
-    if (gen !== _gloweHomeGen) return;
-    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    const firstName = localizedProfileFirstName(profile, 'there');
-    const allPosts = getAllCommunityPosts();
-    const communityOnly = isGloweMobileHomeViewport();
-    const activity = communityOnly ? [] : selectMemberActivity(allPosts, user ? user.id : '');
-    const highlightLimit = communityOnly ? null : 6;
-    const highlights = selectCommunityHighlights(getAllOpportunitiesForDisplay(), allPosts, highlightLimit);
-    root.classList.toggle('member-home-community-only', communityOnly);
-    root.innerHTML = renderMemberHomeMarkup(firstName, activity, highlights, { communityOnly });
-    // Member shell owns the hide now — drop the pre-paint class.
+    const HF = window.GloweHomeFeed;
+    const ranked = HF
+        ? HF.buildHomeFeed(sources, { nowMs: Date.now() })
+        : [];
+    const page = HF
+        ? HF.pageSlice(ranked, 0, HF.PAGE_SIZE_FIRST)
+        : { items: [], nextOffset: 0, done: true };
+    const feedHtml = page.items.length
+        ? page.items.map(renderHomeFeedCard).join('')
+        : homeFeedEmptyHtml();
+    root.innerHTML = renderMemberHomeMarkup(feedHtml);
+    root._homeFeed = { items: ranked, offset: page.nextOffset, done: page.done };
+    if (page.done) {
+        const endEl = root.querySelector('#home-feed-end');
+        if (endEl && page.items.length) endEl.hidden = false;
+    } else {
+        attachHomeFeedObserver(root);
+    }
     if (window.GloweAuthPaint) window.GloweAuthPaint.clearExpectMemberPaint();
     scheduleMemberHomeTranslation(root);
 }
@@ -9438,6 +9458,9 @@ const GLOWE_TRANSLATIONS = {
         "Focus not added yet": "תחום מיקוד טרם נוסף",
         "Followers": "עוקבים",
         "Following": "במעקב",
+        "Forum": "פורום",
+        "Join GloWe to see more and take part.": "הצטרפו ל-GloWe כדי לראות עוד ולהשתתף.",
+        "You're caught up": "סיימתם לעבור על הכל",
         "Following ✓": "עוקבים ✓",
         "For climate, food systems, waste, restoration, repair, and local environmental action.": "לאקלים, מערכות מזון, פסולת, שיקום, תיקון ופעולה סביבתית מקומית.",
         "For Organizations": "לארגונים",
@@ -9834,6 +9857,9 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "Не удалось сохранить фото.",
         "Followers": "Подписчики",
         "Following": "Подписки",
+        "Forum": "Форум",
+        "Join GloWe to see more and take part.": "Присоединяйтесь к GloWe, чтобы увидеть больше и участвовать.",
+        "You're caught up": "Вы всё просмотрели",
         "+ Follow": "+ Подписаться",
         "Following ✓": "Вы подписаны ✓",
         "Stop following": "Отписаться",
@@ -11290,6 +11316,9 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "تعذّر حفظ الصورة.",
         "Followers": "المتابِعون",
         "Following": "المتابَعون",
+        "Forum": "منتدى",
+        "Join GloWe to see more and take part.": "انضموا إلى GloWe لرؤية المزيد والمشاركة.",
+        "You're caught up": "اطّلعتم على كل شيء",
         "+ Follow": "+ متابعة",
         "Following ✓": "تتابعه ✓",
         "Stop following": "إلغاء المتابعة",
@@ -12746,6 +12775,9 @@ const GLOWE_TRANSLATIONS = {
         "Could not save photo.": "ፎቶውን ማስቀመጥ አልተቻለም።",
         "Followers": "ተከታዮች",
         "Following": "የሚከተሉት",
+        "Forum": "መድረክ",
+        "Join GloWe to see more and take part.": "ተጨማሪ ለማየትና ለመሳተፍ ወደ GloWe ይቀላቀሉ።",
+        "You're caught up": "ሁሉንም አይተዋል",
         "+ Follow": "+ ተከተል",
         "Following ✓": "እየተከተሉ ነው ✓",
         "Stop following": "መከተል አቁም",
