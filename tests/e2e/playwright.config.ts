@@ -10,8 +10,13 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 90_000,
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   expect: {
     timeout: process.env.CI ? 30_000 : 15_000,
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.04,
+      animations: 'disabled',
+    },
   },
   use: {
     baseURL,
@@ -50,10 +55,20 @@ export default defineConfig({
     {
       name: 'glowe',
       testMatch: /glowe-.*\.spec\.ts/,
-      testIgnore: /prod-health\.spec\.ts/,
+      testIgnore: /prod-health\.spec\.ts|glowe-visual\.spec\.ts/,
       dependencies: ['glowe-setup'],
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    // Visual regression — guest-only, no seed dependency. Runs in CI against
+    // GLOWE_STAGING_URL (PRs) or GLOWE_PROD_URL (release gate).
+    {
+      name: 'glowe-visual',
+      testMatch: /glowe-visual\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 900 },
       },
     },
     // Read-only GloWe live-site synthetics (INFRA-QA-W7). Uses GLOWE_PROD_URL

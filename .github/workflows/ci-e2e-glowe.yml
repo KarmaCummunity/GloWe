@@ -1,0 +1,137 @@
+name: CI — GloWe E2E (dev + staging)
+
+# GloWe Playwright gate on every PR/push to `staging` (integration) and `dev`
+# (production front door). Complements ci-e2e-dev.yml which still gates dev→main
+# release PRs. Visual regression runs here; prod-health stays in glowe-prod-smoke.
+
+on:
+  pull_request:
+    branches: [dev, staging]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'app/apps/glowe-web/**'
+      - 'app/VERSION'
+      - 'app/scripts/web-postbuild.mjs'
+      - 'app/scripts/glowe-minify-hash.mjs'
+      - 'tests/e2e/**'
+      - 'scripts/wait-for-url.mjs'
+      - 'scripts/seed-glowe-dev.mjs'
+      - '.github/workflows/ci-e2e-glowe.yml'
+      - '.github/workflows/deploy-web.yml'
+  push:
+    branches: [dev, staging]
+    paths:
+      - 'app/apps/glowe-web/**'
+      - 'app/VERSION'
+      - 'app/scripts/web-postbuild.mjs'
+      - 'app/scripts/glowe-minify-hash.mjs'
+      - 'tests/e2e/**'
+      - '.github/workflows/ci-e2e-glowe.yml'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'staging | prod'
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - prod
+
+concurrency:
+  group: ci-e2e-glowe-${{ github.event.pull_request.number || github.ref_name }}-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-target:
+    name: resolve GloWe URL
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    outputs:
+      glowe_url: ${{ steps.pick.outputs.glowe_url }}
+      label: ${{ steps.pick.outputs.label }}
+    steps:
+      - id: pick
+        env:
+          GLOWE_STAGING_URL: ${{ vars.GLOWE_STAGING_URL }}
+          GLOWE_PROD_URL: ${{ vars.GLOWE_PROD_URL }}
+          DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
+          DISPATCH_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          prod="${GLOWE_PROD_URL:-}"
+          if [ -z "$prod" ] && [ -n "${DEV_WEB_URL:-}" ]; then
+            prod="${DEV_WEB_URL%/}/glowe"
+          fi
+          staging="${GLOWE_STAGING_URL:-}"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$DISPATCH_TARGET" = "prod" ]; then url="$prod"; label="prod"; else url="$staging"; label="staging"; fi
+          elif [ "$BASE_REF" = "dev" ] || [ "${GITHUB_REF_NAME:-}" = "dev" ]; then
+            url="$prod"; label="prod"
+          else
+            url="$staging"; label="staging"
+          fi
+          if [ -z "$url" ]; then
+            echo "::error::Could not resolve GloWe target URL. Set GLOWE_STAGING_URL and GLOWE_PROD_URL."
+            exit 1
+          fi
+          echo "glowe_url=${url%/}" >> "$GITHUB_OUTPUT"
+          echo "label=$label" >> "$GITHUB_OUTPUT"
+          echo "GloWe E2E target ($label): ${url%/}"
+
+  glowe-journeys:
+    name: GloWe journeys (${{ needs.resolve-target.outputs.label }})
+    needs: resolve-target
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Wait for deploy
+        env:
+          GLOWE_URL: ${{ needs.resolve-target.outputs.glowe_url }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then sleep 90; fi
+          node scripts/wait-for-url.mjs "${GLOWE_URL%/}/" 16 15000
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install Playwright
+        working-directory: tests/e2e
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run GloWe journeys
+        working-directory: tests/e2e
+        env:
+          GLOWE_WEB_URL: ${{ needs.resolve-target.outputs.glowe_url }}
+          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
+          GLOWE_SEED_PASSWORD: ${{ secrets.GLOWE_SEED_PASSWORD }}
+        run: npx playwright test --project=glowe
+
+      - name: Run GloWe visual regression
+        working-directory: tests/e2e
+        env:
+          GLOWE_WEB_URL: ${{ needs.resolve-target.outputs.glowe_url }}
+        run: npx playwright test --project=glowe-visual
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-glowe-${{ needs.resolve-target.outputs.label }}-${{ github.run_id }}
+          path: |
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
