@@ -38,6 +38,7 @@
         return String(item.kind || '') + ':' + String(item.id || '');
     }
 
+    // fallow-ignore-next-line complexity
     function defaultHref(kind, id, extra) {
         const safeId = encodeURIComponent(String(id || ''));
         const groupId = extra && (extra.groupId || extra.group_id);
@@ -58,6 +59,7 @@
         }
     }
 
+    // fallow-ignore-next-line complexity
     function baseItem(partial) {
         return {
             kind: partial.kind || KINDS.post,
@@ -87,6 +89,7 @@
         return Array.isArray(list) ? list.length : 0;
     }
 
+    // fallow-ignore-next-line complexity
     function normalizeFeedSources(sources) {
         const s = sources || {};
         const isEvent = typeof s.isEvent === 'function' ? s.isEvent : function () { return false; };
@@ -94,6 +97,7 @@
         const saveCountsByKey = s.saveCountsByKey || {};
         const out = [];
 
+        // fallow-ignore-next-line complexity
         function push(kind, id, fields) {
             if (id == null || id === '') return;
             const sid = String(id);

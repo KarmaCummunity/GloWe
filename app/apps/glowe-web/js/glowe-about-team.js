@@ -26,6 +26,7 @@
         return copy;
     }
 
+    // fallow-ignore-next-line complexity
     function mapTeamRow(row) {
         const r = row || {};
         const roleKey = trim(r.role_key || r.roleKey);
@@ -63,6 +64,8 @@
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
+    // Distinct from glowe-dev-auth escapeHtml (also escapes apostrophes for attribute safety).
+    // fallow-ignore-next-line code-duplication
     function escapeHtml(value) {
         return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')

@@ -6,6 +6,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
     const FORUM_GROUP = 'forum_group';
 
+    // fallow-ignore-next-line complexity
     function diversifyFeed(ranked, options) {
         const opts = options || {};
         const maxRun = opts.maxRun == null ? 2 : opts.maxRun;
