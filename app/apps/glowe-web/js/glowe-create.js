@@ -11,9 +11,9 @@
     root.GloweCreate = api;
 })(typeof self !== 'undefined' ? self : this, function () {
     // ── Capability matrix ───────────────────────────────────────────────────
-    // Browser mirror of public.glowe_can_create() (migration 0236). The database
-    // is the enforcement point; this copy exists so the create menu renders
-    // without a round trip. Both are pinned to the same table by
+    // Browser mirror of public.glowe_can_create() (migrations 0236 + 0242). The
+    // database is the enforcement point; this copy exists so the create menu
+    // renders without a round trip. Both are pinned to the same table by
     // supabase/tests/0236_glowe_publish_guards.sql and
     // js/__tests__/glowe-create.test.js — if you change one, change all three.
     //
@@ -21,14 +21,18 @@
     //   'community' | 'wish' | 'outreach' | 'offer' → glowe_posts.post_type
     //   'opportunity' | 'event'                     → glowe_opportunities
     function canCreate(accountType, approvalStatus, kind) {
-        // FR-GLOWE-003: an organization is view-only until a reviewer approves it.
-        if (accountType === 'organization' && approvalStatus !== 'approved') return false;
-        // Calls FOR volunteers are hosted by an organization; an event is an
-        // opportunity carrying a date (D-66).
-        if (kind === 'opportunity' || kind === 'event') return accountType === 'organization';
-        // A volunteer offer is an individual offering their own time. Accounts
-        // that skipped onboarding have no account type and count as individuals.
-        if (kind === 'offer') return (accountType || 'individual') !== 'organization';
+        const type = accountType === 'organization' ? 'organization' : 'individual';
+        const approval = approvalStatus || 'not_required';
+        // Rejected org applications are view-only.
+        if (type === 'organization' && approval === 'rejected') return false;
+        // Calls FOR volunteers are hosted by an approved organization; an event
+        // is an opportunity carrying a date (D-66).
+        if (kind === 'opportunity' || kind === 'event') {
+            return type === 'organization' && approval === 'approved';
+        }
+        // A volunteer offer is an individual offering their own time. Pending
+        // org applicants keep individual permissions until approved.
+        if (kind === 'offer') return !(type === 'organization' && approval === 'approved');
         // Needs, community posts and outreach are open to both account types.
         return true;
     }
@@ -85,7 +89,7 @@
         const p = profile || {};
         const accountType = p.accountType === 'organization' ? 'organization' : 'individual';
         const approvalStatus = p.approvalStatus;
-        if (accountType === 'organization' && approvalStatus !== 'approved') {
+        if (accountType === 'organization' && approvalStatus === 'rejected') {
             return { state: 'unverified', types: [] };
         }
         return {

@@ -96,6 +96,18 @@
         return '';
     }
 
+    // Show the optional English name field in onboarding / edit-profile forms when
+    // the user typed a non-Latin primary name (FR-GLOWE-024 AC2/AC3).
+    function shouldPromptEnglishNameField(primary, lang) {
+        const p = trim(primary);
+        if (!p) return false;
+        if (!isPrimarilyLatin(p)) return true;
+        // Latin names are auto-copied to _en; no prompt unless the reader uses EN
+        // and might want an alternate spelling (rare — keep hidden).
+        void lang;
+        return false;
+    }
+
     // True when a fromProfileRow-shaped profile still needs an English fill.
     function profileNeedsEnglishName(profile) {
         const p = profile || {};
@@ -249,6 +261,7 @@
         localizedAuthorName: localizedAuthorName,
         localizedOrganizationName: localizedOrganizationName,
         englishNameOrCopy: englishNameOrCopy,
+        shouldPromptEnglishNameField: shouldPromptEnglishNameField,
         profileNeedsEnglishName: profileNeedsEnglishName,
         applyEnglishNamePatches: applyEnglishNamePatches,
         englishFromProfilePatch: englishFromProfilePatch,

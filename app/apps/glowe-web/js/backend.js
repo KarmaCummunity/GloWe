@@ -148,6 +148,15 @@
             .maybeSingle();
         if (updateError) throw updateError;
         if (updated) return updated;
+        // UPDATE may succeed but RETURNING empty (RLS/select quirks). Fetch before INSERT
+        // so we never hit a duplicate-key error on an existing row.
+        const { data: existing, error: fetchError } = await supabaseClient
+            .from(tbl('profiles'))
+            .select(PROFILE_PUBLIC_COLUMNS)
+            .eq('id', id)
+            .maybeSingle();
+        if (fetchError) throw fetchError;
+        if (existing) return existing;
         const { data: inserted, error: insertError } = await supabaseClient
             .from(tbl('profiles'))
             .insert(payload)
@@ -658,6 +667,12 @@
         };
         // Avoid `.upsert()` — PostgREST rejects it under 0236 column grants.
         const data = await saveProfileRow(supabaseClient, payload);
+        if (isOrg && data.approval_status !== 'pending') {
+            throw new Error(
+                'Your organization application could not be queued for review. '
+                + 'Please try again or contact GloWe support.'
+            );
+        }
         // Echo the private half back from the payload rather than re-reading it
         // through glowe_get_self_private_fields() — we just wrote these values.
         return fromProfileRow(data, {

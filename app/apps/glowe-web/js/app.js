@@ -104,16 +104,16 @@ function showActionToast(title, message) {
 // ── View-only write gating (FR-GLOWE-003) ───────────────────────────────────
 // Browsing is open to everyone, but creating content (a need, post, event, or
 // discussion) requires a registered account that is allowed to publish. Two
-// gates: (1) unregistered "peek" visitors cannot write; (2) an organization is
-// view-only until a KC reviewer approves it (approval_status === 'approved').
-// Individuals never need approval. Returns { allowed, reason }.
+// gates: (1) unregistered "peek" visitors cannot write; (2) a rejected org
+// application is view-only. Pending org applicants keep individual permissions
+// until approved (migration 0242). Returns { allowed, reason }.
 function gloweWriteGate() {
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
         return { allowed: false, reason: 'anon' };
     }
     const profile = (typeof getPersonalProfile === 'function') ? getPersonalProfile() : {};
     const isOrg = profile.accountType === 'organization' || profile.type === 'organization';
-    if (isOrg && profile.approvalStatus && profile.approvalStatus !== 'approved') {
+    if (isOrg && profile.approvalStatus === 'rejected') {
         return { allowed: false, reason: 'org-unverified' };
     }
     return { allowed: true, reason: 'ok' };
@@ -131,8 +131,8 @@ function canCreateContent(actionKey) {
         }
     } else {
         showSuccessModal(
-            'Awaiting verification',
-            'Your organization is under review. Until it is approved you can explore everything, but publishing needs, posts, and events is paused — we only publish verified organizations.'
+            'Application not approved',
+            'Your organization application was not approved. You can still browse GloWe, but publishing is paused. Contact support if you think this is a mistake.'
         );
     }
     return false;
@@ -164,8 +164,8 @@ function handleGatedCreateMenu(state) {
     }
     if (state.state === 'unverified') {
         showSuccessModal(
-            'Awaiting verification',
-            'Your organization is under review. Until it is approved you can explore everything, but publishing needs, posts, and events is paused — we only publish verified organizations.'
+            'Application not approved',
+            'Your organization application was not approved. You can still browse GloWe, but publishing is paused. Contact support if you think this is a mistake.'
         );
         return false;
     }
@@ -486,6 +486,51 @@ function syncProfileEnglishFields() {
         'edit-profile-org-name',
         'edit-profile-org-name-en'
     );
+    syncEnglishNameFieldVisibility(
+        'edit-profile-upgrade-org-name-en-wrap',
+        'edit-profile-upgrade-org-name',
+        'edit-profile-upgrade-org-name-en'
+    );
+}
+
+function clearGloweFieldErrors(formEl) {
+    const root = formEl || document;
+    root.querySelectorAll('.form-group.glowe-field-invalid').forEach(function (group) {
+        group.classList.remove('glowe-field-invalid');
+    });
+}
+
+function validateGloweRequiredFieldIds(fieldIds, formEl) {
+    clearGloweFieldErrors(formEl);
+    const invalid = [];
+    (fieldIds || []).forEach(function (id) {
+        const el = document.getElementById(id);
+        const empty = !el || !String(el.value || '').trim();
+        if (empty) {
+            invalid.push(id);
+            const group = el && el.closest('.form-group');
+            if (group) group.classList.add('glowe-field-invalid');
+        }
+    });
+    if (!invalid.length) return true;
+    const first = document.getElementById(invalid[0]);
+    if (first) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try { first.focus({ preventScroll: true }); } catch (_) { first.focus(); }
+    }
+    return false;
+}
+
+function syncEditProfileUpgradeLayout() {
+    const toggle = document.getElementById('edit-profile-upgrade-org-toggle');
+    const fields = document.getElementById('edit-profile-upgrade-org-fields');
+    const submitBtn = document.querySelector('#edit-profile-modal button[type="submit"]');
+    const show = Boolean(toggle && toggle.checked);
+    if (fields) fields.hidden = !show;
+    if (submitBtn) {
+        submitBtn.textContent = show ? 'Submit organization application' : 'Save profile';
+    }
+    syncProfileEnglishFields();
 }
 
 function syncOnboardingFormLayout() {
@@ -509,6 +554,8 @@ function wireOnboardingFormUx() {
     if (!form || form.dataset.uxWired === '1') return;
     form.dataset.uxWired = '1';
     form.addEventListener('input', function (event) {
+        const group = event.target && event.target.closest('.form-group.glowe-field-invalid');
+        if (group) group.classList.remove('glowe-field-invalid');
         const id = event.target && event.target.id;
         if (id === 'onboarding-display-name' || id === 'onboarding-org-name') {
             syncOnboardingEnglishFields();
@@ -574,22 +621,17 @@ async function handleGloweOnboarding(event) {
     const checked = document.querySelector('input[name="onboarding-account-type"]:checked');
     const accountType = checked ? checked.value : 'individual';
     const isOrg = accountType === 'organization';
+    const form = document.getElementById('glowe-onboarding-form');
 
-    if (!isOrg && !val('onboarding-display-name')) {
-        alert('Please add your name to continue.');
+    if (!isOrg) {
+        if (!validateGloweRequiredFieldIds(['onboarding-display-name'], form)) return;
+    } else if (!validateGloweRequiredFieldIds([
+        'onboarding-org-name',
+        'onboarding-org-description',
+        'onboarding-org-contact-name',
+        'onboarding-org-contact-email'
+    ], form)) {
         return;
-    }
-
-    if (isOrg) {
-        const missing = [];
-        if (!val('onboarding-org-name')) missing.push('organization name');
-        if (!val('onboarding-org-description')) missing.push('about the organization');
-        if (!val('onboarding-org-contact-name')) missing.push('contact person');
-        if (!val('onboarding-org-contact-email')) missing.push('contact email');
-        if (missing.length) {
-            alert('To submit your organization for review, please add: ' + missing.join(', ') + '.');
-            return;
-        }
     }
 
     const submitBtn = document.getElementById('onboarding-submit');
@@ -632,12 +674,15 @@ async function handleGloweOnboarding(event) {
             }
         }
         closeModal('glowe-onboarding-modal');
+        if (typeof syncPersonalDataFromBackend === 'function') {
+            await syncPersonalDataFromBackend().catch(() => {});
+        }
         if (typeof updateAuthUI === 'function') updateAuthUI();
         if (typeof window.renderPersonalArea === 'function') window.renderPersonalArea();
         showSuccessModal(
             isOrg ? 'Application submitted' : "You're all set!",
             isOrg
-                ? "Thanks! The GloWe team will review your organization. Until then you can explore everything — publishing unlocks once you're approved."
+                ? "Thanks! The GloWe team will review your organization. While you wait you can still post as an individual — opportunities and events unlock once you're approved."
                 : 'Welcome to GloWe. Your profile is ready and you have full access.'
         );
     } catch (error) {
@@ -1941,6 +1986,20 @@ async function applyAdminLink() {
     link.title = 'Admin review';
     link.setAttribute('aria-label', 'Admin review');
     link.innerHTML = shieldSvg;
+    if (typeof backend.listPendingOrgs === 'function') {
+        try {
+            const orgs = await backend.listPendingOrgs();
+            const count = Array.isArray(orgs) ? orgs.length : 0;
+            if (count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'glowe-admin-pending-badge';
+                badge.textContent = count > 99 ? '99+' : String(count);
+                badge.setAttribute('aria-label', `${count} pending organization application${count === 1 ? '' : 's'}`);
+                link.appendChild(badge);
+                link.title = `Admin review (${count} pending)`;
+            }
+        } catch (_) { /* badge is optional */ }
+    }
     corner.appendChild(link);
 }
 window.applyAdminLink = applyAdminLink;
@@ -2375,6 +2434,70 @@ function ensureGlobalUI() {
                                 <label for="edit-profile-public-link">Website / public link</label>
                                 <input id="edit-profile-public-link" type="url" placeholder="https://...">
                             </div>
+                            <div id="edit-profile-upgrade-org-section" class="edit-profile-upgrade-section">
+                                <h3 class="onboarding-section-title">Register as an organization</h3>
+                                <p class="onboarding-review-note">Represent an NGO, nonprofit, or initiative? Submit an application for review. Until you are approved you can browse everything — publishing unlocks once approved.</p>
+                                <label class="edit-profile-upgrade-toggle">
+                                    <input type="checkbox" id="edit-profile-upgrade-org-toggle" onchange="syncEditProfileUpgradeLayout()">
+                                    <span>I want to register my organization on GloWe</span>
+                                </label>
+                                <div id="edit-profile-upgrade-org-fields" hidden>
+                                    <h3 class="onboarding-section-title">The organization</h3>
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-name">Organization name *</label>
+                                            <input id="edit-profile-upgrade-org-name" type="text" placeholder="Registered / public name">
+                                        </div>
+                                        <div class="form-group onboarding-english-field" id="edit-profile-upgrade-org-name-en-wrap" hidden>
+                                            <label for="edit-profile-upgrade-org-name-en">Organization name in English (optional)</label>
+                                            <input id="edit-profile-upgrade-org-name-en" type="text" placeholder="Organization name in English">
+                                        </div>
+                                    </div>
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-registration">Registration / NGO number</label>
+                                            <input id="edit-profile-upgrade-org-registration" type="text" placeholder="Legal registration number">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-website">Website</label>
+                                            <input id="edit-profile-upgrade-org-website" type="url" placeholder="https://...">
+                                        </div>
+                                    </div>
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-field">Field / sector *</label>
+                                            <input id="edit-profile-upgrade-org-field" type="text" placeholder="Education, health, environment...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-country">Country *</label>
+                                            <input id="edit-profile-upgrade-org-country" type="text" placeholder="Country">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="edit-profile-upgrade-org-size">Size (optional)</label>
+                                        <input id="edit-profile-upgrade-org-size" type="text" placeholder="e.g. 1-10, 11-50">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="edit-profile-upgrade-org-description">About the organization *</label>
+                                        <textarea id="edit-profile-upgrade-org-description" rows="4" placeholder="Mission, who you serve, and what you would do on GloWe."></textarea>
+                                    </div>
+                                    <h3 class="onboarding-section-title">You (contact person)</h3>
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-contact-name">Contact name *</label>
+                                            <input id="edit-profile-upgrade-org-contact-name" type="text" placeholder="Who we should talk to">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="edit-profile-upgrade-org-contact-email">Contact email *</label>
+                                            <input id="edit-profile-upgrade-org-contact-email" type="email" placeholder="email@example.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="edit-profile-upgrade-org-contact-phone">Contact phone (optional)</label>
+                                        <input id="edit-profile-upgrade-org-contact-phone" type="tel" placeholder="+972...">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div id="edit-profile-fields-organization" hidden>
                             <h3 class="onboarding-section-title">The organization</h3>
@@ -2527,7 +2650,7 @@ function ensureGlobalUI() {
                         </div>
                         <div id="onboarding-org-fields" hidden>
                             <h3 class="onboarding-section-title">The organization</h3>
-                            <p class="onboarding-review-note">Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.</p>
+                            <p class="onboarding-review-note">Organizations are reviewed by the GloWe team. While your application is pending you can still post as an individual (needs, offers, community posts). Opportunities and events unlock once you're approved.</p>
                             <div class="form-group">
                                 <label for="onboarding-org-name">Organization name *</label>
                                 <input id="onboarding-org-name" type="text" placeholder="Registered / public name">
@@ -2590,6 +2713,7 @@ function ensureGlobalUI() {
                 </div>
             </div>
         `);
+        wireOnboardingFormUx();
     }
 
     if (!document.getElementById('add-project-modal')) {
@@ -2952,8 +3076,14 @@ async function openEditProfile(profileName = '') {
     const isOrg = profile.accountType === 'organization';
     const individualPanel = document.getElementById('edit-profile-fields-individual');
     const orgPanel = document.getElementById('edit-profile-fields-organization');
+    const upgradeSection = document.getElementById('edit-profile-upgrade-org-section');
     if (individualPanel) individualPanel.hidden = isOrg;
     if (orgPanel) orgPanel.hidden = !isOrg;
+    if (upgradeSection) upgradeSection.hidden = isOrg;
+
+    const upgradeToggle = document.getElementById('edit-profile-upgrade-org-toggle');
+    if (upgradeToggle) upgradeToggle.checked = false;
+    syncEditProfileUpgradeLayout();
 
     const nameEl = document.getElementById('edit-profile-name');
     const orgNameEl = document.getElementById('edit-profile-org-name');
@@ -2993,6 +3123,15 @@ async function openEditProfile(profileName = '') {
         if (countryEl) countryEl.value = profile.country || '';
         const publicLinkEl = document.getElementById('edit-profile-public-link');
         if (publicLinkEl) publicLinkEl.value = profile.publicLink || '';
+        const upgradeContactName = document.getElementById('edit-profile-upgrade-org-contact-name');
+        if (upgradeContactName) upgradeContactName.value = profile.orgContactName || profile.name || '';
+        const upgradeContactEmail = document.getElementById('edit-profile-upgrade-org-contact-email');
+        if (upgradeContactEmail) {
+            const user = (typeof getCurrentUser === 'function' && getCurrentUser()) || {};
+            upgradeContactEmail.value = profile.orgContactEmail || user.email || '';
+        }
+        const upgradeCountry = document.getElementById('edit-profile-upgrade-org-country');
+        if (upgradeCountry) upgradeCountry.value = profile.country || '';
     }
     wireEditProfileFormUx();
     syncProfileEnglishFields();
@@ -3004,11 +3143,18 @@ function wireEditProfileFormUx() {
     if (!form || form.dataset.uxWired === '1') return;
     form.dataset.uxWired = '1';
     form.addEventListener('input', function (event) {
+        const group = event.target && event.target.closest('.form-group.glowe-field-invalid');
+        if (group) group.classList.remove('glowe-field-invalid');
         const id = event.target && event.target.id;
-        if (id === 'edit-profile-name' || id === 'edit-profile-org-name') {
+        if (id === 'edit-profile-name' || id === 'edit-profile-org-name'
+            || id === 'edit-profile-upgrade-org-name') {
             syncProfileEnglishFields();
         }
     });
+    const upgradeToggle = document.getElementById('edit-profile-upgrade-org-toggle');
+    if (upgradeToggle) {
+        upgradeToggle.addEventListener('change', syncEditProfileUpgradeLayout);
+    }
 }
 
 let avatarEditPendingFile = null;
@@ -3321,6 +3467,76 @@ async function handleProfileEdit(event) {
     };
     const existing = getPersonalProfile();
     const isOrg = existing.accountType === 'organization';
+    const upgradeToggle = document.getElementById('edit-profile-upgrade-org-toggle');
+    const wantsOrgUpgrade = !isOrg && Boolean(upgradeToggle && upgradeToggle.checked);
+
+    if (wantsOrgUpgrade) {
+        const upgradeForm = document.querySelector('#edit-profile-modal form');
+        if (!validateGloweRequiredFieldIds([
+            'edit-profile-upgrade-org-name',
+            'edit-profile-upgrade-org-description',
+            'edit-profile-upgrade-org-field',
+            'edit-profile-upgrade-org-country',
+            'edit-profile-upgrade-org-contact-name',
+            'edit-profile-upgrade-org-contact-email'
+        ], upgradeForm)) {
+            return;
+        }
+        if (!(window.gloweBackend && window.gloweBackend.configured()
+              && typeof window.gloweBackend.completeOnboarding === 'function')) {
+            showToast('Organization applications are unavailable right now. Please try again later.', { error: true });
+            return;
+        }
+        const contactName = val('edit-profile-upgrade-org-contact-name');
+        const details = {
+            displayName: contactName,
+            displayNameEn: '',
+            country: val('edit-profile-upgrade-org-country'),
+            about: '',
+            accountType: 'organization',
+            org: {
+                name: val('edit-profile-upgrade-org-name'),
+                nameEn: val('edit-profile-upgrade-org-name-en'),
+                registrationNumber: val('edit-profile-upgrade-org-registration'),
+                website: val('edit-profile-upgrade-org-website'),
+                country: val('edit-profile-upgrade-org-country'),
+                field: val('edit-profile-upgrade-org-field'),
+                size: val('edit-profile-upgrade-org-size'),
+                description: val('edit-profile-upgrade-org-description'),
+                contactName,
+                contactEmail: val('edit-profile-upgrade-org-contact-email'),
+                contactPhone: val('edit-profile-upgrade-org-contact-phone')
+            }
+        };
+        try {
+            const profile = await window.gloweBackend.completeOnboarding(details);
+            if (profile) {
+                localStorage.setItem(PERSONAL_PROFILE_KEY, JSON.stringify(profile));
+                if (typeof getCurrentUser === 'function') {
+                    const current = getCurrentUser() || {};
+                    localStorage.setItem('gloweUser', JSON.stringify({
+                        ...current,
+                        name: profile.name || current.name,
+                        type: profile.type || current.type
+                    }));
+                }
+            }
+            closeModal('edit-profile-modal');
+            if (typeof syncPersonalDataFromBackend === 'function') {
+                await syncPersonalDataFromBackend().catch(() => {});
+            }
+            if (typeof updateAuthUI === 'function') updateAuthUI();
+            if (typeof window.renderPersonalArea === 'function') window.renderPersonalArea();
+            showSuccessModal(
+                'Application submitted',
+                "Thanks! The GloWe team will review your organization. While you wait you can still post as an individual — opportunities and events unlock once you're approved."
+            );
+        } catch (error) {
+            showToast((error && error.message) || 'Could not submit your organization application.', { error: true });
+        }
+        return;
+    }
+
     let profileDraft;
 
     if (isOrg) {
@@ -7389,7 +7605,7 @@ function renderPendingOrgs(orgs) {
     const orgStat = document.querySelector('[data-admin-stat="orgs"]');
     if (orgStat) orgStat.textContent = orgs.length;
     if (!orgs.length) {
-        container.innerHTML = '<div class="empty-state"><h3>No pending organizations</h3><p>Verified organizations will publish freely; new submissions show up here.</p></div>';
+        container.innerHTML = '<div class="empty-state"><h3>No pending organizations</h3><p>Only organization applications awaiting review appear here (status: pending). If someone just submitted, ask them to confirm they saw “Application submitted”, then refresh.</p><button type="button" class="btn btn-outline btn-small" onclick="loadPendingOrgs()">Refresh queue</button></div>';
         return;
     }
     container.innerHTML = orgs.map(org => {

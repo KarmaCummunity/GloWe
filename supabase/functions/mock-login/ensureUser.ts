@@ -109,6 +109,25 @@ async function ensureGloweProfile(
   displayName: string,
   input: Pick<MockLoginInput, 'profileType' | 'approvalStatus'> = {},
 ): Promise<void> {
+  const { data: existing } = await admin
+    .from('glowe_profiles')
+    .select('account_type, approval_status')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const preservePendingOrg =
+    existing?.account_type === 'organization'
+    && (existing.approval_status === 'pending' || existing.approval_status === 'rejected')
+    && input.profileType !== 'organization';
+
+  if (preservePendingOrg) {
+    await admin.from('glowe_profiles').update({
+      email,
+      display_name: displayName,
+    }).eq('id', userId);
+    return;
+  }
+
   const accountType = normalizeProfileType(input.profileType);
   const approvalStatus = normalizeApprovalStatus(accountType, input.approvalStatus);
   const row: Record<string, unknown> = {

@@ -8,7 +8,7 @@
 --
 -- Covered:
 --   • capability matrix (glowe_can_create) for every account/kind pair
---   • a pending org cannot publish posts or opportunities
+--   • a pending org keeps individual publish rights; opportunities/events stay blocked
 --   • an approved org can publish opportunities and events, but not offers
 --   • an individual can publish posts/wishes/offers, but not opportunities/events
 --   • pending & rejected org applications are invisible to other users
@@ -86,7 +86,10 @@ begin
         ('organization',    'approved',      'opportunity',  true),
         ('organization',    'approved',      'event',        true),
         ('organization',    'approved',      'offer',        false),
-        ('organization',    'pending',       'community',    false),
+        ('organization',    'pending',       'community',    true),
+        ('organization',    'pending',       'wish',         true),
+        ('organization',    'pending',       'outreach',     true),
+        ('organization',    'pending',       'offer',        true),
         ('organization',    'pending',       'opportunity',  false),
         ('organization',    'pending',       'event',        false),
         ('organization',    'rejected',      'community',    false),
@@ -134,15 +137,13 @@ begin
 end $$;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- Part 2 — a PENDING org cannot publish anything
+-- Part 2 — a PENDING org keeps individual publish rights; org-only kinds blocked
 -- ═══════════════════════════════════════════════════════════════════════════
 select pg_temp.act_as('00000000-0000-0000-0000-000000236a01');
 set local role authenticated;
 
-select pg_temp.expect_blocked($q$
-  insert into public.glowe_posts (user_id, title, post_type)
-  values ('00000000-0000-0000-0000-000000236a01', 'Sneaky post', 'community')
-$q$, 'glowe_publish_forbidden');
+insert into public.glowe_posts (user_id, title, post_type)
+values ('00000000-0000-0000-0000-000000236a01', 'Pending org community post', 'community');
 
 select pg_temp.expect_blocked($q$
   insert into public.glowe_opportunities (user_id, title, organization)

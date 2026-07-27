@@ -125,6 +125,15 @@ describe('englishNameOrCopy', () => {
     });
 });
 
+describe('shouldPromptEnglishNameField', () => {
+    it('prompts for non-Latin primary names only', () => {
+        expect(GloweLocalizedName.shouldPromptEnglishNameField('', 'en')).toBe(false);
+        expect(GloweLocalizedName.shouldPromptEnglishNameField('Naveh', 'en')).toBe(false);
+        expect(GloweLocalizedName.shouldPromptEnglishNameField('נווה', 'he')).toBe(true);
+        expect(GloweLocalizedName.shouldPromptEnglishNameField('נווה', 'en')).toBe(true);
+    });
+});
+
 describe('profileNeedsEnglishName / applyEnglishNamePatches', () => {
     it('detects missing English for Hebrew org names', () => {
         expect(GloweLocalizedName.profileNeedsEnglishName({

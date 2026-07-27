@@ -8174,6 +8174,29 @@ html[dir="rtl"] .org-review-banner__note {
     color: var(--text-secondary);
 }
 
+.edit-profile-upgrade-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.edit-profile-upgrade-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 0 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.edit-profile-upgrade-toggle input {
+    margin-top: 3px;
+}
+
+#edit-profile-upgrade-org-fields {
+    margin-top: 8px;
+}
+
 #onboarding-org-fields {
     margin-top: 6px;
     padding-top: 16px;
@@ -9068,6 +9091,43 @@ body.glowe-member-home main > section:not(#member-home) {
     position: absolute;
     top: -6px;
     inset-inline-end: -6px;
+}
+
+.glowe-admin-pending-badge {
+    position: absolute;
+    top: -6px;
+    inset-inline-end: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: var(--white);
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.form-group.glowe-field-invalid label {
+    color: #dc2626;
+}
+
+.form-group.glowe-field-invalid input,
+.form-group.glowe-field-invalid textarea,
+.form-group.glowe-field-invalid select {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.25);
+}
+
+.form-group.glowe-field-invalid input:focus,
+.form-group.glowe-field-invalid textarea:focus,
+.form-group.glowe-field-invalid select:focus {
+    outline-color: #dc2626;
+    border-color: #dc2626;
 }
 
 .chat-thread {

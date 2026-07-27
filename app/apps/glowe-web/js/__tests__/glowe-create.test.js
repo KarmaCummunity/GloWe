@@ -21,7 +21,10 @@ describe('canCreate — mirrors public.glowe_can_create (migration 0236)', () =>
     ['organization', 'approved', 'opportunity', true],
     ['organization', 'approved', 'event', true],
     ['organization', 'approved', 'offer', false],
-    ['organization', 'pending', 'community', false],
+    ['organization', 'pending', 'community', true],
+    ['organization', 'pending', 'wish', true],
+    ['organization', 'pending', 'outreach', true],
+    ['organization', 'pending', 'offer', true],
     ['organization', 'pending', 'opportunity', false],
     ['organization', 'pending', 'event', false],
     ['organization', 'rejected', 'community', false],
@@ -49,7 +52,8 @@ describe('createMenuState', () => {
 
   it('unapproved organizations are view-only', () => {
     const pending = GloweCreate.createMenuState(true, { accountType: 'organization', approvalStatus: 'pending' });
-    expect(pending.state).toBe('unverified');
+    expect(pending.state).toBe('ok');
+    expect(pending.types.map(t => t.id)).toEqual(['post', 'need', 'offer']);
     const rejected = GloweCreate.createMenuState(true, { accountType: 'organization', approvalStatus: 'rejected' });
     expect(rejected.state).toBe('unverified');
   });

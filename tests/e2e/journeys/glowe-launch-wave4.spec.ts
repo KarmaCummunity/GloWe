@@ -218,7 +218,7 @@ test.describe('GloWe launch Wave 4 — Wave 0 server rules (API negative)', () =
     expect(await canCreate('individual', 'not_required', 'opportunity')).toBe(false);
     expect(await canCreate('individual', 'not_required', 'event')).toBe(false);
 
-    expect(await canCreate('organization', 'pending', 'community')).toBe(false);
+    expect(await canCreate('organization', 'pending', 'community')).toBe(true);
     expect(await canCreate('organization', 'pending', 'opportunity')).toBe(false);
 
     expect(await canCreate('organization', 'approved', 'opportunity')).toBe(true);
