@@ -1410,10 +1410,25 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
+## D-185 — GloWe publishing rules and profile privacy are enforced in Postgres (2026-07-27)
+
+**Decision.** The GloWe capability matrix (who may publish which content kind) lives in `public.glowe_can_create()` and is applied by `BEFORE INSERT` triggers on `glowe_posts` and `glowe_opportunities`. The browser keeps a mirror in `canCreate()` (`glowe-create.js`) purely to render the create menu without a round trip; the database is the enforcement point. `glowe_profiles` moves to the migration-0163 pattern used by `public.users`: a row policy that hides unapproved organization applications, column-scoped `SELECT` grants that exclude PII, a `glowe_public_profiles` projection view, and an owner-only `glowe_get_self_private_fields()` RPC. Content creation is rate limited via the existing `enforce_rate_limit()` (30 posts / 15 opportunities / 40 applications per hour), exempting non-client JWT roles.
+
+**Rationale.** Pre-launch review found all three rules existed only as client-side JavaScript: any signed-in user could POST directly at PostgREST to publish as an unapproved organization or create an event as a private individual, and `anon` could read every pending/rejected organization application together with the reviewer's private `org_review_note`, org contact details and the `raw_profile` PII blob.
+
+**Consequence (deliberate).** An organization's contact email is no longer rendered on its public profile page; the page falls back to "Contact through GloWe messages". Applicant emails still reach opportunity owners, which flows through the `SECURITY DEFINER` RPC in migration 0220.
+
+**Alternatives rejected.** Keep the checks client-side and accept the risk; use a `SECURITY DEFINER` view instead of column grants (diverges from the existing `users_public` pattern); enforce the rules in Edge Functions (leaves the direct PostgREST path open).
+
+**Affected.** `supabase/migrations/0236_glowe_publish_guards_and_profile_privacy.sql`, `supabase/tests/0236_glowe_publish_guards.sql`, `app/apps/glowe-web/js/{backend.js,glowe-create.js}`; FR-GLOWE-003, FR-GLOWE-016; supersedes the blanket read policy in migration 0204.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |
 | 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |
 | 4.14 | 2026-07-22 | Added `D-183` (GloWe follow on KC `follow_edges` via `backend.js` + `glowe-follow.js`; public MVP only; FR-GLOWE-026). |
 | 4.13 | 2026-07-22 | Added `D-182` (GloWe prod synthetics → `glowe_health_checks` + admin health panel; `INFRA-QA-W7`). |

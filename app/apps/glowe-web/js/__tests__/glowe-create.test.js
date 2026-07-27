@@ -1,6 +1,45 @@
 import { describe, it, expect } from 'vitest';
 import GloweCreate from '../glowe-create.js';
 
+// This table is the browser half of the publishing capability matrix. It must
+// stay identical to Part 1 of supabase/tests/0236_glowe_publish_guards.sql,
+// which pins public.glowe_can_create() — the database is what actually enforces
+// these rules, this mirror only decides which buttons get rendered.
+describe('canCreate — mirrors public.glowe_can_create (migration 0236)', () => {
+  const MATRIX = [
+    ['individual', 'not_required', 'community', true],
+    ['individual', 'not_required', 'wish', true],
+    ['individual', 'not_required', 'outreach', true],
+    ['individual', 'not_required', 'offer', true],
+    ['individual', 'not_required', 'opportunity', false],
+    ['individual', 'not_required', 'event', false],
+    [null, 'not_required', 'community', true],
+    [null, 'not_required', 'offer', true],
+    [null, 'not_required', 'event', false],
+    ['organization', 'approved', 'community', true],
+    ['organization', 'approved', 'wish', true],
+    ['organization', 'approved', 'opportunity', true],
+    ['organization', 'approved', 'event', true],
+    ['organization', 'approved', 'offer', false],
+    ['organization', 'pending', 'community', false],
+    ['organization', 'pending', 'opportunity', false],
+    ['organization', 'pending', 'event', false],
+    ['organization', 'rejected', 'community', false],
+    ['organization', 'rejected', 'event', false]
+  ];
+
+  it.each(MATRIX)('%s / %s may create %s → %s', (accountType, approval, kind, expected) => {
+    expect(GloweCreate.canCreate(accountType, approval, kind)).toBe(expected);
+  });
+
+  it('every registry entry declares a kind the matrix understands', () => {
+    const kinds = ['community', 'wish', 'outreach', 'offer', 'opportunity', 'event'];
+    GloweCreate.GLOWE_CREATE_TYPES.forEach((t) => {
+      expect(kinds).toContain(t.kind);
+    });
+  });
+});
+
 describe('createMenuState', () => {
   it('anon viewers get the sign-in state and no types', () => {
     const state = GloweCreate.createMenuState(false, null);
