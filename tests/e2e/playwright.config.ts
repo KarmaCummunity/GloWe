@@ -55,8 +55,18 @@ export default defineConfig({
     {
       name: 'glowe',
       testMatch: /glowe-.*\.spec\.ts/,
-      testIgnore: /prod-health\.spec\.ts|glowe-visual\.spec\.ts/,
+      // Local-only mock-login is a separate project (requires :4321 + local Supabase).
+      // Visual has its own project so a journey failure does not skip screenshots.
+      testIgnore: /prod-health\.spec\.ts|glowe-visual\.spec\.ts|glowe-local-dev-login\.spec\.ts/,
       dependencies: ['glowe-setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    // Local Supabase + mock-login personas only. Never runs in hosted CI.
+    {
+      name: 'glowe-local',
+      testMatch: /glowe-local-dev-login\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
       },

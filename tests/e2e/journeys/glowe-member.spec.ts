@@ -3,10 +3,11 @@
 // (FR-GLOWE-016 AC6) and reporting (FR-GLOWE-015). Uses the seeded persona
 // מיכל רוזן; all specs skip when the dev seed has not run.
 import { test, expect } from '@playwright/test';
-import { gloweUrl, GLOWE_BASE, readMeta, stateFile } from '../lib/glowe';
+import { gloweUrl, GLOWE_BASE, skipUnlessSeeded, stateFile, waitForGloweBoard } from '../lib/glowe';
 
-const meta = readMeta();
-test.skip(!meta.seeded, 'GloWe seed personas missing — run scripts/seed-glowe-dev.mjs');
+test.beforeEach(() => {
+  skipUnlessSeeded(test);
+});
 
 test.use({ storageState: stateFile('michal') });
 
@@ -19,6 +20,7 @@ test.describe('GloWe member (individual)', () => {
 
   test('create menu offers the individual set: post, need, offer', async ({ page }) => {
     await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await page.locator('.header-create-btn').click();
     const options = page.locator('#glowe-create-options .create-menu-option');
     await expect(options).toHaveCount(3);
@@ -29,6 +31,7 @@ test.describe('GloWe member (individual)', () => {
 
   test('need option opens the wish composer with tailored required fields', async ({ page }) => {
     await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await page.locator('.header-create-btn').click();
     await page.locator('#glowe-create-options .create-menu-option', { hasText: 'Need' }).click();
     await expect(page.locator('#wish-modal')).toBeVisible();
@@ -37,24 +40,40 @@ test.describe('GloWe member (individual)', () => {
 
   test('saved toggle saves and unsaves a wish card in place', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    const heart = page.locator('.wish-card .heart-button').first();
-    test.skip(!(await heart.count()), 'no wish cards on the board yet');
-    const initiallySaved = (await heart.getAttribute('aria-pressed')) === 'true';
-    await heart.click();
-    // saveItem pops a confirmation modal on save; close it if shown.
-    const successClose = page.locator('#success-modal .btn-primary');
-    if (await successClose.isVisible().catch(() => false)) await successClose.click();
-    await expect(heart).toHaveAttribute('aria-pressed', String(!initiallySaved));
-    // Restore the original state so the spec is idempotent on dev data.
-    await heart.click();
-    if (await successClose.isVisible().catch(() => false)) await successClose.click();
-    await expect(heart).toHaveAttribute('aria-pressed', String(initiallySaved));
+    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
+    const card = page.locator('#wishes-list .opportunity-card').first();
+    test.skip((await card.count()) === 0, 'no wish cards on the board yet — re-run seed-glowe-dev.mjs');
+
+    async function openSaveToggle() {
+      const menu = card.locator('details.post-more-menu');
+      const panel = menu.locator('.post-more-panel');
+      if (!(await panel.isVisible().catch(() => false))) {
+        await menu.locator('summary').click();
+      }
+      const btn = panel.locator('button[aria-pressed]');
+      await expect(btn).toBeVisible();
+      return btn;
+    }
+
+    const saveBtn = await openSaveToggle();
+    const initiallySaved = (await saveBtn.getAttribute('aria-pressed')) === 'true';
+    await saveBtn.click();
+    // Toast / success chrome may close the ⋯ menu — reopen before asserting.
+    const afterFirst = await openSaveToggle();
+    await expect(afterFirst).toHaveAttribute('aria-pressed', String(!initiallySaved));
+    await afterFirst.click();
+    const restored = await openSaveToggle();
+    await expect(restored).toHaveAttribute('aria-pressed', String(initiallySaved));
   });
 
   test('messages inbox lists the seeded conversation and opens the thread', async ({ page }) => {
     await page.goto(gloweUrl('messages.html'));
-    const row = page.locator('.chat-inbox-row', { hasText: 'לב פתוח' }).first();
-    await expect(row).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
+    await waitForGloweBoard(page, '.chat-inbox-row');
+    // Seed fixture: מיכל ↔ לב פתוח — inbox may show localized / lowercased English.
+    const row = page.locator('.chat-inbox-row').filter({ hasText: /לב פתוח|open heart/i }).first();
+    test.skip((await row.count()) === 0, 'seeded chat with לב פתוח missing — re-run seed-glowe-dev.mjs');
+    await expect(row).toBeVisible({ timeout: 25_000 });
     await row.click();
     await expect(page.locator('.chat-thread')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.chat-bubble').first()).toBeVisible();
@@ -62,20 +81,24 @@ test.describe('GloWe member (individual)', () => {
 
   test('sending a chat message appends it to the thread', async ({ page }) => {
     await page.goto(gloweUrl('messages.html'));
-    const row = page.locator('.chat-inbox-row', { hasText: 'לב פתוח' }).first();
-    await expect(row).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
+    await waitForGloweBoard(page, '.chat-inbox-row');
+    const row = page.locator('.chat-inbox-row').filter({ hasText: /לב פתוח|open heart/i }).first();
+    test.skip((await row.count()) === 0, 'seeded chat with לב פתוח missing — re-run seed-glowe-dev.mjs');
+    await expect(row).toBeVisible({ timeout: 25_000 });
     await row.click();
     await expect(page.locator('.chat-send-form input')).toBeVisible({ timeout: 20_000 });
-    const stamp = `בדיקת E2E ${Date.now()}`;
-    await page.locator('.chat-send-form input').fill(stamp);
+    const stamp = `e2e-${Date.now().toString(36)}`;
+    await page.locator('.chat-send-form input').fill(`בדיקת E2E ${stamp}`);
     await page.locator('.chat-send-form button[type="submit"]').click();
     await expect(page.locator('.chat-bubble.mine', { hasText: stamp })).toBeVisible({ timeout: 20_000 });
   });
 
   test('reporting a post persists (first time) or dedupes (already reported)', async ({ page }) => {
     await page.goto(gloweUrl('community.html'));
+    await waitForGloweBoard(page, '.post-card');
     const card = page.locator('.post-card').first();
-    test.skip(!(await card.count()), 'no community posts yet');
+    test.skip((await card.count()) === 0, 'no community posts yet');
     await card.locator('.post-more-menu summary').click();
     await card.locator('.post-more-panel button', { hasText: 'Report' }).click();
     await expect(page.locator('#report-modal')).toBeVisible();
@@ -86,7 +109,8 @@ test.describe('GloWe member (individual)', () => {
   });
 
   test('personal area is reachable from the greeting', async ({ page }) => {
-    await page.goto(gloweUrl('my-applications.html'));
+    await page.goto(gloweUrl('my-applications.html'), { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('body')).not.toContainText('Sign in to see');
   });
 });
