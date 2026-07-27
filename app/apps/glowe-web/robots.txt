@@ -1,0 +1,5 @@
+# GloWe static site (served at /glowe/). Domain-root robots.txt is owned by the KC host.
+User-agent: *
+Allow: /
+
+Sitemap: https://dev.karma-community.pages.dev/glowe/sitemap.xml

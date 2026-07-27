@@ -1,3 +1,4 @@
+Connecting to db 5432
 export type Json =
   | string
   | number
@@ -1114,6 +1115,42 @@ export type Database = {
         }
         Relationships: []
       }
+      glowe_email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          dedupe_key: string | null
+          email_id: string
+          last_error: string | null
+          payload: Json
+          sent_at: string | null
+          template: string
+          to_email: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          dedupe_key?: string | null
+          email_id?: string
+          last_error?: string | null
+          payload?: Json
+          sent_at?: string | null
+          template: string
+          to_email: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          dedupe_key?: string | null
+          email_id?: string
+          last_error?: string | null
+          payload?: Json
+          sent_at?: string | null
+          template?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       glowe_forum_groups: {
         Row: {
           created_at: string
@@ -1372,6 +1409,7 @@ export type Database = {
       glowe_posts: {
         Row: {
           audience: string | null
+          author_avatar_url: string | null
           author_id: string | null
           author_name: string | null
           author_name_en: string | null
@@ -1391,6 +1429,7 @@ export type Database = {
         }
         Insert: {
           audience?: string | null
+          author_avatar_url?: string | null
           author_id?: string | null
           author_name?: string | null
           author_name_en?: string | null
@@ -1410,6 +1449,7 @@ export type Database = {
         }
         Update: {
           audience?: string | null
+          author_avatar_url?: string | null
           author_id?: string | null
           author_name?: string | null
           author_name_en?: string | null
@@ -4358,6 +4398,15 @@ export type Database = {
         Args: { p_key: string; p_max: number; p_window_seconds: number }
         Returns: undefined
       }
+      enqueue_glowe_email: {
+        Args: {
+          p_dedupe_key?: string
+          p_payload?: Json
+          p_template: string
+          p_to_email: string
+        }
+        Returns: string
+      }
       enqueue_notification: {
         Args: {
           p_body_args?: Json
@@ -4644,6 +4693,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      glowe_enqueue_application_decision_email: {
+        Args: {
+          p_app: Database["public"]["Tables"]["glowe_applications"]["Row"]
+          p_opp: Database["public"]["Tables"]["glowe_opportunities"]["Row"]
+        }
+        Returns: undefined
+      }
       glowe_get_event_link: {
         Args: { p_opportunity_id: string }
         Returns: string
@@ -4779,6 +4835,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      glowe_resolve_user_email: { Args: { p_user_id: string }; Returns: string }
       glowe_set_org_approval: {
         Args: { p_decision: string; p_note?: string; p_profile_id: string }
         Returns: {
@@ -5784,3 +5841,5 @@ export const Constants = {
   },
 } as const
 
+A new version of Supabase CLI is available: v2.109.1 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

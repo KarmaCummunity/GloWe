@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Statement - GloWe</title>
+    <meta name="description" content="GloWe accessibility statement (IS 5568 / WCAG-oriented) — how we work toward an accessible community platform.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GloWe">
+    <meta property="og:title" content="Accessibility Statement - GloWe">
+    <meta property="og:description" content="GloWe accessibility statement aligned with Israeli Standard IS 5568 and WCAG principles.">
+    <meta property="og:url" content="https://dev.karma-community.pages.dev/glowe/pages/accessibility.html">
+    <meta property="og:image" content="https://dev.karma-community.pages.dev/glowe/assets/glowe-logo.png">
+    <link rel="icon" type="image/png" href="../assets/glowe-favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="GloWe">
+    <script src="../js/glowe-auth-paint.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+</head>
+<body class="about-page-body legal-page">
+    <header class="main-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon"></span>
+                <span class="logo-text">GloWe</span>
+            </a>
+            <nav class="main-nav"></nav>
+            <div class="auth-buttons">
+                <button class="btn btn-outline" onclick="handleGoogleSignIn()">Log In</button>
+                <button class="btn btn-primary" onclick="handleGoogleSignIn()">Join GloWe</button>
+            </div>
+            <div class="user-menu" style="display: none;">
+                <span class="user-greeting">Welcome, <span id="user-name"></span>!</span>
+                <a href="my-applications.html" class="nav-link">Personal Area</a>
+                <button class="btn btn-outline" onclick="logout()">Log Out</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header legal-hero">
+            <div class="container">
+                <span class="section-kicker">Accessibility · נגישות</span>
+                <h1>Accessibility Statement</h1>
+                <p>Israeli Standard IS 5568 · WCAG-oriented · Updated July 27, 2026</p>
+            </div>
+        </section>
+
+        <section class="legal-section">
+            <div class="container">
+                <article class="legal-document">
+                    <h2>English</h2>
+                    <p>GloWe aims to make its public website usable by as many people as possible, including people with disabilities. We work toward conformance with Israeli Standard <strong>IS 5568</strong> (based on WCAG 2.0 Level AA principles) and continue improving labels, keyboard use, contrast, and structure.</p>
+                    <p><strong>Measures.</strong> Semantic HTML landmarks; language and direction switching (including RTL for Hebrew and Arabic); form controls with accessible names; focusable primary actions; a public privacy and terms surface.</p>
+                    <p><strong>Known gaps.</strong> Some modals, complex feeds, and older screens still need fuller keyboard traps, contrast audit, and screen-reader review (tracked in product tech debt). We fix issues as we ship.</p>
+                    <p><strong>Contact.</strong> Accessibility feedback: <a href="mailto:globrevolutionaries@gmail.com">globrevolutionaries@gmail.com</a>. We aim to reply within a reasonable time and prioritize blocking barriers.</p>
+                    <p><strong>Related.</strong> <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a></p>
+
+                    <h2>עברית</h2>
+                    <p>GloWe שואפת להנגיש את האתר לכמה שיותר אנשים, כולל אנשים עם מוגבלות. אנו פועלים בכיוון התאמה לתקן הישראלי <strong>ת״י 5568</strong> (עקרונות WCAG 2.0 ברמת AA) וממשיכים לשפר תוויות, ניווט במקלדת, ניגודיות ומבנה.</p>
+                    <p><strong>מה נעשה.</strong> מבנה HTML סמנטי; החלפת שפה וכיוון (כולל RTL לעברית וערבית); שמות נגישים לשדות; פעולות עיקריות שניתן להתמקד בהן; מדיניות פרטיות ותנאי שימוש פומביים.</p>
+                    <p><strong>פערים ידועים.</strong> חלק מהחלונות המודאליים, הפידים והמסכים הוותיקים עדיין דורשים ביקורת מקלדת, ניגודיות וקורא מסך — מטופלים כחוב טכני במוצר.</p>
+                    <p><strong>יצירת קשר.</strong> פניות נגישות: <a href="mailto:globrevolutionaries@gmail.com" dir="ltr">globrevolutionaries@gmail.com</a>. נשתדל להשיב בזמן סביר ולתעדף חסמים חוסמים.</p>
+                    <p><strong>קשור.</strong> <a href="privacy.html">מדיניות פרטיות</a> · <a href="terms.html">תנאי שימוש</a></p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer"></footer>
+
+    <script src="../js/backend-config.js" defer></script>
+    <script src="../js/glowe-dev-auth.js" defer></script>
+    <script src="../js/backend.js" defer></script>
+    <script src="../js/data.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/glowe-events.js" defer></script>
+    <script src="../js/glowe-wishes.js" defer></script>
+    <script src="../js/glowe-moderation.js" defer></script>
+    <script src="../js/glowe-create.js" defer></script>
+    <script src="../js/glowe-messages.js" defer></script>
+    <script src="../js/glowe-guest.js" defer></script>
+    <script src="../js/glowe-localized-name.js" defer></script>
+    <script src="../js/glowe-ui-conventions.js" defer></script>
+    <script src="../js/glowe-version.js" defer></script>
+    <script src="../js/glowe-consent.js" defer></script>
+        <script src="../js/glowe-observability.js" defer></script>
+    <script src="../js/app.js" defer></script>
+    <script src="../js/glowe-session-cache.js" defer></script>
+    <script src="../js/glowe-translate.js" defer></script>
+</body>
+</html>

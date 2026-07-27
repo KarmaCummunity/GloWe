@@ -133,6 +133,24 @@
         return { valid: true, error: '' };
     }
 
+    // KC parity (supabaseDmChat.ts): prefer a visible non-support DM; otherwise
+    // reuse an existing support thread (e.g. messaging a super admin).
+    function pickDmChatRow(rows, viewerIsA) {
+        const list = Array.isArray(rows) ? rows : [];
+        const visibleDm = list.find(function (r) {
+            return r && !r.is_support_thread
+                && (viewerIsA ? !r.inbox_hidden_at_a : !r.inbox_hidden_at_b);
+        });
+        if (visibleDm) return visibleDm;
+        return list.find(function (r) { return r && r.is_support_thread; }) || null;
+    }
+
+    function isSupportPairConflict(error) {
+        if (!error || error.code !== '23505') return false;
+        const blob = String((error.message || '') + ' ' + (error.details || ''));
+        return blob.indexOf('chats_unique_support_pair') !== -1;
+    }
+
     return {
         mapChatRow: mapChatRow,
         inboxRows: inboxRows,
@@ -143,6 +161,8 @@
         mapMessageRow: mapMessageRow,
         mapMessageRows: mapMessageRows,
         formatChatTime: formatChatTime,
-        validateMessageDraft: validateMessageDraft
+        validateMessageDraft: validateMessageDraft,
+        pickDmChatRow: pickDmChatRow,
+        isSupportPairConflict: isSupportPairConflict
     };
 });

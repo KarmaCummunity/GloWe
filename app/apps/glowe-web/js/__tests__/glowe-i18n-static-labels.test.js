@@ -25,7 +25,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const APP_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'app.js');
+const HERE = dirname(fileURLToPath(import.meta.url));
+const APP_JS = join(HERE, '..', 'app.js');
+const I18N_DIR = join(HERE, '..', '..', 'i18n');
 const source = readFileSync(APP_JS, 'utf8');
 
 function extractLiteral(src, declaration, open, close) {
@@ -52,6 +54,14 @@ function extractLiteral(src, declaration, open, close) {
         }
     }
     throw new Error(`unterminated literal for: ${declaration}`);
+}
+
+function loadLocaleBundles() {
+    const out = {};
+    for (const code of ['he', 'ru', 'ar', 'am']) {
+        out[code] = JSON.parse(readFileSync(join(I18N_DIR, `${code}.json`), 'utf8'));
+    }
+    return out;
 }
 
 function extractFunctionSource(src, signature) {
@@ -95,7 +105,7 @@ describe('static English label welded to a dynamic value (language-gap scan)', (
 
 describe('glowePostTypeLabel()', () => {
     const GLOWE_POST_NOUN = extractLiteral(source, 'const GLOWE_POST_NOUN = {', '{', '}');
-    const TRANSLATIONS = extractLiteral(source, 'const GLOWE_TRANSLATIONS = {', '{', '}');
+    const TRANSLATIONS = loadLocaleBundles();
     const LANGUAGES = extractLiteral(source, 'const GLOWE_LANGUAGES = [', '[', ']');
     const fnSrc = extractFunctionSource(source, 'function glowePostTypeLabel(category, separator) {');
 
@@ -159,7 +169,7 @@ describe('glowePostTypeLabel()', () => {
 });
 
 describe('glowePrefixedLabel()', () => {
-    const TRANSLATIONS = extractLiteral(source, 'const GLOWE_TRANSLATIONS = {', '{', '}');
+    const TRANSLATIONS = loadLocaleBundles();
     const fnSrc = extractFunctionSource(source, "function glowePrefixedLabel(key) {");
 
     function makeGlowePrefixedLabel(lang) {
@@ -182,7 +192,7 @@ describe('glowePrefixedLabel()', () => {
 });
 
 describe('gloweEnumLabel() (TD-141 — raw enum badges)', () => {
-    const TRANSLATIONS = extractLiteral(source, 'const GLOWE_TRANSLATIONS = {', '{', '}');
+    const TRANSLATIONS = loadLocaleBundles();
     const GLOWE_POST_NOUN = extractLiteral(source, 'const GLOWE_POST_NOUN = {', '{', '}');
     const REPORT_STATUS = extractLiteral(source, 'const GLOWE_REPORT_STATUS_LABEL = {', '{', '}');
     const TARGET_TYPE = extractLiteral(source, 'const GLOWE_TARGET_TYPE_LABEL = {', '{', '}');

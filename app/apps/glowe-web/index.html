@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GloWe - Global Collaboration for Social Impact</title>
+    <!-- GloWe SEO pattern (copy into other public page <head> blocks):
+         meta description + og:type/site_name/title/description/url/image.
+         Canonical host: https://dev.karma-community.pages.dev/glowe/ (D-182). -->
+    <meta name="description" content="GloWe is a warm community for people, organizations, and volunteers working around the SDGs — ask for support, share knowledge, and find collaborators.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GloWe">
+    <meta property="og:title" content="GloWe - Global Collaboration for Social Impact">
+    <meta property="og:description" content="A home for people building impact together. Ask for support, offer what you know, and meet collaborators across languages and sectors.">
+    <meta property="og:url" content="https://dev.karma-community.pages.dev/glowe/">
+    <meta property="og:image" content="https://dev.karma-community.pages.dev/glowe/assets/glowe-logo.png">
     <link rel="icon" type="image/png" href="assets/glowe-favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -13,7 +23,8 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 </head>
 <body class="home-page-body">
     <header class="main-header">
@@ -61,7 +72,7 @@
                 </div>
                 <div class="hero-image">
                     <figure class="glowe-system-figure">
-                        <img src="assets/glowe-flower-system.png" alt="GloWe community value system">
+                        <img src="assets/glowe-flower-system.webp" width="937" height="957" alt="GloWe community value system" loading="lazy">
                     </figure>
                 </div>
             </div>
@@ -229,7 +240,7 @@
                     <p>Each part of the system is here to help impact work become more visible, connected, and supported.</p>
                 </div>
                 <figure class="ecosystem-photo">
-                    <img src="assets/glowe-roundtable-conference.png" alt="Diverse people speaking around a round table at an impact community conference">
+                    <img src="assets/glowe-roundtable-conference.webp" width="1536" height="1024" alt="Diverse people speaking around a round table at an impact community conference" loading="lazy">
                     <figcaption>
                         <strong>Round tables, shared knowledge.</strong>
                         <span>GloWe is built for people who meet, listen, offer, ask, and turn local experience into practical collaboration.</span>
@@ -470,29 +481,31 @@
         </div>
     </div>
 
-    <script src="js/backend-config.js"></script>
-    <script src="js/glowe-dev-auth.js"></script>
-    <script src="js/backend.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/glowe-events.js"></script>
-    <script src="js/glowe-posts.js"></script>
-    <script src="js/glowe-forums.js"></script>
-    <script src="js/glowe-home-feed-diversify.js"></script>
-    <script src="js/glowe-home-feed.js"></script>
-    <script src="js/glowe-wishes.js"></script>
+    <script src="js/backend-config.js" defer></script>
+    <script src="js/glowe-dev-auth.js" defer></script>
+    <script src="js/backend.js" defer></script>
+    <script src="js/data.js" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script src="js/glowe-events.js" defer></script>
+    <script src="js/glowe-posts.js" defer></script>
+    <script src="js/glowe-forums.js" defer></script>
+    <script src="js/glowe-home-feed-diversify.js" defer></script>
+    <script src="js/glowe-home-feed.js" defer></script>
+    <script src="js/glowe-wishes.js" defer></script>
     <!-- Home-feed wish cards open the wish detail, whose "Offers" inbox maps its
          RPC rows through GloweOrganizations. -->
-    <script src="js/glowe-organizations.js"></script>
-    <script src="js/glowe-moderation.js"></script>
-    <script src="js/glowe-create.js"></script>
-    <script src="js/glowe-messages.js"></script>
-    <script src="js/glowe-guest.js"></script>
-    <script src="js/glowe-localized-name.js"></script>
-    <script src="js/glowe-ui-conventions.js"></script>
-    <script src="js/glowe-version.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/glowe-session-cache.js"></script>
-    <script src="js/glowe-translate.js"></script>
+    <script src="js/glowe-organizations.js" defer></script>
+    <script src="js/glowe-moderation.js" defer></script>
+    <script src="js/glowe-create.js" defer></script>
+    <script src="js/glowe-messages.js" defer></script>
+    <script src="js/glowe-guest.js" defer></script>
+    <script src="js/glowe-localized-name.js" defer></script>
+    <script src="js/glowe-ui-conventions.js" defer></script>
+    <script src="js/glowe-version.js" defer></script>
+    <script src="js/glowe-consent.js" defer></script>
+        <script src="js/glowe-observability.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/glowe-session-cache.js" defer></script>
+    <script src="js/glowe-translate.js" defer></script>
 </body>
 </html>

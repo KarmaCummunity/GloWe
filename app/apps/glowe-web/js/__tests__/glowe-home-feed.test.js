@@ -116,4 +116,42 @@ describe('normalizeFeedSources', () => {
         expect(out[0].saveCount).toBe(2);
         expect(out[0].kind).toBe('post');
     });
+
+    it('reads wish/offer author from mapWishRow.author (not only authorName)', () => {
+        const out = GloweHomeFeed.normalizeFeedSources({
+            posts: [],
+            opportunities: [],
+            wishes: [{
+                id: 'w1',
+                title: 'Need help',
+                description: 'body',
+                author: 'Local Admin',
+                authorId: 'u-1',
+                createdAt: '2026-07-26'
+            }],
+            offers: [{
+                id: 'o1',
+                title: 'I can help',
+                description: 'body',
+                author: 'Alex Rivera',
+                authorId: 'u-2',
+                createdAt: '2026-07-26'
+            }],
+            forumGroups: [],
+            forumThreads: [],
+            commentsByPostId: {},
+            saveCountsByKey: {},
+            isEvent: () => false
+        });
+        const wish = out.find((x) => x.kind === 'wish');
+        const offer = out.find((x) => x.kind === 'volunteer_offer');
+        expect(wish).toMatchObject({
+            authorLabel: 'Local Admin',
+            authorId: 'u-1'
+        });
+        expect(offer).toMatchObject({
+            authorLabel: 'Alex Rivera',
+            authorId: 'u-2'
+        });
+    });
 });

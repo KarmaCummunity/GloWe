@@ -47,3 +47,8 @@ enable_confirmations = false
 # are unauthenticated; the handler itself 404s on hosted Supabase URLs.
 [functions.mock-login]
 verify_jwt = false
+
+# pg_net dispatch from glowe_email_outbox posts the service-role bearer token;
+# the handler validates it explicitly (same pattern as dispatch-notification).
+[functions.glowe-notify]
+verify_jwt = false

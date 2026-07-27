@@ -5,7 +5,8 @@
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "install:browsers": "playwright install --with-deps chromium"
+    "install:browsers": "playwright install --with-deps chromium",
+    "i18n:scan": "node scripts/glowe-i18n-scan.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"

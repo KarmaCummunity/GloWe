@@ -3,7 +3,8 @@ import {
     isProfileSparse,
     profileStatusChip,
     profileBioSource,
-    publicTrustStatusLabel
+    publicTrustStatusLabel,
+    orgReviewBanner
 } from '../glowe-profile-ux.js';
 
 describe('isProfileSparse', () => {
@@ -48,6 +49,25 @@ describe('profileStatusChip', () => {
         }, { isOwner: true });
         expect(c.kind).toBe('needs_changes');
         expect(c.action).toBe('edit');
+    });
+    it('orgReviewBanner for rejected org with note', () => {
+        const b = orgReviewBanner({
+            accountType: 'organization',
+            approvalStatus: 'rejected',
+            orgReviewNote: 'Add registration docs'
+        });
+        expect(b.title).toContain('needs changes');
+        expect(b.note).toBe('Add registration docs');
+    });
+    it('orgReviewBanner null when approved or individual', () => {
+        expect(orgReviewBanner({
+            accountType: 'organization',
+            approvalStatus: 'approved'
+        })).toBe(null);
+        expect(orgReviewBanner({
+            accountType: 'individual',
+            approvalStatus: 'rejected'
+        })).toBe(null);
     });
     it('sparse complete profile', () => {
         const c = profileStatusChip({

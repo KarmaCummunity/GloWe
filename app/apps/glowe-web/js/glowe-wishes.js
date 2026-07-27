@@ -44,8 +44,11 @@
             title: field(row, 'title', 'title') || '',
             description: field(row, 'text', 'text') || '',
             author: field(row, 'author_name', 'authorName') || 'GloWe Member',
+            authorName: field(row, 'author_name', 'authorName') || 'GloWe Member',
             authorEn: field(row, 'author_name_en', 'authorNameEn') || '',
+            authorNameEn: field(row, 'author_name_en', 'authorNameEn') || '',
             authorId: field(row, 'user_id', 'userId') || field(row, 'author_id', 'authorId') || '',
+            authorAvatarUrl: field(row, 'author_avatar_url', 'authorAvatarUrl') || '',
             location: row && (row.location || '') || '',
             areas: area ? [area] : [],
             createdAt: createdAt,
@@ -110,19 +113,82 @@
         return { valid: true, error: '' };
     }
 
+    // Chrome labels for optional wish body fields — keyed by GLOWE interface
+    // language. Stored in the post body at publish time; formatWishDescription
+    // re-localizes them for the reader's current interface language.
+    var WISH_FIELD_LABELS = {
+        en: { success: 'Success looks like:', location: 'Location:' },
+        he: { success: 'איך תיראה הצלחה:', location: 'מיקום:' },
+        ru: { success: 'Как будет выглядеть успех:', location: 'Местоположение:' },
+        ar: { success: 'كيف سيبدو النجاح:', location: 'الموقع:' },
+        am: { success: 'ስኬት ምን ይመስላል:', location: 'አካባቢ፦' }
+    };
+
+    function wishFieldLabels(locale) {
+        const key = String(locale || 'en').split('-')[0];
+        return WISH_FIELD_LABELS[key] || WISH_FIELD_LABELS.en;
+    }
+
+    function parseWishFieldValue(block, field) {
+        const trimmed = String(block || '').trim();
+        if (!trimmed) return null;
+        const prefixes = Object.keys(WISH_FIELD_LABELS).map(function (lang) {
+            return WISH_FIELD_LABELS[lang][field];
+        });
+        for (let i = 0; i < prefixes.length; i++) {
+            const prefix = prefixes[i];
+            if (trimmed.indexOf(prefix) === 0) {
+                return trimmed.slice(prefix.length).trim();
+            }
+        }
+        return null;
+    }
+
+    // Re-localize stored wish body labels for the reader's interface language.
+    function formatWishDescription(text, locale) {
+        const raw = String(text || '').trim();
+        if (!raw) return '';
+        const labels = wishFieldLabels(locale);
+        const blocks = raw.split(/\n\n+/);
+        const structured = [];
+        let details = '';
+        blocks.forEach(function (block) {
+            const successVal = parseWishFieldValue(block, 'success');
+            if (successVal !== null) {
+                structured.push({ kind: 'success', value: successVal });
+                return;
+            }
+            const locationVal = parseWishFieldValue(block, 'location');
+            if (locationVal !== null) {
+                structured.push({ kind: 'location', value: locationVal });
+                return;
+            }
+            details = details ? details + '\n\n' + block : block;
+        });
+        const out = [];
+        if (details) out.push(details);
+        structured.forEach(function (part) {
+            if (part.kind === 'success') out.push(labels.success + ' ' + part.value);
+            else if (part.kind === 'location') out.push(labels.location + ' ' + part.value);
+        });
+        return out.join('\n\n');
+    }
+
     // Fold the optional context fields of a draft into the post body.
-    function buildWishText(draft) {
+    function buildWishText(draft, locale) {
         const d = draft || {};
+        const labels = wishFieldLabels(locale);
         const parts = [];
         if (d.details) parts.push(String(d.details).trim());
-        if (d.success) parts.push('Success looks like: ' + String(d.success).trim());
-        if (d.location) parts.push('Location: ' + String(d.location).trim());
+        if (d.success) parts.push(labels.success + ' ' + String(d.success).trim());
+        if (d.location) parts.push(labels.location + ' ' + String(d.location).trim());
         return parts.filter(Boolean).join('\n\n');
     }
 
     // True when `userId` published this wish (owner-only "mark as fulfilled").
     function isWishOwner(wish, userId) {
-        return Boolean(wish && userId && wish.authorId === userId);
+        if (!wish || userId === undefined || userId === null || userId === '') return false;
+        return String(wish.authorId) === String(userId);
     }
 
     // Validate an "Offer Support" draft. Required: offer_text + availability.
@@ -151,6 +217,8 @@
         formatWishTime: formatWishTime,
         validateWishDraft: validateWishDraft,
         buildWishText: buildWishText,
+        formatWishDescription: formatWishDescription,
+        wishFieldLabels: wishFieldLabels,
         isWishOwner: isWishOwner,
         validateOfferDraft: validateOfferDraft,
         buildOfferText: buildOfferText

@@ -13,8 +13,14 @@ causes, opportunities, events, and projects that need support.
 ## Preview
 
 - Local after setup: [http://localhost:4321](http://localhost:4321)
-- Public development deploy:
+- **GloWe production** (`dev` branch):
   [https://dev.karma-community.pages.dev/glowe/](https://dev.karma-community.pages.dev/glowe/)
+- **GloWe staging** (`staging` branch — ongoing integration):
+  [https://staging.karma-community.pages.dev/glowe/](https://staging.karma-community.pages.dev/glowe/)
+
+> KC production (`main`) also serves GloWe at `/glowe`, but that bundle lags behind
+> `dev` until a `dev` → `main` release. Treat the `dev` branch URL as GloWe's live
+> front door. See [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md).
 
 ## Quickstart
 
