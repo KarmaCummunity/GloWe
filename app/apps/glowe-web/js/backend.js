@@ -134,15 +134,12 @@
     // `privateRow` is the owner-only slice from glowe_get_self_private_fields().
     // It is absent for every profile except your own, so orgContactEmail and
     // friends are empty strings on public profiles — by design (0236).
-    function fromProfileRow(row, privateRow = null) {
-        if (!row) return null;
-        const priv = privateRow || {};
+    // Columns every viewer may read (the grant list above).
+    function publicProfileFields(row) {
         return {
-            ...(priv.raw_profile || {}),
             id: row.id,
             name: row.display_name,
             nameEn: row.display_name_en || '',
-            email: priv.email || '',
             type: row.profile_type,
             focus: row.focus,
             about: row.about,
@@ -164,8 +161,15 @@
             orgCountry: row.org_country || '',
             orgField: row.org_field || '',
             orgDescription: row.org_description || '',
-            orgSize: row.org_size || '',
-            // Owner-only fields (migration 0236). Empty on other people's profiles.
+            orgSize: row.org_size || ''
+        };
+    }
+
+    // Owner-only columns (migration 0236). Empty for other people's profiles,
+    // which is why every value here has a neutral default rather than undefined.
+    function privateProfileFields(priv) {
+        return {
+            email: priv.email || '',
             orgRegistrationNumber: priv.org_registration_number || '',
             orgContactName: priv.org_contact_name || '',
             orgContactEmail: priv.org_contact_email || '',
@@ -173,6 +177,16 @@
             orgSubmittedAt: priv.org_submitted_at || null,
             orgReviewedAt: priv.org_reviewed_at || null,
             orgReviewNote: priv.org_review_note || ''
+        };
+    }
+
+    function fromProfileRow(row, privateRow = null) {
+        if (!row) return null;
+        const priv = privateRow || {};
+        return {
+            ...(priv.raw_profile || {}),
+            ...publicProfileFields(row),
+            ...privateProfileFields(priv)
         };
     }
 

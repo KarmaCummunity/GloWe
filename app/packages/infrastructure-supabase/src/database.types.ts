@@ -3722,6 +3722,96 @@ export type Database = {
         }
         Relationships: []
       }
+      glowe_public_profiles: {
+        Row: {
+          about: string | null
+          account_type: string | null
+          approval_status: string | null
+          availability: string | null
+          avatar_url: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string | null
+          display_name_en: string | null
+          focus: string | null
+          id: string | null
+          languages: string[] | null
+          location: string | null
+          needs: string | null
+          onboarding_complete: boolean | null
+          org_country: string | null
+          org_description: string | null
+          org_field: string | null
+          org_name: string | null
+          org_name_en: string | null
+          org_size: string | null
+          org_website: string | null
+          profile_status: string | null
+          profile_type: string | null
+          public_link: string | null
+          skills: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          about?: string | null
+          account_type?: string | null
+          approval_status?: string | null
+          availability?: string | null
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          display_name_en?: string | null
+          focus?: string | null
+          id?: string | null
+          languages?: string[] | null
+          location?: string | null
+          needs?: string | null
+          onboarding_complete?: boolean | null
+          org_country?: string | null
+          org_description?: string | null
+          org_field?: string | null
+          org_name?: string | null
+          org_name_en?: string | null
+          org_size?: string | null
+          org_website?: string | null
+          profile_status?: string | null
+          profile_type?: string | null
+          public_link?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          about?: string | null
+          account_type?: string | null
+          approval_status?: string | null
+          availability?: string | null
+          avatar_url?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          display_name_en?: string | null
+          focus?: string | null
+          id?: string | null
+          languages?: string[] | null
+          location?: string | null
+          needs?: string | null
+          onboarding_complete?: boolean | null
+          org_country?: string | null
+          org_description?: string | null
+          org_field?: string | null
+          org_name?: string | null
+          org_name_en?: string | null
+          org_size?: string | null
+          org_website?: string | null
+          profile_status?: string | null
+          profile_type?: string | null
+          public_link?: string | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_legal_acceptances_latest: {
         Row: {
           accepted_at: string | null
@@ -4446,6 +4536,18 @@ export type Database = {
         Args: { p_id: string; p_report_id?: string; p_type: string }
         Returns: undefined
       }
+      glowe_assert_can_create: {
+        Args: { p_kind: string; p_user_id: string }
+        Returns: undefined
+      }
+      glowe_can_create: {
+        Args: {
+          p_account_type: string
+          p_approval_status: string
+          p_kind: string
+        }
+        Returns: boolean
+      }
       glowe_cancel_event: {
         Args: { p_opportunity_id: string }
         Returns: {
@@ -4512,6 +4614,7 @@ export type Database = {
         Args: { p_opportunity_id: string }
         Returns: string
       }
+      glowe_get_self_private_fields: { Args: never; Returns: Json }
       glowe_list_applications_for_opportunity: {
         Args: { p_opportunity_id: string }
         Returns: {
@@ -4711,6 +4814,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      glowe_viewer_is_reviewer: { Args: never; Returns: boolean }
       has_admin_role:
         | { Args: { role_name: string; uid: string }; Returns: boolean }
         | {
