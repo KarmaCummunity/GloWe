@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { expect, type Page } from '@playwright/test';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const backendConfigSource = fs.readFileSync(
@@ -80,28 +81,92 @@ export async function signInWithPassword(email: string, password: string): Promi
   return body as SupabaseSession;
 }
 
+/** Public profile row shape used by create-menu + auth UI (FR-GLOWE-016). */
+export type GloweProfileSnapshot = {
+  id: string;
+  name: string;
+  email?: string;
+  accountType: 'individual' | 'organization' | null;
+  approvalStatus: string;
+  type?: string;
+  avatarUrl?: string;
+  orgName?: string;
+};
+
+/**
+ * Load the signed-in persona's glowe_profiles row so storageState mirrors what
+ * auth.js writes after fetchProfile() — without this, create-menu thinks every
+ * seeded org is an individual (3 options instead of 4).
+ */
+export async function fetchPersonaProfile(session: SupabaseSession): Promise<GloweProfileSnapshot | null> {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/glowe_profiles?id=eq.${encodeURIComponent(session.user.id)}&select=id,display_name,account_type,approval_status,avatar_url,profile_type,org_name`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    },
+  );
+  if (!res.ok) return null;
+  const rows = await res.json() as Array<Record<string, unknown>>;
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    id: String(row.id),
+    name: String(row.display_name ?? ''),
+    email: session.user.email,
+    accountType: (row.account_type as GloweProfileSnapshot['accountType']) ?? null,
+    approvalStatus: String(row.approval_status ?? 'not_required'),
+    type: row.profile_type ? String(row.profile_type) : undefined,
+    avatarUrl: row.avatar_url ? String(row.avatar_url) : '',
+    orgName: row.org_name ? String(row.org_name) : '',
+  };
+}
+
 // Build a Playwright storageState that GloWe reads as "signed in": the raw
 // Supabase session under storageKey glowe-auth-v1 (supabase-js v2 shape) plus
-// the gloweUser mirror auth.js keeps for the static UI, and the one-time
-// guest-welcome flag so no toast interferes.
-export function gloweStorageState(session: SupabaseSession, displayName: string) {
+// the gloweUser + glowePersonalProfile mirrors auth.js keeps for the static UI,
+// and the one-time guest-welcome flag so no toast interferes.
+export function gloweStorageState(
+  session: SupabaseSession,
+  displayName: string,
+  profile: GloweProfileSnapshot | null = null,
+) {
+  const isOrg = profile?.accountType === 'organization';
   const gloweUser = {
     id: session.user.id,
     name: displayName,
     email: session.user.email ?? '',
-    type: 'member',
-    avatarUrl: '',
+    type: isOrg ? 'organization' : (profile?.type || 'member'),
+    avatarUrl: profile?.avatarUrl ?? '',
   };
+  const personal = profile
+    ? {
+        id: profile.id,
+        name: profile.name || displayName,
+        email: profile.email ?? session.user.email ?? '',
+        accountType: profile.accountType,
+        approvalStatus: profile.approvalStatus,
+        type: profile.type,
+        avatarUrl: profile.avatarUrl ?? '',
+        orgName: profile.orgName ?? '',
+      }
+    : null;
+  const localStorage = [
+    { name: 'glowe-auth-v1', value: JSON.stringify(session) },
+    { name: 'gloweUser', value: JSON.stringify(gloweUser) },
+    { name: 'glowe-guest-welcomed', value: '1' },
+  ];
+  if (personal) {
+    localStorage.push({ name: 'glowePersonalProfile', value: JSON.stringify(personal) });
+  }
   return {
     cookies: [],
     origins: [
       {
         origin: GLOWE_ORIGIN,
-        localStorage: [
-          { name: 'glowe-auth-v1', value: JSON.stringify(session) },
-          { name: 'gloweUser', value: JSON.stringify(gloweUser) },
-          { name: 'glowe-guest-welcomed', value: '1' },
-        ],
+        localStorage,
       },
     ],
   };
@@ -119,6 +184,36 @@ export function readMeta(): GloweMeta {
   } catch {
     return { seeded: false, admin: false };
   }
+}
+
+/**
+ * Skip the current describe when setup has not minted personas.
+ * Must run in beforeEach/beforeAll — NOT at module top-level — because Playwright
+ * collects tests before `glowe-setup` writes glowe-meta.json.
+ */
+export function skipUnlessSeeded(testApi: { skip: (condition: boolean, description?: string) => void }): void {
+  testApi.skip(!readMeta().seeded, 'GloWe seed personas missing — run scripts/seed-glowe-dev.mjs');
+}
+
+export function skipUnlessAdmin(testApi: { skip: (condition: boolean, description?: string) => void }): void {
+  testApi.skip(!readMeta().admin, 'admin credentials unavailable — set E2E_TEST_EMAIL/E2E_TEST_PASSWORD');
+}
+
+/**
+ * Wait until a GloWe list board finishes its Loading… placeholder.
+ * Matches cards OR a settled empty-state (excludes `.loading-state` and
+ * Loading… copy so staging stays compatible until the product class deploys).
+ */
+export async function waitForGloweBoard(
+  page: Page,
+  cardSelector: string,
+  timeout = 20_000,
+): Promise<void> {
+  const cards = page.locator(cardSelector);
+  const settledEmpty = page
+    .locator('.empty-state:not(.loading-state)')
+    .filter({ hasNotText: /Loading/i });
+  await expect(cards.first().or(settledEmpty.first())).toBeVisible({ timeout });
 }
 
 // REST call as a signed-in persona (RLS applies) — used by specs to clean up

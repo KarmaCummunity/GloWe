@@ -3783,27 +3783,34 @@ function setSavedItems(items) {
 }
 
 function saveItem(type, id, title, meta = '', href = '') {
-    // FR-GLOWE-013 AC1 — saving requires login (saved items sync per user). Guests
-    // get the sign-in / registration screen with save-specific copy, not a notice.
+    // FR-GLOWE-013 AC1 + FR-GLOWE-023 — guests get the contextual join modal
+    // (save-item copy), not a silent Google redirect via promptGuestSignIn.
+    const persist = function persistSavedItem() {
+        const items = getSavedItems();
+        const itemId = String(id);
+        const exists = items.some(item => item.type === type && String(item.id) === itemId);
+        if (!exists) {
+            const savedItem = { type, id: itemId, title, meta, href, savedAt: new Date().toISOString() };
+            setSavedItems([savedItem, ...items]);
+            if (window.gloweBackend && window.gloweBackend.configured()) {
+                const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+                const payload = helpers
+                    ? helpers.buildSavedItemPayload(type, itemId, title, meta, href)
+                    : { item_type: type, item_id: itemId, title, meta, href };
+                window.gloweBackend.insertOwned('saved_items', payload).catch(() => {});
+            }
+        }
+        showActionToast('Saved', `${title} was added to your saved area.`);
+    };
+    if (window.GloweGuest) {
+        window.GloweGuest.requireMemberForAction('save-item', { title: title || '' }, persist);
+        return;
+    }
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
         promptGuestSignIn('Sign in or create a free account to save items to your area.');
         return;
     }
-    const items = getSavedItems();
-    const itemId = String(id);
-    const exists = items.some(item => item.type === type && String(item.id) === itemId);
-    if (!exists) {
-        const savedItem = { type, id: itemId, title, meta, href, savedAt: new Date().toISOString() };
-        setSavedItems([savedItem, ...items]);
-        if (window.gloweBackend && window.gloweBackend.configured()) {
-            const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-            const payload = helpers
-                ? helpers.buildSavedItemPayload(type, itemId, title, meta, href)
-                : { item_type: type, item_id: itemId, title, meta, href };
-            window.gloweBackend.insertOwned('saved_items', payload).catch(() => {});
-        }
-    }
-    showActionToast('Saved', `${title} was added to your saved area.`);
+    persist();
 }
 
 function removeSavedItem(type, id) {
@@ -3861,18 +3868,26 @@ function refreshSavedToggleButton(btn, type, id) {
 // save. Login-gated (saved items sync per user). saveItem shows its own "Saved"
 // confirmation; the button flips in place either way.
 function toggleSavedItem(btn, type, id, title, meta, href) {
+    const run = function runToggleSavedItem() {
+        const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
+        const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
+        if (saved) {
+            removeSavedItem(type, id);
+        } else {
+            saveItem(type, id, title, meta, href);
+        }
+        if (btn) refreshSavedToggleButton(btn, type, id);
+    };
+    // Guests: contextual join (FR-GLOWE-023 save-item). Members: toggle in place.
+    if (window.GloweGuest) {
+        window.GloweGuest.requireMemberForAction('save-item', { title: title || '' }, run);
+        return;
+    }
     if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
         promptGuestSignIn('Sign in or create a free account to save items to your area.');
         return;
     }
-    const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-    const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
-    if (saved) {
-        removeSavedItem(type, id);
-    } else {
-        saveItem(type, id, title, meta, href);
-    }
-    if (btn) refreshSavedToggleButton(btn, type, id);
+    run();
 }
 
 function getPostComments() {
@@ -6137,7 +6152,9 @@ async function initOpportunitiesPage() {
 
     // Fetch real data then render
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading opportunities…</p></div>';
+        // loading-state (not bare empty-state) so E2E/a11y can tell "still fetching"
+        // from a real empty board (FR-GLOWE-007 / INFRA-QA-W1).
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">Loading opportunities…</p></div>';
         await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     }
@@ -6354,7 +6371,7 @@ async function initOrganizationsPage() {
         });
     }
 
-    container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading organizations…</p></div>';
+    container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">Loading organizations…</p></div>';
     try {
         const rows = await gloweBackend.listApprovedOrgs();
         const ensured = await withEnsuredEnglishNames(rows || []);
@@ -6449,7 +6466,7 @@ async function initWishingWellPage() {
     }
     if (clearBtn) clearBtn.addEventListener('click', resetWishBoardFilters);
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">Loading wishes…</p></div>';
         await loadLiveWishes();
         renderWishes();
         const deepWish = new URLSearchParams(window.location.search).get('wish');
@@ -6641,7 +6658,7 @@ async function initCommunityPage() {
 
     // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading posts…</p></div>';
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">Loading posts…</p></div>';
         await Promise.all([
             loadCommunityPosts(),
             loadPostComments(),
@@ -7865,6 +7882,8 @@ async function initOpportunityDetailPage() {
     if (!isEvent) renderRegistrationTerms(opportunity);
 
     // Events use the registration panel; plain opportunities keep the apply-modal.
+    // Start disabled in HTML so a mid-hydrate click cannot silently no-op
+    // (title is already visible as "Loading..." before this listener exists).
     const applyBtn = document.getElementById('apply-btn');
     if (applyBtn && !isEvent && !ownerViewing) {
         applyBtn.addEventListener('click', function() {
@@ -7874,6 +7893,8 @@ async function initOpportunityDetailPage() {
                 function () { openModal('apply-modal'); }
             );
         });
+        applyBtn.disabled = false;
+        applyBtn.removeAttribute('aria-busy');
     } else if (applyBtn && ownerViewing) {
         applyBtn.hidden = true;
     }

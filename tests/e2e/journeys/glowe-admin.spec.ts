@@ -2,10 +2,11 @@
 // report queue (FR-GLOWE-015 AC4). Uses the CI E2E super-admin (a GloWe
 // admin by role); skips when admin credentials are unavailable.
 import { test, expect } from '@playwright/test';
-import { gloweUrl, readMeta, stateFile } from '../lib/glowe';
+import { gloweUrl, skipUnlessAdmin, stateFile } from '../lib/glowe';
 
-const meta = readMeta();
-test.skip(!meta.admin, 'admin credentials unavailable — set E2E_TEST_EMAIL/E2E_TEST_PASSWORD');
+test.beforeEach(() => {
+  skipUnlessAdmin(test);
+});
 
 test.use({ storageState: stateFile('admin') });
 

@@ -37,4 +37,8 @@ GloWe suite (`glowe-*.spec.ts`, including launch Wave 4): set `DEV_WEB_URL` (or 
 
 Workflow: `.github/workflows/ci-e2e-dev.yml` — runs on PRs to `main` (from `dev`).
 
+GloWe hosted gate: `.github/workflows/ci-e2e-glowe.yml` — `glowe` + `glowe-visual` against
+`GLOWE_STAGING_URL` / `GLOWE_PROD_URL`. The `glowe-local` project (mock-login against
+local Supabase) is **not** part of CI; run it only with a localhost `GLOWE_WEB_URL`.
+
 Required GitHub configuration is documented in `docs/SSOT/ENVIRONMENTS.md` § E2E automation.

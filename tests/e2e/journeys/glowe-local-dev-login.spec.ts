@@ -1,20 +1,34 @@
-// Browser smoke test — local dev sign-in via mock-login persona click.
+// Local-only smoke: mock-login personas against local Supabase (:54321).
+// Project: `glowe-local` — excluded from the hosted `glowe` CI suite.
+// Run: GLOWE_WEB_URL=http://127.0.0.1:4321 npx playwright test --project=glowe-local
 import { test, expect } from '@playwright/test';
 
-const GLOWE_URL = process.env.GLOWE_URL || 'http://localhost:4321';
+const GLOWE_URL = (
+  process.env.GLOWE_WEB_URL
+  ?? process.env.GLOWE_URL
+  ?? 'http://127.0.0.1:4321'
+).replace(/\/$/, '');
+
+const isLocalHost = /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/i.test(GLOWE_URL);
 
 test.describe('local dev sign-in', () => {
+  test.beforeAll(() => {
+    test.skip(
+      !isLocalHost,
+      `glowe-local requires a localhost GloWe URL (got ${GLOWE_URL})`,
+    );
+  });
+
   test('Alex persona logs in without Google OAuth', async ({ page }) => {
     await page.goto(GLOWE_URL, { waitUntil: 'domcontentloaded' });
 
     const diag = await page.evaluate(() => ({
-      supabaseUrl: window.GLOWE_BACKEND_CONFIG?.supabaseUrl,
-      devActive: Boolean(window.GloweDevAuth?.isActive()),
-      localConfigured: Boolean(window.GloweDevAuth?.isLocalSupabaseConfigured()),
+      supabaseUrl: (window as unknown as { GLOWE_BACKEND_CONFIG?: { supabaseUrl?: string } }).GLOWE_BACKEND_CONFIG?.supabaseUrl,
+      devActive: Boolean((window as unknown as { GloweDevAuth?: { isActive?: () => boolean } }).GloweDevAuth?.isActive?.()),
       host: location.hostname,
       port: location.port,
     }));
-    expect(diag.supabaseUrl).toContain('127.0.0.1:54321');
+    expect(diag.supabaseUrl, 'must target local Supabase, not hosted').toContain('127.0.0.1:54321');
     expect(diag.devActive).toBe(true);
 
     const guestContinue = page.getByRole('button', { name: /^Continue$/i });
@@ -33,7 +47,7 @@ test.describe('local dev sign-in', () => {
 
     await alexBtn.click();
 
-    await expect(page.locator('#success-modal.active')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#success-modal.active')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('#success-message')).toContainText(/Alex|Welcome/i);
 
     const loggedIn = await page.evaluate(() => Boolean(localStorage.getItem('gloweUser')));
