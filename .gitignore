@@ -46,3 +46,6 @@ scripts/hebrew-text-report.md
 
 # Git worktrees (local isolated checkouts — never commit contents).
 .worktrees/
+
+# Local Cursor editor settings (per-machine, not shared)
+.cursor/settings.json
