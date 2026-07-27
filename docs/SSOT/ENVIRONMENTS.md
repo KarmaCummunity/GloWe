@@ -5,25 +5,28 @@
 
 ## TL;DR
 
-| Concern | `main` (KC production) | `dev` (GloWe production + working branch) |
-|---|---|---|
-| Git branch | `main` | `dev` |
-| Supabase project | `slxijdfvinbjmrsfgbzx` — https://slxijdfvinbjmrsfgbzx.supabase.co | `roeefqpdbftlndzsvhfj` — https://roeefqpdbftlndzsvhfj.supabase.co |
-| Hosting | Cloudflare Pages — `karma-community-kc.com` | Cloudflare Pages — `dev.karma-community.pages.dev` |
-| **Live product URL** | **KC:** `https://karma-community-kc.com/` | **GloWe:** `https://dev.karma-community.pages.dev/glowe/` |
-| GitHub Actions env | `cloudflare-prod` | `cloudflare-dev` |
-| `EXPO_PUBLIC_ENVIRONMENT` | `production` | `development` |
-| In-app dev banner | hidden | visible at top of every screen when the client bundle is dev (see below) |
+| Concern | `main` (KC production) | `dev` (GloWe production) | `staging` (GloWe integration) |
+|---|---|---|---|
+| Git branch | `main` | `dev` | `staging` |
+| Supabase project | `slxijdfvinbjmrsfgbzx` | `roeefqpdbftlndzsvhfj` | `roeefqpdbftlndzsvhfj` |
+| Hosting | Cloudflare Pages — `karma-community-kc.com` | Cloudflare Pages — `dev.karma-community.pages.dev` | Cloudflare Pages — `staging.karma-community.pages.dev` |
+| **Live product URL** | **KC:** `https://karma-community-kc.com/` | **GloWe:** `https://dev.karma-community.pages.dev/glowe/` | **GloWe staging:** `https://staging.karma-community.pages.dev/glowe/` |
+| GitHub Actions env | `cloudflare-prod` | `cloudflare-dev` | `cloudflare-dev` |
+| `EXPO_PUBLIC_ENVIRONMENT` | `production` | `development` | `development` |
+| In-app dev banner | hidden | visible | visible |
 
-> **Dual production (2026-07-22, D-182):** KC and GloWe ship **separate live URLs** from **separate branches**. The hostname `dev.karma-community.pages.dev` is Cloudflare's preview name for the `dev` branch deploy — it is **GloWe's production front door**, not a staging URL. Do not point GloWe synthetics at `karma-community-kc.com/glowe` unless that becomes the canonical GloWe prod URL.
+> **Dual production (2026-07-22, D-182):** KC and GloWe ship **separate live URLs** from **separate branches**. The hostname `dev.karma-community.pages.dev` is Cloudflare's branch alias for the `dev` deploy — it is **GloWe's production front door**, not a throwaway preview. Do not point GloWe synthetics at `karma-community-kc.com/glowe` unless that URL is promoted to canonical (it currently lags `dev`).
+>
+> **GloWe staging (2026-07-27, D-189):** Ongoing feature work lands on `staging` first (`staging` → `dev` for release). Playwright E2E + visual regression run against `GLOWE_STAGING_URL` on PRs to `staging`, and against `GLOWE_PROD_URL` on PRs/pushes to `dev`.
 
 ## Branching rules
 
-1. **`dev` is the working branch.** All feature/fix/refactor PRs target `dev`, not `main`.
-2. **`dev` is never behind `main`.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which merges `main` into `dev`. If that workflow fails (merge conflict), resolving it is the operator's first priority.
-3. **`main` is fast-forward only from `dev`.** Production releases happen by opening a PR from `dev` → `main` and squash-merging.
-4. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). Whenever they happen, the sync workflow brings them into `dev` automatically.
-5. **Never force-push to `main` or `dev`.** Never delete either branch. Branch-protection rules in GitHub enforce both.
+1. **`staging` is the integration branch for GloWe.** Feature/fix/refactor PRs target `staging` first. When stable, open a release PR `staging` → `dev`.
+2. **`dev` is GloWe's production branch.** Merges to `dev` deploy to `https://dev.karma-community.pages.dev/glowe/` (GloWe's live front door). Playwright prod-health + release gates run here.
+3. **`dev` is never behind `main`.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which merges `main` into `dev`. If that workflow fails (merge conflict), resolving it is the operator's first priority.
+4. **`main` is fast-forward only from `dev`.** KC production releases happen by opening a PR from `dev` → `main` and squash-merging.
+5. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). Whenever they happen, the sync workflow brings them into `dev` automatically.
+6. **Never force-push to `main`, `dev`, or `staging`.** Never delete any of them. Branch-protection rules in GitHub enforce all three.
 
 ## Required environment variables
 
@@ -143,6 +146,7 @@ Draft PRs skip every job except none (PR hygiene waits for `ready_for_review`). 
 | GitHub | Name | Value / purpose |
 | --- | --- | --- |
 | Variable | `GLOWE_PROD_URL` | GloWe live URL — `https://dev.karma-community.pages.dev/glowe` |
+| Variable | `GLOWE_STAGING_URL` | GloWe integration URL — `https://staging.karma-community.pages.dev/glowe` |
 | Variable | `KC_PROD_URL` | KC live root — `https://karma-community-kc.com` (for `prod-smoke.yml`) |
 | Environment | `supabase-dev` | Ingest uses Management API service-role key (same as seed workflow) |
 

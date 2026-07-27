@@ -6,7 +6,7 @@ import { test as setup } from '@playwright/test';
 import fs from 'node:fs';
 import {
   AUTH_DIR, META_FILE, PERSONAS, SEED_PASSWORD,
-  gloweStorageState, signInWithPassword, stateFile,
+  fetchPersonaProfile, gloweStorageState, signInWithPassword, stateFile,
 } from '../lib/glowe';
 
 setup('mint glowe persona sessions', async () => {
@@ -27,7 +27,19 @@ setup('mint glowe persona sessions', async () => {
         seeded = false;
         continue;
       }
-      state = gloweStorageState(session, persona.name);
+      // Mirror auth.js post-login: session + personal profile (accountType drives create menu).
+      const profile = await fetchPersonaProfile(session);
+      if (!profile) {
+        console.warn(`[glowe-setup] persona ${key} signed in but glowe_profiles row missing`);
+        seeded = false;
+        continue;
+      }
+      if (persona.kind === 'organization' && profile.accountType !== 'organization') {
+        console.warn(`[glowe-setup] persona ${key} expected organization, got ${profile.accountType}`);
+        seeded = false;
+        continue;
+      }
+      state = gloweStorageState(session, persona.name, profile);
     }
     fs.writeFileSync(stateFile(key), JSON.stringify(state));
   }
@@ -39,7 +51,8 @@ setup('mint glowe persona sessions', async () => {
   if (adminEmail && adminPassword) {
     const session = await signInWithPassword(adminEmail, adminPassword);
     if (session) {
-      fs.writeFileSync(stateFile('admin'), JSON.stringify(gloweStorageState(session, 'Admin')));
+      const profile = await fetchPersonaProfile(session);
+      fs.writeFileSync(stateFile('admin'), JSON.stringify(gloweStorageState(session, 'Admin', profile)));
       admin = true;
     } else {
       console.warn('[glowe-setup] admin credentials failed to sign in — admin specs will skip');

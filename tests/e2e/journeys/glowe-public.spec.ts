@@ -1,7 +1,7 @@
 // GloWe guest journeys (FR-GLOWE-023, FR-GLOWE-005) — read-only browsing,
 // contextual join gates, and the Hebrew/RTL language switch. No auth state.
 import { test, expect } from '@playwright/test';
-import { gloweUrl, GLOWE_BASE } from '../lib/glowe';
+import { gloweUrl, GLOWE_BASE, waitForGloweBoard } from '../lib/glowe';
 
 test.describe('GloWe guest browsing', () => {
   // The one-time guest welcome modal (FR-GLOWE-023 AC6) is covered by its own
@@ -32,26 +32,25 @@ test.describe('GloWe guest browsing', () => {
     await page.goto(gloweUrl('volunteer-network.html'));
     const list = page.locator('#opportunities-list');
     await expect(list).toBeVisible();
-    await expect(list.locator('.opportunity-card, .empty-state').first()).toBeVisible({ timeout: 20_000 });
+    await waitForGloweBoard(page, '.opportunity-card');
   });
 
   test('organizations directory shows approved organizations only', async ({ page }) => {
     await page.goto(gloweUrl('organizations.html'));
-    const cards = page.locator('.opportunity-card');
-    const empty = page.locator('.empty-state');
-    await expect(cards.first().or(empty.first())).toBeVisible({ timeout: 20_000 });
+    await waitForGloweBoard(page, '.opportunity-card');
     // A pending org must never appear in the public directory.
     await expect(page.getByText('יד תומכת', { exact: false })).toHaveCount(0);
   });
 
   test('wishing well renders the needs board', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    await expect(page.locator('.wish-card, .empty-state').first()).toBeVisible({ timeout: 20_000 });
+    // FR-GLOWE-006 AC9 — wishes use the shared directory card shell.
+    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
   });
 
   test('community feed renders posts or empty state', async ({ page }) => {
     await page.goto(gloweUrl('community.html'));
-    await expect(page.locator('.post-card, .empty-state').first()).toBeVisible({ timeout: 20_000 });
+    await waitForGloweBoard(page, '.post-card');
   });
 
   test('forums page lists the four discussion groups', async ({ page }) => {
@@ -70,18 +69,31 @@ test.describe('GloWe guest browsing', () => {
 
   test('guest saving a card gets a sign-in gate, nothing is saved', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    const firstSave = page.locator('.wish-card .heart-button').first();
-    test.skip(!(await firstSave.count()), 'no wish cards on the board yet');
-    await firstSave.click();
-    await expect(
-      page.locator('#glowe-join-modal, #login-modal').first()
-    ).toBeVisible();
+    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
+    const card = page.locator('#wishes-list .opportunity-card').first();
+    test.skip((await card.count()) === 0, 'no wish cards on the board yet — re-run seed-glowe-dev.mjs');
+    // FR-GLOWE-006 AC9 / FR-GLOWE-013 — Save lives in the ⋯ menu, not a heart.
+    await card.locator('.post-more-menu summary').click();
+    const saveBtn = card.locator('.post-more-panel button[aria-pressed]');
+    await expect(saveBtn).toHaveAttribute('aria-pressed', 'false');
+    await saveBtn.click();
+    // Product (this branch): contextual join modal (FR-GLOWE-023 save-item).
+    // Staging until that deploy lands may still start Google OAuth immediately.
+    const joinModal = page.locator('#glowe-join-modal.active, #login-modal.active');
+    await Promise.race([
+      joinModal.waitFor({ state: 'visible', timeout: 15_000 }),
+      page.waitForURL(/accounts\.google\.com/, { timeout: 15_000 }),
+    ]);
+    if (await joinModal.isVisible().catch(() => false)) {
+      await expect(joinModal).toContainText(/Keep this for later|Sign in/i);
+    }
   });
 
   test('guest reporting content gets a sign-in gate', async ({ page }) => {
     await page.goto(gloweUrl('community.html'));
+    await waitForGloweBoard(page, '.post-card');
     const menu = page.locator('.post-card .post-more-menu summary').first();
-    test.skip(!(await menu.count()), 'no community posts yet');
+    test.skip((await menu.count()) === 0, 'no community posts yet');
     await menu.click();
     await page.locator('.post-card .post-more-panel button', { hasText: 'Report' }).first().click();
     await expect(page.locator('#glowe-join-modal')).toBeVisible();
@@ -92,65 +104,104 @@ test.describe('GloWe guest browsing', () => {
     await expect(page.locator('#messages-content .empty-state')).toContainText('Sign in');
   });
 
-  test('language toggle flips to Hebrew with RTL and back', async ({ page }) => {
+  // FR-GLOWE-005 AC1–AC3: header control is a <select.lang-toggle>; change persists
+  // via localStorage + full reload (setGloweLanguage), then applyGloweDirection().
+  test('language select switches to Hebrew RTL and back to English', async ({ page }) => {
     await page.goto(`${GLOWE_BASE}/index.html`);
-    const toggle = page.locator('.lang-toggle').first();
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-    await page.waitForLoadState('domcontentloaded');
+    const select = page.locator('select.lang-toggle').first();
+    await expect(select).toBeVisible();
+    await expect(select).toHaveAttribute('aria-label', /Interface language/i);
+
+    await Promise.all([
+      page.waitForEvent('load'),
+      select.selectOption('he'),
+    ]);
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    await expect(page.locator('.auth-buttons button')).not.toContainText('Sign up / Sign in');
-    await page.locator('.lang-toggle').first().click();
-    await page.waitForLoadState('domcontentloaded');
-    await expect(page.locator('html')).not.toHaveAttribute('dir', 'rtl');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'he');
+    await expect(page.locator('.auth-buttons button').first()).not.toContainText('Sign up / Sign in');
+
+    await Promise.all([
+      page.waitForEvent('load'),
+      page.locator('select.lang-toggle').first().selectOption('en'),
+    ]);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 
-  // Design_Fixes_Notes.pdf — UX polish checks (FR-GLOWE-005/007/008/009).
-  test('wishing well filters use accordion groups instead of a long sticky list', async ({ page }) => {
+  // FR-GLOWE-006 — wish-filter-panel (replaces legacy sticky .well-filters).
+  // Desktop (≥901px): advanced filters always in flow; toggle hidden.
+  // Mobile (≤900px): advanced collapsed until #wish-filter-toggle opens it.
+  test('wishing well filter panel uses progressive disclosure, not a sticky sidebar', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    const accordions = page.locator('.well-filters .filter-accordion');
-    await expect(accordions).toHaveCount(2);
-    await expect(page.locator('.well-filters details.filter-accordion[open]')).toHaveCount(1);
-    // Closed Impact Areas should not force a sticky sidebar hijack.
-    const sticky = await page.locator('.well-filters').evaluate((el) => getComputedStyle(el).position);
-    expect(sticky).not.toBe('sticky');
+    const panel = page.locator('.wish-filter-panel');
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('#wish-search')).toBeVisible();
+    await expect(panel.locator('#wish-sort')).toBeVisible();
+
+    await expect(page.locator('#wish-filter-toggle')).toBeHidden();
+    const advanced = page.locator('#wish-filter-advanced');
+    await expect(advanced).toBeVisible();
+    await expect(advanced.locator('.filter-accordion')).toHaveCount(2);
+    await expect(advanced.locator('details.filter-accordion[open]')).toHaveCount(1);
+
+    const position = await panel.evaluate((el) => getComputedStyle(el).position);
+    expect(position).not.toBe('sticky');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const toggle = page.locator('#wish-filter-toggle');
+    await expect(toggle).toBeVisible();
+    await expect(advanced).toBeHidden();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(advanced).toBeVisible();
+    await expect(advanced.locator('.filter-accordion')).toHaveCount(2);
   });
 
   test('opportunity cards group location/duration/commitment metadata', async ({ page }) => {
     await page.goto(gloweUrl('volunteer-network.html'));
+    await waitForGloweBoard(page, '.opportunity-card');
     const card = page.locator('.opportunity-card').first();
-    test.skip(!(await card.count()), 'no opportunity cards yet');
+    test.skip((await card.count()) === 0, 'no opportunity cards yet');
     await expect(card.locator('.opportunity-meta-group')).toBeVisible();
     await expect(card.locator('.opportunity-meta-group .opportunity-detail strong').first()).toBeVisible();
   });
 
   test('community posts use a single Share control and localized comment chrome', async ({ page }) => {
     await page.goto(gloweUrl('community.html'));
-    const post = page.locator('.post-card').first();
-    test.skip(!(await post.count()), 'no community posts yet');
+    await waitForGloweBoard(page, 'article.post-card');
+    // Prefer a true community post (comment chrome) over event/discovery cards.
+    const post = page.locator('article.post-card').filter({ has: page.locator('.comment-form') }).first();
+    await expect(post).toBeVisible({ timeout: 20_000 });
 
-    // Progressive disclosure: one Share button, not four always-visible networks.
-    await expect(post.locator('.post-share-button')).toHaveCount(1);
+    // FR-GLOWE-008 AC5 — Share lives in the ⋯ menu; no always-visible share-row.
     await expect(post.locator('.share-row button')).toHaveCount(0);
-    await expect(post.locator('.post-actions .action-icon')).toHaveCount(2);
+    await expect(post.locator('.post-actions')).toHaveCount(0);
+    await post.locator('.post-more-menu summary').click();
+    await expect(post.locator('.post-more-panel .post-menu-action', { hasText: 'Share' })).toHaveCount(1);
 
-    // Switch to Hebrew and confirm comment summary is localized (not "N comments").
-    await page.locator('.lang-toggle').first().click();
-    await page.waitForLoadState('domcontentloaded');
+    // Switch to Hebrew via the select contract (FR-GLOWE-005) and confirm
+    // comment summary is localized (not "N comments") when comments exist.
+    await Promise.all([
+      page.waitForEvent('load'),
+      page.locator('select.lang-toggle').first().selectOption('he'),
+    ]);
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    const hePost = page.locator('.post-card').first();
-    test.skip(!(await hePost.count()), 'no community posts after language switch');
-    const summary = hePost.locator('.comment-summary');
-    await expect(summary).toBeVisible();
+    await waitForGloweBoard(page, 'article.post-card');
+    const summary = page.locator('article.post-card .comment-summary').first();
+    await expect(summary).toBeVisible({ timeout: 20_000 });
     await expect(summary).not.toContainText(/comments?/i);
   });
 
   test('opportunity detail shows empty-state copy when requirements are missing', async ({ page }) => {
     await page.goto(gloweUrl('volunteer-network.html'));
-    const firstLink = page.locator('.opportunity-card a.btn-primary').first();
-    test.skip(!(await firstLink.count()), 'no opportunity detail links yet');
+    await waitForGloweBoard(page, '#opportunities-list .opportunity-card');
+    const firstLink = page.locator(
+      '#opportunities-list .opportunity-card a.directory-card-stretch-link, #opportunities-list .opportunity-card a[href*="opportunity"]',
+    ).first();
+    await expect(firstLink).toBeVisible({ timeout: 20_000 });
     await firstLink.click();
     await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#opp-title')).not.toHaveText(/Loading/i, { timeout: 25_000 });
     await expect(page.locator('#opp-requirements, #opp-responsibilities').first()).toBeVisible();
     // Empty rows use the muted empty-detail marker rather than a blank heading.
     const empty = page.locator('.opportunity-main .empty-detail');

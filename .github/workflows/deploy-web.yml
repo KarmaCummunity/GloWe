@@ -2,7 +2,7 @@ name: Deploy Web → Cloudflare Pages
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, staging]
     paths:
       - 'app/**'
       - '.github/workflows/deploy-web.yml'

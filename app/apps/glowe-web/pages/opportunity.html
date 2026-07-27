@@ -84,7 +84,9 @@
                                 <!-- FR-GLOWE-012 AC5 — how registration works here (instant vs. approved one by one, places available) -->
                                 <span class="opportunity-detail" id="opp-registration-terms" hidden></span>
                             </div>
-                            <button id="apply-btn" class="btn btn-primary btn-large btn-block">Apply Now</button>
+                            <!-- Disabled until initOpportunityDetailPage hydrates + wires the click handler
+                                 (avoids a silent no-op while the title still says "Loading..."). -->
+                            <button id="apply-btn" class="btn btn-primary btn-large btn-block" disabled aria-busy="true">Apply Now</button>
                         </div>
                         
                         <div class="org-info-card">

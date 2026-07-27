@@ -34,7 +34,7 @@
 |----|------|-------|--------|------|
 | P1.7 | FR-RESEARCH-001..003 — Public market research form (Survey B) — web-only anonymous form at `/research/[slug]?src=`, 11 questions, anti-abuse (honeypot + origin allowlist + rate limit + circuit breaker), PII-isolated contact opt-in | agent-be + agent-fe | 🟡 In progress (post-merge QA) | `spec/16_public_research.md`; Migration `0123`, Edge Functions `public-research-submit` + `rotate-research-salt`, `.web.tsx` route · **2026-06-14 QA:** fixed mid-survey draft-loss-on-reload (AC7) + reflowed to a spacious single-scroll layout; prod save path verified healthy end-to-end |
 | P1.8 | FR-RESEARCH-004 — Share affordance for public research survey (3 surfaces: thanks page primary CTA, survey form header button, in-app Settings row; 3 ?src= values for attribution) | agent-fe | 🟡 Code complete, post-merge QA pending | `spec/16_public_research.md`; design: `docs/SSOT/archive/superpowers/specs/2026-05-28-in-app-share-research-survey-design.md` |
-| INFRA-QA-W1 | Playwright P0 E2E gate on `dev` → `main` (`ci-e2e-dev.yml`, `tests/e2e/`) | infra | 🟡 In progress | `docs/SSOT/archive/superpowers/plans/2026-05-28-comprehensive-quality-automation.md` Wave 1 |
+| INFRA-QA-W1 | Playwright P0 E2E gate on `staging`/`dev` + release (`ci-e2e-glowe.yml`, `ci-e2e-dev.yml`, `tests/e2e/`) | infra | 🟡 In progress | `docs/SSOT/archive/superpowers/plans/2026-05-28-comprehensive-quality-automation.md` Wave 1 |
 | INFRA-QA-W2 | E2E domain expansion (posts, chat send, donations, research) | infra | ⏳ Planned | Wave 2 |
 | INFRA-QA-W3 | RLS persona integration suite | infra | ⏳ Planned | Wave 3 |
 | INFRA-QA-W4 | Performance budgets (Lighthouse + k6) | infra | ⏳ Planned | Wave 4 |

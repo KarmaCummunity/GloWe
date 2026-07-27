@@ -4,17 +4,19 @@
 import { test, expect } from '@playwright/test';
 import {
   gloweUrl, GLOWE_BASE, PERSONAS, SEED_PASSWORD,
-  personaRest, readMeta, signInWithPassword, stateFile,
+  personaRest, skipUnlessSeeded, signInWithPassword, stateFile,
 } from '../lib/glowe';
 
-const meta = readMeta();
-test.skip(!meta.seeded, 'GloWe seed personas missing — run scripts/seed-glowe-dev.mjs');
+test.beforeEach(() => {
+  skipUnlessSeeded(test);
+});
 
 test.describe('GloWe organization (approved)', () => {
   test.use({ storageState: stateFile('levpatuach') });
 
   test('create menu offers the organization set: post, event, opportunity, need', async ({ page }) => {
     await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await page.locator('.header-create-btn').click();
     const options = page.locator('#glowe-create-options .create-menu-option');
     await expect(options).toHaveCount(4);
@@ -26,6 +28,7 @@ test.describe('GloWe organization (approved)', () => {
 
   test('event form validates required fields before publishing', async ({ page }) => {
     await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await page.locator('.header-create-btn').click();
     await page.locator('#glowe-create-options .create-menu-option', { hasText: 'Event' }).click();
     await expect(page.locator('#glowe-event-modal')).toBeVisible();
@@ -40,6 +43,7 @@ test.describe('GloWe organization (approved)', () => {
   test('publishes an event end-to-end and cleans it up', async ({ page }) => {
     const stamp = Date.now();
     await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.user-menu')).toBeVisible({ timeout: 20_000 });
     await page.locator('.header-create-btn').click();
     await page.locator('#glowe-create-options .create-menu-option', { hasText: 'Event' }).click();
     await page.locator('#event-title').fill(`E2E-${stamp} מפגש מתנדבים`);
@@ -48,7 +52,10 @@ test.describe('GloWe organization (approved)', () => {
     await page.locator('#event-start').fill(start);
     await page.locator('#event-capacity').fill('10');
     await page.locator('#glowe-event-modal button[type="submit"]').click();
-    await expect(page.locator('#success-modal #success-title')).toHaveText('Event published', { timeout: 20_000 });
+    // FR-GLOWE-016 AC4 — quiet confirmation is a toast, not the success modal.
+    const toast = page.locator('#glowe-toast.visible');
+    await expect(toast).toBeVisible({ timeout: 20_000 });
+    await expect(toast).toContainText(/Event published|האירוע פורסם/i);
 
     // Cleanup: delete the event as its owner via REST (owner-write RLS).
     const session = await signInWithPassword(PERSONAS.levpatuach.email, SEED_PASSWORD);

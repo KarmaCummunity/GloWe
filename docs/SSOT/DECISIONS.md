@@ -1438,10 +1438,30 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
+## D-189 — GloWe staging branch + dual URLs + Playwright visual gate (2026-07-27)
+
+**Decision.** GloWe gets two live URLs on Cloudflare Pages branch aliases:
+
+| URL | Branch | Role |
+| --- | --- | --- |
+| `https://dev.karma-community.pages.dev/glowe/` | `dev` | **Production** — stable front door for users (unchanged from D-182) |
+| `https://staging.karma-community.pages.dev/glowe/` | `staging` | **Integration** — ongoing feature work before release |
+
+Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe E2E (dev + staging)` runs Playwright journeys + `toHaveScreenshot()` visual regression on every PR/push to either branch (`GLOWE_STAGING_URL` / `GLOWE_PROD_URL`). KC production (`main` → `karma-community-kc.com/glowe`) remains a separate, slower-moving bundle until a `dev` → `main` release promotes it.
+
+**Rationale.** PM wants automated E2E every dev version and a clear prod vs integration split without renaming the stable `dev` branch that already acts as GloWe's production line. A dedicated `staging` branch + Cloudflare branch alias is simpler than PR-preview URLs (no per-PR secret wiring) and keeps `dev` deploys user-visible only after an explicit promotion.
+
+**Alternatives rejected.** Treat `karma-community-kc.com/glowe` as GloWe prod (currently lags `dev`); run E2E only on `dev` → `main` release PRs (too late in the cycle); Maestro for web (Playwright suite already exists).
+
+**Affected.** `.github/workflows/{ci-e2e-glowe,deploy-web}.yml`, `tests/e2e/journeys/glowe-visual.spec.ts`, `docs/SSOT/{ENVIRONMENTS,TESTING}.md`, GitHub vars `GLOWE_STAGING_URL`.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
 | 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |
 | 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |
