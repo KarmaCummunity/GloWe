@@ -577,8 +577,14 @@ describe('mapApplicantRow (FR-GLOWE-012 AC1)', () => {
             skills: 'listening',
             motivation: 'to help',
             status: 'Pending',
+            waitlistPosition: null,
             appliedAt: '2026-07-01T00:00:00Z'
         });
+    });
+
+    it('carries the waitlist position for a waitlisted applicant', () => {
+        expect(mapApplicantRow({ id: 'a', user_id: 'u', status: 'Waitlisted', waitlist_position: 2 }).waitlistPosition)
+            .toBe(2);
     });
 
     it('defaults status to Pending and blanks missing fields', () => {
@@ -597,14 +603,15 @@ describe('mapApplicantRow (FR-GLOWE-012 AC1)', () => {
 });
 
 describe('canDecideApplication (FR-GLOWE-012 AC2)', () => {
-    it('is true only for Pending applications', () => {
+    it('is true while the application still awaits a decision', () => {
         expect(canDecideApplication('Pending')).toBe(true);
+        // Promoting off the waitlist uses the same Accept button (migration 0237).
+        expect(canDecideApplication('Waitlisted')).toBe(true);
     });
 
-    it('is false for already-decided or missing statuses', () => {
+    it('is false for settled or missing statuses', () => {
         expect(canDecideApplication('Accepted')).toBe(false);
         expect(canDecideApplication('Declined')).toBe(false);
-        expect(canDecideApplication('Waitlisted')).toBe(false);
         expect(canDecideApplication('Cancelled')).toBe(false);
         expect(canDecideApplication('')).toBe(false);
         expect(canDecideApplication(null)).toBe(false);

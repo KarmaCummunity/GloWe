@@ -1424,10 +1424,25 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
+## D-186 — GloWe has one registration path for opportunities and events (2026-07-27)
+
+**Decision.** Volunteering opportunities and events share a single apply/RSVP entry point, `public.glowe_apply_to_opportunity()` (migration `0237`), which reads `registration_mode` and `capacity` off the listing and returns the resolved status: `open` → `Accepted`, `open` at capacity → `Waitlisted` with a position, `gated` → `Pending`. Seat allocation lives in one place, `public.glowe_next_waitlist_position()`, shared by the apply RPC and both decision RPCs. `glowe_register_for_event()` survives as a thin event-only wrapper (it still asserts the target is an event) so existing callers and the 0212–0214 regression tests are untouched. The browser never assumes an outcome: it renders whatever status the server returns.
+
+**Rationale.** The two halves of FR-GLOWE-012 had drifted. Events went through an RPC that honoured `registration_mode`; plain opportunities were a direct `INSERT` from `app.js` with a hardcoded `'Pending'`, so an organization literally could not offer an opportunity on "everyone can join" terms even though the column existed. Capacity was worse: only checked when an organizer accepted an event registration by hand, so open-mode events could be filled past their stated capacity and plain opportunities could always be overfilled. The PM requirement — the post owner chooses between approving one by one and letting everyone in — was only half implemented.
+
+**Consequence (deliberate).** Accepting an applicant into a full listing now returns `Waitlisted` instead of overfilling, for both decision RPCs; the owner is told. An applicant already holding a waitlist place keeps that place when such an accept fails, rather than being sent to the back of the queue. `glowe_list_applications_for_opportunity()` gained a `waitlist_position` column (a `DROP`/`CREATE`, since a `RETURNS TABLE` change is not replaceable in place) and orders the waitlist group by it.
+
+**Alternatives rejected.** Give plain opportunities their own capacity RPC (two rules to keep in sync — the exact drift being fixed); enforce capacity only at decision time (leaves open mode overfillable); make the browser compute the outcome and write the status (the client is not a trustworthy enforcement point — see D-185).
+
+**Affected.** `supabase/migrations/0237_glowe_unified_registration.sql`, `supabase/tests/0237_glowe_unified_registration.sql`, `app/apps/glowe-web/js/{app.js,backend.js,glowe-opportunities.js,glowe-organizations.js}`, `pages/opportunity.html`; FR-GLOWE-012 AC5–AC8, FR-GLOWE-007-C.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
 | 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |
 | 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |
 | 4.14 | 2026-07-22 | Added `D-183` (GloWe follow on KC `follow_edges` via `backend.js` + `glowe-follow.js`; public MVP only; FR-GLOWE-026). |
