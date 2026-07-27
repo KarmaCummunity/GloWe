@@ -444,25 +444,109 @@ async function handleOfferPostSubmit(event) {
 // ── Post-sign-in onboarding (FR-GLOWE-002) ──────────────────────────────────
 const GLOWE_ONBOARDING_DISMISSED_KEY = 'glowe-onboarding-dismissed';
 
-function toggleOnboardingOrgFields() {
+function gloweReaderInterfaceLang() {
+    return (typeof getGloweLanguage === 'function' ? getGloweLanguage() : 'en') || 'en';
+}
+
+function syncEnglishNameFieldVisibility(wrapId, primaryInputId, englishInputId) {
+    const wrap = document.getElementById(wrapId);
+    const primaryEl = document.getElementById(primaryInputId);
+    if (!wrap || !primaryEl) return;
+    const primary = primaryEl.value.trim();
+    const show = typeof GloweLocalizedName !== 'undefined'
+        && GloweLocalizedName.shouldPromptEnglishNameField(primary, gloweReaderInterfaceLang());
+    wrap.hidden = !show;
+    if (!show && englishInputId) {
+        const englishEl = document.getElementById(englishInputId);
+        if (englishEl) englishEl.value = '';
+    }
+}
+
+function syncOnboardingEnglishFields() {
+    syncEnglishNameFieldVisibility(
+        'onboarding-display-name-en-wrap',
+        'onboarding-display-name',
+        'onboarding-display-name-en'
+    );
+    syncEnglishNameFieldVisibility(
+        'onboarding-org-name-en-wrap',
+        'onboarding-org-name',
+        'onboarding-org-name-en'
+    );
+}
+
+function syncProfileEnglishFields() {
+    syncEnglishNameFieldVisibility(
+        'edit-profile-name-en-wrap',
+        'edit-profile-name',
+        'edit-profile-name-en'
+    );
+    syncEnglishNameFieldVisibility(
+        'edit-profile-org-name-en-wrap',
+        'edit-profile-org-name',
+        'edit-profile-org-name-en'
+    );
+}
+
+function syncOnboardingFormLayout() {
+    const individualFields = document.getElementById('onboarding-individual-fields');
     const orgFields = document.getElementById('onboarding-org-fields');
-    if (!orgFields) return;
     const checked = document.querySelector('input[name="onboarding-account-type"]:checked');
-    orgFields.hidden = !(checked && checked.value === 'organization');
+    const isOrg = Boolean(checked && checked.value === 'organization');
+    if (individualFields) individualFields.hidden = isOrg;
+    if (orgFields) orgFields.hidden = !isOrg;
+    const displayNameEl = document.getElementById('onboarding-display-name');
+    if (displayNameEl) displayNameEl.required = !isOrg;
+    const orgNameEl = document.getElementById('onboarding-org-name');
+    if (orgNameEl) orgNameEl.required = isOrg;
+    const contactNameEl = document.getElementById('onboarding-org-contact-name');
+    if (contactNameEl) contactNameEl.required = isOrg;
+    syncOnboardingEnglishFields();
+}
+
+function wireOnboardingFormUx() {
+    const form = document.getElementById('glowe-onboarding-form');
+    if (!form || form.dataset.uxWired === '1') return;
+    form.dataset.uxWired = '1';
+    form.addEventListener('input', function (event) {
+        const id = event.target && event.target.id;
+        if (id === 'onboarding-display-name' || id === 'onboarding-org-name') {
+            syncOnboardingEnglishFields();
+        }
+    });
+    form.querySelectorAll('input[name="onboarding-account-type"]').forEach(function (input) {
+        input.addEventListener('change', syncOnboardingFormLayout);
+    });
+}
+
+// Back-compat alias for inline handlers in cached HTML.
+function toggleOnboardingOrgFields() {
+    syncOnboardingFormLayout();
 }
 
 function openGloweOnboarding(profile) {
     ensureGlobalUI();
+    wireOnboardingFormUx();
     if (!document.getElementById('glowe-onboarding-modal')) return;
     const user = (typeof getCurrentUser === 'function' && getCurrentUser()) || {};
     const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
-    setVal('onboarding-display-name', (profile && profile.name) || user.name || '');
+    const personName = (profile && profile.name) || user.name || '';
+    setVal('onboarding-display-name', personName);
     setVal('onboarding-display-name-en', (profile && profile.nameEn) || '');
     setVal('onboarding-country', (profile && profile.country) || '');
     setVal('onboarding-about', (profile && profile.about) || '');
-    setVal('onboarding-org-contact-email', user.email || '');
+    setVal('onboarding-org-name', (profile && profile.orgName) || '');
     setVal('onboarding-org-name-en', (profile && profile.orgNameEn) || '');
-    toggleOnboardingOrgFields();
+    setVal('onboarding-org-contact-name', (profile && profile.orgContactName) || personName);
+    setVal('onboarding-org-contact-email', (profile && profile.orgContactEmail) || user.email || '');
+    if (profile && profile.accountType === 'organization') {
+        const orgRadio = document.querySelector('input[name="onboarding-account-type"][value="organization"]');
+        if (orgRadio) orgRadio.checked = true;
+    } else {
+        const individualRadio = document.querySelector('input[name="onboarding-account-type"][value="individual"]');
+        if (individualRadio) individualRadio.checked = true;
+    }
+    syncOnboardingFormLayout();
     openModal('glowe-onboarding-modal');
 }
 
@@ -491,6 +575,11 @@ async function handleGloweOnboarding(event) {
     const accountType = checked ? checked.value : 'individual';
     const isOrg = accountType === 'organization';
 
+    if (!isOrg && !val('onboarding-display-name')) {
+        alert('Please add your name to continue.');
+        return;
+    }
+
     if (isOrg) {
         const missing = [];
         if (!val('onboarding-org-name')) missing.push('organization name');
@@ -506,11 +595,12 @@ async function handleGloweOnboarding(event) {
     const submitBtn = document.getElementById('onboarding-submit');
     if (submitBtn) submitBtn.disabled = true;
 
+    const contactName = val('onboarding-org-contact-name');
     const details = {
-        displayName: val('onboarding-display-name'),
-        displayNameEn: val('onboarding-display-name-en'),
-        country: val('onboarding-country'),
-        about: val('onboarding-about'),
+        displayName: isOrg ? contactName : val('onboarding-display-name'),
+        displayNameEn: isOrg ? '' : val('onboarding-display-name-en'),
+        country: isOrg ? val('onboarding-org-country') : val('onboarding-country'),
+        about: isOrg ? '' : val('onboarding-about'),
         accountType,
         org: isOrg ? {
             name: val('onboarding-org-name'),
@@ -2261,10 +2351,10 @@ function ensureGlobalUI() {
                                     <label for="edit-profile-name">Display name</label>
                                     <input id="edit-profile-name" type="text" required placeholder="Your name">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group onboarding-english-field" id="edit-profile-name-en-wrap" hidden>
                                     <label for="edit-profile-name-en">Name in English (optional)</label>
                                     <input id="edit-profile-name-en" type="text" placeholder="Latin / English display name">
-                                    <small>Generated automatically — change if you like</small>
+                                    <small>For readers using the English interface</small>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -2287,14 +2377,17 @@ function ensureGlobalUI() {
                             </div>
                         </div>
                         <div id="edit-profile-fields-organization" hidden>
+                            <h3 class="onboarding-section-title">The organization</h3>
                             <div class="form-grid-2">
                                 <div class="form-group">
                                     <label for="edit-profile-org-name">Organization name</label>
                                     <input id="edit-profile-org-name" type="text" placeholder="Organization name">
+                                    <small>This is how your organization appears on GloWe</small>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group onboarding-english-field" id="edit-profile-org-name-en-wrap" hidden>
                                     <label for="edit-profile-org-name-en">Organization name in English (optional)</label>
                                     <input id="edit-profile-org-name-en" type="text" placeholder="Organization name in English">
+                                    <small>For readers using the English interface</small>
                                 </div>
                             </div>
                             <div class="form-grid-2">
@@ -2321,6 +2414,7 @@ function ensureGlobalUI() {
                                     <input id="edit-profile-org-size" type="text" placeholder="e.g. 1-10, 11-50">
                                 </div>
                             </div>
+                            <h3 class="onboarding-section-title">You (contact person)</h3>
                             <div class="form-grid-2">
                                 <div class="form-group">
                                     <label for="edit-profile-org-contact-name">Contact name</label>
@@ -2396,49 +2490,53 @@ function ensureGlobalUI() {
                     <p class="modal-intro">Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.</p>
                     <form id="glowe-onboarding-form" onsubmit="handleGloweOnboarding(event)">
                         <div class="form-group">
-                            <label for="onboarding-display-name">Your name</label>
-                            <input id="onboarding-display-name" type="text" required placeholder="Full name">
-                        </div>
-                        <div class="form-group">
-                            <label for="onboarding-display-name-en">Name in English (optional)</label>
-                            <input id="onboarding-display-name-en" type="text" placeholder="Latin / English name — auto-filled if left blank">
-                        </div>
-                        <div class="form-grid-2">
-                            <div class="form-group">
-                                <label for="onboarding-country">Country / region</label>
-                                <input id="onboarding-country" type="text" placeholder="Country / region">
-                            </div>
-                            <div class="form-group">
-                                <label for="onboarding-about">A short line about you</label>
-                                <input id="onboarding-about" type="text" placeholder="One sentence people grasp quickly">
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label>I'm joining as</label>
                             <div class="onboarding-type-choice">
                                 <label class="onboarding-type-card">
-                                    <input type="radio" name="onboarding-account-type" value="individual" checked onchange="toggleOnboardingOrgFields()">
+                                    <input type="radio" name="onboarding-account-type" value="individual" checked onchange="syncOnboardingFormLayout()">
                                     <span class="onboarding-type-title">Private individual</span>
                                     <span class="onboarding-type-desc">Volunteer, donor, or community member. Full access right away.</span>
                                 </label>
                                 <label class="onboarding-type-card">
-                                    <input type="radio" name="onboarding-account-type" value="organization" onchange="toggleOnboardingOrgFields()">
+                                    <input type="radio" name="onboarding-account-type" value="organization" onchange="syncOnboardingFormLayout()">
                                     <span class="onboarding-type-title">Organization</span>
                                     <span class="onboarding-type-desc">NGO, nonprofit, or initiative. Reviewed before you can publish — only serious applications are accepted.</span>
                                 </label>
                             </div>
                         </div>
-                        <div id="onboarding-org-fields" hidden>
-                            <p class="onboarding-review-note">Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.</p>
+                        <div id="onboarding-individual-fields">
+                            <div class="form-group">
+                                <label for="onboarding-display-name">Your name</label>
+                                <input id="onboarding-display-name" type="text" required placeholder="Full name">
+                            </div>
+                            <div class="form-group onboarding-english-field" id="onboarding-display-name-en-wrap" hidden>
+                                <label for="onboarding-display-name-en">Name in English (optional)</label>
+                                <input id="onboarding-display-name-en" type="text" placeholder="Latin / English name — auto-filled if left blank">
+                                <small>For readers using the English interface</small>
+                            </div>
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="onboarding-org-name">Organization name *</label>
-                                    <input id="onboarding-org-name" type="text" placeholder="Registered / public name">
+                                    <label for="onboarding-country">Country / region</label>
+                                    <input id="onboarding-country" type="text" placeholder="Country / region">
                                 </div>
                                 <div class="form-group">
-                                    <label for="onboarding-org-name-en">Organization name in English (optional)</label>
-                                    <input id="onboarding-org-name-en" type="text" placeholder="English org name — auto-filled if blank">
+                                    <label for="onboarding-about">A short line about you</label>
+                                    <input id="onboarding-about" type="text" placeholder="One sentence people grasp quickly">
                                 </div>
+                            </div>
+                        </div>
+                        <div id="onboarding-org-fields" hidden>
+                            <h3 class="onboarding-section-title">The organization</h3>
+                            <p class="onboarding-review-note">Organizations are reviewed by the GloWe team. Until you're approved you can browse everything, but posting opportunities, events, and needs stays locked. Please give us enough to take your application seriously.</p>
+                            <div class="form-group">
+                                <label for="onboarding-org-name">Organization name *</label>
+                                <input id="onboarding-org-name" type="text" placeholder="Registered / public name">
+                                <small>This is how your organization appears on GloWe</small>
+                            </div>
+                            <div class="form-group onboarding-english-field" id="onboarding-org-name-en-wrap" hidden>
+                                <label for="onboarding-org-name-en">Organization name in English (optional)</label>
+                                <input id="onboarding-org-name-en" type="text" placeholder="English org name — auto-filled if blank">
+                                <small>For readers using the English interface</small>
                             </div>
                             <div class="form-grid-2">
                                 <div class="form-group">
@@ -2455,24 +2553,23 @@ function ensureGlobalUI() {
                                     <label for="onboarding-org-country">Country of operation</label>
                                     <input id="onboarding-org-country" type="text" placeholder="Where you operate">
                                 </div>
-                            </div>
-                            <div class="form-grid-2">
                                 <div class="form-group">
                                     <label for="onboarding-org-field">Cause / field</label>
                                     <input id="onboarding-org-field" type="text" placeholder="Education, health, climate...">
                                 </div>
-                                <div class="form-group">
-                                    <label for="onboarding-org-size">Organization size</label>
-                                    <input id="onboarding-org-size" type="text" placeholder="Volunteers / staff, approx.">
-                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="onboarding-org-size">Organization size</label>
+                                <input id="onboarding-org-size" type="text" placeholder="Volunteers / staff, approx.">
                             </div>
                             <div class="form-group">
                                 <label for="onboarding-org-description">About the organization *</label>
                                 <textarea id="onboarding-org-description" rows="4" placeholder="Mission, who you serve, and what you'd do on GloWe."></textarea>
                             </div>
+                            <h3 class="onboarding-section-title">You (contact person)</h3>
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="onboarding-org-contact-name">Contact person *</label>
+                                    <label for="onboarding-org-contact-name">Your name *</label>
                                     <input id="onboarding-org-contact-name" type="text" placeholder="Who we should talk to">
                                 </div>
                                 <div class="form-group">
@@ -2897,7 +2994,21 @@ async function openEditProfile(profileName = '') {
         const publicLinkEl = document.getElementById('edit-profile-public-link');
         if (publicLinkEl) publicLinkEl.value = profile.publicLink || '';
     }
+    wireEditProfileFormUx();
+    syncProfileEnglishFields();
     openModal('edit-profile-modal');
+}
+
+function wireEditProfileFormUx() {
+    const form = document.querySelector('#edit-profile-modal form');
+    if (!form || form.dataset.uxWired === '1') return;
+    form.dataset.uxWired = '1';
+    form.addEventListener('input', function (event) {
+        const id = event.target && event.target.id;
+        if (id === 'edit-profile-name' || id === 'edit-profile-org-name') {
+            syncProfileEnglishFields();
+        }
+    });
 }
 
 let avatarEditPendingFile = null;
@@ -4841,9 +4952,10 @@ function mapProfileToOrg(profile) {
         missionField: profile.orgDescription ? 'org_description' : 'about',
         location: profile.orgCountry || profile.location || '',
         scope: profile.country || '',
+        country: profile.orgCountry || profile.country || '',
         volunteers: 0,
         impactArea: profile.focus || '',
-        focus: profile.focus || '',
+        focus: profile.focus || profile.orgField || '',
         status: 'Verified',
         size: profile.orgSize || '',
         website: profile.orgWebsite || ''
@@ -5308,6 +5420,16 @@ function applyGloweDataI18n(root) {
         if (!key) return;
         el.textContent = gloweText(key);
     });
+}
+
+function mountGloweListFilters(rootId, presetKey, hooks) {
+    const root = document.getElementById(rootId);
+    if (!root || typeof GloweListFilters === 'undefined' || !GloweListFilters.presets || !GloweListFilters.presets[presetKey]) return null;
+    const config = GloweListFilters.presets[presetKey]();
+    root.innerHTML = GloweListFilters.renderPanel(config);
+    const panel = root.querySelector('.glowe-filter-panel');
+    if (!panel) return null;
+    return GloweListFilters.mount(panel, config, hooks);
 }
 
 // A dynamic value sandwiched between a static prefix and suffix ("The work
@@ -6366,6 +6488,27 @@ async function initOpportunitiesPage() {
         search: ''
     };
 
+    const filterCtrl = mountGloweListFilters('opportunity-filters-root', 'opportunities', {
+        countActive: function (state) {
+            let count = 0;
+            if (state.search) count += 1;
+            if (state.location !== 'all') count += 1;
+            if (state.field !== 'all') count += 1;
+            if (state.commitment !== 'all') count += 1;
+            if (state.event !== 'all') count += 1;
+            return count;
+        },
+        onChange: function (next) {
+            Object.assign(filters, next);
+            renderOpportunities();
+        },
+        results: {
+            singular: 'opportunity shown',
+            plural: 'opportunities shown',
+            empty: 'No opportunities match your filters'
+        }
+    });
+
     function applyEventFilter(list) {
         if (filters.event === 'all' || typeof GloweEvents === 'undefined') return list;
         const eventFilters = filters.event === 'physical' || filters.event === 'digital'
@@ -6384,6 +6527,10 @@ async function initOpportunitiesPage() {
         } else {
             container.innerHTML = filtered.map(opp => renderOpportunityCard(opp, '../')).join('');
         }
+        if (filterCtrl) {
+            const hasFilters = filters.location !== 'all' || filters.field !== 'all' || filters.commitment !== 'all' || filters.event !== 'all' || filters.search;
+            filterCtrl.updateResults({ count: filtered.length, hasFilters: hasFilters });
+        }
     }
 
     window.renderOpportunitiesList = renderOpportunities;
@@ -6395,47 +6542,7 @@ async function initOpportunitiesPage() {
         renderOpportunities();
     };
 
-    // Add filter event listeners
-    const locationFilter = document.getElementById('filter-location');
-    const fieldFilter = document.getElementById('filter-field');
-    const commitmentFilter = document.getElementById('filter-commitment');
-    const eventFilter = document.getElementById('filter-event');
-    const searchInput = document.getElementById('search-opportunities');
-
-    if (locationFilter) {
-        locationFilter.addEventListener('change', function() {
-            filters.location = this.value;
-            renderOpportunities();
-        });
-    }
-
-    if (fieldFilter) {
-        fieldFilter.addEventListener('change', function() {
-            filters.field = this.value;
-            renderOpportunities();
-        });
-    }
-
-    if (commitmentFilter) {
-        commitmentFilter.addEventListener('change', function() {
-            filters.commitment = this.value;
-            renderOpportunities();
-        });
-    }
-
-    if (eventFilter) {
-        eventFilter.addEventListener('change', function() {
-            filters.event = this.value;
-            renderOpportunities();
-        });
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            filters.search = this.value;
-            renderOpportunities();
-        });
-    }
+    if (filterCtrl) filterCtrl.refreshI18n();
 
     // Fetch real data then render
     if (container) {
@@ -6635,37 +6742,31 @@ function orgMatchesField(org, fieldKey) {
     return hay.includes(String(fieldKey).toLowerCase());
 }
 
-function setOrgFilterPillActive(buttons, attr, value) {
-    buttons.forEach(function (btn) {
-        btn.classList.toggle('active', btn.getAttribute(attr) === value);
-    });
-}
-
-function localizeOrganizationFilterChrome() {
-    const panel = document.querySelector('.organization-filter-panel');
-    if (!panel) return;
-    applyGloweDataI18n(panel);
-    if (typeof translateGloweTree === 'function') translateGloweTree(panel);
+function orgActiveFilterCount(filters) {
+    let count = 0;
+    if (filters.region !== 'all') count += 1;
+    if (filters.type !== 'all') count += 1;
+    if (filters.field !== 'all') count += 1;
+    return count;
 }
 
 async function initOrganizationsPage() {
     const container = document.getElementById('organizations-list');
     if (!container) return;
 
-    if (getGloweLanguage() !== 'en') {
-        await loadGloweLocaleDict(getGloweLanguage());
-    }
-    localizeOrganizationFilterChrome();
-
-    const searchInput = document.getElementById('organization-search');
-    const clearButton = document.getElementById('organization-clear-filters');
-    const countLabel = document.getElementById('organization-results-count');
-    const filterToggle = document.getElementById('organization-filter-toggle');
-    const advancedFilters = document.getElementById('organization-filter-advanced');
-    const regionButtons = document.querySelectorAll('[data-org-region]');
-    const typeButtons = document.querySelectorAll('[data-org-type]');
-    const fieldButtons = document.querySelectorAll('[data-org-field]');
     const filters = { query: '', region: 'all', type: 'all', field: 'all' };
+    const filterCtrl = mountGloweListFilters('organization-filters-root', 'organizations', {
+        countActive: orgActiveFilterCount,
+        onChange: function (next) {
+            Object.assign(filters, next);
+            renderOrganizations();
+        },
+        results: {
+            singular: 'profile shown',
+            plural: 'profiles shown',
+            empty: 'No profiles match your filters'
+        }
+    });
 
     function buildVisibleOrgs() {
         return [...organizations];
@@ -6694,68 +6795,16 @@ async function initOrganizationsPage() {
                 ? '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No matching profiles')) + '</h3><p>' + escapeHtml(gloweText('Try a broader keyword or clear a filter.')) + '</p></div>'
                 : '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No organizations yet')) + '</h3><p>' + escapeHtml(gloweText('Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.')) + '</p></div>';
 
-        if (countLabel) {
-            if (filtered.length === 1) {
-                countLabel.textContent = gloweCountedLabel(1, 'profile shown');
-            } else if (filtered.length > 0) {
-                countLabel.textContent = gloweCountedLabel(filtered.length, 'profiles shown');
-            } else {
-                countLabel.textContent = hasFilters ? gloweText('No profiles match your filters') : '';
-            }
-        }
+        if (filterCtrl) filterCtrl.updateResults({ count: filtered.length, hasFilters: hasFilters });
         hydrateFollowSlots(container);
     }
 
-    function resetOrgFilters() {
-        filters.query = '';
-        filters.region = 'all';
-        filters.type = 'all';
-        filters.field = 'all';
-        if (searchInput) searchInput.value = '';
-        setOrgFilterPillActive(regionButtons, 'data-org-region', 'all');
-        setOrgFilterPillActive(typeButtons, 'data-org-type', 'all');
-        setOrgFilterPillActive(fieldButtons, 'data-org-field', 'all');
-        if (advancedFilters) advancedFilters.classList.remove('is-open');
-        if (filterToggle) filterToggle.setAttribute('aria-expanded', 'false');
-        renderOrganizations();
+    if (getGloweLanguage() !== 'en') {
+        await loadGloweLocaleDict(getGloweLanguage());
     }
+    if (filterCtrl) filterCtrl.refreshI18n();
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            filters.query = this.value;
-            renderOrganizations();
-        });
-    }
-    regionButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            filters.region = this.getAttribute('data-org-region') || 'all';
-            setOrgFilterPillActive(regionButtons, 'data-org-region', filters.region);
-            renderOrganizations();
-        });
-    });
-    typeButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            filters.type = this.getAttribute('data-org-type') || 'all';
-            setOrgFilterPillActive(typeButtons, 'data-org-type', filters.type);
-            renderOrganizations();
-        });
-    });
-    fieldButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            filters.field = this.getAttribute('data-org-field') || 'all';
-            setOrgFilterPillActive(fieldButtons, 'data-org-field', filters.field);
-            renderOrganizations();
-        });
-    });
-    if (filterToggle && advancedFilters) {
-        filterToggle.addEventListener('click', function () {
-            const open = advancedFilters.classList.toggle('is-open');
-            filterToggle.setAttribute('aria-expanded', String(open));
-        });
-    }
-    if (clearButton) clearButton.addEventListener('click', resetOrgFilters);
-
-    container.innerHTML = '<div class="empty-state"><p class="muted-note">' + escapeHtml(gloweText('Loading organizations…')) + '</p></div>';
+    container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading organizations…')) + '</p></div>';
     try {
         const rows = await gloweBackend.listApprovedOrgs();
         const ensured = await withEnsuredEnglishNames(rows || []);
@@ -6764,7 +6813,7 @@ async function initOrganizationsPage() {
         organizations.splice(0, organizations.length);
     }
     renderOrganizations();
-    localizeOrganizationFilterChrome();
+    if (filterCtrl) filterCtrl.refreshI18n();
 }
 
 // Re-read + re-render the wish board after a create/close. Assigned when the
@@ -6774,15 +6823,25 @@ let resetWishBoardFilters = null;
 
 async function initWishingWellPage() {
     const container = document.getElementById('wishes-list');
-    const typeButtons = document.querySelectorAll('[data-wish-type]');
-    const areaButtons = document.querySelectorAll('[data-impact-area]');
-    const searchInput = document.getElementById('wish-search');
-    const sortSelect = document.getElementById('wish-sort');
-    const clearBtn = document.getElementById('clear-wish-filters');
-    const resultsCount = document.getElementById('wish-results-count');
-    const filterToggle = document.getElementById('wish-filter-toggle');
-    const advancedFilters = document.getElementById('wish-filter-advanced');
     const filters = { type: 'all', area: 'all', query: '', sort: 'newest' };
+    const filterCtrl = mountGloweListFilters('wish-filters-root', 'wishes', {
+        countActive: function (state) {
+            let count = 0;
+            if (state.type !== 'all') count += 1;
+            if (state.area !== 'all') count += 1;
+            return count;
+        },
+        onChange: function (next) {
+            Object.assign(filters, next);
+            if (typeof next.query === 'string') filters.query = next.query.trim();
+            renderWishes();
+        },
+        results: {
+            singular: 'wish shown',
+            plural: 'wishes shown',
+            empty: 'No wishes match your filters'
+        }
+    });
 
     function renderWishes() {
         const helpers = (typeof GloweWishes !== 'undefined') ? GloweWishes : null;
@@ -6792,63 +6851,17 @@ async function initWishingWellPage() {
         container.innerHTML = sorted.length
             ? sorted.map(renderWishCard).join('')
             : hasFilters ? emptyWishFilteredHtml() : emptyWishBoardHtml();
-        if (resultsCount) {
-            // Split count from label so translateGloweTree can match exact keys
-            // ("wish shown" / "wishes shown") — a welded "N wishes shown" never
-            // hits the dictionary (same pattern as org "volunteers").
-            if (sorted.length === 1) {
-                resultsCount.innerHTML = '1 <span>wish shown</span>';
-            } else if (sorted.length > 0) {
-                resultsCount.innerHTML = `${sorted.length} <span>wishes shown</span>`;
-            } else {
-                resultsCount.textContent = hasFilters ? 'No wishes match your filters' : '';
-            }
-        }
+        if (filterCtrl) filterCtrl.updateResults({ count: sorted.length, hasFilters: hasFilters });
     }
 
     resetWishBoardFilters = function () {
-        filters.type = 'all';
-        filters.area = 'all';
-        filters.query = '';
-        filters.sort = 'newest';
-        if (searchInput) searchInput.value = '';
-        if (sortSelect) sortSelect.value = 'newest';
-        typeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.wishType === 'all'));
-        areaButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.impactArea === 'all'));
-        if (advancedFilters) advancedFilters.classList.remove('is-open');
-        if (filterToggle) filterToggle.setAttribute('aria-expanded', 'false');
-        renderWishes();
+        if (filterCtrl) filterCtrl.reset();
+        else renderWishes();
     };
 
     reloadWishBoard = async function () { await loadLiveWishes(); renderWishes(); };
 
-    typeButtons.forEach(button => button.addEventListener('click', function() {
-        filters.type = this.dataset.wishType;
-        typeButtons.forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        renderWishes();
-    }));
-    areaButtons.forEach(button => button.addEventListener('click', function() {
-        filters.area = this.dataset.impactArea;
-        areaButtons.forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        renderWishes();
-    }));
-    if (searchInput) searchInput.addEventListener('input', function() {
-        filters.query = this.value.trim();
-        renderWishes();
-    });
-    if (sortSelect) sortSelect.addEventListener('change', function() {
-        filters.sort = this.value || 'newest';
-        renderWishes();
-    });
-    if (filterToggle && advancedFilters) {
-        filterToggle.addEventListener('click', function() {
-            const open = advancedFilters.classList.toggle('is-open');
-            filterToggle.setAttribute('aria-expanded', String(open));
-        });
-    }
-    if (clearBtn) clearBtn.addEventListener('click', resetWishBoardFilters);
+    if (filterCtrl) filterCtrl.refreshI18n();
     if (container) {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
         await loadLiveWishes();
@@ -6963,8 +6976,14 @@ async function initCommunityPage() {
     const container = document.getElementById('community-feed');
     const peopleContainer = document.getElementById('people-list');
     const groupsContainer = document.getElementById('topic-groups-list');
-    const searchInput = document.getElementById('community-feed-search');
-    const feedFilterButtons = document.querySelectorAll('[data-feed-filter]');
+    const feedFilters = { query: '', feedFilter: 'all' };
+    const filterCtrl = mountGloweListFilters('community-feed-filters-root', 'communityFeed', {
+        onChange: function (next) {
+            Object.assign(feedFilters, next);
+            if (typeof next.query === 'string') feedFilters.query = next.query.trim();
+            renderFeed();
+        }
+    });
 
     function postMatchesFilter(post, filter) {
         if (filter === 'all') return true;
@@ -6984,8 +7003,8 @@ async function initCommunityPage() {
 
     function renderFeed() {
         if (!container) return;
-        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
-        const activeFilter = document.querySelector('[data-feed-filter].active')?.dataset.feedFilter || 'all';
+        const query = feedFilters.query.toLowerCase();
+        const activeFilter = feedFilters.feedFilter || 'all';
         const deepId = communityPostDeepLinkId();
 
         if (activeFilter === 'event') {
@@ -7031,14 +7050,7 @@ async function initCommunityPage() {
         if (deepId) scheduleFocusCommunityPost(deepId);
     }
 
-    if (searchInput) searchInput.addEventListener('input', renderFeed);
-    feedFilterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            feedFilterButtons.forEach(item => item.classList.remove('active'));
-            button.classList.add('active');
-            renderFeed();
-        });
-    });
+    if (filterCtrl) filterCtrl.refreshI18n();
 
     // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {

@@ -61,63 +61,9 @@
             </div>
         </section>
 
-        <section class="filters-section">
-            <div class="container">
-                <div class="filters-container">
-                    <div class="filter-group">
-                        <label for="filter-location">Location:</label>
-                        <select id="filter-location">
-                            <option value="all">All Locations</option>
-                            <option value="remote">Remote</option>
-                            <option value="israel">Israel</option>
-                            <option value="tel aviv">Tel Aviv</option>
-                            <option value="jerusalem">Jerusalem</option>
-                            <option value="haifa">Haifa</option>
-                            <option value="global">Global</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-field">Field:</label>
-                        <select id="filter-field">
-                            <option value="all">All Fields</option>
-                            <option value="technology">Technology</option>
-                            <option value="education">Education</option>
-                            <option value="environment">Environment</option>
-                            <option value="community">Community</option>
-                            <option value="advocacy">Advocacy</option>
-                            <option value="health">Health</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-commitment">Commitment:</label>
-                        <select id="filter-commitment">
-                            <option value="all">All Types</option>
-                            <option value="part-time">Part-time</option>
-                            <option value="full-time">Full-time</option>
-                            <option value="flexible">Flexible</option>
-                            <option value="project-based">Project-based</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-event">Events:</label>
-                        <select id="filter-event">
-                            <option value="all">All listings</option>
-                            <option value="events">Events only</option>
-                            <option value="upcoming">Upcoming events</option>
-                            <option value="physical">In-person events</option>
-                            <option value="digital">Online events</option>
-                        </select>
-                    </div>
-                    <div class="search-box">
-                        <span class="search-label">Search</span>
-                        <input type="text" id="search-opportunities" aria-label="Search volunteer roles..." placeholder="Search volunteer roles...">
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="featured-section">
             <div class="container">
+                <div id="opportunity-filters-root"></div>
                 <div class="opportunities-grid" id="opportunities-list"></div>
             </div>
         </section>
@@ -139,8 +85,10 @@
     <script src="../js/glowe-guest.js" defer></script>
     <script src="../js/glowe-localized-name.js" defer></script>
     <script src="../js/glowe-ui-conventions.js" defer></script>
+    <script src="../js/glowe-list-filters.js" defer></script>
+    <script src="../js/glowe-list-filters-presets.js" defer></script>
     <script src="../js/glowe-version.js" defer></script>
-        <script src="../js/glowe-observability.js" defer></script>
+    <script src="../js/glowe-observability.js" defer></script>
     <script src="../js/app.js" defer></script>
     <script src="../js/glowe-session-cache.js" defer></script>
     <script src="../js/glowe-translate.js" defer></script>

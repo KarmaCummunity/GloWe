@@ -54,16 +54,7 @@
                         </div>
                         <a class="btn btn-outline btn-small" href="forums.html">Open Forums</a>
                     </div>
-                    <div class="community-feed-controls" aria-label="Community feed filters">
-                        <input id="community-feed-search" type="search" aria-label="Search posts, topics, people, or needs..." placeholder="Search posts, topics, people, or needs...">
-                        <div class="community-feed-tabs">
-                            <button class="active" type="button" data-feed-filter="all">For you</button>
-                            <button type="button" data-feed-filter="question">Questions</button>
-                            <button type="button" data-feed-filter="need">Needs</button>
-                            <button type="button" data-feed-filter="knowledge">Knowledge</button>
-                            <button type="button" data-feed-filter="event">Events</button>
-                        </div>
-                    </div>
+                    <div id="community-feed-filters-root"></div>
                     <div id="community-composer" class="composer-card linkedin-composer">
                         <span class="avatar">GW</span>
                         <button type="button" class="composer-input-button" onclick="openInlineComposer()">What do you want to share, ask, or offer today?</button>
@@ -121,8 +112,10 @@
     <script src="../js/glowe-guest.js" defer></script>
     <script src="../js/glowe-localized-name.js" defer></script>
     <script src="../js/glowe-ui-conventions.js" defer></script>
+    <script src="../js/glowe-list-filters.js" defer></script>
+    <script src="../js/glowe-list-filters-presets.js" defer></script>
     <script src="../js/glowe-version.js" defer></script>
-        <script src="../js/glowe-observability.js" defer></script>
+    <script src="../js/glowe-observability.js" defer></script>
     <script src="../js/app.js" defer></script>
     <script src="../js/glowe-session-cache.js" defer></script>
     <script src="../js/glowe-translate.js" defer></script>

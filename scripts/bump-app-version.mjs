@@ -35,8 +35,8 @@ export function bumpPatch(version) {
 
 export function gloweVersionSource(version) {
   return `// App-wide display version (FR-GLOWE-025 / D-181).
-// Source of truth: app/VERSION. Kept in sync by scripts/bump-app-version.mjs
-// and re-stamped by app/scripts/web-postbuild.mjs on every web deploy.
+// Source of truth: app/VERSION. Kept in sync by scripts/bump-app-version.mjs,
+// scripts/stamp-glowe-version.mjs (local dev), and web-postbuild on deploy.
 (function (root) {
     root.GloweAppVersion = { version: '${version}' };
 })(typeof self !== 'undefined' ? self : this);
@@ -55,6 +55,19 @@ export function bumpAppVersionFiles(root = appRoot) {
     glowePath,
     versionBody: `${next}\n`,
     gloweBody: gloweVersionSource(next),
+  };
+}
+
+/** Sync glowe-version.js from app/VERSION without bumping (local dev + CI). */
+export function stampGloweVersionFiles(root = appRoot) {
+  const versionPath = resolve(root, 'VERSION');
+  const glowePath = resolve(root, 'apps', 'glowe-web', 'js', 'glowe-version.js');
+  const version = formatSemver(parseSemver(readFileSync(versionPath, 'utf8')));
+  return {
+    version,
+    versionPath,
+    glowePath,
+    gloweBody: gloweVersionSource(version),
   };
 }
 

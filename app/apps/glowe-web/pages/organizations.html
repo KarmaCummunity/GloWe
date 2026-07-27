@@ -52,60 +52,7 @@
 
         <section class="featured-section">
             <div class="container">
-                <div class="organization-filter-panel" aria-label="Organization filters">
-                    <div class="organization-filter-intro">
-                        <span class="section-label">Find the right people</span>
-                        <h2>Search organizations, companies, and initiatives</h2>
-                        <p class="organization-filter-lead">Filter by region, profile type, or keywords connected to mission, field, needs, and projects.</p>
-                    </div>
-                    <div class="organization-filter-primary">
-                        <div class="form-group organization-filter-search">
-                            <label for="organization-search">Search keywords</label>
-                            <input id="organization-search" class="filter-input" type="search" aria-label="Search organizations" placeholder="Education, climate, mentors, Jerusalem...">
-                        </div>
-                        <button id="organization-filter-toggle" class="btn btn-outline organization-filter-toggle" type="button" aria-expanded="false" aria-controls="organization-filter-advanced" data-i18n="Filters">Filters</button>
-                        <button id="organization-clear-filters" class="btn btn-outline organization-filter-clear" type="button" data-i18n="Clear filters">Clear filters</button>
-                    </div>
-                    <div class="organization-filter-advanced" id="organization-filter-advanced">
-                        <details class="filter-accordion" open>
-                            <summary><span class="filter-accordion-title" data-i18n="Region">Region</span></summary>
-                            <div class="filter-pill-group organization-filter-pill-scroll" id="organization-region-pills">
-                                <button class="filter-pill active" type="button" data-org-region="all" data-i18n="All regions">All regions</button>
-                                <button class="filter-pill" type="button" data-org-region="israel" data-i18n="Israel">Israel</button>
-                                <button class="filter-pill" type="button" data-org-region="tel-aviv" data-i18n="Tel Aviv area">Tel Aviv area</button>
-                                <button class="filter-pill" type="button" data-org-region="jerusalem" data-i18n="Jerusalem area">Jerusalem area</button>
-                                <button class="filter-pill" type="button" data-org-region="haifa" data-i18n="Haifa &amp; North">Haifa &amp; North</button>
-                                <button class="filter-pill" type="button" data-org-region="south" data-i18n="South &amp; Negev">South &amp; Negev</button>
-                                <button class="filter-pill" type="button" data-org-region="global" data-i18n="Global / Remote">Global / Remote</button>
-                            </div>
-                        </details>
-                        <details class="filter-accordion">
-                            <summary><span class="filter-accordion-title" data-i18n="Profile type">Profile type</span></summary>
-                            <div class="filter-pill-group organization-filter-pill-scroll" id="organization-type-pills">
-                                <button class="filter-pill active" type="button" data-org-type="all" data-i18n="All types">All types</button>
-                                <button class="filter-pill" type="button" data-org-type="ngo" data-i18n="NGO / Nonprofit">NGO / Nonprofit</button>
-                                <button class="filter-pill" type="button" data-org-type="business" data-i18n="Company / Impact Business">Company / Impact Business</button>
-                                <button class="filter-pill" type="button" data-org-type="initiative" data-i18n="Social Initiative / Project">Social Initiative / Project</button>
-                            </div>
-                        </details>
-                        <details class="filter-accordion">
-                            <summary><span class="filter-accordion-title" data-i18n="Field / sector">Field / sector</span></summary>
-                            <div class="filter-pill-group organization-filter-pill-scroll" id="organization-field-pills">
-                                <button class="filter-pill active" type="button" data-org-field="all" data-i18n="All fields">All fields</button>
-                                <button class="filter-pill" type="button" data-org-field="Education" data-i18n="Education">Education</button>
-                                <button class="filter-pill" type="button" data-org-field="Climate" data-i18n="Climate">Climate</button>
-                                <button class="filter-pill" type="button" data-org-field="Health" data-i18n="Health">Health</button>
-                                <button class="filter-pill" type="button" data-org-field="Social Justice" data-i18n="Social Justice">Social Justice</button>
-                                <button class="filter-pill" type="button" data-org-field="Tech for Good" data-i18n="Tech for Good">Tech for Good</button>
-                                <button class="filter-pill" type="button" data-org-field="Community Building" data-i18n="Community Building">Community Building</button>
-                                <button class="filter-pill" type="button" data-org-field="Food Security" data-i18n="Food Security">Food Security</button>
-                                <button class="filter-pill" type="button" data-org-field="Knowledge Sharing" data-i18n="Knowledge Sharing">Knowledge Sharing</button>
-                                <button class="filter-pill" type="button" data-org-field="Civic Innovation" data-i18n="Civic Innovation">Civic Innovation</button>
-                            </div>
-                        </details>
-                    </div>
-                    <p class="filter-results-note" id="organization-results-count" aria-live="polite"></p>
-                </div>
+                <div id="organization-filters-root"></div>
                 <div class="opportunities-grid" id="organizations-list">
                     <!-- Populated by JavaScript -->
                 </div>
@@ -201,10 +148,12 @@
     <script src="../js/glowe-guest.js" defer></script>
     <script src="../js/glowe-localized-name.js" defer></script>
     <script src="../js/glowe-ui-conventions.js" defer></script>
+    <script src="../js/glowe-list-filters.js" defer></script>
+    <script src="../js/glowe-list-filters-presets.js" defer></script>
     <script src="../js/glowe-follow.js" defer></script>
     <script src="../js/glowe-follow-ui.js" defer></script>
     <script src="../js/glowe-version.js" defer></script>
-        <script src="../js/glowe-observability.js" defer></script>
+    <script src="../js/glowe-observability.js" defer></script>
     <script src="../js/app.js" defer></script>
     <script src="../js/glowe-session-cache.js" defer></script>
     <script src="../js/glowe-translate.js" defer></script>

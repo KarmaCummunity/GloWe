@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "description": "GloWe static frontend (HTML script-tag entry points). Included so fallow treats the site as reachable.",
   "scripts": {
+    "predev": "node ../../../scripts/stamp-glowe-version.mjs",
+    "prestart": "node ../../../scripts/stamp-glowe-version.mjs",
     "dev": "npx --yes serve . --listen 4321 --no-port-switching",
     "start": "npx --yes serve . --listen 4321 --no-port-switching",
     "test": "vitest run",

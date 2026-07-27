@@ -4647,6 +4647,156 @@ html[dir="rtl"] .org-review-banner__note {
     color: var(--primary-dark);
 }
 
+.glowe-filter-panel {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding: 22px 24px;
+    background:
+        linear-gradient(135deg, rgba(232, 247, 243, 0.88), rgba(255, 255, 255, 0.96)),
+        var(--white);
+    border: 1px solid rgba(20, 124, 117, 0.18);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 44px rgba(24, 36, 61, 0.06);
+}
+
+.glowe-filter-panel--compact {
+    margin-bottom: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    gap: 12px;
+}
+
+.glowe-filter-intro h2 {
+    margin: 6px 0 8px;
+    font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+}
+
+.glowe-filter-intro p,
+.glowe-filter-lead {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.glowe-filter-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.35fr) auto auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.glowe-filter-toolbar--with-sort {
+    grid-template-columns: minmax(220px, 1.2fr) minmax(150px, 0.65fr) auto auto;
+}
+
+.glowe-filter-toolbar .form-group {
+    margin: 0;
+}
+
+.glowe-filter-toolbar .btn {
+    min-height: 46px;
+    align-self: end;
+    white-space: nowrap;
+}
+
+.glowe-filter-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.glowe-filter-open-icon {
+    flex: 0 0 auto;
+}
+
+.glowe-filter-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--primary-dark);
+    color: var(--white);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 20px;
+    text-align: center;
+}
+
+.glowe-filter-dialog {
+    display: block;
+}
+
+.glowe-filter-dialog-backdrop,
+.glowe-filter-dialog-header,
+.glowe-filter-dialog-footer,
+.glowe-filter-dialog-close,
+.glowe-filter-open {
+    display: none;
+}
+
+.glowe-filter-dialog-panel {
+    display: contents;
+}
+
+.glowe-filter-advanced {
+    display: grid;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(20, 124, 117, 0.12);
+}
+
+.glowe-filter-advanced .filter-pill {
+    width: auto;
+    flex: 1 1 160px;
+    margin-bottom: 0;
+    justify-content: center;
+    text-align: center;
+}
+
+.glowe-filter-advanced .filter-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.glowe-filter-select-group {
+    margin: 0;
+}
+
+.glowe-filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.glowe-filter-tabs button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 8px 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.glowe-filter-tabs button.active,
+.glowe-filter-tabs button:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: var(--white);
+}
+
+.glowe-filter-panel.community-feed-controls input.filter-input {
+    width: 100%;
+    min-height: 44px;
+}
+
 .organizations-empty-state {
     grid-column: 1 / -1;
 }
@@ -5528,28 +5678,132 @@ html[dir="rtl"] .org-review-banner__note {
         display: grid;
     }
 
-    .organization-filter-primary {
+    .glowe-filter-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+    }
+
+    .glowe-filter-toolbar--with-sort {
         grid-template-columns: 1fr 1fr;
     }
 
-    .organization-filter-search {
+    .glowe-filter-search {
         grid-column: 1 / -1;
     }
 
-    .organization-filter-toggle {
-        grid-column: 1;
-    }
-
-    .organization-filter-clear {
-        grid-column: 2;
-    }
-
-    .organization-filter-advanced {
+    .glowe-filter-clear--toolbar {
         display: none;
     }
 
-    .organization-filter-advanced.is-open {
-        display: grid;
+    .glowe-filter-open {
+        display: inline-flex;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .glowe-filter-dialog[hidden] {
+        display: none !important;
+    }
+
+    .glowe-filter-dialog:not([hidden]) {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    body.glowe-filter-sheet-open {
+        overflow: hidden;
+    }
+
+    .glowe-filter-dialog-backdrop {
+        display: block;
+        position: absolute;
+        inset: 0;
+        border: 0;
+        background: rgba(15, 23, 42, 0.45);
+        cursor: pointer;
+    }
+
+    .glowe-filter-dialog-panel {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        width: min(100%, 520px);
+        max-height: min(82vh, 640px);
+        margin: 0;
+        background: var(--white);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        box-shadow: 0 -8px 40px rgba(24, 36, 61, 0.18);
+    }
+
+    .glowe-filter-dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .glowe-filter-dialog-header h3 {
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .glowe-filter-dialog-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--sky-light);
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .glowe-filter-dialog-body {
+        overflow: auto;
+        padding: 8px 16px 12px;
+    }
+
+    .glowe-filter-dialog-footer {
+        display: flex;
+        gap: 10px;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border-color);
+    }
+
+    .glowe-filter-dialog-footer .btn {
+        flex: 1 1 0;
+    }
+
+    .glowe-filter-panel {
+        padding: 16px;
+        margin-bottom: 18px;
+    }
+
+    .glowe-filter-pill-scroll {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .glowe-filter-pill-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .glowe-filter-advanced .filter-pill {
+        flex: 0 0 auto;
+        min-width: max-content;
     }
 
     .wish-card-top .heart-button {
@@ -7924,6 +8178,20 @@ html[dir="rtl"] .org-review-banner__note {
     margin-top: 6px;
     padding-top: 16px;
     border-top: 1px solid var(--border-color);
+}
+
+.onboarding-section-title {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.onboarding-english-field small {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
 }
 
 .onboarding-review-note {
