@@ -104,7 +104,9 @@
             availability: profile.availability || profile.size || '',
             skills: profile.skills || profile.interests || [],
             avatar_url: profile.avatarUrl || profile.avatar_url || '',
-            profile_status: profile.profileStatus || profile.profile_status || null,
+            // NOT NULL in glowe_profiles — null here caused silent upsert failures
+            // when saving avatar/cover-only patches (FR-GLOWE-011 AC3).
+            profile_status: profile.profileStatus || profile.profile_status || 'Draft',
             org_name: profile.orgName || profile.org_name || null,
             org_name_en: profile.orgNameEn || profile.org_name_en || null,
             raw_profile: profile
@@ -130,6 +132,30 @@
     // table: the view carries the same row policy but cannot accidentally grow
     // a private column later.
     const PROFILES_PUBLIC_VIEW = 'glowe_public_profiles';
+
+    // PostgREST UPSERT (Prefer: resolution=merge-duplicates) requires
+    // table-level SELECT. Migration 0236 only grants column-level SELECT on
+    // glowe_profiles, so `.upsert()` returns 403 "permission denied for
+    // table". Plain INSERT and PATCH still work. Prefer update-then-insert.
+    async function saveProfileRow(supabaseClient, payload) {
+        const id = payload && payload.id;
+        if (!id) throw new Error('profile id required');
+        const { data: updated, error: updateError } = await supabaseClient
+            .from(tbl('profiles'))
+            .update(payload)
+            .eq('id', id)
+            .select(PROFILE_PUBLIC_COLUMNS)
+            .maybeSingle();
+        if (updateError) throw updateError;
+        if (updated) return updated;
+        const { data: inserted, error: insertError } = await supabaseClient
+            .from(tbl('profiles'))
+            .insert(payload)
+            .select(PROFILE_PUBLIC_COLUMNS)
+            .single();
+        if (insertError) throw insertError;
+        return inserted;
+    }
 
     // `privateRow` is the owner-only slice from glowe_get_self_private_fields().
     // It is absent for every profile except your own, so orgContactEmail and
@@ -183,11 +209,16 @@
     function fromProfileRow(row, privateRow = null) {
         if (!row) return null;
         const priv = privateRow || {};
-        return {
-            ...(priv.raw_profile || {}),
+        const raw = priv.raw_profile || {};
+        const merged = {
+            ...raw,
             ...publicProfileFields(row),
             ...privateProfileFields(priv)
         };
+        // Column wins when set; raw_profile keeps cover + legacy avatar snapshots.
+        merged.avatarUrl = firstOf(row.avatar_url, raw.avatarUrl, raw.avatar_url, '');
+        merged.coverImageUrl = firstOf(raw.coverImageUrl, raw.cover_image_url, '');
+        return merged;
     }
 
     // Admin RPCs (glowe_list_pending_orgs) are SECURITY DEFINER and return the
@@ -272,6 +303,7 @@
             link: payload.link || '',
             author_name: payload.authorName || payload.author_name || '',
             author_name_en: payload.authorNameEn || payload.author_name_en || null,
+            author_avatar_url: payload.authorAvatarUrl || payload.author_avatar_url || null,
             // Wish discriminator + lifecycle (migration 0215). Defaults keep
             // community posts unchanged.
             post_type: payload.post_type || 'community',
@@ -301,8 +333,23 @@
     async function currentUser() {
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
-        const { data } = await supabaseClient.auth.getUser();
-        return data && data.user ? data.user : null;
+        // Prefer getSession() (local JWT) — matches auth.js and avoids flaky
+        // getUser() network calls that can 500 while the session is still valid.
+        if (typeof supabaseClient.auth.getSession === 'function') {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data && data.session && data.session.user) return data.session.user;
+        }
+        try {
+            const { data, error } = await supabaseClient.auth.getUser();
+            if (error) {
+                console.warn('auth.getUser failed:', error.message);
+                return null;
+            }
+            return data && data.user ? data.user : null;
+        } catch (e) {
+            console.warn('auth.getUser threw:', e && e.message ? e.message : e);
+            return null;
+        }
     }
 
     async function signUp({ email, password, profile }) {
@@ -487,12 +534,8 @@
         // Writing the PII columns is still allowed for their owner; only SELECT
         // was revoked (0236), so the returning clause must name public columns.
         // The private half is echoed back from the payload we just sent.
-        const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .upsert(payload)
-            .select(PROFILE_PUBLIC_COLUMNS)
-            .single();
-        if (error) throw error;
+        // Avoid `.upsert()` — PostgREST rejects it under 0236 column grants.
+        const data = await saveProfileRow(supabaseClient, payload);
         return fromProfileRow(data, { email: payload.email, raw_profile: payload.raw_profile });
     }
 
@@ -517,25 +560,37 @@
             display_name_en: displayNameEn || null,
             avatar_url: meta.avatar_url || meta.picture || '',
         };
-        const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .upsert(payload)
-            .select(PROFILE_PUBLIC_COLUMNS)
-            .maybeSingle();
-        if (error) { console.warn('ensureProfileFromGoogle failed (non-fatal):', error.message); return null; }
-        return fromProfileRow(data, { email: payload.email });
+        try {
+            // First sign-in only — fetchProfile() already returned null, so INSERT
+            // (not upsert). Upsert 403s under migration 0236 column grants.
+            const { data, error } = await supabaseClient
+                .from(tbl('profiles'))
+                .insert(payload)
+                .select(PROFILE_PUBLIC_COLUMNS)
+                .maybeSingle();
+            if (error) throw error;
+            return fromProfileRow(data, { email: payload.email });
+        } catch (err) {
+            console.warn('ensureProfileFromGoogle failed (non-fatal):', err && err.message ? err.message : err);
+            return null;
+        }
     }
 
     // FR-GLOWE-011 AC3 — upload a profile image to the `glowe-avatars` Storage
     // bucket (migration 0219) and return its public URL. The object is written to
     // an owner-scoped folder (`<user_id>/…`) so the bucket's insert/update RLS
     // policy (`storage.foldername(name)[1] = auth.uid()`) permits the write.
-    // Returns null when unauthenticated/unconfigured (the caller keeps the
-    // Cloudinary fallback). Client-side type/size validation is done before this.
+    // Returns null when unauthenticated/unconfigured (legacy callers). Throws on
+    // storage errors. When the backend is configured but the session is missing,
+    // throws a user-facing message instead of falling through to Cloudinary.
     async function uploadProfileImageFile(file, objectPrefix) {
         const supabaseClient = await getClient();
+        if (!file) throw new Error('Please choose an image file.');
+        if (!supabaseClient) return null;
         const user = await currentUser();
-        if (!supabaseClient || !user || !file) return null;
+        if (!user) {
+            throw new Error('Your session expired. Please sign out and sign in again, then retry.');
+        }
         const extByMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
         const ext = extByMime[file.type] || 'jpg';
         const path = `${user.id}/${objectPrefix}-${Date.now()}.${ext}`;
@@ -601,12 +656,8 @@
             org_size: isOrg ? (org.size || '') : null,
             org_submitted_at: isOrg ? new Date().toISOString() : null
         };
-        const { data, error } = await supabaseClient
-            .from(tbl('profiles'))
-            .upsert(payload)
-            .select(PROFILE_PUBLIC_COLUMNS)
-            .single();
-        if (error) throw error;
+        // Avoid `.upsert()` — PostgREST rejects it under 0236 column grants.
+        const data = await saveProfileRow(supabaseClient, payload);
         // Echo the private half back from the payload rather than re-reading it
         // through glowe_get_self_private_fields() — we just wrote these values.
         return fromProfileRow(data, {
@@ -1033,6 +1084,45 @@
         return Array.isArray(data) ? data : [];
     }
 
+    // FR-GLOWE-016 AC2 / Wave 2.1 — ranked home feed from Postgres (migration 0240).
+    // Maps RPC rows to the GloweHomeFeed item shape. Returns null when the
+    // backend is offline so callers can fall back to the legacy six-fetch path.
+    async function fetchHomeFeed(limit = 10, offset = 0) {
+        const supabaseClient = await getClient();
+        if (!supabaseClient) return null;
+        const { data, error } = await supabaseClient.rpc('glowe_home_feed', {
+            p_limit: Math.max(1, Math.min(Number(limit) || 10, 50)),
+            p_offset: Math.max(0, Number(offset) || 0)
+        });
+        if (error) throw error;
+        const HF = (typeof window !== 'undefined') ? window.GloweHomeFeed : null;
+        return (Array.isArray(data) ? data : []).map(function (row) {
+            const kind = row.kind || 'post';
+            const id = row.id == null ? '' : String(row.id);
+            const groupId = row.group_id || '';
+            return {
+                kind: kind,
+                id: id,
+                title: row.title || '',
+                snippet: row.snippet || '',
+                createdAt: row.created_at || '',
+                authorLabel: row.author_label || '',
+                authorNameEn: row.author_name_en || '',
+                authorId: row.author_id || '',
+                authorAvatarUrl: row.author_avatar_url || '',
+                commentCount: Number(row.comment_count) || 0,
+                saveCount: Number(row.save_count) || 0,
+                hrefPath: HF && typeof HF.defaultHref === 'function'
+                    ? HF.defaultHref(kind, id, groupId ? { groupId: groupId } : null)
+                    : '',
+                tagKey: row.tag_key || 'Post',
+                category: row.category || '',
+                groupId: groupId,
+                hotScore: Number(row.hot_score) || 0
+            };
+        });
+    }
+
     // ── Direct messaging on KC's shared chat backend (FR-GLOWE-016 AC6) ──────
     // GloWe reuses KC's public.chats / public.messages directly (D-61): these
     // tables are NOT glowe_-prefixed. RLS scopes everything to the signed-in
@@ -1059,27 +1149,59 @@
     }
 
     const CHAT_COLUMNS = 'chat_id, participant_a, participant_b, last_message_at';
+    const CHAT_DM_SELECT = CHAT_COLUMNS + ', is_support_thread, inbox_hidden_at_a, inbox_hidden_at_b';
 
-    // Find (or create) the 1:1 DM chat with another user; existing non-support
-    // rows are reused (newest first — a hidden chat resurfaces on new activity).
+    // Find (or create) the 1:1 DM chat with another user — KC parity with
+    // supabaseDmChat.findOrCreateDmChat (visible DM, support-thread reuse,
+    // support-pair conflict recovery).
     async function kcGetOrCreateDmChat(otherUserId) {
         const ctx = await kcContext();
-        if (!ctx || !otherUserId) return null;
+        const pick = window.GloweMessages && window.GloweMessages.pickDmChatRow;
+        const isConflict = window.GloweMessages && window.GloweMessages.isSupportPairConflict;
+        if (!ctx || !otherUserId || !pick || !isConflict) return null;
+
+        const { data: otherUser, error: otherErr } = await ctx.supabaseClient
+            .from('users')
+            .select('user_id')
+            .eq('user_id', otherUserId)
+            .maybeSingle();
+        if (otherErr || !otherUser) return null;
+
         const [a, b] = kcCanonicalPair(ctx.user.id, otherUserId);
-        const existing = kcUnwrap(await ctx.supabaseClient
+        const viewerIsA = ctx.user.id === a;
+        const { data: rows, error: listErr } = await ctx.supabaseClient
             .from('chats')
-            .select(CHAT_COLUMNS)
+            .select(CHAT_DM_SELECT)
             .eq('participant_a', a)
             .eq('participant_b', b)
-            .eq('is_support_thread', false)
             .order('last_message_at', { ascending: false })
-            .limit(1), []);
-        if (existing.length) return existing[0];
-        return kcUnwrap(await ctx.supabaseClient
+            .limit(50);
+        if (listErr) return null;
+
+        const list = rows || [];
+        const reuse = pick(list, viewerIsA);
+        if (reuse) return reuse;
+
+        const insertRes = await ctx.supabaseClient
             .from('chats')
             .insert({ participant_a: a, participant_b: b })
             .select(CHAT_COLUMNS)
-            .single(), null);
+            .single();
+        if (!insertRes.error) return insertRes.data;
+
+        if (isConflict(insertRes.error)) {
+            const { data: support } = await ctx.supabaseClient
+                .from('chats')
+                .select(CHAT_COLUMNS)
+                .eq('participant_a', a)
+                .eq('participant_b', b)
+                .eq('is_support_thread', true)
+                .maybeSingle();
+            if (support) return support;
+        }
+
+        const fallback = list.find(function (r) { return r && !r.is_support_thread; });
+        return fallback || null;
     }
 
     // The caller's chat inbox, newest activity first.
@@ -1437,6 +1559,48 @@
         return fromProfileRow(data);
     }
 
+    // Batch-read public author marks for feed cards (FR-GLOWE-008 / FR-GLOWE-016).
+    // Used when a post snapshot is missing author_name / avatar but still has
+    // user_id — existing rows must resolve to a real profile, not "GloWe Member".
+    async function fetchPublicAuthorsByUserIds(ids) {
+        const unique = [...new Set((ids || []).filter(Boolean).map(String))];
+        if (!unique.length) return {};
+        const supabaseClient = await getClient();
+        if (!supabaseClient) return {};
+        const { data, error } = await supabaseClient
+            .from(PROFILES_PUBLIC_VIEW)
+            .select('id, display_name, display_name_en, avatar_url, account_type, org_name, org_name_en')
+            .in('id', unique);
+        if (error) throw error;
+        const out = {};
+        (data || []).forEach(function (row) {
+            if (!row || !row.id) return;
+            const isOrg = row.account_type === 'organization';
+            const primary = isOrg
+                ? (row.org_name || row.display_name || '')
+                : (row.display_name || '');
+            const english = isOrg
+                ? (row.org_name_en || row.display_name_en || '')
+                : (row.display_name_en || '');
+            out[row.id] = {
+                displayName: primary,
+                displayNameEn: english,
+                avatarUrl: row.avatar_url || ''
+            };
+        });
+        return out;
+    }
+
+    // Batch-read public avatar URLs for feed author marks (FR-GLOWE-008).
+    async function fetchPublicAvatarsByUserIds(ids) {
+        const authors = await fetchPublicAuthorsByUserIds(ids);
+        const out = {};
+        Object.keys(authors).forEach(function (id) {
+            if (authors[id] && authors[id].avatarUrl) out[id] = authors[id].avatarUrl;
+        });
+        return out;
+    }
+
     // FR-GLOWE-024 — lazy-fill missing English names for public profiles so EN
     // readers see Latin names even when onboarding never supplied one. Anon OK
     // (edge function mode B). Failures return [] so callers keep source names.
@@ -1473,6 +1637,8 @@
         deleteProfile,
         fetchProfile,
         fetchProfileById,
+        fetchPublicAvatarsByUserIds,
+        fetchPublicAuthorsByUserIds,
         ensureProfileEnglishNames,
         upsertProfile,
         ensureProfileFromGoogle,
@@ -1509,6 +1675,7 @@
         adminRemoveContent,
         adminHealthSummary,
         adminListHealthChecks,
+        fetchHomeFeed,
         kcGetOrCreateDmChat,
         kcListMyChats,
         kcLastMessages,

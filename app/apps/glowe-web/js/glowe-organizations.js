@@ -463,6 +463,40 @@
         }
     }
 
+    // Cover/header images: one resize pass (wider cap) — faster than avatar loop.
+    async function prepareCoverUploadFile(file, options) {
+        const maxBytes = (options && options.maxBytes) || 5 * 1024 * 1024;
+        if (!file) return { ok: false, error: 'Please choose an image file.' };
+        if (!isAvatarImageFile(file)) {
+            return { ok: false, error: 'Please choose an image file.' };
+        }
+        if (Number(file.size) <= maxBytes && Number(file.size) <= 900 * 1024) {
+            return { ok: true, file: file, compressed: false };
+        }
+        if (typeof document === 'undefined') {
+            return { ok: false, error: 'Image must be under 5 MB.' };
+        }
+        try {
+            const compressed = await compressAvatarImageFile(file, {
+                maxBytes: maxBytes,
+                maxDimension: 1600,
+                quality: 0.82
+            });
+            if (compressed.size > maxBytes) {
+                return {
+                    ok: false,
+                    error: 'Image is too large even after compression. Try a smaller photo.'
+                };
+            }
+            return { ok: true, file: compressed, compressed: true };
+        } catch (error) {
+            return {
+                ok: false,
+                error: (error && error.message) ? error.message : 'Could not compress image.'
+            };
+        }
+    }
+
     return {
         mapProjectRow: mapProjectRow,
         mapProjects: mapProjects,
@@ -496,6 +530,7 @@
         shouldShowProfileSkeleton: shouldShowProfileSkeleton,
         isAvatarImageFile: isAvatarImageFile,
         validateAvatarFile: validateAvatarFile,
-        prepareAvatarUploadFile: prepareAvatarUploadFile
+        prepareAvatarUploadFile: prepareAvatarUploadFile,
+        prepareCoverUploadFile: prepareCoverUploadFile
     };
 });

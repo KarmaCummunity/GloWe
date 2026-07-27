@@ -113,3 +113,26 @@ describe('formatChatTime', () => {
     expect(label).toBeTruthy();
   });
 });
+
+describe('pickDmChatRow / isSupportPairConflict', () => {
+  it('prefers a visible non-support DM over a support thread', () => {
+    const rows = [
+      { chat_id: 'support', is_support_thread: true, inbox_hidden_at_a: null, inbox_hidden_at_b: null },
+      { chat_id: 'dm', is_support_thread: false, inbox_hidden_at_a: null, inbox_hidden_at_b: null }
+    ];
+    expect(GloweMessages.pickDmChatRow(rows, true).chat_id).toBe('dm');
+  });
+
+  it('reuses a support thread when no visible DM exists', () => {
+    const rows = [
+      { chat_id: 'hidden', is_support_thread: false, inbox_hidden_at_a: '2026-07-01', inbox_hidden_at_b: null },
+      { chat_id: 'support', is_support_thread: true, inbox_hidden_at_a: null, inbox_hidden_at_b: null }
+    ];
+    expect(GloweMessages.pickDmChatRow(rows, true).chat_id).toBe('support');
+  });
+
+  it('detects the support-pair unique-index conflict', () => {
+    expect(GloweMessages.isSupportPairConflict({ code: '23505', message: 'chats_unique_support_pair' })).toBe(true);
+    expect(GloweMessages.isSupportPairConflict({ code: '23505', message: 'other' })).toBe(false);
+  });
+});

@@ -1,0 +1,21 @@
+# Cloudflare Pages ignores nested `_headers`; this file documents intent for
+# the GloWe tree. The live rules are written to the Pages publish root by
+# `app/scripts/web-postbuild.mjs` (see `GLOWE_CF_HEADERS` in glowe-minify-hash.mjs).
+
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=604800
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/pages/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate

@@ -23,8 +23,14 @@ describe('mapPostRow', () => {
         })).toEqual({
             id: 'p1', title: 'Hello', category: 'Knowledge', text: 'Body',
             tags: ['a', 'b'], authorId: 'u1', authorName: 'Dana', authorNameEn: '',
-            createdAt: '2026-01-01'
+            authorAvatarUrl: '', createdAt: '2026-01-01'
         });
+    });
+
+    it('maps author_avatar_url when present', () => {
+        expect(GlowePosts.mapPostRow({
+            id: 'p3', author_name: 'Dana', author_avatar_url: 'https://cdn.example/a.jpg'
+        }).authorAvatarUrl).toBe('https://cdn.example/a.jpg');
     });
 
     it('applies friendly defaults for missing fields', () => {
@@ -85,6 +91,40 @@ describe('isPostOwner', () => {
 
     it('compares ids as strings', () => {
         expect(GlowePosts.isPostOwner({ authorId: 7 }, '7')).toBe(true);
+    });
+});
+
+describe('normalizePostUpdatePatch', () => {
+    it('maps editable fields and comma tags without author stamps', () => {
+        expect(GlowePosts.normalizePostUpdatePatch({
+            title: '  Hello ',
+            category: ' Education ',
+            text: ' Body ',
+            tags: 'a, b',
+            audience: 'Public',
+            language: 'he',
+            link: 'https://x.io',
+            author_name: 'should-not-appear',
+            post_type: 'community'
+        })).toEqual({
+            title: 'Hello',
+            category: 'Education',
+            text: 'Body',
+            tags: ['a', 'b'],
+            audience: 'Public',
+            language: 'he',
+            link: 'https://x.io'
+        });
+    });
+
+    it('accepts body alias and empty draft defaults', () => {
+        expect(GlowePosts.normalizePostUpdatePatch({ title: 'T', body: 'B' }))
+            .toMatchObject({ title: 'T', text: 'B', tags: [] });
+        expect(GlowePosts.normalizePostUpdatePatch(null))
+            .toEqual({
+                title: '', category: '', text: '', tags: [],
+                audience: '', language: '', link: ''
+            });
     });
 });
 
@@ -209,12 +249,17 @@ describe('normalizePostDraft', () => {
         })).toEqual({
             post_type: 'community', title: 'Hello', category: 'Knowledge', text: 'Body',
             tags: ['Education', 'Climate'], audience: 'Everyone', language: 'English',
-            link: 'https://x.io', author_name: 'Dana', author_name_en: null
+            link: 'https://x.io', author_name: 'Dana', author_name_en: null,
+            author_avatar_url: null
         });
     });
 
     it('collapses blank optional fields and prefers text over body', () => {
         const payload = GlowePosts.normalizePostDraft({ title: 'T', text: 'Real', body: 'Ignored' });
-        expect(payload).toMatchObject({ post_type: 'community', title: 'T', text: 'Real', tags: [], category: '', audience: '', language: '', link: '', author_name: '', author_name_en: null });
+        expect(payload).toMatchObject({
+            post_type: 'community', title: 'T', text: 'Real', tags: [], category: '',
+            audience: '', language: '', link: '', author_name: '', author_name_en: null,
+            author_avatar_url: null
+        });
     });
 });

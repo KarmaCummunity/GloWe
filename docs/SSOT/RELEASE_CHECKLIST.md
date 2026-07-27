@@ -77,10 +77,57 @@ Spot-check manually:
 
 | Layer | Action |
 | --- | --- |
-| **App (Railway)** | Railway → prod service → Deployments → redeploy previous successful image. |
+| **Web (Cloudflare Pages)** | See **Cloudflare Pages rollback** below — primary path for GloWe + KC static web. |
+| **App (Railway)** | Railway → prod service → Deployments → redeploy previous successful image (legacy / secondary host if still in use). |
 | **DB** | **No auto-rollback.** Forward-fix with a new migration or manual SQL per OPERATOR_RUNBOOK. Prefer backward-compatible migrations. |
 | **Edge Functions** | Redeploy from last known-good commit: `workflow_dispatch` on **Supabase Functions deploy**, or local `supabase functions deploy` from that commit. |
 | **Git** | Do **not** force-push `main`. Forward-fix on `dev`, release again. |
+
+### Cloudflare Pages rollback (GloWe + KC web)
+
+GloWe and the KC web bundle share **one** Cloudflare Pages project (`karma-community`), deployed by [`.github/workflows/deploy-web.yml`](../../.github/workflows/deploy-web.yml) (`wrangler pages deploy … --project-name=karma-community --branch=<git-branch>`). Topology: [`ENVIRONMENTS.md`](./ENVIRONMENTS.md).
+
+| Git branch | Pages “branch” / URL | Product front door |
+| --- | --- | --- |
+| `dev` | `dev` → `https://dev.karma-community.pages.dev` | **GloWe:** `/glowe` (also KC under same host) |
+| `main` | `main` → `https://karma-community-kc.com` | **KC** root; GloWe still at `/glowe` |
+
+Rolling back a Pages deployment restores the **entire** static site for that branch (KC SPA + `/glowe/**`). It does **not** roll back Supabase schema, Edge Functions, or Auth config.
+
+#### Dashboard (preferred, ~1 min)
+
+1. Cloudflare Dashboard → **Workers & Pages** → project **`karma-community`**.
+2. Open **Deployments**.
+3. Filter / select the environment that matches the broken URL (`dev` for GloWe live / `main` for KC prod).
+4. Find the last **Successful** deployment known-good (match commit SHA / deploy time from GitHub Actions **Deploy Web → Cloudflare Pages**).
+5. Open that deployment → **Rollback to this deployment** (wording may be “Retry deployment” / promote previous alias — use the control that makes this deployment the live alias for the branch).
+6. Confirm the live URL: GloWe footer `vX.Y.Z` / `glowe-version.js` matches the rolled-back build; KC root loads without the bad change.
+
+#### CLI (same project)
+
+Requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` (same secrets as deploy-web).
+
+```bash
+# List recent deployments for the project
+npx wrangler pages deployment list --project-name=karma-community
+
+# Redeploy a known-good artifact by re-running CI from that commit, or
+# use the dashboard Rollback on the listed deployment id.
+# (Prefer dashboard rollback over improvising a new deploy from an old tree
+# unless you intentionally rebuild that commit.)
+```
+
+#### Re-deploy a known-good git commit (when dashboard rollback is unavailable)
+
+1. Check out the last good commit on `dev` or `main` (do **not** force-push).
+2. GitHub Actions → **Deploy Web → Cloudflare Pages** → **Run workflow** (`workflow_dispatch`) on that ref, **or** open a forward-fix PR that restores the good tree and merge so the normal push deploy runs.
+3. Watch the workflow green, then smoke the URL(s) above.
+
+#### After rollback
+
+- [ ] Smoke GloWe (`/glowe`) and/or KC root for the rolled branch.
+- [ ] If the bad release also shipped migrations/functions, Pages rollback alone is not enough — follow **DB** / **Edge Functions** rows above (forward-fix).
+- [ ] Land a forward-fix on `dev` (then `dev` → `main` if prod) so git history matches what is live; do not leave production pinned to an orphaned Pages alias indefinitely.
 
 ---
 

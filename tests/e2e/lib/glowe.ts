@@ -24,7 +24,24 @@ export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? extract('sup
 export const SUPABASE_ANON_KEY = process.env.E2E_SUPABASE_ANON_KEY ?? extract('supabaseAnonKey');
 
 const devWebUrl = (process.env.DEV_WEB_URL ?? '').replace(/\/$/, '');
-export const GLOWE_BASE = (process.env.GLOWE_WEB_URL ?? (devWebUrl ? `${devWebUrl}/glowe` : 'http://127.0.0.1:4321')).replace(/\/$/, '');
+const stagingUrl = (process.env.GLOWE_STAGING_URL ?? '').replace(/\/$/, '');
+const prodUrl = (process.env.GLOWE_PROD_URL ?? '').replace(/\/$/, '');
+
+function firstGloweRoot(...candidates: string[]): string {
+  for (const raw of candidates) {
+    const trimmed = raw.trim().replace(/\/$/, '');
+    if (trimmed) return trimmed;
+  }
+  return 'http://127.0.0.1:4321';
+}
+
+/** Resolve the GloWe site root for functional E2E (journeys + visual). */
+export const GLOWE_BASE = firstGloweRoot(
+  process.env.GLOWE_WEB_URL ?? '',
+  stagingUrl,
+  devWebUrl ? `${devWebUrl}/glowe` : '',
+  prodUrl,
+);
 export const GLOWE_ORIGIN = new URL(GLOWE_BASE).origin;
 
 export function gloweUrl(page: string): string {
