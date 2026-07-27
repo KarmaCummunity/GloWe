@@ -173,6 +173,12 @@
         return Number(value);
     }
 
+    // glowe_opportunities.skills/requirements/responsibilities are text[].
+    // Never coerce missing values to '' — PostgREST rejects that with 400.
+    function toTextArray(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
     // Event fields (additive model, migration 0211) — only forwarded when an
     // event is being created (FR-GLOWE-016 AC4), so plain opportunity inserts
     // keep their previous column set.
@@ -198,9 +204,9 @@
             duration: firstOf(payload.duration, ''),
             field: firstOf(payload.field, ''),
             description: firstOf(payload.description, ''),
-            skills: Array.isArray(payload.skills) ? payload.skills : [],
-            requirements: firstOf(payload.requirements, ''),
-            responsibilities: firstOf(payload.responsibilities, ''),
+            skills: toTextArray(payload.skills),
+            requirements: toTextArray(payload.requirements),
+            responsibilities: toTextArray(payload.responsibilities),
             featured: Boolean(payload.featured)
         };
         const startAt = firstOf(payload.start_at, payload.startAt, null);

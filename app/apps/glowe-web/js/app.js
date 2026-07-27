@@ -5035,6 +5035,47 @@ function glowePostTypeLabel(category, separator) {
     return `${postWord}${separator || ' | '}${label}`;
 }
 
+// Compact feed cards need a visible body snippet — not only "Read more".
+function postFeedDisplayParts(post, options) {
+    const compact = Boolean(options && options.compact);
+    const title = String(post.title || '').trim();
+    const text = String(post.text || '').trim();
+    const truncFn = (typeof GlowePosts !== 'undefined' && GlowePosts.truncateCommentPreview)
+        ? GlowePosts.truncateCommentPreview
+        : function (value, maxLen) {
+            const raw = String(value == null ? '' : value).trim();
+            const limit = Math.max(1, Number(maxLen) || 120);
+            if (raw.length <= limit) return raw;
+            return raw.slice(0, limit).trim() + '…';
+        };
+    const excerptLimit = compact ? 200 : 280;
+    if (title && text) {
+        return {
+            title,
+            excerpt: truncFn(text, excerptLimit),
+            excerptField: 'text',
+            showReadMore: compact
+        };
+    }
+    if (text) {
+        return {
+            title: '',
+            excerpt: compact ? truncFn(text, excerptLimit) : text,
+            excerptField: 'text',
+            showReadMore: compact && text.length > 48
+        };
+    }
+    if (title) {
+        return {
+            title: compact ? '' : title,
+            excerpt: compact ? truncFn(title, excerptLimit) : '',
+            excerptField: 'title',
+            showReadMore: compact && title.length > 48
+        };
+    }
+    return { title: '', excerpt: '', excerptField: 'text', showReadMore: false };
+}
+
 // Same problem as glowePostTypeLabel() above: a static "<Label>:" prefix glued
 // to a dynamic value in one template literal never reaches the i18n walker as
 // an isolated text node, so it always rendered in English. Look the label up
@@ -5166,24 +5207,25 @@ function renderPostCard(post, pageBase, options) {
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
     const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
-    const readMoreHtml = compact
+    const feedParts = postFeedDisplayParts(post, options);
+    const readMoreHtml = compact && feedParts.showReadMore
         ? `<a class="post-read-more" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(gloweText('Read more'))}</a>`
+        : '';
+    const compactTitleHtml = feedParts.title
+        ? `<h3 data-tr-field="title"><a class="home-feed-title-link" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(feedParts.title)}</a></h3>`
+        : '';
+    const compactExcerptHtml = feedParts.excerpt
+        ? `<p class="post-card-excerpt" data-tr-field="${escapeHtml(feedParts.excerptField)}">${escapeHtml(feedParts.excerpt)}</p>`
+        : '';
+    const engagementHtml = comments.length > 0
+        ? `<div class="post-engagement-row">
+                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
+            </div>`
         : '';
     const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
     return `
         <article class="${cardClass}" id="post-${postId}" data-tr-card data-tr-type="glowe_post" data-tr-id="${postId}">
-            <details class="post-more-menu">
-                <summary aria-label="More post actions">...</summary>
-                <div class="post-more-panel">
-                    ${savedToggleButtonHtml('post', postId, post.title, post.category, communityPostDetailHref(postId, base), 'Save post', 'post-menu-action')}
-                    ${savedToggleButtonHtml('profile', post.authorId || authorName, authorName, 'Community profile', profileHref, 'Save profile', 'post-menu-action')}
-                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(post.title)}', '${jsString(sharePath)}')">Share</button>
-                    <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')">Message</button>
-                    <button type="button" onclick="openReportModal('post', '${postId}', '${jsString(post.title)}')">Report</button>
-                    ${deleteButton}
-                </div>
-            </details>
-            <div class="post-author-row">
+            <div class="post-card-header">
                 <a class="post-author" href="${profileHref}">
                     ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
                     <span>
@@ -5192,18 +5234,27 @@ function renderPostCard(post, pageBase, options) {
                     </span>
                 </a>
                 <span class="post-type-tag" title="${escapeHtml(glowePostTypeLabel(post.category))}">${escapeHtml(glowePostTypeLabel(post.category))}</span>
+                <details class="post-more-menu">
+                    <summary aria-label="More post actions">...</summary>
+                    <div class="post-more-panel">
+                        ${savedToggleButtonHtml('post', postId, post.title, post.category, communityPostDetailHref(postId, base), 'Save post', 'post-menu-action')}
+                        ${savedToggleButtonHtml('profile', post.authorId || authorName, authorName, 'Community profile', profileHref, 'Save profile', 'post-menu-action')}
+                        <button type="button" class="post-menu-action" onclick="sharePost('${jsString(post.title)}', '${jsString(sharePath)}')">Share</button>
+                        <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')">Message</button>
+                        <button type="button" onclick="openReportModal('post', '${postId}', '${jsString(post.title)}')">Report</button>
+                        ${deleteButton}
+                    </div>
+                </details>
             </div>
             ${translationToggleSlotHtml()}
             ${compact ? `<div class="post-card-body">
-                <h3 data-tr-field="title"><a class="home-feed-title-link" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(post.title)}</a></h3>
-                <p class="post-card-excerpt" data-tr-field="text">${escapeHtml(post.text)}</p>
+                ${compactTitleHtml}
+                ${compactExcerptHtml}
                 ${readMoreHtml}
             </div>` : `<h3 data-tr-field="title">${escapeHtml(post.title)}</h3>
             <p data-tr-field="text">${escapeHtml(post.text)}</p>
             ${tagsHtml}`}
-            <div class="post-engagement-row">
-                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
-            </div>
+            ${engagementHtml}
             <div class="post-comments${collapsedClass}" id="comments-${postId}">
                 ${leadHtml}
                 ${extraHtml}
@@ -5804,17 +5855,7 @@ function renderHomeDiscoveryCard(item) {
         : (kind === 'post' ? ` onclick="event.preventDefault(); openCommunityPostDetail('${jsString(id)}')"` : '');
     return `
         <article class="post-card post-card--feed home-feed-discovery-card" id="${escapeHtml(cardId)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
-            <details class="post-more-menu">
-                <summary aria-label="More post actions">...</summary>
-                <div class="post-more-panel">
-                    ${saveBtn}
-                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(titleRaw)}', '${jsString(href)}')">Share</button>
-                    <a class="post-menu-action" href="${escapeHtml(href)}">Open</a>
-                    ${authorId ? `<button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId)}')">Message</button>` : ''}
-                    <button type="button" onclick="openReportModal('${jsString(saveType)}', '${jsString(id)}', '${jsString(titleRaw)}')">Report</button>
-                </div>
-            </details>
-            <div class="post-author-row">
+            <div class="post-card-header">
                 <a class="post-author" href="${escapeHtml(profileHref)}">
                     ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
                     <span>
@@ -5823,15 +5864,22 @@ function renderHomeDiscoveryCard(item) {
                     </span>
                 </a>
                 <span class="post-type-tag" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>
+                <details class="post-more-menu">
+                    <summary aria-label="More post actions">...</summary>
+                    <div class="post-more-panel">
+                        ${saveBtn}
+                        <button type="button" class="post-menu-action" onclick="sharePost('${jsString(titleRaw)}', '${jsString(href)}')">Share</button>
+                        <a class="post-menu-action" href="${escapeHtml(href)}">Open</a>
+                        ${authorId ? `<button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId)}')">Message</button>` : ''}
+                        <button type="button" onclick="openReportModal('${jsString(saveType)}', '${jsString(id)}', '${jsString(titleRaw)}')">Report</button>
+                    </div>
+                </details>
             </div>
             ${trSlot}
             <div class="post-card-body">
                 <h3${titleField}><a class="home-feed-title-link" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(title)}</a></h3>
                 <p class="post-card-excerpt"${bodyField}>${escapeHtml(snippet)}</p>
                 <a class="post-read-more" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(gloweText('Read more'))}</a>
-            </div>
-            <div class="post-engagement-row">
-                <span class="comment-summary muted-note">${escapeHtml(gloweText('Join the conversation'))}</span>
             </div>
             <div class="post-comments is-expanded">
                 <form class="comment-form" onsubmit="handleHomeDiscoveryEngage(event, '${jsString(kind)}', '${jsString(id)}', '${jsString(authorName)}', '${jsString(authorId)}', '${jsString(href)}')">
@@ -6458,6 +6506,35 @@ function updateWellSummary(projectCount) {
     `;
 }
 
+async function ensureCommunityOpportunitiesLoaded() {
+    const backend = window.gloweBackend;
+    if (!backend || !backend.configured()) return;
+    await fetchAndPopulate(
+        () => backend.listAll('opportunities'),
+        opportunities,
+        mapOpportunityRow,
+        withEnsuredOrganizationEnglishNames
+    );
+}
+
+function getCommunityEventsForFeed() {
+    const eventsApi = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
+    if (!eventsApi) return [];
+    const listed = getAllOpportunitiesForDisplay().filter(function (opp) {
+        return (opp.status || 'active') !== 'removed';
+    });
+    return eventsApi.sortByStart(eventsApi.filterEvents(listed, { timeframe: 'all' }));
+}
+
+function communityEventSearchHaystack(opp) {
+    return `${opp.title || ''} ${opp.description || ''} ${opp.organization || ''} ${opp.location || ''}`.toLowerCase();
+}
+
+function renderCommunityFeedEntry(entry) {
+    if (entry && entry.kind === 'event') return renderOpportunityCard(entry.data, '');
+    return renderPostCard(entry.data);
+}
+
 async function initCommunityPage() {
     const container = document.getElementById('community-feed');
     const peopleContainer = document.getElementById('people-list');
@@ -6471,8 +6548,14 @@ async function initCommunityPage() {
         if (filter === 'question') return haystack.includes('question') || haystack.includes('discussion') || haystack.includes('?');
         if (filter === 'need') return haystack.includes('need') || haystack.includes('volunteer') || haystack.includes('open call') || haystack.includes('looking for');
         if (filter === 'knowledge') return haystack.includes('knowledge') || haystack.includes('guide') || haystack.includes('checklist') || haystack.includes('tips') || haystack.includes('best practices');
-        if (filter === 'event') return haystack.includes('event') || haystack.includes('webinar') || haystack.includes('workshop');
         return true;
+    }
+
+    function communityFeedEmptyHtml(activeFilter) {
+        if (activeFilter === 'event') {
+            return '<div class="empty-state"><h3>No events yet</h3><p>Organization events appear here once published.</p><button class="btn btn-primary btn-small" type="button" onclick="openEventComposer()">Publish an event</button></div>';
+        }
+        return '<div class="empty-state"><h3>The conversation starts here</h3><p>No posts yet — share knowledge, ask for support, or open a discussion to get things going.</p><button class="btn btn-primary btn-small" type="button" onclick="openInlineComposer()">Write the first post</button></div>';
     }
 
     function renderFeed() {
@@ -6480,6 +6563,18 @@ async function initCommunityPage() {
         const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
         const activeFilter = document.querySelector('[data-feed-filter].active')?.dataset.feedFilter || 'all';
         const deepId = communityPostDeepLinkId();
+
+        if (activeFilter === 'event') {
+            const eventRows = getCommunityEventsForFeed().filter(function (opp) {
+                return !query || communityEventSearchHaystack(opp).includes(query);
+            });
+            container.innerHTML = eventRows.length
+                ? eventRows.map(function (opp) { return renderOpportunityCard(opp, ''); }).join('')
+                : communityFeedEmptyHtml('event');
+            if (typeof translateGloweTree === 'function') translateGloweTree(container);
+            return;
+        }
+
         let posts = getAllCommunityPosts().filter(post => {
             const searchable = `${post.title || ''} ${post.category || ''} ${post.text || ''} ${(post.tags || []).join(' ')}`.toLowerCase();
             return postMatchesFilter(post, activeFilter) && (!query || searchable.includes(query));
@@ -6490,9 +6585,25 @@ async function initCommunityPage() {
                 posts = [pinned, ...posts];
             }
         }
-        container.innerHTML = posts.length
-            ? posts.map(renderPostCard).join('')
-            : '<div class="empty-state"><h3>The conversation starts here</h3><p>No posts yet — share knowledge, ask for support, or open a discussion to get things going.</p><button class="btn btn-primary btn-small" type="button" onclick="openInlineComposer()">Write the first post</button></div>';
+
+        let entries = posts.map(function (post) {
+            return { kind: 'post', sortAt: post.createdAt || '', data: post };
+        });
+        if (activeFilter === 'all') {
+            const eventEntries = getCommunityEventsForFeed()
+                .filter(function (opp) { return !query || communityEventSearchHaystack(opp).includes(query); })
+                .map(function (opp) {
+                    return { kind: 'event', sortAt: opp.startAt || '', data: opp };
+                });
+            entries = entries.concat(eventEntries).sort(function (a, b) {
+                return Date.parse(b.sortAt || 0) - Date.parse(a.sortAt || 0);
+            });
+        }
+
+        container.innerHTML = entries.length
+            ? entries.map(renderCommunityFeedEntry).join('')
+            : communityFeedEmptyHtml(activeFilter);
+        if (typeof translateGloweTree === 'function') translateGloweTree(container);
         if (deepId) scheduleFocusCommunityPost(deepId);
     }
 
@@ -6505,10 +6616,14 @@ async function initCommunityPage() {
         });
     });
 
-    // Fetch real posts + comments, then render
+    // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading posts…</p></div>';
-        await Promise.all([loadCommunityPosts(), loadPostComments()]);
+        await Promise.all([
+            loadCommunityPosts(),
+            loadPostComments(),
+            ensureCommunityOpportunitiesLoaded()
+        ]);
         renderFeed();
     }
 
@@ -6522,7 +6637,7 @@ async function initCommunityPage() {
                     </a>
                     <div class="person-actions">
                         <button type="button" onclick="showSuccessModal('Profile saved', '${jsString(localizedProfileDisplayName(person))} was saved to your profile list.')">Save</button>
-                        <button type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}')">Message</button>
+                        <button type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}', '${jsString(person.id || '')}')">Message</button>
                     </div>
                 </div>
             `).join('')
@@ -6944,7 +7059,7 @@ function initForumsPage() {
                         })}
                     </a>
                     <p>${index % 2 === 0 ? 'Available for peer advice and focused questions.' : 'Can help facilitate a respectful, practical discussion.'}</p>
-                    <button class="btn btn-outline btn-small" type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}')">Message</button>
+                    <button class="btn btn-outline btn-small" type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}', '${jsString(person.id || '')}')">Message</button>
                 </article>
             `).join('')
             : '<p class="muted-note">Community members with active contributions will be featured here.</p>';
@@ -7138,7 +7253,7 @@ function initDiscussionGroupPage() {
                         meta: (person.skills || []).slice(0, 2).join(', ')
                     })}
                 </a>
-                <button type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}')">Message</button>
+                <button type="button" onclick="openPrivateMessage('${jsString(localizedProfileDisplayName(person))}', '${jsString(person.id || '')}')">Message</button>
             </div>
         `).join('')
         : '<p class="muted-note">Members will appear here once they join this group.</p>';
@@ -7396,7 +7511,7 @@ function _renderProfileContent(profile, container) {
                 </div>
                 <div class="profile-actions">
                     <button class="btn btn-outline" type="button" onclick="showSuccessModal('Profile saved', '${safeName} was saved to your profile list.')">Save</button>
-                    <button class="btn btn-primary" type="button" onclick="openPrivateMessage('${safeName}')">Message</button>
+                    ${!isOwnerView && profile.id ? `<button class="btn btn-primary" type="button" onclick="openPrivateMessage('${safeName}', '${jsString(profile.id)}')">Message</button>` : ''}
                     ${!isOwnerView && profile.id ? '<span class="follow-slot" data-follow-slot="' + profile.id + '"></span>' : ''}
                     <details class="profile-more-menu">
                         <summary aria-label="More profile actions">...</summary>
@@ -7539,7 +7654,7 @@ function _renderProfileContent(profile, container) {
                     <h4>Contact</h4>
                     <p>${profile.website ? `<a href="${escapeHtml(profile.website)}" target="_blank" rel="noopener">${escapeHtml(profile.website)}</a>` : 'Contact through GloWe messages'}</p>
                     <p>${escapeHtml(safeContact)}</p>
-                    <button class="btn btn-primary btn-block" type="button" onclick="openPrivateMessage('${safeName}')">Start Conversation</button>
+                    ${!isOwnerView && profile.id ? `<button class="btn btn-primary btn-block" type="button" onclick="openPrivateMessage('${safeName}', '${jsString(profile.id)}')">Start Conversation</button>` : ''}
                 </article>
 
                 <article class="org-info-card">
