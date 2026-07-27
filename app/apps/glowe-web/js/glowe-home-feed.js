@@ -29,8 +29,12 @@
     }
 
     function snippetOf(text) {
-        const s = String(text || '');
-        return s.length <= 140 ? s : s.slice(0, 140);
+        const s = String(text || '').trim();
+        if (s.length <= 200) return s;
+        const slice = s.slice(0, 200);
+        const lastSpace = slice.lastIndexOf(' ');
+        const cut = lastSpace > 100 ? slice.slice(0, lastSpace) : slice;
+        return cut.replace(/[\s.,;:!?…]+$/u, '') + '…';
     }
 
     function feedItemKey(item) {

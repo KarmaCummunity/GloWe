@@ -3844,6 +3844,95 @@ section.opportunity-detail {
     margin-bottom: 12px;
 }
 
+.post-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 8px;
+    margin-bottom: 10px;
+    padding: 14px 18px 0;
+}
+
+.post-card-header .post-author {
+    min-width: 0;
+}
+
+.post-card-header .post-type-tag {
+    max-width: 9rem;
+    margin: 0;
+}
+
+.post-card-header .post-more-menu {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    z-index: 12;
+}
+
+/* FR-GLOWE-008 — feed card chrome: edge-aligned menu + action row. */
+.post-card--feed {
+    --feed-card-inset: 12px;
+}
+
+.post-card--feed .post-card-header {
+    padding: 6px var(--feed-card-inset) 0;
+    column-gap: 6px;
+    margin-bottom: 8px;
+    align-items: start;
+}
+
+.post-card--feed .post-card-header .post-more-menu {
+    margin-inline-end: -8px;
+    margin-top: -2px;
+}
+
+.post-card--feed .post-comments {
+    margin-inline: 0;
+    margin-top: 0;
+    padding: 10px var(--feed-card-inset) var(--feed-card-inset);
+    border-top: 1px solid rgba(220, 232, 227, 0.75);
+}
+
+.post-card--feed .comment-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
+}
+
+.post-card--feed .comment-form input {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    padding: 8px 12px;
+    font-size: 0.86rem;
+}
+
+.post-card--feed .comment-form-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+    margin-inline-start: -2px;
+}
+
+.post-card--feed .comment-form button[type="submit"] {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.post-card--feed .comment-send-chat {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.linkedin-community-layout .post-author {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .post-card-tools {
     display: flex;
     align-items: center;
@@ -3928,6 +4017,9 @@ section.opportunity-detail {
     font-weight: 900;
     text-transform: uppercase;
     white-space: nowrap;
+    max-width: min(46%, 11rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .post-tag-row {
@@ -6709,6 +6801,11 @@ section.opportunity-detail {
     overflow: visible;
 }
 
+.linkedin-community-layout .post-card-header {
+    padding: 14px 18px 0;
+    margin-bottom: 8px;
+}
+
 .linkedin-community-layout .post-author-row {
     align-items: flex-start;
     padding: 18px 62px 0 18px;
@@ -6779,6 +6876,12 @@ section.opportunity-detail {
     margin-left: 18px;
     margin-right: 18px;
     padding-bottom: 18px;
+}
+
+.linkedin-community-layout .post-card--feed .post-comments {
+    margin-inline: 0;
+    padding-inline: var(--feed-card-inset, 12px);
+    padding-bottom: var(--feed-card-inset, 12px);
 }
 
 .linkedin-community-layout .post-engagement-row {
@@ -7723,11 +7826,26 @@ html[dir="rtl"] .post-more-panel {
     left: 0;
 }
 
-/* .linkedin-community-layout .post-author-row reserves clearance on the same
-   side .post-more-menu sits on so the badge text doesn't run under the round
-   "..." button. .post-more-menu already flips to the left in RTL above, but
-   this padding didn't — the badge kept reserving space on the (now empty)
-   right and had none on the left, so the menu overlapped it (FR-GLOWE-016). */
+/* Post-card header is a single flex row (profile | tag | menu) — no side
+   padding reserve; the menu sits in-flow beside the tag (FR-GLOWE-008). */
+html[dir="rtl"] .linkedin-community-layout .post-card-header {
+    padding-right: var(--feed-card-inset, 12px);
+    padding-left: var(--feed-card-inset, 12px);
+}
+
+html[dir="rtl"] .linkedin-community-layout .post-card--feed .post-card-header {
+    padding-right: var(--feed-card-inset, 12px);
+    padding-left: var(--feed-card-inset, 12px);
+}
+
+@media (max-width: 760px) {
+    html[dir="rtl"] .linkedin-community-layout .post-card-header {
+        padding-right: var(--feed-card-inset, 12px);
+        padding-left: var(--feed-card-inset, 12px);
+    }
+}
+
+/* Legacy .post-author-row clearance when menu is absolutely positioned. */
 html[dir="rtl"] .linkedin-community-layout .post-author-row {
     padding-right: 18px;
     padding-left: 62px;
@@ -7934,6 +8052,10 @@ body.glowe-member-home main > section:not(#member-home) {
     overflow: hidden;
 }
 
+.home-feed-list .post-card--feed .post-card-body {
+    margin-inline: var(--feed-card-inset, 12px);
+}
+
 .home-feed-list .post-card--feed h3,
 .home-feed-list .post-card-body h3 {
     display: -webkit-box;
@@ -7994,10 +8116,18 @@ body.glowe-member-home main > section:not(#member-home) {
     overflow: visible;
 }
 
-.member-home-community.linkedin-community-layout .post-author-row,
-.guest-home-feed.linkedin-community-layout .post-author-row {
-    align-items: flex-start;
-    padding: 18px 62px 0 18px;
+.member-home-community.linkedin-community-layout .post-card-header,
+.guest-home-feed.linkedin-community-layout .post-card-header {
+    padding: 6px var(--feed-card-inset, 12px) 0;
+}
+
+.member-home-community.linkedin-community-layout .post-card--feed h3,
+.member-home-community.linkedin-community-layout .post-card--feed > p,
+.member-home-community.linkedin-community-layout .post-card--feed .post-tag-row,
+.guest-home-feed.linkedin-community-layout .post-card--feed h3,
+.guest-home-feed.linkedin-community-layout .post-card--feed > p,
+.guest-home-feed.linkedin-community-layout .post-card--feed .post-tag-row {
+    margin-inline: var(--feed-card-inset, 12px);
 }
 
 .member-home-community.linkedin-community-layout .post-card h3,
@@ -8028,10 +8158,62 @@ body.glowe-member-home main > section:not(#member-home) {
     margin-right: 18px;
 }
 
+.member-home-community.linkedin-community-layout .post-card--feed .post-comments,
+.guest-home-feed.linkedin-community-layout .post-card--feed .post-comments {
+    margin-inline: 0;
+}
+
+.member-home-community.linkedin-community-layout .post-author-row,
+.guest-home-feed.linkedin-community-layout .post-author-row {
+    align-items: flex-start;
+    padding: 18px 62px 0 18px;
+}
+
 .member-home-community.linkedin-community-layout .post-comments,
 .guest-home-feed.linkedin-community-layout .post-comments {
     margin-left: 18px;
     margin-right: 18px;
+}
+
+/* Tighter inset on phone — menu/actions hug card corners. */
+@media (max-width: 680px) {
+    .post-card--feed {
+        --feed-card-inset: 10px;
+    }
+
+    .post-card--feed .post-card-header {
+        padding-top: 4px;
+    }
+
+    .post-card--feed .post-card-header .post-more-menu {
+        margin-inline-end: -10px;
+        margin-top: -4px;
+    }
+
+    .post-card--feed .comment-form-actions {
+        margin-inline-start: -4px;
+    }
+}
+
+/* Mobile post cards — tag sizing on narrow screens (FR-GLOWE-008). */
+@media (max-width: 1180px) {
+    .linkedin-community-layout .post-type-tag,
+    .post-card.post-card--feed .post-type-tag {
+        max-width: 7.5rem;
+        padding: 5px 9px;
+        font-size: 0.66rem;
+    }
+}
+
+@media (max-width: 899px) {
+    .home-feed-list > .post-card--feed {
+        min-height: 0;
+        max-height: none;
+    }
+
+    .home-feed-list .post-card-excerpt {
+        -webkit-line-clamp: 5;
+    }
 }
 
 .member-feed-grid {
