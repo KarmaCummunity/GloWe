@@ -3694,8 +3694,24 @@ export type Database = {
           role_key: string | null
           share_handle: string | null
           sort_order: number | null
+          user_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "about_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "about_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       community_stats: {
         Row: {
