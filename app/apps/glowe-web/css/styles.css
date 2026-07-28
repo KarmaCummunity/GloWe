@@ -788,6 +788,11 @@ a.user-greeting:hover {
     align-items: start;
 }
 
+.opportunities-grid > .post-card--feed {
+    max-width: 100%;
+    margin: 0;
+}
+
 .opportunity-composer-section {
     padding: 44px 0 12px;
     background: linear-gradient(180deg, #fbfefd 0%, var(--background) 100%);

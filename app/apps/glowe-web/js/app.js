@@ -5703,7 +5703,7 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
         : '';
     const leadClass = lead ? ' comment-row--lead' : '';
     const openAttrs = openOnClick
-        ? ` role="button" tabindex="0" onclick="openPostComments('${jsString(postId)}')"`
+        ? ` role="button" tabindex="0" onclick="togglePostComments('${jsString(postId)}')"`
         : '';
     return `
                     <article class="comment-row${leadClass}"${trAttrs}${openAttrs}>
@@ -5750,7 +5750,7 @@ function renderPostCard(post, pageBase, options) {
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
         : '';
     const moreCommentsHtml = comments.length > 1
-        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${jsString(postId)}')">${escapeHtml(gloweText('See all comments'))}</button>`
+        ? `<button type="button" class="comment-thread-toggle" onclick="togglePostComments('${jsString(postId)}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
@@ -5782,7 +5782,7 @@ function renderPostCard(post, pageBase, options) {
         : '';
     const engagementHtml = comments.length > 0
         ? `<div class="post-engagement-row">
-                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${jsString(postId)}')">${formatCommentCount(comments.length)}</button>
+                <button type="button" class="comment-summary" aria-live="polite" aria-expanded="${commentsExpanded ? 'true' : 'false'}" onclick="togglePostComments('${jsString(postId)}')">${formatCommentCount(comments.length)}</button>
             </div>`
         : '';
     const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
@@ -5838,25 +5838,31 @@ function focusCommentBox(postId) {
 }
 
 function revealPostComments(postId) {
-    expandPostComments(postId);
-    const thread = document.getElementById(`comments-${postId}`);
-    if (thread) {
-        thread.classList.remove('is-collapsed');
-        thread.classList.add('is-expanded');
-    }
+    const id = String(postId || '');
+    if (isPostCommentsExpanded(id)) return;
+    expandPostComments(id);
+    refreshFeedPostCard(id);
+}
+
+function collapsePostComments(postId) {
+    gloweExpandedPostComments.delete(String(postId || ''));
 }
 
 function openPostComments(postId) {
     const id = String(postId || '');
     expandPostComments(id);
-    const card = document.getElementById('post-' + id);
-    const onHomeFeed = Boolean(card && card.closest('#home-feed-grid'));
-    if (onHomeFeed) {
-        refreshHomeFeedPostCard(id);
-    } else {
-        revealPostComments(id);
-    }
+    refreshFeedPostCard(id);
     focusCommentBox(id);
+}
+
+function togglePostComments(postId) {
+    const id = String(postId || '');
+    if (isPostCommentsExpanded(id)) {
+        collapsePostComments(id);
+        refreshFeedPostCard(id);
+        return;
+    }
+    openPostComments(id);
 }
 
 function handlePostComment(event, postId) {
@@ -5868,7 +5874,7 @@ function handlePostComment(event, postId) {
     if (document.getElementById('community-feed')) {
         initCommunityPage();
     } else {
-        refreshHomeFeedPostCard(postId);
+        refreshFeedPostCard(postId);
     }
     setTimeout(() => focusCommentBox(postId), 0);
 }
@@ -6333,14 +6339,32 @@ function findCommunityPostById(postId) {
 }
 
 // fallow-ignore-next-line complexity
-function refreshHomeFeedPostCard(postId) {
-    const el = document.getElementById('post-' + postId);
-    if (!el || !el.closest('#home-feed-grid')) return;
-    const root = el.closest('#member-home') || el.closest('#guest-home-feed');
-    const post = findCommunityPostById(postId);
+function feedCardPageBaseFor(el) {
+    if (!el) return 'pages/';
+    if (el.closest('#community-feed')) return '';
+    if (el.closest('#home-feed-grid')) return 'pages/';
+    return 'pages/';
+}
+
+function refreshFeedPostCard(postId) {
+    const id = String(postId || '');
+    const el = document.getElementById('post-' + id);
+    if (!el) return;
+    const post = findCommunityPostById(id);
     if (!post) return;
-    el.outerHTML = renderPostCard(post, 'pages/', { compact: true });
-    if (root) scheduleMemberHomeTranslation(root);
+    const pageBase = feedCardPageBaseFor(el);
+    const parent = el.parentElement;
+    const inHome = Boolean(el.closest('#home-feed-grid'));
+    el.outerHTML = renderPostCard(post, pageBase, { compact: true });
+    if (parent && typeof translateGloweTree === 'function') translateGloweTree(parent);
+    if (inHome) {
+        const root = document.getElementById('member-home') || document.getElementById('guest-home-feed');
+        if (root) scheduleMemberHomeTranslation(root);
+    }
+}
+
+function refreshHomeFeedPostCard(postId) {
+    refreshFeedPostCard(postId);
 }
 
 // fallow-ignore-next-line complexity
@@ -6371,7 +6395,8 @@ function homeFeedLocalizedText(value) {
 
 // Home discovery card for non-community kinds (wish / opportunity / forum…).
 // fallow-ignore-next-line complexity
-function renderHomeDiscoveryCard(item) {
+function renderHomeDiscoveryCard(item, options) {
+    const pageBase = (options && options.pageBase) || 'pages/';
     const HF = window.GloweHomeFeed;
     const kind = (item && item.kind) || 'post';
     const id = (item && item.id) || '';
@@ -6390,7 +6415,7 @@ function renderHomeDiscoveryCard(item) {
     const dateLabel = createdAt
         ? new Date(createdAt).toLocaleDateString(gloweLocaleTag())
         : gloweText('now');
-    const profileHref = authorId ? `pages/profile.html?id=${encodeURIComponent(authorId)}` : href;
+    const profileHref = authorId ? `${pageBase}profile.html?id=${encodeURIComponent(authorId)}` : href;
     const authorPair = { primary: authorName, english: '' };
     const trType = isCatalog
         ? ''
@@ -6735,7 +6760,9 @@ async function initOpportunitiesPage() {
                 ? '<div class="empty-state"><div class="empty-state-icon">No results</div><h3>No opportunities found</h3><p>Try adjusting your filters or search terms.</p></div>'
                 : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the GloWe community.</p><button class="btn btn-primary btn-small" type="button" onclick="openOpportunityComposer()">Post an opportunity</button></div>';
         } else {
-            container.innerHTML = filtered.map(opp => renderOpportunityCard(opp, '../')).join('');
+            container.innerHTML = filtered.map(function (opp) {
+                return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp, true), { pageBase: '' });
+            }).join('');
         }
         if (filterCtrl) {
             const hasFilters = filters.location !== 'all' || filters.field !== 'all' || filters.commitment !== 'all' || filters.event !== 'all' || filters.search;
@@ -7177,12 +7204,15 @@ function communityEventSearchHaystack(opp) {
     return `${opp.title || ''} ${opp.description || ''} ${opp.organization || ''} ${opp.location || ''}`.toLowerCase();
 }
 
-function opportunityFeedItemFromRow(opp) {
+function opportunityFeedItemFromRow(opp, fromPagesFolder) {
     const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
     const isEvent = events ? events.isEvent(opp) : false;
     const HF = window.GloweHomeFeed;
     const snippetFn = HF && typeof HF.snippetOf === 'function' ? HF.snippetOf : function (t) { return String(t || '').trim(); };
     const id = String(opp && opp.id || '');
+    const oppHref = fromPagesFolder
+        ? glowePageHref('opportunity.html', `id=${encodeURIComponent(id)}`)
+        : glowePageHref('pages/opportunity.html', `id=${encodeURIComponent(id)}`);
     return {
         kind: isEvent ? 'event' : 'opportunity',
         id: id,
@@ -7191,16 +7221,16 @@ function opportunityFeedItemFromRow(opp) {
         authorLabel: (opp && opp.organization) || 'GloWe Member',
         authorId: (opp && opp.ownerId) || '',
         createdAt: isEvent ? ((opp && opp.startAt) || (opp && opp.createdAt) || '') : ((opp && opp.createdAt) || ''),
-        hrefPath: glowePageHref('pages/opportunity.html', `id=${encodeURIComponent(id)}`),
+        hrefPath: oppHref,
         tagKey: isEvent ? 'Event' : 'Opportunity'
     };
 }
 
 function renderCommunityFeedEntry(entry) {
     if (entry && entry.kind === 'event') {
-        return renderHomeDiscoveryCard(opportunityFeedItemFromRow(entry.data));
+        return renderHomeDiscoveryCard(opportunityFeedItemFromRow(entry.data, true), { pageBase: '' });
     }
-    return renderPostCard(entry.data);
+    return renderPostCard(entry.data, '', { compact: true });
 }
 
 async function initCommunityPage() {
@@ -7244,7 +7274,7 @@ async function initCommunityPage() {
             });
             container.innerHTML = eventRows.length
                 ? eventRows.map(function (opp) {
-                    return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp));
+                    return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp, true), { pageBase: '' });
                 }).join('')
                 : communityFeedEmptyHtml('event');
             if (typeof translateGloweTree === 'function') translateGloweTree(container);
