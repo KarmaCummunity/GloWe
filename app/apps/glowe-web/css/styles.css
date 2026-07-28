@@ -981,6 +981,12 @@ a.user-greeting:hover {
     flex: 0 0 auto;
 }
 
+.directory-card-header-actions .post-type-tag {
+    max-width: 9.5rem;
+    margin: 0;
+    flex: 0 1 auto;
+}
+
 /* Tiny verified tick on the org avatar (replaces the text "Verified" pill). */
 .org-avatar-wrap,
 .directory-avatar-wrap {
@@ -2471,11 +2477,7 @@ section.opportunity-detail {
 .personal-summary-bar {
     display: grid;
     gap: 8px;
-    position: sticky;
-    top: 64px;
-    z-index: 20;
-    background: var(--bg-color, #f7faf7);
-    padding-bottom: 4px;
+    /* Scrolls with page — only .main-header stays sticky (FR-GLOWE-011 AC18). */
 }
 
 .personal-nav,
@@ -4016,6 +4018,14 @@ html[dir="rtl"] .org-review-banner__note {
     padding: 8px 12px;
     font-size: 0.8rem;
     white-space: nowrap;
+}
+
+.post-card--feed .post-card-cta-row {
+    margin-top: 8px;
+}
+
+.post-card--feed .post-card-cta-row .btn {
+    width: 100%;
 }
 
 .post-card--feed .comment-send-chat {
@@ -7017,6 +7027,19 @@ html[dir="rtl"] .org-review-banner__note {
     box-shadow: 0 8px 24px rgba(24, 36, 61, 0.06);
 }
 
+.linkedin-community-layout .feed-list .directory-card {
+    background: var(--card-surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+}
+
+.linkedin-community-layout .feed-list .directory-card:hover {
+    background: var(--card-surface-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover);
+}
+
 .linkedin-community-layout .post-card {
     background: var(--card-surface);
     border: 1px solid var(--card-border);
@@ -8013,11 +8036,6 @@ html[dir="rtl"] .org-review-banner__note {
 
     .personal-area-page {
         padding: 12px 0 32px;
-    }
-
-    .personal-summary-bar {
-        top: 56px;
-        margin-inline: -4px;
     }
 
     .social-cover {

@@ -5358,29 +5358,32 @@ function renderOpportunityCard(opportunity, basePath = '') {
         { verified: false }
     ) : renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName))
         + `<span class="directory-card-org-name" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>`;
-    // Save lives in the ⋯ menu only (no header bookmark icon).
+    // Share + Save live in the ⋯ menu (unified feed chrome). Type tag beside menu.
+    const typeLabel = isEvent ? gloweText('Event') : gloweText('Opportunity');
+    const typeTagHtml = `<span class="post-type-tag" title="${escapeHtml(typeLabel)}">${escapeHtml(typeLabel)}</span>`;
     const moreMenuHtml = `
             <details class="post-more-menu card-more-menu directory-card-more">
                 <summary aria-label="More opportunity actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save opportunity', 'post-menu-action')}
+                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')">Share</button>
                     <button type="button" onclick="openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')">Message publisher</button>
                     <button type="button" onclick="openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')">Report</button>
                 </div>
             </details>`;
-    const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions';
     const cardSpec = {
         href: detailHref,
         ariaLabel: opportunity.title || 'Opportunity',
         trType: 'glowe_opportunity',
         trId: opportunity.id,
+        headerActionsHtml: typeTagHtml,
         moreMenuHtml,
         avatarHtml,
         titleHtml: `<h3 class="opportunity-title" data-tr-field="title">${escapeHtml(opportunity.title)}</h3>`,
         descriptionHtml: `<p class="opportunity-description" data-tr-field="description">${escapeHtml(opportunity.description)}</p>`,
         detailsHtml: detailBits ? `<div class="opportunity-meta-group opportunity-details">${detailBits}</div>` : '',
         skillsHtml: (eventChip || skillTags) ? `<div class="opportunity-skills">${eventChip}${skillTags}</div>` : '',
-        actionsHtml: `<div class="${actionsClass}">${renderShareButton(opportunity.title, detailHref)}</div>`
+        actionsHtml: ''
     };
     if (ui) return ui.directoryCardHtml(cardSpec);
     return `<article class="opportunity-card directory-card">${cardSpec.titleHtml}${cardSpec.actionsHtml}</article>`;
@@ -5737,16 +5740,17 @@ function renderPostCard(post, pageBase, options) {
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
+    // Home compact cards must render the same comment thread as Community (FR-GLOWE-008 AC4).
     const leadComment = comments[0];
     const extraComments = comments.slice(1);
-    const leadHtml = (!compact && leadComment)
+    const leadHtml = leadComment
         ? renderPostCommentRow(leadComment, { lead: true, postId, openOnClick: !commentsExpanded })
         : '';
-    const extraHtml = (!compact && extraComments.length)
+    const extraHtml = extraComments.length
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
         : '';
-    const moreCommentsHtml = (!compact && comments.length > 1)
-        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${postId}')">${escapeHtml(gloweText('See all comments'))}</button>`
+    const moreCommentsHtml = comments.length > 1
+        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${jsString(postId)}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
@@ -5778,7 +5782,7 @@ function renderPostCard(post, pageBase, options) {
         : '';
     const engagementHtml = comments.length > 0
         ? `<div class="post-engagement-row">
-                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
+                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${jsString(postId)}')">${formatCommentCount(comments.length)}</button>
             </div>`
         : '';
     const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
@@ -5843,8 +5847,16 @@ function revealPostComments(postId) {
 }
 
 function openPostComments(postId) {
-    revealPostComments(postId);
-    focusCommentBox(postId);
+    const id = String(postId || '');
+    expandPostComments(id);
+    const card = document.getElementById('post-' + id);
+    const onHomeFeed = Boolean(card && card.closest('#home-feed-grid'));
+    if (onHomeFeed) {
+        refreshHomeFeedPostCard(id);
+    } else {
+        revealPostComments(id);
+    }
+    focusCommentBox(id);
 }
 
 function handlePostComment(event, postId) {
@@ -6248,7 +6260,9 @@ async function initGuestHome(gen = _gloweHomeGen) {
     if (container) {
         const featured = getFeaturedOpportunities().slice(0, 3);
         container.innerHTML = featured.length
-            ? featured.map(opp => renderOpportunityCard(opp)).join('')
+            ? featured.map(function (opp) {
+                return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp));
+            }).join('')
             : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the community.</p><a class="btn btn-primary btn-small" href="pages/opportunities.html">Post an opportunity</a></div>';
     }
 
@@ -6401,8 +6415,6 @@ function renderHomeDiscoveryCard(item) {
     const titleField = isCatalog ? '' : ' data-tr-field="title"';
     const bodyField = isCatalog ? '' : ` data-tr-field="${field}"`;
     const trSlot = isCatalog ? '' : (typeof translationToggleSlotHtml === 'function' ? translationToggleSlotHtml() : '');
-    const postLabel = escapeHtml(gloweText('Post'));
-    const commentPlaceholder = escapeHtml(gloweText('Write a thoughtful comment...'));
     const isWishKind = kind === 'wish' || kind === 'volunteer_offer';
     const detailClick = isWishKind
         ? ` onclick="event.preventDefault(); openWishDetail('${jsString(id)}')"`
@@ -6424,6 +6436,9 @@ function renderHomeDiscoveryCard(item) {
             ownsItem: false
         })
         : saveBtn;
+    const wishCtaHtml = (kind === 'wish' || kind === 'volunteer_offer')
+        ? `<div class="post-card-cta-row"><button type="button" class="btn btn-primary btn-small" onclick="showSupportModal('${jsString(id)}')">${escapeHtml(gloweText('Offer Support'))}</button></div>`
+        : '';
     return `
         <article class="post-card post-card--feed home-feed-discovery-card" id="${escapeHtml(cardId)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
             <div class="post-card-header">
@@ -6447,30 +6462,9 @@ function renderHomeDiscoveryCard(item) {
                 <h3${titleField}><a class="home-feed-title-link" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(title)}</a></h3>
                 <p class="post-card-excerpt"${bodyField}>${escapeHtml(snippet)}</p>
                 <a class="post-read-more" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(gloweText('Read more'))}</a>
-            </div>
-            <div class="post-comments is-expanded">
-                <form class="comment-form" onsubmit="handleHomeDiscoveryEngage(event, '${jsString(kind)}', '${jsString(id)}', '${jsString(authorName)}', '${jsString(authorId)}', '${jsString(href)}')">
-                    <input aria-label="${commentPlaceholder}" placeholder="${commentPlaceholder}" required>
-                    <div class="comment-form-actions">
-                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId)}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}"${authorId ? '' : ' disabled'}>${SEND_ICON_SVG}</button>
-                        <button type="submit">${postLabel}</button>
-                    </div>
-                </form>
+                ${wishCtaHtml}
             </div>
         </article>`;
-}
-
-// fallow-ignore-next-line complexity
-function handleHomeDiscoveryEngage(event, kind, id, authorName, authorId, href) {
-    event.preventDefault();
-    const input = event.target && event.target.querySelector('input');
-    const note = input && input.value ? String(input.value).trim() : '';
-    if (authorId) {
-        openPrivateMessage(authorName || 'this member', authorId);
-        if (input) input.value = '';
-        return;
-    }
-    if (href) window.location.href = href;
 }
 
 function scheduleMemberHomeTranslation(root) {
@@ -7183,8 +7177,29 @@ function communityEventSearchHaystack(opp) {
     return `${opp.title || ''} ${opp.description || ''} ${opp.organization || ''} ${opp.location || ''}`.toLowerCase();
 }
 
+function opportunityFeedItemFromRow(opp) {
+    const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
+    const isEvent = events ? events.isEvent(opp) : false;
+    const HF = window.GloweHomeFeed;
+    const snippetFn = HF && typeof HF.snippetOf === 'function' ? HF.snippetOf : function (t) { return String(t || '').trim(); };
+    const id = String(opp && opp.id || '');
+    return {
+        kind: isEvent ? 'event' : 'opportunity',
+        id: id,
+        title: (opp && opp.title) || '',
+        snippet: snippetFn(opp && opp.description),
+        authorLabel: (opp && opp.organization) || 'GloWe Member',
+        authorId: (opp && opp.ownerId) || '',
+        createdAt: isEvent ? ((opp && opp.startAt) || (opp && opp.createdAt) || '') : ((opp && opp.createdAt) || ''),
+        hrefPath: glowePageHref('pages/opportunity.html', `id=${encodeURIComponent(id)}`),
+        tagKey: isEvent ? 'Event' : 'Opportunity'
+    };
+}
+
 function renderCommunityFeedEntry(entry) {
-    if (entry && entry.kind === 'event') return renderOpportunityCard(entry.data, '');
+    if (entry && entry.kind === 'event') {
+        return renderHomeDiscoveryCard(opportunityFeedItemFromRow(entry.data));
+    }
     return renderPostCard(entry.data);
 }
 
@@ -7228,7 +7243,9 @@ async function initCommunityPage() {
                 return !query || communityEventSearchHaystack(opp).includes(query);
             });
             container.innerHTML = eventRows.length
-                ? eventRows.map(function (opp) { return renderOpportunityCard(opp, ''); }).join('')
+                ? eventRows.map(function (opp) {
+                    return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp));
+                }).join('')
                 : communityFeedEmptyHtml('event');
             if (typeof translateGloweTree === 'function') translateGloweTree(container);
             return;
