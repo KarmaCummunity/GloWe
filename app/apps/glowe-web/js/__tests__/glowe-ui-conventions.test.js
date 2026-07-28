@@ -73,4 +73,19 @@ describe('GloweUiConventions', () => {
         expect(html).toContain('directory-avatar-wrap');
         expect(html).not.toContain('directory-verified-tick');
     });
+
+    it('places optional headerActionsHtml beside the more menu', () => {
+        const html = GloweUiConventions.directoryCardHtml({
+            href: 'pages/opportunity?id=9',
+            ariaLabel: 'Hackathon',
+            headerActionsHtml: '<span class="post-type-tag">Event</span>',
+            moreMenuHtml: '<details class="card-more-menu directory-card-more"></details>',
+            avatarHtml: GloweUiConventions.avatarWrapHtml('<span class="entity-mark">AB</span>'),
+            titleHtml: '<h3>Hackathon</h3>',
+            actionsHtml: ''
+        });
+        expect(html).toContain('post-type-tag');
+        expect(html.indexOf('post-type-tag')).toBeLessThan(html.indexOf('directory-card-more'));
+        expect(html).not.toContain('post-share-button');
+    });
 });

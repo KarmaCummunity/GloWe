@@ -4849,29 +4849,33 @@ function renderOpportunityCard(opportunity, basePath = '') {
         { verified: false }
     ) : renderLocalizedEntityMark(orgPair.primary, orgPair.english, orgName))
         + `<span class="directory-card-org-name" ${bilingualNameAttrs(orgPair.primary, orgPair.english)}>${escapeHtml(orgName)}</span>`;
-    // Save lives in the ⋯ menu only (no header bookmark icon).
+    // Share + Save live in the ⋯ menu (same chrome as community/wish cards —
+    // no oversized footer Share). Type tag sits beside the menu (FR-GLOWE-016).
+    const typeLabel = isEvent ? gloweText('Event') : gloweText('Opportunity');
+    const typeTagHtml = `<span class="post-type-tag" title="${escapeHtml(typeLabel)}">${escapeHtml(typeLabel)}</span>`;
     const moreMenuHtml = `
             <details class="post-more-menu card-more-menu directory-card-more">
                 <summary aria-label="More opportunity actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save opportunity', 'post-menu-action')}
+                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')">Share</button>
                     <button type="button" onclick="openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')">Message publisher</button>
                     <button type="button" onclick="openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')">Report</button>
                 </div>
             </details>`;
-    const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions';
     const cardSpec = {
         href: detailHref,
         ariaLabel: opportunity.title || 'Opportunity',
         trType: 'glowe_opportunity',
         trId: opportunity.id,
+        headerActionsHtml: typeTagHtml,
         moreMenuHtml,
         avatarHtml,
         titleHtml: `<h3 class="opportunity-title" data-tr-field="title">${escapeHtml(opportunity.title)}</h3>`,
         descriptionHtml: `<p class="opportunity-description" data-tr-field="description">${escapeHtml(opportunity.description)}</p>`,
         detailsHtml: detailBits ? `<div class="opportunity-meta-group opportunity-details">${detailBits}</div>` : '',
         skillsHtml: (eventChip || skillTags) ? `<div class="opportunity-skills">${eventChip}${skillTags}</div>` : '',
-        actionsHtml: `<div class="${actionsClass}">${renderShareButton(opportunity.title, detailHref)}</div>`
+        actionsHtml: ''
     };
     if (ui) return ui.directoryCardHtml(cardSpec);
     return `<article class="opportunity-card directory-card">${cardSpec.titleHtml}${cardSpec.actionsHtml}</article>`;
@@ -5203,21 +5207,24 @@ function renderPostCard(post, pageBase, options) {
     const deleteButton = ownsPost
         ? `<button type="button" class="post-delete-action" onclick="deleteCommunityPost('${postId}')">Delete post</button>`
         : '';
+    // Topic tags stay on the full Community card; home compact uses the type tag only.
     const tagsHtml = (!compact && tags.length)
         ? `<div class="post-tag-row">${tags.map((tag, i) =>
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
+    // Comment thread renders on every surface (Home + Community). Compact used
+    // to skip the DOM, so tapping "N comments" on Home did nothing (FR-GLOWE-008 AC4).
     const leadComment = comments[0];
     const extraComments = comments.slice(1);
-    const leadHtml = (!compact && leadComment)
+    const leadHtml = leadComment
         ? renderPostCommentRow(leadComment, { lead: true, postId, openOnClick: !commentsExpanded })
         : '';
-    const extraHtml = (!compact && extraComments.length)
+    const extraHtml = extraComments.length
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
         : '';
-    const moreCommentsHtml = (!compact && comments.length > 1)
-        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${postId}')">${escapeHtml(gloweText('See all comments'))}</button>`
+    const moreCommentsHtml = comments.length > 1
+        ? `<button type="button" class="comment-thread-toggle" onclick="openPostComments('${jsString(postId)}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
@@ -5234,7 +5241,7 @@ function renderPostCard(post, pageBase, options) {
         : '';
     const engagementHtml = comments.length > 0
         ? `<div class="post-engagement-row">
-                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${postId}')">${formatCommentCount(comments.length)}</button>
+                <button type="button" class="comment-summary" aria-live="polite" onclick="openPostComments('${jsString(postId)}')">${formatCommentCount(comments.length)}</button>
             </div>`
         : '';
     const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
@@ -5304,8 +5311,17 @@ function revealPostComments(postId) {
 }
 
 function openPostComments(postId) {
-    revealPostComments(postId);
-    focusCommentBox(postId);
+    const id = String(postId || '');
+    expandPostComments(id);
+    const card = document.getElementById('post-' + id);
+    const onHomeFeed = Boolean(card && card.closest('#home-feed-grid'));
+    if (onHomeFeed) {
+        // Re-render so collapsed→expanded markup (lead clamp, extras, toggle) matches state.
+        refreshHomeFeedPostCard(id);
+    } else {
+        revealPostComments(id);
+    }
+    focusCommentBox(id);
 }
 
 function handlePostComment(event, postId) {
