@@ -981,6 +981,12 @@ a.user-greeting:hover {
     flex: 0 0 auto;
 }
 
+.directory-card-header-actions .post-type-tag {
+    max-width: 9.5rem;
+    margin: 0;
+    flex: 0 1 auto;
+}
+
 /* Tiny verified tick on the org avatar (replaces the text "Verified" pill). */
 .org-avatar-wrap,
 .directory-avatar-wrap {
