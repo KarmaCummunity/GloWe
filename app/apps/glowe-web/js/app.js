@@ -6385,8 +6385,14 @@ function wishFeedItemFromRow(wish, fromPagesFolder) {
         authorId: (wish && wish.authorId) || '',
         createdAt: (wish && wish.createdAt) || '',
         hrefPath: wishHref,
-        tagKey: kind === 'volunteer_offer' ? 'Volunteer Offer' : 'Wish'
+        tagKey: (wish && wish.type) || (kind === 'volunteer_offer' ? 'Volunteer Offer' : 'Wish')
     };
+}
+
+function renderWishFeedCard(wish, pageBase) {
+    const base = pageBase == null ? 'pages/' : pageBase;
+    const fromPages = base === '';
+    return renderHomeDiscoveryCard(wishFeedItemFromRow(wish, fromPages), { pageBase: base });
 }
 
 function feedItemAuthorPair(item) {
@@ -6523,6 +6529,7 @@ function renderHomeDiscoveryCard(item, options) {
         ? 'description'
         : (kind === 'forum_thread' ? 'body' : 'text');
     const saveType = homeFeedSaveType(kind);
+    const isWishKind = kind === 'wish' || kind === 'volunteer_offer';
     const saveBtn = typeof savedToggleButtonHtml === 'function'
         ? savedToggleButtonHtml(saveType, id, titleRaw, tag, href, 'Save', 'post-menu-action')
         : '';
@@ -6535,7 +6542,6 @@ function renderHomeDiscoveryCard(item, options) {
     const titleField = isCatalog ? '' : ' data-tr-field="title"';
     const bodyField = isCatalog ? '' : ` data-tr-field="${field}"`;
     const trSlot = isCatalog ? '' : (typeof translationToggleSlotHtml === 'function' ? translationToggleSlotHtml() : '');
-    const isWishKind = kind === 'wish' || kind === 'volunteer_offer';
     const detailClick = isWishKind
         ? ` onclick="event.preventDefault(); openWishDetail('${jsString(id)}')"`
         : (kind === 'post' ? ` onclick="event.preventDefault(); openCommunityPostDetail('${jsString(id)}')"` : '');
@@ -7183,8 +7189,9 @@ async function initWishingWellPage() {
         const filtered = helpers ? helpers.filterWishes(wishes, filters) : wishes;
         const sorted = helpers ? helpers.sortWishes(filtered, filters.sort) : filtered;
         container.innerHTML = sorted.length
-            ? sorted.map(renderWishCard).join('')
+            ? sorted.map(function (wish) { return renderWishFeedCard(wish, ''); }).join('')
             : hasFilters ? emptyWishFilteredHtml() : emptyWishBoardHtml();
+        if (typeof translateGloweTree === 'function') translateGloweTree(container);
         if (filterCtrl) filterCtrl.updateResults({ count: sorted.length, hasFilters: hasFilters });
     }
 
@@ -7198,7 +7205,7 @@ async function initWishingWellPage() {
     if (filterCtrl) filterCtrl.refreshI18n();
     if (container) {
         container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
-        await loadLiveWishes();
+        await Promise.all([loadLiveWishes(), loadPostComments()]);
         renderWishes();
         const deepWish = new URLSearchParams(window.location.search).get('wish');
         if (deepWish) openWishDetail(deepWish);
