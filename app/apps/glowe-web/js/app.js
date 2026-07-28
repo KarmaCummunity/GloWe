@@ -4240,6 +4240,7 @@ function feedCardMoreMenuHtml(opts) {
     const o = opts || {};
     const parts = [];
     if (o.saveHtml) parts.push(o.saveHtml);
+    if (o.extraMenuHtml) parts.push(o.extraMenuHtml);
     if (o.shareTitle != null) {
         parts.push(
             `<button type="button" class="post-menu-action" onclick="sharePost('${jsString(o.shareTitle)}', '${jsString(o.shareHref || '')}')">Share</button>`
@@ -5716,6 +5717,43 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
                     </article>`;
 }
 
+function renderFeedCardCommentsSection(postId, authorName, authorId) {
+    const id = String(postId || '');
+    const comments = getPostCommentsFor(id);
+    const commentsExpanded = isPostCommentsExpanded(id);
+    const leadComment = comments[0];
+    const extraComments = comments.slice(1);
+    const leadHtml = leadComment
+        ? renderPostCommentRow(leadComment, { lead: true, postId: id, openOnClick: !commentsExpanded })
+        : '';
+    const extraHtml = extraComments.length
+        ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId: id })).join('')}</div>`
+        : '';
+    const moreCommentsHtml = comments.length > 1
+        ? `<button type="button" class="comment-thread-toggle" onclick="togglePostComments('${jsString(id)}')">${escapeHtml(gloweText('See all comments'))}</button>`
+        : '';
+    const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
+    const engagementHtml = comments.length > 0
+        ? `<div class="post-engagement-row">
+                <button type="button" class="comment-summary" aria-live="polite" aria-expanded="${commentsExpanded ? 'true' : 'false'}" onclick="togglePostComments('${jsString(id)}')">${formatCommentCount(comments.length)}</button>
+            </div>`
+        : '';
+    const commentsHtml = `
+            <div class="post-comments${collapsedClass}" id="comments-${id}">
+                ${leadHtml}
+                ${extraHtml}
+                ${moreCommentsHtml}
+                <form class="comment-form" onsubmit="handlePostComment(event, '${id}')">
+                    <input id="comment-input-${id}" aria-label="${escapeHtml(gloweText('Write a thoughtful comment...'))}" placeholder="${escapeHtml(gloweText('Write a thoughtful comment...'))}" required onfocus="revealPostComments('${id}')">
+                    <div class="comment-form-actions">
+                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId || '')}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}">${SEND_ICON_SVG}</button>
+                        <button type="submit">${escapeHtml(gloweText('Post'))}</button>
+                    </div>
+                </form>
+            </div>`;
+    return { engagementHtml, commentsHtml };
+}
+
 // Pre-existing render hotspot (owner menu + comments + tags); this PR only
 // added the action icons/count + share button, not the underlying complexity.
 // fallow-ignore-next-line complexity
@@ -5729,8 +5767,6 @@ function renderPostCard(post, pageBase, options) {
     const profileHref = post.authorId ? `${base}profile.html?id=${post.authorId}` : '#';
     const tags = Array.isArray(post.tags) ? post.tags : [];
     const postId = post.id || getPostId(post);
-    const comments = getPostCommentsFor(postId);
-    const commentsExpanded = isPostCommentsExpanded(postId);
     const viewer = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
     const ownsPost = (typeof GlowePosts !== 'undefined')
         ? GlowePosts.isPostOwner(post, viewer && viewer.id)
@@ -5740,18 +5776,7 @@ function renderPostCard(post, pageBase, options) {
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
-    // Home compact cards must render the same comment thread as Community (FR-GLOWE-008 AC4).
-    const leadComment = comments[0];
-    const extraComments = comments.slice(1);
-    const leadHtml = leadComment
-        ? renderPostCommentRow(leadComment, { lead: true, postId, openOnClick: !commentsExpanded })
-        : '';
-    const extraHtml = extraComments.length
-        ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId })).join('')}</div>`
-        : '';
-    const moreCommentsHtml = comments.length > 1
-        ? `<button type="button" class="comment-thread-toggle" onclick="togglePostComments('${jsString(postId)}')">${escapeHtml(gloweText('See all comments'))}</button>`
-        : '';
+    const commentsSection = renderFeedCardCommentsSection(postId, authorName, post.authorId || '');
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
     const menuHtml = feedCardMoreMenuHtml({
@@ -5769,7 +5794,6 @@ function renderPostCard(post, pageBase, options) {
         editOnclick: `openEditCommunityPost('${jsString(postId)}')`,
         deleteOnclick: `deleteCommunityPost('${jsString(postId)}')`
     });
-    const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
     const feedParts = postFeedDisplayParts(post, options);
     const readMoreHtml = compact && feedParts.showReadMore
         ? `<a class="post-read-more" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(gloweText('Read more'))}</a>`
@@ -5779,11 +5803,6 @@ function renderPostCard(post, pageBase, options) {
         : '';
     const compactExcerptHtml = feedParts.excerpt
         ? `<p class="post-card-excerpt" data-tr-field="${escapeHtml(feedParts.excerptField)}">${escapeHtml(feedParts.excerpt)}</p>`
-        : '';
-    const engagementHtml = comments.length > 0
-        ? `<div class="post-engagement-row">
-                <button type="button" class="comment-summary" aria-live="polite" aria-expanded="${commentsExpanded ? 'true' : 'false'}" onclick="togglePostComments('${jsString(postId)}')">${formatCommentCount(comments.length)}</button>
-            </div>`
         : '';
     const cardClass = compact ? 'post-card post-card--feed' : 'post-card';
     return `
@@ -5812,19 +5831,8 @@ function renderPostCard(post, pageBase, options) {
             </div>` : `<h3 data-tr-field="title">${escapeHtml(post.title)}</h3>
             <p data-tr-field="text">${escapeHtml(post.text)}</p>
             ${tagsHtml}`}
-            ${engagementHtml}
-            <div class="post-comments${collapsedClass}" id="comments-${postId}">
-                ${leadHtml}
-                ${extraHtml}
-                ${moreCommentsHtml}
-                <form class="comment-form" onsubmit="handlePostComment(event, '${postId}')">
-                    <input id="comment-input-${postId}" aria-label="${escapeHtml(gloweText('Write a thoughtful comment...'))}" placeholder="${escapeHtml(gloweText('Write a thoughtful comment...'))}" required onfocus="revealPostComments('${postId}')">
-                    <div class="comment-form-actions">
-                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(post.authorId || '')}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}">${SEND_ICON_SVG}</button>
-                        <button type="submit">${escapeHtml(gloweText('Post'))}</button>
-                    </div>
-                </form>
-            </div>
+            ${commentsSection.engagementHtml}
+            ${commentsSection.commentsHtml}
         </article>
     `;
 }
@@ -6346,16 +6354,99 @@ function feedCardPageBaseFor(el) {
     return 'pages/';
 }
 
+function findFeedItemForEntityId(entityId) {
+    const sid = String(entityId || '');
+    function scan(st) {
+        if (!st || !Array.isArray(st.items)) return null;
+        return st.items.find(function (it) { return String(it && it.id) === sid; }) || null;
+    }
+    const member = document.getElementById('member-home');
+    const guest = document.getElementById('guest-home-feed');
+    return scan(member && member._homeFeed) || scan(guest && guest._homeFeed) || null;
+}
+
+function wishFeedItemFromRow(wish, fromPagesFolder) {
+    const HF = window.GloweHomeFeed;
+    const kind = wish && wish.type === 'Volunteer Offer' ? 'volunteer_offer' : 'wish';
+    const id = String(wish && wish.id || '');
+    const snippetFn = HF && typeof HF.snippetOf === 'function'
+        ? HF.snippetOf
+        : function (t) { return String(t || '').trim(); };
+    const wishHref = fromPagesFolder
+        ? glowePageHref('wishing-well.html', `wish=${encodeURIComponent(id)}`)
+        : glowePageHref('pages/wishing-well.html', `wish=${encodeURIComponent(id)}`);
+    return {
+        kind: kind,
+        id: id,
+        title: (wish && wish.title) || '',
+        snippet: snippetFn((wish && wish.text) || (wish && wish.description) || (wish && wish.body)),
+        authorLabel: (wish && wish.author) || (wish && wish.authorName) || '',
+        authorNameEn: (wish && wish.authorEn) || '',
+        authorId: (wish && wish.authorId) || '',
+        createdAt: (wish && wish.createdAt) || '',
+        hrefPath: wishHref,
+        tagKey: kind === 'volunteer_offer' ? 'Volunteer Offer' : 'Wish'
+    };
+}
+
+function feedItemAuthorPair(item) {
+    if (!item) return { primary: '', english: '' };
+    const id = String(item.id || '');
+    const kind = item.kind || '';
+    if (kind === 'wish' || kind === 'volunteer_offer') {
+        const wish = (Array.isArray(wishes) ? wishes : []).find(function (w) { return String(w.id) === id; });
+        if (wish) return authorNamePairFrom(wish);
+    }
+    if (kind === 'opportunity' || kind === 'event') {
+        const opp = getOpportunityByAnyId(id);
+        if (opp) return orgNamePairFrom(opp);
+    }
+    if (kind === 'post') {
+        const post = findCommunityPostById(id);
+        if (post) return authorNamePairFrom(post);
+    }
+    if (kind === 'forum_thread') {
+        const threads = getForumThreads();
+        const thread = threads.find(function (t) { return String(t.id) === id; });
+        if (thread) return authorNamePairFrom(thread);
+    }
+    return { primary: item.authorLabel || '', english: item.authorNameEn || '' };
+}
+
+function resolveFeedCardHtml(entityId, pageBase) {
+    const id = String(entityId || '');
+    const base = pageBase == null ? 'pages/' : pageBase;
+    const post = findCommunityPostById(id);
+    if (post) return renderPostCard(post, base, { compact: true });
+    const feedItem = findFeedItemForEntityId(id);
+    if (feedItem) {
+        return renderHomeDiscoveryCard(feedItem, { pageBase: base });
+    }
+    const fromPages = base === '';
+    const opp = getOpportunityByAnyId(id);
+    if (opp) {
+        return renderHomeDiscoveryCard(
+            opportunityFeedItemFromRow(opp, fromPages),
+            { pageBase: base }
+        );
+    }
+    const wish = (Array.isArray(wishes) ? wishes : []).find(function (w) { return String(w.id) === id; });
+    if (wish) {
+        return renderHomeDiscoveryCard(wishFeedItemFromRow(wish, fromPages), { pageBase: base });
+    }
+    return null;
+}
+
 function refreshFeedPostCard(postId) {
     const id = String(postId || '');
     const el = document.getElementById('post-' + id);
     if (!el) return;
-    const post = findCommunityPostById(id);
-    if (!post) return;
     const pageBase = feedCardPageBaseFor(el);
     const parent = el.parentElement;
     const inHome = Boolean(el.closest('#home-feed-grid'));
-    el.outerHTML = renderPostCard(post, pageBase, { compact: true });
+    const html = resolveFeedCardHtml(id, pageBase);
+    if (!html) return;
+    el.outerHTML = html;
     if (parent && typeof translateGloweTree === 'function') translateGloweTree(parent);
     if (inHome) {
         const root = document.getElementById('member-home') || document.getElementById('guest-home-feed');
@@ -6409,14 +6500,16 @@ function renderHomeDiscoveryCard(item, options) {
     const title = isCatalog ? homeFeedLocalizedText(titleRaw) : titleRaw;
     const snippet = isCatalog ? homeFeedLocalizedText(snippetRaw) : snippetRaw;
     const authorRaw = (item && item.authorLabel) || 'GloWe Member';
-    const authorName = homeFeedLocalizedText(authorRaw) || authorRaw;
+    const authorPair = feedItemAuthorPair(item);
+    const authorName = (typeof GloweLocalizedName !== 'undefined')
+        ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
+        : (homeFeedLocalizedText(authorRaw) || authorRaw);
     const authorId = (item && item.authorId) || '';
     const createdAt = (item && item.createdAt) || '';
     const dateLabel = createdAt
         ? new Date(createdAt).toLocaleDateString(gloweLocaleTag())
         : gloweText('now');
     const profileHref = authorId ? `${pageBase}profile.html?id=${encodeURIComponent(authorId)}` : href;
-    const authorPair = { primary: authorName, english: '' };
     const trType = isCatalog
         ? ''
         : (kind === 'opportunity' || kind === 'event')
@@ -6430,9 +6523,11 @@ function renderHomeDiscoveryCard(item, options) {
         ? 'description'
         : (kind === 'forum_thread' ? 'body' : 'text');
     const saveType = homeFeedSaveType(kind);
-    const cardId = `home-${kind}-${id}`;
     const saveBtn = typeof savedToggleButtonHtml === 'function'
         ? savedToggleButtonHtml(saveType, id, titleRaw, tag, href, 'Save', 'post-menu-action')
+        : '';
+    const wishMenuExtra = isWishKind
+        ? `<button type="button" class="post-menu-action" onclick="showSupportModal('${jsString(id)}')">${escapeHtml(gloweText('Offer Support'))}</button>`
         : '';
     const trAttrs = isCatalog
         ? ''
@@ -6447,6 +6542,7 @@ function renderHomeDiscoveryCard(item, options) {
     const menuHtml = typeof feedCardMoreMenuHtml === 'function'
         ? feedCardMoreMenuHtml({
             saveHtml: saveBtn,
+            extraMenuHtml: wishMenuExtra,
             shareTitle: titleRaw,
             shareHref: href,
             viewHref: href,
@@ -6461,11 +6557,11 @@ function renderHomeDiscoveryCard(item, options) {
             ownsItem: false
         })
         : saveBtn;
-    const wishCtaHtml = (kind === 'wish' || kind === 'volunteer_offer')
-        ? `<div class="post-card-cta-row"><button type="button" class="btn btn-primary btn-small" onclick="showSupportModal('${jsString(id)}')">${escapeHtml(gloweText('Offer Support'))}</button></div>`
-        : '';
+    const commentsSection = isCatalog
+        ? { engagementHtml: '', commentsHtml: '' }
+        : renderFeedCardCommentsSection(id, authorName, authorId);
     return `
-        <article class="post-card post-card--feed home-feed-discovery-card" id="${escapeHtml(cardId)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
+        <article class="post-card post-card--feed home-feed-discovery-card" id="post-${escapeHtml(id)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
             <div class="post-card-header">
                 <a class="post-author" href="${escapeHtml(profileHref)}">
                     ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
@@ -6487,8 +6583,9 @@ function renderHomeDiscoveryCard(item, options) {
                 <h3${titleField}><a class="home-feed-title-link" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(title)}</a></h3>
                 <p class="post-card-excerpt"${bodyField}>${escapeHtml(snippet)}</p>
                 <a class="post-read-more" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(gloweText('Read more'))}</a>
-                ${wishCtaHtml}
             </div>
+            ${commentsSection.engagementHtml}
+            ${commentsSection.commentsHtml}
         </article>`;
 }
 
