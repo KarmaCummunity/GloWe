@@ -3546,7 +3546,8 @@ html[dir="rtl"] .org-review-banner__note {
     }
 
     .wishes-list > .directory-card,
-    .wishes-list > .wish-card {
+    .wishes-list > .wish-card,
+    .wishes-list > .post-card--feed {
         height: 100%;
     }
 }
