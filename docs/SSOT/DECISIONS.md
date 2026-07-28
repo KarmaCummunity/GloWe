@@ -1481,10 +1481,25 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-190 — GloWe fonts are self-hosted; a byte-budget gate guards the render path (2026-07-28)
+
+**Decision.** All five GloWe web fonts (Assistant, Heebo, Noto Sans Arabic, Noto Sans Ethiopic, Nunito) are vendored as woff2 into the repo by `scripts/vendor-fonts.mjs`, with upstream `unicode-range` preserved, and the generated `@font-face` block is written **into `css/styles.css`** between regenerable markers rather than into a separate stylesheet. The Google Fonts `@import` and `<link>`/`preconnect` tags are removed. A byte-budget gate (`scripts/measure.mjs` + `scripts/perf-budget.json`) and a 22-page headless-browser smoke pass (`scripts/smoke.mjs`) run on every PR touching `app/apps/glowe-web/**` via `ci-glowe-perf.yml`, against the source tree. Lighthouse is deliberately not a blocking check.
+
+**Rationale.** `styles.css` opened with an `@import` of four Google font families. An `@import` is strictly worse than a `<link>`: it cannot start until the importing sheet has been fetched *and* parsed, so it chained a DNS + TLS + fetch to `fonts.googleapis.com` plus a further hop to `fonts.gstatic.com` in front of the first line of text — carrying every non-Latin script the product supports, on an origin we do not control. Self-hosting adds no bytes for any reader (the same subsets were already being served from gstatic) and removes two handshakes plus a serial round trip, while putting the files behind the site's own `immutable` cache headers. Inlining into `styles.css` rather than a `fonts.css` avoids adding a third render-blocking `<link>` to every page, at a cost of ~1.4 KB gzipped.
+
+The gate matters as much as the fix: nothing in the repo inspected CSS, which is why a one-line render-path regression survived review indefinitely. `measure.mjs` reports cross-origin `@import`s specifically. Budgets ratchet down and never up; raising one is a deliberate act belonging in its own PR. Gating the source tree (not `dist`) keeps the workflow independent of a full expo export and stays conservative, since the deploy step only shrinks things further. Lighthouse is excluded because its run-to-run variance on shared runners produces flaky builds rather than signal — `INFRA-QA-W4` owns that separately.
+
+**Context worth keeping.** This replaced a 7-wave, 2-week performance plan drafted against a base 747 commits stale, which re-measurement showed `GLOWE.LAUNCH-2` (D-188) had already largely delivered. The plan was discarded rather than executed. Measure the branch you actually deploy before planning against it.
+
+**Affected.** `app/apps/glowe-web/{css/styles.css,fonts/,scripts/,index.html,pages/*.html}`, `.github/workflows/ci-glowe-perf.yml`; FR-GLOWE-029.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.21 | 2026-07-28 | Added `D-190` (GloWe fonts self-hosted — removes a render-blocking Google Fonts `@import` chaining four families; byte-budget + 22-page smoke gate via `ci-glowe-perf.yml`; Lighthouse deliberately excluded). `FR-GLOWE-029`. |
 | 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.19 | 2026-07-27 | Added `D-188` (GloWe postbuild minify + content-hash + `_headers`; vendored pinned supabase-js; FR-GLOWE-001 AC7 / GLOWE.LAUNCH-2). |
 | 4.18 | 2026-07-27 | Added `D-187` (GloWe transactional email outbox + `glowe-notify`/Resend; FR-GLOWE-003 AC9 / FR-GLOWE-012 AC9). |

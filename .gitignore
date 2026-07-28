@@ -49,3 +49,10 @@ scripts/hebrew-text-report.md
 
 # Local Cursor editor settings (per-machine, not shared)
 .cursor/settings.json
+
+# Node deps. The pnpm workspace lives under app/, but CI (ci-frontend.yml,
+# ci-glowe-perf.yml) installs Playwright at the repo root with
+# `npm install --no-save`, which materialises a root node_modules/. Ignored so
+# that never lands in a commit.
+node_modules/
+package-lock.json

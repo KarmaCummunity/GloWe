@@ -1,0 +1,44 @@
+{
+  "_comment": [
+    "Performance budgets for the GloWe static frontend (FR-GLOWE-026 AC9).",
+    "Enforced by scripts/measure.mjs, run in CI by .github/workflows/ci-glowe-perf.yml.",
+    "",
+    "`criticalPathGzipKb` counts every render-blocking resource a browser must",
+    "fetch, parse and execute before first paint: <script src> without",
+    "defer/async/type=module, plus <link rel=stylesheet> without a non-screen",
+    "media attribute. `pageWeightKb` adds the HTML itself and every image the page",
+    "pulls in via <img>. CSS url() images are reported separately, not counted: a",
+    "browser fetches one only when a selector matches, so folding them in made all",
+    "22 pages read as a uniform ~4.5 MB and hid which page actually regressed.",
+    "",
+    "These gate the SOURCE tree, which is what this repo authors. The deploy step",
+    "(app/scripts/glowe-minify-hash.mjs, via web-postbuild) only shrinks it further",
+    "and content-hashes it, so a source-tree gate is the conservative one \u2014 it can",
+    "never pass something the shipped build would fail.",
+    "",
+    "TWO numbers per metric: `budget` is the CI gate, set just above the current",
+    "measurement so a regression fails today; `target` is where the overhaul is",
+    "going, reported as a gap rather than enforced. Budgets ratchet DOWN, never up.",
+    "Raising one is a deliberate act belonging in its own PR with a stated reason.",
+    "",
+    "Measured 2026-07-28 on staging after self-hosting the fonts: 34.3 KB critical",
+    "path over 2 blocking requests, 405.8 KB on index.html, 0 third-party origins.",
+    "Critical path is dominated by styles.css, which must block to avoid a flash of",
+    "unstyled content; the 33 @font-face rules inlined into it account for ~1.4 KB."
+  ],
+  "default": {
+    "criticalPathGzipKb": {
+      "budget": 38,
+      "target": 30
+    },
+    "pageWeightKb": {
+      "budget": 450,
+      "target": 400
+    },
+    "blockingRequests": {
+      "budget": 2,
+      "target": 2
+    }
+  },
+  "pages": {}
+}

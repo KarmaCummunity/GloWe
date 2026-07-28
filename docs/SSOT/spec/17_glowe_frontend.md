@@ -579,3 +579,52 @@ The GloWe About page surfaces the founding partnership with deep-links to each p
 - AC4. **SEO.** `index.html` (and legal pages) carry `meta description` + basic `og:` tags; shared copy-paste pattern is commented in `index.html` `<head>`. `robots.txt` and `sitemap.xml` under `app/apps/glowe-web/` cover `/glowe` public paths (copied to `dist/glowe/` by `web-postbuild.mjs`).
 - AC5. **Footer.** Shared `ensureGlobalFooter()` links Terms, Privacy Policy, and Accessibility.
 - AC6. **Out of scope (same backlog row).** Sentry error reporting and product analytics for GloWe web.
+
+## FR-GLOWE-029 — Self-hosted fonts + performance regression gate
+
+**Status.** ✅ Done (2026-07-28). Decision: D-190.
+Plan: `docs/superpowers/plans/2026-07-28-glowe-performance-guardrails.md`.
+
+**Context.** `GLOWE.LAUNCH-2` (D-188) took GloWe's critical path to 32.9 KB gzipped over 2
+render-blocking requests. What it did not cover was `css/styles.css`, which opened with an
+`@import` of Google Fonts for four families (Assistant, Heebo, Noto Sans Arabic, Noto Sans
+Ethiopic). An `@import` cannot begin until the importing sheet has been fetched **and**
+parsed, so it chained a DNS + TLS + fetch to `fonts.googleapis.com` and a further hop to
+`fonts.gstatic.com` in front of the first line of text — on an origin we do not control,
+carrying every non-Latin script the product supports. No tooling in the repo inspected CSS,
+so nothing would have caught it.
+
+**Acceptance Criteria.**
+- AC1. **No third-party origin on the render path.** All five families (Assistant, Heebo,
+  Noto Sans Arabic, Noto Sans Ethiopic, Nunito) are vendored as woff2 under
+  `app/apps/glowe-web/fonts/` by `scripts/vendor-fonts.mjs`, with upstream `unicode-range`
+  preserved so a browser fetches only the subsets it renders. The Google `@import` and the
+  Nunito `<link>`/`preconnect` tags are gone from every page.
+- AC2. **Subsets follow `GLOWE_LANGUAGES`.** hebrew (he), arabic (ar), ethiopic (am),
+  cyrillic (ru), latin + latin-ext (en, names). Nunito's cyrillic subset and Noto Sans
+  Ethiopic are load-bearing: `styles.css` uses Nunito for Russian, and Ethiopic is absent
+  from most system font stacks, so dropping either regresses a supported language to a
+  fallback face or to tofu boxes. `vietnamese`/`greek` are excluded.
+- AC3. **No extra blocking request.** The generated `@font-face` block is written into
+  `css/styles.css` between regenerable markers, not into a separate stylesheet — a second
+  `<link>` would add a third render-blocking request to every page. Re-running the vendor
+  script replaces the block in place (idempotent).
+- AC4. **Byte budgets enforced in CI.** `scripts/measure.mjs` resolves the render-blocking
+  graph (scripts without `defer`/`async`/`type=module`, stylesheets without a non-screen
+  `media`) and fails the PR when a page exceeds `scripts/perf-budget.json`. Budgets sit just
+  above current measurements so a regression fails immediately; they ratchet down, never up.
+  Page weight counts the document, blocking bytes and `<img>` sources; CSS `url()` images are
+  reported separately, since a browser fetches those only when a selector matches.
+- AC5. **Cross-origin `@import`s are reported.** The tool flags them specifically, because
+  this class of regression is invisible in HTML and was how AC1's bug survived. Comments are
+  stripped before scanning so a documented or commented-out import is not reported.
+- AC6. **Every page loads clean.** `scripts/smoke.mjs` loads all 22 pages in headless
+  Chromium and fails on any console error, page error, or failed request. Pages that
+  legitimately navigate away (redirect shims, the admin non-admin bounce) skip the
+  globals assertion rather than reporting a false failure.
+- AC7. **Gate runs on the source tree.** `ci-glowe-perf.yml` measures what this repo
+  authors; the deploy step (`glowe-minify-hash.mjs`) only minifies and content-hashes
+  further, so a source-tree gate cannot pass what the shipped build would fail, and the
+  workflow stays independent of a full expo export. Lighthouse is deliberately excluded —
+  run-to-run variance on shared runners makes it a source of flaky builds rather than
+  signal; `INFRA-QA-W4` owns that separately.
