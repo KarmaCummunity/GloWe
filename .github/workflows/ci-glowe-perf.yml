@@ -1,0 +1,118 @@
+name: CI — GloWe performance budget
+
+# Regression gate for the GloWe static frontend (FR-GLOWE-026 AC9).
+#
+# Two checks, both cheap and deterministic:
+#   1. every page loads in a real browser with a clean console;
+#   2. no page exceeds its byte budget in scripts/perf-budget.json.
+#
+# Gates the SOURCE tree, which is what this repo authors. The deploy step
+# (app/scripts/glowe-minify-hash.mjs via web-postbuild) only minifies and
+# content-hashes it further, so a source-tree gate is the conservative one — it
+# cannot pass something the shipped build would fail, and it avoids making this
+# workflow depend on a full expo export.
+#
+# Deliberately NOT a required status check yet, and deliberately path-filtered:
+# it only has an opinion about `app/apps/glowe-web/**`, so unlike the required
+# contexts in ci-frontend.yml it does not need to report on every PR.
+#
+# Lighthouse is intentionally absent: its scores vary by several points
+# run-to-run on shared runners, so wiring it as a blocking check buys flaky
+# builds rather than signal. Device metrics belong in a PR, measured on real
+# hardware. INFRA-QA-W4 owns the Lighthouse/k6 story separately.
+
+on:
+  pull_request:
+    branches: [main, dev, staging]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'app/apps/glowe-web/**'
+      - '.github/workflows/ci-glowe-perf.yml'
+  push:
+    branches: [main, dev, staging]
+    paths:
+      - 'app/apps/glowe-web/**'
+      - '.github/workflows/ci-glowe-perf.yml'
+
+concurrency:
+  group: ci-glowe-perf-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  budget:
+    name: smoke · byte budget
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Pinned so the smoke step is deterministic; browser binaries are cached
+      # under this key. Matches ci-frontend.yml — bump both together.
+      PLAYWRIGHT_VERSION: 1.60.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install Playwright (Chromium only)
+        run: |
+          npm install --no-save --silent "playwright@${PLAYWRIGHT_VERSION}"
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
+
+      # Loads every page and fails on any console error, page error or failed
+      # request. Catches the class of breakage a diff review cannot: a script
+      # that parses fine but throws at load, or an asset reference that 404s.
+      - name: Smoke-load every page
+        working-directory: app/apps/glowe-web
+        run: node scripts/smoke.mjs --root . --keep-going
+
+      - name: Enforce byte budgets
+        working-directory: app/apps/glowe-web
+        run: node scripts/measure.mjs
+
+      - name: Write report to the job summary
+        if: always()
+        working-directory: app/apps/glowe-web
+        run: |
+          {
+            echo '### GloWe performance budget'
+            echo ''
+            echo '```'
+            node scripts/measure.mjs --no-gate || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Retained so a later run can be diffed against this one to see exactly
+      # which resource grew, rather than only that some total moved.
+      - name: Emit measurement JSON
+        if: always()
+        working-directory: app/apps/glowe-web
+        run: node scripts/measure.mjs --json > perf-report.json
+
+      - name: Upload measurement JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: glowe-perf-${{ github.run_id }}
+          path: app/apps/glowe-web/perf-report.json
+          if-no-files-found: error
+          retention-days: 30

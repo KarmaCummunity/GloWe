@@ -9,7 +9,10 @@
     "dev": "npx --yes serve . --listen 4321 --no-port-switching",
     "start": "npx --yes serve . --listen 4321 --no-port-switching",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "measure": "node scripts/measure.mjs",
+    "smoke": "node scripts/smoke.mjs --root . --keep-going",
+    "vendor:fonts": "node scripts/vendor-fonts.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.12",
