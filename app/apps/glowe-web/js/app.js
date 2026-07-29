@@ -4754,109 +4754,233 @@ async function handleReportSubmit(event) {
     }
 }
 
-function openWishDetail(wishId) {
-    ensureGlobalUI();
-    const wish = wishes.find(item => String(item.id) === String(wishId));
-    if (!wish) return;
-    const style = wishTypeStyles[wish.type] || { color: '#E3F5F0' };
-    const authorPair = authorNamePairFrom(wish);
-    const authorName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
-            || authorPair.primary || wish.author || 'GloWe Member'
-        : (wish.author || 'GloWe Member');
-    const content = document.getElementById('wish-detail-content');
-    content.innerHTML = `
-        <button class="close-modal" type="button" aria-label="Close wish details" onclick="closeModal('wish-detail-modal')">&times;</button>
-        <div class="wish-detail-scroll" data-tr-card data-tr-type="glowe_post" data-tr-id="${wish.id}">
-            <div class="wish-detail-hero" style="--tag-color: ${style.color}">
-                <span class="wish-type" style="background:${style.color}">${wish.type}</span>
-                <h2 data-tr-field="title">${wish.title}</h2>
-                <a class="wish-author" href="profile.html?id=${wish.authorId}">
-                    ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName)}
-                    <span ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
-                    <small>${wish.time}</small>
-                </a>
-            </div>
-            <p class="wish-detail-description" data-tr-field="text">${wish.description}</p>
-            <div class="opportunity-details">
-                <span class="opportunity-detail">${wish.location}</span>
-                <span class="opportunity-detail">${wish.areas.join(', ')}</span>
-            </div>
-            <div class="dream-box">
-                <h3>The dream</h3>
-                <p>To turn a local need into a shared action that others can join, support, or learn from.</p>
-                <h3>Looking for</h3>
-                <div class="opportunity-skills">
-                    ${wish.areas.map(area => `<span class="skill-tag">${area}</span>`).join('')}
-                </div>
-            </div>
-            <div class="card-actions wish-detail-actions">
-                <button class="btn btn-primary" type="button" onclick="showSupportModal('${wish.id}')">Offer Support</button>
-                ${savedToggleButtonHtml('wish', wish.id, wish.title, wish.author, `wishing-well.html?wish=${wish.id}`, 'Save', 'btn btn-outline')}
-                <button class="btn btn-outline" type="button" onclick="openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')">Report</button>
-                <button class="btn btn-outline" type="button" onclick="closeModal('wish-detail-modal')">Back to wishes</button>
-            </div>
-            <div id="wish-offers" class="wish-offers" aria-live="polite" hidden></div>
-        </div>
-    `;
-    openModal('wish-detail-modal');
-    renderWishOffers(wish);
+function resolveFeedPostEntity(entityId) {
+    const sid = String(entityId || '');
+    if (!sid) return null;
+    const post = findCommunityPostById(sid);
+    if (post) return { kind: 'post', data: post };
+    const wish = (Array.isArray(wishes) ? wishes : []).find(function (w) {
+        return String(w.id) === sid;
+    });
+    if (wish) {
+        return {
+            kind: wish.type === 'Volunteer Offer' ? 'volunteer_offer' : 'wish',
+            data: wish
+        };
+    }
+    const opp = getOpportunityByAnyId(sid);
+    if (opp) {
+        const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
+        return {
+            kind: (events && events.isEvent(opp)) ? 'event' : 'opportunity',
+            data: opp
+        };
+    }
+    const thread = getForumThreads().find(function (t) { return String(t.id) === sid; });
+    if (thread) return { kind: 'forum_thread', data: thread };
+    return null;
 }
 
-// FR-GLOWE-016 AC2 — open a community post from the home discovery feed without
-// losing context on a bare Community tab navigation.
+function feedPostDetailTrType(kind) {
+    if (kind === 'opportunity' || kind === 'event') return 'glowe_opportunity';
+    if (kind === 'forum_thread') return 'glowe_forum_thread';
+    return 'glowe_post';
+}
+
+function feedPostDetailBodyField(kind) {
+    if (kind === 'opportunity' || kind === 'event') return 'description';
+    if (kind === 'forum_thread') return 'body';
+    return 'text';
+}
+
+function feedPostDetailMetaHtml(bits) {
+    const rows = (bits || []).filter(Boolean);
+    if (!rows.length) return '';
+    return `<div class="opportunity-details">${rows.join('')}</div>`;
+}
+
+// Unified feed post detail modal — all card kinds open the same shell (FR-GLOWE-016).
 // fallow-ignore-next-line complexity
-function openCommunityPostDetail(postId) {
-    ensureGlobalUI();
-    const id = String(postId || '');
+function buildFeedPostDetailModalHtml(resolved) {
+    const kind = resolved.kind;
+    const data = resolved.data;
+    const id = String(data.id || '');
     const base = gloweePagePrefix();
-    const post = findCommunityPostById(id);
-    if (!post) {
-        window.location.assign(communityPostDetailHref(id, base));
-        return;
+    const trType = feedPostDetailTrType(kind);
+    const bodyField = feedPostDetailBodyField(kind);
+    let tagLabel = '';
+    let title = '';
+    let body = '';
+    let authorPair = { primary: '', english: '' };
+    let authorName = '';
+    let authorId = '';
+    let dateLabel = gloweText('now');
+    let profileHref = '#';
+    let metaHtml = '';
+    let extraHtml = '';
+
+    if (kind === 'post') {
+        const post = data;
+        tagLabel = glowePostTypeLabel(post.category);
+        title = post.title || '';
+        body = post.text || '';
+        authorPair = authorNamePairFrom(post);
+        authorName = (typeof GloweLocalizedName !== 'undefined')
+            ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
+            : (post.authorName || 'Community Member');
+        authorId = post.authorId || '';
+        dateLabel = post.createdAt
+            ? new Date(post.createdAt).toLocaleDateString(gloweLocaleTag())
+            : gloweText('now');
+        profileHref = authorId
+            ? `${base}profile.html?id=${encodeURIComponent(authorId)}`
+            : '#';
+        const tags = Array.isArray(post.tags) ? post.tags : [];
+        if (tags.length) {
+            extraHtml = `<div class="post-tag-row">${tags.map(function (tag, i) {
+                return `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`;
+            }).join('')}</div>`;
+        }
+    } else if (kind === 'wish' || kind === 'volunteer_offer') {
+        const wish = data;
+        tagLabel = wish.type || (kind === 'volunteer_offer' ? 'Volunteer Offer' : 'Wish');
+        title = wish.title || '';
+        body = wish.description || wish.text || '';
+        authorPair = authorNamePairFrom(wish);
+        authorName = (typeof GloweLocalizedName !== 'undefined')
+            ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
+                || authorPair.primary || wish.author || 'GloWe Member'
+            : (wish.author || 'GloWe Member');
+        authorId = wish.authorId || '';
+        dateLabel = wish.time || (wish.createdAt
+            ? new Date(wish.createdAt).toLocaleDateString(gloweLocaleTag())
+            : gloweText('now'));
+        profileHref = authorId
+            ? `${base}profile.html?id=${encodeURIComponent(authorId)}`
+            : '#';
+        const areas = Array.isArray(wish.areas) ? wish.areas : [];
+        metaHtml = feedPostDetailMetaHtml([
+            wish.location ? `<span class="opportunity-detail" data-tr-field="location">${escapeHtml(wish.location)}</span>` : '',
+            areas.length ? `<span class="opportunity-detail">${escapeHtml(areas.join(', '))}</span>` : ''
+        ]);
+    } else if (kind === 'opportunity' || kind === 'event') {
+        const opp = data;
+        const events = (typeof GloweEvents !== 'undefined') ? GloweEvents : null;
+        const isEvent = events ? events.isEvent(opp) : false;
+        tagLabel = isEvent ? gloweText('Event') : gloweText('Opportunity');
+        title = opp.title || '';
+        body = opp.description || '';
+        authorPair = orgNamePairFrom(opp);
+        authorName = (typeof GloweLocalizedName !== 'undefined')
+            ? GloweLocalizedName.localizedOrganizationName(opp, gloweReaderLang(), 'GloWe Member')
+            : (opp.organization || 'GloWe Member');
+        authorId = opp.ownerId || '';
+        const when = isEvent
+            ? (opp.startAt || opp.createdAt || '')
+            : (opp.createdAt || '');
+        dateLabel = when
+            ? new Date(when).toLocaleDateString(gloweLocaleTag())
+            : gloweText('now');
+        profileHref = authorId
+            ? `${base}profile.html?id=${encodeURIComponent(authorId)}`
+            : '#';
+        const metaBits = [];
+        if (isEvent && events) {
+            metaBits.push(`<span class="opportunity-detail"><strong>When:</strong> ${escapeHtml(events.formatEventDate(opp, gloweLocaleTag()))}</span>`);
+        }
+        if (opp.location) {
+            metaBits.push(`<span class="opportunity-detail"><strong>Location:</strong> <span data-tr-field="location">${escapeHtml(opp.location)}</span></span>`);
+        }
+        if (opp.duration) {
+            metaBits.push(`<span class="opportunity-detail"><strong>Duration:</strong> <span data-tr-field="duration">${escapeHtml(opp.duration)}</span></span>`);
+        }
+        if (!isEvent && opp.commitment) {
+            metaBits.push(`<span class="opportunity-detail"><strong>Commitment:</strong> <span>${escapeHtml(opp.commitment)}</span></span>`);
+        }
+        metaHtml = feedPostDetailMetaHtml(metaBits);
+        const skills = Array.isArray(opp.skills) ? opp.skills : [];
+        if (skills.length) {
+            extraHtml = `<div class="opportunity-skills">${skills.map(function (skill, i) {
+                return `<span class="skill-tag" title="${escapeHtml(skill)}" data-tr-field="skills.${i}">${escapeHtml(skill)}</span>`;
+            }).join('')}</div>`;
+        }
+    } else if (kind === 'forum_thread') {
+        const thread = data;
+        tagLabel = gloweText('Forum');
+        title = thread.title || '';
+        body = thread.body || '';
+        authorPair = authorNamePairFrom(thread);
+        authorName = (typeof GloweLocalizedName !== 'undefined')
+            ? GloweLocalizedName.resolveLocalizedName(authorPair.primary, authorPair.english, gloweReaderLang())
+            : (thread.authorName || thread.author || 'Community Member');
+        authorId = thread.authorId || thread.userId || '';
+        dateLabel = thread.createdAt
+            ? new Date(thread.createdAt).toLocaleDateString(gloweLocaleTag())
+            : gloweText('now');
+        profileHref = authorId
+            ? `${base}profile.html?id=${encodeURIComponent(authorId)}`
+            : '#';
     }
-    const content = document.getElementById('post-detail-content');
-    if (!content) {
-        window.location.assign(communityPostDetailHref(id, base));
-        return;
-    }
-    const authorPair = authorNamePairFrom(post);
-    const authorName = (typeof GloweLocalizedName !== 'undefined')
-        ? GloweLocalizedName.localizedAuthorName(post, gloweReaderLang(), 'Community Member')
-        : (post.authorName || 'Community Member');
-    const postIdSafe = post.id || getPostId(post);
-    const tags = Array.isArray(post.tags) ? post.tags : [];
-    const tagsHtml = tags.length
-        ? `<div class="post-tag-row">${tags.map((tag, i) =>
-            `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
-        ).join('')}</div>`
+
+    const tagDisplay = gloweText(tagLabel) || tagLabel;
+    const commentCount = getPostCommentsFor(id).length;
+    const commentNote = commentCount
+        ? `<p class="muted-note">${escapeHtml(formatCommentCount(commentCount))}</p>`
         : '';
-    const communityLink = communityPostDetailHref(postIdSafe, base);
-    const commentCount = getPostCommentsFor(postIdSafe).length;
-    content.innerHTML = `
+    const wishOffersSlot = (kind === 'wish' || kind === 'volunteer_offer')
+        ? '<div id="wish-offers" class="wish-offers" aria-live="polite" hidden></div>'
+        : '';
+
+    return `
         <button class="close-modal" type="button" aria-label="Close post" onclick="closeModal('post-detail-modal')">&times;</button>
-        <div class="wish-detail-scroll post-detail-scroll" data-tr-card data-tr-type="glowe_post" data-tr-id="${escapeHtml(String(postIdSafe))}">
+        <div class="wish-detail-scroll post-detail-scroll" data-tr-card data-tr-type="${escapeHtml(trType)}" data-tr-id="${escapeHtml(id)}">
             <div class="wish-detail-hero">
-                <span class="post-type-tag" title="${escapeHtml(glowePostTypeLabel(post.category))}">${escapeHtml(glowePostTypeLabel(post.category))}</span>
-                <h2 data-tr-field="title">${escapeHtml(post.title)}</h2>
-                <span class="wish-author">
+                <span class="post-type-tag" title="${escapeHtml(tagDisplay)}">${escapeHtml(tagDisplay)}</span>
+                <h2 data-tr-field="title">${escapeHtml(title)}</h2>
+                <a class="wish-author" href="${escapeHtml(profileHref)}">
                     ${renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName, 'avatar')}
                     <span ${bilingualNameAttrs(authorPair.primary, authorPair.english)}>${escapeHtml(authorName)}</span>
-                    <small>${post.createdAt ? new Date(post.createdAt).toLocaleDateString(gloweLocaleTag()) : gloweText('now')}</small>
-                </span>
+                    <small>${escapeHtml(dateLabel)}</small>
+                </a>
             </div>
             ${translationToggleSlotHtml()}
-            <p class="wish-detail-description" data-tr-field="text">${escapeHtml(post.text)}</p>
-            ${tagsHtml}
+            <p class="wish-detail-description" data-tr-field="${bodyField}">${escapeHtml(body)}</p>
+            ${metaHtml}
+            ${extraHtml}
             <div class="card-actions wish-detail-actions">
-                <a class="btn btn-primary" href="${escapeHtml(communityLink)}">${escapeHtml(gloweText('Enter Community'))}</a>
                 <button class="btn btn-outline" type="button" onclick="closeModal('post-detail-modal')">${escapeHtml(gloweText('Close'))}</button>
             </div>
-            ${commentCount ? `<p class="muted-note">${escapeHtml(formatCommentCount(commentCount))}</p>` : ''}
-        </div>
-    `;
+            ${commentNote}
+            ${wishOffersSlot}
+        </div>`;
+}
+
+function openFeedPostDetail(entityId) {
+    ensureGlobalUI();
+    const id = String(entityId || '');
+    const resolved = resolveFeedPostEntity(id);
+    const content = document.getElementById('post-detail-content');
+    if (!content) return;
+    if (!resolved) {
+        const post = findCommunityPostById(id);
+        if (post) window.location.assign(communityPostDetailHref(id, gloweePagePrefix()));
+        return;
+    }
+    content.innerHTML = buildFeedPostDetailModalHtml(resolved);
     openModal('post-detail-modal');
     if (typeof translateGloweTree === 'function') translateGloweTree(content);
+    if (resolved.kind === 'wish' || resolved.kind === 'volunteer_offer') {
+        renderWishOffers(resolved.data);
+    }
+}
+
+function openWishDetail(wishId) {
+    openFeedPostDetail(wishId);
+}
+
+// FR-GLOWE-016 AC2 — open any feed card in the unified post-detail modal.
+function openCommunityPostDetail(postId) {
+    openFeedPostDetail(postId);
 }
 
 // FR-GLOWE-012 AC3 — resolve whether the current viewer owns this wish, so the
@@ -5717,7 +5841,7 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
                     </article>`;
 }
 
-function renderFeedCardCommentsSection(postId, authorName, authorId) {
+function renderFeedCardCommentsSection(postId) {
     const id = String(postId || '');
     const comments = getPostCommentsFor(id);
     const commentsExpanded = isPostCommentsExpanded(id);
@@ -5746,7 +5870,6 @@ function renderFeedCardCommentsSection(postId, authorName, authorId) {
                 <form class="comment-form" onsubmit="handlePostComment(event, '${id}')">
                     <input id="comment-input-${id}" aria-label="${escapeHtml(gloweText('Write a thoughtful comment...'))}" placeholder="${escapeHtml(gloweText('Write a thoughtful comment...'))}" required onfocus="revealPostComments('${id}')">
                     <div class="comment-form-actions">
-                        <button type="button" class="comment-send-chat" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(authorId || '')}')" aria-label="${escapeHtml(gloweText('Send'))}" title="${escapeHtml(gloweText('Send'))}">${SEND_ICON_SVG}</button>
                         <button type="submit">${escapeHtml(gloweText('Post'))}</button>
                     </div>
                 </form>
@@ -5776,7 +5899,7 @@ function renderPostCard(post, pageBase, options) {
             `<span data-tr-field="tags.${i}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('')}</div>`
         : '';
-    const commentsSection = renderFeedCardCommentsSection(postId, authorName, post.authorId || '');
+    const commentsSection = renderFeedCardCommentsSection(postId);
     const detailHref = communityPostDetailHref(postId, base);
     const sharePath = detailHref;
     const menuHtml = feedCardMoreMenuHtml({
@@ -5784,7 +5907,7 @@ function renderPostCard(post, pageBase, options) {
         shareTitle: post.title,
         shareHref: sharePath,
         viewHref: detailHref,
-        viewOnclick: `openCommunityPostDetail('${jsString(postId)}')`,
+        viewOnclick: `openFeedPostDetail('${jsString(postId)}')`,
         authorId: post.authorId || '',
         authorName: authorName,
         reportType: 'post',
@@ -5795,11 +5918,12 @@ function renderPostCard(post, pageBase, options) {
         deleteOnclick: `deleteCommunityPost('${jsString(postId)}')`
     });
     const feedParts = postFeedDisplayParts(post, options);
+    const detailOpen = `onclick="event.preventDefault(); openFeedPostDetail('${jsString(postId)}')"`;
     const readMoreHtml = compact && feedParts.showReadMore
-        ? `<a class="post-read-more" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(gloweText('Read more'))}</a>`
+        ? `<a class="post-read-more" href="#" ${detailOpen}>${escapeHtml(gloweText('Read more'))}</a>`
         : '';
     const compactTitleHtml = feedParts.title
-        ? `<h3 data-tr-field="title"><a class="home-feed-title-link" href="${escapeHtml(detailHref)}" onclick="event.preventDefault(); openCommunityPostDetail('${jsString(postId)}')">${escapeHtml(feedParts.title)}</a></h3>`
+        ? `<h3 data-tr-field="title"><a class="home-feed-title-link" href="#" ${detailOpen}>${escapeHtml(feedParts.title)}</a></h3>`
         : '';
     const compactExcerptHtml = feedParts.excerpt
         ? `<p class="post-card-excerpt" data-tr-field="${escapeHtml(feedParts.excerptField)}">${escapeHtml(feedParts.excerpt)}</p>`
@@ -6542,19 +6666,17 @@ function renderHomeDiscoveryCard(item, options) {
     const titleField = isCatalog ? '' : ' data-tr-field="title"';
     const bodyField = isCatalog ? '' : ` data-tr-field="${field}"`;
     const trSlot = isCatalog ? '' : (typeof translationToggleSlotHtml === 'function' ? translationToggleSlotHtml() : '');
-    const detailClick = isWishKind
-        ? ` onclick="event.preventDefault(); openWishDetail('${jsString(id)}')"`
-        : (kind === 'post' ? ` onclick="event.preventDefault(); openCommunityPostDetail('${jsString(id)}')"` : '');
+    const detailOpen = isCatalog
+        ? ''
+        : ` onclick="event.preventDefault(); openFeedPostDetail('${jsString(id)}')"`;
     const menuHtml = typeof feedCardMoreMenuHtml === 'function'
         ? feedCardMoreMenuHtml({
             saveHtml: saveBtn,
             extraMenuHtml: wishMenuExtra,
             shareTitle: titleRaw,
             shareHref: href,
-            viewHref: href,
-            viewOnclick: isWishKind
-                ? `openWishDetail('${jsString(id)}')`
-                : (kind === 'post' ? `openCommunityPostDetail('${jsString(id)}')` : ''),
+            viewHref: '#',
+            viewOnclick: isCatalog ? '' : `openFeedPostDetail('${jsString(id)}')`,
             authorId: authorId,
             authorName: authorName,
             reportType: saveType,
@@ -6565,7 +6687,7 @@ function renderHomeDiscoveryCard(item, options) {
         : saveBtn;
     const commentsSection = isCatalog
         ? { engagementHtml: '', commentsHtml: '' }
-        : renderFeedCardCommentsSection(id, authorName, authorId);
+        : renderFeedCardCommentsSection(id);
     return `
         <article class="post-card post-card--feed home-feed-discovery-card" id="post-${escapeHtml(id)}"${trAttrs} data-feed-kind="${escapeHtml(kind)}">
             <div class="post-card-header">
@@ -6586,9 +6708,9 @@ function renderHomeDiscoveryCard(item, options) {
             </div>
             ${trSlot}
             <div class="post-card-body">
-                <h3${titleField}><a class="home-feed-title-link" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(title)}</a></h3>
+                <h3${titleField}><a class="home-feed-title-link" href="#"${detailOpen}>${escapeHtml(title)}</a></h3>
                 <p class="post-card-excerpt"${bodyField}>${escapeHtml(snippet)}</p>
-                <a class="post-read-more" href="${escapeHtml(href)}"${detailClick}>${escapeHtml(gloweText('Read more'))}</a>
+                ${isCatalog ? '' : `<a class="post-read-more" href="#"${detailOpen}>${escapeHtml(gloweText('Read more'))}</a>`}
             </div>
             ${commentsSection.engagementHtml}
             ${commentsSection.commentsHtml}
