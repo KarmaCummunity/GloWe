@@ -8,6 +8,33 @@
     // KC's native tables (e.g. public.posts, public.users), all GloWe-owned
     // tables are namespaced with this prefix. See migration 0204_glowe_schema.sql.
     const TABLE_PREFIX = 'glowe_';
+
+    // Hard ceiling on any catalog read that has no pagination of its own.
+    //
+    // Every list below used to be an unbounded `select(...)` with an ORDER BY
+    // and no limit — fine at today's row counts, and a cliff the moment a
+    // catalog grows: the browser would download the entire table to render one
+    // screen. `listAll('comments')` was the sharpest example, fetching every
+    // comment in the system to draw a single page.
+    //
+    // 200 is deliberately far above any current catalog, so this changes
+    // nothing a user sees today; it exists so the failure mode at scale is
+    // "the newest 200, and a warning in the console" instead of "the tab hangs".
+    // Surfaces that genuinely need to go deeper should take a cursor rather
+    // than raise this number — see FR-GLOWE-030.
+    const LIST_HARD_LIMIT = 200;
+
+    // Ordered reads are capped, so hitting the cap means rows were dropped.
+    // Say so: a silent truncation is a data bug that looks like a UI bug.
+    function warnIfTruncated(rows, label) {
+        if (Array.isArray(rows) && rows.length >= LIST_HARD_LIMIT) {
+            console.warn(
+                `[glowe] ${label} hit the ${LIST_HARD_LIMIT}-row read cap — `
+                + 'older rows are not shown. This surface needs real pagination.',
+            );
+        }
+        return rows;
+    }
     const tbl = (name) => `${TABLE_PREFIX}${name}`;
 
     function configured() {
@@ -711,15 +738,16 @@
 
     // Fetch all public records from a table (no user filter). RLS on the table
     // controls what anonymous vs. authenticated callers can see.
-    async function listAll(table, { orderBy = 'created_at', ascending = false } = {}) {
+    async function listAll(table, { orderBy = 'created_at', ascending = false, limit = LIST_HARD_LIMIT } = {}) {
         const supabaseClient = await getClient();
         if (!supabaseClient) return null;
         const { data, error } = await supabaseClient
             .from(tbl(table))
             .select('*')
-            .order(orderBy, { ascending });
+            .order(orderBy, { ascending })
+            .limit(limit);
         if (error) throw error;
-        return data || [];
+        return warnIfTruncated(data || [], `listAll('${table}')`);
     }
 
     // Public About team roster (KC view about_team_profiles). FR-GLOWE-027.
@@ -744,9 +772,10 @@
             .select(PROFILE_PUBLIC_COLUMNS)
             .eq('account_type', 'organization')
             .eq('approval_status', 'approved')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(LIST_HARD_LIMIT);
         if (error) throw error;
-        return (data || []).map((row) => fromProfileRow(row));
+        return warnIfTruncated(data || [], 'listApprovedOrgs()').map((row) => fromProfileRow(row));
     }
 
     // Fetch individual profiles (volunteers / members).
@@ -757,9 +786,10 @@
             .from(PROFILES_PUBLIC_VIEW)
             .select(PROFILE_PUBLIC_COLUMNS)
             .eq('account_type', 'individual')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(LIST_HARD_LIMIT);
         if (error) throw error;
-        return (data || []).map((row) => fromProfileRow(row));
+        return warnIfTruncated(data || [], 'listMembers()').map((row) => fromProfileRow(row));
     }
 
     async function listOwned(table) {
@@ -770,9 +800,10 @@
             .from(tbl(table))
             .select('*')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .limit(LIST_HARD_LIMIT);
         if (error) throw error;
-        return data;
+        return warnIfTruncated(data, `listOwned('${table}')`);
     }
 
     // The server-side guards (migrations 0205, 0211, 0236) raise Postgres errors

@@ -628,3 +628,50 @@ so nothing would have caught it.
   workflow stays independent of a full expo export. Lighthouse is deliberately excluded —
   run-to-run variance on shared runners makes it a source of flaky builds rather than
   signal; `INFRA-QA-W4` owns that separately.
+
+## FR-GLOWE-030 — Bounded catalog reads + indexed hot paths
+
+**Status.** 🟡 In progress (2026-07-28) — read caps and indexes done; per-surface cursor
+pagination and the `glowe_home_feed` candidate bound remain. Migration `0243`.
+
+**Context.** Measured against `staging`, not assumed. `currentUser()` already prefers
+`getSession()` and the profile lists already prune columns via `glowe_public_profiles`, so
+those earlier concerns were closed. Two real gaps remained, both invisible at current row
+counts and both non-linear with growth:
+
+1. **Every catalog read was unbounded.** `listAll` / `listApprovedOrgs` / `listMembers` /
+   `listOwned` issued an ordered `select` with no `limit`. `listAll('comments')` fetched
+   *every comment in the system* to render one page.
+2. **The read paths were unindexed.** Twelve of them, including `glowe_comments (post_id)` —
+   which `glowe_home_feed` aggregates over the whole table on every home-page load.
+
+**Acceptance Criteria.**
+- AC1. **No unbounded ordered read.** Every catalog query in `js/backend.js` that lacks its
+  own pagination ends in `.limit(...)`, capped by `LIST_HARD_LIMIT` (200). The ceiling sits
+  far above any current catalog, so nothing a user sees changes today; it exists so the
+  failure mode at scale is "the newest 200" rather than "the tab hangs".
+- AC2. **Truncation is reported.** A read that comes back at the cap logs a warning naming
+  the call site. A silent truncation is a data bug that presents as a UI bug.
+- AC3. **Caller override.** `listAll(table, { limit })` accepts an explicit limit so a surface
+  can ask for less. Surfaces needing *more* take a cursor rather than raise the ceiling.
+- AC4. **Hot paths indexed** (migration `0243`, additive, `if not exists`): `glowe_comments`
+  `(post_id, created_at)` + `(user_id)`; `glowe_posts` `(created_at desc)`,
+  `(post_type, created_at desc)`, `(user_id)`; `glowe_opportunities` `(created_at desc)`,
+  a partial index over live rows, `(user_id)`; `glowe_profiles` partial over individuals;
+  `user_id` on `glowe_projects` and `glowe_saved_items`; `glowe_applications`
+  `(user_id, created_at desc)`.
+- AC5. **Regression cover.** `js/__tests__/backend-read-caps.test.js` loads `backend.js`
+  against a recording query builder and asserts each read composes a `.limit(...)` —
+  verified by mutation (removing a cap fails the suite). `supabase/tests/0243_*.sql` asserts
+  every index exists.
+
+**Open — next pass.**
+- AC6. ⏳ **Cursor pagination per surface.** The cap is a guardrail, not pagination; lists
+  that can exceed 200 rows need a `created_at` cursor and a "load more" or infinite-scroll
+  affordance.
+- AC7. ⏳ **Bound the `glowe_home_feed` candidate set.** The RPC scores *every* row from six
+  branches and sorts the union to return 10. Its recency term is `exp(-age_hours/60)`, which
+  is ~6e-6 at 30 days, so a candidate cutoff would bound the work with negligible effect on
+  results — but it does change ranking at the margin, so it needs a decision, not a patch.
+  It also runs two correlated subqueries (forum thread/reply counts) that should be
+  grouped joins.

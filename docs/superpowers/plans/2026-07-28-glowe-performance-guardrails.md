@@ -151,16 +151,73 @@ correct faces from local files, with **zero requests to any Google origin**.
   call, not a performance one.
 - **Lighthouse in CI.** See §3.2.
 
-## 6. What a real next assessment should check
+## 6. The next assessment — done 2026-07-28
 
-Recorded so the next pass starts from questions, not assumptions — each needs
-measuring against `staging` before any work:
+Each §6 question was measured against `staging` rather than assumed. Two of four
+were already fixed; two were real.
 
-1. Do list queries still `select('*')` unbounded, and what indexes back the
-   `glowe_*` hot paths now that `glowe_home_feed` is server-side?
-2. Does `currentUser()` still resolve via `auth.getUser()` (a network
-   round-trip) rather than `getSession()`?
-3. Is `app.js` still ~495 KB in one file, and is it still parsed in full on
-   every page?
-4. Is a service worker worth adding now that assets are content-hashed and
-   long-cached?
+| Question | Finding |
+|---|---|
+| Does `currentUser()` still do a network round-trip? | **Already fixed.** It prefers `getSession()` (local JWT) and falls back to `getUser()` only on failure. |
+| Column pruning on profile lists? | **Already fixed.** `listApprovedOrgs`/`listMembers` read `glowe_public_profiles` with an explicit column list — no `raw_profile` blob. |
+| Are list queries bounded, and are the hot paths indexed? | **Both were broken.** See below. |
+| Is `app.js` still shipped whole to every page? | **Yes, and it is now the dominant cost.** See below. |
+
+### 6.1 Unbounded reads + missing indexes — fixed
+
+Every catalog read in `js/backend.js` was an ordered `select` with no `limit`.
+`listAll('comments')` fetched *every comment in the system* to render one page.
+All are now capped by `LIST_HARD_LIMIT` (200), which sits far above any current
+catalog — nothing a user sees changes today, but the failure mode at scale
+becomes "the newest 200, plus a console warning" instead of "the tab hangs".
+Truncation warns rather than silently dropping rows.
+
+Migration `0243` adds twelve indexes. The sharpest gap was
+`glowe_comments (post_id)`: `glowe_home_feed` opens with a `group by post_id`
+aggregate over the **whole** comments table on every home-page load, and nothing
+backed it. `glowe_posts` had only a partial wish-open index, so the feed's
+community and offer branches were unindexed; `glowe_opportunities` had none; and
+the `user_id` FKs behind `listOwned` were bare, which also forces a sequential
+scan on every cascade delete from `auth.users`.
+
+Both are covered by regression tests, and the read-cap test was verified by
+mutation — removing a `.limit()` fails the suite.
+
+### 6.2 `app.js` — measured, not yet fixed
+
+V8 coverage over three representative pages:
+
+| Page | JS shipped | Executed | Never runs |
+|---|---|---|---|
+| `index.html` | 956 KB | 245 KB (26%) | **711 KB** |
+| `pages/community.html` | 937 KB | 237 KB (25%) | **699 KB** |
+| `pages/terms.html` | 903 KB | 220 KB (24%) | **682 KB** |
+
+`app.js` alone is 494 KB shipped, ~24% used, **378 KB dead on every page**. A
+static legal page ships 903 KB of JavaScript to run 220 KB of it.
+
+`defer` (D-188) took this off the *paint* path, which is why the critical path
+measures well — but it is still ~1 MB the main thread must parse and compile
+before the page is interactive, and that is what a mid-range phone feels.
+
+Per-page script inclusion is already tailored on `staging` (terms loads 20
+scripts, index 25), so the cheap win is taken. The remaining mass is inside one
+8 800-line file, and extracting it is a real refactor: globals, inline
+`onclick=` handlers, and 18 `init*` functions sharing helpers. It needs its own
+change-set with the smoke pass as the safety net — not a rider on this one.
+
+### 6.3 Still open, in priority order
+
+1. **Split `app.js` per page.** Biggest remaining win (~378 KB/page), biggest
+   risk. Needs a reachability analysis from each page's `init*` entry point plus
+   the inline-handler surface, then extraction behind the 22-page smoke gate.
+2. **Cursor pagination per surface.** The read cap is a guardrail, not
+   pagination. Lists that can exceed 200 rows need a `created_at` cursor.
+3. **Bound the `glowe_home_feed` candidate set.** It scores every row from six
+   branches and sorts the union to return 10. The recency term is
+   `exp(-age_hours/60)` — ~6e-6 at 30 days — so a candidate cutoff would bound
+   the work with negligible effect on results, but it changes ranking at the
+   margin and so needs a decision, not a patch. Its two correlated subqueries
+   (forum thread/reply counts) should become grouped joins regardless.
+4. **Service worker.** Now genuinely worth it: assets are content-hashed and
+   long-cached, so a stale-while-revalidate shell is low-risk.
