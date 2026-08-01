@@ -42,7 +42,7 @@ jobs:
 
       - name: GitGuardian scan
         if: steps.token.outputs.configured == 'true'
-        uses: GitGuardian/ggshield-action@v1.31.0
+        uses: GitGuardian/ggshield-action@v1.53.0
         continue-on-error: true
         env:
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
