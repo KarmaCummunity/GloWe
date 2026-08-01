@@ -96,7 +96,7 @@ jobs:
 
       - name: Install Supabase CLI
         if: needs.changes.outputs.backend == 'true'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v3
         with:
           # Keep in sync with db-deploy.yml — bump both in the same PR.
           version: 2.99.0
