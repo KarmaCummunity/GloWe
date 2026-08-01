@@ -79,7 +79,7 @@ jobs:
             echo "KC web is served at the dev root — running P0 journeys."
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.detect.outputs.kc_web == 'true'
         with:
           node-version-file: .nvmrc
@@ -145,7 +145,7 @@ jobs:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
         run: node scripts/wait-for-url.mjs "${DEV_WEB_URL%/}/glowe/" 12 15000
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
