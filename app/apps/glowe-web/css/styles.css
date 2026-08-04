@@ -148,6 +148,17 @@ ul {
     width: 100%;
 }
 
+/* ponytail: keyboard-only focus; shared so every .btn* variant picks it up */
+.btn:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 1px var(--white);
+}
+
+.btn-outline:focus-visible {
+    outline-color: var(--primary-dark);
+}
+
 /* ===== Header ===== */
 .main-header {
     background-color: rgba(255, 255, 255, 0.92);
@@ -332,6 +343,11 @@ a.user-greeting:hover {
 .header-icon-btn:hover {
     color: var(--primary-color);
     border-color: var(--primary-color);
+}
+
+.header-icon-btn:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .header-icon-btn svg {
