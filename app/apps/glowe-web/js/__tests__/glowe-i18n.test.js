@@ -174,4 +174,37 @@ describe('GLOWE_TRANSLATIONS (i18n/*.json)', () => {
             }
         }
     });
+
+    it('localizes registration and onboarding form chrome in every language', () => {
+        const keys = [
+            'First name *',
+            'Last name *',
+            'Your first name',
+            'Your last name',
+            'Full name',
+            'Your name',
+            'Your name *',
+            'Contact name *',
+            'Field / sector *',
+            'Register as an organization',
+            'I want to register my organization on GloWe',
+            'Mission, who you serve, and what you would do on GloWe.',
+            'Organizations are reviewed by the GloWe team. While your application is pending you can still post as an individual (needs, offers, community posts). Opportunities and events unlock once you\'re approved.',
+            'Represent an NGO, nonprofit, or initiative? Submit an application for review. Until you are approved you can browse everything — publishing unlocks once approved.',
+            'Save and continue',
+            'Maybe later',
+            'Welcome to GloWe 👋',
+            'I\'m joining as',
+            'Private individual',
+            'Organization',
+            'Create Account',
+            'Join the GloWe Community',
+            'Continue with Google'
+        ];
+        for (const code of TRANSLATED) {
+            for (const key of keys) {
+                expect(TRANSLATIONS[code][key], `${code}: ${key}`).toBeTruthy();
+            }
+        }
+    });
 });

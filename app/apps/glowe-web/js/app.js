@@ -462,12 +462,30 @@ function syncEnglishNameFieldVisibility(wrapId, primaryInputId, englishInputId) 
     }
 }
 
+function splitGlowePersonName(full) {
+    const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { first: '', last: '' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+}
+
+function joinGlowePersonName(first, last) {
+    return [String(first || '').trim(), String(last || '').trim()].filter(Boolean).join(' ');
+}
+
+function getOnboardingPersonDisplayName() {
+    const firstEl = document.getElementById('onboarding-first-name');
+    const lastEl = document.getElementById('onboarding-last-name');
+    return joinGlowePersonName(firstEl && firstEl.value, lastEl && lastEl.value);
+}
+
 function syncOnboardingEnglishFields() {
-    syncEnglishNameFieldVisibility(
-        'onboarding-display-name-en-wrap',
-        'onboarding-display-name',
-        'onboarding-display-name-en'
-    );
+    const wrap = document.getElementById('onboarding-display-name-en-wrap');
+    const englishEl = document.getElementById('onboarding-display-name-en');
+    const primary = getOnboardingPersonDisplayName();
+    const show = typeof GloweLocalizedName !== 'undefined'
+        && GloweLocalizedName.shouldPromptEnglishNameField(primary, gloweReaderInterfaceLang());
+    if (wrap) wrap.hidden = !show;
+    if (!show && englishEl) englishEl.value = '';
     syncEnglishNameFieldVisibility(
         'onboarding-org-name-en-wrap',
         'onboarding-org-name',
@@ -540,8 +558,10 @@ function syncOnboardingFormLayout() {
     const isOrg = Boolean(checked && checked.value === 'organization');
     if (individualFields) individualFields.hidden = isOrg;
     if (orgFields) orgFields.hidden = !isOrg;
-    const displayNameEl = document.getElementById('onboarding-display-name');
-    if (displayNameEl) displayNameEl.required = !isOrg;
+    const firstNameEl = document.getElementById('onboarding-first-name');
+    const lastNameEl = document.getElementById('onboarding-last-name');
+    if (firstNameEl) firstNameEl.required = !isOrg;
+    if (lastNameEl) lastNameEl.required = !isOrg;
     const orgNameEl = document.getElementById('onboarding-org-name');
     if (orgNameEl) orgNameEl.required = isOrg;
     const contactNameEl = document.getElementById('onboarding-org-contact-name');
@@ -557,7 +577,7 @@ function wireOnboardingFormUx() {
         const group = event.target && event.target.closest('.form-group.glowe-field-invalid');
         if (group) group.classList.remove('glowe-field-invalid');
         const id = event.target && event.target.id;
-        if (id === 'onboarding-display-name' || id === 'onboarding-org-name') {
+        if (id === 'onboarding-first-name' || id === 'onboarding-last-name' || id === 'onboarding-org-name') {
             syncOnboardingEnglishFields();
         }
     });
@@ -578,7 +598,9 @@ function openGloweOnboarding(profile) {
     const user = (typeof getCurrentUser === 'function' && getCurrentUser()) || {};
     const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = value || ''; };
     const personName = (profile && profile.name) || user.name || '';
-    setVal('onboarding-display-name', personName);
+    const personParts = splitGlowePersonName(personName);
+    setVal('onboarding-first-name', personParts.first);
+    setVal('onboarding-last-name', personParts.last);
     setVal('onboarding-display-name-en', (profile && profile.nameEn) || '');
     setVal('onboarding-country', (profile && profile.country) || '');
     setVal('onboarding-about', (profile && profile.about) || '');
@@ -624,7 +646,7 @@ async function handleGloweOnboarding(event) {
     const form = document.getElementById('glowe-onboarding-form');
 
     if (!isOrg) {
-        if (!validateGloweRequiredFieldIds(['onboarding-display-name'], form)) return;
+        if (!validateGloweRequiredFieldIds(['onboarding-first-name', 'onboarding-last-name'], form)) return;
     } else if (!validateGloweRequiredFieldIds([
         'onboarding-org-name',
         'onboarding-org-description',
@@ -639,7 +661,7 @@ async function handleGloweOnboarding(event) {
 
     const contactName = val('onboarding-org-contact-name');
     const details = {
-        displayName: isOrg ? contactName : val('onboarding-display-name'),
+        displayName: isOrg ? contactName : getOnboardingPersonDisplayName(),
         displayNameEn: isOrg ? '' : val('onboarding-display-name-en'),
         country: isOrg ? val('onboarding-org-country') : val('onboarding-country'),
         about: isOrg ? '' : val('onboarding-about'),
@@ -2628,9 +2650,15 @@ function ensureGlobalUI() {
                             </div>
                         </div>
                         <div id="onboarding-individual-fields">
-                            <div class="form-group">
-                                <label for="onboarding-display-name">Your name</label>
-                                <input id="onboarding-display-name" type="text" required placeholder="Full name">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="onboarding-first-name">First name *</label>
+                                    <input id="onboarding-first-name" type="text" required placeholder="Your first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="onboarding-last-name">Last name *</label>
+                                    <input id="onboarding-last-name" type="text" required placeholder="Your last name">
+                                </div>
                             </div>
                             <div class="form-group onboarding-english-field" id="onboarding-display-name-en-wrap" hidden>
                                 <label for="onboarding-display-name-en">Name in English (optional)</label>
