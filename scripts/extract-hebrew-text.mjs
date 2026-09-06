@@ -54,6 +54,20 @@ const SKIP_HEBREW_SCAN_EXACT_RELS = new Set([
   // `app/apps/mobile/src/i18n/**` and `web-server/i18n/**` exclusions). The rest
   // of the GloWe tree (HTML/CSS/other JS) stays under scan.
   "app/apps/glowe-web/js/app.js",
+  // Wave 2 performance work (TD-186) extracted GLOWE_TRANSLATIONS out of
+  // app.js into per-language JSON, loaded on demand instead of inlined.
+  // Same canonical-locale-bundle rationale as the app.js exclusion above,
+  // just relocated.
+  "app/apps/glowe-web/i18n/he.json",
+  // Per-locale label map for optional wish body fields (WISH_FIELD_LABELS),
+  // keyed by interface language exactly like GLOWE_TRANSLATIONS — canonical
+  // source, not a leak. Only `he` trips this Hebrew-only scanner; the
+  // sibling en/ru/ar/am entries live in the same object.
+  "app/apps/glowe-web/js/glowe-wishes.js",
+  // Native Android app-name fields (Hebrew-only MVP, R-MVP-Core-4) — same
+  // rationale as the manifest.json exclusion above.
+  "app/apps/mobile/android/app/src/main/res/values/strings.xml",
+  "app/apps/mobile/android/settings.gradle",
   // Dev-only seed dataset: realistic Hebrew content (org names, posts, chats)
   // persisted to the dev DB — data fixtures, not UI copy (same rationale as
   // the supabase/seed.sql exclusion).
