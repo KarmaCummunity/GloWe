@@ -1216,7 +1216,7 @@
         }
 
         const fallback = list.find(function (r) { return r && !r.is_support_thread; });
-        return fallback || null;
+        return fallback || list[0] || null;
     }
 
     // The caller's chat inbox, newest activity first.

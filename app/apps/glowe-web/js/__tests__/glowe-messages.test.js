@@ -18,7 +18,7 @@ describe('mapChatRow / inboxRows', () => {
     expect(theirs.hiddenForMe).toBe(true);
   });
 
-  it('filters hidden + support chats and dedupes by counterpart', () => {
+  it('filters hidden chats and dedupes by counterpart; keeps support threads', () => {
     const rows = [
       { chat_id: 'c1', participant_a: ME, participant_b: OTHER, last_message_at: '2026-07-02' },
       { chat_id: 'c2', participant_a: ME, participant_b: OTHER, last_message_at: '2026-07-01' },
@@ -26,7 +26,7 @@ describe('mapChatRow / inboxRows', () => {
       { chat_id: 'c4', participant_a: ME, participant_b: 'dddddddd-0000-0000-0000-000000000004', inbox_hidden_at_a: '2026-07-01' }
     ];
     const inbox = GloweMessages.inboxRows(rows, ME);
-    expect(inbox.map(c => c.chatId)).toEqual(['c1']);
+    expect(inbox.map(c => c.chatId)).toEqual(['c1', 'c3']);
   });
 
   it('handles a deleted counterpart (null participant)', () => {
