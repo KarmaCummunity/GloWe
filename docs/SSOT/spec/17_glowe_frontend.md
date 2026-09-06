@@ -438,9 +438,7 @@ FR-GLOWE-014 outreach-post model; aligns with D-61). Full design:
   token so a stale `initGuestHome` cannot tear down a newer member shell. Empty states are creation
   CTAs. Pure helpers live in `GloweHomeFeed` (`buildHomeFeed` / `pageSlice` / diversify). Server-ranked
   RPC is Phase 2 (see design). Design: `docs/SSOT/archive/superpowers/specs/2026-07-27-glowe-unified-home-feed-design.md`.
-- AC2b. **Header chat unread badge (done, 2026-07-26).** The header messages icon badge counts
-  only **inbox-visible** DM unreads (same filter as `GloweMessages.inboxRows` — excludes support
-  threads and viewer-hidden chats), so an empty Messages inbox shows no badge. Count refreshes on
+- AC2b. **Header chat unread badge (done, 2026-07-26; revised 2026-09-06).** The header messages icon badge counts **inbox-visible** 1:1 unreads (same filter as `GloweMessages.inboxRows` — excludes viewer-hidden chats). Support-flagged threads **are listed**: KC auto-marks any chat with a super-admin team member (`is_support_thread`), and GloWe treats those as normal DMs so both participants see the conversation. Count refreshes on
   auth change, after mark-read, and via a debounced Realtime subscription on `messages`
   INSERT/UPDATE (`kcSubscribeInboxChanges`, KC parity). Thread-level live bubble push remains
   tracked under TD-180.

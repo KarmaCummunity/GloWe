@@ -1967,19 +1967,28 @@ function normalizeHeaderUserMenu() {
     `;
 }
 
+let _adminLinkGen = 0;
+
+function removeAdminLinks() {
+    document.querySelectorAll('.glowe-admin-link').forEach(function (el) { el.remove(); });
+}
+
 async function applyAdminLink() {
+    const gen = ++_adminLinkGen;
     const backend = window.gloweBackend;
-    if (!backend || !backend.configured() || typeof backend.isGloweAdmin !== 'function') return;
+    if (!backend || !backend.configured() || typeof backend.isGloweAdmin !== 'function') {
+        removeAdminLinks();
+        return;
+    }
     const isAdmin = await backend.isGloweAdmin();
+    if (gen !== _adminLinkGen) return;
     const userMenu = document.querySelector('.user-menu');
     if (!userMenu) return;
-    const existing = userMenu.querySelector('.glowe-admin-link');
-    if (existing) existing.remove();
+    removeAdminLinks();
     if (!isAdmin) return;
     const inPages = window.location.pathname.includes('/pages/');
     const prefix = inPages ? '' : 'pages/';
     const shieldSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
-    const corner = userMenu.querySelector('.header-corner-actions') || userMenu;
     const link = document.createElement('a');
     link.className = 'header-icon-btn glowe-admin-link';
     link.href = `${prefix}admin.html`;
@@ -2000,7 +2009,10 @@ async function applyAdminLink() {
             }
         } catch (_) { /* badge is optional */ }
     }
-    corner.appendChild(link);
+    if (gen !== _adminLinkGen) return;
+    removeAdminLinks();
+    const liveCorner = userMenu.querySelector('.header-corner-actions') || userMenu;
+    liveCorner.appendChild(link);
 }
 window.applyAdminLink = applyAdminLink;
 
@@ -10044,21 +10056,107 @@ function initConnectionsPage() {
     if (window.GloweFollowUI) window.GloweFollowUI.initConnectionsPage();
 }
 
-function chatLoadingState(container, body) {
-    container.innerHTML = `<div class="empty-state"><h3>Loading…</h3><p>${body}</p></div>`;
+function chatInboxToolbarHtml() {
+    return `
+        <div class="messages-inbox-toolbar">
+            <button class="btn btn-primary btn-small" type="button" onclick="openNewMessagePicker()">New message</button>
+        </div>
+    `;
 }
 
 function chatEmptyInboxState(container) {
     container.innerHTML = `
+        ${chatInboxToolbarHtml()}
         <div class="empty-state">
             <h3>No conversations yet</h3>
             <p>Reach out to an organization, offer help on a need, or message a community member — conversations will appear here.</p>
             <div class="modal-actions">
-                <a class="btn btn-primary" href="organizations.html">Browse Organizations</a>
+                <button class="btn btn-primary" type="button" onclick="openNewMessagePicker()">New message</button>
+                <a class="btn btn-outline" href="organizations.html">Browse Organizations</a>
                 <a class="btn btn-outline" href="wishing-well.html">Open the Wishing Well</a>
             </div>
         </div>
     `;
+}
+
+function ensureNewMessagePickerModal() {
+    if (document.getElementById('new-message-modal')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="new-message-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal('new-message-modal')">&times;</span>
+                <h2>New message</h2>
+                <p class="modal-intro">Choose a community member to start a conversation.</p>
+                <div class="form-group">
+                    <label for="new-message-search">Search members</label>
+                    <input id="new-message-search" type="search" placeholder="Search by name..." oninput="filterNewMessagePicker()">
+                </div>
+                <div id="new-message-member-list" class="new-message-member-list" role="listbox" aria-label="Community members"></div>
+            </div>
+        </div>
+    `);
+}
+
+let _newMessageMembersCache = null;
+
+async function loadNewMessagePickerMembers() {
+    const list = document.getElementById('new-message-member-list');
+    if (!list) return;
+    list.innerHTML = '<p class="muted-note">Loading members…</p>';
+    const backend = window.gloweBackend;
+    const me = await backend.currentUser().catch(() => null);
+    if (!me) {
+        list.innerHTML = '<p class="muted-note">Sign in to start a conversation.</p>';
+        return;
+    }
+    const members = await backend.listMembers().catch(() => []);
+    _newMessageMembersCache = (members || []).filter(function (person) {
+        return person && person.id && String(person.id) !== String(me.id);
+    });
+    filterNewMessagePicker();
+}
+
+function filterNewMessagePicker() {
+    const list = document.getElementById('new-message-member-list');
+    if (!list) return;
+    const query = String((document.getElementById('new-message-search') || {}).value || '').trim().toLowerCase();
+    const people = (_newMessageMembersCache || []).filter(function (person) {
+        if (!query) return true;
+        const name = String(localizedProfileDisplayName(person) || '').toLowerCase();
+        return name.includes(query);
+    });
+    list.innerHTML = people.length
+        ? people.slice(0, 40).map(function (person) {
+            const name = localizedProfileDisplayName(person);
+            return `
+                <button type="button" class="new-message-member-row" role="option"
+                    onclick="startNewMessageWithMember('${jsString(person.id)}', '${jsString(name)}')">
+                    ${renderPersonLinkContent(person, { meta: person.location || '' })}
+                </button>
+            `;
+        }).join('')
+        : '<p class="muted-note">No members matched your search.</p>';
+}
+
+function openNewMessagePicker() {
+    if (!gloweIsLoggedIn()) {
+        window.GloweGuest.requireMemberForAction('send-message', {}, function () {});
+        return;
+    }
+    ensureNewMessagePickerModal();
+    const search = document.getElementById('new-message-search');
+    if (search) search.value = '';
+    openModal('new-message-modal');
+    loadNewMessagePickerMembers();
+}
+
+function startNewMessageWithMember(memberId, memberName) {
+    closeModal('new-message-modal');
+    openPrivateMessage(memberName || 'this member', memberId);
+}
+
+function chatLoadingState(container, body) {
+    container.innerHTML = `<div class="empty-state"><h3>Loading…</h3><p>${body}</p></div>`;
 }
 
 function chatCounterpartName(chat, profiles) {
@@ -10090,6 +10188,26 @@ function renderChatInboxRow(chat, profiles) {
     `;
 }
 
+let _messagesInboxUnsub = null;
+
+function stopMessagesInboxRealtime() {
+    if (typeof _messagesInboxUnsub === 'function') {
+        try { _messagesInboxUnsub(); } catch (_e) { /* ignore */ }
+    }
+    _messagesInboxUnsub = null;
+}
+
+async function ensureMessagesInboxRealtime(container) {
+    if (_messagesInboxUnsub || !backendReady()) return;
+    if (typeof window.gloweBackend.kcSubscribeInboxChanges !== 'function') return;
+    _messagesInboxUnsub = await window.gloweBackend.kcSubscribeInboxChanges(function () {
+        const el = document.getElementById('messages-content');
+        if (!el || el !== container) return;
+        if (new URLSearchParams(window.location.search).get('chat')) return;
+        renderChatInbox(container);
+    }).catch(function () { return null; });
+}
+
 async function renderChatInbox(container) {
     chatLoadingState(container, 'Fetching your conversations.');
     const backend = window.gloweBackend;
@@ -10100,6 +10218,7 @@ async function renderChatInbox(container) {
     if (!chats.length) {
         chatEmptyInboxState(container);
         if (typeof refreshMessagesBadge === 'function') refreshMessagesBadge({ skipSubscribe: true });
+        ensureMessagesInboxRealtime(container);
         return;
     }
     const chatIds = chats.map(c => c.chatId);
@@ -10109,19 +10228,33 @@ async function renderChatInbox(container) {
         backend.kcCounterpartProfiles(chats.map(c => c.otherId)).catch(() => ({}))
     ]);
     chats = GloweMessages.attachUnread(GloweMessages.attachPreviews(chats, previews), unread);
-    container.innerHTML = `<div class="chat-inbox-list">${chats.map(chat => renderChatInboxRow(chat, profiles)).join('')}</div>`;
+    container.innerHTML = `
+        ${chatInboxToolbarHtml()}
+        <div class="chat-inbox-list">${chats.map(chat => renderChatInboxRow(chat, profiles)).join('')}</div>
+    `;
     if (typeof refreshMessagesBadge === 'function') refreshMessagesBadge({ skipSubscribe: true });
+    ensureMessagesInboxRealtime(container);
 }
 
-// Resolve the counterpart's display identity for the thread header. Falls
-// back to a generic label when the chat row or profile is unavailable.
-async function resolveChatCounterpartName(backend, chatId, meId) {
-    const myChats = await backend.kcListMyChats(50).catch(() => []);
+// Resolve the counterpart for a thread header (name + profile id).
+async function resolveChatCounterpart(backend, chatId, meId) {
+    const myChats = await backend.kcListMyChats(200).catch(() => []);
     const chatRow = myChats.find(c => String(c.chat_id) === String(chatId));
-    if (!chatRow) return 'GloWe member';
+    if (!chatRow) return { name: 'GloWe member', id: '' };
     const counterpartId = GloweMessages.mapChatRow(chatRow, meId).otherId;
     const profiles = await backend.kcCounterpartProfiles([counterpartId]).catch(() => ({}));
-    return (profiles[counterpartId] || {}).name || 'GloWe member';
+    const who = profiles[counterpartId] || {};
+    return { name: who.name || 'GloWe member', id: counterpartId || '' };
+}
+
+async function resolveChatCounterpartName(backend, chatId, meId) {
+    const who = await resolveChatCounterpart(backend, chatId, meId);
+    return who.name;
+}
+
+function profilePageHref(userId) {
+    if (!userId) return 'community.html';
+    return 'profile.html?id=' + encodeURIComponent(userId);
 }
 
 function renderChatBubbles(messages) {
@@ -10146,13 +10279,16 @@ async function renderChatThread(container, chatId) {
         container.innerHTML = '<div class="empty-state"><h3>Conversation unavailable</h3><p>This conversation could not be opened.</p><a class="btn btn-outline" href="messages.html">Back to messages</a></div>';
         return;
     }
-    const counterpartName = await resolveChatCounterpartName(backend, chatId, me.id);
+    const counterpart = await resolveChatCounterpart(backend, chatId, me.id);
     const messages = GloweMessages.mapMessageRows(rows, me.id);
+    const counterpartHeader = counterpart.id
+        ? `<a class="chat-thread-counterpart" href="${escapeHtml(profilePageHref(counterpart.id))}">${escapeHtml(counterpart.name)}</a>`
+        : `<strong>${escapeHtml(counterpart.name)}</strong>`;
     container.innerHTML = `
         <div class="chat-thread">
             <div class="chat-thread-header">
                 <a class="btn btn-outline btn-small" href="messages.html">Back</a>
-                <strong>${escapeHtml(counterpartName)}</strong>
+                ${counterpartHeader}
             </div>
             <div class="chat-thread-messages" id="chat-thread-messages">
                 ${renderChatBubbles(messages)}
@@ -10196,8 +10332,8 @@ async function startDirectChat(otherUserId, firstMessage) {
     const backend = window.gloweBackend;
     const me = await backend.currentUser();
     if (!me || String(me.id) === String(otherUserId)) return null;
-    const chat = await backend.kcGetOrCreateDmChat(otherUserId);
-    if (!chat) return null;
+    const chat = await backend.kcGetOrCreateDmChat(otherUserId).catch(() => null);
+    if (!chat || !chat.chat_id) return null;
     await kcSeedFirstMessage(chat.chat_id, firstMessage);
     return chat.chat_id;
 }
@@ -10242,8 +10378,9 @@ async function ensureInboxBadgeRealtime() {
 }
 
 // Header unread badge (FR-GLOWE-016) — sum of unreads on inbox-visible chats
-// only (excludes support / hidden threads GloWe does not list). Refreshes on
-// auth change + realtime message INSERT/UPDATE (KC parity / TD-180).
+// (includes support-flagged 1:1 threads with super-admin team members; excludes
+// viewer-hidden chats). Refreshes on auth change + realtime message
+// INSERT/UPDATE (KC parity / TD-180).
 async function refreshMessagesBadge(options = {}) {
     if (!backendReady() || !gloweIsLoggedIn()) {
         applyMessagesBadge(0);

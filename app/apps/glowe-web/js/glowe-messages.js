@@ -26,14 +26,16 @@
         };
     }
 
-    // Inbox rows: mapped, visible (not hidden, not support), deduped per
-    // counterpart (newest chat wins — the list arrives newest-first).
+    // Inbox rows: mapped, visible (not hidden), deduped per counterpart
+    // (newest chat wins — the list arrives newest-first). Support-flagged
+    // threads stay listed: KC auto-marks any chat with a super admin
+    // (GloWe team members) as is_support_thread, and those are still DMs.
     function inboxRows(rows, meId) {
         const seen = {};
         const out = [];
         (Array.isArray(rows) ? rows : []).forEach(function (row) {
             const chat = mapChatRow(row, meId);
-            if (!chat.chatId || chat.hiddenForMe || chat.isSupport || !chat.otherId) return;
+            if (!chat.chatId || chat.hiddenForMe || !chat.otherId) return;
             if (seen[chat.otherId]) return;
             seen[chat.otherId] = true;
             out.push(chat);

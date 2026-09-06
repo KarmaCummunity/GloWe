@@ -1481,10 +1481,23 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-190 — GloWe inbox lists support-flagged 1:1 chats (2026-09-06)
+
+**Decision.** `GloweMessages.inboxRows` includes chats with `is_support_thread=true`. KC auto-flags any chat involving a super-admin (including GloWe team members such as the tech partner) as a support thread. GloWe treats those rows as ordinary DMs so both participants see the conversation in Messages. Viewer-hidden chats stay filtered. The header unread badge uses the same filter.
+
+**Rationale.** Filtering out support threads made Messages look empty for super-admin accounts even when members had successfully sent them DMs. The sender still reached the thread via redirect; the recipient inbox hid the row.
+
+**Alternatives rejected.** Keep the KC support-thread split in GloWe (breaks team-member DMs); add a separate Support inbox (extra chrome for a flag the user did not opt into).
+
+**Affected.** `app/apps/glowe-web/js/glowe-messages.js`; FR-GLOWE-016 AC2b.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.21 | 2026-09-06 | Added `D-190` (GloWe inbox lists support-flagged 1:1 chats with super-admin team members; FR-GLOWE-016 AC2b). |
 | 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.19 | 2026-07-27 | Added `D-188` (GloWe postbuild minify + content-hash + `_headers`; vendored pinned supabase-js; FR-GLOWE-001 AC7 / GLOWE.LAUNCH-2). |
 | 4.18 | 2026-07-27 | Added `D-187` (GloWe transactional email outbox + `glowe-notify`/Resend; FR-GLOWE-003 AC9 / FR-GLOWE-012 AC9). |

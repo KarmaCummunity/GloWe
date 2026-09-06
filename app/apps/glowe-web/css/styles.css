@@ -9166,6 +9166,16 @@ body.glowe-member-home main > section:not(#member-home) {
     gap: 12px;
 }
 
+.chat-thread-counterpart {
+    font-weight: 800;
+    color: var(--primary-dark);
+    text-decoration: none;
+}
+
+.chat-thread-counterpart:hover {
+    text-decoration: underline;
+}
+
 .chat-thread-messages {
     display: flex;
     flex-direction: column;
