@@ -37,7 +37,31 @@ export function activeNavFor(pageSlug) {
   return NAV_ACTIVE[pageSlug] || null;
 }
 
-export function pageContext(relPath) {
+/**
+ * Photo behind the page's hero band, keyed by the body class that selects it
+ * in css/layout-page-header.css (default lives in tokens.css). Mirrored here so
+ * the LCP image can be preloaded from <head> instead of being discovered only
+ * after the stylesheet parses.
+ */
+const HERO_PHOTO_BY_BODY_CLASS = {
+  'home-page-body': 'glowe-bridge.webp',
+  'organizations-page-body': 'glowe-bridge.webp',
+  'opportunities-page-body': 'glowe-field.webp',
+  'wishing-page-body': 'glowe-field.webp',
+  'about-page-body': 'glowe-blossoms.webp',
+};
+const HERO_PHOTO_DEFAULT = 'glowe-regrowth.webp';
+
+/** Hero photo for a page, or null when its static markup has no photo band above the fold. */
+export function heroPhotoFor(html) {
+  if (!/class="(?:page-header|hero)[\s"]/.test(html)) return null;
+  const body = /<body[^>]*class="([^"]*)"/.exec(html);
+  const classes = body ? body[1].split(/\s+/) : [];
+  const hit = classes.find((c) => HERO_PHOTO_BY_BODY_CLASS[c]);
+  return hit ? HERO_PHOTO_BY_BODY_CLASS[hit] : HERO_PHOTO_DEFAULT;
+}
+
+export function pageContext(relPath, html = '') {
   const slug = basename(relPath, '.html');
   const inPages = relPath.replace(/\\/g, '/').startsWith('pages/');
   return {
@@ -45,13 +69,18 @@ export function pageContext(relPath) {
     root: inPages ? '../' : '',
     pages: inPages ? '' : 'pages/',
     home: inPages ? '../index.html' : 'index.html',
+    heroPhoto: heroPhotoFor(html),
   };
 }
 
-/** Fill {{root}} / {{pages}} / {{home}} / {{active:<slug>}} placeholders. */
+/** Fill {{root}} / {{pages}} / {{home}} / {{active:<slug>}} / {{hero-preload}} placeholders. */
 export function renderPartial(template, ctx) {
   const active = activeNavFor(ctx.slug);
+  const heroPreload = ctx.heroPhoto
+    ? `\n$1<link rel="preload" as="image" href="${ctx.root}assets/${ctx.heroPhoto}" fetchpriority="high">`
+    : '';
   return template
+    .replace(/\n([ \t]*)\{\{hero-preload\}\}/g, heroPreload)
     .replace(/\{\{active:([a-z0-9-]+)\}\}/g, (_, slug) =>
       slug === active ? ' active" aria-current="page' : '',
     )
@@ -73,7 +102,7 @@ function markerRe(block) {
  * @returns {{ html: string, stamped: string[] }}
  */
 export function stampPage(html, relPath, partials) {
-  const ctx = pageContext(relPath);
+  const ctx = pageContext(relPath, html);
   const stamped = [];
   let out = html;
   for (const block of BLOCKS) {

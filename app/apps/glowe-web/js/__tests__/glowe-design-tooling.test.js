@@ -12,6 +12,7 @@ import {
 import {
     renderPartial,
     stampPage,
+    heroPhotoFor,
     activeNavFor,
     pageContext,
     syncShell,
@@ -94,7 +95,7 @@ describe('glowe-sync-shell', () => {
     });
 
     it('resolves relative roots for the index vs nested pages', () => {
-        expect(pageContext('index.html')).toEqual({ slug: 'index', root: '', pages: 'pages/', home: 'index.html' });
+        expect(pageContext('index.html')).toEqual({ slug: 'index', root: '', pages: 'pages/', home: 'index.html', heroPhoto: null });
         expect(pageContext('pages/community.html')).toMatchObject({ slug: 'community', root: '../', pages: '', home: '../index.html' });
     });
 
@@ -104,6 +105,25 @@ describe('glowe-sync-shell', () => {
         expect(html).toContain('href="../index.html" class="nav-link">Home</a>');
         expect(html).toContain('class="nav-link active" aria-current="page">About</a>');
         expect(html).toContain('src="../js/app.js"');
+    });
+
+    it('preloads the hero photo only for pages with a static photo band', () => {
+        const withBand = '<body class="about-page-body"><section class="page-header"></section></body>';
+        const homeHero = '<body class="home-page-body"><section class="hero impact-home-hero"></section></body>';
+        const fallback = '<body class="community-page-body"><section class="page-header"></section></body>';
+        const noBand = '<body class="community-page-body"><main></main></body>';
+        expect(heroPhotoFor(withBand)).toBe('glowe-blossoms.webp');
+        expect(heroPhotoFor(homeHero)).toBe('glowe-bridge.webp');
+        expect(heroPhotoFor(fallback)).toBe('glowe-regrowth.webp');
+        expect(heroPhotoFor(noBand)).toBeNull();
+
+        const tpl = '<meta>\n    {{hero-preload}}\n    <link rel="stylesheet" href="{{root}}css/glowe.css">';
+        expect(renderPartial(tpl, pageContext('pages/about.html', withBand))).toBe(
+            '<meta>\n    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" fetchpriority="high">\n    <link rel="stylesheet" href="../css/glowe.css">',
+        );
+        expect(renderPartial(tpl, pageContext('pages/community.html', noBand))).toBe(
+            '<meta>\n    <link rel="stylesheet" href="../css/glowe.css">',
+        );
     });
 
     it('replaces only marked blocks and leaves the rest of the page intact', () => {
