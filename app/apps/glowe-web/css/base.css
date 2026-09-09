@@ -1,0 +1,146 @@
+/* GloWe base layer — reset, document typography, focus, motion (FR-GLOWE-029). */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    background: var(--surface-page);
+    color: var(--text-body);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+}
+
+/* Per-script typography: Hebrew and Arabic are both RTL but need different stacks. */
+html[dir="rtl"] body,
+body.lang-he,
+body.lang-ar,
+body.lang-am {
+    line-height: var(--leading-relaxed);
+    letter-spacing: normal;
+}
+
+body.lang-he { font-family: var(--font-hebrew); }
+body.lang-ar { font-family: var(--font-arabic); }
+body.lang-am { font-family: var(--font-ethiopic); }
+
+html[dir="rtl"] {
+    text-align: start;
+}
+
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    height: auto;
+}
+
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-strong);
+    line-height: var(--leading-tight);
+    font-weight: var(--weight-bold);
+    text-wrap: balance;
+}
+
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+h4 { font-size: var(--text-md); }
+
+p {
+    text-wrap: pretty;
+}
+
+/* One focus treatment for every interactive element (keyboard only). */
+:focus {
+    outline: none;
+}
+
+:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-xs);
+}
+
+::selection {
+    background: var(--color-primary-200);
+    color: var(--text-strong);
+}
+
+/* Hidden-but-accessible and hidden attribute always win. */
+[hidden] {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-pad);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

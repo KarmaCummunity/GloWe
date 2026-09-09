@@ -1,0 +1,182 @@
+/* GloWe buttons — the single button family (FR-GLOWE-029 AC3).
+   Every clickable control inherits from .btn; variants only change color,
+   sizes only change height/padding. No per-page button styles. */
+
+.btn {
+    --btn-bg: var(--surface-card);
+    --btn-fg: var(--text-brand);
+    --btn-border: transparent;
+    --btn-bg-hover: var(--surface-muted);
+    --btn-fg-hover: var(--btn-fg);
+    --btn-border-hover: var(--btn-border);
+    --btn-shadow: none;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--control-h-md);
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-sm);
+    border: var(--control-border) solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: var(--btn-shadow);
+    font-family: inherit;
+    font-size: var(--text-ui);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background-color var(--duration-base) var(--ease-standard),
+        color var(--duration-base) var(--ease-standard),
+        border-color var(--duration-base) var(--ease-standard),
+        box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.btn:hover {
+    background: var(--btn-bg-hover);
+    color: var(--btn-fg-hover);
+    border-color: var(--btn-border-hover);
+}
+
+.btn:active {
+    filter: brightness(0.96);
+}
+
+.btn:focus-visible {
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-sm);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: none;
+}
+
+.btn[aria-busy="true"] {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn svg {
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
+}
+
+/* ---- Variants ---- */
+.btn-primary {
+    --btn-bg: var(--color-primary-900);
+    --btn-fg: var(--text-inverse);
+    --btn-bg-hover: var(--color-primary-500);
+    --btn-shadow: 0 8px 18px var(--alpha-ink-20);
+}
+
+.btn-secondary {
+    --btn-bg: var(--color-primary-100);
+    --btn-fg: var(--text-brand);
+    --btn-bg-hover: var(--color-primary-200);
+}
+
+.btn-outline {
+    --btn-bg: var(--alpha-white-76);
+    --btn-fg: var(--text-brand);
+    --btn-border: var(--alpha-ink-34);
+    --btn-bg-hover: var(--color-primary-500);
+    --btn-fg-hover: var(--text-inverse);
+    --btn-border-hover: var(--color-primary-500);
+}
+
+.btn-ghost {
+    --btn-bg: transparent;
+    --btn-fg: var(--text-muted);
+    --btn-bg-hover: var(--surface-muted);
+    --btn-fg-hover: var(--text-brand);
+}
+
+.btn-danger {
+    --btn-bg: var(--color-danger-500);
+    --btn-fg: var(--text-inverse);
+    --btn-bg-hover: var(--color-danger-fg);
+}
+
+.btn-danger:focus-visible {
+    box-shadow: var(--focus-ring-danger);
+}
+
+/* FR-GLOWE-013 AC2 — active state for a Save/Saved toggle button. */
+.btn.is-saved,
+.btn[aria-pressed="true"] {
+    --btn-bg: var(--color-primary-500);
+    --btn-fg: var(--text-inverse);
+    --btn-border: var(--color-primary-500);
+    --btn-bg-hover: var(--color-primary-900);
+    --btn-fg-hover: var(--text-inverse);
+    --btn-border-hover: var(--color-primary-900);
+}
+
+/* ---- Sizes ---- */
+.btn-small {
+    min-height: var(--control-h-sm);
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
+}
+
+.btn-large {
+    min-height: var(--control-h-lg);
+    padding: 0 var(--space-8);
+    font-size: var(--text-md);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Square icon-only control; pair with aria-label. */
+.btn-icon {
+    width: var(--control-h-md);
+    min-height: var(--control-h-md);
+    padding: 0;
+    border-radius: var(--radius-full);
+    --btn-bg: var(--surface-card);
+    --btn-fg: var(--text-muted);
+    --btn-border: var(--border-default);
+    --btn-bg-hover: var(--surface-card);
+    --btn-fg-hover: var(--color-primary-500);
+    --btn-border-hover: var(--color-primary-500);
+}
+
+.btn-icon.btn-small {
+    width: var(--control-h-sm);
+    min-height: var(--control-h-sm);
+}
+
+.btn-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Pill shape for chips and compact actions. */
+.btn-pill {
+    border-radius: var(--radius-full);
+}
+
+/* Inline button groups share one gap. */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+@media (max-width: 479px) {
+    .btn-group > .btn {
+        flex: 1 1 140px;
+    }
+}

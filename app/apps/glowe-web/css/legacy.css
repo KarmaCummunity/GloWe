@@ -1,66 +1,8 @@
-/* Script coverage for the reader languages (FR-TRANSLATE-003): Assistant/Heebo
-   for Hebrew, Noto Sans Arabic for Arabic, Noto Sans Ethiopic for Amharic —
-   Ethiopic in particular is absent from most system font stacks, so without it
-   Amharic renders as tofu boxes. Cyrillic is covered by Nunito. */
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap');
-
-/* ===== CSS Variables ===== */
-:root {
-    --primary-color: #147c75;
-    --primary-dark: #073f42;
-    --primary-light: #e7f2ef;
-    --secondary-color: #0d5d73;
-    --accent-color: #b99057;
-    --rose-light: #f5e7e8;
-    --lavender-light: #eee8f1;
-    --sky-light: #e6eef2;
-    --text-primary: #111918;
-    --text-secondary: #566665;
-    --text-light: #7b8a89;
-    --background: #f6f7f4;
-    --white: #ffffff;
-    --border-color: #dce8e3;
-    /* Shared content-card surface (org / opportunity / wish / community / home). */
-    --card-surface: #e3ede9;
-    --card-surface-hover: #dce8e3;
-    --card-border: #b7cbc3;
-    --card-border-hover: #a5bdb4;
-    --card-shadow: 0 4px 16px rgba(7, 63, 66, 0.09);
-    --card-shadow-hover: 0 8px 22px rgba(7, 63, 66, 0.12);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 12px 26px rgba(7, 63, 66, 0.08);
-    --shadow-lg: 0 18px 38px rgba(7, 63, 66, 0.12);
-    --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 22px;
-    --transition: all 0.3s ease;
-    --hero-photo: url('../assets/glowe-bridge.webp');
-    --page-photo: url('../assets/glowe-regrowth.webp');
-}
-
-/* ===== Reset & Base ===== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--background);
-    color: var(--text-primary);
-    line-height: 1.6;
-    overflow-x: hidden;
-}
-
-img,
-video,
-canvas,
-svg {
-    max-width: 100%;
-    height: auto;
-}
-
+/* GloWe LEGACY stylesheet — cascade layer "legacy" (FR-GLOWE-029 / D-190 / TD-192).
+   This is the pre-design-system styles.css. It only shrinks: blocks migrate
+   into tokens.css, base.css, components/*.css, layout/*.css, pages/*.css and are
+   deleted here. New rules are NOT allowed in this file (guarded by
+   app/scripts/check-glowe-css.mjs). */
 .home-page-body,
 .organizations-page-body {
     --page-photo: url('../assets/glowe-bridge.webp');
@@ -78,87 +20,6 @@ svg {
 .community-page-body {
     --page-photo: url('../assets/glowe-regrowth.webp');
 }
-
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-ul {
-    list-style: none;
-}
-
-/* ===== Container ===== */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* ===== Buttons ===== */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-    border: none;
-    font-family: inherit;
-}
-
-.btn-primary {
-    background: var(--primary-dark);
-    color: var(--white);
-    box-shadow: 0 12px 22px rgba(33, 143, 130, 0.2);
-}
-
-.btn-primary:hover {
-    background: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-outline {
-    background-color: rgba(255, 255, 255, 0.76);
-    border: 1.5px solid rgba(7, 63, 66, 0.34);
-    color: var(--primary-dark);
-}
-
-.btn-outline:hover {
-    background-color: var(--primary-color);
-    color: var(--white);
-}
-
-/* FR-GLOWE-013 AC2 — active state for a Save/Saved toggle button. */
-.btn.is-saved {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--white);
-}
-
-.btn-secondary {
-    background-color: var(--secondary-color);
-    color: var(--white);
-}
-
-.btn-large {
-    padding: 16px 32px;
-    font-size: 1.1rem;
-}
-
-.btn-small {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-}
-
-.btn-block {
-    width: 100%;
-}
-
 /* ===== Header ===== */
 .main-header {
     background-color: rgba(255, 255, 255, 0.92);
@@ -1532,36 +1393,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
     text-align: center;
 }
 
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    font-family: inherit;
-    transition: var(--transition);
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
 .modal-footer-text {
     text-align: center;
     margin-top: 20px;
@@ -1595,12 +1426,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
 
 .modal-actions .btn {
     flex: 1 1 210px;
-}
-
-.form-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
 }
 
 .registration-modal-content {
@@ -2493,62 +2318,8 @@ section.opportunity-detail {
     box-shadow: var(--shadow-sm);
 }
 
-/* FR-GLOWE-011 AC1 — profile-card loading skeleton (shown on first Personal
-   Area load while the backend profile fetch is in flight). */
-.skeleton {
-    position: relative;
-    overflow: hidden;
-    background: #e9edf2;
-    border-radius: 8px;
-}
-
-.skeleton::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
-    animation: glowe-skeleton-shimmer 1.3s infinite;
-}
-
-@keyframes glowe-skeleton-shimmer {
-    100% { transform: translateX(100%); }
-}
-
-.skeleton-avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    margin: 0 auto 16px;
-}
-
-.skeleton-avatar.social-avatar {
-    width: 120px;
-    height: 120px;
-}
-
-.skeleton-line {
-    height: 14px;
-    width: 80%;
-    margin: 10px auto;
-}
-
-.skeleton-line-lg { width: 60%; height: 20px; }
-.skeleton-line-sm { width: 40%; height: 12px; }
-
-.skeleton-pill {
-    height: 22px;
-    width: 50%;
-    margin: 12px auto;
-    border-radius: 999px;
-}
-
 .social-profile-hero.is-loading .social-profile-body {
     padding: 24px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .skeleton::after { animation: none; }
 }
 
 .profile-status-pill {
@@ -3254,74 +3025,6 @@ html[dir="rtl"] .org-review-banner__note {
     }
 }
 
-/* ===== Alert Box ===== */
-.alert {
-    padding: 16px 20px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.alert-info {
-    background-color: #dbeafe;
-    color: #1e40af;
-    border: 1px solid #93c5fd;
-}
-
-.alert-success {
-    background-color: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
-}
-
-.alert-warning {
-    background-color: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fcd34d;
-}
-
-/* ===== Empty State ===== */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
-}
-
-.empty-state-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 120px;
-    min-height: 38px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    border: 1px solid var(--border-color);
-    font-size: 0.85rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-}
-
-.empty-state h3 {
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-/* ===== Notification Badge ===== */
-.notification-badge {
-    background-color: #ef4444;
-    color: white;
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: 4px;
-}
-
 /* ===== Wishing Well, Community, Profiles ===== */
 .well-layout,
 .community-layout,
@@ -3875,52 +3578,6 @@ html[dir="rtl"] .org-review-banner__note {
     font-size: 0.72rem;
     font-weight: 800;
     text-align: center;
-}
-
-/* Quiet transient confirmation (share clipboard fallback). */
-.glowe-toast {
-    position: fixed;
-    left: 50%;
-    bottom: 28px;
-    transform: translate(-50%, 16px);
-    z-index: 1000;
-    max-width: min(90vw, 360px);
-    padding: 12px 18px;
-    border-radius: 999px;
-    background: var(--primary-dark, #0f5d55);
-    color: var(--white, #fff);
-    font-weight: 700;
-    font-size: 0.9rem;
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.glowe-toast.visible {
-    opacity: 1;
-    transform: translate(-50%, 0);
-}
-
-.glowe-toast strong {
-    display: block;
-    font-size: 0.95rem;
-}
-
-.glowe-toast span {
-    display: block;
-    margin-top: 2px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    opacity: 0.92;
-}
-
-.glowe-toast.is-error {
-    background: #8a1c2b;
-}
-
-.glowe-toast.is-success {
-    background: var(--primary-dark, #0f5d55);
 }
 
 .wish-author,
@@ -8255,31 +7912,6 @@ html[dir="rtl"] .org-review-banner__note {
    alignment, list markers) automatically; the rules below cover spots with
    explicit physical alignment. Typography is per-script rather than per-
    direction: Hebrew and Arabic are both RTL but need different font stacks. */
-html[dir="rtl"] body,
-body.lang-he,
-body.lang-ar,
-body.lang-am {
-    line-height: 1.7;
-    letter-spacing: normal;
-}
-
-body.lang-he {
-    font-family: 'Assistant', 'Heebo', 'Rubik', 'Noto Sans Hebrew', 'Inter', system-ui, sans-serif;
-}
-
-body.lang-ar {
-    font-family: 'Noto Sans Arabic', 'Noto Naskh Arabic', 'Segoe UI', 'Tahoma', system-ui, sans-serif;
-}
-
-/* Amharic (Ge'ez script) — system stacks rarely ship Ethiopic glyphs. */
-body.lang-am {
-    font-family: 'Noto Sans Ethiopic', 'Abyssinica SIL', 'Nyala', system-ui, sans-serif;
-}
-
-html[dir="rtl"] {
-    text-align: right;
-}
-
 /* Mirror the in-scope blocks that hard-code text-align:left. */
 html[dir="rtl"] .page-header h1,
 html[dir="rtl"] .page-header p,
@@ -9134,24 +8766,6 @@ body.glowe-member-home main > section:not(#member-home) {
     font-weight: 800;
     line-height: 1;
     pointer-events: none;
-}
-
-.form-group.glowe-field-invalid label {
-    color: #dc2626;
-}
-
-.form-group.glowe-field-invalid input,
-.form-group.glowe-field-invalid textarea,
-.form-group.glowe-field-invalid select {
-    border-color: #dc2626;
-    box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.25);
-}
-
-.form-group.glowe-field-invalid input:focus,
-.form-group.glowe-field-invalid textarea:focus,
-.form-group.glowe-field-invalid select:focus {
-    outline-color: #dc2626;
-    border-color: #dc2626;
 }
 
 .chat-thread {

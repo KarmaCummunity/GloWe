@@ -1479,12 +1479,32 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `supabase/migrations/0237_glowe_unified_registration.sql`, `supabase/tests/0237_glowe_unified_registration.sql`, `app/apps/glowe-web/js/{app.js,backend.js,glowe-opportunities.js,glowe-organizations.js}`, `pages/opportunity.html`; FR-GLOWE-012 AC5–AC8, FR-GLOWE-007-C.
 
+## D-190 — GloWe design system: token layer + cascade layers + shell partials, no framework (2026-09-09)
+
+**Decision.** GloWe web moves from one 9.3k-line `styles.css` to a layered design system while staying a zero-build static site:
+
+1. **Tokens.** `css/tokens.css` is the only stylesheet that may declare raw colors; palette scales, semantic surfaces/text/borders, 4px spacing, type scale, radii, shadows, control heights, z-index and motion all live there. Legacy variable names are aliases until `legacy.css` is deleted.
+2. **Cascade layers.** `css/glowe.css` is the single entry: `@layer tokens, base, legacy, components, layout, pages, utilities`. `legacy` (the old `styles.css`) sits *below* the new component/layout layers, so a migrated component wins regardless of specificity and migration is "move block, delete old rule". `legacy.css` has a line budget that may only shrink (`app/scripts/check-glowe-css.mjs`, TD-192).
+3. **One CSS request in production.** `glowe-minify-hash.mjs` bundles the entry with `esbuild.build({ bundle: true })` (asset URLs stay external); development serves the `@import`s as-is.
+4. **Shell partials.** Header, footer, shared `<head>` assets and the base script list are authored once in `partials/*.html` and stamped into every page by `app/scripts/glowe-sync-shell.mjs`; `--check` runs in `pnpm lint`. Static markup equals the `app.js` render (links, active tab, single auth CTA) so there is no second paint.
+5. **Breakpoints.** Only `480/640/768/1024/1280` (`min-width`) and the matching `…9px` `max-width` forms are allowed outside `legacy.css`. Top nav ≥ 768px, bottom tab bar < 768px.
+6. **Fonts.** One non-blocking Google Fonts `<link>` (Nunito + Assistant + Heebo + Noto Sans Arabic + Noto Sans Ethiopic, `display=swap`) replaces the render-blocking `@import`; the never-loaded `Inter` is dropped from the body stack so all machines render the same face.
+7. **Visual gate on the PR.** `glowe-visual` serves the PR checkout locally on `pull_request`; the deployed URL is snapshotted only on `push`.
+8. **JS.** Shared UI primitives/dialog/shell builders move into `js/ui/*` UMD modules with vitest coverage (Phases 2–3). No bundler, no framework, no CSS preprocessor.
+
+**Rationale.** PM asked for Facebook-grade consistency with the existing palette, on every screen size, with code quality and speed as first-class goals. Cascade layers give a safe, incremental migration path for a 9.3k-line monolith without a big-bang rewrite; tokens + lint guards make the "everything inherits from one theme" rule mechanical rather than aspirational; partials fix the header/footer drift at its root; bundling keeps production at one CSS request. Staying bundler-free preserves `D-61`/`D-188` and the trivial `serve` dev loop.
+
+**Alternatives rejected.** Tailwind/utility framework (new build step, contradicts the vendored static model, retrains every contributor); Sass/PostCSS (build step for what native custom properties + layers already do); rewriting all CSS in one PR (unreviewable, no visual gate); keeping per-page `<link>`s to many CSS files (extra requests, no cascade guarantees); a JS-injected shell only (keeps the guest→member flash and empty static markup).
+
+**Affected.** `app/apps/glowe-web/css/**`, `partials/**`, all 22 pages, `app/scripts/{glowe-sync-shell,check-glowe-css,glowe-minify-hash,web-postbuild}.mjs`, `.github/workflows/ci-e2e-glowe.yml`, `tests/e2e/journeys/glowe-visual.spec.ts(-snapshots)`; `spec/17_glowe_frontend.md` FR-GLOWE-029; plan `docs/superpowers/plans/2026-09-09-glowe-design-system-reset.md`; TD-191, TD-192.
+
 ---
 
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.21 | 2026-09-09 | Added `D-190` (GloWe design system: token layer + cascade layers + shell partials + PR-time visual gate; FR-GLOWE-029). |
 | 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.19 | 2026-07-27 | Added `D-188` (GloWe postbuild minify + content-hash + `_headers`; vendored pinned supabase-js; FR-GLOWE-001 AC7 / GLOWE.LAUNCH-2). |
 | 4.18 | 2026-07-27 | Added `D-187` (GloWe transactional email outbox + `glowe-notify`/Resend; FR-GLOWE-003 AC9 / FR-GLOWE-012 AC9). |

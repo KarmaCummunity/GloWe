@@ -39,7 +39,8 @@ test.describe('GloWe visual regression — static chrome', () => {
 
   test('wishing well — filter accordion chrome', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    const filters = page.locator('.well-filters, .wish-filter-panel').first();
+    // Unified list filters (v1.4.1) render into #wish-filters-root.
+    const filters = page.locator('#wish-filters-root, .well-filters, .wish-filter-panel').first();
     await expect(filters).toBeVisible({ timeout: 20_000 });
     await expect(filters).toHaveScreenshot('wishing-well-filters.png', SNAPSHOT_OPTS);
   });

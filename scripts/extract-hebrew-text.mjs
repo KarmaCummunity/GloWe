@@ -54,6 +54,16 @@ const SKIP_HEBREW_SCAN_EXACT_RELS = new Set([
   // `app/apps/mobile/src/i18n/**` and `web-server/i18n/**` exclusions). The rest
   // of the GloWe tree (HTML/CSS/other JS) stays under scan.
   "app/apps/glowe-web/js/app.js",
+  // GloWe locale bundles moved out of app.js into per-language JSON (v1.4.0);
+  // he.json IS the Hebrew dictionary.
+  "app/apps/glowe-web/i18n/he.json",
+  // Bilingual (EN + HE) accessibility statement — Hebrew body is required by
+  // IS 5568 (FR-GLOWE-028 AC3), not an inline copy leak.
+  "app/apps/glowe-web/pages/accessibility.html",
+  // WISH_FIELD_LABELS is a multi-locale *parsing* table: labels are stored in
+  // wish bodies at publish time and every locale's prefix must be recognised
+  // when re-localising for the reader (FR-GLOWE-008). Not UI copy.
+  "app/apps/glowe-web/js/glowe-wishes.js",
   // Dev-only seed dataset: realistic Hebrew content (org names, posts, chats)
   // persisted to the dev DB — data fixtures, not UI copy (same rationale as
   // the supabase/seed.sql exclusion).

@@ -1,0 +1,127 @@
+/* GloWe form controls — one base for inputs, selects, textareas (FR-GLOWE-029 AC3). */
+
+.form-group {
+    margin-bottom: var(--space-5);
+}
+
+.form-group label,
+.form-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--text-strong);
+}
+
+.form-group input:not([type="checkbox"]):not([type="radio"]),
+.form-group select,
+.form-group textarea,
+.form-control {
+    display: block;
+    width: 100%;
+    min-height: var(--control-h-md);
+    padding: var(--space-3) var(--space-4);
+    border: var(--control-border) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-card);
+    color: var(--text-body);
+    font-family: inherit;
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+    transition:
+        border-color var(--duration-base) var(--ease-standard),
+        box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.form-group textarea,
+textarea.form-control {
+    min-height: calc(var(--control-h-md) * 2.5);
+    resize: vertical;
+}
+
+.form-group select,
+select.form-control {
+    appearance: none;
+    padding-inline-end: var(--space-10);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23566665' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+    background-size: 18px;
+}
+
+html[dir="rtl"] .form-group select,
+html[dir="rtl"] select.form-control {
+    background-position: left var(--space-3) center;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-control::placeholder {
+    color: var(--text-subtle);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.form-control:focus,
+.form-control:focus-visible {
+    outline: none;
+    border-color: var(--border-brand);
+    box-shadow: var(--focus-ring);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled,
+.form-control:disabled {
+    background: var(--surface-muted);
+    color: var(--text-subtle);
+    cursor: not-allowed;
+}
+
+.form-hint {
+    margin-top: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+@media (max-width: 639px) {
+    .form-grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Validation state (client-side, FR-GLOWE-016). */
+.form-group.glowe-field-invalid label,
+.form-group.is-invalid label {
+    color: var(--color-danger-500);
+}
+
+.form-group.glowe-field-invalid input,
+.form-group.glowe-field-invalid textarea,
+.form-group.glowe-field-invalid select,
+.form-group.is-invalid .form-control,
+.form-control.is-invalid {
+    border-color: var(--color-danger-500);
+}
+
+.form-group.glowe-field-invalid input:focus,
+.form-group.glowe-field-invalid textarea:focus,
+.form-group.glowe-field-invalid select:focus,
+.form-group.is-invalid .form-control:focus,
+.form-control.is-invalid:focus {
+    box-shadow: var(--focus-ring-danger);
+}
+
+.form-error {
+    margin-top: var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-danger-500);
+}

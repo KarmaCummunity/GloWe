@@ -44,7 +44,7 @@ test.describe('GloWe production health (read-only)', () => {
 
   test('volunteer_network — opportunities or empty state', async ({ page }) => {
     await page.goto(gloweUrl('volunteer-network.html'));
-    await expect(page.locator('#opportunities-list .opportunity-card, #opportunities-list .empty-state').first())
+    await expect(page.locator('#opportunities-list .post-card, #opportunities-list .opportunity-card, #opportunities-list .empty-state').first())
       .toBeVisible({ timeout: 25_000 });
   });
 

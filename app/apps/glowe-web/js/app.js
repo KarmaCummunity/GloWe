@@ -7008,7 +7008,7 @@ async function initOpportunitiesPage() {
 
     // Fetch real data then render
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading opportunities…</p></div>';
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading opportunities…')) + '</p></div>';
         await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     }
@@ -7326,7 +7326,7 @@ async function initWishingWellPage() {
 
     if (filterCtrl) filterCtrl.refreshI18n();
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading wishes…</p></div>';
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading wishes…')) + '</p></div>';
         await Promise.all([loadLiveWishes(), loadPostComments()]);
         renderWishes();
         const deepWish = new URLSearchParams(window.location.search).get('wish');
@@ -7543,7 +7543,7 @@ async function initCommunityPage() {
 
     // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {
-        container.innerHTML = '<div class="empty-state"><p class="muted-note">Loading posts…</p></div>';
+        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading posts…')) + '</p></div>';
         await Promise.all([
             loadCommunityPosts(),
             loadPostComments(),
@@ -8776,6 +8776,10 @@ async function initOpportunityDetailPage() {
                 function () { openModal('apply-modal'); }
             );
         });
+        // opportunity.html ships the button disabled/aria-busy so a mid-hydrate
+        // click cannot silently no-op; release it once the listener exists.
+        applyBtn.disabled = false;
+        applyBtn.removeAttribute('aria-busy');
     } else if (applyBtn && ownerViewing) {
         applyBtn.hidden = true;
     }
@@ -9804,7 +9808,7 @@ function applyGloweDirection() {
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
     // Per-language body class drives script-specific typography (Hebrew, Arabic,
-    // Ethiopic) — see the typography block in css/styles.css.
+    // Ethiopic) — see body.lang-* in css/base.css (stacks in css/tokens.css).
     if (document.body) {
         GLOWE_LANGUAGES.forEach(l => document.body.classList.toggle('lang-' + l.code, l.code === lang));
     }

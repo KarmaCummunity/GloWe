@@ -40,8 +40,8 @@ test.describe('GloWe member (individual)', () => {
 
   test('saved toggle saves and unsaves a wish card in place', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
-    const card = page.locator('#wishes-list .opportunity-card').first();
+    await waitForGloweBoard(page, '#wishes-list .post-card');
+    const card = page.locator('#wishes-list .post-card').filter({ has: page.locator('.post-more-panel button[aria-pressed]') }).first();
     test.skip((await card.count()) === 0, 'no wish cards on the board yet — re-run seed-glowe-dev.mjs');
 
     async function openSaveToggle() {

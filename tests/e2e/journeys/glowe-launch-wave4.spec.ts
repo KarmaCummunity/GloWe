@@ -119,6 +119,10 @@ test.describe('GloWe launch Wave 4 — event RSVP / opportunity apply UI', () =>
     const applyBtn = page.locator('#apply-btn');
     await expect(applyBtn.or(page.locator('.opportunity-main')).first()).toBeVisible({ timeout: 25_000 });
     test.skip(!(await applyBtn.count()), 'seeded code-mentor opportunity not loaded (run seed-glowe-dev)');
+    // The static button ships disabled/aria-busy until the row loads; a row that
+    // never loads (seed missing on this backend) is a skip, not a failure.
+    const loaded = await expect(applyBtn).toBeEnabled({ timeout: 25_000 }).then(() => true, () => false);
+    test.skip(!loaded, 'seeded code-mentor opportunity not present on this backend');
     await applyBtn.click();
     await expect(
       page.locator('#glowe-join-modal').or(page.locator('#login-modal')).or(page.locator('#apply-modal')).first(),

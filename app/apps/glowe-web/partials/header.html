@@ -1,0 +1,21 @@
+    <header class="main-header">
+        <div class="container">
+            <a href="{{home}}" class="logo" aria-label="GloWe home">
+                <span class="logo-icon"></span>
+                <div class="logo-brand"><span class="logo-text">GloWe</span></div>
+            </a>
+            <nav class="main-nav" aria-label="Primary">
+                <a href="{{home}}" class="nav-link{{active:index}}">Home</a>
+                <a href="{{pages}}wishing-well.html" class="nav-link{{active:wishing-well}}">Wishing Well</a>
+                <a href="{{pages}}organizations.html" class="nav-link{{active:organizations}}">Organizations</a>
+                <a href="{{pages}}community.html" class="nav-link{{active:community}}">Community</a>
+                <a href="{{pages}}about.html" class="nav-link{{active:about}}">About</a>
+            </nav>
+            <div class="header-end">
+                <div class="auth-buttons">
+                    <button class="btn btn-primary btn-small" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
+                </div>
+                <div class="user-menu" style="display: none;"></div>
+            </div>
+        </div>
+    </header>

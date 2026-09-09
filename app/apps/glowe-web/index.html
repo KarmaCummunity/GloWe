@@ -14,44 +14,45 @@
     <meta property="og:description" content="A home for people building impact together. Ask for support, offer what you know, and meet collaborators across languages and sectors.">
     <meta property="og:url" content="https://dev.karma-community.pages.dev/glowe/">
     <meta property="og:image" content="https://dev.karma-community.pages.dev/glowe/assets/glowe-logo.png">
+    <!-- glowe:head:start -->
     <link rel="icon" type="image/png" href="assets/glowe-favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
-    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-title" content="GloWe">
+    <meta name="theme-color" content="#147c75">
     <!-- Early paint: auth FOUC + i18n FOUC (FR-GLOWE-016 / FR-GLOWE-005). -->
     <script src="js/glowe-auth-paint.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/glowe.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+    <!-- One non-blocking font request; unicode-range subsets mean only the scripts actually rendered are downloaded. -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Assistant:wght@400;600;700&family=Heebo:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+    <!-- glowe:head:end -->
 </head>
 <body class="home-page-body">
+    <!-- glowe:header:start -->
     <header class="main-header">
         <div class="container">
-            <div class="logo">
+            <a href="index.html" class="logo" aria-label="GloWe home">
                 <span class="logo-icon"></span>
-                <span class="logo-text">GloWe</span>
-            </div>
-            <nav class="main-nav">
-                <a href="index.html" class="nav-link active">Home</a>
+                <div class="logo-brand"><span class="logo-text">GloWe</span></div>
+            </a>
+            <nav class="main-nav" aria-label="Primary">
+                <a href="index.html" class="nav-link active" aria-current="page">Home</a>
+                <a href="pages/wishing-well.html" class="nav-link">Wishing Well</a>
                 <a href="pages/organizations.html" class="nav-link">Organizations</a>
                 <a href="pages/community.html" class="nav-link">Community</a>
-                <a href="pages/forums.html" class="nav-link">Forums</a>
-                <a href="pages/wishing-well.html" class="nav-link">Wishing Well</a>
                 <a href="pages/about.html" class="nav-link">About</a>
             </nav>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="handleGoogleSignIn()">Log In</button>
-                <button class="btn btn-primary" onclick="handleGoogleSignIn()">Join GloWe</button>
-            </div>
-            <div class="user-menu" style="display: none;">
-                <span class="user-greeting">Welcome, <span id="user-name"></span>!</span>
-                <a href="pages/my-applications.html" class="nav-link">Personal Area</a>
-                <button class="btn btn-outline" onclick="logout()">Log Out</button>
+            <div class="header-end">
+                <div class="auth-buttons">
+                    <button class="btn btn-primary btn-small" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
+                </div>
+                <div class="user-menu" style="display: none;"></div>
             </div>
         </div>
     </header>
+    <!-- glowe:header:end -->
 
     <main>
         <!-- Personalized member home (FR-GLOWE-016) — populated and revealed by initMemberHome() when signed in. Guests never see it. -->
@@ -408,36 +409,45 @@
         </section>
     </main>
 
+    <!-- glowe:footer:start -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
                     <h4>GloWe</h4>
-                    <p>Global Learning, Open Knowledge & Wisdom Exchange.</p>
+                    <p>Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <a href="pages/volunteer-network.html">Volunteer Network</a>
+                    <h4>Explore</h4>
+                    <a href="index.html">Home</a>
+                    <a href="pages/wishing-well.html">Wishing Well</a>
                     <a href="pages/organizations.html">Organizations</a>
-                    <a href="pages/wishing-well.html">The Wishing Well</a>
-                    <a href="pages/about.html">About Us</a>
+                    <a href="pages/community.html">Community</a>
+                    <a href="pages/forums.html">Forums</a>
+                    <a href="pages/about.html">About</a>
                 </div>
                 <div class="footer-section">
-                    <h4>For Organizations</h4>
-                    <a href="#" onclick="handleGoogleSignIn(); return false;">Register Your Organization</a>
-                    <a href="#" onclick="handleGoogleSignIn(); return false;">Post an Opportunity</a>
+                    <h4>Participate</h4>
+                    <a href="pages/my-applications.html">Personal Area</a>
+                    <a href="pages/community.html#community-composer">Write a post</a>
+                    <a href="pages/volunteer-network.html">Volunteer Network</a>
+                    <a href="pages/whats-next.html">What's next</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Connect</h4>
-                    <p>globrevolutionaries@gmail.com</p>
-                    <p>Ramat Gan, Israel</p>
+                    <h4>Built With Care</h4>
+                    <p>An MVP by the GloWe community, with product and implementation support by Topaz.</p>
+                    <a href="pages/terms.html">Terms &amp; Community Charter</a>
+                    <a href="pages/privacy.html">Privacy Policy</a>
+                    <a href="pages/accessibility.html">Accessibility</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>2026 GloWe. Built for shared knowledge, mutual support, and action that lasts.</p>
+                <p>GloWe. Built for shared knowledge, mutual support, and action that lasts.</p>
+                <p class="footer-build" translate="no"></p>
             </div>
         </div>
     </footer>
+    <!-- glowe:footer:end -->
 
     <!-- Login Modal (Google-only auth — email/password intentionally hidden) -->
     <div id="login-modal" class="modal">
@@ -481,20 +491,14 @@
         </div>
     </div>
 
+    <!-- glowe:scripts-core:start -->
     <script src="js/backend-config.js" defer></script>
     <script src="js/glowe-dev-auth.js" defer></script>
     <script src="js/backend.js" defer></script>
     <script src="js/data.js" defer></script>
     <script src="js/auth.js" defer></script>
     <script src="js/glowe-events.js" defer></script>
-    <script src="js/glowe-posts.js" defer></script>
-    <script src="js/glowe-forums.js" defer></script>
-    <script src="js/glowe-home-feed-diversify.js" defer></script>
-    <script src="js/glowe-home-feed.js" defer></script>
     <script src="js/glowe-wishes.js" defer></script>
-    <!-- Home-feed wish cards open the wish detail, whose "Offers" inbox maps its
-         RPC rows through GloweOrganizations. -->
-    <script src="js/glowe-organizations.js" defer></script>
     <script src="js/glowe-moderation.js" defer></script>
     <script src="js/glowe-create.js" defer></script>
     <script src="js/glowe-messages.js" defer></script>
@@ -502,10 +506,20 @@
     <script src="js/glowe-localized-name.js" defer></script>
     <script src="js/glowe-ui-conventions.js" defer></script>
     <script src="js/glowe-version.js" defer></script>
+    <script src="js/glowe-observability.js" defer></script>
+    <!-- glowe:scripts-core:end -->
+    <script src="js/glowe-posts.js" defer></script>
+    <script src="js/glowe-forums.js" defer></script>
+    <script src="js/glowe-home-feed-diversify.js" defer></script>
+    <script src="js/glowe-home-feed.js" defer></script>
+    <!-- Home-feed wish cards open the wish detail, whose "Offers" inbox maps its
+         RPC rows through GloweOrganizations. -->
+    <script src="js/glowe-organizations.js" defer></script>
     <script src="js/glowe-consent.js" defer></script>
-        <script src="js/glowe-observability.js" defer></script>
+    <!-- glowe:scripts-app:start -->
     <script src="js/app.js" defer></script>
     <script src="js/glowe-session-cache.js" defer></script>
     <script src="js/glowe-translate.js" defer></script>
+    <!-- glowe:scripts-app:end -->
 </body>
 </html>
