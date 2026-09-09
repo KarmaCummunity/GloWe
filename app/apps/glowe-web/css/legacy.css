@@ -2593,18 +2593,6 @@ html[dir="rtl"] .org-review-banner__note {
     gap: 22px;
 }
 
-.wish-filter-panel {
-    display: grid;
-    gap: 16px;
-    padding: 22px 24px;
-    background:
-        linear-gradient(135deg, rgba(232, 247, 243, 0.88), rgba(255, 255, 255, 0.96)),
-        var(--white);
-    border: 1px solid rgba(20, 124, 117, 0.18);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 18px 44px rgba(24, 36, 61, 0.06);
-}
-
 .wish-filter-intro h2 {
     margin: 6px 0 8px;
     font-size: clamp(1.35rem, 2.6vw, 1.9rem);
@@ -2626,27 +2614,6 @@ html[dir="rtl"] .org-review-banner__note {
     margin: 0;
 }
 
-.wish-filter-advanced {
-    display: grid;
-    gap: 8px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(20, 124, 117, 0.12);
-}
-
-.wish-filter-advanced .filter-pill {
-    width: auto;
-    flex: 1 1 180px;
-    margin-bottom: 0;
-    justify-content: center;
-    text-align: center;
-}
-
-.wish-filter-advanced .filter-pill-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
 .wishes-list-toolbar {
     margin-top: 4px;
 }
@@ -2659,15 +2626,6 @@ html[dir="rtl"] .org-review-banner__note {
     border-radius: var(--radius-md);
     padding: 20px;
     box-shadow: var(--shadow-md);
-}
-
-.well-filters {
-    /* No sticky page hijack — filters scroll with the page; long groups stay
-       collapsed behind <details class="filter-accordion"> (design fix #5). */
-    position: relative;
-    top: auto;
-    max-height: none;
-    overflow: visible;
 }
 
 /* Collapsible filter groups — hide the long option lists behind a summary so
@@ -2711,14 +2669,6 @@ html[dir="rtl"] .org-review-banner__note {
     transform: rotate(-135deg);
 }
 
-.filter-pill-group {
-    padding-top: 4px;
-}
-
-.filter-static {
-    margin: 4px 0;
-}
-
 .well-filters h3,
 .community-sidebar h3 {
     margin: 22px 0 10px;
@@ -2747,32 +2697,6 @@ html[dir="rtl"] .org-review-banner__note {
 .well-filters h3:first-child,
 .community-sidebar h3:first-child {
     margin-top: 0;
-}
-
-.filter-pill {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 12px;
-    margin-bottom: 9px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: #fbfefd;
-    color: var(--text-secondary);
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    text-align: start;
-}
-
-.filter-pill.active,
-.filter-pill:hover {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
-    color: var(--primary-dark);
-    box-shadow: inset 0 0 0 1px rgba(47, 191, 122, 0.14);
 }
 
 .filter-input {
@@ -3668,14 +3592,6 @@ html[dir="rtl"] .org-review-banner__note {
     gap: 8px;
 }
 
-.group-link-pill {
-    display: flex !important;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    text-decoration: none;
-}
-
 .forum-group-card,
 .thread-row,
 .saved-item-card {
@@ -3833,27 +3749,6 @@ html[dir="rtl"] .org-review-banner__note {
     min-height: 46px;
     align-self: end;
     white-space: nowrap;
-}
-
-.organization-filter-advanced {
-    display: grid;
-    gap: 8px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(20, 124, 117, 0.12);
-}
-
-.organization-filter-advanced .filter-pill {
-    width: auto;
-    flex: 1 1 160px;
-    margin-bottom: 0;
-    justify-content: center;
-    text-align: center;
-}
-
-.organization-filter-advanced .filter-pill-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
 }
 
 .organization-filter-grid {
@@ -4691,14 +4586,6 @@ html[dir="rtl"] .org-review-banner__note {
         text-align: center;
     }
 
-    .well-filters {
-        position: static;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        order: 2;
-    }
-
     .wish-filter-primary {
         grid-template-columns: 1fr 1fr;
     }
@@ -4707,20 +4594,8 @@ html[dir="rtl"] .org-review-banner__note {
         grid-column: 1 / -1;
     }
 
-    .wish-filter-toggle {
-        grid-column: 1;
-    }
-
     #clear-wish-filters {
         grid-column: 2;
-    }
-
-    .wish-filter-advanced {
-        display: none;
-    }
-
-    .wish-filter-advanced.is-open {
-        display: grid;
     }
 
     .wish-card-top .heart-button {
@@ -4748,14 +4623,6 @@ html[dir="rtl"] .org-review-banner__note {
     .well-filters .filter-input,
     #clear-wish-filters {
         width: 100%;
-    }
-
-    .well-filters .filter-pill {
-        width: auto;
-        margin-bottom: 0;
-        flex: 1 1 190px;
-        justify-content: center;
-        text-align: center;
     }
 
     .profile-actions {
@@ -5493,61 +5360,6 @@ html[dir="rtl"] .org-review-banner__note {
     overflow: hidden;
 }
 
-.admin-tab-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 16px 18px 0;
-    border-bottom: 1px solid rgba(15, 93, 85, 0.12);
-    background: rgba(255, 255, 255, 0.72);
-}
-
-.admin-tab {
-    appearance: none;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font: inherit;
-    font-weight: 800;
-    padding: 10px 16px;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.admin-tab:hover {
-    background: rgba(15, 93, 85, 0.06);
-    color: var(--primary-dark);
-}
-
-.admin-tab.active {
-    background: #fff;
-    border-color: rgba(15, 93, 85, 0.16);
-    color: var(--primary-dark);
-    box-shadow: var(--shadow-soft);
-}
-
-.admin-tab-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-}
-
-.admin-tab-panel {
-    padding: 22px;
-}
-
-.admin-tab-panel[hidden] {
-    display: none !important;
-}
-
 .admin-panel-inset {
     padding: 0;
     border: none;
@@ -5995,33 +5807,6 @@ html[dir="rtl"] .org-review-banner__note {
     font: inherit;
 }
 
-.community-feed-tabs {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-}
-
-.community-feed-tabs button {
-    flex: 0 0 auto;
-    min-height: 38px;
-    padding: 8px 13px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
-    background: var(--white);
-    color: var(--text-secondary);
-    font: inherit;
-    font-weight: 850;
-    cursor: pointer;
-}
-
-.community-feed-tabs button.active,
-.community-feed-tabs button:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    color: var(--white);
-}
-
 .community-mini-card {
     padding: 16px;
 }
@@ -6364,15 +6149,6 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 /* Wishes board — desktop keeps advanced filters open; mobile uses a toggle. */
-@media (min-width: 901px) {
-    .wish-filter-toggle {
-        display: none;
-    }
-
-    .wish-filter-advanced {
-        display: grid !important;
-    }
-}
 
 /* ===== Cross-device responsive refinements ===== */
 @media (max-width: 1180px) {
@@ -6417,10 +6193,6 @@ html[dir="rtl"] .org-review-banner__note {
     .organization-filter-toggle,
     .organization-filter-clear {
         grid-column: auto;
-    }
-
-    .organization-filter-advanced {
-        display: grid;
     }
 
     .ecosystem-map {
@@ -7850,23 +7622,6 @@ body.glowe-member-home main > section:not(#member-home) {
 .profile-stat-link:hover strong,
 .profile-stat-link:focus strong {
     text-decoration: underline;
-}
-.connections-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-.connections-tabs a {
-    padding: 0.4rem 0.9rem;
-    border-radius: 999px;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid transparent;
-}
-.connections-tabs a.active {
-    border-color: var(--border, #ddd);
-    background: var(--surface-muted, #f3f0ec);
-    font-weight: 600;
 }
 .connections-list {
     display: flex;

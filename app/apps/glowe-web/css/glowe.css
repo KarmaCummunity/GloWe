@@ -17,6 +17,8 @@
 @import url('components/buttons.css') layer(components);
 @import url('components/forms.css') layer(components);
 @import url('components/feedback.css') layer(components);
+@import url('components/chips.css') layer(components);
+@import url('components/nav-tabs.css') layer(components);
 @import url('components/list-filters.css') layer(components);
 @import url('components/modal.css') layer(components);
 @import url('layout-header.css') layer(layout);
