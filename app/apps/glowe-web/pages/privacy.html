@@ -18,7 +18,8 @@
     <meta name="theme-color" content="#147c75">
     <!-- Early paint: auth FOUC + i18n FOUC (FR-GLOWE-016 / FR-GLOWE-005). -->
     <script src="../js/glowe-auth-paint.js"></script>
-    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" fetchpriority="high">
+    <link rel="preload" as="image" href="../assets/glowe-blossoms-m.webp" media="(max-width: 767px)" fetchpriority="high">
+    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" media="(min-width: 768px)" fetchpriority="high">
     <link rel="stylesheet" href="../css/glowe.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -41,16 +41,18 @@ export function activeNavFor(pageSlug) {
  * Photo behind the page's hero band, keyed by the body class that selects it
  * in css/layout-page-header.css (default lives in tokens.css). Mirrored here so
  * the LCP image can be preloaded from <head> instead of being discovered only
- * after the stylesheet parses.
+ * after the stylesheet parses. Phones (< 768px) take the `<name>-m.webp` cut.
  */
 const HERO_PHOTO_BY_BODY_CLASS = {
-  'home-page-body': 'glowe-bridge.webp',
-  'organizations-page-body': 'glowe-bridge.webp',
-  'opportunities-page-body': 'glowe-field.webp',
-  'wishing-page-body': 'glowe-field.webp',
-  'about-page-body': 'glowe-blossoms.webp',
+  'home-page-body': 'glowe-bridge',
+  'organizations-page-body': 'glowe-bridge',
+  'opportunities-page-body': 'glowe-field',
+  'wishing-page-body': 'glowe-field',
+  'about-page-body': 'glowe-blossoms',
 };
-const HERO_PHOTO_DEFAULT = 'glowe-regrowth.webp';
+const HERO_PHOTO_DEFAULT = 'glowe-regrowth';
+const HERO_PHONE_MEDIA = '(max-width: 767px)';
+const HERO_DESKTOP_MEDIA = '(min-width: 768px)';
 
 /** Hero photo for a page, or null when its static markup has no photo band above the fold. */
 export function heroPhotoFor(html) {
@@ -76,8 +78,11 @@ export function pageContext(relPath, html = '') {
 /** Fill {{root}} / {{pages}} / {{home}} / {{active:<slug>}} / {{hero-preload}} placeholders. */
 export function renderPartial(template, ctx) {
   const active = activeNavFor(ctx.slug);
+  const preloadLink = (file, media) =>
+    `\n$1<link rel="preload" as="image" href="${ctx.root}assets/${file}" media="${media}" fetchpriority="high">`;
   const heroPreload = ctx.heroPhoto
-    ? `\n$1<link rel="preload" as="image" href="${ctx.root}assets/${ctx.heroPhoto}" fetchpriority="high">`
+    ? preloadLink(`${ctx.heroPhoto}-m.webp`, HERO_PHONE_MEDIA)
+      + preloadLink(`${ctx.heroPhoto}.webp`, HERO_DESKTOP_MEDIA)
     : '';
   return template
     .replace(/\n([ \t]*)\{\{hero-preload\}\}/g, heroPreload)

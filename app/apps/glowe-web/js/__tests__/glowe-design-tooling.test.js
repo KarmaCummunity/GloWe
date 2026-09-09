@@ -112,15 +112,18 @@ describe('glowe-sync-shell', () => {
         const homeHero = '<body class="home-page-body"><section class="hero impact-home-hero"></section></body>';
         const fallback = '<body class="community-page-body"><section class="page-header"></section></body>';
         const noBand = '<body class="community-page-body"><main></main></body>';
-        expect(heroPhotoFor(withBand)).toBe('glowe-blossoms.webp');
-        expect(heroPhotoFor(homeHero)).toBe('glowe-bridge.webp');
-        expect(heroPhotoFor(fallback)).toBe('glowe-regrowth.webp');
+        expect(heroPhotoFor(withBand)).toBe('glowe-blossoms');
+        expect(heroPhotoFor(homeHero)).toBe('glowe-bridge');
+        expect(heroPhotoFor(fallback)).toBe('glowe-regrowth');
         expect(heroPhotoFor(noBand)).toBeNull();
 
         const tpl = '<meta>\n    {{hero-preload}}\n    <link rel="stylesheet" href="{{root}}css/glowe.css">';
-        expect(renderPartial(tpl, pageContext('pages/about.html', withBand))).toBe(
-            '<meta>\n    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" fetchpriority="high">\n    <link rel="stylesheet" href="../css/glowe.css">',
-        );
+        expect(renderPartial(tpl, pageContext('pages/about.html', withBand))).toBe([
+            '<meta>',
+            '    <link rel="preload" as="image" href="../assets/glowe-blossoms-m.webp" media="(max-width: 767px)" fetchpriority="high">',
+            '    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" media="(min-width: 768px)" fetchpriority="high">',
+            '    <link rel="stylesheet" href="../css/glowe.css">',
+        ].join('\n'));
         expect(renderPartial(tpl, pageContext('pages/community.html', noBand))).toBe(
             '<meta>\n    <link rel="stylesheet" href="../css/glowe.css">',
         );

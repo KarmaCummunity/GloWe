@@ -20,6 +20,24 @@
     --page-photo: url('../assets/glowe-blossoms.webp');
 }
 
+/* Phone cut of each photo (960px wide); the default swaps in tokens.css. Keep in
+   sync with HERO_PHOTO_BY_BODY_CLASS in scripts/glowe-sync-shell.mjs. */
+@media (max-width: 767px) {
+    .home-page-body,
+    .organizations-page-body {
+        --page-photo: url('../assets/glowe-bridge-m.webp');
+    }
+
+    .opportunities-page-body,
+    .wishing-page-body {
+        --page-photo: url('../assets/glowe-field-m.webp');
+    }
+
+    .about-page-body {
+        --page-photo: url('../assets/glowe-blossoms-m.webp');
+    }
+}
+
 /* ===== Page header (hero band under the top bar) ===== */
 .page-header {
     position: relative;

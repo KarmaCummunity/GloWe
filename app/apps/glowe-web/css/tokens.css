@@ -200,9 +200,11 @@ html[dir="rtl"] {
 }
 
 /* Phones: hero copy spans the whole band, so the photo wash stays light edge to edge
-   (desktop heroes fall back to their own light→photo sweep). */
+   (desktop heroes fall back to their own light→photo sweep), and the band takes the
+   960px `-m` photo cut (≈ half the bytes; layout-page-header.css swaps the others). */
 @media (max-width: 767px) {
     :root {
         --hero-overlay: linear-gradient(180deg, var(--alpha-white-92), var(--alpha-white-76));
+        --page-photo: url('../assets/glowe-regrowth-m.webp');
     }
 }
