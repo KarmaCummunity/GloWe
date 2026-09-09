@@ -43,7 +43,7 @@ if (!existsSync(distDir)) {
 // Mount the GloWe static site at /glowe (skip dev-only tooling files).
 const gloweSrc = resolve(here, '..', 'apps', 'glowe-web');
 const gloweDest = resolve(distDir, 'glowe');
-const skip = new Set(['node_modules', 'package.json', 'README.md', '__tests__']);
+const skip = new Set(['node_modules', 'package.json', 'README.md', '__tests__', 'partials']);
 if (existsSync(gloweSrc)) {
   cpSync(gloweSrc, gloweDest, {
     recursive: true,

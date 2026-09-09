@@ -13,6 +13,7 @@ import {
   existsSync,
   readdirSync,
   readFileSync,
+  rmdirSync,
   unlinkSync,
   writeFileSync,
   statSync,
@@ -91,6 +92,37 @@ function resolveEsbuild(gloweSrcHint) {
   );
 }
 
+const CSS_LOCAL_IMPORT_RE = /@import\s+(?:url\()?['"]?([^'")\s]+\.css)['"]?\)?[^;]*;/g;
+
+/** Every local .css file pulled in via `@import` by another .css file (D-190 layered entry). */
+function collectCssPartials(absFiles) {
+  const partials = new Set();
+  for (const abs of absFiles) {
+    if (extname(abs) !== '.css') continue;
+    const source = readFileSync(abs, 'utf8');
+    for (const match of source.matchAll(CSS_LOCAL_IMPORT_RE)) {
+      const spec = match[1];
+      if (/^(https?:)?\/\//.test(spec)) continue;
+      partials.add(resolve(dirname(abs), spec));
+    }
+  }
+  return partials;
+}
+
+/** Bundle a CSS entry (inlining local @imports, keeping asset URLs as written) and minify. */
+async function bundleCss(esbuild, entryAbs) {
+  const result = await esbuild.build({
+    entryPoints: [entryAbs],
+    bundle: true,
+    minify: true,
+    write: false,
+    legalComments: 'none',
+    external: ['*.webp', '*.jpg', '*.jpeg', '*.png', '*.svg', '*.gif', '*.woff', '*.woff2', 'https://*', 'http://*'],
+    logLevel: 'silent',
+  });
+  return result.outputFiles[0].text;
+}
+
 function listHtmlFiles(rootDir) {
   const out = [];
   function walk(dir) {
@@ -123,18 +155,28 @@ export async function minifyAndHashGloweAssets(gloweDestDir, opts = {}) {
 
   const esbuild = resolveEsbuild(opts.gloweSrc);
   const absFiles = listAssetFiles(root);
+  const cssPartials = collectCssPartials(absFiles);
   const minified = new Map();
 
   for (const abs of absFiles) {
     const rel = toPosix(relative(root, abs));
-    const source = readFileSync(abs, 'utf8');
-    const loader = extname(abs) === '.css' ? 'css' : 'js';
-    const result = await esbuild.transform(source, {
-      loader,
+    if (cssPartials.has(abs)) continue; // inlined into its entry by bundleCss
+    if (extname(abs) === '.css') {
+      minified.set(rel, await bundleCss(esbuild, abs));
+      continue;
+    }
+    const result = await esbuild.transform(readFileSync(abs, 'utf8'), {
+      loader: 'js',
       minify: true,
       legalComments: 'none',
     });
     minified.set(rel, result.code);
+  }
+  // Partials are never shipped alone (they are inside the bundled entry).
+  for (const abs of cssPartials) {
+    if (existsSync(abs)) unlinkSync(abs);
+    const dir = dirname(abs);
+    if (existsSync(dir) && readdirSync(dir).length === 0) rmdirSync(dir);
   }
 
   let renameMap = new Map();

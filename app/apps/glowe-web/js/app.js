@@ -9804,7 +9804,7 @@ function applyGloweDirection() {
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
     // Per-language body class drives script-specific typography (Hebrew, Arabic,
-    // Ethiopic) — see the typography block in css/styles.css.
+    // Ethiopic) — see body.lang-* in css/base.css (stacks in css/tokens.css).
     if (document.body) {
         GLOWE_LANGUAGES.forEach(l => document.body.classList.toggle('lang-' + l.code, l.code === lang));
     }

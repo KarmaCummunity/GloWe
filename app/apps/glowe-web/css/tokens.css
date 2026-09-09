@@ -1,0 +1,192 @@
+/* GloWe design tokens — the ONLY file allowed to declare raw colors (FR-GLOWE-029 / D-190).
+   Every other stylesheet consumes these custom properties. Guarded by
+   app/scripts/check-glowe-css.mjs. */
+
+:root {
+    /* ---- Palette (brand-fixed) ---- */
+    --color-primary-50: #eef7f5;
+    --color-primary-100: #e7f2ef;
+    --color-primary-200: #c9e3de;
+    --color-primary-300: #9fcbc4;
+    --color-primary-400: #5aa89f;
+    --color-primary-500: #147c75;
+    --color-primary-600: #116a64;
+    --color-primary-700: #0e5852;
+    --color-primary-800: #0b4a49;
+    --color-primary-900: #073f42;
+
+    --color-secondary-100: #e6eef2;
+    --color-secondary-500: #0d5d73;
+    --color-secondary-700: #0a4757;
+
+    --color-accent-50: #fffaf0;
+    --color-accent-100: #fbf1dd;
+    --color-accent-500: #b99057;
+    --color-accent-700: #8a6314;
+
+    --color-neutral-0: #ffffff;
+    --color-neutral-50: #f6f7f4;
+    --color-neutral-100: #eef3f1;
+    --color-neutral-150: #e3ede9;
+    --color-neutral-200: #dce8e3;
+    --color-neutral-300: #b7cbc3;
+    --color-neutral-400: #7b8a89;
+    --color-neutral-600: #566665;
+    --color-neutral-900: #111918;
+
+    --color-tint-rose: #f5e7e8;
+    --color-tint-lavender: #eee8f1;
+    --color-tint-sky: #e6eef2;
+
+    --color-success-fg: #1a7a4f;
+    --color-success-bg: #e0f8ec;
+    --color-success-border: #86efac;
+    --color-warning-fg: #92400e;
+    --color-warning-bg: #fef3c7;
+    --color-warning-border: #fcd34d;
+    --color-danger-fg: #8a1c2b;
+    --color-danger-500: #dc2626;
+    --color-danger-bg: #fee2e2;
+    --color-danger-border: #fca5a5;
+    --color-info-fg: #1e40af;
+    --color-info-bg: #dbeafe;
+    --color-info-border: #93c5fd;
+
+    /* Alpha helpers (brand-dark based) for borders, shadows, scrims */
+    --alpha-ink-08: rgba(7, 63, 66, 0.08);
+    --alpha-ink-12: rgba(7, 63, 66, 0.12);
+    --alpha-ink-20: rgba(7, 63, 66, 0.2);
+    --alpha-ink-34: rgba(7, 63, 66, 0.34);
+    --alpha-ink-55: rgba(7, 63, 66, 0.55);
+    --alpha-white-76: rgba(255, 255, 255, 0.76);
+    --alpha-white-92: rgba(255, 255, 255, 0.92);
+
+    /* ---- Semantic surfaces & text ---- */
+    --surface-page: var(--color-neutral-50);
+    --surface-card: var(--color-neutral-0);
+    --surface-card-tinted: var(--color-neutral-150);
+    --surface-card-tinted-hover: var(--color-neutral-200);
+    --surface-raised: var(--color-neutral-0);
+    --surface-muted: var(--color-neutral-100);
+    --surface-brand-soft: var(--color-primary-100);
+    --surface-overlay: var(--alpha-ink-55);
+    --surface-header: var(--alpha-white-92);
+
+    --text-strong: var(--color-neutral-900);
+    --text-body: var(--color-neutral-900);
+    --text-muted: var(--color-neutral-600);
+    --text-subtle: var(--color-neutral-400);
+    --text-inverse: var(--color-neutral-0);
+    --text-brand: var(--color-primary-900);
+    --text-link: var(--color-primary-500);
+
+    --border-subtle: var(--color-neutral-100);
+    --border-default: var(--color-neutral-200);
+    --border-strong: var(--color-neutral-300);
+    --border-brand: var(--color-primary-500);
+
+    --focus-ring: 0 0 0 3px var(--color-primary-200);
+    --focus-ring-danger: 0 0 0 3px var(--color-danger-border);
+
+    /* ---- Spacing (4px grid) ---- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ---- Typography ---- */
+    --font-sans: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-hebrew: 'Assistant', 'Heebo', 'Rubik', 'Noto Sans Hebrew', 'Nunito', system-ui, sans-serif;
+    --font-arabic: 'Noto Sans Arabic', 'Noto Naskh Arabic', 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+    --font-ethiopic: 'Noto Sans Ethiopic', 'Abyssinica SIL', 'Nyala', system-ui, sans-serif;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-ui: 0.9375rem;
+    --text-base: 1rem;
+    --text-md: 1.125rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 1.875rem;
+    --text-3xl: clamp(2rem, 1.4rem + 1.8vw, 2.75rem);
+    --text-4xl: clamp(2.35rem, 1.6rem + 2.6vw, 4rem);
+
+    --leading-tight: 1.15;
+    --leading-snug: 1.35;
+    --leading-normal: 1.6;
+    --leading-relaxed: 1.7;
+
+    --weight-regular: 400;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --weight-extrabold: 800;
+
+    /* ---- Shape & elevation ---- */
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-full: 999px;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 4px 16px var(--alpha-ink-08);
+    --shadow-md: 0 12px 26px var(--alpha-ink-08);
+    --shadow-lg: 0 18px 38px var(--alpha-ink-12);
+
+    /* ---- Controls ---- */
+    --control-h-sm: 36px;
+    --control-h-md: 44px;
+    --control-h-lg: 52px;
+    --control-border: 1.5px;
+
+    /* ---- Layers ---- */
+    --z-header: 100;
+    --z-dropdown: 200;
+    --z-bottom-nav: 900;
+    --z-modal: 1000;
+    --z-consent: 1100;
+    --z-toast: 1200;
+
+    /* ---- Motion ---- */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 300ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+    /* ---- Layout ---- */
+    --container-max: 1200px;
+    --container-pad: clamp(12px, 3vw, 20px);
+    --header-h: 64px;
+    --bottom-nav-h: 64px;
+
+    /* ---- Legacy aliases (consumed by legacy.css; removed with it — TD-192) ---- */
+    --primary-color: var(--color-primary-500);
+    --primary-dark: var(--color-primary-900);
+    --primary-light: var(--color-primary-100);
+    --secondary-color: var(--color-secondary-500);
+    --accent-color: var(--color-accent-500);
+    --rose-light: var(--color-tint-rose);
+    --lavender-light: var(--color-tint-lavender);
+    --sky-light: var(--color-tint-sky);
+    --text-primary: var(--text-strong);
+    --text-secondary: var(--text-muted);
+    --text-light: var(--text-subtle);
+    --background: var(--surface-page);
+    --white: var(--color-neutral-0);
+    --border-color: var(--border-default);
+    --card-surface: var(--surface-card-tinted);
+    --card-surface-hover: var(--surface-card-tinted-hover);
+    --card-border: var(--border-strong);
+    --card-border-hover: #a5bdb4;
+    --card-shadow: 0 4px 16px rgba(7, 63, 66, 0.09);
+    --card-shadow-hover: 0 8px 22px var(--alpha-ink-12);
+    --transition: all var(--duration-slow) ease;
+    --hero-photo: url('../assets/glowe-bridge.webp');
+    --page-photo: url('../assets/glowe-regrowth.webp');
+}

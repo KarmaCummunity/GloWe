@@ -1,0 +1,14 @@
+/* GloWe stylesheet entry (FR-GLOWE-029 / D-190).
+   Pages link ONLY this file. Development serves the @imports as-is; the deploy
+   step (app/scripts/glowe-minify-hash.mjs) bundles them into one hashed file.
+
+   Cascade order: later layers win regardless of selector specificity, so a
+   migrated component always beats its legacy rule. `legacy` shrinks to zero. */
+@layer tokens, base, legacy, components, layout, pages, utilities;
+
+@import url('tokens.css') layer(tokens);
+@import url('base.css') layer(base);
+@import url('legacy.css') layer(legacy);
+@import url('components/buttons.css') layer(components);
+@import url('components/forms.css') layer(components);
+@import url('components/feedback.css') layer(components);
