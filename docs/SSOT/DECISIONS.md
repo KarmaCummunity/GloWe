@@ -1546,10 +1546,30 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-194 — GloWe cleanup: no `legacy` layer, every guard applies to every sheet; the hero photo is an LCP asset owned by the shell sync (2026-09-09)
+
+**Decision.**
+
+1. **The `legacy` layer no longer exists.** `css/glowe.css` declares `@layer tokens, base, components, layout, pages, utilities`. `css/pages/*.css` import into `pages`; a page sheet may refine a component (it sits above `components`/`layout`) but may never define a control, card or menu family of its own. `legacy.css` and `legacy-responsive.css` are hard-banned by `check-glowe-css.mjs` (`BANNED_FILES`); the line budget is gone. Anything that used to be "allowed because legacy" (raw colours, `!important`, off-scale breakpoints, > 300 lines) is now a lint failure in every sheet.
+2. **Relocation is by destination, not by page.** A shared rule moves to the component family it styles (status badges → `feedback.css`, form helpers → `forms.css`, …); rules that only one page uses move to that page's sheet; `url()` consumers stay in flat `css/*.css` files (`layout-page-header.css`, `brand-art.css`). New small component sheets (`section-toolbar`, `translate`, `consent-banner`) are preferred over parking cross-page rules in a page sheet.
+3. **Dead sections are deleted, not restyled.** Home sections that had been permanently hidden (`growth-suite`, `funding`, `engagement`, `rewards`, `how-it-works`) were removed together with their renderers, data arrays and CSS, instead of being migrated.
+4. **The hero photo is the LCP element and the shell owns its loading.** `glowe-sync-shell.mjs` derives each page's photo from its body class (mirroring `layout-page-header.css`) and stamps `<link rel="preload" as="image" fetchpriority="high">` into `<head>` for every page with a static `.page-header` / `.hero`; JS-rendered pages opt out automatically. Every photo ships a 960px `-m.webp` cut selected below 768px both in CSS (`--page-photo` under `@media`) and in the preload (`media=`), so a phone never downloads the desktop photo. Adding a photo means adding both files and one map entry.
+5. **No shell-paint layout shift.** `body > main` reserves one viewport of height so the footer never sits in the first paint of a JS-filled page, and a page whose above-the-fold block is JS-rendered ships that block's skeleton statically (Wishing Well stat cards with `–` placeholders, `aria-busy` until filled). A new page is measured with Lighthouse mobile before merge; CLS > 0.1 is a defect.
+6. **Accessibility floor is enforced by tokens.** `--text-subtle` is the lightest text token and must stay AA (≥ 4.5:1) on every surface token including hover tints; `opacity` on text is not an acceptable way to de-emphasise it.
+
+**Rationale.** With the last 805 shared lines relocated there was nothing left to justify a layer whose only purpose was "lose to everything newer"; keeping it would have kept the two-tier rule set the reset was meant to remove. Computed-style diffing of every element on all 22 pages × guest/member × 390-he/1280-en against `staging` made deleting the layer a verifiable refactor. Lighthouse showed the photo band as LCP on every guest page with ~1.3 s of pure discovery delay (the URL lived in CSS) plus a 1620px photo on a 390px viewport; the preload + phone cut took home LCP from 3.9 s (simulated) / 2.3 s (DevTools) to 1.6 s with no markup change on the pages themselves. The axe pass found the post-date grey failing AA on tinted cards — fixing the token fixed every surface at once.
+
+**Alternatives rejected.** Inlining the hero as an `<img>` (would duplicate the wash/overlay logic per page and break the token-driven RTL sweep); `image-set()` in CSS alone (does not help discovery — the preload is what moves LCP); keeping `legacy.css` as an empty file with a zero budget (a ban is clearer than a budget of 0).
+
+**Affected.** `css/glowe.css`, `css/tokens.css` (`neutral-500`, `--text-subtle`, `--page-photo` phone cut, `--wash-*`), `css/layout-page-header.css`, `css/brand-art.css`, `css/components/{feedback,forms,list-filters,modal,buttons,section-toolbar,translate,consent-banner}.css`, `css/pages/*.css` (+ `settings`, `home-marketing`), `assets/glowe-{bridge,field,blossoms,regrowth}-m.webp`, `partials/head.html`, `partials/footer.html`, `js/app.js`, `js/data.js`, `js/glowe-ui-conventions.js`, `js/ui/glowe-ui-shell.js`, `index.html`, `app/scripts/{check-glowe-css,glowe-sync-shell}.mjs`; `spec/17_glowe_frontend.md` FR-GLOWE-029 (✅); TD-192 closed, TD-194 opened; `app/VERSION` 1.5.0.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.25 | 2026-09-09 | Added `D-194` (GloWe cleanup: `legacy` layer deleted, every CSS guard applies to every sheet, hero photo preloaded + phone cut owned by the shell sync, `--text-subtle` AA floor; FR-GLOWE-029 ✅, TD-192 closed, TD-194). |
 | 4.24 | 2026-09-09 | Added `D-193` (GloWe page sheets split inside the `legacy` layer in source order, DOM-grounded cascade scan as the acceptance check, responsive/directional tokens; FR-GLOWE-029 Phase 4). |
 | 4.23 | 2026-09-09 | Added `D-192` (GloWe component families: alias-then-remove migration, logical insets, HTML only through `glowe-ui-primitives.js`; FR-GLOWE-029 Phase 3). |
 | 4.22 | 2026-09-09 | Added `D-191` (GloWe shell: one 768px boundary, two-row tablet header, class-based auth state, flat `url()` sheets, PR journeys on the checkout; FR-GLOWE-029 Phase 2). |
