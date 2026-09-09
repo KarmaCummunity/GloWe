@@ -607,35 +607,6 @@
 }
 
 /* Tiny verified tick on the org avatar (replaces the text "Verified" pill). */
-.org-avatar-wrap,
-.directory-avatar-wrap {
-    position: relative;
-    display: inline-flex;
-    flex: 0 0 auto;
-}
-
-.org-verified-tick,
-.directory-verified-tick {
-    position: absolute;
-    inset-inline-end: -2px;
-    bottom: -2px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--primary-dark, #073f42);
-    color: #fff;
-    border: 2px solid var(--white, #fff);
-    box-shadow: 0 0 0 1px rgba(7, 63, 66, 0.12);
-    pointer-events: none;
-}
-
-.org-verified-tick svg,
-.directory-verified-tick svg {
-    display: block;
-}
 
 /* Stretched link sits above static content so the whole card opens detail;
    interactive chrome (⋯ menu, save, CTAs, follow) stays above the link. */
@@ -823,18 +794,6 @@
 }
 
 .testimonial-avatar {
-    width: 56px;
-    height: 56px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--primary-light);
-    border: 1px solid var(--border-color);
-    color: var(--primary-dark);
-    font-size: 0.95rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
     margin-bottom: 16px;
 }
 
@@ -1908,17 +1867,12 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .social-avatar-wrap {
-    position: relative;
     flex-shrink: 0;
     margin-top: -64px;
 }
 
 .social-avatar {
-    width: 136px;
-    height: 136px;
     margin: 0;
-    border: 6px solid var(--white);
-    box-shadow: var(--shadow-md);
 }
 
 .social-avatar-change {
@@ -2079,8 +2033,6 @@ html[dir="rtl"] .org-review-banner__note {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid var(--white);
-    box-shadow: var(--shadow-sm);
 }
 
 .post-card-header .post-author {
@@ -2535,36 +2487,6 @@ html[dir="rtl"] .org-review-banner__note {
     max-width: 100%;
 }
 
-.entity-mark,
-.avatar,
-.profile-avatar,
-.wish-image {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: var(--primary-light);
-    border: 1px solid rgba(7, 63, 66, 0.14);
-    color: var(--primary-dark);
-    font-weight: 900;
-    letter-spacing: 0.04em;
-}
-
-.entity-mark {
-    width: 34px;
-    height: 34px;
-    font-size: 0.72rem;
-}
-
-.wish-image {
-    width: 76px;
-    height: 76px;
-    background: rgba(255, 255, 255, 0.75);
-    box-shadow: var(--shadow-sm);
-    font-size: 1.2rem;
-}
-
 .wish-detail-hero {
     margin: -8px -8px 20px;
     padding: 28px;
@@ -2902,12 +2824,6 @@ html[dir="rtl"] .org-review-banner__note {
     white-space: nowrap;
 }
 
-.avatar {
-    width: 42px;
-    height: 42px;
-    font-size: 0.78rem;
-}
-
 .person-row {
     display: grid;
     gap: 8px;
@@ -3079,12 +2995,6 @@ html[dir="rtl"] .org-review-banner__note {
     gap: 10px;
     padding: 10px 0;
     border-bottom: 1px solid rgba(15, 93, 85, 0.08);
-}
-
-.comment-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 0.68rem;
 }
 
 .comment-row p {
@@ -3541,20 +3451,7 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .profile-avatar {
-    width: clamp(96px, 12vw, 132px);
-    height: clamp(96px, 12vw, 132px);
     margin-top: calc(clamp(48px, 6vw, 66px) * -1);
-    border: 6px solid var(--white);
-    font-size: 1.45rem;
-    box-shadow: 0 18px 34px rgba(7, 63, 66, 0.14);
-}
-
-.profile-avatar-img {
-    display: block;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid var(--white);
-    background: var(--primary-light);
 }
 
 .profile-type {
@@ -4633,22 +4530,7 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .about-team-avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--border-color);
     flex-shrink: 0;
-    background: var(--primary-light);
-}
-
-.about-team-avatar--initials {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary-dark);
-    font-weight: 900;
-    letter-spacing: 0.04em;
 }
 
 .about-team-meta {

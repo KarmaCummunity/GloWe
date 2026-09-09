@@ -21,6 +21,7 @@
 @import url('components/nav-tabs.css') layer(components);
 @import url('components/cards.css') layer(components);
 @import url('components/menu.css') layer(components);
+@import url('components/avatar.css') layer(components);
 @import url('components/list-filters.css') layer(components);
 @import url('components/modal.css') layer(components);
 @import url('layout-header.css') layer(layout);
