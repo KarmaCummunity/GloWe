@@ -1,0 +1,168 @@
+/* GloWe modal — the one dialog shell (FR-GLOWE-029 Phase 3 / D-190).
+   Markup: .modal (backdrop, toggled with .active by js/ui/glowe-ui-dialog.js)
+   > .modal-content (panel) with an optional .close-modal button, .modal-intro,
+   .modal-actions and .modal-footer-text. Width variants: .modal-wide,
+   .registration-modal-content. Tone: .modal-success, .modal-confirm. */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    min-height: 100dvh;
+    z-index: var(--z-modal);
+    justify-content: center;
+    align-items: flex-start;
+    padding: clamp(14px, 4vh, 44px) 14px;
+    background: var(--surface-overlay);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: glowe-fade-in var(--duration-slow) var(--ease-standard);
+}
+
+.modal.active {
+    display: flex;
+}
+
+body.glowe-modal-open {
+    overflow: hidden;
+}
+
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 450px;
+    max-height: calc(100dvh - 28px);
+    margin: auto 0;
+    padding: clamp(22px, 4vw, 40px);
+    background: var(--surface-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: glowe-slide-up var(--duration-slow) var(--ease-standard);
+}
+
+.modal-content h2 {
+    margin-bottom: var(--space-6);
+    text-align: center;
+}
+
+.modal-wide {
+    max-width: min(760px, calc(100vw - 28px));
+}
+
+.registration-modal-content {
+    max-width: min(920px, calc(100vw - 28px));
+}
+
+.modal-success,
+.modal-confirm {
+    text-align: center;
+}
+
+.modal-intro {
+    margin: -10px 0 var(--space-5);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.modal-actions .btn {
+    flex: 1 1 210px;
+}
+
+.modal-confirm .modal-actions .btn {
+    flex: 1 1 140px;
+}
+
+.modal-footer-text {
+    margin-top: var(--space-5);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.modal-footer-text a {
+    color: var(--text-link);
+    font-weight: var(--weight-semibold);
+}
+
+/* Close control: sticky in the panel's top end corner so it stays reachable
+   while long content scrolls. */
+.close-modal {
+    position: sticky;
+    top: 0;
+    float: inline-end;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin: -12px -12px var(--space-2) var(--space-3);
+    padding: 0;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-subtle);
+    font: inherit;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+
+html[dir="rtl"] .close-modal {
+    margin: -12px var(--space-3) var(--space-2) -12px;
+}
+
+.close-modal:hover {
+    color: var(--text-strong);
+    border-color: var(--border-strong);
+}
+
+.close-modal:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+@keyframes glowe-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes glowe-slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1023px) {
+    .modal {
+        padding: var(--space-2);
+    }
+
+    .modal-content {
+        width: min(100%, 680px);
+        max-height: calc(100dvh - 16px);
+        border-radius: var(--radius-md);
+    }
+
+    .modal-wide {
+        max-width: calc(100vw - 16px);
+    }
+
+    .close-modal {
+        width: 42px;
+        height: 42px;
+        margin: -10px -10px 6px 10px;
+    }
+
+    html[dir="rtl"] .close-modal {
+        margin: -10px 10px 6px -10px;
+    }
+}

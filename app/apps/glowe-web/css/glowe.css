@@ -18,6 +18,7 @@
 @import url('components/forms.css') layer(components);
 @import url('components/feedback.css') layer(components);
 @import url('components/list-filters.css') layer(components);
+@import url('components/modal.css') layer(components);
 @import url('layout-header.css') layer(layout);
 @import url('layout-header-actions.css') layer(layout);
 @import url('layout-footer.css') layer(layout);

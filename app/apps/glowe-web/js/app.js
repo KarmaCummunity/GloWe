@@ -13,8 +13,8 @@ function openModal(modalId) {
             const intro = modal.querySelector('.modal-intro');
             if (intro) intro.textContent = LOGIN_MODAL_DEFAULT_INTRO;
         }
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (window.GloweUiDialog) window.GloweUiDialog.open(modal);
+        else modal.classList.add('active');
     }
 }
 
@@ -31,8 +31,8 @@ function promptGuestSignIn(message) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = document.querySelector('.modal.active') ? 'hidden' : '';
+        if (window.GloweUiDialog) window.GloweUiDialog.close(modal);
+        else modal.classList.remove('active');
     }
 }
 
@@ -46,6 +46,21 @@ function showSuccessModal(title, message) {
     document.getElementById('success-title').textContent = title;
     document.getElementById('success-message').textContent = message;
     openModal('success-modal');
+}
+
+// Accessible confirm (FR-GLOWE-029 Phase 3): resolves true/false. Copy goes
+// through gloweText so the dialog is localized like the rest of the chrome.
+function gloweConfirm(message, options) {
+    const o = options || {};
+    const localized = {
+        title: o.title ? gloweText(o.title) : undefined,
+        message: gloweText(message),
+        confirmLabel: o.confirmLabel ? gloweText(o.confirmLabel) : undefined,
+        cancelLabel: o.cancelLabel ? gloweText(o.cancelLabel) : undefined,
+        danger: Boolean(o.danger),
+    };
+    if (window.GloweUiDialog) return window.GloweUiDialog.confirm(localized);
+    return Promise.resolve(typeof window.confirm === 'function' ? window.confirm(localized.message) : false);
 }
 
 // Lightweight transient toast (auto-dismisses). Used for quiet confirmations
@@ -178,7 +193,7 @@ function renderCreateMenu(types) {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-create-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-create-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-create-modal')">&times;</button>
                     <h2>What would you like to create?</h2>
                     <div id="glowe-create-options" class="create-menu-options"></div>
                 </div>
@@ -226,7 +241,7 @@ function openEventComposer() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-event-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-event-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-event-modal')">&times;</button>
                     <h2>Publish an event</h2>
                     <p class="modal-intro">Events appear on the Volunteer Network with a date and registration.</p>
                     <form onsubmit="handleEventSubmit(event)">
@@ -379,7 +394,7 @@ function openOfferComposer() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-offer-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-offer-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-offer-modal')">&times;</button>
                     <h2>Offer your help</h2>
                     <p class="modal-intro">Your offer appears on the Wishing Well so organizations and members can find you.</p>
                     <form onsubmit="handleOfferPostSubmit(event)">
@@ -1630,7 +1645,7 @@ function renderRegistrationWizard() {
     // The multi-step profile wizard is deferred — profile details are completed
     // after the user signs in with Google. See FR-GLOWE-001 / DECISIONS D-61.
     return `
-        <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
         <div class="auth-google-only">
             <div class="wizard-heading">
                 <span class="profile-type">Join GloWe</span>
@@ -1658,7 +1673,7 @@ function renderRegistrationWizardLegacy() {
     `).join('');
 
     return `
-        <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
         <div class="registration-wizard">
             <div class="wizard-heading">
                 <span class="profile-type">Profile onboarding</span>
@@ -2034,7 +2049,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="login-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
                     <h2>Welcome Back</h2>
                     <p class="modal-intro">Sign in with your Google account to continue.</p>
                     <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -2076,7 +2091,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="wish-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('wish-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('wish-modal')">&times;</button>
                     <h2>Share a Wish</h2>
                     <p class="modal-intro">A good wish is specific enough for the right helper to say yes.</p>
                     <form onsubmit="handleWishSubmit(event)">
@@ -2137,7 +2152,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="connect-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('connect-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('connect-modal')">&times;</button>
                     <h2>Offer Support</h2>
                     <p class="modal-intro" id="connect-context">Send a clear, trusted offer so the organization can decide quickly.</p>
                     <form onsubmit="handleConnectSubmit(event)">
@@ -2192,7 +2207,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="reach-out-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('reach-out-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('reach-out-modal')">&times;</button>
                     <h2>Reach Out</h2>
                     <p class="modal-intro" id="reach-out-context">Send a short message to start a conversation with this organization.</p>
                     <form onsubmit="handleReachOutSubmit(event)">
@@ -2214,7 +2229,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="onboarding-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('onboarding-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('onboarding-modal')">&times;</button>
                     <h2>Find your GloWe path</h2>
                     <p class="modal-intro">Choose the path that matches what you want to do first.</p>
                     <div class="path-grid">
@@ -2248,7 +2263,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="edit-profile-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('edit-profile-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('edit-profile-modal')">&times;</button>
                     <h2>Edit profile</h2>
                     <p class="modal-intro">Update the public information that helps others understand who you are and how to collaborate.</p>
                     <form onsubmit="handleProfileEdit(event)">
@@ -2412,7 +2427,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="avatar-edit-modal" class="modal">
                 <div class="modal-content avatar-edit-modal-content">
-                    <span class="close-modal" onclick="closeAvatarEditModal()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeAvatarEditModal()">&times;</button>
                     <h2>Change profile photo</h2>
                     <div class="avatar-edit-preview-wrap">
                         <img id="avatar-edit-preview" class="avatar-edit-preview" alt="" hidden>
@@ -2434,7 +2449,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="cover-edit-modal" class="modal">
                 <div class="modal-content cover-edit-modal-content">
-                    <span class="close-modal" onclick="closeCoverEditModal()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeCoverEditModal()">&times;</button>
                     <h2>Change cover photo</h2>
                     <div class="cover-edit-preview-wrap">
                         <div id="cover-edit-preview" class="cover-edit-preview" hidden></div>
@@ -2456,7 +2471,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-onboarding-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="dismissGloweOnboarding()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="dismissGloweOnboarding()">&times;</button>
                     <h2>Welcome to GloWe 👋</h2>
                     <p class="modal-intro">Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.</p>
                     <form id="glowe-onboarding-form" onsubmit="handleGloweOnboarding(event)">
@@ -2568,7 +2583,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="add-project-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('add-project-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('add-project-modal')">&times;</button>
                     <h2 id="personal-project-modal-title">Add project</h2>
                     <p class="modal-intro">Add a project that can appear in your personal area and help others understand what you are building.</p>
                     <form onsubmit="handlePersonalProjectSubmit(event)">
@@ -2620,7 +2635,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="edit-post-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('edit-post-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('edit-post-modal')">&times;</button>
                     <h2>Edit your post</h2>
                     <p class="modal-intro">Update the title, topic, or body. Changes appear on the community feed right away.</p>
                     <form onsubmit="handleEditCommunityPostSubmit(event)">
@@ -2652,7 +2667,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="report-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('report-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('report-modal')">&times;</button>
                     <h2>Report a concern</h2>
                     <p class="modal-intro">We review every report carefully and confidentially to keep GloWe safe and professional.</p>
                     <form onsubmit="handleReportSubmit(event)">
@@ -2690,7 +2705,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="notification-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('notification-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('notification-modal')">&times;</button>
                     <h2>Notification Preferences</h2>
                     <p class="modal-intro">Choose a rhythm that keeps GloWe useful without creating digital fatigue.</p>
                     <form onsubmit="handleNotificationPrefs(event)">
@@ -2781,7 +2796,7 @@ function upgradeLoginModal() {
 
     if (content.dataset.googleOnly === 'true') return;
     content.innerHTML = `
-        <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
         <h2>Welcome Back!</h2>
         <p class="modal-intro">Sign in with your Google account to continue.</p>
         <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -3701,7 +3716,7 @@ function openConnectionWorkspace() {
     const title = wish ? wish.title : 'New collaboration';
     const author = wish ? wish.author : 'GloWe member';
     content.innerHTML = `
-        <span class="close-modal" onclick="closeModal('connection-workspace-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('connection-workspace-modal')">&times;</button>
         <div class="workspace-header">
             <span class="hero-kicker">Connection workspace</span>
             <h2>${escapeHtml(title)}</h2>
@@ -3782,7 +3797,7 @@ function openPrivateMessage(name = 'this member', recipientId = '') {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="message-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('message-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('message-modal')">&times;</button>
                     <h2>Write a message</h2>
                     <p class="modal-intro" id="message-context"></p>
                     <form onsubmit="handleMessageSubmit(event)">
@@ -4889,23 +4904,7 @@ function wishOffersHtml(views) {
     return `${header}<ul class="applicant-list">${rows}</ul>`;
 }
 
-// Close modal when clicking outside
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal')) {
-        const modalId = e.target.id;
-        closeModal(modalId);
-    }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const activeModal = document.querySelector('.modal.active');
-        if (activeModal) {
-            closeModal(activeModal.id);
-        }
-    }
-});
+// Backdrop click, Escape and the focus trap live in js/ui/glowe-ui-dialog.js.
 
 // Render opportunity card
 // ── Supabase row → render-format mappers ────────────────────────────────────
@@ -5002,7 +5001,7 @@ async function deleteCommunityPost(postId) {
     if (!postId) return;
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) return;
-    if (typeof window.confirm === 'function' && !window.confirm('Delete this post? This cannot be undone.')) return;
+    if (!(await gloweConfirm('Delete this post? This cannot be undone.', { title: 'Delete post', confirmLabel: 'Delete', danger: true }))) return;
     try {
         await backend.removeOwned('posts', { id: postId });
     } catch (_e) {
@@ -7208,7 +7207,7 @@ function wishOwnerControls(wish) {
 async function markWishFulfilled(wishId) {
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) return;
-    if (!window.confirm('Mark this wish as fulfilled? It will be removed from the open board.')) return;
+    if (!(await gloweConfirm('Mark this wish as fulfilled? It will be removed from the open board.', { title: 'Mark as fulfilled', confirmLabel: 'Mark as fulfilled' }))) return;
     try {
         await backend.updateOwned('posts', wishId, { status: 'fulfilled' });
     } catch (_e) {
@@ -9039,7 +9038,7 @@ async function handleOrganizerDecision(registrationId, decision, opportunity, ev
 async function handleCancelEvent(opportunity, events) {
     const backend = window.gloweBackend;
     if (!backend) return;
-    if (!window.confirm('Cancel this event? Registrants will see it as cancelled.')) return;
+    if (!(await gloweConfirm('Cancel this event? Registrants will see it as cancelled.', { title: 'Cancel event', confirmLabel: 'Cancel event', cancelLabel: 'Keep event', danger: true }))) return;
     try {
         const row = await backend.cancelEvent(opportunity.id);
         if (row && row.status) opportunity.status = row.status;

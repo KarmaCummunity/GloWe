@@ -193,7 +193,7 @@
 
     function loginModalHtml() {
         return (
-            '<span class="close-modal" onclick="closeModal(\'login-modal\')">&times;</span>' +
+            '<button type="button" class="close-modal" aria-label="Close" onclick="closeModal(\'login-modal\')">&times;</button>' +
             '<h2>Local dev sign-in</h2>' +
             '<p class="modal-intro">Google OAuth is disabled on the local Supabase stack. Pick a test persona below — each option mints a real Supabase session (same as production after sign-in).</p>' +
             '<div class="dev-auth-panel" data-no-i18n>' +
