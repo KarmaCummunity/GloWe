@@ -27,7 +27,7 @@
     "check:rpc-contract": "node ../scripts/check-rpc-contract.mjs",
     "check:web-manifest": "node ../scripts/check-web-manifest.mjs",
     "check:backend-guards": "node ../scripts/check-migration-chain.mjs && node ../scripts/check-migration-safety.mjs && node ../scripts/check-rpc-contract.mjs",
-    "test:scripts": "node --test ../scripts/check-migration-chain.test.mjs ../scripts/check-migration-safety.test.mjs ../scripts/check-rpc-contract.test.mjs ../scripts/check-web-manifest.test.mjs ../scripts/extract-hebrew-text.test.mjs ../scripts/check-required-checks-drift.test.mjs",
+    "test:scripts": "node --test ../scripts/check-migration-chain.test.mjs ../scripts/check-migration-safety.test.mjs ../scripts/check-rpc-contract.test.mjs ../scripts/check-web-manifest.test.mjs ../scripts/extract-hebrew-text.test.mjs ../scripts/check-required-checks-drift.test.mjs ../scripts/wait-for-glowe-deploy.test.mjs",
     "test:e2e": "npm --prefix ../tests/e2e test",
     "test:e2e:ui": "npm --prefix ../tests/e2e run test:ui"
   },
