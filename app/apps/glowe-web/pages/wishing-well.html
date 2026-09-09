@@ -58,8 +58,11 @@
                         <button class="btn btn-outline btn-large" type="button" onclick="openOnboardingModal()">Find My Path</button>
                     </div>
                 </div>
-                <div class="well-summary-panel" id="well-summary-panel">
-                    <!-- Stats will appear as the community grows -->
+                <!-- Same three cards updateWellSummary() renders, so the live numbers replace text without a layout shift. -->
+                <div class="well-summary-panel" id="well-summary-panel" aria-busy="true">
+                    <div class="well-summary-stat"><strong>–</strong><span>Open wishes</span></div>
+                    <div class="well-summary-stat"><strong>–</strong><span>Impact areas</span></div>
+                    <div class="well-summary-stat"><strong>–</strong><span>Active projects</span></div>
                 </div>
             </div>
         </section>

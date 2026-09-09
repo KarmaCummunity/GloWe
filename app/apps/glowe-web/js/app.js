@@ -7126,6 +7126,7 @@ function updateWellSummary(projectCount) {
     if (!panel) return;
     const helpers = (typeof GloweWishes !== 'undefined') ? GloweWishes : null;
     const stats = helpers ? helpers.wishStats(wishes) : { openWishes: wishes.length, impactAreas: 0 };
+    panel.removeAttribute('aria-busy');
     panel.innerHTML = `
         <div class="well-summary-stat"><strong>${stats.openWishes}</strong><span>Open wishes</span></div>
         <div class="well-summary-stat"><strong>${stats.impactAreas}</strong><span>Impact areas</span></div>

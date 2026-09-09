@@ -24,6 +24,13 @@ body {
     min-height: 100dvh;
 }
 
+/* Most pages fill <main> from JS. Reserving a viewport of height keeps the
+   footer below the fold on first paint instead of jumping once content lands
+   (CLS 0.28 on the organizations directory). */
+body > main {
+    min-height: 100vh;
+}
+
 /* Per-script typography: Hebrew and Arabic are both RTL but need different stacks. */
 html[dir="rtl"] body,
 body.lang-he,
