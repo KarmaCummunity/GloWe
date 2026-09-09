@@ -5646,18 +5646,21 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
         ? ` data-tr-card data-tr-type="glowe_comment" data-tr-id="${escapeHtml(String(commentId))}"`
         : '';
     const leadClass = lead ? ' comment-row--lead' : '';
+    // A collapsed lead comment opens the thread: render it as a keyboard-operable
+    // button surface (role=button is not permitted on <article>).
+    const tag = openOnClick ? 'div' : 'article';
     const openAttrs = openOnClick
-        ? ` role="button" tabindex="0" onclick="togglePostComments('${jsString(postId)}')"`
+        ? ` role="button" tabindex="0" onclick="togglePostComments('${jsString(postId)}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); togglePostComments('${jsString(postId)}'); }"`
         : '';
     return `
-                    <article class="comment-row${leadClass}"${trAttrs}${openAttrs}>
+                    <${tag} class="comment-row${leadClass}"${trAttrs}${openAttrs}>
                         ${renderLocalizedEntityMark(commentPair.primary, commentPair.english, commentAuthor, 'comment-avatar')}
                         <div>
                             ${commentId ? translationToggleSlotHtml() : ''}
                             <strong ${bilingualNameAttrs(commentPair.primary, commentPair.english)}>${escapeHtml(commentAuthor)}</strong>
                             <p${commentId ? ' data-tr-field="text"' : ''}>${escapeHtml(comment.text)}</p>
                         </div>
-                    </article>`;
+                    </${tag}>`;
 }
 
 function renderFeedCardCommentsSection(postId) {
