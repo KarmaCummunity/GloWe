@@ -1,0 +1,178 @@
+/* GloWe page sheet — profile statistics grids and stat links (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.personal-nav,
+.personal-stats-grid:not(.personal-stats-grid--compact) div {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.personal-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.personal-stats-grid--compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.25rem, 1fr));
+    gap: 10px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.personal-stats-grid--compact > div,
+.personal-stats-grid--compact > .profile-stat-link {
+    min-width: 0;
+    display: block;
+    padding: 12px 8px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    background: var(--alpha-white-92);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+.personal-stats-grid--compact > .profile-stat-link:hover,
+.personal-stats-grid--compact > .profile-stat-link:focus-visible {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.personal-stats-grid:not(.personal-stats-grid--compact) div {
+    padding: 20px;
+}
+
+.personal-stats-grid strong {
+    display: block;
+    color: var(--primary-dark);
+    font-size: 1.8rem;
+    line-height: 1.1;
+}
+
+.personal-stats-grid--compact strong {
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.personal-stats-grid span {
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+
+.personal-stats-grid--compact span {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 10px;
+    padding: 0 28px 28px;
+    margin-top: 0;
+}
+
+.profile-stats > div,
+.profile-stats > .profile-stat-link {
+    min-width: 0;
+    display: block;
+    background: var(--alpha-white-92);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 14px 10px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.profile-stats > .profile-stat-link:hover,
+.profile-stats > .profile-stat-link:focus-visible {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.profile-stats strong {
+    display: block;
+    font-size: 1.55rem;
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--primary-dark);
+}
+
+.profile-stats span {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+@media (max-width: 1023px) {
+    .profile-stats {
+        padding: 0 22px 22px;
+    }
+}
+
+@media (max-width: 639px) {
+    .profile-stats,
+    .personal-stats-grid--compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-stats {
+        padding: 0 20px 20px;
+    }
+
+    .personal-stats-grid--compact {
+        gap: 8px;
+    }
+
+    .personal-stats-grid--compact > div,
+    .personal-stats-grid--compact > .profile-stat-link {
+        padding: 10px 6px;
+    }
+
+    .personal-stats-grid--compact strong,
+    .personal-stats-grid--compact .profile-stat-link strong {
+        font-size: 1.15rem;
+    }
+
+    .personal-stats-grid--compact span,
+    .personal-stats-grid--compact .profile-stat-link span {
+        font-size: 0.66rem;
+    }
+}
+
+.profile-stat-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.profile-stat-link:hover strong,
+.profile-stat-link:focus strong {
+    text-decoration: underline;
+}
+
+@media (max-width: 1023px) {
+    .personal-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

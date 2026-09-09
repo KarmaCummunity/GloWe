@@ -111,11 +111,28 @@ test.describe('GloWe visual regression — shell per page × viewport', () => {
 
     test(`footer — home @ ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
+      // Pre-accept the fixed-position consent banner so it never overlays the
+      // footer capture.
+      await page.addInitScript(() => {
+        try { window.localStorage.setItem('glowe-consent-v1', 'accepted'); } catch { /* ignore */ }
+      });
       await page.goto(`${GLOWE_BASE}/index.html`);
       const footer = page.locator('.main-footer');
       await expect(footer).toBeVisible({ timeout: 20_000 });
+      // The footer's y-offset (and thus the rounded capture height) depends on
+      // whatever the async feed rendered above it, and the sticky header /
+      // fixed bottom nav (snapshotted separately) overlay a footer taller than
+      // the viewport. Collapse all of them so the snapshot is a function of
+      // the footer chrome alone.
+      await page.addStyleTag({
+        content: 'body > main, .main-header, .mobile-bottom-nav { display: none !important; }',
+      });
       await footer.scrollIntoViewIfNeeded();
-      await expect(footer).toHaveScreenshot(`shell-footer-home-${vp.label}.png`, SNAPSHOT_OPTS);
+      await expect(footer).toHaveScreenshot(`shell-footer-home-${vp.label}.png`, {
+        ...SNAPSHOT_OPTS,
+        // The build stamp (vX.Y.Z) bumps on every PR — never pin it.
+        mask: [footer.locator('.footer-build')],
+      });
     });
   }
 

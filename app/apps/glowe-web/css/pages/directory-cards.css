@@ -1,0 +1,185 @@
+/* GloWe page sheet — directory cards (opportunity / organization / wish list cards) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.opportunity-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.opportunity-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.opportunity-card > .card-actions {
+    margin-top: auto;
+}
+
+.directory-card.opportunity-card > .card-actions,
+.directory-card > .card-actions,
+.directory-card > .directory-card-actions {
+    margin-top: 12px;
+}
+
+.opportunity-card:hover {
+    transform: translateY(-4px);
+}
+
+.opportunity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-inline-end: 44px;
+}
+
+.directory-card-org-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 12rem;
+}
+
+.directory-card-meta-chip {
+    margin: -4px 0 12px;
+}
+
+.directory-card {
+    padding: 14px 16px 14px;
+    overflow: visible;
+}
+
+.directory-card .opportunity-header {
+    margin-bottom: 8px;
+    padding-inline-end: 0;
+    padding-inline: 0;
+    align-items: center;
+}
+
+.directory-card .opportunity-title {
+    margin-bottom: 6px;
+    font-size: 1.12rem;
+    line-height: 1.3;
+}
+
+.directory-card .opportunity-description {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.directory-card > .directory-card-actions {
+    margin-top: 12px;
+}
+
+.opportunity-badge {
+    flex: 0 1 auto;
+    max-width: 55%;
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.directory-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.directory-card .directory-card-stretch-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+}
+
+.directory-card .directory-card-header-actions,
+.directory-card .directory-card-actions {
+    position: relative;
+    z-index: 2;
+}
+
+.org-card-actions,
+.directory-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.org-card-actions > .btn,
+.directory-card-actions > .btn,
+.directory-card-actions > a.btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+}
+
+.opportunity-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.opportunity-description {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+}
+
+.person-actions {
+    display: flex;
+    gap: 8px;
+    padding-inline-start: 52px;
+}
+
+.person-actions button {
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--color-neutral-0);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.person-actions button:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.mini-opportunity-list {
+    display: grid;
+    gap: 14px;
+}
+
+.mini-opportunity-list article {
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+}
+
+.mini-opportunity-list h3 {
+    margin: 12px 0 8px;
+}
+
+.mini-opportunity-list p {
+    color: var(--text-secondary);
+}

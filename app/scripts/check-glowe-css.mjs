@@ -2,7 +2,7 @@
 /**
  * GloWe CSS design-system guard (FR-GLOWE-029 / D-190).
  *
- * Enforced on every file under app/apps/glowe-web/css/ (except legacy.css):
+ * Enforced on every file under app/apps/glowe-web/css/ (legacy.css: rules 3 + ratchet only):
  *   1. raw colors (#hex / rgb() / hsl()) live ONLY in tokens.css
  *   2. `!important` only in base.css / utilities.css
  *   3. media queries use the canonical breakpoint set only
@@ -21,7 +21,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Shrink this number whenever legacy.css loses lines. It must never grow (TD-192). */
-export const LEGACY_LINE_BUDGET = 6893;
+export const LEGACY_LINE_BUDGET = 805;
 export const MAX_FILE_LINES = 300;
 
 export const BREAKPOINTS = {
@@ -63,26 +63,26 @@ export function lintCssSource(source, fileName) {
   const name = basename(fileName);
   const lines = source.split('\n').length;
 
-  if (name === LEGACY_FILE) {
-    if (lines > LEGACY_LINE_BUDGET) {
-      out.push(`${fileName}: legacy.css grew to ${lines} lines (budget ${LEGACY_LINE_BUDGET}) — migrate rules into layers instead`);
-    }
-    return out;
+  const isLegacy = name === LEGACY_FILE;
+  const css = stripDataUrls(stripComments(source));
+
+  // legacy.css: ratchet only (raw colors / !important / size are Phase 5 work),
+  // but its breakpoints were normalized in Phase 4 and must stay canonical.
+  if (isLegacy && lines > LEGACY_LINE_BUDGET) {
+    out.push(`${fileName}: legacy.css grew to ${lines} lines (budget ${LEGACY_LINE_BUDGET}) — migrate rules into layers instead`);
   }
 
-  if (lines > MAX_FILE_LINES) {
+  if (!isLegacy && lines > MAX_FILE_LINES) {
     out.push(`${fileName}: ${lines} lines exceeds ${MAX_FILE_LINES} — split the file`);
   }
 
-  const css = stripDataUrls(stripComments(source));
-
-  if (name !== TOKENS_FILE) {
+  if (!isLegacy && name !== TOKENS_FILE) {
     for (const m of css.matchAll(COLOR_RE)) {
       out.push(`${fileName}:${lineOf(css, m.index)}: raw color "${m[0]}" — use a token from tokens.css`);
     }
   }
 
-  if (!IMPORTANT_ALLOWED.has(name)) {
+  if (!isLegacy && !IMPORTANT_ALLOWED.has(name)) {
     let idx = css.indexOf('!important');
     while (idx !== -1) {
       out.push(`${fileName}:${lineOf(css, idx)}: !important is not allowed here (layer order replaces it)`);

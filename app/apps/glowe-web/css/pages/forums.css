@@ -1,0 +1,234 @@
+/* GloWe page sheet — forums and discussion groups (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px;
+}
+
+.stat-card {
+    text-align: center;
+    color: var(--white);
+}
+
+.stat-number {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+@media (max-width: 767px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.community-sidebar,
+.forum-shell {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+}
+
+.community-sidebar h3 {
+    margin: 22px 0 10px;
+    font-size: 1rem;
+}
+
+.community-sidebar h3:first-child {
+    margin-top: 0;
+}
+
+.community-sidebar a {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.forum-group-card,
+.thread-row,
+.saved-item-card {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+}
+
+.forum-group-card {
+    text-decoration: none;
+}
+
+.forum-group-card > span,
+.saved-item-card small {
+    color: var(--text-light);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.forum-group-card h3,
+.thread-row h3,
+.saved-item-card h3 {
+    margin: 0;
+}
+
+.forum-thread-list {
+    display: grid;
+    gap: 14px;
+}
+
+.forum-workbench {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.45fr);
+    gap: 22px;
+    align-items: start;
+    padding: 24px;
+    margin: 18px 0 28px;
+    background: linear-gradient(135deg, var(--color-primary-50), var(--alpha-white-92)),
+        var(--white);
+    border: 1px solid var(--alpha-ink-20);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 46px var(--alpha-ink-08);
+}
+
+.forum-workbench h2 {
+    margin: 6px 0 12px;
+    font-size: clamp(1.7rem, 3vw, 2.55rem);
+}
+
+.forum-workbench p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.forum-question-form {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    background: var(--alpha-white-92);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.forum-leaders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.forum-leader-card {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+}
+
+.forum-leader-main {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+}
+
+.forum-leader-main span {
+    display: grid;
+    gap: 2px;
+}
+
+.forum-leader-main small,
+.forum-leader-card p {
+    color: var(--text-light);
+}
+
+.forum-leader-card p {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.thread-row,
+.saved-item-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.discussion-main h2 {
+    margin-bottom: 14px;
+}
+
+.topic-choice {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.topic-choice strong,
+.topic-choice span {
+    display: block;
+}
+
+.topic-choice strong {
+    color: var(--primary-dark);
+}
+
+.topic-choice span {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+}
+
+.topic-choice.active,
+.topic-choice:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.forum-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.forum-stats {
+    background: var(--primary-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 1023px) {
+    .forum-workbench {
+        grid-template-columns: 1fr;
+    }
+
+    .thread-row {
+        grid-template-columns: 1fr;
+    }
+
+    .community-sidebar {
+        position: static;
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

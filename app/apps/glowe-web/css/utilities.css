@@ -1,0 +1,40 @@
+/* GloWe utilities layer (FR-GLOWE-029 / D-190) — state helpers that must win
+   over every component and page rule. Highest layer, so no !important needed. */
+
+/* Auth-aware visibility: auth.js sets body.glowe-signed-in. */
+.glowe-member-only {
+    display: none;
+}
+
+body.glowe-signed-in .glowe-guest-only {
+    display: none;
+}
+
+body.glowe-signed-in .glowe-member-only {
+    display: block;
+}
+
+/* Pre-paint member gate (glowe-auth-paint.js): a returning member sees the
+   member home immediately instead of a flash of the marketing page. */
+html.glowe-expect-member body.home-page-body main > section:not(#member-home) {
+    display: none;
+}
+
+html.glowe-expect-member body.home-page-body #member-home[hidden] {
+    display: block;
+    min-height: 40vh;
+}
+
+/* Low-data mode (settings): no hero photography, no motion. */
+.low-data-mode,
+.low-data-mode .page-header,
+.low-data-mode .hero,
+.low-data-mode .smart-matching-section,
+.low-data-mode .cta-section {
+    background-image: none;
+}
+
+.low-data-mode * {
+    animation: none;
+    transition-duration: 0.01ms;
+}

@@ -1,0 +1,210 @@
+/* GloWe page sheet — wishing well (wish list, filters, wish detail) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.wishing-hero {
+    text-align: start;
+}
+
+.wishing-hero .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 36px;
+    align-items: center;
+}
+
+.wishing-hero h1 {
+    margin-top: 18px;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.well-summary-panel {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    background: var(--alpha-white-76);
+    border: 1px solid var(--alpha-white-92);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.well-summary-panel div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 18px;
+    padding: 16px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.well-summary-panel strong {
+    color: var(--primary-dark);
+    font-size: 2rem;
+}
+
+.well-summary-panel span {
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+
+.well-layout {
+    padding: 36px 0 80px;
+}
+
+.well-layout .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+.wishes-board-shell {
+    gap: 22px;
+}
+
+.wishes-list-toolbar {
+    margin-top: 4px;
+}
+
+.wishes-list {
+    display: grid;
+    gap: 18px;
+}
+
+.wishes-list {
+    display: grid;
+    gap: 18px;
+}
+
+@media (min-width: 1024px) {
+    .wishes-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 20px;
+    }
+
+    .wishes-list > .directory-card {
+        height: 100%;
+    }
+}
+
+.wish-type {
+    color: var(--primary-dark);
+    background: var(--primary-light);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.wish-detail-hero {
+    margin: -8px -8px 20px;
+    padding: 28px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--alpha-white-76), var(--alpha-white-92)),
+        linear-gradient(135deg, var(--primary-light), var(--sky-light));
+}
+
+.wish-detail-hero h2 {
+    margin: 16px 0 12px;
+    font-size: 1.9rem;
+}
+
+.wish-detail-scroll {
+    display: grid;
+    gap: 16px;
+}
+
+.wish-detail-description {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    white-space: pre-line;
+}
+
+.wish-detail-actions {
+    position: sticky;
+    bottom: -1px;
+    z-index: 2;
+    margin: 4px -8px -8px;
+    padding: 14px 8px 8px;
+    background: linear-gradient(180deg, var(--alpha-white-12), var(--white) 22%);
+}
+
+.wish-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.wish-author small {
+    display: block;
+    color: var(--text-light);
+}
+
+@media (max-width: 1023px) {
+    .wish-detail-hero {
+        margin: 0 0 16px;
+        padding: 20px;
+    }
+
+    .wish-detail-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .wishing-hero .container,
+    .well-layout .container {
+        grid-template-columns: 1fr;
+    }
+
+    .well-summary-panel {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .well-summary-panel div {
+        display: block;
+        text-align: center;
+    }
+
+    .wishes-column {
+        order: 1;
+    }
+}
+
+@media (max-width: 639px) {
+    .well-summary-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1023px) {
+    .well-layout .container {
+        grid-template-columns: 1fr;
+    }
+
+    .wishing-hero {
+        padding-top: 58px;
+        padding-bottom: 58px;
+    }
+
+    .wishing-hero .container,
+    .wish-detail-hero {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .well-summary-panel {
+        grid-template-columns: 1fr;
+    }
+}

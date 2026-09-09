@@ -1939,7 +1939,7 @@ function normalizeHeaderUserMenu() {
     if (userMenu.parentElement !== headerEnd) {
         headerEnd.appendChild(userMenu);
     }
-    // Visibility is owned by css/layout/shell.css via body.glowe-signed-in;
+    // Visibility is owned by css/layout-header-actions.css via body.glowe-signed-in;
     // strip any inline display left by older static markup.
     userMenu.style.removeProperty('display');
     userMenu.innerHTML = GloweUiShell.userMenuHtml(prefix);

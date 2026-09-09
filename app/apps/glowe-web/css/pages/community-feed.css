@@ -1,0 +1,200 @@
+/* GloWe page sheet — community feed — post cards, comments, composer (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.post-card > .post-actions {
+    margin-top: auto;
+}
+
+.post-card-header .profile-avatar-img {
+    flex-shrink: 0;
+}
+
+.feed-list {
+    display: grid;
+    gap: 18px;
+}
+
+.post-card h3,
+.project-card h3 {
+    margin: 14px 0 10px;
+    font-size: 1.25rem;
+    line-height: 1.25;
+}
+
+.post-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 8px;
+    margin-bottom: 10px;
+    padding: 14px 18px 0;
+}
+
+.person-row {
+    display: grid;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.post-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.post-actions button,
+.post-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--color-neutral-0);
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.post-actions button:hover,
+.post-actions a:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.topic-groups-list {
+    display: grid;
+    gap: 8px;
+}
+
+.community-main {
+    background: linear-gradient(180deg, var(--color-neutral-100), var(--color-neutral-100) 260px),
+        var(--color-neutral-100);
+    min-height: calc(100dvh - 76px);
+}
+
+.community-feed-column {
+    min-width: 0;
+    display: grid;
+    gap: 14px;
+}
+
+.community-feed-controls {
+    background: var(--white);
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px var(--alpha-ink-08);
+}
+
+.community-feed-controls {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+}
+
+.community-feed-controls input {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+    font: inherit;
+}
+
+.linkedin-community-layout .post-card {
+    position: relative;
+    padding: 0;
+    overflow: visible;
+}
+
+.linkedin-community-layout .post-card h3 {
+    font-size: 1.22rem;
+    margin-top: 12px;
+}
+
+.linkedin-community-layout .post-card > p {
+    color: var(--text-secondary);
+    line-height: 1.62;
+}
+
+.post-engagement-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--color-success-bg);
+    color: var(--text-light);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.linkedin-community-layout .post-actions {
+    margin-top: 0;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-color);
+    justify-content: space-between;
+}
+
+.linkedin-community-layout .post-actions button,
+.linkedin-community-layout .post-actions a {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+    background: transparent;
+    border-color: transparent;
+}
+
+.linkedin-community-layout .post-actions button:hover,
+.linkedin-community-layout .post-actions a:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.community-news-card p {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.community-news-card strong {
+    color: var(--primary-dark);
+}
+
+.linkedin-community-layout .post-engagement-row {
+    margin-inline: 18px;
+}
+
+.linkedin-community-layout .person-row {
+    border-bottom: 0;
+    padding: 10px 0;
+}
+
+@media (max-width: 1023px) {
+    .post-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 767px) {
+    .post-actions button,
+    .post-actions a {
+        width: 100%;
+    }
+
+    .post-engagement-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .linkedin-community-layout .post-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

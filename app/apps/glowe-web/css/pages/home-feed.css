@@ -1,0 +1,209 @@
+/* GloWe page sheet — home page — member/guest feed (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+body.glowe-member-home main > section:not(#member-home) {
+    display: none;
+}
+
+.member-home {
+    background: var(--background);
+    padding: 48px 0 72px;
+}
+
+.member-home-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.home-feed-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 1024px) {
+    .home-feed-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        align-items: stretch;
+    }
+}
+
+.home-feed-list > .post-card--feed {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 420px;
+    max-height: 420px;
+    overflow: hidden;
+}
+
+.home-feed-list .post-card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 18px;
+    overflow: hidden;
+}
+
+.home-feed-list .post-card--feed .post-card-body {
+    margin-inline: var(--feed-card-inset, 12px);
+}
+
+.home-feed-list .post-card--feed h3,
+.home-feed-list .post-card-body h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin: 8px 0 0;
+    font-size: 1.15rem;
+    line-height: 1.35;
+}
+
+.home-feed-list .post-card-excerpt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    flex: 0 1 auto;
+}
+
+.home-feed-list .post-read-more {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.home-feed-list .post-engagement-row,
+.home-feed-list .post-comments {
+    flex-shrink: 0;
+}
+
+.home-feed-list .post-comments {
+    margin-top: auto;
+}
+
+.home-feed-title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.home-feed-title-link:hover {
+    text-decoration: underline;
+}
+
+.member-home-community.linkedin-community-layout .post-card,
+.guest-home-feed.linkedin-community-layout .post-card {
+    position: relative;
+    padding: 0;
+    overflow: visible;
+}
+
+.member-home-community.linkedin-community-layout .post-card-header,
+.guest-home-feed.linkedin-community-layout .post-card-header {
+    padding: 6px var(--feed-card-inset, 12px) 0;
+}
+
+.member-home-community.linkedin-community-layout .post-card--feed h3,
+.member-home-community.linkedin-community-layout .post-card--feed > p,
+.member-home-community.linkedin-community-layout .post-card--feed .post-tag-row,
+.guest-home-feed.linkedin-community-layout .post-card--feed h3,
+.guest-home-feed.linkedin-community-layout .post-card--feed > p,
+.guest-home-feed.linkedin-community-layout .post-card--feed .post-tag-row {
+    margin-inline: var(--feed-card-inset, 12px);
+}
+
+.member-home-community.linkedin-community-layout .post-card h3,
+.member-home-community.linkedin-community-layout .post-card > p,
+.member-home-community.linkedin-community-layout .post-tag-row,
+.guest-home-feed.linkedin-community-layout .post-card h3,
+.guest-home-feed.linkedin-community-layout .post-card > p,
+.guest-home-feed.linkedin-community-layout .post-tag-row {
+    margin-inline: 18px;
+}
+
+.member-home-community.linkedin-community-layout .post-card h3,
+.guest-home-feed.linkedin-community-layout .post-card h3 {
+    font-size: 1.22rem;
+    margin-top: 12px;
+}
+
+.member-home-community.linkedin-community-layout .post-card > p,
+.guest-home-feed.linkedin-community-layout .post-card > p {
+    color: var(--text-secondary);
+    line-height: 1.62;
+}
+
+.member-home-community.linkedin-community-layout .post-actions,
+.guest-home-feed.linkedin-community-layout .post-actions {
+    margin-inline: 18px;
+}
+
+.member-home-community.linkedin-community-layout .post-card--feed .post-comments,
+.guest-home-feed.linkedin-community-layout .post-card--feed .post-comments {
+    margin-inline: 0;
+}
+
+.member-home-community.linkedin-community-layout .post-comments,
+.guest-home-feed.linkedin-community-layout .post-comments {
+    margin-inline: 18px;
+}
+
+@media (max-width: 1023px) {
+    .home-feed-list > .post-card--feed {
+        min-height: 0;
+        max-height: none;
+    }
+
+    .home-feed-list .post-card-excerpt {
+        -webkit-line-clamp: 5;
+    }
+}
+
+.guest-home-feed {
+    padding: 28px 0 8px;
+}
+
+.guest-home-feed .section-toolbar {
+    margin-bottom: 16px;
+}
+
+.guest-home-feed-cta {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    margin-top: 20px;
+    padding: 16px 0 8px;
+}
+
+.home-feed-sentinel {
+    height: 1px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.home-feed-end {
+    margin-top: 12px;
+    text-align: center;
+}
+
+@media (max-width: 767px) {
+    .member-home.member-home-community-only,
+    .member-home:has(.member-home-community-only) {
+        padding-top: 24px;
+    }
+
+    .member-home-community-only {
+        gap: 0;
+    }
+}

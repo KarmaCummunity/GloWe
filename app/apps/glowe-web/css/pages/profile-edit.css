@@ -1,0 +1,60 @@
+/* GloWe page sheet — profile edit — upgrade section, questionnaire badges, check list (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.profile-section-heading:has(.section-collapse-toggle) .questionnaire-type-badge {
+    margin-inline-start: auto;
+}
+
+.profile-section-heading:has(.section-collapse-toggle) .questionnaire-type-badge ~ .section-collapse-toggle {
+    margin-inline-start: 0;
+}
+
+.profile-post-list,
+.profile-check-list {
+    display: grid;
+    gap: 14px;
+}
+
+.profile-check-list span {
+    display: block;
+    padding: 10px 0 10px 24px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 700;
+    position: relative;
+}
+
+.profile-check-list span::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 2px;
+    top: 17px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-color);
+}
+
+.edit-profile-upgrade-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.edit-profile-upgrade-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 0 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.edit-profile-upgrade-toggle input {
+    margin-top: 3px;
+}
+
+#edit-profile-upgrade-org-fields {
+    margin-top: 8px;
+}

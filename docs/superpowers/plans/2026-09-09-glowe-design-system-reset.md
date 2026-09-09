@@ -133,9 +133,11 @@ The header, footer, bottom nav and base script list become **partials** stamped 
 
 ### Phase 4 — Pages
 
-- [ ] Per page, move page-specific rules from `legacy.css` into `css/pages/<page>.css` (≤ 300 lines each; the entry imports them all — they are tiny once components carry the weight). Order by traffic: home → wishing-well → community → organizations/volunteer-network → my-applications/profile → messages/connections → settings → forums/discussion → about/whats-next → admin → legal.
-- [ ] Remove duplicated media blocks; convert physical `left/right` to logical properties; delete every rule referencing an undefined variable.
-- [ ] Text gaps fixed opportunistically (untranslated keys, inconsistent capitalisation, truncated labels) — logged, not the focus.
+- [x] Per page, move page-specific rules from `legacy.css` into `css/pages/<page>.css` (≤ 300 lines each; the entry imports them all — they are tiny once components carry the weight). 33 sheets (home ×4, community ×6, profile/personal-area ×9, volunteer-network/directory ×4, wishing-well, forums, about ×2, onboarding, write-post, messages, admin ×2, legal, dev-auth, opportunity-detail). Rules were classified by owning page from static HTML + page JS + prefix heuristics, dead declarations (already beaten by `components`/`layout` killers) dropped, raw colours mapped to tokens. The sheets import into the `legacy` layer between `legacy.css` (shared rules) and `legacy-responsive.css` (media blocks) so the original cascade holds; a DOM-grounded inversion scan (equal-specificity pairs whose order the split flipped, intersected with the live DOM of every page, guest + member) is at zero. Promotion to the `pages` layer is Phase 5.
+- [x] Remove duplicated media blocks; convert physical `left/right` to logical properties; delete every rule referencing an undefined variable. Also: 110 dead rules (67 unused class families) deleted; `.container` gutters and the hero wash became responsive/directional tokens (`--container-pad`, `--hero-overlay`, `--hero-sweep`, `--hero-photo-x`); state helpers (`glowe-member-only` / `glowe-guest-only` / `low-data-mode`) live in `css/utilities.css`.
+- [x] Text gaps fixed opportunistically (untranslated keys, inconsistent capitalisation, truncated labels) — none surfaced in this phase; `about.html` inline layout styles moved into `pages/about.css`.
+- `legacy.css` budget ratcheted 6 893 → 805.
+- Bugs fixed on the way: directory-card action row (Phase 3 pruning had merged `.org-card-actions > .btn, …` into `.opportunity-title` — buttons lost `flex: 1 1 auto` and gained a 12px bottom margin); hero copy on phones and in RTL sat on the photo half of the wash.
 
 ### Phase 5 — Cleanup & hardening
 
@@ -155,6 +157,9 @@ The header, footer, bottom nav and base script list become **partials** stamped 
 
 - ~~`.user-menu` visibility is driven by inline `style.display` from `auth.js` and `app.js` plus `html.glowe-expect-member` early-paint rules with `!important`; should become a single `body.glowe-signed-in` state class.~~ Done in Phase 2.
 - `pages/opportunities.html`, `saved.html`, `write-post.html` are redirect stubs that still ship a full shell; consider server-side `_redirects` entries.
-- `about.html` carries inline layout styles (`max-width`, `margin-top`, `text-align`) — Phase 4.
+- ~~`about.html` carries inline layout styles (`max-width`, `margin-top`, `text-align`) — Phase 4.~~ Done in Phase 4.
+- `.featured-section h2 { text-align: center }` used to leak into every `h2` inside a marketing section (filter-panel intros, forum workbench title, the about.html article headings). Phase 4 scoped it to `.featured-section > .container > h2`; those inner headings are now start-aligned like their body copy. Review in the Phase 5 pass if any of them should be centred by design.
+- `pages/opportunities.html` → `volunteer-network` hero copy is ~600px wide; on 390px phones the last words of each line reach the photo side of the wash — mitigated by the flat phone overlay (`--hero-overlay`), revisit the copy length in Phase 5.
+- ~~`glowe-visual` `footer — home @ 768` drifts above the 4 % pixel budget / off by one row of height between runs.~~ Root cause found in Phase 4: the footer's y-offset (and so the rounded capture height) depended on whatever the async home feed had rendered above it, and the fixed consent banner / sticky header / bottom nav overlaid the capture. The footer test now collapses `main`, header and bottom nav, pre-accepts consent and masks the `vX.Y.Z` build stamp, so the snapshot is a function of the footer chrome alone.
 - Legacy multi-step registration wizard (`renderRegistrationWizardLegacy`, ~110 dead strings) — `TD-143`.
 - Org profile `<h1>` falls back to the internal slug when no display name is set (noted in `TD-142`).

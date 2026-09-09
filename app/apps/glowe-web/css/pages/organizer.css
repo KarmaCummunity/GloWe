@@ -1,0 +1,62 @@
+/* GloWe page sheet — organizer portal and volunteer applications (FR-GLOWE-007-E) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.organizer-capacity {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.organizer-reg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.organizer-reg-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+}
+
+.organizer-reg-item strong {
+    margin-inline-end: 8px;
+}
+
+.organizer-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.organizer-cancel-event {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.event-link-line {
+    margin: 8px 0 14px;
+    word-break: break-all;
+}
+
+.event-link-line a {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.application-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.application-info p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}

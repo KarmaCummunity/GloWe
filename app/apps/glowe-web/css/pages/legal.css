@@ -1,0 +1,68 @@
+/* GloWe page sheet — legal documents (terms, privacy, accessibility) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.legal-section {
+    padding: 56px 0 82px;
+    background: linear-gradient(180deg, var(--surface-page), var(--color-neutral-0) 48%, var(--surface-brand-soft));
+}
+
+.legal-document {
+    max-width: 920px;
+    margin: 0 auto;
+    background: var(--alpha-white-92);
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: clamp(26px, 5vw, 58px);
+}
+
+.legal-document h2 {
+    margin-top: 34px;
+    margin-bottom: 12px;
+    color: var(--primary-dark);
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
+}
+
+.legal-document h2:first-of-type {
+    margin-top: 22px;
+}
+
+.legal-document h3 {
+    margin-top: 22px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.legal-document p,
+.legal-document li {
+    color: var(--text-secondary);
+    line-height: 1.78;
+}
+
+.legal-document ul {
+    margin: 10px 0 18px;
+    padding-inline-start: 24px;
+}
+
+.legal-document a {
+    color: var(--primary-dark);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+@media (max-width: 1023px) {
+    .legal-section {
+        padding-top: 54px;
+        padding-bottom: 54px;
+    }
+}
+
+@media (max-width: 767px) {
+    .legal-document {
+        padding: 24px 18px;
+    }
+}
