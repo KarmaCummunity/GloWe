@@ -122,13 +122,14 @@ The header, footer, bottom nav and base script list become **partials** stamped 
 - [x] TD-193: `GLOWE_BACKEND=dev` pin (`backend-config.js` override via `window.GLOWE_BACKEND_OVERRIDE` / `localStorage['glowe-backend']`, seeded into Playwright storage state) so the journeys job serves the PR checkout on `pull_request`, like the visual job. `tests/e2e/glowe-serve.json` (`cleanUrls: false`) keeps query strings (`messages.html?chat=…`) intact under `serve`.
 - [x] Text gaps: the filter-sheet strings (`Filter wishes/organizations/opportunities`, `Show results`, the three "open" labels) were missing from all four locale bundles.
 
-### Phase 3 — Controls & cards
+### Phase 3 — Controls & cards ✅ (2026-09-09)
 
-- [ ] `css/components/chips.css`, `cards.css`, `avatar.css`, `menu.css`, `nav-tabs.css`, `modal.css`.
-- [ ] Remap the ~12 ad-hoc button families to `.btn` variants (`.header-icon-btn` → `.btn.btn-icon`, `.filter-pill`/tabs → `.chip`, `.post-actions button` → `.btn.btn-ghost.btn-small`, `.bottom-nav-create` → `.btn.btn-primary.btn-icon.btn-fab`, …). Delete the old rules from `legacy.css`.
-- [ ] One card shell for post / wish / opportunity / org / forum / saved / application cards (`GloweUiConventions.directoryCardHtml` already covers three; extend to `renderPostCard`, closing `TD-138`).
-- [ ] `js/ui/glowe-ui-primitives.js` + `glowe-ui-dialog.js`; replace the 21 inline button literals, the inline empty-state blobs and every `window.confirm`.
-- [ ] Modals: one shell (`.modal`, `.modal__panel`, `.modal__header|body|footer`), one close control, focus trap + `Escape`, scroll lock, `aria-modal`.
+- [x] `css/components/chips.css`, `cards.css`, `avatar.css`, `menu.css`, `nav-tabs.css`, `modal.css`. Each file owns the canonical family and aliases the legacy class names until Phase 4 removes them per page; `menu.css` uses logical insets so the `html[dir=rtl]` mirrors were deleted.
+- [x] Remap the ~12 ad-hoc button families to `.btn` variants (`.header-icon-btn` → `.btn.btn-icon.btn-small`, `.filter-pill`/tabs → `.chip`, `.bottom-nav-create` → `.btn.btn-fab`, save/share/edit-name/section-collapse/comment-thread toggles → `.btn-icon`/`.btn-outline.btn-pill`/`.btn-link`). Old rules (incl. the `!important` pile on directory-card menus) deleted from `legacy.css`; `btn-sm` typo fixed. Dead `.heart-button`/`.card-open-button`/`.wish-image`/`savedToggleIconHtml` removed.
+- [x] One card shell for post / wish / opportunity / org / forum / saved / profile-section / admin / option cards (`components/cards.css`, `:has(input:checked)` for option cards). `renderPostCard` still builds its inner rows inline — `TD-138` stays open for Phase 4.
+- [x] `js/ui/glowe-ui-primitives.js` (`buttonHtml`, `iconButtonHtml`, `emptyStateHtml`, `loadingStateHtml`, `badgeHtml`, `menuItemHtml`) + `glowe-ui-dialog.js`; every `window.confirm`, 36 inline empty-state blobs, 4 loading placeholders and all `...` menu rows replaced in `app.js`.
+- [x] Modals: one shell (`.modal`, `.modal-content`), `<button>` close controls, focus trap + `Escape`, backdrop dismiss, scroll lock via `body.glowe-modal-open`, `aria-modal`, promise-based `confirm()`.
+- `legacy.css` budget ratcheted 8 092 → 6 893.
 
 ### Phase 4 — Pages
 
