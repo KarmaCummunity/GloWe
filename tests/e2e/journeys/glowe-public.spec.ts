@@ -32,7 +32,8 @@ test.describe('GloWe guest browsing', () => {
     await page.goto(gloweUrl('volunteer-network.html'));
     const list = page.locator('#opportunities-list');
     await expect(list).toBeVisible();
-    await waitForGloweBoard(page, '.opportunity-card');
+    // v1.4.5 — every list renders the unified feed card (FR-GLOWE-008).
+    await waitForGloweBoard(page, '#opportunities-list .post-card');
   });
 
   test('organizations directory shows approved organizations only', async ({ page }) => {
@@ -44,8 +45,8 @@ test.describe('GloWe guest browsing', () => {
 
   test('wishing well renders the needs board', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    // FR-GLOWE-006 AC9 — wishes use the shared directory card shell.
-    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
+    // FR-GLOWE-008 — wishes render as unified feed cards.
+    await waitForGloweBoard(page, '#wishes-list .post-card');
   });
 
   test('community feed renders posts or empty state', async ({ page }) => {
@@ -69,10 +70,10 @@ test.describe('GloWe guest browsing', () => {
 
   test('guest saving a card gets a sign-in gate, nothing is saved', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    await waitForGloweBoard(page, '#wishes-list .opportunity-card');
-    const card = page.locator('#wishes-list .opportunity-card').first();
+    await waitForGloweBoard(page, '#wishes-list .post-card');
+    const card = page.locator('#wishes-list .post-card').filter({ has: page.locator('.post-more-panel button[aria-pressed]') }).first();
     test.skip((await card.count()) === 0, 'no wish cards on the board yet — re-run seed-glowe-dev.mjs');
-    // FR-GLOWE-006 AC9 / FR-GLOWE-013 — Save lives in the ⋯ menu, not a heart.
+    // FR-GLOWE-008 / FR-GLOWE-013 — Save lives in the ⋯ menu, not a heart.
     await card.locator('.post-more-menu summary').click();
     const saveBtn = card.locator('.post-more-panel button[aria-pressed]');
     await expect(saveBtn).toHaveAttribute('aria-pressed', 'false');
@@ -129,41 +130,46 @@ test.describe('GloWe guest browsing', () => {
   });
 
   // FR-GLOWE-006 — wish-filter-panel (replaces legacy sticky .well-filters).
-  // Desktop (≥901px): advanced filters always in flow; toggle hidden.
-  // Mobile (≤900px): advanced collapsed until #wish-filter-toggle opens it.
+  // Unified list filters (v1.4.1, glowe-list-filters.js, SHEET_MQ 900px):
+  // Desktop (>900px): advanced pill groups render in flow; the sheet button is hidden.
+  // Mobile (<=900px): advanced groups live in a bottom sheet behind #wish-filters-open.
   test('wishing well filter panel uses progressive disclosure, not a sticky sidebar', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    const panel = page.locator('.wish-filter-panel');
-    await expect(panel).toBeVisible();
+    const panel = page.locator('#wish-filters-root .glowe-filter-panel');
+    await expect(panel).toBeVisible({ timeout: 20_000 });
     await expect(panel.locator('#wish-search')).toBeVisible();
     await expect(panel.locator('#wish-sort')).toBeVisible();
 
-    await expect(page.locator('#wish-filter-toggle')).toBeHidden();
-    const advanced = page.locator('#wish-filter-advanced');
+    const open = page.locator('#wish-filters-open');
+    const advanced = page.locator('#wish-filters-dialog .glowe-filter-advanced');
+    await expect(open).toBeHidden();
     await expect(advanced).toBeVisible();
     await expect(advanced.locator('.filter-accordion')).toHaveCount(2);
-    await expect(advanced.locator('details.filter-accordion[open]')).toHaveCount(1);
 
     const position = await panel.evaluate((el) => getComputedStyle(el).position);
     expect(position).not.toBe('sticky');
 
     await page.setViewportSize({ width: 390, height: 844 });
-    const toggle = page.locator('#wish-filter-toggle');
-    await expect(toggle).toBeVisible();
+    await expect(open).toBeVisible();
     await expect(advanced).toBeHidden();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await open.click();
+    await expect(open).toHaveAttribute('aria-expanded', 'true');
     await expect(advanced).toBeVisible();
     await expect(advanced.locator('.filter-accordion')).toHaveCount(2);
+    await page.keyboard.press('Escape');
+    await expect(advanced).toBeHidden();
   });
 
-  test('opportunity cards group location/duration/commitment metadata', async ({ page }) => {
+  test('opportunity cards use the unified feed card chrome', async ({ page }) => {
     await page.goto(gloweUrl('volunteer-network.html'));
-    await waitForGloweBoard(page, '.opportunity-card');
-    const card = page.locator('.opportunity-card').first();
+    await waitForGloweBoard(page, '#opportunities-list .post-card');
+    const card = page.locator('#opportunities-list .post-card').first();
     test.skip((await card.count()) === 0, 'no opportunity cards yet');
-    await expect(card.locator('.opportunity-meta-group')).toBeVisible();
-    await expect(card.locator('.opportunity-meta-group .opportunity-detail strong').first()).toBeVisible();
+    // Unified feed card: kind tag + author row + title + excerpt (FR-GLOWE-008).
+    await expect(card).toHaveAttribute('data-feed-kind', /opportunity|event/);
+    await expect(card.locator('.post-type-tag')).toBeVisible();
+    await expect(card.locator('.post-author')).toBeVisible();
+    await expect(card.locator('.post-card-body h3')).toBeVisible();
   });
 
   test('community posts use a single Share control and localized comment chrome', async ({ page }) => {
@@ -194,12 +200,12 @@ test.describe('GloWe guest browsing', () => {
 
   test('opportunity detail shows empty-state copy when requirements are missing', async ({ page }) => {
     await page.goto(gloweUrl('volunteer-network.html'));
-    await waitForGloweBoard(page, '#opportunities-list .opportunity-card');
-    const firstLink = page.locator(
-      '#opportunities-list .opportunity-card a.directory-card-stretch-link, #opportunities-list .opportunity-card a[href*="opportunity"]',
-    ).first();
-    await expect(firstLink).toBeVisible({ timeout: 20_000 });
-    await firstLink.click();
+    await waitForGloweBoard(page, '#opportunities-list .post-card');
+    const card = page.locator('#opportunities-list .post-card[data-feed-kind="opportunity"]').first();
+    test.skip((await card.count()) === 0, 'no plain opportunities on the board yet');
+    // Feed cards carry the entity id (`post-<id>`); the detail page is opportunity.html?id=<id>.
+    const id = (await card.getAttribute('id'))!.replace(/^post-/, '');
+    await page.goto(gloweUrl(`opportunity.html?id=${encodeURIComponent(id)}`));
     await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('#opp-title')).not.toHaveText(/Loading/i, { timeout: 25_000 });
     await expect(page.locator('#opp-requirements, #opp-responsibilities').first()).toBeVisible();

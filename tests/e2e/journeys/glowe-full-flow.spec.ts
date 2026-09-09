@@ -19,11 +19,13 @@ test.describe('GloWe full flow: help on a need → conversation on both sides', 
     const volunteer = await browser.newContext({ storageState: stateFile('yossi') });
     const pageA = await volunteer.newPage();
     await pageA.goto(gloweUrl('wishing-well.html'));
-    await waitForGloweBoard(pageA, '#wishes-list .opportunity-card', 25_000);
-    const wishCard = pageA.locator('#wishes-list .opportunity-card', { hasText: 'מתנדבים לחלוקת סלי חג' }).first();
+    await waitForGloweBoard(pageA, '#wishes-list .post-card', 25_000);
+    const wishCard = pageA.locator('#wishes-list .post-card', { hasText: 'מתנדבים לחלוקת סלי חג' }).first();
     test.skip((await wishCard.count()) === 0, 'seeded wish "מתנדבים לחלוקת סלי חג" missing — re-run seed-glowe-dev.mjs');
     await expect(wishCard).toBeVisible({ timeout: 25_000 });
-    await wishCard.getByRole('button', { name: 'Offer Support' }).click();
+    // FR-GLOWE-008 — card actions live in the ⋯ menu of the unified feed card.
+    await wishCard.locator('details.post-more-menu summary').click();
+    await wishCard.locator('.post-more-panel').getByRole('button', { name: 'Offer Support' }).click();
     await expect(pageA.locator('#connect-modal')).toBeVisible();
     await pageA.locator('#support-type').selectOption({ index: 1 });
     await pageA.locator('#support-availability').selectOption({ index: 1 });
