@@ -7,7 +7,7 @@
    .avatar-badge      verified tick in the trailing-bottom corner
 
    Legacy marks (.entity-mark, .comment-avatar, .testimonial-avatar,
-   .about-team-avatar, .profile-avatar, .social-avatar, .post-author-avatar,
+   .about-team-avatar, .profile-avatar, .social-avatar,
    .profile-avatar-img) alias the canonical sizes; their page placement
    (margins, negative offsets) stays in legacy.css until Phase 4. */
 
@@ -17,7 +17,6 @@
 .testimonial-avatar,
 .about-team-avatar,
 .profile-avatar,
-.post-author-avatar,
 .profile-avatar-img {
     --avatar-size: 42px;
     display: inline-flex;
@@ -72,7 +71,6 @@
 }
 
 /* Photo avatars in card headers get a thin white ring so they read as marks. */
-.post-author-avatar,
 .post-card-header .profile-avatar-img {
     border: 2px solid var(--surface-card);
     box-shadow: var(--shadow-xs);
