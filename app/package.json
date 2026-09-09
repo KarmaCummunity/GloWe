@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "pnpm lint:arch && pnpm lint:i18n && turbo run lint",
+    "lint": "pnpm lint:arch && pnpm lint:glowe && pnpm lint:i18n && turbo run lint",
     "lint:arch": "node scripts/check-architecture.mjs && node scripts/check-ssot-links.mjs",
+    "lint:glowe": "node scripts/check-glowe-css.mjs && node scripts/glowe-sync-shell.mjs --check",
+    "glowe:sync-shell": "node scripts/glowe-sync-shell.mjs",
     "lint:i18n": "node ../scripts/extract-hebrew-text.mjs --check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
