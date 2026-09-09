@@ -61,6 +61,9 @@ export default defineConfig({
       dependencies: ['glowe-setup'],
       use: {
         ...devices['Desktop Chrome'],
+        // Guest state minted by glowe-auth.setup.ts: empty unless GLOWE_BACKEND
+        // pins the hosted dev backend for a locally served checkout (TD-193).
+        storageState: '.auth/glowe-guest.json',
       },
     },
     // Local Supabase + mock-login personas only. Never runs in hosted CI.

@@ -6,8 +6,8 @@
   "scripts": {
     "predev": "node ../../../scripts/stamp-glowe-version.mjs",
     "prestart": "node ../../../scripts/stamp-glowe-version.mjs",
-    "dev": "npx --yes serve . --listen 4321 --no-port-switching",
-    "start": "npx --yes serve . --listen 4321 --no-port-switching",
+    "dev": "npx --yes serve . --listen 4321 --no-port-switching -c ../../../tests/e2e/glowe-serve.json",
+    "start": "npx --yes serve . --listen 4321 --no-port-switching -c ../../../tests/e2e/glowe-serve.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },

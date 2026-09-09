@@ -130,9 +130,9 @@ test.describe('GloWe guest browsing', () => {
   });
 
   // FR-GLOWE-006 — wish-filter-panel (replaces legacy sticky .well-filters).
-  // Unified list filters (v1.4.1, glowe-list-filters.js, SHEET_MQ 900px):
-  // Desktop (>900px): advanced pill groups render in flow; the sheet button is hidden.
-  // Mobile (<=900px): advanced groups live in a bottom sheet behind #wish-filters-open.
+  // Unified list filters (glowe-list-filters.js, SHEET_MQ 767px = shell `md` boundary):
+  // Desktop (>=768px): advanced pill groups render in flow; the sheet button is hidden.
+  // Mobile (<768px): advanced groups live in a bottom sheet behind #wish-filters-open.
   test('wishing well filter panel uses progressive disclosure, not a sticky sidebar', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
     const panel = page.locator('#wish-filters-root .glowe-filter-panel');

@@ -45,6 +45,21 @@ export const GLOWE_BASE = firstGloweRoot(
 );
 export const GLOWE_ORIGIN = new URL(GLOWE_BASE).origin;
 
+// TD-193 — when the suite serves a checkout on 127.0.0.1, backend-config.js
+// would pick the local Supabase CLI. GLOWE_BACKEND=dev pins the hosted dev
+// project via localStorage['glowe-backend'] in every storage state we mint.
+export const GLOWE_BACKEND = process.env.GLOWE_BACKEND === 'dev' ? 'dev' : '';
+
+export function backendPinEntries(): Array<{ name: string; value: string }> {
+  return GLOWE_BACKEND ? [{ name: 'glowe-backend', value: GLOWE_BACKEND }] : [];
+}
+
+/** Guest storage state: only the backend pin (empty when GLOWE_BACKEND is unset). */
+export function guestStorageState() {
+  const localStorage = backendPinEntries();
+  return { cookies: [], origins: localStorage.length ? [{ origin: GLOWE_ORIGIN, localStorage }] : [] };
+}
+
 export function gloweUrl(page: string): string {
   if (!page || page === '/' || page === 'index.html') return `${GLOWE_BASE}/index.html`;
   return `${GLOWE_BASE}/pages/${page}`;
@@ -154,6 +169,7 @@ export function gloweStorageState(
       }
     : null;
   const localStorage = [
+    ...backendPinEntries(),
     { name: 'glowe-auth-v1', value: JSON.stringify(session) },
     { name: 'gloweUser', value: JSON.stringify(gloweUser) },
     { name: 'glowe-guest-welcomed', value: '1' },

@@ -13,7 +13,25 @@
     // Pinned UMD build — keep in sync with js/vendor/README.md
     const SUPABASE_JS_VENDOR = 'js/vendor/supabase-js-2.105.3.js';
 
+    const OVERRIDE_KEY = 'glowe-backend';
+
+    // Explicit backend pin: 'dev' (hosted dev project) or 'local' (Supabase CLI).
+    // Set by CI (TD-193: the PR checkout is served on 127.0.0.1 but must talk to
+    // the real dev backend) or by hand from DevTools:
+    //   localStorage.setItem('glowe-backend', 'dev')
+    function backendOverride() {
+        const fromWindow = typeof window !== 'undefined' ? window.GLOWE_BACKEND_OVERRIDE : '';
+        if (fromWindow === 'dev' || fromWindow === 'local') return fromWindow;
+        try {
+            const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(OVERRIDE_KEY) : '';
+            if (stored === 'dev' || stored === 'local') return stored;
+        } catch (_) { /* storage blocked → auto */ }
+        return '';
+    }
+
     function isLocalDevPage() {
+        const override = backendOverride();
+        if (override) return override === 'local';
         if (typeof location === 'undefined') return false;
         const host = String(location.hostname || '').toLowerCase();
         if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') return true;
