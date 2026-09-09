@@ -469,25 +469,18 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    background: var(--card-surface);
-    border-radius: var(--radius-md);
     padding: 24px;
-    box-shadow: var(--card-shadow);
-    border: 1px solid var(--card-border);
-    transition: var(--transition);
 }
 
 /* Anchor the action row to the bottom of the card so buttons sit on one
    baseline regardless of body length (design fix #6 — grid rows already
    stretch to equal height, so margin-top:auto lines the actions up). */
-.opportunity-card,
-.wish-card {
+.opportunity-card {
     display: flex;
     flex-direction: column;
 }
 
 .opportunity-card > .card-actions,
-.wish-card > .card-actions,
 .post-card > .post-actions,
 .post-card > .post-share-row {
     margin-top: auto;
@@ -500,19 +493,11 @@
 }
 
 .card-more-menu {
-    top: 12px;
     right: 12px;
-}
-
-.wish-card .card-more-menu {
-    top: 56px;
 }
 
 .opportunity-card:hover {
     transform: translateY(-4px);
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
 }
 
 .opportunity-header {
@@ -549,16 +534,7 @@
    come from the shared content-card palette (--card-surface*). */
 .directory-card {
     padding: 14px 16px 14px;
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--card-shadow);
     overflow: visible;
-}
-
-.directory-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
 }
 
 .directory-card .opportunity-header {
@@ -939,11 +915,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
     margin-top: 48px;
 }
 
-.step-card {
-    text-align: center;
-    padding: 32px;
-}
-
 .step-number {
     width: 60px;
     height: 60px;
@@ -956,16 +927,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0 auto 20px;
-}
-
-.step-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 12px;
-    color: var(--text-primary);
-}
-
-.step-card p {
-    color: var(--text-secondary);
 }
 
 /* ===== Testimonials ===== */
@@ -1266,12 +1227,7 @@ html[dir="rtl"] .directory-card .post-more-panel {
     align-items: flex-start;
     gap: 10px;
     padding: 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: #fbfefd;
-    color: var(--text-secondary);
     font-weight: 800;
-    cursor: pointer;
 }
 
 .profile-type-card span {
@@ -1284,14 +1240,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
     font-size: 0.86rem;
     font-weight: 600;
     line-height: 1.45;
-}
-
-.profile-type-card:has(input:checked),
-.choice-card:has(input:checked) {
-    color: var(--primary-dark);
-    background: var(--primary-light);
-    border-color: rgba(20, 124, 117, 0.38);
-    box-shadow: inset 0 0 0 1px rgba(20, 124, 117, 0.12);
 }
 
 .profile-type-card:has(input:checked) small {
@@ -1665,10 +1613,7 @@ section.opportunity-detail {
 }
 
 .apply-card {
-    background: var(--white);
-    border-radius: var(--radius-md);
     padding: 32px;
-    box-shadow: var(--shadow-sm);
     text-align: center;
 }
 
@@ -1703,10 +1648,7 @@ section.opportunity-detail {
 }
 
 .org-info-card {
-    background: var(--white);
-    border-radius: var(--radius-md);
     padding: 24px;
-    box-shadow: var(--shadow-sm);
     margin-top: 24px;
 }
 
@@ -2454,9 +2396,6 @@ html[dir="rtl"] .org-review-banner__note {
 
 .saved-mini-card {
     padding: 18px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: #fbfefd;
 }
 
 .saved-mini-card h3 {
@@ -2722,83 +2661,18 @@ html[dir="rtl"] .org-review-banner__note {
     }
 
     .wishes-list > .directory-card,
-    .wishes-list > .wish-card,
     .wishes-list > .post-card--feed {
         height: 100%;
     }
 }
 
-.wish-card,
 .post-card,
 .project-card,
 .composer-card {
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
     padding: 22px;
-    box-shadow: var(--card-shadow);
     display: flex;
     flex-direction: column;
     height: 100%;
-    transition: var(--transition);
-}
-
-/* Composer stays a writing surface (white) — not a content card. */
-.composer-card {
-    background: var(--white);
-    border-color: var(--border-color);
-    box-shadow: 0 10px 30px rgba(24, 36, 61, 0.06);
-}
-
-.wish-card:hover,
-.post-card:hover,
-.project-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
-}
-
-.wish-card {
-    position: relative;
-    overflow: visible;
-}
-
-.wish-card::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 5px;
-    background: var(--tag-color, var(--primary-color));
-}
-
-.wish-card-top,
-.card-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-/* Org/opportunity footers: identical 3-column layout whether Save or Saved. */
-.card-actions.card-actions--consistent {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: stretch;
-    gap: 8px;
-    flex-wrap: nowrap;
-}
-
-.card-actions.card-actions--consistent > .btn,
-.card-actions.card-actions--consistent > a.btn {
-    width: 100%;
-    justify-content: center;
-    white-space: nowrap;
-    min-width: 0;
-}
-
-.card-actions.card-actions--consistent > .btn-primary {
-    min-width: 7.5rem;
 }
 
 .wish-type {
@@ -2854,20 +2728,6 @@ html[dir="rtl"] .org-review-banner__note {
     background: rgba(255, 255, 255, 0.75);
     box-shadow: var(--shadow-sm);
     font-size: 1.2rem;
-}
-
-.wish-card h3 button {
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-weight: 800;
-    text-align: start;
-    cursor: pointer;
-}
-
-.wish-card h3 button:hover {
-    color: var(--primary-dark);
 }
 
 .wish-detail-hero {
@@ -2983,7 +2843,6 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .low-data-mode .opportunity-card,
-.low-data-mode .wish-card,
 .low-data-mode .daily-action-card,
 .low-data-mode .match-card,
 .low-data-mode .playbook-card {
@@ -3002,7 +2861,6 @@ html[dir="rtl"] .org-review-banner__note {
     cursor: pointer;
 }
 
-.wish-card h3,
 .post-card h3,
 .project-card h3 {
     margin: 14px 0 10px;
@@ -3364,7 +3222,6 @@ html[dir="rtl"] .org-review-banner__note {
     align-items: center;
     gap: 16px;
     margin-bottom: 20px;
-    color: var(--text-secondary);
 }
 
 .composer-actions {
@@ -3598,23 +3455,9 @@ html[dir="rtl"] .org-review-banner__note {
     display: grid;
     gap: 12px;
     padding: 18px;
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--card-shadow);
-    transition: var(--transition);
-}
-
-.forum-group-card:hover,
-.thread-row:hover,
-.saved-item-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
 }
 
 .forum-group-card {
-    color: inherit;
     text-decoration: none;
 }
 
@@ -3682,10 +3525,6 @@ html[dir="rtl"] .org-review-banner__note {
     display: grid;
     gap: 12px;
     padding: 16px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 30px rgba(24, 36, 61, 0.05);
 }
 
 .forum-leader-main {
@@ -4140,11 +3979,7 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .profile-section-card {
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
     padding: 24px;
-    box-shadow: var(--shadow-sm);
 }
 
 .profile-story-card {
@@ -4598,22 +4433,6 @@ html[dir="rtl"] .org-review-banner__note {
         grid-column: 2;
     }
 
-    .wish-card-top .heart-button {
-        display: none;
-    }
-
-    .wish-card .card-actions .post-share-label {
-        display: none;
-    }
-
-    .wish-card .card-actions .post-share-button {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        justify-content: center;
-        border-radius: 50%;
-    }
-
     .wishes-column {
         order: 1;
     }
@@ -4770,10 +4589,6 @@ html[dir="rtl"] .org-review-banner__note {
     gap: 14px;
     min-height: 330px;
     padding: 28px;
-    border: 1px solid rgba(15, 93, 85, 0.14);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    box-shadow: 0 18px 42px rgba(7, 63, 66, 0.07);
     position: relative;
     overflow: hidden;
 }
@@ -5746,32 +5561,6 @@ html[dir="rtl"] .org-review-banner__note {
     box-shadow: 0 8px 24px rgba(24, 36, 61, 0.06);
 }
 
-.linkedin-community-layout .feed-list .directory-card {
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--card-shadow);
-}
-
-.linkedin-community-layout .feed-list .directory-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
-}
-
-.linkedin-community-layout .post-card {
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--card-shadow);
-}
-
-.linkedin-community-layout .post-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
-}
-
 .community-feed-header {
     display: flex;
     align-items: flex-start;
@@ -6702,21 +6491,6 @@ html[dir="rtl"] .org-review-banner__note {
     flex-direction: column;
     gap: 6px;
     padding: 16px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: var(--transition);
-    background: var(--white);
-}
-
-.onboarding-type-card:hover {
-    border-color: var(--primary-light);
-}
-
-.onboarding-type-card:has(input:checked) {
-    border-color: var(--primary-color);
-    background: var(--mint-light);
-    box-shadow: var(--shadow-sm);
 }
 
 .onboarding-type-card input {
@@ -6803,18 +6577,12 @@ html[dir="rtl"] .post-more-panel button,
 html[dir="rtl"] .post-more-panel a.post-menu-action,
 html[dir="rtl"] .filter-pill,
 html[dir="rtl"] .comment-summary,
-html[dir="rtl"] .wish-card h3 button,
 html[dir="rtl"] .compact-empty,
 html[dir="rtl"] .post-card,
 html[dir="rtl"] .opportunity-main,
 html[dir="rtl"] .opportunity-card,
-html[dir="rtl"] .wish-card,
 html[dir="rtl"] .opportunity-meta-group {
     text-align: right;
-}
-
-html[dir="rtl"] .wish-card::before {
-    inset: 0 0 0 auto;
 }
 
 /* The "..." action menu and its panel belong on the leading (right) edge in
@@ -7066,10 +6834,6 @@ body.glowe-member-home main > section:not(#member-home) {
     text-decoration: underline;
 }
 
-.home-feed-list .member-feed-card {
-    max-width: 100%;
-}
-
 .member-home-community.linkedin-community-layout .post-card,
 .guest-home-feed.linkedin-community-layout .post-card {
     position: relative;
@@ -7183,19 +6947,6 @@ body.glowe-member-home main > section:not(#member-home) {
     gap: 20px;
 }
 
-.member-feed-card {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: var(--card-surface);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    color: inherit;
-    box-shadow: var(--card-shadow);
-    transition: var(--transition);
-}
-
 .guest-home-feed {
     padding: 28px 0 8px;
 }
@@ -7223,46 +6974,12 @@ body.glowe-member-home main > section:not(#member-home) {
     text-align: center;
 }
 
-.member-feed-card-link {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-decoration: none;
-    color: inherit;
-    flex: 1;
-}
-
-.member-feed-card-link:hover {
-    text-decoration: none;
-}
-
-.member-feed-card:hover {
-    background: var(--card-surface-hover);
-    border-color: var(--card-border-hover);
-    box-shadow: var(--card-shadow-hover);
-    transform: translateY(-2px);
-}
-
-.member-feed-card:hover .member-feed-card-link {
-    color: inherit;
-}
-
 .member-feed-type {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--primary-color);
-}
-
-.member-feed-card h3 {
-    font-size: 1.1rem;
-    color: var(--primary-dark);
-}
-
-.member-feed-card p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
 }
 
 .member-feed-author {
@@ -7282,11 +6999,6 @@ body.glowe-member-home main > section:not(#member-home) {
 .member-feed-opportunity-org {
     font-weight: 600;
     color: var(--text-primary);
-}
-
-.member-feed-card .tr-slot {
-    order: -1;
-    margin: 0 0 4px;
 }
 
 .member-feed-grid .opportunity-card {

@@ -39,7 +39,7 @@ test.describe('GloWe production health (read-only)', () => {
 
   test('wishing_well — needs board renders', async ({ page }) => {
     await page.goto(gloweUrl('wishing-well.html'));
-    await expect(page.locator('.wish-card, .empty-state').first()).toBeVisible({ timeout: 25_000 });
+    await expect(page.locator('.post-card, .wish-card, .empty-state').first()).toBeVisible({ timeout: 25_000 });
   });
 
   test('volunteer_network — opportunities or empty state', async ({ page }) => {
