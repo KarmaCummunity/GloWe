@@ -1498,12 +1498,29 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `app/apps/glowe-web/css/**`, `partials/**`, all 22 pages, `app/scripts/{glowe-sync-shell,check-glowe-css,glowe-minify-hash,web-postbuild}.mjs`, `.github/workflows/ci-e2e-glowe.yml`, `tests/e2e/journeys/glowe-visual.spec.ts(-snapshots)`; `spec/17_glowe_frontend.md` FR-GLOWE-029; plan `docs/superpowers/plans/2026-09-09-glowe-design-system-reset.md`; TD-191, TD-192.
 
+## D-191 — GloWe shell: one `md` (768px) boundary for every mobile/desktop swap; two-row header on tablets; PR journeys run on the checkout (2026-09-09)
+
+**Decision.**
+
+1. **One mobile boundary.** Every layout swap between the phone and the desktop shape happens at the `md` breakpoint (`< 768px` phone, `≥ 768px` tablet/desktop): bottom tab bar ⇄ pill nav (was 680px), the unified list-filter bottom sheet ⇄ inline filter groups (was 900px; `SHEET_MQ` in `glowe-list-filters.js` mirrors `css/components/list-filters.css`). No component picks its own threshold.
+2. **Tablet header.** Between 768px and 1023px the header renders two rows — logo + actions, then the full-width pill nav — instead of truncating five labels in ~290px. At ≥ 1024px the single-row header returns. The header stays sticky; the taller tablet bar (~110px) is accepted.
+3. **Auth state is a class.** `body.glowe-signed-in` (set by `auth.js`) is the only switch between the guest CTA and the member menu; the early-paint guard `html.glowe-expect-member` only hides the guest CTA. No inline `style.display` from JS, no `!important` toggles.
+4. **`url()` tokens are consumed only from `css/*.css` (flat).** Chromium resolves a `url()` inside `var()` against the sheet that *uses* it and the production bundle is emitted at `css/glowe.<hash>.css`, so sheets in `css/components/**` may not reference assets, directly or via `--asset-*` / `--*-photo` tokens (`check-glowe-css` rule 6). Layout sheets that paint the brand mark therefore live flat as `css/layout-*.css`.
+5. **PR journeys validate the PR.** `glowe-journeys` on `pull_request` serves the checkout on `127.0.0.1:4321` with `GLOWE_BACKEND=dev` (→ `localStorage['glowe-backend']`, read by `backend-config.js`) so the hosted dev Supabase is used; `serve` runs with `cleanUrls: false` (`tests/e2e/glowe-serve.json`) so `?chat=…` deep links survive. `push` keeps the post-deploy smoke against the deployed URL. Closes TD-193.
+
+**Rationale.** A single boundary makes phone vs. desktop behaviour predictable for users and testers (one viewport to flip) and lets the shell, filters and future page layouts share one media query set. The two-row tablet header keeps the primary navigation readable exactly where the bottom bar disappears. Serving the checkout in PR CI is what made the six-week red E2E check visible and fixable (TD-193).
+
+**Alternatives rejected.** Keeping 900px for the filter sheet (second, unexplained threshold); shrinking nav labels / hiding the language pill on tablets (unreadable or inaccessible); a hamburger menu on tablets (hides primary navigation behind a tap when there is room for it).
+
+**Affected.** `css/layout-header.css`, `css/layout-header-actions.css`, `css/components/list-filters.css`, `js/glowe-list-filters.js`, `js/auth.js`, `js/backend-config.js`, `app/scripts/check-glowe-css.mjs`, `.github/workflows/ci-e2e-glowe.yml`, `tests/e2e/{glowe-serve.json,lib/glowe.ts,playwright.config.ts,journeys/glowe-auth.setup.ts,journeys/glowe-visual.spec.ts}`; FR-GLOWE-029 AC4/AC5/AC7.
+
 ---
 
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.22 | 2026-09-09 | Added `D-191` (GloWe shell: one 768px boundary, two-row tablet header, class-based auth state, flat `url()` sheets, PR journeys on the checkout; FR-GLOWE-029 Phase 2). |
 | 4.21 | 2026-09-09 | Added `D-190` (GloWe design system: token layer + cascade layers + shell partials + PR-time visual gate; FR-GLOWE-029). |
 | 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.19 | 2026-07-27 | Added `D-188` (GloWe postbuild minify + content-hash + `_headers`; vendored pinned supabase-js; FR-GLOWE-001 AC7 / GLOWE.LAUNCH-2). |
