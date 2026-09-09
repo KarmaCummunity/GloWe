@@ -131,6 +131,9 @@ jobs:
             tests/e2e/test-results/
 
   # Independent of journeys so a functional failure still reports visual drift.
+  # On pull_request the PR's own checkout is served locally (D-190): a design
+  # change is validated BEFORE merge instead of against the previous deploy.
+  # On push the deployed URL is snapshotted (post-deploy smoke).
   glowe-visual:
     name: GloWe visual (${{ needs.resolve-target.outputs.label }})
     needs: resolve-target
@@ -141,16 +144,25 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Wait for deploy
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Serve PR checkout (pull_request only)
+        if: github.event_name == 'pull_request'
+        run: |
+          (npx --yes serve app/apps/glowe-web --listen 4321 --no-port-switching > /tmp/glowe-serve.log 2>&1 &)
+          node scripts/wait-for-url.mjs "http://127.0.0.1:4321" 20 1000
+          echo "GLOWE_VISUAL_URL=http://127.0.0.1:4321" >> "$GITHUB_ENV"
+
+      - name: Wait for deploy (push / dispatch)
+        if: github.event_name != 'pull_request'
         env:
           GLOWE_URL: ${{ needs.resolve-target.outputs.glowe_url }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then sleep 90; fi
           node scripts/wait-for-url.mjs "${GLOWE_URL%/}/" 16 15000
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
+          echo "GLOWE_VISUAL_URL=${GLOWE_URL%/}" >> "$GITHUB_ENV"
 
       - name: Install Playwright
         working-directory: tests/e2e
@@ -161,7 +173,7 @@ jobs:
       - name: Run GloWe visual regression
         working-directory: tests/e2e
         env:
-          GLOWE_WEB_URL: ${{ needs.resolve-target.outputs.glowe_url }}
+          GLOWE_WEB_URL: ${{ env.GLOWE_VISUAL_URL }}
         run: npx playwright test --project=glowe-visual
 
       - uses: actions/upload-artifact@v4
