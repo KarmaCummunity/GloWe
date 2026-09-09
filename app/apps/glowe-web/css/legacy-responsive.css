@@ -13,10 +13,6 @@
 }
 
 @media (max-width: 1023px) {
-    .split-section {
-        grid-template-columns: 1fr;
-    }
-
     .choice-grid,
     .compact-choice-grid {
         grid-template-columns: 1fr;
@@ -31,17 +27,6 @@
         text-align: start;
     }
 
-    .blueprint-grid {
-        grid-template-columns: 1fr;
-    }
-
-    #clear-wish-filters {
-        grid-column: 2;
-    }
-
-    #clear-wish-filters {
-        width: 100%;
-    }
 }
 
 @media (max-width: 639px) {
@@ -62,7 +47,6 @@
         padding-bottom: 58px;
     }
 
-    .capability-grid,
     .opportunities-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -91,7 +75,6 @@
         align-items: stretch;
     }
 
-    .capability-grid,
     .opportunities-grid,
     .footer-grid,
     .choice-grid {
