@@ -20,7 +20,7 @@
 .legal-document h2 {
     margin-top: 34px;
     margin-bottom: 12px;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-size: clamp(1.35rem, 2vw, 1.75rem);
 }
 
@@ -31,13 +31,13 @@
 .legal-document h3 {
     margin-top: 22px;
     margin-bottom: 8px;
-    color: var(--text-primary);
+    color: var(--text-strong);
     font-size: 1.1rem;
 }
 
 .legal-document p,
 .legal-document li {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.78;
 }
 
@@ -47,7 +47,7 @@
 }
 
 .legal-document a {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 800;
     text-decoration: underline;
     text-decoration-thickness: 1px;

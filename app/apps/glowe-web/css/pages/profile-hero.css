@@ -8,8 +8,8 @@
 
 .social-profile-hero {
     overflow: hidden;
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
 }
@@ -39,17 +39,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 8px;
     background: var(--alpha-white-92);
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     cursor: pointer;
     box-shadow: var(--shadow-sm);
     transition: background-color 0.2s;
 }
 
 .social-cover-change:hover {
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .social-cover-change svg {
@@ -77,10 +77,10 @@
     position: absolute;
     inset-inline-end: -4px;
     inset-block-end: 6px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 999px;
-    background: var(--white);
-    color: var(--primary-dark);
+    background: var(--color-neutral-0);
+    color: var(--color-primary-900);
     font: inherit;
     font-size: 0.72rem;
     font-weight: 900;
@@ -90,7 +90,7 @@
 }
 
 .social-avatar-change:hover {
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .social-avatar-change--icon {
@@ -139,16 +139,16 @@
 
 .social-profile-copy p {
     max-width: 720px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .profile-cover {
     position: relative;
     margin-bottom: 24px;
     padding: 0;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    background: var(--white);
+    background: var(--color-neutral-0);
     box-shadow: var(--shadow-md);
     overflow: hidden;
 }

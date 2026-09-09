@@ -1,0 +1,12 @@
+/* GloWe page sheet — settings (FR-GLOWE-029 Phase 5 / D-190).
+   Visual primitives (buttons, forms) come from the components layer. */
+
+.settings-grid {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 720px;
+}
+
+.settings-grid .form-group {
+    margin-top: var(--space-3);
+}

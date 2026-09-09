@@ -7,7 +7,7 @@ import {
     lintCssSource,
     lintHtmlSource,
     checkGloweSite,
-    LEGACY_LINE_BUDGET,
+    BANNED_FILES,
 } from '../../../../scripts/check-glowe-css.mjs';
 import {
     renderPartial,
@@ -61,17 +61,17 @@ describe('check-glowe-css guard', () => {
         expect(lintCssSource('.s{background-image:url("data:image/svg+xml;utf8,<svg/>")}', 'css/components/forms.css')).toEqual([]);
     });
 
-    it('lets legacy.css shrink but never grow past its budget', () => {
-        const atBudget = Array.from({ length: LEGACY_LINE_BUDGET }, () => '').join('\n');
-        expect(lintCssSource(atBudget, 'legacy.css')).toEqual([]);
-        expect(lintCssSource(atBudget + '\n.new{}', 'legacy.css')[0]).toMatch(/grew/);
+    it('bans the retired legacy stylesheets outright', () => {
+        expect(BANNED_FILES.has('legacy.css')).toBe(true);
+        expect(lintCssSource('.a { color: var(--text-muted) }', 'legacy.css')[0]).toMatch(/retired/);
+        expect(lintCssSource('.a { color: var(--text-muted) }', 'legacy-responsive.css')[0]).toMatch(/retired/);
     });
 
-    it('holds legacy.css to canonical breakpoints but not to the raw-color / !important rules yet', () => {
-        expect(lintCssSource('@media (max-width: 900px) { .a { color: red } }', 'legacy.css')).toEqual([
-            expect.stringMatching(/off-scale breakpoint "\(max-width: 900px\)"/)
+    it('applies the raw-color and !important rules to every sheet', () => {
+        expect(lintCssSource('@media (max-width: 1023px) { .a { color: #fff !important } }', 'pages/x.css')).toEqual([
+            expect.stringMatching(/raw color/),
+            expect.stringMatching(/!important/),
         ]);
-        expect(lintCssSource('@media (max-width: 1023px) { .a { color: #fff !important } }', 'legacy.css')).toEqual([]);
     });
 
     it('pages link only css/glowe.css', () => {

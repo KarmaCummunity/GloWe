@@ -2,7 +2,7 @@
 /**
  * GloWe CSS design-system guard (FR-GLOWE-029 / D-190).
  *
- * Enforced on every file under app/apps/glowe-web/css/ (legacy.css: rules 3 + ratchet only):
+ * Enforced on every file under app/apps/glowe-web/css/:
  *   1. raw colors (#hex / rgb() / hsl()) live ONLY in tokens.css
  *   2. `!important` only in base.css / utilities.css
  *   3. media queries use the canonical breakpoint set only
@@ -11,7 +11,8 @@
  *   6. nested folders (css/components/**) carry no relative url() and consume no
  *      url() token (--*-photo / --asset-*): Chromium resolves url() inside var()
  *      against the sheet that USES it, and the bundle lands at css/glowe.<hash>.css
- * legacy.css is a ratchet: it may only shrink (LEGACY_LINE_BUDGET).
+ *   7. the pre-design-system legacy.css / legacy-responsive.css must not come back
+ *      (TD-192 closed in FR-GLOWE-029 Phase 5)
  * HTML pages may link only css/glowe.css.
  *
  *   node scripts/check-glowe-css.mjs
@@ -20,8 +21,6 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** Shrink this number whenever legacy.css loses lines. It must never grow (TD-192). */
-export const LEGACY_LINE_BUDGET = 679;
 export const MAX_FILE_LINES = 300;
 
 export const BREAKPOINTS = {
@@ -30,7 +29,8 @@ export const BREAKPOINTS = {
 };
 
 const TOKENS_FILE = 'tokens.css';
-const LEGACY_FILE = 'legacy.css';
+/** Deleted in Phase 5; any reappearance is a violation, not a ratchet. */
+export const BANNED_FILES = new Set(['legacy.css', 'legacy-responsive.css']);
 const IMPORTANT_ALLOWED = new Set(['base.css', 'utilities.css']);
 
 const COLOR_RE = /#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})\b|\b(?:rgba?|hsla?)\(/gi;
@@ -63,26 +63,23 @@ export function lintCssSource(source, fileName) {
   const name = basename(fileName);
   const lines = source.split('\n').length;
 
-  const isLegacy = name === LEGACY_FILE;
   const css = stripDataUrls(stripComments(source));
 
-  // legacy.css: ratchet only (raw colors / !important / size are Phase 5 work),
-  // but its breakpoints were normalized in Phase 4 and must stay canonical.
-  if (isLegacy && lines > LEGACY_LINE_BUDGET) {
-    out.push(`${fileName}: legacy.css grew to ${lines} lines (budget ${LEGACY_LINE_BUDGET}) — migrate rules into layers instead`);
+  if (BANNED_FILES.has(name)) {
+    out.push(`${fileName}: the legacy stylesheet was retired (TD-192) — put rules in components/, layout-*.css or pages/`);
   }
 
-  if (!isLegacy && lines > MAX_FILE_LINES) {
+  if (lines > MAX_FILE_LINES) {
     out.push(`${fileName}: ${lines} lines exceeds ${MAX_FILE_LINES} — split the file`);
   }
 
-  if (!isLegacy && name !== TOKENS_FILE) {
+  if (name !== TOKENS_FILE) {
     for (const m of css.matchAll(COLOR_RE)) {
       out.push(`${fileName}:${lineOf(css, m.index)}: raw color "${m[0]}" — use a token from tokens.css`);
     }
   }
 
-  if (!isLegacy && !IMPORTANT_ALLOWED.has(name)) {
+  if (!IMPORTANT_ALLOWED.has(name)) {
     let idx = css.indexOf('!important');
     while (idx !== -1) {
       out.push(`${fileName}:${lineOf(css, idx)}: !important is not allowed here (layer order replaces it)`);
@@ -181,5 +178,5 @@ if (isMain) {
     console.error(`[check-glowe-css] ${violations.length} violation(s)`);
     process.exit(1);
   }
-  console.log('[check-glowe-css] OK — tokens-only colors, canonical breakpoints, legacy budget respected');
+  console.log('[check-glowe-css] OK — tokens-only colors, canonical breakpoints, layered sheets ≤ 300 lines, no legacy.css');
 }

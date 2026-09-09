@@ -38,3 +38,14 @@ html.glowe-expect-member body.home-page-body #member-home[hidden] {
     animation: none;
     transition-duration: 0.01ms;
 }
+
+/* FR-GLOWE-005 — hide the English source chrome until translateGloweTree
+   finishes; the early head script sets html.glowe-i18n-pending for non-English
+   locales. */
+html.glowe-i18n-pending body {
+    visibility: hidden;
+}
+
+html.glowe-i18n-pending {
+    background: var(--surface-page);
+}

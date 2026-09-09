@@ -4,7 +4,7 @@
 
 .admin-dashboard-section {
     padding: 64px 0 88px;
-    background: linear-gradient(180deg, var(--color-neutral-0), var(--primary-light));
+    background: linear-gradient(180deg, var(--color-neutral-0), var(--color-primary-100));
 }
 
 .admin-stats {
@@ -33,11 +33,11 @@
 
 .admin-stats strong {
     font-size: 2.1rem;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .admin-stats span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 800;
 }
 
@@ -106,18 +106,18 @@
 
 .admin-card p,
 .admin-card small {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .admin-note-label {
     display: block;
     margin: 12px 0 6px;
     font-size: 0.82rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .admin-note-required {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-style: italic;
 }
 
@@ -127,7 +127,7 @@
     width: 100%;
     margin-top: 4px;
     padding: 8px 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     font: inherit;
     resize: vertical;
@@ -160,12 +160,12 @@
 
 .admin-org-accordion[open] .admin-org-summary {
     border-bottom: 1px solid var(--alpha-ink-12);
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .admin-org-summary-name {
     font-weight: 700;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     flex: 1;
     min-width: 0;
     white-space: nowrap;
@@ -175,19 +175,19 @@
 
 .admin-org-summary-meta {
     font-size: 0.82rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     flex-shrink: 0;
 }
 
 .admin-org-summary-date {
     font-size: 0.78rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     flex-shrink: 0;
 }
 
 .admin-org-summary-chevron {
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     flex-shrink: 0;
     transition: transform 0.2s;
 }

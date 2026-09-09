@@ -10,13 +10,13 @@
 }
 
 .daily-workspace-section {
-    background: var(--white);
+    background: var(--color-neutral-0);
 }
 
 .smart-matching-section {
-    background: linear-gradient(135deg, var(--primary-light), var(--color-neutral-50));
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--color-primary-100), var(--color-neutral-50));
+    border-top: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .daily-grid,
@@ -29,15 +29,14 @@
 }
 
 .daily-action-card,
-.playbook-card,
-.leader-card {
+.playbook-card {
     padding: 22px;
 }
 
 .values-grid article,
 .current-actions-grid article {
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 22px;
     box-shadow: 0 10px 30px var(--alpha-ink-08);
@@ -45,7 +44,7 @@
 
 .daily-action-card span,
 .playbook-card span {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 800;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -53,16 +52,14 @@
 
 .daily-action-card h3,
 .playbook-card h3,
-.leader-card h3,
 .values-grid h3 {
     margin: 10px 0;
 }
 
 .daily-action-card p,
 .playbook-card p,
-.leader-card p,
 .values-grid p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .current-actions-grid article strong,
@@ -71,19 +68,12 @@
 }
 
 .current-actions-grid article strong {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     margin-bottom: 8px;
 }
 
 .current-actions-grid article span {
-    color: var(--text-secondary);
-}
-
-.leader-card {
-    display: grid;
-    grid-template-columns: 78px minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
+    color: var(--text-muted);
 }
 
 .flow-board {
@@ -97,7 +87,7 @@
     min-height: 190px;
     padding: 22px;
     background: var(--color-neutral-0);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
 }
 
@@ -113,8 +103,8 @@
     justify-content: center;
     margin-bottom: 16px;
     border-radius: 50%;
-    background: var(--primary-dark);
-    color: var(--white);
+    background: var(--color-primary-900);
+    color: var(--color-neutral-0);
     font-weight: 900;
 }
 
@@ -123,7 +113,7 @@
 }
 
 .flow-board p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .path-grid {
@@ -135,7 +125,7 @@
 .path-grid button {
     min-height: 180px;
     padding: 20px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     background: var(--color-neutral-0);
     color: inherit;
@@ -145,8 +135,8 @@
 }
 
 .path-grid button:hover {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-100);
 }
 
 .path-grid strong,
@@ -156,11 +146,11 @@
 
 .path-grid strong {
     margin-bottom: 10px;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .path-grid span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .clean-step-list {
@@ -177,7 +167,7 @@
     align-items: flex-start;
     gap: 10px;
     padding: 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-align: start;
 }
 
@@ -191,8 +181,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
     font-size: 0.78rem;
     font-weight: 800;
 }

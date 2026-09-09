@@ -1,0 +1,44 @@
+/* GloWe translation chrome on user-generated content (FR-TRANSLATE-005/006).
+   A reserved slot under clamped UGC text holds the "Show original" toggle or
+   the "Translating…" indicator, so the source → translation swap never shifts
+   the text around it. */
+
+.tr-slot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    margin: 2px 0 0;
+}
+
+.tr-slot:empty {
+    display: none;
+}
+
+.tr-toggle {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.tr-toggle:hover {
+    background: transparent;
+    color: var(--text-link);
+}
+
+.tr-pending {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.3;
+}

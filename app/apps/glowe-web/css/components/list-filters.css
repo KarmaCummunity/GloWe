@@ -247,3 +247,50 @@
         min-width: max-content;
     }
 }
+
+/* Collapsible filter groups — native <details> keeps the initial choice set
+   small (progressive disclosure) without extra JS. */
+.filter-accordion {
+    border-bottom: 1px solid var(--border-default);
+    margin: 0 -4px;
+    padding: var(--space-1);
+}
+
+.filter-accordion > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-1);
+    margin: 0;
+    list-style: none;
+    cursor: pointer;
+    font-weight: var(--weight-extrabold);
+    color: var(--text-strong);
+}
+
+.filter-accordion > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-accordion > summary::after {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.filter-accordion[open] > summary::after {
+    transform: rotate(-135deg);
+}
+
+.filter-input {
+    width: 100%;
+    padding: var(--space-3) 14px;
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    font: inherit;
+}

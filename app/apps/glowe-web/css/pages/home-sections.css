@@ -7,13 +7,13 @@
 }
 
 .values-section {
-    background: linear-gradient(135deg, var(--color-neutral-50), var(--primary-light));
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--color-neutral-50), var(--color-primary-100));
+    border-bottom: 1px solid var(--border-default);
 }
 
 .trust-strip {
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .trust-strip .container,
@@ -32,7 +32,7 @@
 .trust-panel div {
     padding: 16px;
     background: var(--color-neutral-0);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
 }
 
@@ -45,7 +45,7 @@
 
 .trust-strip span,
 .trust-panel span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.92rem;
 }
 
@@ -59,7 +59,7 @@
     background: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-secondary-500) 100%);
     padding: 80px 0;
     text-align: center;
-    color: var(--white);
+    color: var(--color-neutral-0);
 }
 
 .cta-section h2 {
@@ -83,7 +83,7 @@
 .home-ecosystem-section,
 .journey-section {
     padding: 76px 0;
-    background: var(--white);
+    background: var(--color-neutral-0);
 }
 
 .home-ecosystem-section .container {
@@ -100,7 +100,7 @@
 }
 
 .ecosystem-copy p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 1.08rem;
     line-height: 1.75;
 }
@@ -125,7 +125,7 @@
 }
 
 .journey-grid article > span {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-size: 0.82rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -133,13 +133,13 @@
 
 .journey-grid h3 {
     margin: 0;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .journey-grid p {
     flex: 1;
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.65;
 }
 
@@ -155,7 +155,7 @@
     min-height: 420px;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--alpha-ink-12);
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .ecosystem-photo img {
@@ -174,7 +174,7 @@
     gap: 4px;
     padding: 16px 18px;
     border-radius: var(--radius-md);
-    color: var(--white);
+    color: var(--color-neutral-0);
     background: var(--alpha-ink-55);
     backdrop-filter: blur(10px);
 }
@@ -215,7 +215,7 @@
     .ecosystem-photo figcaption {
         position: static;
         border-radius: 0;
-        background: var(--primary-dark);
+        background: var(--color-primary-900);
     }
 }
 

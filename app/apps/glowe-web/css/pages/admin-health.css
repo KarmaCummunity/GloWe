@@ -87,7 +87,7 @@
 
 .admin-health-meta,
 .admin-health-error {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.9rem;
     margin: 8px 0 0 20px;
 }
@@ -111,7 +111,7 @@
 .admin-health-history summary {
     cursor: pointer;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     list-style: none;
 }
 
@@ -150,7 +150,7 @@
 }
 
 .admin-health-table thead th {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.8rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -163,7 +163,7 @@
 }
 
 .admin-health-detail {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     max-width: 220px;
     word-break: break-word;
 }

@@ -1,0 +1,42 @@
+/* GloWe section toolbar — a section heading with an optional note / action on
+   the opposite side (home, wishing well, volunteer network, admin, composer). */
+
+.section-toolbar {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.section-toolbar h2 {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: 1.9rem;
+    font-weight: var(--weight-extrabold);
+}
+
+.toolbar-note {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    background: var(--surface-card);
+    color: var(--text-muted);
+    font-weight: var(--weight-extrabold);
+    white-space: nowrap;
+}
+
+.compact-toolbar {
+    align-items: center;
+}
+
+@media (max-width: 767px) {
+    .section-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-toolbar .toolbar-note {
+        width: 100%;
+    }
+}

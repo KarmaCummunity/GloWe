@@ -1,0 +1,94 @@
+/* GloWe page sheet — home page — marketing sections (core flow, smart matching,
+   intro copy, SDG strip, community-layer accents) (FR-GLOWE-029 Phase 5 / D-190).
+   Visual primitives (buttons, cards, chips) come from the components layer. */
+
+.core-flow-section,
+.current-state-section {
+    padding: 56px 0;
+    background: var(--color-neutral-0);
+}
+
+.core-flow-section {
+    border-bottom: 1px solid var(--border-default);
+}
+
+.match-list {
+    display: grid;
+    gap: 14px;
+}
+
+/* Copy column + list column (smart matching); stacks on tablets. */
+.split-section {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 36px;
+    align-items: start;
+}
+
+.split-section h2 {
+    margin-top: var(--space-2);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.split-section p {
+    color: var(--text-muted);
+    font-size: 1.08rem;
+}
+
+.section-cta {
+    text-align: center;
+}
+
+.intro-copy h2 {
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1.06;
+    margin-bottom: 18px;
+}
+
+.intro-copy p {
+    color: var(--text-muted);
+    font-size: 1.08rem;
+    line-height: 1.75;
+}
+
+.home-sdg-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: center;
+}
+
+.home-sdg-strip span {
+    padding: 10px 14px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
+    font-weight: 900;
+}
+
+/* Community layer cards pick their accent bar from the palette. */
+.local-layer {
+    --layer-accent: var(--color-primary-400);
+}
+
+.expert-layer {
+    --layer-accent: var(--color-secondary-500);
+}
+
+.global-layer {
+    --layer-accent: var(--color-accent-500);
+}
+
+/* Signed-in home: the personalised section takes over the marketing container. */
+.member-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+@media (max-width: 1023px) {
+    .split-section {
+        grid-template-columns: 1fr;
+    }
+}

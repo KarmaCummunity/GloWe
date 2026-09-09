@@ -2,18 +2,19 @@
    Pages link ONLY this file. Development serves the @imports as-is; the deploy
    step (app/scripts/glowe-minify-hash.mjs) bundles them into one hashed file.
 
-   Cascade order: later layers win regardless of selector specificity, so a
-   migrated component always beats its legacy rule. `legacy` shrinks to zero.
+   Cascade order: later layers win regardless of selector specificity —
+   tokens < base < components < layout < pages < utilities. Page sheets may
+   override components/layout for their own page; utilities (state helpers)
+   beat everything. The pre-design-system legacy.css is gone (TD-192).
 
    Files that consume url() tokens (photos, brand mark) must live directly in
    css/: Chromium resolves a url() inside var() against the sheet that USES it,
    and the production bundle is emitted at css/glowe.<hash>.css. Nested folders
    (components/) are fine for image-free rules only — check-glowe-css enforces. */
-@layer tokens, base, legacy, components, layout, pages, utilities;
+@layer tokens, base, components, layout, pages, utilities;
 
 @import url('tokens.css') layer(tokens);
 @import url('base.css') layer(base);
-@import url('legacy.css') layer(legacy);
 @import url('components/buttons.css') layer(components);
 @import url('components/forms.css') layer(components);
 @import url('components/feedback.css') layer(components);
@@ -24,43 +25,48 @@
 @import url('components/avatar.css') layer(components);
 @import url('components/list-filters.css') layer(components);
 @import url('components/modal.css') layer(components);
+@import url('components/section-toolbar.css') layer(components);
+@import url('components/translate.css') layer(components);
+@import url('components/consent-banner.css') layer(components);
+@import url('brand-art.css') layer(components);
 @import url('layout-header.css') layer(layout);
 @import url('layout-header-actions.css') layer(layout);
 @import url('layout-footer.css') layer(layout);
 @import url('layout-bottom-nav.css') layer(layout);
 @import url('layout-page-header.css') layer(layout);
-@import url('pages/opportunity-detail.css') layer(legacy);
-@import url('pages/dev-auth.css') layer(legacy);
-@import url('pages/volunteer-network.css') layer(legacy);
-@import url('pages/directory-cards.css') layer(legacy);
-@import url('pages/organizer.css') layer(legacy);
-@import url('pages/wishing-well.css') layer(legacy);
-@import url('pages/about-team.css') layer(legacy);
-@import url('pages/about.css') layer(legacy);
-@import url('pages/personal-area.css') layer(legacy);
-@import url('pages/member-workspace.css') layer(legacy);
-@import url('pages/profile-stats.css') layer(legacy);
-@import url('pages/saved-connections.css') layer(legacy);
-@import url('pages/profile-sections.css') layer(legacy);
-@import url('pages/profile-edit.css') layer(legacy);
-@import url('pages/profile-hero.css') layer(legacy);
-@import url('pages/profile-media-edit.css') layer(legacy);
-@import url('pages/community-layout.css') layer(legacy);
-@import url('pages/community-home.css') layer(legacy);
-@import url('pages/community-feed.css') layer(legacy);
-@import url('pages/composer.css') layer(legacy);
-@import url('pages/feed-post-card.css') layer(legacy);
-@import url('pages/post-comments.css') layer(legacy);
-@import url('pages/home-sections.css') layer(legacy);
-@import url('pages/home-workspace.css') layer(legacy);
-@import url('pages/home-feed.css') layer(legacy);
-@import url('pages/admin-health.css') layer(legacy);
-@import url('pages/write-post.css') layer(legacy);
-@import url('pages/home-hero.css') layer(legacy);
-@import url('pages/forums.css') layer(legacy);
-@import url('pages/onboarding.css') layer(legacy);
-@import url('pages/legal.css') layer(legacy);
-@import url('pages/admin.css') layer(legacy);
-@import url('pages/messages.css') layer(legacy);
-@import url('legacy-responsive.css') layer(legacy);
+@import url('pages/opportunity-detail.css') layer(pages);
+@import url('pages/dev-auth.css') layer(pages);
+@import url('pages/volunteer-network.css') layer(pages);
+@import url('pages/directory-cards.css') layer(pages);
+@import url('pages/organizer.css') layer(pages);
+@import url('pages/wishing-well.css') layer(pages);
+@import url('pages/about-team.css') layer(pages);
+@import url('pages/about.css') layer(pages);
+@import url('pages/personal-area.css') layer(pages);
+@import url('pages/member-workspace.css') layer(pages);
+@import url('pages/profile-stats.css') layer(pages);
+@import url('pages/saved-connections.css') layer(pages);
+@import url('pages/profile-sections.css') layer(pages);
+@import url('pages/profile-edit.css') layer(pages);
+@import url('pages/profile-hero.css') layer(pages);
+@import url('pages/profile-media-edit.css') layer(pages);
+@import url('pages/community-layout.css') layer(pages);
+@import url('pages/community-home.css') layer(pages);
+@import url('pages/community-feed.css') layer(pages);
+@import url('pages/composer.css') layer(pages);
+@import url('pages/feed-post-card.css') layer(pages);
+@import url('pages/post-comments.css') layer(pages);
+@import url('pages/home-sections.css') layer(pages);
+@import url('pages/home-marketing.css') layer(pages);
+@import url('pages/home-workspace.css') layer(pages);
+@import url('pages/home-feed.css') layer(pages);
+@import url('pages/admin-health.css') layer(pages);
+@import url('pages/write-post.css') layer(pages);
+@import url('pages/home-hero.css') layer(pages);
+@import url('pages/forums.css') layer(pages);
+@import url('pages/onboarding.css') layer(pages);
+@import url('pages/legal.css') layer(pages);
+@import url('pages/admin.css') layer(pages);
+@import url('pages/messages.css') layer(pages);
+@import url('pages/settings.css') layer(pages);
 @import url('utilities.css') layer(utilities);

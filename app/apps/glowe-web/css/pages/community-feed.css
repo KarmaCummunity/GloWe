@@ -35,7 +35,7 @@
     display: grid;
     gap: 8px;
     padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .post-actions {
@@ -50,7 +50,7 @@
     align-items: center;
     gap: 7px;
     padding: 7px 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 999px;
     background: var(--color-neutral-0);
     font-weight: 800;
@@ -60,9 +60,9 @@
 
 .post-actions button:hover,
 .post-actions a:hover {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .topic-groups-list {
@@ -82,29 +82,6 @@
     gap: 14px;
 }
 
-.community-feed-controls {
-    background: var(--white);
-    border: 1px solid var(--alpha-ink-12);
-    border-radius: var(--radius-md);
-    box-shadow: 0 8px 24px var(--alpha-ink-08);
-}
-
-.community-feed-controls {
-    display: grid;
-    gap: 12px;
-    padding: 14px;
-}
-
-.community-feed-controls input {
-    width: 100%;
-    min-height: 44px;
-    padding: 11px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--color-neutral-0);
-    font: inherit;
-}
-
 .linkedin-community-layout .post-card {
     position: relative;
     padding: 0;
@@ -117,7 +94,7 @@
 }
 
 .linkedin-community-layout .post-card > p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.62;
 }
 
@@ -129,7 +106,7 @@
     margin: 12px 0 0;
     padding: 10px 0 0;
     border-top: 1px solid var(--color-success-bg);
-    color: var(--text-light);
+    color: var(--text-subtle);
     font-size: 0.86rem;
     font-weight: 800;
 }
@@ -137,7 +114,7 @@
 .linkedin-community-layout .post-actions {
     margin-top: 0;
     padding: 10px 14px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
     justify-content: space-between;
 }
 
@@ -152,17 +129,17 @@
 
 .linkedin-community-layout .post-actions button:hover,
 .linkedin-community-layout .post-actions a:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .community-news-card p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 8px;
 }
 
 .community-news-card strong {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .linkedin-community-layout .post-engagement-row {
