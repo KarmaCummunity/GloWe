@@ -67,6 +67,13 @@ describe('check-glowe-css guard', () => {
         expect(lintCssSource(atBudget + '\n.new{}', 'legacy.css')[0]).toMatch(/grew/);
     });
 
+    it('holds legacy.css to canonical breakpoints but not to the raw-color / !important rules yet', () => {
+        expect(lintCssSource('@media (max-width: 900px) { .a { color: red } }', 'legacy.css')).toEqual([
+            expect.stringMatching(/off-scale breakpoint "max-width: 900px"/)
+        ]);
+        expect(lintCssSource('@media (max-width: 1023px) { .a { color: #fff !important } }', 'legacy.css')).toEqual([]);
+    });
+
     it('pages link only css/glowe.css', () => {
         expect(lintHtmlSource('<link rel="stylesheet" href="../css/glowe.css">', 'pages/a.html')).toEqual([]);
         expect(lintHtmlSource('<link rel="stylesheet" href="../css/styles.css">', 'pages/a.html')[0]).toMatch(/only css\/glowe\.css/);

@@ -2097,7 +2097,7 @@ section.opportunity-detail {
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 992px) {
+@media (max-width: 1023px) {
     .hero .container {
         flex-direction: column;
         text-align: center;
@@ -2120,7 +2120,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .hero h1 {
         font-size: 2rem;
     }
@@ -2136,7 +2136,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 479px) {
     
     .btn {
         padding: 8px 16px;
@@ -2265,7 +2265,7 @@ section.opportunity-detail {
 }
 
 /* Desktop wishing board: two cards per row (single column on narrow viewports). */
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
     .wishes-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: stretch;
@@ -3475,7 +3475,7 @@ section.opportunity-detail {
     cursor: pointer;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
     .split-section {
         grid-template-columns: 1fr;
     }
@@ -4099,7 +4099,7 @@ section.opportunity-detail {
     text-decoration: underline;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
     .about-team-grid {
         grid-template-columns: 1fr;
     }
@@ -4141,7 +4141,7 @@ section.opportunity-detail {
     font-size: 1.02rem;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
     .about-whats-next-roadmap {
         grid-template-columns: 1fr;
     }
@@ -4950,7 +4950,7 @@ section.opportunity-detail {
     text-underline-offset: 3px;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 639px) {
     .profile-stats,
     .personal-stats-grid--compact {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4977,7 +4977,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1023px) {
     .next-story-section .container,
     .next-roadmap-grid {
         grid-template-columns: 1fr;
@@ -4985,7 +4985,7 @@ section.opportunity-detail {
 }
 
 /* ===== Cross-device responsive refinements ===== */
-@media (max-width: 1180px) {
+@media (max-width: 1023px) {
     .container {
         padding-left: clamp(18px, 3vw, 32px);
         padding-right: clamp(18px, 3vw, 32px);
@@ -5012,7 +5012,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
     .hero,
     .impact-home-hero,
     .page-header,
@@ -5080,7 +5080,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 767px) {
 
     /* Google-only auth collapses to a single small button (see
        normalizeHeaderAuthButtons); it sits inline in the top bar next to the
@@ -5153,7 +5153,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 479px) {
     .container {
         padding-left: 14px;
         padding-right: 14px;
@@ -5176,13 +5176,13 @@ section.opportunity-detail {
     }
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 1024px) {
     .linkedin-community-layout .container {
         grid-template-columns: minmax(210px, 250px) minmax(0, 1fr) minmax(260px, 320px);
     }
 }
 
-@media (min-width: 761px) and (max-width: 1180px) {
+@media (min-width: 768px) and (max-width: 1023px) {
     .linkedin-community-layout .container {
         grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
     }
@@ -5194,7 +5194,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
     .linkedin-community-layout .container {
         grid-template-columns: 1fr;
     }
@@ -5312,7 +5312,7 @@ section.opportunity-detail {
     }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 767px) {
 
     .personal-area-page {
         padding: 12px 0 32px;
@@ -5430,7 +5430,7 @@ section.opportunity-detail {
     gap: 14px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 639px) {
     .onboarding-type-choice {
         grid-template-columns: 1fr;
     }
@@ -5545,7 +5545,7 @@ html[dir="rtl"] .linkedin-community-layout .post-card--feed .post-card-header {
     padding-left: var(--feed-card-inset, 12px);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
     html[dir="rtl"] .linkedin-community-layout .post-card-header {
         padding-right: var(--feed-card-inset, 12px);
         padding-left: var(--feed-card-inset, 12px);
@@ -5641,7 +5641,7 @@ body.glowe-member-home main > section:not(#member-home) {
     gap: 12px;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
     .home-feed-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
@@ -5782,7 +5782,7 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 /* Tighter inset on phone — menu/actions hug card corners. */
-@media (max-width: 680px) {
+@media (max-width: 767px) {
     .post-card--feed {
         --feed-card-inset: 10px;
     }
@@ -5802,7 +5802,7 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 /* Mobile post cards — tag sizing on narrow screens (FR-GLOWE-008). */
-@media (max-width: 1180px) {
+@media (max-width: 1023px) {
     .linkedin-community-layout .post-type-tag,
     .post-card.post-card--feed .post-type-tag {
         max-width: 7.5rem;
@@ -5811,7 +5811,7 @@ body.glowe-member-home main > section:not(#member-home) {
     }
 }
 
-@media (max-width: 899px) {
+@media (max-width: 1023px) {
     .home-feed-list > .post-card--feed {
         min-height: 0;
         max-height: none;
@@ -5850,7 +5850,7 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 /* Phone home: community feed only — personal hero/activity live in Profile tab (FR-GLOWE-016 AC2). */
-@media (max-width: 680px) {
+@media (max-width: 767px) {
 
     .member-home.member-home-community-only,
     .member-home:has(.member-home-community-only) {
@@ -5949,7 +5949,7 @@ body.glowe-member-home main > section:not(#member-home) {
     padding-top: 12px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
     .messages-page-body .page-header.personal-area-header {
         display: none;
     }
@@ -6175,7 +6175,7 @@ body.glowe-member-home main > section:not(#member-home) {
     margin-inline-start: auto;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 767px) {
     .glowe-consent-banner {
         bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     }
