@@ -116,7 +116,7 @@
         const items = bottomNavLinks(ctx).map(function (link) {
             return bottomNavLinkHtml(link, isBottomNavActive(page, link.match));
         });
-        const fab = '<button type="button" class="bottom-nav-create" aria-label="Create" onclick="openCreateMenu()">' + ICONS.plus + '</button>';
+        const fab = '<button type="button" class="btn btn-fab bottom-nav-create" aria-label="Create" onclick="openCreateMenu()">' + ICONS.plus + '</button>';
         return items.slice(0, 2).join('') + fab + items.slice(2).join('');
     }
 
@@ -165,8 +165,8 @@
         const p = prefix || '';
         return '<button class="btn btn-primary btn-small header-create-btn" type="button" onclick="openCreateMenu()">+ Create</button>'
             + '<div class="header-corner-actions">'
-            + '<a class="header-icon-btn" href="' + p + 'messages.html" aria-label="Messages" title="Messages">' + ICONS.chat + '</a>'
-            + '<a class="header-icon-btn" href="' + p + 'settings.html" aria-label="Settings" title="Settings">' + ICONS.gear + '</a>'
+            + '<a class="btn btn-icon btn-small header-icon-btn" href="' + p + 'messages.html" aria-label="Messages" title="Messages">' + ICONS.chat + '</a>'
+            + '<a class="btn btn-icon btn-small header-icon-btn" href="' + p + 'settings.html" aria-label="Settings" title="Settings">' + ICONS.gear + '</a>'
             + '</div>';
     }
 

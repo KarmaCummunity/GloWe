@@ -492,10 +492,6 @@
     margin-top: 12px;
 }
 
-.card-more-menu {
-    right: 12px;
-}
-
 .opportunity-card:hover {
     transform: translateY(-4px);
 }
@@ -666,93 +662,10 @@
     z-index: 2;
 }
 
-/* ⋯ menu lives in the header (opposite avatar) — not corner-absolute.
-   Beat html[dir=rtl] .card-more-menu { left:12px } so relative layout stays put. */
-.directory-card .directory-card-more,
-.directory-card .card-more-menu.directory-card-more,
-html[dir="rtl"] .directory-card .directory-card-more,
-html[dir="rtl"] .directory-card .card-more-menu.directory-card-more {
-    position: relative;
-    top: auto;
-    right: auto;
-    left: auto;
-    inset: auto;
-}
-
-.directory-card .directory-card-more[open] {
-    z-index: 40;
-}
-
 /* Elevate the whole header-actions stacking context while the menu is open,
    otherwise .tr-slot / title (siblings at z-index 2) paint through the panel. */
 .directory-card .directory-card-header-actions:has(.directory-card-more[open]) {
     z-index: 40;
-}
-
-/* Opaque, elevated panel — no bleed-through from card text underneath. */
-.directory-card .post-more-panel {
-    top: calc(100% + 6px);
-    right: 0;
-    left: auto;
-    min-width: 200px;
-    padding: 6px;
-    gap: 2px;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    opacity: 1 !important;
-    border: 1px solid #b7cbc3;
-    border-radius: 12px;
-    box-shadow:
-        0 16px 40px rgba(7, 63, 66, 0.22),
-        0 2px 8px rgba(7, 63, 66, 0.1);
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    isolation: isolate;
-    z-index: 50;
-    mix-blend-mode: normal;
-}
-
-html[dir="rtl"] .directory-card .post-more-panel {
-    right: auto;
-    left: 0;
-}
-
-.directory-card .post-more-panel button {
-    color: var(--text-primary);
-    font-weight: 600;
-    padding: 11px 14px;
-    border-radius: 8px;
-}
-
-.directory-card .post-more-panel button:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-}
-
-.directory-card .post-more-menu summary {
-    width: 28px;
-    height: 28px;
-    background: transparent !important;
-    background-color: transparent !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    color: var(--text-secondary);
-    font-size: 1.15rem;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: 0.04em;
-    /* Text "..." sits optically low in some fonts — nudge up for true center. */
-    padding: 0 0 2px;
-}
-
-.directory-card .post-more-menu summary:hover,
-.directory-card .post-more-menu[open] summary {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    color: var(--primary-dark);
 }
 
 .org-card-actions,
@@ -766,47 +679,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
 .org-card-actions > .btn,
 .directory-card-actions > .btn,
 .directory-card-actions > a.btn,
-.directory-card-actions > .post-share-button {
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: center;
-}
-
-.save-icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: var(--white);
-    color: var(--text-secondary);
-    cursor: pointer;
-    flex: 0 0 auto;
-}
-
-.save-icon-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-dark);
-}
-
-.save-icon-btn.is-saved {
-    color: var(--primary-dark);
-    border-color: var(--primary-color);
-    background: var(--primary-light);
-}
-
-.save-icon-btn .save-icon {
-    width: 18px;
-    height: 18px;
-}
-
-.save-icon-btn.is-saved .save-icon {
-    fill: currentColor;
-}
-
 .opportunity-title {
     font-size: 1.25rem;
     font-weight: 700;
@@ -1890,11 +1762,6 @@ html[dir="rtl"] .org-review-banner__note {
     border-left: none;
     border-right: 3px solid #dc3545;
 }
-.org-review-banner .btn-sm {
-    font-size: 0.78rem;
-    padding: 6px 12px;
-}
-
 .personal-nav {
     display: grid;
     padding: 10px;
@@ -2257,26 +2124,6 @@ html[dir="rtl"] .org-review-banner__note {
     margin: 4px 0 8px;
     font-size: clamp(1.6rem, 2.6vw, 2.4rem);
     line-height: 1.1;
-}
-
-.profile-name-edit-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    background: var(--white);
-    color: var(--text-secondary);
-    cursor: pointer;
-    flex: 0 0 auto;
-}
-
-.profile-name-edit-btn:hover {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
 }
 
 .social-profile-copy p {
@@ -2710,18 +2557,6 @@ html[dir="rtl"] .org-review-banner__note {
     font-size: 0.72rem;
 }
 
-.card-open-button {
-    width: 100%;
-    min-height: 132px;
-    margin: 14px 0 2px;
-    border: 1px solid rgba(15, 93, 85, 0.1);
-    border-radius: var(--radius-sm);
-    background:
-        linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.82)),
-        linear-gradient(135deg, var(--tag-color, var(--primary-light)), #ffffff);
-    cursor: pointer;
-}
-
 .wish-image {
     width: 76px;
     height: 76px;
@@ -2849,18 +2684,6 @@ html[dir="rtl"] .org-review-banner__note {
     box-shadow: none;
 }
 
-.heart-button {
-    width: 58px;
-    height: 36px;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: var(--white);
-    color: var(--text-secondary);
-    font-size: 0.76rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
 .post-card h3,
 .project-card h3 {
     margin: 14px 0 10px;
@@ -2870,27 +2693,6 @@ html[dir="rtl"] .org-review-banner__note {
 
 /* Single native-share button (design fix #9). Icon + label pill matching the
    other card actions; the icon alone carries the meaning on tight layouts. */
-.post-share-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid var(--border-color);
-    background: #fbfefd;
-    color: var(--text-secondary);
-    border-radius: 999px;
-    padding: 7px 12px;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.post-share-button:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-dark);
-    background: var(--primary-light);
-}
 
 .share-icon,
 .action-icon {
@@ -2952,14 +2754,6 @@ html[dir="rtl"] .org-review-banner__note {
 .post-card-header .post-type-tag {
     max-width: 9rem;
     margin: 0;
-}
-
-.post-card-header .post-more-menu {
-    position: relative;
-    top: auto;
-    right: auto;
-    left: auto;
-    z-index: 12;
 }
 
 /* FR-GLOWE-008 — feed card chrome: edge-aligned menu + action row. */
@@ -3038,76 +2832,6 @@ html[dir="rtl"] .org-review-banner__note {
     align-items: center;
     gap: 8px;
     flex: 0 0 auto;
-}
-
-.post-more-menu {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 12;
-}
-
-.post-more-menu summary {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    color: var(--text-secondary);
-    font-weight: 900;
-    line-height: 1;
-    cursor: pointer;
-    list-style: none;
-}
-
-.post-more-menu summary::-webkit-details-marker {
-    display: none;
-}
-
-.post-more-menu summary:hover,
-.post-more-menu[open] summary {
-    background: var(--primary-light);
-    border-color: rgba(15, 93, 85, 0.16);
-    color: var(--primary-dark);
-}
-
-.post-more-panel {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 20;
-    min-width: 188px;
-    display: grid;
-    gap: 2px;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    box-shadow: var(--shadow-lg);
-}
-
-.post-more-panel button,
-.post-more-panel a.post-menu-action {
-    width: 100%;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--text-secondary);
-    font: inherit;
-    font-weight: 800;
-    text-align: start;
-    padding: 10px 12px;
-    cursor: pointer;
-    text-decoration: none;
-    box-sizing: border-box;
-}
-
-.post-more-panel button:hover,
-.post-more-panel a.post-menu-action:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
 }
 
 .post-type-tag {
@@ -3322,26 +3046,12 @@ html[dir="rtl"] .org-review-banner__note {
     text-decoration: underline;
 }
 
-.comment-thread-toggle {
-    display: inline-flex;
-    align-items: center;
-    margin: 4px 0 2px;
-    border: 0;
-    background: transparent;
-    color: var(--primary-dark);
-    font: inherit;
-    font-weight: 800;
-    font-size: 0.86rem;
-    cursor: pointer;
-    padding: 0;
-}
-
-.comment-thread-toggle:hover {
-    text-decoration: underline;
-}
-
 .post-comments.is-collapsed .comment-thread-extra {
     display: none;
+}
+
+.comment-thread-toggle {
+    margin: 4px 0 2px;
 }
 
 .post-comments.is-expanded .comment-thread-toggle {
@@ -3863,60 +3573,6 @@ html[dir="rtl"] .org-review-banner__note {
     margin-top: 16px;
 }
 
-.profile-more-menu {
-    position: relative;
-}
-
-.profile-more-menu summary {
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1.5px solid rgba(7, 63, 66, 0.22);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.76);
-    color: var(--primary-dark);
-    font-weight: 900;
-    cursor: pointer;
-    list-style: none;
-}
-
-.profile-more-menu summary::-webkit-details-marker {
-    display: none;
-}
-
-.profile-more-menu div {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 30;
-    min-width: 190px;
-    display: grid;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    box-shadow: var(--shadow-lg);
-}
-
-.profile-more-menu button {
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--text-secondary);
-    font: inherit;
-    font-weight: 800;
-    text-align: left;
-    padding: 10px 12px;
-    cursor: pointer;
-}
-
-.profile-more-menu button:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-}
-
 .profile-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
@@ -4054,24 +3710,7 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 .section-collapse-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
     margin-inline-start: auto;
-    padding: 6px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
-    background: var(--white);
-    color: var(--primary-dark);
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 900;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.section-collapse-toggle:hover {
-    background: var(--primary-light);
 }
 
 .collapse-chevron {
@@ -6573,8 +6212,6 @@ html[dir="rtl"] .modal-content,
 html[dir="rtl"] .form-group label,
 html[dir="rtl"] .footer-section,
 html[dir="rtl"] .settings-grid,
-html[dir="rtl"] .post-more-panel button,
-html[dir="rtl"] .post-more-panel a.post-menu-action,
 html[dir="rtl"] .filter-pill,
 html[dir="rtl"] .comment-summary,
 html[dir="rtl"] .compact-empty,
@@ -6587,20 +6224,6 @@ html[dir="rtl"] .opportunity-meta-group {
 
 /* The "..." action menu and its panel belong on the leading (right) edge in
    RTL so the dropdown lines up with Hebrew reading order (design fix #1). */
-html[dir="rtl"] .post-more-menu {
-    right: auto;
-    left: 14px;
-}
-
-html[dir="rtl"] .card-more-menu {
-    right: auto;
-    left: 12px;
-}
-
-html[dir="rtl"] .post-more-panel {
-    right: auto;
-    left: 0;
-}
 
 /* Post-card header is a single flex row (profile | tag | menu) — no side
    padding reserve; the menu sits in-flow beside the tag (FR-GLOWE-008). */
@@ -7117,21 +6740,6 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 /* Save/unsave toggle inside a card's "..." menu keeps the plain menu look. */
-.post-menu-action {
-    display: block;
-    width: 100%;
-    text-align: start;
-    border: none;
-    background: none;
-    cursor: pointer;
-}
-
-.post-menu-action.is-saved,
-.heart-button.is-saved,
-.btn.is-saved {
-    color: var(--primary-dark);
-    font-weight: 700;
-}
 
 /* ── FR-GLOWE-016 AC6 — direct messages (KC shared chat backend) ───────── */
 .messages-page-body .personal-area-page {

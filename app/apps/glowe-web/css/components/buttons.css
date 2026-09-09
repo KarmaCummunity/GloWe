@@ -111,6 +111,24 @@
     box-shadow: var(--focus-ring-danger);
 }
 
+/* Text-only action that reads like a link ("Read more", "Show original",
+   comment-thread toggles). Inherits the surrounding font size. */
+.btn-link {
+    --btn-bg: transparent;
+    --btn-fg: var(--text-brand);
+    --btn-bg-hover: transparent;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xs);
+    font-size: inherit;
+    font-weight: var(--weight-extrabold);
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
 /* FR-GLOWE-013 AC2 — active state for a Save/Saved toggle button. */
 .btn.is-saved,
 .btn[aria-pressed="true"] {
@@ -161,6 +179,36 @@
 .btn-icon svg {
     width: 20px;
     height: 20px;
+}
+
+.btn-icon.btn-small svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Filled icon when the toggle is on (bookmark / heart). */
+.btn-icon.is-saved svg,
+.btn-icon[aria-pressed="true"] svg {
+    fill: currentColor;
+}
+
+/* Floating action button (mobile bottom nav "Create"). */
+.btn-fab {
+    width: var(--control-h-lg);
+    min-height: var(--control-h-lg);
+    padding: 0;
+    border-radius: var(--radius-full);
+    --btn-bg: var(--color-primary-500);
+    --btn-fg: var(--text-inverse);
+    --btn-bg-hover: var(--color-primary-900);
+    --btn-border: transparent;
+    --btn-border-hover: transparent;
+    --btn-shadow: var(--shadow-md);
+}
+
+.btn-fab svg {
+    width: 26px;
+    height: 26px;
 }
 
 /* Pill shape for chips and compact actions. */

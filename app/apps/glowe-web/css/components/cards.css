@@ -181,10 +181,3 @@
 .card-actions.card-actions--consistent > .btn-primary {
     min-width: 7.5rem;
 }
-
-/* Overflow ("...") anchor slot in a card's top end corner */
-.card-more-menu {
-    position: absolute;
-    top: var(--space-3);
-    inset-inline-end: var(--space-3);
-}

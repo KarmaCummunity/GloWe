@@ -1958,7 +1958,7 @@ async function applyAdminLink() {
     const shieldSvg = GloweUiShell.ICONS.shield;
     const corner = userMenu.querySelector('.header-corner-actions') || userMenu;
     const link = document.createElement('a');
-    link.className = 'header-icon-btn glowe-admin-link';
+    link.className = 'btn btn-icon btn-small header-icon-btn glowe-admin-link';
     link.href = `${prefix}admin.html`;
     link.title = 'Admin review';
     link.setAttribute('aria-label', 'Admin review');
@@ -4069,16 +4069,6 @@ function savedToggleButtonHtml(type, id, title, meta, href, saveLabel, className
     return `<button class="${cls}" type="button" aria-pressed="${saved}" data-save-label="${escapeHtml(saveLabel)}" onclick="toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${escapeHtml(label)}</button>`;
 }
 
-// Icon-only save control for card headers (org directory). Keeps the SVG on
-// toggle — refreshSavedToggleButton only flips aria/class for this variant.
-function savedToggleIconHtml(type, id, title, meta, href, saveLabel) {
-    const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-    const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
-    const label = saved ? 'Saved' : (saveLabel || 'Save');
-    const cls = 'save-icon-btn' + (saved ? ' is-saved' : '');
-    return `<button class="${cls}" type="button" aria-pressed="${saved}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" data-save-label="${escapeHtml(saveLabel || 'Save')}" onclick="event.preventDefault(); event.stopPropagation(); toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${BOOKMARK_ICON_SVG}</button>`;
-}
-
 // Flip a rendered toggle button in place after a save/unsave (avoids a full list
 // re-render / scroll reset). Setting textContent replaces the text node, which the
 // i18n MutationObserver catches and localizes.
@@ -4088,11 +4078,6 @@ function refreshSavedToggleButton(btn, type, id) {
     btn.setAttribute('aria-pressed', String(saved));
     btn.classList.toggle('is-saved', saved);
     const label = saved ? 'Saved' : (btn.getAttribute('data-save-label') || 'Save');
-    if (btn.classList.contains('save-icon-btn')) {
-        btn.setAttribute('aria-label', label);
-        btn.setAttribute('title', label);
-        return;
-    }
     btn.textContent = label;
 }
 
@@ -4519,7 +4504,6 @@ function getAllCommunityPosts() {
 // bare "Copy link" — desktop browsers without navigator.share fall back to a
 // silent clipboard copy + toast. (FR-GLOWE-008 AC5; design fix #9.)
 const SHARE_ICON_SVG = '<svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
-const BOOKMARK_ICON_SVG = '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
 
 // Familiar visual anchors for the post actions (Jakob's Law; design fix #8).
 const COMMENT_ICON_SVG = '<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
@@ -4570,7 +4554,7 @@ function renderShareButton(title, path = '', extraClass = '') {
     const safeTitle = escapeHtml(title);
     const titleArg = jsString(title);
     const pathArg = jsString(path);
-    const cls = ['post-share-button', extraClass].filter(Boolean).join(' ');
+    const cls = ['btn btn-outline btn-small btn-pill post-share-button', extraClass].filter(Boolean).join(' ');
     return `<button type="button" class="${cls}" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="${escapeHtml(gloweText('Share'))} ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
 }
 
@@ -5701,7 +5685,7 @@ function renderFeedCardCommentsSection(postId) {
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId: id })).join('')}</div>`
         : '';
     const moreCommentsHtml = comments.length > 1
-        ? `<button type="button" class="comment-thread-toggle" onclick="togglePostComments('${jsString(id)}')">${escapeHtml(gloweText('See all comments'))}</button>`
+        ? `<button type="button" class="btn btn-link comment-thread-toggle" onclick="togglePostComments('${jsString(id)}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
     const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
     const engagementHtml = comments.length > 0
@@ -8700,7 +8684,7 @@ function connectButtonHtml(view) {
     const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
     const hasEmail = orgHelpers ? orgHelpers.hasContactEmail(view) : Boolean(view && view.email);
     if (!hasEmail) return '';
-    return `<button class="btn btn-outline btn-sm" type="button" data-connect="${escapeHtml(String(view.email))}">Connect</button>`;
+    return `<button class="btn btn-outline btn-small" type="button" data-connect="${escapeHtml(String(view.email))}">Connect</button>`;
 }
 
 // Build the applicants-inbox markup from mapped applicant views.
@@ -8717,8 +8701,8 @@ function opportunityApplicantsHtml(views) {
         // server re-checks capacity and only moves them up if a seat is free.
         const acceptLabel = v.status === 'Waitlisted' ? 'Give a place' : 'Accept';
         const decideButtons = canDecide ? `
-                <button class="btn btn-primary btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">${acceptLabel}</button>
-                <button class="btn btn-outline btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Declined">Decline</button>` : '';
+                <button class="btn btn-primary btn-small" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">${acceptLabel}</button>
+                <button class="btn btn-outline btn-small" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Declined">Decline</button>` : '';
         const connectButton = connectButtonHtml(v);
         const actions = (decideButtons || connectButton) ? `
             <div class="applicant-actions">${decideButtons}${connectButton}</div>` : '';
@@ -9204,7 +9188,7 @@ function initMyApplicationsPage() {
                                     </div>
                                     <h2 class="social-profile-name-row">
                                         <span ${bilingualNameAttrs(namePair.primary, namePair.english)}>${escapeHtml(heroDisplayName)}</span>
-                                        <button type="button" class="profile-name-edit-btn" aria-label="Edit profile" title="Edit profile" onclick="openEditProfile()">${editIcon}</button>
+                                        <button type="button" class="btn btn-icon btn-small profile-name-edit-btn" aria-label="Edit profile" title="Edit profile" onclick="openEditProfile()">${editIcon}</button>
                                     </h2>
                                     <div class="social-profile-bio" data-tr-card data-tr-type="glowe_profile" data-tr-id="${escapeHtml(profile.id || '')}">
                                         <p data-tr-field="${bioSrc.field || 'about'}">${escapeHtml(bioText)}</p>
@@ -9256,7 +9240,7 @@ function initMyApplicationsPage() {
                                         <button type="button" class="questionnaire-badge-close" onclick="dismissQuestionnaireBadge()" aria-label="Dismiss">&times;</button>
                                     </span>
                                 ` : ''}
-                                <button type="button" class="section-collapse-toggle" onclick="toggleQuestionnaireProfile()" aria-expanded="${!isQuestionnaireCollapsed()}">
+                                <button type="button" class="btn btn-outline btn-small btn-pill section-collapse-toggle" onclick="toggleQuestionnaireProfile()" aria-expanded="${!isQuestionnaireCollapsed()}">
                                     ${isQuestionnaireCollapsed() ? 'Show details' : 'Hide details'}
                                     <span class="collapse-chevron" aria-hidden="true">▾</span>
                                 </button>

@@ -49,30 +49,10 @@ body.glowe-signed-in .user-menu {
 }
 
 /* Icon-only header actions (Messages, Settings, Admin). */
+/* Header icon actions are .btn.btn-icon.btn-small; only the badge anchor lives here. */
 .header-icon-btn {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--border-default);
-    background: var(--surface-raised);
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
-}
-
-.header-icon-btn:hover {
-    color: var(--text-link);
-    border-color: var(--border-brand);
-}
-
-.header-icon-btn svg {
-    width: 20px;
-    height: 20px;
 }
 
 .header-icon-btn .chat-unread-badge,
