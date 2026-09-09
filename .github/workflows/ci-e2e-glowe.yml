@@ -15,6 +15,7 @@ on:
       - 'app/scripts/glowe-minify-hash.mjs'
       - 'tests/e2e/**'
       - 'scripts/wait-for-url.mjs'
+      - 'scripts/wait-for-glowe-deploy.mjs'
       - 'scripts/seed-glowe-dev.mjs'
       - '.github/workflows/ci-e2e-glowe.yml'
       - '.github/workflows/deploy-web.yml'
@@ -26,6 +27,7 @@ on:
       - 'app/scripts/web-postbuild.mjs'
       - 'app/scripts/glowe-minify-hash.mjs'
       - 'tests/e2e/**'
+      - 'scripts/wait-for-glowe-deploy.mjs'
       - '.github/workflows/ci-e2e-glowe.yml'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
@@ -116,8 +118,11 @@ jobs:
         env:
           GLOWE_URL: ${{ needs.resolve-target.outputs.glowe_url }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then sleep 90; fi
-          node scripts/wait-for-url.mjs "${GLOWE_URL%/}/" 16 15000
+          # On push the deploy is racing us: require the pushed app/VERSION to be
+          # live and every hashed asset the HTML references to resolve (a bare 200
+          # on the root can be the previous deploy, or new HTML next to old assets).
+          if [ "${{ github.event_name }}" = "push" ]; then WANT="--version $(tr -d '[:space:]' < app/VERSION)"; else WANT=""; fi
+          node scripts/wait-for-glowe-deploy.mjs "${GLOWE_URL%/}" $WANT 40 15000
           echo "GLOWE_JOURNEYS_URL=${GLOWE_URL%/}" >> "$GITHUB_ENV"
 
       - name: Install Playwright
@@ -175,8 +180,11 @@ jobs:
         env:
           GLOWE_URL: ${{ needs.resolve-target.outputs.glowe_url }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then sleep 90; fi
-          node scripts/wait-for-url.mjs "${GLOWE_URL%/}/" 16 15000
+          # On push the deploy is racing us: require the pushed app/VERSION to be
+          # live and every hashed asset the HTML references to resolve (a bare 200
+          # on the root can be the previous deploy, or new HTML next to old assets).
+          if [ "${{ github.event_name }}" = "push" ]; then WANT="--version $(tr -d '[:space:]' < app/VERSION)"; else WANT=""; fi
+          node scripts/wait-for-glowe-deploy.mjs "${GLOWE_URL%/}" $WANT 40 15000
           echo "GLOWE_VISUAL_URL=${GLOWE_URL%/}" >> "$GITHUB_ENV"
 
       - name: Install Playwright
