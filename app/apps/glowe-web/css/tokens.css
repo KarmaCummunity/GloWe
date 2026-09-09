@@ -163,6 +163,9 @@
     /* ---- Layout ---- */
     --container-max: 1200px;
     --container-pad: clamp(12px, 3vw, 20px);
+    /* Hero photo wash: the light side follows the reading direction (gradients have no logical angles). */
+    --hero-sweep: 90deg;
+    --hero-photo-x: right;
     --header-h: 64px;
     --bottom-nav-h: 64px;
 
@@ -191,6 +194,11 @@
     --hero-photo: url('../assets/glowe-bridge.webp');
     --page-photo: url('../assets/glowe-regrowth.webp');
     --asset-brand-mark: url('../assets/glowe-life-flower.webp');
+}
+
+html[dir="rtl"] {
+    --hero-sweep: 270deg;
+    --hero-photo-x: left;
 }
 
 /* Responsive container gutter: wide on tablet, tight on small phones. */

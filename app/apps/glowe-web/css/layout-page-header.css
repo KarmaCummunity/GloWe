@@ -5,17 +5,13 @@
     position: relative;
     overflow: hidden;
     padding: clamp(40px, 6vw, 72px) 0;
+    /* --hero-sweep / --hero-photo-x flip with the reading direction (tokens.css),
+       so the headline always sits on the light side; --hero-overlay flattens the
+       wash on phones. */
     background:
-        var(--hero-overlay, linear-gradient(90deg, var(--alpha-white-92) 0%, var(--color-primary-100) 48%, var(--alpha-ink-34) 100%)),
-        var(--page-photo) right center / cover no-repeat;
+        var(--hero-overlay, linear-gradient(var(--hero-sweep), var(--alpha-white-92) 0%, var(--color-primary-100) 48%, var(--alpha-ink-34) 100%)),
+        var(--page-photo) var(--hero-photo-x) center / cover no-repeat;
     border-bottom: 1px solid var(--border-subtle);
-}
-
-/* Mirror the light→photo sweep so the headline always sits on the light side. */
-html[dir="rtl"] .page-header {
-    background:
-        var(--hero-overlay, linear-gradient(270deg, var(--alpha-white-92) 0%, var(--color-primary-100) 48%, var(--alpha-ink-34) 100%)),
-        var(--page-photo) left center / cover no-repeat;
 }
 
 .page-header::after {

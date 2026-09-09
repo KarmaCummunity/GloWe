@@ -23,8 +23,8 @@
 /* ===== Hero Section ===== */
 .hero {
     background:
-        var(--hero-overlay, linear-gradient(90deg, rgba(246, 247, 244, 0.98), rgba(231, 242, 239, 0.9), rgba(246, 247, 244, 0.62))),
-        var(--hero-photo) right center / cover no-repeat;
+        var(--hero-overlay, linear-gradient(var(--hero-sweep), rgba(246, 247, 244, 0.98), rgba(231, 242, 239, 0.9), rgba(246, 247, 244, 0.62))),
+        var(--hero-photo) var(--hero-photo-x) center / cover no-repeat;
     padding: 86px 0;
     border-bottom: 1px solid rgba(7, 63, 66, 0.12);
 }
@@ -588,8 +588,8 @@
 
 .impact-home-hero {
     background:
-        var(--hero-overlay, linear-gradient(90deg, rgba(250, 255, 253, 0.96), rgba(250, 255, 253, 0.8), rgba(250, 255, 253, 0.48))),
-        var(--hero-photo) right center / cover no-repeat;
+        var(--hero-overlay, linear-gradient(var(--hero-sweep), rgba(250, 255, 253, 0.96), rgba(250, 255, 253, 0.8), rgba(250, 255, 253, 0.48))),
+        var(--hero-photo) var(--hero-photo-x) center / cover no-repeat;
 }
 
 .intro-copy h2 {
