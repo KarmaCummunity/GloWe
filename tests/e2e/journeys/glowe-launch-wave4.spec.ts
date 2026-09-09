@@ -110,8 +110,9 @@ test.describe('GloWe launch Wave 4 — event RSVP / opportunity apply UI', () =>
     await expect(applyCard.or(rsvp).first()).toBeVisible({ timeout: 25_000 });
     test.skip(!(await rsvp.count()), 'seeded beach-cleanup event not loaded (run seed-glowe-dev)');
     await rsvp.click();
-    await expect(page.locator('#glowe-join-modal').or(page.locator('#login-modal')).first())
-      .toBeVisible({ timeout: 15_000 });
+    // Several .modal shells are always in the DOM (hidden); assert on the one
+    // that actually opened rather than the first match in DOM order.
+    await expect(page.locator('#glowe-join-modal.active, #login-modal.active')).toBeVisible({ timeout: 15_000 });
   });
 
   test('guest opportunity apply opens join gate', async ({ page }) => {
@@ -124,9 +125,7 @@ test.describe('GloWe launch Wave 4 — event RSVP / opportunity apply UI', () =>
     const loaded = await expect(applyBtn).toBeEnabled({ timeout: 25_000 }).then(() => true, () => false);
     test.skip(!loaded, 'seeded code-mentor opportunity not present on this backend');
     await applyBtn.click();
-    await expect(
-      page.locator('#glowe-join-modal').or(page.locator('#login-modal')).or(page.locator('#apply-modal')).first(),
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('#glowe-join-modal.active, #login-modal.active, #apply-modal.active')).toBeVisible({ timeout: 15_000 });
   });
 });
 
