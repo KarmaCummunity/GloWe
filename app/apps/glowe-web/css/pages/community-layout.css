@@ -16,7 +16,7 @@
 .filter-results-note {
     margin: 0;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 @media (max-width: 1023px) {
@@ -46,7 +46,7 @@
 
 .community-feed-header,
 .feed-filter-bar {
-    background: var(--white);
+    background: var(--color-neutral-0);
     border: 1px solid var(--alpha-ink-12);
     border-radius: var(--radius-md);
     box-shadow: 0 8px 24px var(--alpha-ink-08);
@@ -67,7 +67,7 @@
 }
 
 .community-feed-header p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     max-width: 620px;
 }
 
@@ -81,12 +81,12 @@
 }
 
 .feed-filter-bar span {
-    color: var(--text-primary);
+    color: var(--text-strong);
     font-weight: 900;
 }
 
 .feed-filter-bar small {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 700;
 }
 
@@ -130,4 +130,15 @@
         align-items: flex-start;
         flex-direction: column;
     }
+}
+
+.linkedin-community-layout .person-actions {
+    padding-inline-start: 0;
+    flex-wrap: wrap;
+}
+
+.linkedin-community-layout .person-actions button {
+    flex: 1 1 auto;
+    font-size: 0.74rem;
+    padding: 6px 8px;
 }

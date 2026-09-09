@@ -12,13 +12,11 @@
 }
 
 .wizard-heading h2 {
-    text-align: start;
-    margin: 6px 0 10px;
     font-size: clamp(1.8rem, 3vw, 2.7rem);
 }
 
 .wizard-heading p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .wizard-progress {
@@ -34,9 +32,9 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     background: var(--color-neutral-0);
     font-size: 0.82rem;
     font-weight: 900;
@@ -44,8 +42,8 @@
 }
 
 .wizard-progress span.active {
-    color: var(--primary-dark);
-    background: var(--primary-light);
+    color: var(--color-primary-900);
+    background: var(--color-primary-100);
     border-color: var(--alpha-ink-34);
 }
 
@@ -90,7 +88,7 @@
 }
 
 .profile-type-card:has(input:checked) small {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .profile-type-guidance {
@@ -99,13 +97,13 @@
     border: 1px solid var(--alpha-ink-20);
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--color-primary-50), var(--alpha-white-92));
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .profile-type-guidance strong {
     display: block;
     margin-bottom: 8px;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .profile-type-guidance ul {
@@ -126,7 +124,7 @@
     gap: 12px;
     margin: 26px -8px -8px;
     padding: 16px 8px 8px;
-    background: linear-gradient(180deg, var(--alpha-white-12), var(--white) 26%);
+    background: linear-gradient(180deg, var(--alpha-white-12), var(--color-neutral-0) 26%);
 }
 
 .social-profile-tags .profile-type {
@@ -134,7 +132,7 @@
 }
 
 .profile-type {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 800;
     margin: 4px 0 12px;
 }
@@ -185,32 +183,32 @@
 
 .onboarding-type-title {
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .onboarding-type-desc {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 #onboarding-org-fields {
     margin-top: 6px;
     padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
 .onboarding-section-title {
     margin: 0 0 12px;
     font-size: 1rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .onboarding-english-field small {
     display: block;
     margin-top: 6px;
     font-size: 0.82rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .onboarding-review-note {
@@ -218,6 +216,31 @@
     border-radius: var(--radius-md);
     padding: 12px 14px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 16px;
+}
+
+.choice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    font-weight: var(--weight-extrabold);
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+}
+
+.compact-choice-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+@media (max-width: 1023px) {
+    .choice-grid,
+    .compact-choice-grid {
+        grid-template-columns: 1fr;
+    }
 }

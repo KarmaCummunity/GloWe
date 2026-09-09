@@ -7,11 +7,12 @@ import {
     lintCssSource,
     lintHtmlSource,
     checkGloweSite,
-    LEGACY_LINE_BUDGET,
+    BANNED_FILES,
 } from '../../../../scripts/check-glowe-css.mjs';
 import {
     renderPartial,
     stampPage,
+    heroPhotoFor,
     activeNavFor,
     pageContext,
     syncShell,
@@ -61,17 +62,17 @@ describe('check-glowe-css guard', () => {
         expect(lintCssSource('.s{background-image:url("data:image/svg+xml;utf8,<svg/>")}', 'css/components/forms.css')).toEqual([]);
     });
 
-    it('lets legacy.css shrink but never grow past its budget', () => {
-        const atBudget = Array.from({ length: LEGACY_LINE_BUDGET }, () => '').join('\n');
-        expect(lintCssSource(atBudget, 'legacy.css')).toEqual([]);
-        expect(lintCssSource(atBudget + '\n.new{}', 'legacy.css')[0]).toMatch(/grew/);
+    it('bans the retired legacy stylesheets outright', () => {
+        expect(BANNED_FILES.has('legacy.css')).toBe(true);
+        expect(lintCssSource('.a { color: var(--text-muted) }', 'legacy.css')[0]).toMatch(/retired/);
+        expect(lintCssSource('.a { color: var(--text-muted) }', 'legacy-responsive.css')[0]).toMatch(/retired/);
     });
 
-    it('holds legacy.css to canonical breakpoints but not to the raw-color / !important rules yet', () => {
-        expect(lintCssSource('@media (max-width: 900px) { .a { color: red } }', 'legacy.css')).toEqual([
-            expect.stringMatching(/off-scale breakpoint "\(max-width: 900px\)"/)
+    it('applies the raw-color and !important rules to every sheet', () => {
+        expect(lintCssSource('@media (max-width: 1023px) { .a { color: #fff !important } }', 'pages/x.css')).toEqual([
+            expect.stringMatching(/raw color/),
+            expect.stringMatching(/!important/),
         ]);
-        expect(lintCssSource('@media (max-width: 1023px) { .a { color: #fff !important } }', 'legacy.css')).toEqual([]);
     });
 
     it('pages link only css/glowe.css', () => {
@@ -94,7 +95,7 @@ describe('glowe-sync-shell', () => {
     });
 
     it('resolves relative roots for the index vs nested pages', () => {
-        expect(pageContext('index.html')).toEqual({ slug: 'index', root: '', pages: 'pages/', home: 'index.html' });
+        expect(pageContext('index.html')).toEqual({ slug: 'index', root: '', pages: 'pages/', home: 'index.html', heroPhoto: null });
         expect(pageContext('pages/community.html')).toMatchObject({ slug: 'community', root: '../', pages: '', home: '../index.html' });
     });
 
@@ -104,6 +105,28 @@ describe('glowe-sync-shell', () => {
         expect(html).toContain('href="../index.html" class="nav-link">Home</a>');
         expect(html).toContain('class="nav-link active" aria-current="page">About</a>');
         expect(html).toContain('src="../js/app.js"');
+    });
+
+    it('preloads the hero photo only for pages with a static photo band', () => {
+        const withBand = '<body class="about-page-body"><section class="page-header"></section></body>';
+        const homeHero = '<body class="home-page-body"><section class="hero impact-home-hero"></section></body>';
+        const fallback = '<body class="community-page-body"><section class="page-header"></section></body>';
+        const noBand = '<body class="community-page-body"><main></main></body>';
+        expect(heroPhotoFor(withBand)).toBe('glowe-blossoms');
+        expect(heroPhotoFor(homeHero)).toBe('glowe-bridge');
+        expect(heroPhotoFor(fallback)).toBe('glowe-regrowth');
+        expect(heroPhotoFor(noBand)).toBeNull();
+
+        const tpl = '<meta>\n    {{hero-preload}}\n    <link rel="stylesheet" href="{{root}}css/glowe.css">';
+        expect(renderPartial(tpl, pageContext('pages/about.html', withBand))).toBe([
+            '<meta>',
+            '    <link rel="preload" as="image" href="../assets/glowe-blossoms-m.webp" media="(max-width: 767px)" fetchpriority="high">',
+            '    <link rel="preload" as="image" href="../assets/glowe-blossoms.webp" media="(min-width: 768px)" fetchpriority="high">',
+            '    <link rel="stylesheet" href="../css/glowe.css">',
+        ].join('\n'));
+        expect(renderPartial(tpl, pageContext('pages/community.html', noBand))).toBe(
+            '<meta>\n    <link rel="stylesheet" href="../css/glowe.css">',
+        );
     });
 
     it('replaces only marked blocks and leaves the rest of the page intact', () => {

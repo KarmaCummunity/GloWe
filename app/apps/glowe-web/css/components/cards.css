@@ -7,9 +7,9 @@
    .card__header / .card__body / .card__footer / .card__actions
 
    Legacy card names inherit the matching surface via the alias lists below;
-   their internal layout (grid / gap / padding) stays with them in legacy.css
-   until each page migrates in Phase 4. Only the canonical classes carry a
-   default padding so page-specific paddings keep working. */
+   their internal layout (grid / gap / padding) lives in the owning
+   pages/*.css sheet. Only the canonical classes carry a default padding so
+   page-specific paddings keep working. */
 
 .card,
 .card--tinted,
@@ -22,9 +22,6 @@
 .daily-action-card,
 .match-card,
 .playbook-card,
-.capability-card,
-.grant-card,
-.leader-card,
 .forum-leader-card,
 .composer-card,
 .onboarding-type-card,

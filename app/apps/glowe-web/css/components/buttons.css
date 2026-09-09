@@ -223,8 +223,43 @@
     gap: var(--space-3);
 }
 
+/* Small phones: every stand-alone .btn stretches to its container for thumb
+   reach; inside flex rows width:100% simply shares the row. Icon buttons and
+   the FAB keep their fixed size. */
 @media (max-width: 479px) {
+    .btn:not(.btn-icon):not(.btn-fab) {
+        width: 100%;
+    }
+
     .btn-group > .btn {
         flex: 1 1 140px;
     }
+}
+
+/* Inline icon inside a text button (share / card actions). */
+.share-icon,
+.action-icon {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+}
+
+/* Google sign-in: a full-width .btn variant with the "G" mark; colours come
+   from the variant class on the element (.btn-primary in the auth modals). */
+.google-auth-btn {
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    margin: var(--space-1) 0 var(--space-5);
+}
+
+.google-auth-btn span {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-primary-50);
+    color: var(--text-brand);
+    font-weight: 900;
 }

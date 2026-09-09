@@ -4,8 +4,8 @@
    Canonical classes: .chip, .chip.active | [aria-pressed="true"] |
    [aria-selected="true"], .chip--block (full-width option row), .chip-group,
    .chip-scroll. The legacy names listed beside each canonical selector inherit
-   the same rules until their markup is renamed in Phase 4 — no per-page pill
-   styles remain in legacy.css. */
+   the same rules until their markup is renamed — no per-page pill styles
+   exist outside this file. */
 
 .chip,
 .community-feed-tabs button,

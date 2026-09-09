@@ -3,9 +3,9 @@
    chips, menus, avatars, forms) come from the components layer. */
 
 .profile-status-cta {
-    border: 1px solid var(--primary-color);
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    border: 1px solid var(--color-primary-500);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
     font: inherit;
     font-size: 0.75rem;
     font-weight: 800;
@@ -15,7 +15,7 @@
 }
 
 .profile-status-cta--pending_review {
-    border-color: var(--border-color);
+    border-color: var(--border-default);
     background: var(--surface-muted);
     cursor: default;
 }
@@ -28,10 +28,10 @@
 
 .profile-meta-row span {
     padding: 7px 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 999px;
     background: var(--color-neutral-0);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.82rem;
     font-weight: 800;
     white-space: nowrap;
@@ -69,8 +69,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
     font-weight: 900;
     font-size: 0.85rem;
 }
@@ -97,7 +97,7 @@
     grid-template-columns: 150px minmax(0, 1fr);
     gap: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .profile-info-list.compact {
@@ -111,7 +111,7 @@
 }
 
 .profile-info-list a {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 800;
     overflow-wrap: anywhere;
 }
@@ -134,12 +134,12 @@
 .profile-narrative-grid strong {
     display: block;
     margin-bottom: 8px;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-size: 0.92rem;
 }
 
 .profile-narrative-grid span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.6;
 }
 
@@ -149,11 +149,11 @@
 }
 
 .profile-info-list strong {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .profile-info-list span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .profile-sidebar {
@@ -165,7 +165,7 @@
 
 .profile-post-list article {
     padding: 18px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     background: var(--color-neutral-0);
 }
@@ -175,7 +175,7 @@
 }
 
 .profile-post-list p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 @media (max-width: 1023px) {
@@ -245,4 +245,25 @@
         height: 24px;
         font-size: 0.68rem;
     }
+}
+
+.mini-need-list {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.mini-need-list article {
+    padding: 18px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-card);
+}
+
+.mini-need-list h3 {
+    margin: 12px 0 8px;
+}
+
+.mini-need-list p {
+    color: var(--text-muted);
 }

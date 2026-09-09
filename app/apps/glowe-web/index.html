@@ -21,6 +21,8 @@
     <meta name="theme-color" content="#147c75">
     <!-- Early paint: auth FOUC + i18n FOUC (FR-GLOWE-016 / FR-GLOWE-005). -->
     <script src="js/glowe-auth-paint.js"></script>
+    <link rel="preload" as="image" href="assets/glowe-bridge-m.webp" media="(max-width: 767px)" fetchpriority="high">
+    <link rel="preload" as="image" href="assets/glowe-bridge.webp" media="(min-width: 768px)" fetchpriority="high">
     <link rel="stylesheet" href="css/glowe.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -290,59 +292,6 @@
             </div>
         </section>
 
-        <section class="growth-suite-section">
-            <div class="container">
-                <div class="section-toolbar">
-                    <div>
-                        <span class="hero-kicker">Sharing tools</span>
-                        <h2>Prepare a clearer post or campaign draft</h2>
-                    </div>
-                </div>
-                <div class="capability-grid" id="distribution-tools"></div>
-            </div>
-        </section>
-
-        <section class="funding-section">
-            <div class="container">
-                <div class="split-section">
-                    <div>
-                        <span class="hero-kicker">Funding preparation</span>
-                        <h2>Organize possible grants and next steps</h2>
-                        <p>Use example grant cards and a funding-brief flow to turn a real need into a clearer request, budget story, and next step.</p>
-                        <a class="btn btn-primary" href="pages/whats-next.html">See How This Could Grow</a>
-                    </div>
-                    <div id="grant-recommendations" class="grant-list"></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="engagement-section">
-            <div class="container">
-                <div class="section-toolbar">
-                    <div>
-                        <span class="hero-kicker">Community interactions</span>
-                        <h2>See how members participate</h2>
-                    </div>
-                    <a class="btn btn-outline" href="pages/community.html">Open Community</a>
-                </div>
-                <div class="capability-grid" id="engagement-tools"></div>
-            </div>
-        </section>
-
-        <section class="rewards-section">
-            <div class="container">
-                <div class="split-section">
-                    <div>
-                        <span class="hero-kicker">Participation signals</span>
-                        <h2>Recognize visible contribution</h2>
-                        <p>Recognition in GloWe is about visible contribution, not empty ranking. Signals stay tied to documented activity, trust, and community review.</p>
-                        <a class="btn btn-outline" href="pages/whats-next.html">Read What's Next</a>
-                    </div>
-                    <div id="reward-leaders" class="leaderboard-list"></div>
-                </div>
-            </div>
-        </section>
-
         <section class="featured-section">
             <div class="container">
                 <h2>A glimpse into the community</h2>
@@ -374,28 +323,6 @@
             </div>
         </section>
 
-        <!-- How It Works -->
-        <section class="how-it-works">
-            <div class="container">
-                <h2>How GloWe is structured</h2>
-                <p class="section-subtitle">A digital-human space for shared knowledge, practical connection, and gradual community growth.</p>
-                <div class="blueprint-grid">
-                    <div class="blueprint-panel">
-                        <h3>User Roles</h3>
-                        <div id="user-roles" class="role-list"></div>
-                    </div>
-                    <div class="blueprint-panel">
-                        <h3>Business Model</h3>
-                        <div id="business-model" class="business-list"></div>
-                    </div>
-                    <div class="blueprint-panel">
-                        <h3>Development Roadmap</h3>
-                        <div id="roadmap-phases" class="roadmap-list"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Community voices will appear here as members join and share their experience -->
 
         <!-- Call to Action -->
@@ -414,11 +341,11 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <h4>GloWe</h4>
+                    <h3>GloWe</h3>
                     <p>Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Explore</h4>
+                    <h3>Explore</h3>
                     <a href="index.html">Home</a>
                     <a href="pages/wishing-well.html">Wishing Well</a>
                     <a href="pages/organizations.html">Organizations</a>
@@ -427,14 +354,14 @@
                     <a href="pages/about.html">About</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Participate</h4>
+                    <h3>Participate</h3>
                     <a href="pages/my-applications.html">Personal Area</a>
                     <a href="pages/community.html#community-composer">Write a post</a>
                     <a href="pages/volunteer-network.html">Volunteer Network</a>
                     <a href="pages/whats-next.html">What's next</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Built With Care</h4>
+                    <h3>Built With Care</h3>
                     <p>An MVP by the GloWe community, with product and implementation support by Topaz.</p>
                     <a href="pages/terms.html">Terms &amp; Community Charter</a>
                     <a href="pages/privacy.html">Privacy Policy</a>

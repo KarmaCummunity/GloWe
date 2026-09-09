@@ -7,7 +7,7 @@ body.glowe-member-home main > section:not(#member-home) {
 }
 
 .member-home {
-    background: var(--background);
+    background: var(--surface-page);
     padding: 48px 0 72px;
 }
 
@@ -70,7 +70,7 @@ body.glowe-member-home main > section:not(#member-home) {
     -webkit-line-clamp: 3;
     overflow: hidden;
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.5;
     flex: 0 1 auto;
 }
@@ -80,7 +80,7 @@ body.glowe-member-home main > section:not(#member-home) {
     margin-top: 4px;
     font-size: 0.88rem;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     text-decoration: underline;
 }
 
@@ -140,7 +140,7 @@ body.glowe-member-home main > section:not(#member-home) {
 
 .member-home-community.linkedin-community-layout .post-card > p,
 .guest-home-feed.linkedin-community-layout .post-card > p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.62;
 }
 

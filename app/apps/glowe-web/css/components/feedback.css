@@ -198,3 +198,37 @@
     background: var(--surface-brand-soft);
     color: var(--text-brand);
 }
+
+/* ---- Status badges (application / registration states) ---- */
+.status-badge {
+    display: inline-block;
+    padding: 3px var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--surface-brand-soft);
+    color: var(--text-brand);
+    font-size: 0.8rem;
+    font-weight: var(--weight-semibold);
+}
+
+.status-accepted,
+.status-approved {
+    background: var(--color-success-bg);
+    color: var(--color-success-fg);
+}
+
+.status-pending,
+.status-waitlisted {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-fg);
+}
+
+.status-declined,
+.status-cancelled {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+}
+
+/* ---- Text helpers ---- */
+.muted-note {
+    color: var(--text-muted);
+}

@@ -2,19 +2,16 @@
    Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
    chips, menus, avatars, forms) come from the components layer. */
 
-.match-card,
-.grant-card {
+.match-card {
     padding: 22px;
 }
 
-.match-card h3,
-.grant-card h3 {
+.match-card h3 {
     margin: 10px 0;
 }
 
-.match-card p,
-.grant-card p {
-    color: var(--text-secondary);
+.match-card p {
+    color: var(--text-muted);
 }
 
 .match-card {
@@ -24,26 +21,12 @@
     align-items: start;
 }
 
-.grant-card {
-    display: grid;
-    grid-template-columns: 78px minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
-}
-
-.grant-card small {
-    display: block;
-    color: var(--text-light);
-    font-weight: 800;
-    margin: 10px 0 14px;
-}
-
 .support-summary {
     margin-bottom: 18px;
     padding: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .support-summary:empty {
@@ -57,7 +40,7 @@
 
 .support-summary span,
 .support-summary p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .workspace-header {
@@ -73,13 +56,13 @@
 .workspace-steps article {
     min-height: 132px;
     padding: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     background: var(--color-neutral-0);
 }
 
 .workspace-steps article.done {
-    background: var(--primary-light);
+    background: var(--color-primary-100);
     border-color: var(--alpha-ink-20);
 }
 
@@ -89,16 +72,16 @@
 }
 
 .workspace-steps span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-top: 8px;
 }
 
 .impact-update-box {
     margin-top: 18px;
     padding: 18px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, var(--primary-light), var(--color-accent-50));
+    background: linear-gradient(135deg, var(--color-primary-100), var(--color-accent-50));
 }
 
 .my-event-item {
@@ -126,9 +109,9 @@
 .impact-signals span {
     display: block;
     padding: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .impact-signals strong,
@@ -137,7 +120,7 @@
 }
 
 .impact-signals small {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .project-card {

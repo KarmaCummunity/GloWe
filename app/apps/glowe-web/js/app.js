@@ -5646,18 +5646,21 @@ function renderPostCommentRow(comment, { lead = false, postId = '', openOnClick 
         ? ` data-tr-card data-tr-type="glowe_comment" data-tr-id="${escapeHtml(String(commentId))}"`
         : '';
     const leadClass = lead ? ' comment-row--lead' : '';
+    // A collapsed lead comment opens the thread: render it as a keyboard-operable
+    // button surface (role=button is not permitted on <article>).
+    const tag = openOnClick ? 'div' : 'article';
     const openAttrs = openOnClick
-        ? ` role="button" tabindex="0" onclick="togglePostComments('${jsString(postId)}')"`
+        ? ` role="button" tabindex="0" onclick="togglePostComments('${jsString(postId)}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); togglePostComments('${jsString(postId)}'); }"`
         : '';
     return `
-                    <article class="comment-row${leadClass}"${trAttrs}${openAttrs}>
+                    <${tag} class="comment-row${leadClass}"${trAttrs}${openAttrs}>
                         ${renderLocalizedEntityMark(commentPair.primary, commentPair.english, commentAuthor, 'comment-avatar')}
                         <div>
                             ${commentId ? translationToggleSlotHtml() : ''}
                             <strong ${bilingualNameAttrs(commentPair.primary, commentPair.english)}>${escapeHtml(commentAuthor)}</strong>
                             <p${commentId ? ' data-tr-field="text"' : ''}>${escapeHtml(comment.text)}</p>
                         </div>
-                    </article>`;
+                    </${tag}>`;
 }
 
 function renderFeedCardCommentsSection(postId) {
@@ -5862,80 +5865,6 @@ function renderPlaybook(playbook) {
             <h3>${playbook.title}</h3>
             <p>${playbook.description}</p>
             <button class="btn btn-outline btn-small" type="button" onclick="showSuccessModal('Playbook opened', 'In the full platform this will open a concise, multilingual action guide.')">Open Playbook</button>
-        </article>
-    `;
-}
-
-function renderDistributionTool(tool) {
-    return `
-        <article class="capability-card">
-            <span class="capability-label">Distribution</span>
-            <h3>${tool.title}</h3>
-            <p>${tool.description}</p>
-        </article>
-    `;
-}
-
-function renderGrantRecommendation(grant) {
-    return `
-        <article class="grant-card">
-            <div class="match-score">${grant.fit}%</div>
-            <div>
-                <span class="capability-label">Grant match</span>
-                <h3>${grant.fund}</h3>
-                <p>${grant.focus}</p>
-                <small>${glowePrefixedLabel('Deadline')} ${grant.deadline}</small>
-                <a class="btn btn-outline btn-small" href="pages/whats-next.html">Learn More</a>
-            </div>
-        </article>
-    `;
-}
-
-function renderEngagementTool(tool) {
-    return `
-        <article class="capability-card">
-            <span class="capability-label">Interaction</span>
-            <h3>${tool.title}</h3>
-            <p>${tool.description}</p>
-            <button class="btn btn-outline btn-small" type="button" onclick="addProjectFeedback()">Try Flow</button>
-        </article>
-    `;
-}
-
-function renderRewardLeader(leader, index) {
-    return `
-        <article class="leader-card">
-            <div class="leader-rank">${index + 1}</div>
-            <div>
-                <span class="capability-label">${leader.badge}</span>
-                <h3>${leader.name}</h3>
-                <p>${leader.reason}</p>
-                <strong>${leader.score.toLocaleString()} points</strong>
-                <button class="btn btn-outline btn-small" type="button" onclick="rateOrganization('${leader.name.replace(/'/g, "\\'")}')">Review Impact</button>
-            </div>
-        </article>
-    `;
-}
-
-function renderRole(role) {
-    return `
-        <article class="role-row">
-            <strong>${role.role}</strong>
-            <p>${role.permissions}</p>
-        </article>
-    `;
-}
-
-function renderBusinessItem(item) {
-    return `<article class="business-row">${item}</article>`;
-}
-
-function renderRoadmapPhase(phase) {
-    return `
-        <article class="roadmap-row">
-            <span>${phase.phase}</span>
-            <h4>${phase.title}</h4>
-            <p>${phase.focus}</p>
         </article>
     `;
 }
@@ -6233,27 +6162,6 @@ async function initGuestHome(gen = _gloweHomeGen) {
 
     const playbookContainer = document.getElementById('applied-playbooks');
     if (playbookContainer) playbookContainer.innerHTML = appliedPlaybooks.length ? appliedPlaybooks.map(renderPlaybook).join('') : COMING_SOON;
-
-    const distributionContainer = document.getElementById('distribution-tools');
-    if (distributionContainer) distributionContainer.innerHTML = distributionChannels.length ? distributionChannels.map(renderDistributionTool).join('') : COMING_SOON;
-
-    const grantContainer = document.getElementById('grant-recommendations');
-    if (grantContainer) grantContainer.innerHTML = grantRecommendations.length ? grantRecommendations.map(renderGrantRecommendation).join('') : COMING_SOON;
-
-    const engagementContainer = document.getElementById('engagement-tools');
-    if (engagementContainer) engagementContainer.innerHTML = engagementTools.length ? engagementTools.map(renderEngagementTool).join('') : COMING_SOON;
-
-    const rewardsContainer = document.getElementById('reward-leaders');
-    if (rewardsContainer) rewardsContainer.innerHTML = rewardLeaders.length ? rewardLeaders.map(renderRewardLeader).join('') : COMING_SOON;
-
-    const rolesContainer = document.getElementById('user-roles');
-    if (rolesContainer) rolesContainer.innerHTML = userRoleBlueprint.length ? userRoleBlueprint.map(renderRole).join('') : COMING_SOON;
-
-    const businessContainer = document.getElementById('business-model');
-    if (businessContainer) businessContainer.innerHTML = businessModelItems.length ? businessModelItems.map(renderBusinessItem).join('') : COMING_SOON;
-
-    const roadmapContainer = document.getElementById('roadmap-phases');
-    if (roadmapContainer) roadmapContainer.innerHTML = roadmapPhases.length ? roadmapPhases.map(renderRoadmapPhase).join('') : COMING_SOON;
 }
 
 // Swap guest ↔ member home immediately when auth state changes (no reload).
@@ -7218,6 +7126,7 @@ function updateWellSummary(projectCount) {
     if (!panel) return;
     const helpers = (typeof GloweWishes !== 'undefined') ? GloweWishes : null;
     const stats = helpers ? helpers.wishStats(wishes) : { openWishes: wishes.length, impactAreas: 0 };
+    panel.removeAttribute('aria-busy');
     panel.innerHTML = `
         <div class="well-summary-stat"><strong>${stats.openWishes}</strong><span>Open wishes</span></div>
         <div class="well-summary-stat"><strong>${stats.impactAreas}</strong><span>Impact areas</span></div>

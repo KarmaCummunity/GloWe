@@ -15,13 +15,6 @@ const communityPosts = [];
 const dailyActions = [];
 const smartMatches = [];
 const appliedPlaybooks = [];
-const distributionChannels = [];
-const grantRecommendations = [];
-const engagementTools = [];
-const rewardLeaders = [];
-const userRoleBlueprint = [];
-const businessModelItems = [];
-const roadmapPhases = [];
 
 // Style config — not user-generated content, keep as-is.
 const wishTypeStyles = {

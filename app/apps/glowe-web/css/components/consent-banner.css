@@ -1,0 +1,44 @@
+/* GloWe essential-storage consent banner (FR-GLOWE-028) — rendered by
+   js/glowe-consent.js. Non-blocking, fixed above the bottom nav on phones. */
+
+.glowe-consent-banner {
+    position: fixed;
+    z-index: var(--z-consent);
+    inset-inline: var(--space-4);
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    max-width: 42rem;
+    margin-inline: auto;
+    padding: 0.85rem var(--space-4);
+    background: var(--surface-raised);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.glowe-consent-banner__text {
+    flex: 1 1 14rem;
+    margin: 0;
+    color: var(--text-body);
+}
+
+.glowe-consent-banner__link {
+    color: var(--text-link);
+    text-decoration: underline;
+}
+
+.glowe-consent-banner__accept {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+}
+
+@media (max-width: 767px) {
+    .glowe-consent-banner {
+        bottom: calc(var(--bottom-nav-h) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+    }
+}

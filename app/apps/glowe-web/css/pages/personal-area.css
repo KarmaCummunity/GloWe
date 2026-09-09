@@ -3,14 +3,14 @@
    chips, menus, avatars, forms) come from the components layer. */
 
 .skill-tag {
-    background-color: var(--white);
-    color: var(--text-secondary);
+    background-color: var(--color-neutral-0);
+    color: var(--text-muted);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
     white-space: nowrap;
     max-width: 100%;
-    border: 1px solid var(--card-border);
+    border: 1px solid var(--border-strong);
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -60,9 +60,9 @@
     scroll-snap-align: start;
     padding: 6px 12px;
     border-radius: 999px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     background: var(--color-neutral-0);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.76rem;
     font-weight: 800;
     line-height: 1.2;
@@ -71,20 +71,20 @@
 
 .personal-nav--scroll a:hover,
 .personal-nav--scroll a:focus-visible {
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .personal-nav a {
     padding: 11px 12px;
     border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 800;
 }
 
 .personal-nav a:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .personal-main,
@@ -100,7 +100,7 @@
     gap: 10px;
     justify-content: flex-start;
     padding-top: 18px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
 .personal-card-header {
@@ -128,7 +128,7 @@
 
 .profile-summary > p {
     max-width: 760px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 1.08rem;
     line-height: 1.55;
 }
@@ -147,7 +147,7 @@
 
 .profile-lead-text {
     max-width: 820px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 1.08rem;
     line-height: 1.7;
 }
@@ -172,13 +172,13 @@
 .profile-learning-panel strong {
     display: block;
     margin-bottom: 8px;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-size: 0.92rem;
 }
 
 .profile-impact-story p,
 .profile-learning-panel span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.6;
 }
 
@@ -195,7 +195,7 @@
 }
 
 .profile-contact-card a {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 800;
     overflow-wrap: anywhere;
 }
@@ -212,9 +212,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 8px;
-    background: var(--white);
+    background: var(--color-neutral-0);
     cursor: pointer;
 }
 

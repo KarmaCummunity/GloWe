@@ -5,7 +5,7 @@
 .filter-heading {
     padding: 14px;
     margin: -4px -4px 18px;
-    background: var(--sky-light);
+    background: var(--color-tint-sky);
     border: 1px solid var(--color-info-bg);
     border-radius: var(--radius-sm);
 }
@@ -17,7 +17,7 @@
 
 .filter-heading small {
     display: block;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .write-post-page {
@@ -34,8 +34,8 @@
 .topic-panel,
 .write-post-form-panel,
 .preview-panel {
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 20px;
     box-shadow: var(--shadow-md);
@@ -61,7 +61,7 @@
 
 .topic-prompt span,
 .guideline-box span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.92rem;
 }
 
@@ -69,9 +69,9 @@
 .guideline-box {
     margin-bottom: 18px;
     padding: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 @media (max-width: 1023px) {

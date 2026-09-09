@@ -4,21 +4,21 @@
 
 .opportunity-composer-section {
     padding: 44px 0 12px;
-    background: linear-gradient(180deg, var(--color-neutral-0) 0%, var(--background) 100%);
+    background: linear-gradient(180deg, var(--color-neutral-0) 0%, var(--surface-page) 100%);
 }
 
 .opportunity-composer-section .section-toolbar {
     align-items: center;
     padding: 24px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
 }
 
 .opportunity-composer-section .section-toolbar p {
     max-width: 720px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .post-card,
@@ -38,13 +38,15 @@
     margin-bottom: 20px;
 }
 
-.composer-card button,
-.composer-card a,
-.post-actions button,
-.post-actions a {
+/* Class-less text actions inside composer / post cards (Like, Comment, Share).
+   Real .btn controls in the same containers keep their variant styling. */
+.composer-card button:not(.btn),
+.composer-card a:not(.btn),
+.post-actions button:not(.btn),
+.post-actions a:not(.btn) {
     border: none;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font: inherit;
     font-weight: 700;
     cursor: pointer;
@@ -66,8 +68,8 @@
 .inline-post-form {
     margin-bottom: 20px;
     padding: 22px;
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
 }
@@ -91,34 +93,34 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
-.composer-quick-actions button {
+.composer-quick-actions button:not(.btn) {
     min-height: 36px;
     border: 0;
     border-radius: var(--radius-sm);
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font: inherit;
     font-size: 0.9rem;
     font-weight: 800;
     cursor: pointer;
 }
 
-.composer-quick-actions button:hover {
-    background: var(--primary-light);
-    color: var(--primary-dark);
+.composer-quick-actions button:not(.btn):hover {
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .composer-input-button {
     min-height: 44px;
     width: 100%;
     padding: 10px 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 999px;
     background: var(--color-neutral-50);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font: inherit;
     font-weight: 700;
     text-align: start;
@@ -127,8 +129,8 @@
 
 .composer-input-button:hover {
     border-color: var(--alpha-ink-34);
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 @media (max-width: 639px) {
@@ -165,16 +167,16 @@
     gap: 4px;
     text-align: start;
     padding: 14px 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 12px;
-    background: var(--white);
+    background: var(--color-neutral-0);
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .create-menu-option:hover {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-100);
 }
 
 .create-menu-option strong {
@@ -182,6 +184,6 @@
 }
 
 .create-menu-option span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.85rem;
 }

@@ -38,7 +38,7 @@
 
 .directory-card-org-name {
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-strong);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -80,8 +80,8 @@
 .opportunity-badge {
     flex: 0 1 auto;
     max-width: 55%;
-    background-color: var(--primary-light);
-    color: var(--primary-dark);
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-900);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -116,7 +116,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-3);
 }
 
 .org-card-actions > .btn,
@@ -131,11 +131,11 @@
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 12px;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .opportunity-description {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 16px;
     font-size: 0.95rem;
 }
@@ -147,10 +147,10 @@
 }
 
 .person-actions button {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 999px;
     background: var(--color-neutral-0);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font: inherit;
     font-size: 0.78rem;
     font-weight: 800;
@@ -159,9 +159,9 @@
 }
 
 .person-actions button:hover {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
 }
 
 .mini-opportunity-list {
@@ -171,7 +171,7 @@
 
 .mini-opportunity-list article {
     padding: 18px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     background: var(--color-neutral-0);
 }
@@ -181,5 +181,43 @@
 }
 
 .mini-opportunity-list p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
+}
+
+.opportunities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+    /* Hug content height — stretch left empty bands inside shorter cards. */
+    align-items: start;
+}
+
+.organizations-empty-state {
+    grid-column: 1 / -1;
+}
+
+.directory-card .tr-slot:not(:empty) {
+    margin: 0 0 4px;
+}
+
+/* The stretched link sits above static content so the whole card opens the
+   detail; interactive chrome (⋯ menu, translation slot, CTAs) stays above it. */
+.directory-card .card-more-menu,
+.directory-card .tr-slot,
+.directory-card .org-card-actions {
+    position: relative;
+    z-index: 2;
+}
+
+@media (max-width: 1023px) {
+    .opportunities-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .opportunities-grid {
+        grid-template-columns: 1fr;
+    }
 }

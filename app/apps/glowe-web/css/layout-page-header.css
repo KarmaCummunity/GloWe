@@ -1,15 +1,50 @@
-/* GloWe shell — page header band under the top bar (FR-GLOWE-029 Phase 2). */
+/* GloWe shell — photo bands: page header, home hero, profile covers
+   (FR-GLOWE-029 Phase 2 / Phase 5).
+   Flat under css/ because these rules consume url() tokens (see glowe.css
+   header). Washes live in tokens.css; --hero-sweep / --hero-photo-x flip with
+   the reading direction so the headline always sits on the light side, and
+   --hero-overlay flattens the wash on phones. */
+
+/* Page photo per body class; the default (regrowth) lives in tokens.css. */
+.home-page-body,
+.organizations-page-body {
+    --page-photo: url('../assets/glowe-bridge.webp');
+}
+
+.opportunities-page-body,
+.wishing-page-body {
+    --page-photo: url('../assets/glowe-field.webp');
+}
+
+.about-page-body {
+    --page-photo: url('../assets/glowe-blossoms.webp');
+}
+
+/* Phone cut of each photo (960px wide); the default swaps in tokens.css. Keep in
+   sync with HERO_PHOTO_BY_BODY_CLASS in scripts/glowe-sync-shell.mjs. */
+@media (max-width: 767px) {
+    .home-page-body,
+    .organizations-page-body {
+        --page-photo: url('../assets/glowe-bridge-m.webp');
+    }
+
+    .opportunities-page-body,
+    .wishing-page-body {
+        --page-photo: url('../assets/glowe-field-m.webp');
+    }
+
+    .about-page-body {
+        --page-photo: url('../assets/glowe-blossoms-m.webp');
+    }
+}
 
 /* ===== Page header (hero band under the top bar) ===== */
 .page-header {
     position: relative;
     overflow: hidden;
     padding: clamp(40px, 6vw, 72px) 0;
-    /* --hero-sweep / --hero-photo-x flip with the reading direction (tokens.css),
-       so the headline always sits on the light side; --hero-overlay flattens the
-       wash on phones. */
     background:
-        var(--hero-overlay, linear-gradient(var(--hero-sweep), var(--alpha-white-92) 0%, var(--color-primary-100) 48%, var(--alpha-ink-34) 100%)),
+        var(--hero-overlay, var(--wash-page-header)),
         var(--page-photo) var(--hero-photo-x) center / cover no-repeat;
     border-bottom: 1px solid var(--border-subtle);
 }
@@ -40,4 +75,37 @@
     font-size: var(--text-md);
     color: var(--text-muted);
     text-align: start;
+}
+
+/* ===== Home landing band — same mechanics, lighter wash, taller ===== */
+.hero {
+    padding: 86px 0;
+    background:
+        var(--hero-overlay, var(--wash-hero-home)),
+        var(--page-photo) var(--hero-photo-x) center / cover no-repeat;
+    border-bottom: 1px solid var(--alpha-ink-12);
+}
+
+/* ===== Profile covers ===== */
+.social-cover {
+    min-height: 170px;
+    background: var(--wash-cover), var(--page-photo) center / cover no-repeat;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.cover-edit-preview {
+    width: 100%;
+    min-height: 140px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--wash-cover), var(--page-photo) center / cover no-repeat;
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-cover-band {
+    min-height: clamp(120px, 18vw, 210px);
+    background:
+        var(--wash-cover-band),
+        var(--page-photo) var(--hero-photo-x) center / cover no-repeat;
+    border-bottom: 1px solid var(--border-default);
 }

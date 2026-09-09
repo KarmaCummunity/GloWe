@@ -19,8 +19,8 @@
 .profile-check-list span {
     display: block;
     padding: 10px 0 10px 24px;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-muted);
     font-weight: 700;
     position: relative;
 }
@@ -33,13 +33,13 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: var(--color-primary-500);
 }
 
 .edit-profile-upgrade-section {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
 .edit-profile-upgrade-toggle {

@@ -2,39 +2,9 @@
    Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
    chips, menus, avatars, forms) come from the components layer. */
 
-.capability-label,
-.roadmap-row span {
-    color: var(--primary-dark);
-    font-weight: 800;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-}
-
-.capability-card p,
-.role-row p,
-.roadmap-row p {
-    color: var(--text-secondary);
-}
-
-.role-row,
-.business-row,
-.roadmap-row {
-    padding: 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background: var(--color-neutral-0);
-}
-
-.role-row strong,
-.roadmap-row h4 {
-    display: block;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
 .section-subtitle {
     text-align: center;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 1.1rem;
     margin-bottom: 48px;
 }
@@ -72,7 +42,7 @@
 .next-story-section,
 .next-roadmap-section {
     padding: 76px 0;
-    background: var(--white);
+    background: var(--color-neutral-0);
 }
 
 .next-story-section .container {
@@ -90,7 +60,7 @@
 
 .next-story-copy p,
 .next-roadmap-section .section-subtitle {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 1.06rem;
     line-height: 1.75;
 }
@@ -104,9 +74,9 @@
 .next-principle-list article,
 .next-roadmap-grid article,
 .about-next-callout {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    background: var(--white);
+    background: var(--color-neutral-0);
     padding: 22px;
     box-shadow: var(--shadow-sm);
 }
@@ -118,8 +88,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--primary-light);
-    color: var(--primary-dark);
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
     font-weight: 900;
     margin-bottom: 12px;
 }
@@ -139,13 +109,13 @@
 
 .next-roadmap-grid p,
 .next-principle-list p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.65;
 }
 
 .about-next-callout {
     margin: 34px 0;
-    background: var(--primary-light);
+    background: var(--color-primary-100);
 }
 
 .about-whats-next-panel {
@@ -164,7 +134,7 @@
 }
 
 .about-whats-next-panel > p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.65;
     margin: 0 0 18px;
 }

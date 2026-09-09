@@ -3,11 +3,11 @@
    chips, menus, avatars, forms) come from the components layer. */
 
 .testimonial-card {
-    background: var(--white);
+    background: var(--color-neutral-0);
     border-radius: var(--radius-md);
     padding: 32px;
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     text-align: center;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .about-team-section > p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.65;
     margin-bottom: 24px;
 }
@@ -28,7 +28,7 @@
 .about-team-loading,
 .about-team-error,
 .about-team-empty {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.6;
 }
 
@@ -43,9 +43,9 @@
 }
 
 .about-team-card {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    background: var(--white);
+    background: var(--color-neutral-0);
     padding: 22px;
     box-shadow: var(--shadow-sm);
     display: flex;
@@ -62,7 +62,7 @@
 }
 
 .about-team-card-link:hover .about-team-name {
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .about-team-avatar {
@@ -76,25 +76,25 @@
 .about-team-name {
     margin: 0 0 4px;
     font-size: 1.15rem;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .about-team-role {
     margin: 0;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 700;
     line-height: 1.4;
 }
 
 .about-team-bio {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     line-height: 1.65;
 }
 
 .about-team-profile-cta {
     align-self: flex-start;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-weight: 700;
     text-decoration: none;
 }

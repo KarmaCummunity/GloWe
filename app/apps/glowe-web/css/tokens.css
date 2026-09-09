@@ -31,6 +31,7 @@
     --color-neutral-200: #dce8e3;
     --color-neutral-300: #b7cbc3;
     --color-neutral-400: #7b8a89;
+    --color-neutral-500: #586968;
     --color-neutral-600: #566665;
     --color-neutral-900: #111918;
 
@@ -61,6 +62,7 @@
     --alpha-white-12: rgba(255, 255, 255, 0.12);
     --alpha-white-76: rgba(255, 255, 255, 0.76);
     --alpha-white-92: rgba(255, 255, 255, 0.92);
+    --alpha-white-48: rgba(255, 255, 255, 0.48);
 
     /* ---- Semantic surfaces & text ---- */
     --surface-page: var(--color-neutral-50);
@@ -76,7 +78,8 @@
     --text-strong: var(--color-neutral-900);
     --text-body: var(--color-neutral-900);
     --text-muted: var(--color-neutral-600);
-    --text-subtle: var(--color-neutral-400);
+    /* Lightest text allowed on any surface: 4.59:1 on the tinted card hover (AA). */
+    --text-subtle: var(--color-neutral-500);
     --text-inverse: var(--color-neutral-0);
     --text-brand: var(--color-primary-900);
     --text-link: var(--color-primary-500);
@@ -163,37 +166,19 @@
     /* ---- Layout ---- */
     --container-max: 1200px;
     --container-pad: clamp(12px, 3vw, 20px);
-    /* Hero photo wash: the light side follows the reading direction (gradients have no logical angles). */
+    /* Photo washes over the page photos. Gradients have no logical angles, so
+       --hero-sweep / --hero-photo-x flip under html[dir="rtl"] and the light
+       side always follows the reading direction. */
     --hero-sweep: 90deg;
     --hero-photo-x: right;
-    --header-h: 64px;
-    --bottom-nav-h: 64px;
-
-    /* ---- Legacy aliases (consumed by legacy.css; removed with it — TD-192) ---- */
-    --primary-color: var(--color-primary-500);
-    --primary-dark: var(--color-primary-900);
-    --primary-light: var(--color-primary-100);
-    --secondary-color: var(--color-secondary-500);
-    --accent-color: var(--color-accent-500);
-    --rose-light: var(--color-tint-rose);
-    --lavender-light: var(--color-tint-lavender);
-    --sky-light: var(--color-tint-sky);
-    --text-primary: var(--text-strong);
-    --text-secondary: var(--text-muted);
-    --text-light: var(--text-subtle);
-    --background: var(--surface-page);
-    --white: var(--color-neutral-0);
-    --border-color: var(--border-default);
-    --card-surface: var(--surface-card-tinted);
-    --card-surface-hover: var(--surface-card-tinted-hover);
-    --card-border: var(--border-strong);
-    --card-border-hover: #a5bdb4;
-    --card-shadow: 0 4px 16px rgba(7, 63, 66, 0.09);
-    --card-shadow-hover: 0 8px 22px var(--alpha-ink-12);
-    --transition: all var(--duration-slow) ease;
-    --hero-photo: url('../assets/glowe-bridge.webp');
+    --wash-page-header: linear-gradient(var(--hero-sweep), var(--alpha-white-92) 0%, var(--color-primary-100) 48%, var(--alpha-ink-34) 100%);
+    --wash-hero-home: linear-gradient(var(--hero-sweep), var(--alpha-white-92), var(--alpha-white-76), var(--alpha-white-48));
+    --wash-cover: linear-gradient(105deg, rgba(231, 245, 240, 0.92), rgba(252, 240, 217, 0.62), rgba(174, 217, 224, 0.72));
+    --wash-cover-band: linear-gradient(115deg, var(--alpha-ink-34), rgba(231, 242, 239, 0.72));
     --page-photo: url('../assets/glowe-regrowth.webp');
     --asset-brand-mark: url('../assets/glowe-life-flower.webp');
+    --header-h: 64px;
+    --bottom-nav-h: 64px;
 }
 
 html[dir="rtl"] {
@@ -215,9 +200,11 @@ html[dir="rtl"] {
 }
 
 /* Phones: hero copy spans the whole band, so the photo wash stays light edge to edge
-   (desktop heroes fall back to their own light→photo sweep). */
+   (desktop heroes fall back to their own light→photo sweep), and the band takes the
+   960px `-m` photo cut (≈ half the bytes; layout-page-header.css swaps the others). */
 @media (max-width: 767px) {
     :root {
         --hero-overlay: linear-gradient(180deg, var(--alpha-white-92), var(--alpha-white-76));
+        --page-photo: url('../assets/glowe-regrowth-m.webp');
     }
 }

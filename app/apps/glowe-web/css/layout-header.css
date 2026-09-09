@@ -1,6 +1,6 @@
 /* GloWe shell — header + primary nav + auth cluster
-   (FR-GLOWE-029 Phase 2 / D-190). Layer `layout` sits above `legacy`, so these
-   rules win over anything left in legacy.css without !important.
+   (FR-GLOWE-029 Phase 2 / D-190). Layer `layout` sits above `components`;
+   page sheets may still override it for their own page.
 
    Auth state is a single class: body.glowe-signed-in (set in auth.js). The
    early-paint guard html.glowe-expect-member (glowe-auth-paint.js) hides the

@@ -4,8 +4,8 @@
 
 .personal-nav,
 .personal-stats-grid:not(.personal-stats-grid--compact) div {
-    background: var(--white);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
 }
@@ -35,14 +35,14 @@
     text-decoration: none;
     color: inherit;
     background: var(--alpha-white-92);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     box-shadow: none;
 }
 
 .personal-stats-grid--compact > .profile-stat-link:hover,
 .personal-stats-grid--compact > .profile-stat-link:focus-visible {
-    border-color: var(--primary-color);
+    border-color: var(--color-primary-500);
     outline: none;
 }
 
@@ -52,7 +52,7 @@
 
 .personal-stats-grid strong {
     display: block;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
     font-size: 1.8rem;
     line-height: 1.1;
 }
@@ -63,7 +63,7 @@
 }
 
 .personal-stats-grid span {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 800;
 }
 
@@ -88,7 +88,7 @@
     min-width: 0;
     display: block;
     background: var(--alpha-white-92);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 14px 10px;
     text-align: center;
@@ -98,7 +98,7 @@
 
 .profile-stats > .profile-stat-link:hover,
 .profile-stats > .profile-stat-link:focus-visible {
-    border-color: var(--primary-color);
+    border-color: var(--color-primary-500);
     outline: none;
 }
 
@@ -107,13 +107,13 @@
     font-size: 1.55rem;
     font-weight: 900;
     line-height: 1.1;
-    color: var(--primary-dark);
+    color: var(--color-primary-900);
 }
 
 .profile-stats span {
     display: block;
     margin-top: 4px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.78rem;
     font-weight: 700;
     line-height: 1.2;

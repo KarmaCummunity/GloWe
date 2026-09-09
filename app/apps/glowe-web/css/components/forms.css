@@ -125,3 +125,44 @@ html[dir="rtl"] select.form-control {
     font-weight: var(--weight-semibold);
     color: var(--color-danger-500);
 }
+
+/* ---- Form layout helpers ---- */
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+/* Field + inline action (e.g. "Send code") side by side; stacks on tablets. */
+.inline-field-action {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+}
+
+.email-code-group small {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-subtle);
+    font-size: 0.82rem;
+}
+
+/* Checkbox / radio row rendered as a bordered option. */
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--surface-card);
+    font-weight: var(--weight-bold);
+}
+
+@media (max-width: 1023px) {
+    .inline-field-action {
+        grid-template-columns: 1fr;
+    }
+}

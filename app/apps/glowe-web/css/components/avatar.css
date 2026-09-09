@@ -9,7 +9,7 @@
    Legacy marks (.entity-mark, .comment-avatar, .testimonial-avatar,
    .about-team-avatar, .profile-avatar, .social-avatar,
    .profile-avatar-img) alias the canonical sizes; their page placement
-   (margins, negative offsets) stays in legacy.css until Phase 4. */
+   (margins, negative offsets) lives in the owning pages/*.css sheet. */
 
 .avatar,
 .entity-mark,

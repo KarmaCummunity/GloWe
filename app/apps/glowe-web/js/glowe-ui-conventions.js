@@ -68,7 +68,7 @@
 
     // Tiny verified tick for approved org avatars (replaces a text "Verified" pill).
     function verifiedTickHtml() {
-        return '<span class="directory-verified-tick" aria-label="Verified">' + VERIFIED_TICK_SVG + '</span>';
+        return '<span class="directory-verified-tick" role="img" aria-label="Verified">' + VERIFIED_TICK_SVG + '</span>';
     }
 
     // Wrap an entity-mark / avatar with an optional verified tick.

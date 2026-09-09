@@ -13,7 +13,7 @@
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid var(--white);
+    border: 4px solid var(--color-neutral-0);
     box-shadow: var(--shadow-md);
 }
 
@@ -26,7 +26,7 @@
     text-align: center;
     min-height: 1.2em;
     margin-bottom: 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 #avatar-edit-status.is-error {
@@ -35,7 +35,7 @@
 }
 
 #avatar-edit-status.is-info {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .avatar-edit-actions {
@@ -55,7 +55,7 @@
     text-align: center;
     min-height: 1.2em;
     margin-bottom: 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 #cover-edit-status.is-error {
@@ -64,7 +64,7 @@
 }
 
 #cover-edit-status.is-info {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .cover-edit-actions {

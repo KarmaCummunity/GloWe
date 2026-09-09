@@ -7,7 +7,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     min-width: 0;
 }
 
@@ -35,7 +35,7 @@
 .opportunity-meta-group {
     padding: 12px 14px;
     background: var(--color-neutral-0);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
 }
 
@@ -44,11 +44,11 @@
     align-items: center;
     gap: 6px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .opportunity-detail strong {
-    color: var(--text-primary);
+    color: var(--text-strong);
     font-weight: 700;
 }
 
@@ -70,7 +70,7 @@ section.opportunity-detail {
 }
 
 .opportunity-main {
-    background: var(--white);
+    background: var(--color-neutral-0);
     border-radius: var(--radius-md);
     padding: 40px;
     box-shadow: var(--shadow-sm);
@@ -85,19 +85,19 @@ section.opportunity-detail {
     font-size: 1.2rem;
     font-weight: 800;
     margin: 28px 0 12px;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .opportunity-main p,
 .opportunity-main li {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 12px;
 }
 
 .opportunity-main .empty-detail {
     list-style: none;
     margin-inline-start: -20px;
-    color: var(--text-light);
+    color: var(--text-subtle);
     font-style: italic;
 }
 
@@ -128,7 +128,7 @@ section.opportunity-detail {
     gap: 0;
     margin-bottom: 24px;
     text-align: start;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
     overflow: hidden;
 }
@@ -141,7 +141,7 @@ section.opportunity-detail {
 }
 
 .apply-card .opportunity-details .opportunity-detail + .opportunity-detail {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
 .org-info-card {
@@ -151,11 +151,11 @@ section.opportunity-detail {
 
 .org-info-card h4 {
     margin-bottom: 12px;
-    color: var(--text-primary);
+    color: var(--text-strong);
 }
 
 .org-info-card p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.95rem;
 }
 
@@ -166,11 +166,11 @@ section.opportunity-detail {
 
 .event-register-status {
     margin: 4px 0 16px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .event-register-error {
-    background: var(--rose-light);
+    background: var(--color-tint-rose);
     color: var(--color-danger-fg);
     border-radius: var(--radius-sm);
     padding: 10px 14px;

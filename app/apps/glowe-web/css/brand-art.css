@@ -1,0 +1,19 @@
+/* GloWe brand artwork — rules that paint url() assets (FR-GLOWE-029 / D-190).
+   Flat under css/ on purpose: Chromium resolves a url() inside var() against
+   the sheet that USES it, and the production bundle lands at css/glowe.<hash>.css
+   (see glowe.css header; check-glowe-css enforces). */
+
+/* Success / confirmation mark used by modals and empty states. */
+.success-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 82px;
+    height: 82px;
+    margin: 0 auto var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+    background: var(--asset-brand-mark) center / 74% no-repeat, var(--surface-brand-soft);
+    color: transparent;
+    font-size: 0;
+}

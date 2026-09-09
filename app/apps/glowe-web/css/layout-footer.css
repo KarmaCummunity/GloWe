@@ -14,7 +14,7 @@
     margin-bottom: var(--space-8);
 }
 
-.footer-section h4 {
+.footer-section h3 {
     margin-bottom: var(--space-4);
     font-size: var(--text-lg);
     color: var(--color-primary-400);
