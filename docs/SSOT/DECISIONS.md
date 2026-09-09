@@ -1529,12 +1529,28 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `css/components/{buttons,cards,chips,nav-tabs,modal,menu,avatar,list-filters}.css`, `css/layout-*.css`, `js/ui/glowe-ui-{shell,dialog,primitives}.js`, `js/app.js`, `app/scripts/check-glowe-css.mjs` (`LEGACY_LINE_BUDGET`); `spec/17_glowe_frontend.md` FR-GLOWE-029 AC3; TD-192.
 
+## D-193 — GloWe page sheets: split inside the `legacy` layer in source order, verified by a DOM-grounded cascade scan; responsive and directional values are tokens (2026-09-09)
+
+**Decision.**
+
+1. **Page sheets stay in the `legacy` layer for now.** `css/pages/*.css` are imported into `layer(legacy)` — after `legacy.css` (shared rules) and before `legacy-responsive.css` (every remaining media block) — in the order the rules had in the original file. Promotion to the `pages` layer happens per sheet in Phase 5, after the sheet is audited for equal-specificity dependence on `legacy.css`. Moving a sheet up a layer is a cascade change, not a file move.
+2. **Split safety is measured, not assumed.** The acceptance check for any rule relocation is a DOM-grounded inversion scan: every pair of rules with equal specificity and a clashing property (shorthand/longhand/logical/physical aware) whose relative order changed must not match a common element in the live DOM of any page at 390/1280, as guest and as a signed-in member. Zero inversions is the bar; the mechanical split is otherwise unreviewable by eye.
+3. **Responsive and directional values live in `tokens.css`.** Breakpoint-dependent layout constants (`--container-pad`) and direction-dependent visuals (`--hero-sweep`, `--hero-photo-x`, plus the phone-only `--hero-overlay`) are custom properties overridden under `@media` / `html[dir=rtl]` in the token file. Components and pages consume the token; they do not carry their own media or RTL override rules for the same value.
+4. **`legacy.css` keeps only what the guard forbids elsewhere.** Rules that reference `url()` tokens (hero/page photos) or still need `!important` stay in `legacy.css` / `utilities.css`; everything else in it is shared marketing-section styling scheduled for Phase 5.
+
+**Rationale.** The first attempt (page sheets straight into the `pages` layer) shifted dozens of computed styles because ~30 page rules relied on beating a same-specificity shared rule by source order alone. Keeping the layer and the order made the split a pure refactor; the scan then found the six real inversions the reordering had introduced (container gutters vs `.guest-home-feed`, feed-card header padding, action-board card height, tablet stats grid, community grid columns) and proved the fix set complete. Tokens for gutters and the hero wash removed the last duplicated responsive / RTL rule pairs and fixed the Hebrew hero, whose copy had been sitting on the photo half at every width.
+
+**Alternatives rejected.** Visual-only verification (pixel diffs are blind to hover / signed-in / tablet states and drown in dynamic feed content); giving every moved rule a specificity bump or `:where()` wrapper (hides the dependence instead of resolving it); one sheet per HTML page regardless of size (the community and profile surfaces exceed 300 lines and split naturally by concern).
+
+**Affected.** `css/glowe.css` (import order), `css/pages/*.css`, `css/utilities.css`, `css/legacy-responsive.css`, `css/tokens.css`, `css/layout-page-header.css`, `app/scripts/check-glowe-css.mjs` (`LEGACY_LINE_BUDGET` 805, canonical breakpoints enforced in `legacy.css`); `spec/17_glowe_frontend.md` FR-GLOWE-029 AC1/AC5; TD-192.
+
 ---
 
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.24 | 2026-09-09 | Added `D-193` (GloWe page sheets split inside the `legacy` layer in source order, DOM-grounded cascade scan as the acceptance check, responsive/directional tokens; FR-GLOWE-029 Phase 4). |
 | 4.23 | 2026-09-09 | Added `D-192` (GloWe component families: alias-then-remove migration, logical insets, HTML only through `glowe-ui-primitives.js`; FR-GLOWE-029 Phase 3). |
 | 4.22 | 2026-09-09 | Added `D-191` (GloWe shell: one 768px boundary, two-row tablet header, class-based auth state, flat `url()` sheets, PR journeys on the checkout; FR-GLOWE-029 Phase 2). |
 | 4.21 | 2026-09-09 | Added `D-190` (GloWe design system: token layer + cascade layers + shell partials + PR-time visual gate; FR-GLOWE-029). |
