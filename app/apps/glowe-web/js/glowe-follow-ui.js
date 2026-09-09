@@ -19,6 +19,10 @@
         };
     }
 
+    function text(key) {
+        return typeof window.gloweText === 'function' ? window.gloweText(key) : key;
+    }
+
     function guestButtonHtml(GF, targetId) {
         return GF.followButtonHtml({ state: 'not_following_public', label: '+ Follow' }, targetId);
     }
@@ -61,12 +65,16 @@
 
     function confirmUnfollow(targetId) {
         const nameEl = document.querySelector('[data-follow-name="' + targetId + '"]');
-        const name = (nameEl && nameEl.textContent) || 'this profile';
-        return window.confirm('Stop following ' + name + '?');
+        const name = (nameEl && nameEl.textContent) || text('this profile');
+        const message = text('Stop following') + ' ' + name + '?';
+        if (window.GloweUiDialog) {
+            return window.GloweUiDialog.confirm({ title: text('Unfollow'), message: message, confirmLabel: text('Unfollow') });
+        }
+        return Promise.resolve(window.confirm(message));
     }
 
     async function applyUnfollow(backend, GF, modal, targetId) {
-        if (!confirmUnfollow(targetId)) return false;
+        if (!(await confirmUnfollow(targetId))) return false;
         try {
             await backend.kcUnfollow(targetId);
             return true;

@@ -62,7 +62,7 @@
       wrap.innerHTML = `
         <div id="glowe-join-modal" class="modal">
           <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('glowe-join-modal')">&times;</span>
+            <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-join-modal')">&times;</button>
             <h2 id="glowe-join-title"></h2>
             <p id="glowe-join-body" class="modal-footer-text"></p>
             <button id="glowe-join-google" class="btn btn-primary btn-block" type="button">Continue with Google</button>

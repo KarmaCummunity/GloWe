@@ -1,0 +1,183 @@
+/* GloWe cards — one surface family (FR-GLOWE-029 Phase 3 / D-190).
+
+   .card          white panel (profile sections, admin, apply, about blocks)
+   .card--tinted  content card on the tinted surface (posts, opportunities,
+                  directory entries, forum groups, saved items) with a hover tint
+   .card--interactive  pointer + hover lift for whole-card links
+   .card__header / .card__body / .card__footer / .card__actions
+
+   Legacy card names inherit the matching surface via the alias lists below;
+   their internal layout (grid / gap / padding) stays with them in legacy.css
+   until each page migrates in Phase 4. Only the canonical classes carry a
+   default padding so page-specific paddings keep working. */
+
+.card,
+.card--tinted,
+.apply-card,
+.org-info-card,
+.profile-section-card,
+.community-mini-card,
+.community-layer-card,
+.admin-card,
+.daily-action-card,
+.match-card,
+.playbook-card,
+.capability-card,
+.grant-card,
+.leader-card,
+.forum-leader-card,
+.composer-card,
+.onboarding-type-card,
+.saved-mini-card,
+.profile-type-card,
+.choice-card,
+.post-card,
+.project-card,
+.opportunity-card,
+.directory-card,
+.forum-group-card,
+.thread-row,
+.saved-item-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-body);
+    transition:
+        background-color var(--duration-base) var(--ease-standard),
+        border-color var(--duration-base) var(--ease-standard),
+        box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.card,
+.card--tinted {
+    padding: var(--card-pad, 22px);
+}
+
+/* Tinted content cards */
+.card--tinted,
+.post-card,
+.project-card,
+.opportunity-card,
+.directory-card,
+.forum-group-card,
+.thread-row,
+.saved-item-card {
+    background: var(--surface-card-tinted);
+    border-color: var(--border-strong);
+}
+
+.card--tinted:hover,
+.post-card:hover,
+.project-card:hover,
+.opportunity-card:hover,
+.directory-card:hover,
+.forum-group-card:hover,
+.thread-row:hover,
+.saved-item-card:hover {
+    background: var(--surface-card-tinted-hover);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--shadow-md);
+}
+
+/* Whole-card links */
+.card--interactive {
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.card--interactive:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card--interactive:focus-visible,
+.card:focus-within,
+.card--tinted:focus-within {
+    outline: none;
+    box-shadow: var(--focus-ring), var(--shadow-sm);
+}
+
+/* Selectable option cards (onboarding / profile type / choices): <label> wrapping
+   a radio/checkbox; the checked input drives the selected look. */
+.card--option,
+.onboarding-type-card,
+.profile-type-card,
+.choice-card {
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.card--option:hover,
+.onboarding-type-card:hover,
+.profile-type-card:hover,
+.choice-card:hover {
+    border-color: var(--border-brand);
+}
+
+.card--option:has(input:checked),
+.onboarding-type-card:has(input:checked),
+.profile-type-card:has(input:checked),
+.choice-card:has(input:checked) {
+    border-color: var(--border-brand);
+    background: var(--surface-brand-soft);
+    color: var(--text-brand);
+    box-shadow: inset 0 0 0 1px var(--border-brand);
+}
+
+.card--option:has(input:focus-visible),
+.onboarding-type-card:has(input:focus-visible),
+.profile-type-card:has(input:focus-visible),
+.choice-card:has(input:focus-visible) {
+    box-shadow: var(--focus-ring);
+}
+
+/* Sections */
+.card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.card__body {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.card__footer,
+.card__actions,
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.card__footer,
+.card__actions {
+    margin-top: auto;
+    padding-top: var(--space-3);
+}
+
+/* Org/opportunity footers: identical 3-column layout whether Save or Saved. */
+.card-actions.card-actions--consistent {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-2);
+    flex-wrap: nowrap;
+}
+
+.card-actions.card-actions--consistent > .btn,
+.card-actions.card-actions--consistent > a.btn {
+    width: 100%;
+    justify-content: center;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.card-actions.card-actions--consistent > .btn-primary {
+    min-width: 7.5rem;
+}

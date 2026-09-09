@@ -1,0 +1,114 @@
+/* GloWe avatars — one identity mark for people and organisations
+   (FR-GLOWE-029 Phase 3 / D-190).
+
+   .avatar            initials disc (or <img class="avatar"> photo), 42px
+   .avatar--xs/sm/lg/xl/hero   32 / 36 / 56 / 64 / responsive hero
+   .avatar-wrap       relative anchor for a corner badge
+   .avatar-badge      verified tick in the trailing-bottom corner
+
+   Legacy marks (.entity-mark, .comment-avatar, .testimonial-avatar,
+   .about-team-avatar, .profile-avatar, .social-avatar, .post-author-avatar,
+   .profile-avatar-img) alias the canonical sizes; their page placement
+   (margins, negative offsets) stays in legacy.css until Phase 4. */
+
+.avatar,
+.entity-mark,
+.comment-avatar,
+.testimonial-avatar,
+.about-team-avatar,
+.profile-avatar,
+.post-author-avatar,
+.profile-avatar-img {
+    --avatar-size: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-brand-soft);
+    color: var(--text-brand);
+    font-size: calc(var(--avatar-size) * 0.3);
+    font-weight: var(--weight-extrabold);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+.avatar--xs,
+.comment-avatar {
+    --avatar-size: 32px;
+}
+
+.avatar--sm,
+.entity-mark {
+    --avatar-size: 36px;
+}
+
+.avatar--lg,
+.testimonial-avatar {
+    --avatar-size: 56px;
+}
+
+.avatar--xl,
+.about-team-avatar {
+    --avatar-size: 64px;
+}
+
+/* Profile hero mark: framed and lifted over the cover photo. */
+.avatar--hero,
+.profile-avatar {
+    --avatar-size: clamp(96px, 12vw, 132px);
+    border: 6px solid var(--surface-card);
+    box-shadow: var(--shadow-lg);
+}
+
+.social-avatar {
+    --avatar-size: 136px;
+}
+
+/* Photo avatars in card headers get a thin white ring so they read as marks. */
+.post-author-avatar,
+.post-card-header .profile-avatar-img {
+    border: 2px solid var(--surface-card);
+    box-shadow: var(--shadow-xs);
+}
+
+/* Badge anchor */
+.avatar-wrap,
+.org-avatar-wrap,
+.directory-avatar-wrap,
+.social-avatar-wrap {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.avatar-badge,
+.org-verified-tick,
+.directory-verified-tick {
+    position: absolute;
+    inset-inline-end: -2px;
+    bottom: -2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--surface-card);
+    background: var(--color-primary-900);
+    color: var(--text-inverse);
+    box-shadow: 0 0 0 1px var(--alpha-ink-12);
+    pointer-events: none;
+}
+
+.avatar-badge svg,
+.org-verified-tick svg,
+.directory-verified-tick svg {
+    display: block;
+}

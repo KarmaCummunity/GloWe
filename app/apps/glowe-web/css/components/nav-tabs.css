@@ -1,0 +1,72 @@
+/* GloWe tabs — segmented in-page navigation (FR-GLOWE-029 Phase 3 / D-190).
+   Markup: [role="tablist"].tabs > [role="tab"].tab (+ .tab-badge) and
+   [role="tabpanel"].tab-panel. Legacy admin names inherit the same rules. */
+
+.tabs,
+.admin-tab-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4) 18px 0;
+    border-bottom: 1px solid var(--alpha-ink-12);
+    background: var(--alpha-white-76);
+}
+
+.tab,
+.admin-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-h-sm);
+    padding: 0 var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-weight: var(--weight-extrabold);
+    cursor: pointer;
+    appearance: none;
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+}
+
+.tab:hover,
+.admin-tab:hover {
+    background: var(--alpha-ink-08);
+    color: var(--text-brand);
+}
+
+.tab.active,
+.tab[aria-selected="true"],
+.admin-tab.active,
+.admin-tab[aria-selected="true"] {
+    background: var(--surface-card);
+    border-color: var(--alpha-ink-20);
+    color: var(--text-brand);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab:focus-visible,
+.admin-tab:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.tab-badge,
+.admin-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-extrabold);
+    letter-spacing: 0.02em;
+}
+
+.tab-panel,
+.admin-tab-panel {
+    padding: 22px;
+}

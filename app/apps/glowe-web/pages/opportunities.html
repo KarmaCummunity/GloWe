@@ -175,7 +175,7 @@
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+            <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
             <h2>Welcome Back!</h2>
             <form id="login-form" onsubmit="handleLogin(event)">
                 <div class="form-group">
@@ -197,7 +197,7 @@
     <!-- Registration Modal -->
     <div id="register-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+            <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
             <h2>Join the GloWe Community</h2>
             <form id="register-form" onsubmit="handleRegister(event)">
                 <div class="form-group">
@@ -253,6 +253,8 @@
     <script src="../js/glowe-localized-name.js" defer></script>
     <script src="../js/glowe-ui-conventions.js" defer></script>
     <script src="../js/ui/glowe-ui-shell.js" defer></script>
+    <script src="../js/ui/glowe-ui-dialog.js" defer></script>
+    <script src="../js/ui/glowe-ui-primitives.js" defer></script>
     <script src="../js/glowe-version.js" defer></script>
     <script src="../js/glowe-observability.js" defer></script>
     <!-- glowe:scripts-core:end -->

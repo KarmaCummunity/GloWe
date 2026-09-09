@@ -1514,12 +1514,28 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `css/layout-header.css`, `css/layout-header-actions.css`, `css/components/list-filters.css`, `js/glowe-list-filters.js`, `js/auth.js`, `js/backend-config.js`, `app/scripts/check-glowe-css.mjs`, `.github/workflows/ci-e2e-glowe.yml`, `tests/e2e/{glowe-serve.json,lib/glowe.ts,playwright.config.ts,journeys/glowe-auth.setup.ts,journeys/glowe-visual.spec.ts}`; FR-GLOWE-029 AC4/AC5/AC7.
 
+## D-192 — GloWe component families: alias-then-remove migration, logical insets, HTML only through primitives (2026-09-09)
+
+**Decision.**
+
+1. **Alias-then-remove.** Each `css/components/*.css` (buttons, cards, chips, nav-tabs, modal, menu, avatar, list-filters) defines one canonical family (`.card`, `.menu__item`, `.avatar--sm`, …) and lists the legacy class names it replaces (`.post-card`, `.post-more-panel > button`, `.entity-mark`, …) in the same selector groups. The `components` layer sits above `legacy`, so the duplicated legacy declarations become dead and are stripped mechanically; the legacy names are deleted from markup page-by-page in Phase 4, at which point the alias selectors go too. Nothing is "big-bang" renamed.
+2. **Logical insets, no RTL mirrors.** Component files position with `inset-inline-*` / `margin-inline-*` / `text-align: start` only. `html[dir="rtl"] … { left/right }` overrides for a component are a defect, not a convention.
+3. **One HTML path for atoms.** Page code builds buttons, icon buttons, empty/loading states, badges and menu rows through `js/ui/glowe-ui-primitives.js` (UMD, vitest). Builders emit only design-system classes and escape every text and attribute value, which also closes the latent "title with a quote breaks `onclick`" class of bugs. A `<button class="btn …">` or `<div class="empty-state">` literal in `app.js` is a review flag.
+4. **Behavioural hooks are separate from styling.** `post-menu-action`, `loading-state`, `is-saved`, `data-*` attributes remain as JS/E2E hooks even when the visual class is the canonical one; tests select on hooks, never on visual classes.
+
+**Rationale.** The alias approach let Phase 3 remove ~1 200 lines from `legacy.css` (8 092 → 6 893) — including the `!important` pile on directory-card menus — without touching page markup or breaking the E2E journeys, and it keeps each PR reviewable. Logical properties make the Hebrew UI correct by construction instead of via a second rule set that drifted (the `..." menu` mirrors were the last such case). Centralising atom HTML in one escaping builder is cheaper than auditing 45 hand-written literals for i18n, accessibility and escaping every time.
+
+**Alternatives rejected.** Renaming legacy classes in markup first (touches every builder in `app.js` at once; blocks the visual gate on unrelated diffs); keeping RTL mirrors "because they work" (two sources of truth for every offset); a component library / framework (GloWe is a static vanilla-JS site by decision `D-188`).
+
+**Affected.** `css/components/{buttons,cards,chips,nav-tabs,modal,menu,avatar,list-filters}.css`, `css/layout-*.css`, `js/ui/glowe-ui-{shell,dialog,primitives}.js`, `js/app.js`, `app/scripts/check-glowe-css.mjs` (`LEGACY_LINE_BUDGET`); `spec/17_glowe_frontend.md` FR-GLOWE-029 AC3; TD-192.
+
 ---
 
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.23 | 2026-09-09 | Added `D-192` (GloWe component families: alias-then-remove migration, logical insets, HTML only through `glowe-ui-primitives.js`; FR-GLOWE-029 Phase 3). |
 | 4.22 | 2026-09-09 | Added `D-191` (GloWe shell: one 768px boundary, two-row tablet header, class-based auth state, flat `url()` sheets, PR journeys on the checkout; FR-GLOWE-029 Phase 2). |
 | 4.21 | 2026-09-09 | Added `D-190` (GloWe design system: token layer + cascade layers + shell partials + PR-time visual gate; FR-GLOWE-029). |
 | 4.20 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |

@@ -1,0 +1,175 @@
+/* GloWe menus — the "..." overflow menu and dropdown panels
+   (FR-GLOWE-029 Phase 3 / D-190).
+
+   <details class="menu">              anchor (absolute corner or in-flow)
+     <summary class="menu__trigger">   round icon trigger
+     <div class="menu__panel">         elevated list
+       <button class="menu__item">     one action; --danger for destructive
+
+   Legacy names (.post-more-menu / .post-more-panel / .profile-more-menu /
+   .post-menu-action) alias the canonical classes until the builders in app.js
+   migrate. Logical inset properties replace the old html[dir=rtl] mirrors. */
+
+.menu,
+.post-more-menu,
+.profile-more-menu {
+    position: relative;
+    z-index: 12;
+}
+
+/* Opt-in corner anchor for cards without a header row. Every current menu
+   sits in-flow inside a header (post-card-header / directory-card header /
+   profile actions), so no legacy alias here. */
+.menu--corner {
+    position: absolute;
+    top: var(--space-3);
+    inset-inline-end: var(--space-3);
+    inset-inline-start: auto;
+}
+
+.menu[open],
+.post-more-menu[open],
+.profile-more-menu[open] {
+    z-index: 40;
+}
+
+/* Trigger */
+.menu__trigger,
+.post-more-menu > summary,
+.profile-more-menu > summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
+    padding: 0 0 2px; /* "..." glyph sits optically low */
+    border: var(--control-border) solid transparent;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--text-md);
+    font-weight: var(--weight-extrabold);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+}
+
+.menu__trigger::-webkit-details-marker,
+.post-more-menu > summary::-webkit-details-marker,
+.profile-more-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.menu__trigger:hover,
+.menu[open] > .menu__trigger,
+.post-more-menu > summary:hover,
+.post-more-menu[open] > summary,
+.profile-more-menu > summary:hover,
+.profile-more-menu[open] > summary {
+    background: var(--surface-brand-soft);
+    color: var(--text-brand);
+}
+
+.menu__trigger:focus-visible,
+.post-more-menu > summary:focus-visible,
+.profile-more-menu > summary:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+/* Outlined trigger that sits beside a primary .btn (profile header). */
+.menu__trigger--outline,
+.profile-more-menu > summary {
+    width: var(--control-h-md);
+    height: var(--control-h-md);
+    border-color: var(--alpha-ink-34);
+    border-radius: var(--radius-sm);
+    background: var(--alpha-white-76);
+    color: var(--text-brand);
+}
+
+/* Panel */
+.menu__panel,
+.post-more-panel,
+.profile-more-menu > div {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    z-index: 50;
+    display: grid;
+    gap: 2px;
+    min-width: 190px;
+    padding: var(--space-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-lg);
+    isolation: isolate;
+    text-align: start;
+}
+
+/* Items */
+.menu__item,
+.post-more-panel > button,
+.post-more-panel > a.post-menu-action,
+.profile-more-menu > div > button,
+.post-menu-action {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px var(--space-3);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-body);
+    font: inherit;
+    font-size: var(--text-ui);
+    font-weight: var(--weight-bold);
+    text-align: start;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard);
+}
+
+.menu__item:hover,
+.post-more-panel > button:hover,
+.post-more-panel > a.post-menu-action:hover,
+.profile-more-menu > div > button:hover,
+.post-menu-action:hover {
+    background: var(--surface-brand-soft);
+    color: var(--text-brand);
+}
+
+.menu__item:focus-visible,
+.post-more-panel > button:focus-visible,
+.post-more-panel > a.post-menu-action:focus-visible,
+.profile-more-menu > div > button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.menu__item--danger,
+.post-delete-action {
+    color: var(--color-danger-fg);
+}
+
+.menu__item--danger:hover,
+.post-delete-action:hover {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+}
+
+/* Saved state inside the menu reads as a quiet confirmation, not a filled button. */
+.post-menu-action.is-saved {
+    color: var(--text-brand);
+}

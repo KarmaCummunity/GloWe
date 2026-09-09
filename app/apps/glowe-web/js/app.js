@@ -13,8 +13,8 @@ function openModal(modalId) {
             const intro = modal.querySelector('.modal-intro');
             if (intro) intro.textContent = LOGIN_MODAL_DEFAULT_INTRO;
         }
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (window.GloweUiDialog) window.GloweUiDialog.open(modal);
+        else modal.classList.add('active');
     }
 }
 
@@ -31,8 +31,8 @@ function promptGuestSignIn(message) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = document.querySelector('.modal.active') ? 'hidden' : '';
+        if (window.GloweUiDialog) window.GloweUiDialog.close(modal);
+        else modal.classList.remove('active');
     }
 }
 
@@ -46,6 +46,21 @@ function showSuccessModal(title, message) {
     document.getElementById('success-title').textContent = title;
     document.getElementById('success-message').textContent = message;
     openModal('success-modal');
+}
+
+// Accessible confirm (FR-GLOWE-029 Phase 3): resolves true/false. Copy goes
+// through gloweText so the dialog is localized like the rest of the chrome.
+function gloweConfirm(message, options) {
+    const o = options || {};
+    const localized = {
+        title: o.title ? gloweText(o.title) : undefined,
+        message: gloweText(message),
+        confirmLabel: o.confirmLabel ? gloweText(o.confirmLabel) : undefined,
+        cancelLabel: o.cancelLabel ? gloweText(o.cancelLabel) : undefined,
+        danger: Boolean(o.danger),
+    };
+    if (window.GloweUiDialog) return window.GloweUiDialog.confirm(localized);
+    return Promise.resolve(typeof window.confirm === 'function' ? window.confirm(localized.message) : false);
 }
 
 // Lightweight transient toast (auto-dismisses). Used for quiet confirmations
@@ -178,7 +193,7 @@ function renderCreateMenu(types) {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-create-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-create-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-create-modal')">&times;</button>
                     <h2>What would you like to create?</h2>
                     <div id="glowe-create-options" class="create-menu-options"></div>
                 </div>
@@ -226,7 +241,7 @@ function openEventComposer() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-event-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-event-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-event-modal')">&times;</button>
                     <h2>Publish an event</h2>
                     <p class="modal-intro">Events appear on the Volunteer Network with a date and registration.</p>
                     <form onsubmit="handleEventSubmit(event)">
@@ -379,7 +394,7 @@ function openOfferComposer() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-offer-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('glowe-offer-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('glowe-offer-modal')">&times;</button>
                     <h2>Offer your help</h2>
                     <p class="modal-intro">Your offer appears on the Wishing Well so organizations and members can find you.</p>
                     <form onsubmit="handleOfferPostSubmit(event)">
@@ -1630,7 +1645,7 @@ function renderRegistrationWizard() {
     // The multi-step profile wizard is deferred — profile details are completed
     // after the user signs in with Google. See FR-GLOWE-001 / DECISIONS D-61.
     return `
-        <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
         <div class="auth-google-only">
             <div class="wizard-heading">
                 <span class="profile-type">Join GloWe</span>
@@ -1658,7 +1673,7 @@ function renderRegistrationWizardLegacy() {
     `).join('');
 
     return `
-        <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
         <div class="registration-wizard">
             <div class="wizard-heading">
                 <span class="profile-type">Profile onboarding</span>
@@ -1943,7 +1958,7 @@ async function applyAdminLink() {
     const shieldSvg = GloweUiShell.ICONS.shield;
     const corner = userMenu.querySelector('.header-corner-actions') || userMenu;
     const link = document.createElement('a');
-    link.className = 'header-icon-btn glowe-admin-link';
+    link.className = 'btn btn-icon btn-small header-icon-btn glowe-admin-link';
     link.href = `${prefix}admin.html`;
     link.title = 'Admin review';
     link.setAttribute('aria-label', 'Admin review');
@@ -2034,7 +2049,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="login-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
                     <h2>Welcome Back</h2>
                     <p class="modal-intro">Sign in with your Google account to continue.</p>
                     <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -2076,7 +2091,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="wish-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('wish-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('wish-modal')">&times;</button>
                     <h2>Share a Wish</h2>
                     <p class="modal-intro">A good wish is specific enough for the right helper to say yes.</p>
                     <form onsubmit="handleWishSubmit(event)">
@@ -2137,7 +2152,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="connect-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('connect-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('connect-modal')">&times;</button>
                     <h2>Offer Support</h2>
                     <p class="modal-intro" id="connect-context">Send a clear, trusted offer so the organization can decide quickly.</p>
                     <form onsubmit="handleConnectSubmit(event)">
@@ -2192,7 +2207,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="reach-out-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('reach-out-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('reach-out-modal')">&times;</button>
                     <h2>Reach Out</h2>
                     <p class="modal-intro" id="reach-out-context">Send a short message to start a conversation with this organization.</p>
                     <form onsubmit="handleReachOutSubmit(event)">
@@ -2214,7 +2229,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="onboarding-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('onboarding-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('onboarding-modal')">&times;</button>
                     <h2>Find your GloWe path</h2>
                     <p class="modal-intro">Choose the path that matches what you want to do first.</p>
                     <div class="path-grid">
@@ -2248,7 +2263,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="edit-profile-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('edit-profile-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('edit-profile-modal')">&times;</button>
                     <h2>Edit profile</h2>
                     <p class="modal-intro">Update the public information that helps others understand who you are and how to collaborate.</p>
                     <form onsubmit="handleProfileEdit(event)">
@@ -2412,7 +2427,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="avatar-edit-modal" class="modal">
                 <div class="modal-content avatar-edit-modal-content">
-                    <span class="close-modal" onclick="closeAvatarEditModal()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeAvatarEditModal()">&times;</button>
                     <h2>Change profile photo</h2>
                     <div class="avatar-edit-preview-wrap">
                         <img id="avatar-edit-preview" class="avatar-edit-preview" alt="" hidden>
@@ -2434,7 +2449,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="cover-edit-modal" class="modal">
                 <div class="modal-content cover-edit-modal-content">
-                    <span class="close-modal" onclick="closeCoverEditModal()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeCoverEditModal()">&times;</button>
                     <h2>Change cover photo</h2>
                     <div class="cover-edit-preview-wrap">
                         <div id="cover-edit-preview" class="cover-edit-preview" hidden></div>
@@ -2456,7 +2471,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="glowe-onboarding-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="dismissGloweOnboarding()">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="dismissGloweOnboarding()">&times;</button>
                     <h2>Welcome to GloWe 👋</h2>
                     <p class="modal-intro">Tell us a little about you so the community knows who they're collaborating with. It only takes a minute.</p>
                     <form id="glowe-onboarding-form" onsubmit="handleGloweOnboarding(event)">
@@ -2568,7 +2583,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="add-project-modal" class="modal">
                 <div class="modal-content modal-wide">
-                    <span class="close-modal" onclick="closeModal('add-project-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('add-project-modal')">&times;</button>
                     <h2 id="personal-project-modal-title">Add project</h2>
                     <p class="modal-intro">Add a project that can appear in your personal area and help others understand what you are building.</p>
                     <form onsubmit="handlePersonalProjectSubmit(event)">
@@ -2620,7 +2635,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="edit-post-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('edit-post-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('edit-post-modal')">&times;</button>
                     <h2>Edit your post</h2>
                     <p class="modal-intro">Update the title, topic, or body. Changes appear on the community feed right away.</p>
                     <form onsubmit="handleEditCommunityPostSubmit(event)">
@@ -2652,7 +2667,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="report-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('report-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('report-modal')">&times;</button>
                     <h2>Report a concern</h2>
                     <p class="modal-intro">We review every report carefully and confidentially to keep GloWe safe and professional.</p>
                     <form onsubmit="handleReportSubmit(event)">
@@ -2690,7 +2705,7 @@ function ensureGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="notification-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('notification-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('notification-modal')">&times;</button>
                     <h2>Notification Preferences</h2>
                     <p class="modal-intro">Choose a rhythm that keeps GloWe useful without creating digital fatigue.</p>
                     <form onsubmit="handleNotificationPrefs(event)">
@@ -2781,7 +2796,7 @@ function upgradeLoginModal() {
 
     if (content.dataset.googleOnly === 'true') return;
     content.innerHTML = `
-        <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
         <h2>Welcome Back!</h2>
         <p class="modal-intro">Sign in with your Google account to continue.</p>
         <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -3701,7 +3716,7 @@ function openConnectionWorkspace() {
     const title = wish ? wish.title : 'New collaboration';
     const author = wish ? wish.author : 'GloWe member';
     content.innerHTML = `
-        <span class="close-modal" onclick="closeModal('connection-workspace-modal')">&times;</span>
+        <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('connection-workspace-modal')">&times;</button>
         <div class="workspace-header">
             <span class="hero-kicker">Connection workspace</span>
             <h2>${escapeHtml(title)}</h2>
@@ -3782,7 +3797,7 @@ function openPrivateMessage(name = 'this member', recipientId = '') {
         document.body.insertAdjacentHTML('beforeend', `
             <div id="message-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('message-modal')">&times;</span>
+                    <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('message-modal')">&times;</button>
                     <h2>Write a message</h2>
                     <p class="modal-intro" id="message-context"></p>
                     <form onsubmit="handleMessageSubmit(event)">
@@ -3957,6 +3972,12 @@ function jsString(value = '') {
     return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+// One row of a "..." menu panel (GloweUiPrimitives.menuItemHtml + the
+// post-menu-action behavioural hook used by E2E selectors).
+function menuItem(bag) {
+    return GloweUiPrimitives.menuItemHtml(Object.assign({ className: 'post-menu-action' }, bag));
+}
+
 // Read a form field's trimmed value; '' when the element is absent.
 function fieldValue(id) {
     const el = document.getElementById(id);
@@ -4054,16 +4075,6 @@ function savedToggleButtonHtml(type, id, title, meta, href, saveLabel, className
     return `<button class="${cls}" type="button" aria-pressed="${saved}" data-save-label="${escapeHtml(saveLabel)}" onclick="toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${escapeHtml(label)}</button>`;
 }
 
-// Icon-only save control for card headers (org directory). Keeps the SVG on
-// toggle — refreshSavedToggleButton only flips aria/class for this variant.
-function savedToggleIconHtml(type, id, title, meta, href, saveLabel) {
-    const helpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
-    const saved = helpers ? helpers.isItemSaved(getSavedItems(), type, id) : false;
-    const label = saved ? 'Saved' : (saveLabel || 'Save');
-    const cls = 'save-icon-btn' + (saved ? ' is-saved' : '');
-    return `<button class="${cls}" type="button" aria-pressed="${saved}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" data-save-label="${escapeHtml(saveLabel || 'Save')}" onclick="event.preventDefault(); event.stopPropagation(); toggleSavedItem(this, '${jsString(type)}', '${jsString(String(id))}', '${jsString(String(title))}', '${jsString(String(meta))}', '${jsString(String(href))}')">${BOOKMARK_ICON_SVG}</button>`;
-}
-
 // Flip a rendered toggle button in place after a save/unsave (avoids a full list
 // re-render / scroll reset). Setting textContent replaces the text node, which the
 // i18n MutationObserver catches and localizes.
@@ -4073,56 +4084,33 @@ function refreshSavedToggleButton(btn, type, id) {
     btn.setAttribute('aria-pressed', String(saved));
     btn.classList.toggle('is-saved', saved);
     const label = saved ? 'Saved' : (btn.getAttribute('data-save-label') || 'Save');
-    if (btn.classList.contains('save-icon-btn')) {
-        btn.setAttribute('aria-label', label);
-        btn.setAttribute('title', label);
-        return;
-    }
     btn.textContent = label;
 }
 
 // Unified ⋯ menu for feed cards (community posts + home discovery).
 // Order: Save → Share → Open → (Edit|Delete for owner) → (Message|Report for others).
-// fallow-ignore-next-line complexity
+// Rows are GloweUiPrimitives.menuItemHtml; `post-menu-action` stays as the
+// behavioural hook (E2E selectors, save toggle refresh).
 function feedCardMoreMenuHtml(opts) {
     const o = opts || {};
     const parts = [];
     if (o.saveHtml) parts.push(o.saveHtml);
     if (o.extraMenuHtml) parts.push(o.extraMenuHtml);
     if (o.shareTitle != null) {
-        parts.push(
-            `<button type="button" class="post-menu-action" onclick="sharePost('${jsString(o.shareTitle)}', '${jsString(o.shareHref || '')}')">Share</button>`
-        );
+        parts.push(menuItem({ label: 'Share', onclick: `sharePost('${jsString(o.shareTitle)}', '${jsString(o.shareHref || '')}')` }));
     }
     if (o.viewHref) {
-        const viewClick = o.viewOnclick
-            ? ` onclick="event.preventDefault(); ${o.viewOnclick}"`
-            : '';
-        parts.push(
-            `<a class="post-menu-action" href="${escapeHtml(o.viewHref)}"${viewClick}>Open</a>`
-        );
+        parts.push(menuItem({ label: 'Open', href: o.viewHref, onclick: o.viewOnclick ? `event.preventDefault(); ${o.viewOnclick}` : null }));
     }
     if (o.ownsItem) {
-        if (o.editOnclick) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="${o.editOnclick}">Edit post</button>`
-            );
-        }
-        if (o.deleteOnclick) {
-            parts.push(
-                `<button type="button" class="post-menu-action post-delete-action" onclick="${o.deleteOnclick}">Delete post</button>`
-            );
-        }
+        if (o.editOnclick) parts.push(menuItem({ label: 'Edit post', onclick: o.editOnclick }));
+        if (o.deleteOnclick) parts.push(menuItem({ label: 'Delete post', danger: true, className: 'post-menu-action post-delete-action', onclick: o.deleteOnclick }));
     } else {
         if (o.authorId) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="openPrivateMessage('${jsString(o.authorName || '')}', '${jsString(o.authorId)}')">Message</button>`
-            );
+            parts.push(menuItem({ label: 'Message', onclick: `openPrivateMessage('${jsString(o.authorName || '')}', '${jsString(o.authorId)}')` }));
         }
         if (o.reportType && o.reportId != null) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="openReportModal('${jsString(o.reportType)}', '${jsString(o.reportId)}', '${jsString(o.reportTitle || '')}')">Report</button>`
-            );
+            parts.push(menuItem({ label: 'Report', onclick: `openReportModal('${jsString(o.reportType)}', '${jsString(o.reportId)}', '${jsString(o.reportTitle || '')}')` }));
         }
     }
     return parts.join('\n                        ');
@@ -4504,7 +4492,6 @@ function getAllCommunityPosts() {
 // bare "Copy link" — desktop browsers without navigator.share fall back to a
 // silent clipboard copy + toast. (FR-GLOWE-008 AC5; design fix #9.)
 const SHARE_ICON_SVG = '<svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>';
-const BOOKMARK_ICON_SVG = '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
 
 // Familiar visual anchors for the post actions (Jakob's Law; design fix #8).
 const COMMENT_ICON_SVG = '<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
@@ -4555,7 +4542,7 @@ function renderShareButton(title, path = '', extraClass = '') {
     const safeTitle = escapeHtml(title);
     const titleArg = jsString(title);
     const pathArg = jsString(path);
-    const cls = ['post-share-button', extraClass].filter(Boolean).join(' ');
+    const cls = ['btn btn-outline btn-small btn-pill post-share-button', extraClass].filter(Boolean).join(' ');
     return `<button type="button" class="${cls}" onclick="sharePost('${titleArg}', '${pathArg}')" aria-label="${escapeHtml(gloweText('Share'))} ${safeTitle}" title="Share">${SHARE_ICON_SVG}<span class="post-share-label">Share</span></button>`;
 }
 
@@ -4889,23 +4876,7 @@ function wishOffersHtml(views) {
     return `${header}<ul class="applicant-list">${rows}</ul>`;
 }
 
-// Close modal when clicking outside
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal')) {
-        const modalId = e.target.id;
-        closeModal(modalId);
-    }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const activeModal = document.querySelector('.modal.active');
-        if (activeModal) {
-            closeModal(activeModal.id);
-        }
-    }
-});
+// Backdrop click, Escape and the focus trap live in js/ui/glowe-ui-dialog.js.
 
 // Render opportunity card
 // ── Supabase row → render-format mappers ────────────────────────────────────
@@ -5002,7 +4973,7 @@ async function deleteCommunityPost(postId) {
     if (!postId) return;
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) return;
-    if (typeof window.confirm === 'function' && !window.confirm('Delete this post? This cannot be undone.')) return;
+    if (!(await gloweConfirm('Delete this post? This cannot be undone.', { title: 'Delete post', confirmLabel: 'Delete', danger: true }))) return;
     try {
         await backend.removeOwned('posts', { id: postId });
     } catch (_e) {
@@ -5339,9 +5310,9 @@ function renderOpportunityCard(opportunity, basePath = '') {
                 <summary aria-label="More opportunity actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save opportunity', 'post-menu-action')}
-                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')">Share</button>
-                    <button type="button" onclick="openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')">Message publisher</button>
-                    <button type="button" onclick="openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')">Report</button>
+                    ${menuItem({ label: 'Share', onclick: `sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')` })}
+                    ${menuItem({ label: 'Message publisher', onclick: `openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')` })}
                 </div>
             </details>`;
     const cardSpec = {
@@ -5391,8 +5362,8 @@ function renderOrganizationCard(organization, basePath = '') {
                 <summary aria-label="More profile actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('profile', organization.id, organization.name, organization.type || 'Organization', profileHref, 'Save profile', 'post-menu-action')}
-                    <button type="button" onclick="openPrivateMessage('${jsString(organization.name)}', '${jsString(organization.id)}')">Message</button>
-                    <button type="button" onclick="openReportModal('profile', '${organization.id}', '${jsString(organization.name)}')">Report</button>
+                    ${menuItem({ label: 'Message', onclick: `openPrivateMessage('${jsString(organization.name)}', '${jsString(organization.id)}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('profile', '${organization.id}', '${jsString(organization.name)}')` })}
                 </div>
             </details>`;
     const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions org-card-actions';
@@ -5435,9 +5406,9 @@ function renderWishCard(wish) {
                 <summary aria-label="More wish actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save wish', 'post-menu-action')}
-                    <button type="button" onclick="sharePost('${jsString(wish.title)}', '${jsString(wishHref)}')">Share</button>
-                    <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')">Message author</button>
-                    <button type="button" onclick="openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')">Report</button>
+                    ${menuItem({ label: 'Share', onclick: `sharePost('${jsString(wish.title)}', '${jsString(wishHref)}')` })}
+                    ${menuItem({ label: 'Message author', onclick: `openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')` })}
                 </div>
             </details>`;
     const avatarInner = renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName);
@@ -5702,7 +5673,7 @@ function renderFeedCardCommentsSection(postId) {
         ? `<div class="comment-thread-extra">${extraComments.map((c) => renderPostCommentRow(c, { postId: id })).join('')}</div>`
         : '';
     const moreCommentsHtml = comments.length > 1
-        ? `<button type="button" class="comment-thread-toggle" onclick="togglePostComments('${jsString(id)}')">${escapeHtml(gloweText('See all comments'))}</button>`
+        ? `<button type="button" class="btn btn-link comment-thread-toggle" onclick="togglePostComments('${jsString(id)}')">${escapeHtml(gloweText('See all comments'))}</button>`
         : '';
     const collapsedClass = commentsExpanded ? ' is-expanded' : ' is-collapsed';
     const engagementHtml = comments.length > 0
@@ -6249,7 +6220,7 @@ async function initGuestHome(gen = _gloweHomeGen) {
             ? featured.map(function (opp) {
                 return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp));
             }).join('')
-            : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the community.</p><a class="btn btn-primary btn-small" href="pages/opportunities.html">Post an opportunity</a></div>';
+            : GloweUiPrimitives.emptyStateHtml({ title: 'No opportunities posted yet', body: 'Be the first to share a volunteer role or collaboration request with the community.', action: { label: 'Post an opportunity', href: 'pages/opportunities.html' } });
     }
 
     if (gen !== _gloweHomeGen) return;
@@ -6308,7 +6279,7 @@ window.isHomeHref = isHomeHref;
 // --- Member home (FR-GLOWE-016 AC2) — unified discovery feed ---------------
 
 function homeFeedEmptyHtml() {
-    return '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'The community is just getting started', body: 'Be the first to share a post or an opportunity others can join.', action: { label: 'Start the conversation', href: 'pages/community.html' } });
 }
 
 function findCommunityPostById(postId) {
@@ -6830,8 +6801,8 @@ async function initOpportunitiesPage() {
         if (filtered.length === 0) {
             const hasFilters = filters.location !== 'all' || filters.field !== 'all' || filters.commitment !== 'all' || filters.event !== 'all' || filters.search;
             container.innerHTML = hasFilters
-                ? '<div class="empty-state"><div class="empty-state-icon">No results</div><h3>No opportunities found</h3><p>Try adjusting your filters or search terms.</p></div>'
-                : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the GloWe community.</p><button class="btn btn-primary btn-small" type="button" onclick="openOpportunityComposer()">Post an opportunity</button></div>';
+                ? GloweUiPrimitives.emptyStateHtml({ icon: 'No results', title: 'No opportunities found', body: 'Try adjusting your filters or search terms.' })
+                : GloweUiPrimitives.emptyStateHtml({ title: 'No opportunities posted yet', body: 'Be the first to share a volunteer role or collaboration request with the GloWe community.', action: { label: 'Post an opportunity', onclick: 'openOpportunityComposer()' } });
         } else {
             container.innerHTML = filtered.map(function (opp) {
                 return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp, true), { pageBase: '' });
@@ -6856,7 +6827,7 @@ async function initOpportunitiesPage() {
 
     // Fetch real data then render
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading opportunities…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading opportunities…'));
         await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     }
@@ -7102,8 +7073,8 @@ async function initOrganizationsPage() {
         container.innerHTML = filtered.length
             ? filtered.map(function (org) { return renderOrganizationCard(org, '../'); }).join('')
             : hasFilters
-                ? '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No matching profiles')) + '</h3><p>' + escapeHtml(gloweText('Try a broader keyword or clear a filter.')) + '</p></div>'
-                : '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No organizations yet')) + '</h3><p>' + escapeHtml(gloweText('Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.')) + '</p></div>';
+                ? GloweUiPrimitives.emptyStateHtml({ title: gloweText('No matching profiles'), body: gloweText('Try a broader keyword or clear a filter.'), className: 'organizations-empty-state' })
+                : GloweUiPrimitives.emptyStateHtml({ title: gloweText('No organizations yet'), body: gloweText('Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.'), className: 'organizations-empty-state' });
 
         if (filterCtrl) filterCtrl.updateResults({ count: filtered.length, hasFilters: hasFilters });
         hydrateFollowSlots(container);
@@ -7114,7 +7085,7 @@ async function initOrganizationsPage() {
     }
     if (filterCtrl) filterCtrl.refreshI18n();
 
-    container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading organizations…')) + '</p></div>';
+    container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading organizations…'));
     try {
         const rows = await gloweBackend.listApprovedOrgs();
         const ensured = await withEnsuredEnglishNames(rows || []);
@@ -7174,7 +7145,7 @@ async function initWishingWellPage() {
 
     if (filterCtrl) filterCtrl.refreshI18n();
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading wishes…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading wishes…'));
         await Promise.all([loadLiveWishes(), loadPostComments()]);
         renderWishes();
         const deepWish = new URLSearchParams(window.location.search).get('wish');
@@ -7187,11 +7158,11 @@ async function initWishingWellPage() {
 }
 
 function emptyWishFilteredHtml() {
-    return '<div class="empty-state"><div class="empty-state-icon">No results</div><h3>No wishes found</h3><p>Try clearing one of the filters.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ icon: 'No results', title: 'No wishes found', body: 'Try clearing one of the filters.' });
 }
 
 function emptyWishBoardHtml() {
-    return '<div class="empty-state"><h3>No wishes yet</h3><p>The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.</p><button class="btn btn-primary btn-small" type="button" onclick="openWishComposer()">Post a wish</button></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'No wishes yet', body: 'The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.', action: { label: 'Post a wish', onclick: 'openWishComposer()' } });
 }
 
 // Owner-only "Mark as fulfilled" control on a wish card.
@@ -7208,7 +7179,7 @@ function wishOwnerControls(wish) {
 async function markWishFulfilled(wishId) {
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) return;
-    if (!window.confirm('Mark this wish as fulfilled? It will be removed from the open board.')) return;
+    if (!(await gloweConfirm('Mark this wish as fulfilled? It will be removed from the open board.', { title: 'Mark as fulfilled', confirmLabel: 'Mark as fulfilled' }))) return;
     try {
         await backend.updateOwned('posts', wishId, { status: 'fulfilled' });
     } catch (_e) {
@@ -7331,9 +7302,9 @@ async function initCommunityPage() {
 
     function communityFeedEmptyHtml(activeFilter) {
         if (activeFilter === 'event') {
-            return '<div class="empty-state"><h3>No events yet</h3><p>Organization events appear here once published.</p><button class="btn btn-primary btn-small" type="button" onclick="openEventComposer()">Publish an event</button></div>';
+            return GloweUiPrimitives.emptyStateHtml({ title: 'No events yet', body: 'Organization events appear here once published.', action: { label: 'Publish an event', onclick: 'openEventComposer()' } });
         }
-        return '<div class="empty-state"><h3>The conversation starts here</h3><p>No posts yet — share knowledge, ask for support, or open a discussion to get things going.</p><button class="btn btn-primary btn-small" type="button" onclick="openInlineComposer()">Write the first post</button></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'The conversation starts here', body: 'No posts yet — share knowledge, ask for support, or open a discussion to get things going.', action: { label: 'Write the first post', onclick: 'openInlineComposer()' } });
     }
 
     function renderFeed() {
@@ -7391,7 +7362,7 @@ async function initCommunityPage() {
 
     // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading posts…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading posts…'));
         await Promise.all([
             loadCommunityPosts(),
             loadPostComments(),
@@ -7509,9 +7480,9 @@ async function prefetchAdminHealthBadge() {
 
 function adminHealthErrorHtml(error) {
     if (isForbiddenError(error)) {
-        return '<div class="empty-state"><h3>Reviewers only</h3><p>Production health probes are visible to GloWe reviewers.</p></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'Production health probes are visible to GloWe reviewers.' });
     }
-    return '<div class="empty-state"><h3>Could not load health probes</h3><p>Please refresh and try again.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'Could not load health probes', body: 'Please refresh and try again.' });
 }
 
 function renderAdminHealthSummary(rows) {
@@ -7526,7 +7497,7 @@ function renderAdminHealthSummary(rows) {
     updateAdminHealthBadge(overall);
 
     if (!normalized.length) {
-        summaryEl.innerHTML = '<div class="empty-state"><h3>No probes yet</h3><p>Production synthetics will appear here after the first scheduled run or deploy smoke.</p></div>';
+        summaryEl.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No probes yet', body: 'Production synthetics will appear here after the first scheduled run or deploy smoke.' });
         return;
     }
 
@@ -7556,7 +7527,7 @@ function renderAdminHealthHistory(rows) {
     })).filter(Boolean);
 
     if (!list.length) {
-        historyEl.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>No history yet</h3><p>Recent probe runs will be listed here.</p></div></td></tr>';
+        historyEl.innerHTML = '<tr><td colspan="6">' + GloweUiPrimitives.emptyStateHtml({ title: 'No history yet', body: 'Recent probe runs will be listed here.' }) + '</td></tr>';
         return;
     }
 
@@ -7579,7 +7550,7 @@ async function loadAdminHealthPanel(force = false) {
 
     if (refreshBtn) refreshBtn.disabled = true;
     if (force || !adminHealthLoaded) {
-        summaryEl.innerHTML = '<div class="empty-state admin-health-placeholder"><h3>Loading…</h3><p>Fetching the latest probe results.</p></div>';
+        summaryEl.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching the latest probe results.', className: 'admin-health-placeholder' });
     }
 
     try {
@@ -7604,19 +7575,19 @@ async function loadAdminHealthPanel(force = false) {
 // the RPC, surfaced as a "locked" empty state rather than a crash.
 function moderationQueueErrorHtml(error) {
     if (isForbiddenError(error)) {
-        return '<div class="empty-state"><h3>Reviewers only</h3><p>This queue is visible to GloWe reviewers. Ask an administrator for access.</p></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'This queue is visible to GloWe reviewers. Ask an administrator for access.' });
     }
-    return '<div class="empty-state"><h3>Could not load reports</h3><p>Please refresh and try again.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'Could not load reports', body: 'Please refresh and try again.' });
 }
 
 async function loadModerationReports() {
     const container = document.getElementById('admin-reports');
     if (!container) return;
     if (!backendReady()) {
-        container.innerHTML = '<div class="empty-state"><h3>Backend not configured</h3><p>Moderation is available once the shared backend is connected.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Backend not configured', body: 'Moderation is available once the shared backend is connected.' });
         return;
     }
-    container.innerHTML = '<div class="empty-state"><h3>Loading…</h3><p>Fetching community reports.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching community reports.' });
     let rows;
     try {
         rows = await window.gloweBackend.adminListReports();
@@ -7633,7 +7604,7 @@ function renderModerationReports(reports) {
     const reportStat = document.querySelector('[data-admin-stat="reports"]');
     if (reportStat) reportStat.textContent = GloweModeration.openReports(reports).length;
     if (!reports.length) {
-        container.innerHTML = '<div class="empty-state"><h3>No reports yet</h3><p>Community reports will appear here.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No reports yet', body: 'Community reports will appear here.' });
         return;
     }
     const reasonLabel = (value) => {
@@ -7703,18 +7674,18 @@ async function loadPendingOrgs() {
     if (!container) return;
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) {
-        container.innerHTML = '<div class="empty-state"><h3>Backend not configured</h3><p>Organization review is available once the shared backend is connected.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Backend not configured', body: 'Organization review is available once the shared backend is connected.' });
         return;
     }
-    container.innerHTML = '<div class="empty-state"><h3>Loading…</h3><p>Fetching organizations awaiting verification.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching organizations awaiting verification.' });
     let orgs;
     try {
         orgs = await backend.listPendingOrgs();
     } catch (error) {
         const forbidden = error && (error.code === '42501' || /forbidden|permission/i.test(error.message || ''));
         container.innerHTML = forbidden
-            ? '<div class="empty-state"><h3>Reviewers only</h3><p>This queue is visible to GloWe reviewers. Ask an administrator for access.</p></div>'
-            : '<div class="empty-state"><h3>Could not load queue</h3><p>Please refresh and try again.</p></div>';
+            ? GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'This queue is visible to GloWe reviewers. Ask an administrator for access.' })
+            : GloweUiPrimitives.emptyStateHtml({ title: 'Could not load queue', body: 'Please refresh and try again.' });
         return;
     }
     renderPendingOrgs(orgs || []);
@@ -7726,7 +7697,7 @@ function renderPendingOrgs(orgs) {
     const orgStat = document.querySelector('[data-admin-stat="orgs"]');
     if (orgStat) orgStat.textContent = orgs.length;
     if (!orgs.length) {
-        container.innerHTML = '<div class="empty-state"><h3>No pending organizations</h3><p>Only organization applications awaiting review appear here (status: pending). If someone just submitted, ask them to confirm they saw “Application submitted”, then refresh.</p><button type="button" class="btn btn-outline btn-small" onclick="loadPendingOrgs()">Refresh queue</button></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No pending organizations', body: 'Only organization applications awaiting review appear here (status: pending). If someone just submitted, ask them to confirm they saw “Application submitted”, then refresh.', action: { label: 'Refresh queue', variant: 'outline', onclick: 'loadPendingOrgs()' } });
         return;
     }
     container.innerHTML = orgs.map(org => {
@@ -7942,13 +7913,7 @@ function initSavedPage() {
                     <button class="btn btn-outline btn-small" type="button" onclick="removeSavedItem('${item.type}', '${item.id}')">Remove</button>
                 </div>
             </article>
-        `).join('') : `
-            <div class="empty-state">
-                <h3>No saved items yet</h3>
-                <p>Save posts, profiles, and opportunities to return to them from this screen.</p>
-                <a class="btn btn-primary btn-small" href="community.html">Explore Community</a>
-            </div>
-        `;
+        `).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No saved items yet', body: 'Save posts, profiles, and opportunities to return to them from this screen.', action: { label: 'Explore Community', href: 'community.html' } });
     }
 
     window.renderSavedItemsPage = renderSavedItemsPage;
@@ -8032,7 +7997,7 @@ function initDiscussionGroupPage() {
         : '<p class="muted-note">Members will appear here once they join this group.</p>';
     threads.innerHTML = groupThreads.length > 0
         ? groupThreads.map(thread => renderDiscussionThread(thread, group, allReplies)).join('')
-        : '<div class="empty-state"><h3>No threads yet</h3><p>Start the first conversation in this group.</p></div>';
+        : GloweUiPrimitives.emptyStateHtml({ title: 'No threads yet', body: 'Start the first conversation in this group.' });
     composer.innerHTML = `
         <form class="inline-post-form" onsubmit="handleDiscussionSubmit(event, '${group.id}')">
             <div class="form-group">
@@ -8179,7 +8144,7 @@ async function initProfilePage() {
         return;
     }
 
-    container.innerHTML = '<div class="empty-state"><h3>Loading profile…</h3><p>Fetching from the community directory.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading profile…', body: 'Fetching from the community directory.' });
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) { _profileNotFound(container); return; }
     try {
@@ -8289,8 +8254,8 @@ function _renderProfileContent(profile, container) {
                     <details class="profile-more-menu">
                         <summary aria-label="More profile actions">...</summary>
                         <div>
-                            ${isOwnerView ? `<button type="button" onclick="openEditProfile('${safeName}')">Edit profile</button>` : ''}
-                            <button type="button" onclick="openReportModal('profile', '${profile.id}', '${safeName}')">Report</button>
+                            ${isOwnerView ? menuItem({ label: 'Edit profile', onclick: `openEditProfile('${safeName}')` }) : ''}
+                            ${menuItem({ label: 'Report', onclick: `openReportModal('profile', '${profile.id}', '${safeName}')` })}
                         </div>
                     </details>
                 </div>
@@ -8701,7 +8666,7 @@ function connectButtonHtml(view) {
     const orgHelpers = (typeof GloweOrganizations !== 'undefined') ? GloweOrganizations : null;
     const hasEmail = orgHelpers ? orgHelpers.hasContactEmail(view) : Boolean(view && view.email);
     if (!hasEmail) return '';
-    return `<button class="btn btn-outline btn-sm" type="button" data-connect="${escapeHtml(String(view.email))}">Connect</button>`;
+    return `<button class="btn btn-outline btn-small" type="button" data-connect="${escapeHtml(String(view.email))}">Connect</button>`;
 }
 
 // Build the applicants-inbox markup from mapped applicant views.
@@ -8718,8 +8683,8 @@ function opportunityApplicantsHtml(views) {
         // server re-checks capacity and only moves them up if a seat is free.
         const acceptLabel = v.status === 'Waitlisted' ? 'Give a place' : 'Accept';
         const decideButtons = canDecide ? `
-                <button class="btn btn-primary btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">${acceptLabel}</button>
-                <button class="btn btn-outline btn-sm" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Declined">Decline</button>` : '';
+                <button class="btn btn-primary btn-small" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Accepted">${acceptLabel}</button>
+                <button class="btn btn-outline btn-small" type="button" data-app="${escapeHtml(String(v.id))}" data-decide="Declined">Decline</button>` : '';
         const connectButton = connectButtonHtml(v);
         const actions = (decideButtons || connectButton) ? `
             <div class="applicant-actions">${decideButtons}${connectButton}</div>` : '';
@@ -9039,7 +9004,7 @@ async function handleOrganizerDecision(registrationId, decision, opportunity, ev
 async function handleCancelEvent(opportunity, events) {
     const backend = window.gloweBackend;
     if (!backend) return;
-    if (!window.confirm('Cancel this event? Registrants will see it as cancelled.')) return;
+    if (!(await gloweConfirm('Cancel this event? Registrants will see it as cancelled.', { title: 'Cancel event', confirmLabel: 'Cancel event', cancelLabel: 'Keep event', danger: true }))) return;
     try {
         const row = await backend.cancelEvent(opportunity.id);
         if (row && row.status) opportunity.status = row.status;
@@ -9134,13 +9099,7 @@ function initMyApplicationsPage() {
     // back to the guest home; the contextual join modal opens immediately so
     // the tap isn't a dead end.
     if (!(typeof isLoggedIn === 'function' && isLoggedIn())) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to open your personal area</h3>
-                <p>Your profile, applications, needs, and saved items live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="window.GloweGuest.requireMemberForAction('open-personal-area', {}, function(){})">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to open your personal area', body: 'Your profile, applications, needs, and saved items live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'window.GloweGuest.requireMemberForAction(\'open-personal-area\', {}, function(){})' } });
         if (window.GloweGuest) window.GloweGuest.requireMemberForAction('open-personal-area', {}, function () {});
         return;
     }
@@ -9205,7 +9164,7 @@ function initMyApplicationsPage() {
                                     </div>
                                     <h2 class="social-profile-name-row">
                                         <span ${bilingualNameAttrs(namePair.primary, namePair.english)}>${escapeHtml(heroDisplayName)}</span>
-                                        <button type="button" class="profile-name-edit-btn" aria-label="Edit profile" title="Edit profile" onclick="openEditProfile()">${editIcon}</button>
+                                        <button type="button" class="btn btn-icon btn-small profile-name-edit-btn" aria-label="Edit profile" title="Edit profile" onclick="openEditProfile()">${editIcon}</button>
                                     </h2>
                                     <div class="social-profile-bio" data-tr-card data-tr-type="glowe_profile" data-tr-id="${escapeHtml(profile.id || '')}">
                                         <p data-tr-field="${bioSrc.field || 'about'}">${escapeHtml(bioText)}</p>
@@ -9257,7 +9216,7 @@ function initMyApplicationsPage() {
                                         <button type="button" class="questionnaire-badge-close" onclick="dismissQuestionnaireBadge()" aria-label="Dismiss">&times;</button>
                                     </span>
                                 ` : ''}
-                                <button type="button" class="section-collapse-toggle" onclick="toggleQuestionnaireProfile()" aria-expanded="${!isQuestionnaireCollapsed()}">
+                                <button type="button" class="btn btn-outline btn-small btn-pill section-collapse-toggle" onclick="toggleQuestionnaireProfile()" aria-expanded="${!isQuestionnaireCollapsed()}">
                                     ${isQuestionnaireCollapsed() ? 'Show details' : 'Hide details'}
                                     <span class="collapse-chevron" aria-hidden="true">▾</span>
                                 </button>
@@ -9286,13 +9245,7 @@ function initMyApplicationsPage() {
                                 <h2>Opportunities & Applications</h2>
                             </div>
                             <div class="personal-list">
-                                ${userApplications.length ? userApplications.map(renderApplicationCard).join('') : `
-                                    <div class="empty-state compact-empty">
-                                        <h3>No applications yet</h3>
-                                        <p>Apply to opportunities or publish your own request for volunteers and collaborators.</p>
-                                        <a href="volunteer-network.html" class="btn btn-primary btn-small">Open Volunteer Network</a>
-                                    </div>
-                                `}
+                                ${userApplications.length ? userApplications.map(renderApplicationCard).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No applications yet', body: 'Apply to opportunities or publish your own request for volunteers and collaborators.', action: { label: 'Open Volunteer Network', href: 'volunteer-network.html' }, compact: true })}
                             </div>
                         </article>
 
@@ -9374,13 +9327,7 @@ function initMyApplicationsPage() {
                                             <button class="btn btn-outline btn-small" type="button" onclick="removeSavedItem('${item.type}', '${item.id}')">Remove</button>
                                         </div>
                                     </article>
-                                `).join('') : `
-                                    <div class="empty-state compact-empty">
-                                        <h3>No saved items yet</h3>
-                                        <p>Save posts, profiles, wishes, and opportunities to return to them from here.</p>
-                                        <a href="community.html" class="btn btn-primary btn-small">Explore Community</a>
-                                    </div>
-                                `}
+                                `).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No saved items yet', body: 'Save posts, profiles, wishes, and opportunities to return to them from here.', action: { label: 'Explore Community', href: 'community.html' }, compact: true })}
                             </div>
                         </article>
 
@@ -9490,13 +9437,7 @@ function renderMyEventCard(row, events) {
 }
 
 function emptyMyEventsHtml() {
-    return `
-        <div class="empty-state compact-empty">
-            <h3>No event registrations yet</h3>
-            <p>Register for an event from the Volunteer Network and track it here.</p>
-            <a href="volunteer-network.html" class="btn btn-primary btn-small">Browse events</a>
-        </div>
-    `;
+    return GloweUiPrimitives.emptyStateHtml({ title: 'No event registrations yet', body: 'Register for an event from the Volunteer Network and track it here.', action: { label: 'Browse events', href: 'volunteer-network.html' }, compact: true });
 }
 
 // Cancel a registration from the My Events list, then reload the list.
@@ -9758,13 +9699,7 @@ function initSettingsPage() {
 
     const loggedIn = typeof isLoggedIn === 'function' && isLoggedIn();
     if (!loggedIn) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to manage settings</h3>
-                <p>Your account, language, and session options live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to manage settings', body: 'Your account, language, and session options live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'handleGoogleSignIn()' } });
         return;
     }
 
@@ -9865,17 +9800,11 @@ async function deleteAccount() {
 // backend gets an explanation. Returns true when the inbox may render.
 function messagesPageReady(container) {
     if (!gloweIsLoggedIn()) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to see your messages</h3>
-                <p>Direct conversations with volunteers, organizations, and partners live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to see your messages', body: 'Direct conversations with volunteers, organizations, and partners live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'handleGoogleSignIn()' } });
         return false;
     }
     if (!backendReady()) {
-        container.innerHTML = '<div class="empty-state"><h3>Messages are unavailable</h3><p>Messaging needs a live connection right now. Please try again shortly.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Messages are unavailable', body: 'Messaging needs a live connection right now. Please try again shortly.' });
         return false;
     }
     return true;
@@ -9897,7 +9826,7 @@ function initConnectionsPage() {
 }
 
 function chatLoadingState(container, body) {
-    container.innerHTML = `<div class="empty-state"><h3>Loading…</h3><p>${body}</p></div>`;
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: body });
 }
 
 function chatEmptyInboxState(container) {
@@ -9995,7 +9924,7 @@ async function renderChatThread(container, chatId) {
     try {
         rows = await backend.kcGetMessages(chatId, 100);
     } catch (_e) {
-        container.innerHTML = '<div class="empty-state"><h3>Conversation unavailable</h3><p>This conversation could not be opened.</p><a class="btn btn-outline" href="messages.html">Back to messages</a></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Conversation unavailable', body: 'This conversation could not be opened.', action: { label: 'Back to messages', variant: 'outline', size: '', href: 'messages.html' } });
         return;
     }
     const counterpartName = await resolveChatCounterpartName(backend, chatId, me.id);

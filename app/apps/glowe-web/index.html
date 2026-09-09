@@ -452,7 +452,7 @@
     <!-- Login Modal (Google-only auth — email/password intentionally hidden) -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('login-modal')">&times;</span>
+            <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('login-modal')">&times;</button>
             <h2>Welcome Back!</h2>
             <p class="modal-intro">Sign in with your Google account to continue.</p>
             <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -468,7 +468,7 @@
     <!-- Registration Modal (Google-only auth — populated by renderRegistrationWizard) -->
     <div id="register-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('register-modal')">&times;</span>
+            <button type="button" class="close-modal" aria-label="Close" onclick="closeModal('register-modal')">&times;</button>
             <h2>Join the GloWe Community</h2>
             <p class="modal-intro">Sign in with your Google account to get started.</p>
             <button type="button" class="btn btn-primary btn-block google-auth-btn" onclick="handleGoogleSignIn()">
@@ -506,6 +506,8 @@
     <script src="js/glowe-localized-name.js" defer></script>
     <script src="js/glowe-ui-conventions.js" defer></script>
     <script src="js/ui/glowe-ui-shell.js" defer></script>
+    <script src="js/ui/glowe-ui-dialog.js" defer></script>
+    <script src="js/ui/glowe-ui-primitives.js" defer></script>
     <script src="js/glowe-version.js" defer></script>
     <script src="js/glowe-observability.js" defer></script>
     <!-- glowe:scripts-core:end -->

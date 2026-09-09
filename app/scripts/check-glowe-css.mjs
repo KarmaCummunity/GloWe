@@ -21,7 +21,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Shrink this number whenever legacy.css loses lines. It must never grow (TD-192). */
-export const LEGACY_LINE_BUDGET = 8092;
+export const LEGACY_LINE_BUDGET = 6893;
 export const MAX_FILE_LINES = 300;
 
 export const BREAKPOINTS = {

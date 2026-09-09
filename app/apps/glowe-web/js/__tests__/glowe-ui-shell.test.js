@@ -68,8 +68,14 @@ describe('GloweUiShell — primary nav', () => {
 describe('GloweUiShell — bottom nav', () => {
     it('places the create FAB between Wishes and Community', () => {
         const html = GloweUiShell.bottomNavHtml({ pathname: '/glowe/pages/community.html' });
-        const order = [...html.matchAll(/class="(bottom-nav-link[^"]*|bottom-nav-create)"/g)].map(m => m[1].split(' ')[0]);
+        const order = [...html.matchAll(/class="([^"]*\b(?:bottom-nav-link|bottom-nav-create)\b[^"]*)"/g)]
+            .map(m => m[1].includes('bottom-nav-create') ? 'bottom-nav-create' : 'bottom-nav-link');
         expect(order).toEqual(['bottom-nav-link', 'bottom-nav-link', 'bottom-nav-create', 'bottom-nav-link', 'bottom-nav-link']);
+    });
+
+    it('renders the create FAB as a .btn variant', () => {
+        const html = GloweUiShell.bottomNavHtml({ pathname: '/glowe/pages/community.html' });
+        expect(html).toContain('class="btn btn-fab bottom-nav-create"');
     });
 
     it('activates the community tab for forums and organizations', () => {
