@@ -6,8 +6,11 @@ import { dirname, join } from 'node:path';
 
 const CONSENT_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'glowe-consent.js');
 const APP_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'app.js');
+// Footer markup lives in the shell builder since FR-GLOWE-029 Phase 2.
+const SHELL_JS = join(dirname(fileURLToPath(import.meta.url)), '..', 'ui', 'glowe-ui-shell.js');
 const source = readFileSync(CONSENT_JS, 'utf8');
 const appSource = readFileSync(APP_JS, 'utf8');
+const shellSource = readFileSync(SHELL_JS, 'utf8');
 
 describe('glowe-consent.js', () => {
     it('persists choice under glowe-consent-v1', () => {
@@ -24,7 +27,7 @@ describe('glowe-consent.js', () => {
     it('is wired from ensureGlobalUI and footer legal links', () => {
         expect(appSource).toContain('ensureConsentBanner');
         expect(appSource).toContain('GloweConsent');
-        expect(appSource).toMatch(/privacy\.html/);
-        expect(appSource).toMatch(/accessibility\.html/);
+        expect(shellSource).toMatch(/privacy\.html/);
+        expect(shellSource).toMatch(/accessibility\.html/);
     });
 });
