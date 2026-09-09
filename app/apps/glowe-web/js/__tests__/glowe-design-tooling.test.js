@@ -52,6 +52,15 @@ describe('check-glowe-css guard', () => {
         expect(lintCssSource(big, 'components/x.css')[0]).toMatch(/exceeds 300/);
     });
 
+    it('keeps asset url()s (direct or via tokens) out of nested sheets', () => {
+        const nested = lintCssSource(".a{background:url('../x.webp')}\n.b{background:var(--page-photo)}", 'css/components/x.css');
+        expect(nested).toHaveLength(2);
+        expect(nested[0]).toMatch(/relative url\(\)/);
+        expect(nested[1]).toMatch(/--page-photo/);
+        expect(lintCssSource(".a{background:url('../x.webp')}\n.b{background:var(--page-photo)}", 'css/layout-x.css')).toEqual([]);
+        expect(lintCssSource('.s{background-image:url("data:image/svg+xml;utf8,<svg/>")}', 'css/components/forms.css')).toEqual([]);
+    });
+
     it('lets legacy.css shrink but never grow past its budget', () => {
         const atBudget = Array.from({ length: LEGACY_LINE_BUDGET }, () => '').join('\n');
         expect(lintCssSource(atBudget, 'legacy.css')).toEqual([]);

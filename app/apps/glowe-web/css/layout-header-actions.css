@@ -1,0 +1,136 @@
+/* GloWe shell — header end cluster: auth CTA ⇄ user menu, icon actions,
+   language pill (FR-GLOWE-029 Phase 2 / D-190). Split from layout-header.css
+   to respect the 300-line cap; same `layout` layer, same cascade position. */
+
+/* ===== Header end: auth CTA ⇄ user menu + language pill ===== */
+.header-end {
+    grid-area: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(6px, 0.7vw, 10px);
+    min-width: 0;
+}
+
+.auth-buttons,
+.user-menu {
+    align-items: center;
+    min-width: 0;
+    gap: clamp(6px, 0.8vw, 12px);
+}
+
+.auth-buttons {
+    display: inline-flex;
+}
+
+.auth-buttons .btn {
+    white-space: nowrap;
+}
+
+.user-menu {
+    display: none;
+    justify-content: flex-end;
+}
+
+body.glowe-signed-in .auth-buttons,
+html.glowe-expect-member .auth-buttons {
+    display: none;
+}
+
+body.glowe-signed-in .user-menu {
+    display: inline-flex;
+}
+
+.header-corner-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(6px, 0.55vw, 8px);
+    flex: 0 0 auto;
+}
+
+/* Icon-only header actions (Messages, Settings, Admin). */
+.header-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-default);
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+
+.header-icon-btn:hover {
+    color: var(--text-link);
+    border-color: var(--border-brand);
+}
+
+.header-icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.header-icon-btn .chat-unread-badge,
+.glowe-admin-pending-badge {
+    position: absolute;
+    top: -6px;
+    inset-inline-end: -6px;
+}
+
+.glowe-admin-pending-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--radius-full);
+    background: var(--color-danger-500);
+    color: var(--text-inverse);
+    font-size: 0.65rem;
+    font-weight: var(--weight-extrabold);
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* Language picker — anonymous visitors only (members use Settings). The text
+   direction is deliberately not forced: options are endonyms in mixed scripts. */
+.lang-toggle {
+    flex: 0 0 auto;
+    min-width: 92px;
+    max-width: 140px;
+    height: var(--control-h-sm);
+    padding: 0 30px 0 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-brand);
+    background-color: var(--surface-raised);
+    color: var(--text-brand);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23073f42' stroke-width='1.8'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    background-size: 11px 7px;
+    text-overflow: ellipsis;
+    transition: background-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+html[dir="rtl"] .lang-toggle {
+    padding: 0 12px 0 30px;
+    background-position: left 11px center;
+}
+
+.lang-toggle:hover {
+    background-color: var(--surface-brand-soft);
+    box-shadow: var(--shadow-xs);
+}
+

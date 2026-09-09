@@ -6,7 +6,8 @@
 })(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    const SHEET_MQ = '(max-width: 900px)';
+    // Mirrors css/components/list-filters.css and the shell's `md` boundary (FR-GLOWE-029).
+    const SHEET_MQ = '(max-width: 767px)';
     const FILTER_ICON = '<svg class="glowe-filter-open-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>';
 
     function esc(s) {

@@ -58,6 +58,7 @@
     --alpha-ink-20: rgba(7, 63, 66, 0.2);
     --alpha-ink-34: rgba(7, 63, 66, 0.34);
     --alpha-ink-55: rgba(7, 63, 66, 0.55);
+    --alpha-white-12: rgba(255, 255, 255, 0.12);
     --alpha-white-76: rgba(255, 255, 255, 0.76);
     --alpha-white-92: rgba(255, 255, 255, 0.92);
 
@@ -189,4 +190,5 @@
     --transition: all var(--duration-slow) ease;
     --hero-photo: url('../assets/glowe-bridge.webp');
     --page-photo: url('../assets/glowe-regrowth.webp');
+    --asset-brand-mark: url('../assets/glowe-life-flower.webp');
 }

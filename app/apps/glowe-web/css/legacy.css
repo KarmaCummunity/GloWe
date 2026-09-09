@@ -20,225 +20,6 @@
 .community-page-body {
     --page-photo: url('../assets/glowe-regrowth.webp');
 }
-/* ===== Header ===== */
-.main-header {
-    background-color: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid rgba(15, 93, 85, 0.12);
-    box-shadow: 0 8px 24px rgba(24, 36, 61, 0.04);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(14px);
-}
-
-.main-header .container {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) max-content;
-    align-items: center;
-    column-gap: clamp(8px, 1.2vw, 16px);
-    row-gap: 0;
-    padding: 14px clamp(12px, 1.8vw, 20px);
-    min-width: 0;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: clamp(6px, 0.8vw, 10px);
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
-}
-
-.logo-brand {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1px;
-    min-width: 0;
-}
-
-.logo-user-greeting {
-    color: var(--text-secondary);
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1.2;
-    text-decoration: none;
-    max-width: 9rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.logo-user-greeting:hover {
-    color: var(--primary-color);
-}
-
-.logo-text {
-    font-size: clamp(1.1rem, 0.85rem + 0.55vw, 1.5rem);
-    font-weight: 700;
-    color: var(--primary-dark);
-    letter-spacing: 0;
-    line-height: 1.1;
-}
-
-.logo-icon {
-    width: clamp(32px, 3.2vw, 42px);
-    height: clamp(32px, 3.2vw, 42px);
-    background: url('../assets/glowe-life-flower.webp') center / contain no-repeat;
-    font-size: 0;
-    flex: 0 0 auto;
-}
-
-.main-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    gap: clamp(6px, 0.9vw, 14px);
-    padding: 4px clamp(6px, 0.7vw, 12px);
-    background: rgba(15, 93, 85, 0.06);
-    border: 1px solid rgba(15, 93, 85, 0.12);
-    border-radius: 999px;
-    grid-column: 2;
-    grid-row: 1;
-    width: 100%;
-    min-width: 0;
-    flex-wrap: nowrap;
-    overflow: hidden;
-}
-
-.nav-link {
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: clamp(0.72rem, 0.4rem + 0.55vw, 0.92rem);
-    text-transform: none;
-    transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-    padding: clamp(6px, 0.35vw + 4px, 8px) clamp(8px, 0.7vw + 4px, 16px);
-    position: relative;
-    border-radius: 999px;
-    white-space: nowrap;
-    min-width: 0;
-    flex: 1 1 0;
-    text-align: center;
-    cursor: pointer;
-}
-
-.nav-link:hover {
-    color: var(--primary-dark);
-    background: var(--white);
-    box-shadow: 0 6px 16px rgba(15, 93, 85, 0.08);
-}
-
-.nav-link.active {
-    color: var(--white);
-    background: var(--primary-color);
-    box-shadow: 0 6px 16px rgba(15, 93, 85, 0.18);
-}
-
-.nav-link.active:hover {
-    color: var(--white);
-    background: var(--primary-dark);
-}
-
-.nav-link.active::after {
-    display: none;
-}
-
-.header-end {
-    grid-column: 3;
-    grid-row: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: clamp(6px, 0.7vw, 10px);
-    min-width: 0;
-    width: 100%;
-}
-
-.auth-buttons,
-.user-menu {
-    display: inline-flex;
-    align-items: center;
-    min-width: 0;
-}
-
-.auth-buttons {
-    gap: clamp(6px, 0.8vw, 12px);
-}
-
-.auth-buttons .btn {
-    padding: clamp(6px, 0.4vw + 4px, 10px) clamp(10px, 0.8vw + 6px, 18px);
-    font-size: clamp(0.75rem, 0.55rem + 0.35vw, 0.92rem);
-    white-space: nowrap;
-}
-
-.user-menu {
-    justify-content: flex-end;
-    gap: clamp(4px, 0.55vw, 8px);
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.header-corner-actions {
-    display: inline-flex;
-    align-items: center;
-    gap: clamp(6px, 0.55vw, 8px);
-    margin-inline-start: auto;
-    flex: 0 0 auto;
-}
-
-.header-end .user-menu {
-    width: 100%;
-}
-
-.user-greeting {
-    color: var(--text-secondary);
-    font-weight: 600;
-    text-decoration: none;
-    max-width: 9.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 0 1 auto;
-    min-width: 0;
-}
-
-a.user-greeting:hover {
-    color: var(--primary-color);
-}
-
-/* Signed-in header: Messages, Settings, and Admin are icon-only at every width. */
-.header-icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--border-color);
-    background: var(--white);
-    color: var(--text-secondary);
-    text-decoration: none;
-    flex: 0 0 auto;
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.header-icon-btn:hover {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.header-icon-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-@media (max-width: 992px) {
-    .user-greeting {
-        display: none;
-    }
-}
-
 /* ===== Hero Section ===== */
 .hero {
     background:
@@ -1259,55 +1040,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
 }
 
 /* ===== Footer ===== */
-.main-footer {
-    background-color: var(--text-primary);
-    color: var(--white);
-    padding: 60px 0 20px;
-}
-
-.footer-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    margin-bottom: 40px;
-}
-
-.footer-section h4 {
-    font-size: 1.2rem;
-    margin-bottom: 16px;
-    color: var(--primary-color);
-}
-
-.footer-section p,
-.footer-section a {
-    color: var(--text-light);
-    display: block;
-    margin-bottom: 8px;
-    transition: var(--transition);
-}
-
-.footer-section a:hover {
-    color: var(--primary-color);
-}
-
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 20px;
-    text-align: center;
-    color: var(--text-light);
-}
-
-.footer-bottom p {
-    margin: 0;
-}
-
-.footer-bottom .footer-build {
-    margin-top: 8px;
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
-    opacity: 0.7;
-    color: var(--text-light);
-}
 
 /* ===== Modal ===== */
 .modal {
@@ -1852,44 +1584,6 @@ html[dir="rtl"] .directory-card .post-more-panel {
 }
 
 /* ===== Page Styles ===== */
-.page-header {
-    position: relative;
-    overflow: hidden;
-    background:
-        linear-gradient(90deg, rgba(247, 250, 247, 0.98) 0%, rgba(227, 245, 240, 0.9) 48%, rgba(17, 35, 34, 0.34) 100%),
-        var(--page-photo) right center / cover no-repeat;
-    padding: 72px 0;
-    text-align: center;
-    border-bottom: 1px solid rgba(15, 93, 85, 0.12);
-}
-
-.page-header::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 0;
-    height: 8px;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color), #4db2c7, var(--accent-color));
-}
-
-.page-header .container {
-    position: relative;
-    z-index: 1;
-}
-
-.page-header h1 {
-    max-width: 720px;
-    font-size: clamp(2.35rem, 4vw, 4.25rem);
-    line-height: 1.02;
-    margin-bottom: 16px;
-    text-align: left;
-}
-
-.page-header p {
-    max-width: 620px;
-    color: var(--text-secondary);
-    font-size: 1.15rem;
-    text-align: left;
-}
 
 .wishing-hero {
     background:
@@ -2993,26 +2687,6 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 @media (max-width: 480px) {
-    .main-header .container {
-        padding: 12px 14px;
-    }
-
-    .main-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-    }
-
-    .nav-link {
-        min-width: 0;
-        padding: 9px 8px;
-        font-size: 0.72rem;
-        white-space: normal;
-    }
-
-    .auth-buttons {
-        gap: 8px;
-    }
     
     .btn {
         padding: 8px 16px;
@@ -4320,156 +3994,6 @@ html[dir="rtl"] .org-review-banner__note {
     color: var(--primary-dark);
 }
 
-.glowe-filter-panel {
-    display: grid;
-    gap: 16px;
-    margin-bottom: 28px;
-    padding: 22px 24px;
-    background:
-        linear-gradient(135deg, rgba(232, 247, 243, 0.88), rgba(255, 255, 255, 0.96)),
-        var(--white);
-    border: 1px solid rgba(20, 124, 117, 0.18);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 18px 44px rgba(24, 36, 61, 0.06);
-}
-
-.glowe-filter-panel--compact {
-    margin-bottom: 0;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    gap: 12px;
-}
-
-.glowe-filter-intro h2 {
-    margin: 6px 0 8px;
-    font-size: clamp(1.35rem, 2.6vw, 1.9rem);
-}
-
-.glowe-filter-intro p,
-.glowe-filter-lead {
-    margin: 0;
-    color: var(--text-secondary);
-}
-
-.glowe-filter-toolbar {
-    display: grid;
-    grid-template-columns: minmax(220px, 1.35fr) auto auto;
-    gap: 12px;
-    align-items: end;
-}
-
-.glowe-filter-toolbar--with-sort {
-    grid-template-columns: minmax(220px, 1.2fr) minmax(150px, 0.65fr) auto auto;
-}
-
-.glowe-filter-toolbar .form-group {
-    margin: 0;
-}
-
-.glowe-filter-toolbar .btn {
-    min-height: 46px;
-    align-self: end;
-    white-space: nowrap;
-}
-
-.glowe-filter-open {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.glowe-filter-open-icon {
-    flex: 0 0 auto;
-}
-
-.glowe-filter-badge {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: var(--primary-dark);
-    color: var(--white);
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 20px;
-    text-align: center;
-}
-
-.glowe-filter-dialog {
-    display: block;
-}
-
-.glowe-filter-dialog-backdrop,
-.glowe-filter-dialog-header,
-.glowe-filter-dialog-footer,
-.glowe-filter-dialog-close,
-.glowe-filter-open {
-    display: none;
-}
-
-.glowe-filter-dialog-panel {
-    display: contents;
-}
-
-.glowe-filter-advanced {
-    display: grid;
-    gap: 8px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(20, 124, 117, 0.12);
-}
-
-.glowe-filter-advanced .filter-pill {
-    width: auto;
-    flex: 1 1 160px;
-    margin-bottom: 0;
-    justify-content: center;
-    text-align: center;
-}
-
-.glowe-filter-advanced .filter-pill-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.glowe-filter-select-group {
-    margin: 0;
-}
-
-.glowe-filter-tabs {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-}
-
-.glowe-filter-tabs button {
-    flex: 0 0 auto;
-    min-height: 38px;
-    padding: 8px 13px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
-    background: var(--white);
-    color: var(--text-primary);
-    font-family: inherit;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.glowe-filter-tabs button.active,
-.glowe-filter-tabs button:hover {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    color: var(--white);
-}
-
-.glowe-filter-panel.community-feed-controls input.filter-input {
-    width: 100%;
-    min-height: 44px;
-}
-
 .organizations-empty-state {
     grid-column: 1 / -1;
 }
@@ -5223,13 +4747,6 @@ html[dir="rtl"] .org-review-banner__note {
         grid-template-columns: 1fr;
     }
 
-    .page-header {
-        background:
-            linear-gradient(180deg, rgba(247, 250, 247, 0.96), rgba(227, 245, 240, 0.92)),
-            var(--page-photo) center / cover no-repeat;
-        padding: 48px 0;
-    }
-
     .page-header h1,
     .page-header p {
         text-align: left;
@@ -5349,134 +4866,6 @@ html[dir="rtl"] .org-review-banner__note {
 
     .wish-filter-advanced.is-open {
         display: grid;
-    }
-
-    .glowe-filter-toolbar {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 8px;
-    }
-
-    .glowe-filter-toolbar--with-sort {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .glowe-filter-search {
-        grid-column: 1 / -1;
-    }
-
-    .glowe-filter-clear--toolbar {
-        display: none;
-    }
-
-    .glowe-filter-open {
-        display: inline-flex;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .glowe-filter-dialog[hidden] {
-        display: none !important;
-    }
-
-    .glowe-filter-dialog:not([hidden]) {
-        display: flex;
-        position: fixed;
-        inset: 0;
-        z-index: 1200;
-        align-items: flex-end;
-        justify-content: center;
-    }
-
-    body.glowe-filter-sheet-open {
-        overflow: hidden;
-    }
-
-    .glowe-filter-dialog-backdrop {
-        display: block;
-        position: absolute;
-        inset: 0;
-        border: 0;
-        background: rgba(15, 23, 42, 0.45);
-        cursor: pointer;
-    }
-
-    .glowe-filter-dialog-panel {
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        width: min(100%, 520px);
-        max-height: min(82vh, 640px);
-        margin: 0;
-        background: var(--white);
-        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-        box-shadow: 0 -8px 40px rgba(24, 36, 61, 0.18);
-    }
-
-    .glowe-filter-dialog-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .glowe-filter-dialog-header h3 {
-        margin: 0;
-        font-size: 1.05rem;
-    }
-
-    .glowe-filter-dialog-close {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border: 0;
-        border-radius: 50%;
-        background: var(--sky-light);
-        font-size: 1.4rem;
-        line-height: 1;
-        cursor: pointer;
-    }
-
-    .glowe-filter-dialog-body {
-        overflow: auto;
-        padding: 8px 16px 12px;
-    }
-
-    .glowe-filter-dialog-footer {
-        display: flex;
-        gap: 10px;
-        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-        border-top: 1px solid var(--border-color);
-    }
-
-    .glowe-filter-dialog-footer .btn {
-        flex: 1 1 0;
-    }
-
-    .glowe-filter-panel {
-        padding: 16px;
-        margin-bottom: 18px;
-    }
-
-    .glowe-filter-pill-scroll {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 8px;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .glowe-filter-pill-scroll::-webkit-scrollbar {
-        display: none;
-    }
-
-    .glowe-filter-advanced .filter-pill {
-        flex: 0 0 auto;
-        min-width: max-content;
     }
 
     .wish-card-top .heart-button {
@@ -7291,70 +6680,13 @@ html[dir="rtl"] .org-review-banner__note {
 }
 
 @media (max-width: 680px) {
-    .main-header {
-        position: sticky;
-    }
-
-    .main-header .container {
-        grid-template-columns: auto max-content;
-        padding: 12px 14px;
-        column-gap: 10px;
-    }
-
-    .logo-icon {
-        width: 36px;
-        height: 36px;
-    }
-
-    .logo-text {
-        font-size: 1.25rem;
-    }
 
     /* Google-only auth collapses to a single small button (see
        normalizeHeaderAuthButtons); it sits inline in the top bar next to the
        language toggle rather than stretching into its own full-width banner. */
-    .auth-buttons {
-        width: auto;
-        justify-content: flex-end;
-        gap: 8px;
-    }
-
-    .auth-buttons .btn {
-        flex: 0 0 auto;
-        min-width: 0;
-        padding: 7px 12px;
-        font-size: 0.82rem;
-    }
 
     /* On phones the user-menu collapses to compact icon buttons aligned to the
        end of the header, rather than full-width text buttons. */
-    .user-menu {
-        width: 100%;
-        justify-content: flex-end;
-        gap: 8px;
-    }
-
-    .user-menu .header-icon-btn,
-    .user-menu a.glowe-admin-link {
-        flex: 0 0 auto;
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        padding: 0;
-        border-radius: 50%;
-    }
-
-    .user-greeting {
-        display: none;
-    }
-
-    .header-end {
-        grid-column: 2;
-    }
-
-    .main-nav {
-        display: none !important;
-    }
 
     .hero h1,
     .page-header h1,
@@ -7444,10 +6776,6 @@ html[dir="rtl"] .org-review-banner__note {
     .container {
         padding-left: 14px;
         padding-right: 14px;
-    }
-
-    .main-nav {
-        grid-template-columns: 1fr;
     }
 
     .btn,
@@ -7629,73 +6957,7 @@ html[dir="rtl"] .org-review-banner__note {
     }
 }
 
-/* ===== Mobile Bottom Navigation Bar ===== */
-.mobile-bottom-nav {
-    display: none;
-}
-
 @media (max-width: 680px) {
-    body {
-        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
-    }
-
-    .main-nav {
-        display: none !important;
-    }
-
-    .mobile-bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: var(--white);
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-        z-index: 1000;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        border-top: 1px solid var(--border-color);
-    }
-
-    .bottom-nav-link {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 4px;
-        color: var(--text-secondary);
-        text-decoration: none;
-        transition: color 0.2s ease, transform 0.2s ease;
-    }
-
-    .bottom-nav-link:hover, .bottom-nav-link:active {
-        background-color: var(--primary-light);
-    }
-
-    .bottom-nav-link.active {
-        color: var(--primary-color);
-    }
-
-    .nav-icon {
-        width: 24px;
-        height: 24px;
-        margin-bottom: 4px;
-    }
-
-    .nav-icon svg {
-        width: 100%;
-        height: 100%;
-    }
-
-    .bottom-nav-link.active .nav-label {
-        font-weight: 800;
-    }
-
-    .nav-label {
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-align: center;
-    }
 
     .personal-area-page {
         padding: 12px 0 32px;
@@ -8004,49 +7266,6 @@ html[dir="rtl"] textarea {
     text-align: right;
 }
 
-/* Keep brand/identifier values left-to-right inside RTL text. */
-html[dir="rtl"] .logo-text {
-    direction: ltr;
-}
-
-/* Header language picker — visible only for anonymous visitors (removed on
-   sign-in). Direction is deliberately NOT forced: the options are endonyms in
-   mixed scripts, so each <option lang> renders in its own script. */
-.lang-toggle {
-    flex: 0 0 auto;
-    min-width: 92px;
-    max-width: 140px;
-    height: 36px;
-    padding: 0 30px 0 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(15, 93, 85, 0.25);
-    background-color: var(--white);
-    color: var(--primary-dark);
-    font-weight: 700;
-    font-size: 0.9rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: var(--transition);
-    /* Custom chevron so the pill keeps its shape across browsers. */
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23073f42' stroke-width='1.8'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 11px center;
-    background-size: 11px 7px;
-    text-overflow: ellipsis;
-}
-
-html[dir="rtl"] .lang-toggle {
-    padding: 0 12px 0 30px;
-    background-position: left 11px center;
-}
-
-.lang-toggle:hover {
-    background: rgba(15, 93, 85, 0.08);
-    box-shadow: 0 6px 16px rgba(15, 93, 85, 0.08);
-}
-
 /* ===== Auth-aware marketing blocks ===== */
 .glowe-member-only {
     display: none;
@@ -8078,10 +7297,6 @@ html.glowe-expect-member body.home-page-body main > section:not(#member-home) {
 html.glowe-expect-member body.home-page-body #member-home[hidden] {
     display: block !important;
     min-height: 40vh;
-}
-
-html.glowe-expect-member body.home-page-body .auth-buttons {
-    display: none !important;
 }
 
 /* FR-GLOWE-005 — hide English source chrome until translateGloweTree finishes.
@@ -8540,40 +7755,6 @@ body.glowe-member-home main > section:not(#member-home) {
     margin-bottom: 2px;
 }
 
-/* ── FR-GLOWE-016 — adaptive create system ─────────────────────────────── */
-.bottom-nav-create {
-    display: none;
-}
-
-@media (max-width: 680px) {
-    .bottom-nav-create {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        align-self: center;
-        width: 52px;
-        height: 52px;
-        min-width: 52px;
-        margin: 0 6px;
-        border: none;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: var(--white);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-        cursor: pointer;
-        transform: translateY(-10px);
-    }
-
-    .bottom-nav-create svg {
-        width: 26px;
-        height: 26px;
-    }
-
-    .header-create-btn {
-        display: none;
-    }
-}
-
 .create-menu-options {
     display: grid;
     gap: 12px;
@@ -8737,35 +7918,6 @@ body.glowe-member-home main > section:not(#member-home) {
     color: var(--white);
     font-size: 0.72rem;
     font-weight: 800;
-}
-
-.user-menu .header-icon-btn {
-    position: relative;
-}
-
-.user-menu .header-icon-btn .chat-unread-badge {
-    position: absolute;
-    top: -6px;
-    inset-inline-end: -6px;
-}
-
-.glowe-admin-pending-badge {
-    position: absolute;
-    top: -6px;
-    inset-inline-end: -6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: #dc2626;
-    color: var(--white);
-    font-size: 0.65rem;
-    font-weight: 800;
-    line-height: 1;
-    pointer-events: none;
 }
 
 .chat-thread {
