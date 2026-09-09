@@ -46,6 +46,17 @@ All variables prefixed `EXPO_PUBLIC_*` are exposed to the client bundle by Expo'
 >
 > **Local Metro:** `pnpm ios` / `expo start` runs a `__DEV__` bundle, which shows the dev strip even without `EXPO_PUBLIC_ENVIRONMENT`. That variable is still required for **non-`__DEV__`** builds (e.g. `expo export` on CI) so testers see the strip without a debug client.
 
+## Supabase Auth redirect allowlist (GloWe Google sign-in)
+
+GloWe sends `redirectTo = <current origin + path>` on every Google sign-in (`js/backend.js` → `oauthRedirectTo()`, spec `17_glowe_frontend.md` AC2b). Supabase Auth only honors it when the origin matches the project's **URL Configuration → Redirect URLs** allowlist; otherwise it silently falls back to **Site URL** after Google returns. This is a dashboard-only setting (the `[auth]` block in `supabase/config.toml` is local-CLI only and is **not** pushed to hosted projects).
+
+| Supabase project | Must contain |
+|---|---|
+| dev `roeefqpdbftlndzsvhfj` (serves `dev` **and** `staging`) | `https://dev.karma-community.pages.dev/**`, `https://staging.karma-community.pages.dev/**`, `http://localhost:4321/**`, `http://127.0.0.1:4321/**` |
+| prod `slxijdfvinbjmrsfgbzx` | `https://karma-community-kc.com/**` |
+
+**Symptom when an entry is missing:** you start Google sign-in on `https://staging.karma-community.pages.dev/glowe/…` and end up signed in on `https://dev.karma-community.pages.dev/glowe/`. Fix: Supabase Dashboard → project `roeefqpdbftlndzsvhfj` → Authentication → URL Configuration → add `https://staging.karma-community.pages.dev/**` → Save. Takes effect immediately, no deploy needed. Verify by signing in from a staging page and checking the address bar stays on `staging.`.
+
 ## Runbook: `dev` branch was deleted
 
 If `git ls-remote --heads origin | grep dev` returns nothing (e.g. an agent accidentally deleted it), restore it from `main`:
