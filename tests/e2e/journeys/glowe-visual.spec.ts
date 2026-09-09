@@ -9,11 +9,21 @@ const SNAPSHOT_OPTS = {
   animations: 'disabled' as const,
 };
 
+// Same client state on every host. Pinning the hosted dev backend matters when
+// the checkout is served on 127.0.0.1 (PR runs, local baselines): without it
+// backend-config.js picks local Supabase and app.js renders the header CTA as
+// "Dev sign in" (105px) instead of "Sign up / Sign in" (137px), so the masked
+// box — and the snapshot — differs from the deployed site (TD-193).
+function pinVisualState() {
+  try {
+    window.localStorage.setItem('glowe-guest-welcomed', '1');
+    window.localStorage.setItem('glowe-backend', 'dev');
+  } catch { /* ignore */ }
+}
+
 test.describe('GloWe visual regression — static chrome', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      try { window.localStorage.setItem('glowe-guest-welcomed', '1'); } catch { /* ignore */ }
-    });
+    await page.addInitScript(pinVisualState);
   });
 
   test('home hero — marketing shell', async ({ page }) => {
@@ -90,9 +100,7 @@ const SHELL_VIEWPORTS = [
 
 test.describe('GloWe visual regression — shell per page × viewport', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      try { window.localStorage.setItem('glowe-guest-welcomed', '1'); } catch { /* ignore */ }
-    });
+    await page.addInitScript(pinVisualState);
   });
 
   for (const vp of SHELL_VIEWPORTS) {
