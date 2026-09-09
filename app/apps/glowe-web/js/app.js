@@ -3972,6 +3972,12 @@ function jsString(value = '') {
     return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+// One row of a "..." menu panel (GloweUiPrimitives.menuItemHtml + the
+// post-menu-action behavioural hook used by E2E selectors).
+function menuItem(bag) {
+    return GloweUiPrimitives.menuItemHtml(Object.assign({ className: 'post-menu-action' }, bag));
+}
+
 // Read a form field's trimmed value; '' when the element is absent.
 function fieldValue(id) {
     const el = document.getElementById(id);
@@ -4083,46 +4089,28 @@ function refreshSavedToggleButton(btn, type, id) {
 
 // Unified ⋯ menu for feed cards (community posts + home discovery).
 // Order: Save → Share → Open → (Edit|Delete for owner) → (Message|Report for others).
-// fallow-ignore-next-line complexity
+// Rows are GloweUiPrimitives.menuItemHtml; `post-menu-action` stays as the
+// behavioural hook (E2E selectors, save toggle refresh).
 function feedCardMoreMenuHtml(opts) {
     const o = opts || {};
     const parts = [];
     if (o.saveHtml) parts.push(o.saveHtml);
     if (o.extraMenuHtml) parts.push(o.extraMenuHtml);
     if (o.shareTitle != null) {
-        parts.push(
-            `<button type="button" class="post-menu-action" onclick="sharePost('${jsString(o.shareTitle)}', '${jsString(o.shareHref || '')}')">Share</button>`
-        );
+        parts.push(menuItem({ label: 'Share', onclick: `sharePost('${jsString(o.shareTitle)}', '${jsString(o.shareHref || '')}')` }));
     }
     if (o.viewHref) {
-        const viewClick = o.viewOnclick
-            ? ` onclick="event.preventDefault(); ${o.viewOnclick}"`
-            : '';
-        parts.push(
-            `<a class="post-menu-action" href="${escapeHtml(o.viewHref)}"${viewClick}>Open</a>`
-        );
+        parts.push(menuItem({ label: 'Open', href: o.viewHref, onclick: o.viewOnclick ? `event.preventDefault(); ${o.viewOnclick}` : null }));
     }
     if (o.ownsItem) {
-        if (o.editOnclick) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="${o.editOnclick}">Edit post</button>`
-            );
-        }
-        if (o.deleteOnclick) {
-            parts.push(
-                `<button type="button" class="post-menu-action post-delete-action" onclick="${o.deleteOnclick}">Delete post</button>`
-            );
-        }
+        if (o.editOnclick) parts.push(menuItem({ label: 'Edit post', onclick: o.editOnclick }));
+        if (o.deleteOnclick) parts.push(menuItem({ label: 'Delete post', danger: true, className: 'post-menu-action post-delete-action', onclick: o.deleteOnclick }));
     } else {
         if (o.authorId) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="openPrivateMessage('${jsString(o.authorName || '')}', '${jsString(o.authorId)}')">Message</button>`
-            );
+            parts.push(menuItem({ label: 'Message', onclick: `openPrivateMessage('${jsString(o.authorName || '')}', '${jsString(o.authorId)}')` }));
         }
         if (o.reportType && o.reportId != null) {
-            parts.push(
-                `<button type="button" class="post-menu-action" onclick="openReportModal('${jsString(o.reportType)}', '${jsString(o.reportId)}', '${jsString(o.reportTitle || '')}')">Report</button>`
-            );
+            parts.push(menuItem({ label: 'Report', onclick: `openReportModal('${jsString(o.reportType)}', '${jsString(o.reportId)}', '${jsString(o.reportTitle || '')}')` }));
         }
     }
     return parts.join('\n                        ');
@@ -5322,9 +5310,9 @@ function renderOpportunityCard(opportunity, basePath = '') {
                 <summary aria-label="More opportunity actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('opportunity', opportunity.id, opportunity.title, orgName, detailHref, 'Save opportunity', 'post-menu-action')}
-                    <button type="button" class="post-menu-action" onclick="sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')">Share</button>
-                    <button type="button" onclick="openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')">Message publisher</button>
-                    <button type="button" onclick="openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')">Report</button>
+                    ${menuItem({ label: 'Share', onclick: `sharePost('${jsString(opportunity.title)}', '${jsString(detailHref)}')` })}
+                    ${menuItem({ label: 'Message publisher', onclick: `openPrivateMessage('${jsString(orgName)}', '${jsString(opportunity.ownerId || '')}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('opportunity', '${opportunity.id}', '${titleForMessage}')` })}
                 </div>
             </details>`;
     const cardSpec = {
@@ -5374,8 +5362,8 @@ function renderOrganizationCard(organization, basePath = '') {
                 <summary aria-label="More profile actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('profile', organization.id, organization.name, organization.type || 'Organization', profileHref, 'Save profile', 'post-menu-action')}
-                    <button type="button" onclick="openPrivateMessage('${jsString(organization.name)}', '${jsString(organization.id)}')">Message</button>
-                    <button type="button" onclick="openReportModal('profile', '${organization.id}', '${jsString(organization.name)}')">Report</button>
+                    ${menuItem({ label: 'Message', onclick: `openPrivateMessage('${jsString(organization.name)}', '${jsString(organization.id)}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('profile', '${organization.id}', '${jsString(organization.name)}')` })}
                 </div>
             </details>`;
     const actionsClass = ui ? ui.directoryActionsClass() : 'card-actions org-card-actions';
@@ -5418,9 +5406,9 @@ function renderWishCard(wish) {
                 <summary aria-label="More wish actions">...</summary>
                 <div class="post-more-panel">
                     ${savedToggleButtonHtml('wish', wish.id, wish.title, authorName, wishHref, 'Save wish', 'post-menu-action')}
-                    <button type="button" onclick="sharePost('${jsString(wish.title)}', '${jsString(wishHref)}')">Share</button>
-                    <button type="button" onclick="openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')">Message author</button>
-                    <button type="button" onclick="openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')">Report</button>
+                    ${menuItem({ label: 'Share', onclick: `sharePost('${jsString(wish.title)}', '${jsString(wishHref)}')` })}
+                    ${menuItem({ label: 'Message author', onclick: `openPrivateMessage('${jsString(authorName)}', '${jsString(wish.authorId || '')}')` })}
+                    ${menuItem({ label: 'Report', onclick: `openReportModal('wish', '${wish.id}', '${jsString(wish.title)}')` })}
                 </div>
             </details>`;
     const avatarInner = renderLocalizedEntityMark(authorPair.primary, authorPair.english, authorName);
@@ -6232,7 +6220,7 @@ async function initGuestHome(gen = _gloweHomeGen) {
             ? featured.map(function (opp) {
                 return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp));
             }).join('')
-            : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the community.</p><a class="btn btn-primary btn-small" href="pages/opportunities.html">Post an opportunity</a></div>';
+            : GloweUiPrimitives.emptyStateHtml({ title: 'No opportunities posted yet', body: 'Be the first to share a volunteer role or collaboration request with the community.', action: { label: 'Post an opportunity', href: 'pages/opportunities.html' } });
     }
 
     if (gen !== _gloweHomeGen) return;
@@ -6291,7 +6279,7 @@ window.isHomeHref = isHomeHref;
 // --- Member home (FR-GLOWE-016 AC2) — unified discovery feed ---------------
 
 function homeFeedEmptyHtml() {
-    return '<div class="empty-state"><h3>The community is just getting started</h3><p>Be the first to share a post or an opportunity others can join.</p><a class="btn btn-primary btn-small" href="pages/community.html">Start the conversation</a></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'The community is just getting started', body: 'Be the first to share a post or an opportunity others can join.', action: { label: 'Start the conversation', href: 'pages/community.html' } });
 }
 
 function findCommunityPostById(postId) {
@@ -6813,8 +6801,8 @@ async function initOpportunitiesPage() {
         if (filtered.length === 0) {
             const hasFilters = filters.location !== 'all' || filters.field !== 'all' || filters.commitment !== 'all' || filters.event !== 'all' || filters.search;
             container.innerHTML = hasFilters
-                ? '<div class="empty-state"><div class="empty-state-icon">No results</div><h3>No opportunities found</h3><p>Try adjusting your filters or search terms.</p></div>'
-                : '<div class="empty-state"><h3>No opportunities posted yet</h3><p>Be the first to share a volunteer role or collaboration request with the GloWe community.</p><button class="btn btn-primary btn-small" type="button" onclick="openOpportunityComposer()">Post an opportunity</button></div>';
+                ? GloweUiPrimitives.emptyStateHtml({ icon: 'No results', title: 'No opportunities found', body: 'Try adjusting your filters or search terms.' })
+                : GloweUiPrimitives.emptyStateHtml({ title: 'No opportunities posted yet', body: 'Be the first to share a volunteer role or collaboration request with the GloWe community.', action: { label: 'Post an opportunity', onclick: 'openOpportunityComposer()' } });
         } else {
             container.innerHTML = filtered.map(function (opp) {
                 return renderHomeDiscoveryCard(opportunityFeedItemFromRow(opp, true), { pageBase: '' });
@@ -6839,7 +6827,7 @@ async function initOpportunitiesPage() {
 
     // Fetch real data then render
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading opportunities…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading opportunities…'));
         await fetchAndPopulate(() => gloweBackend.listAll('opportunities'), opportunities, mapOpportunityRow, withEnsuredOrganizationEnglishNames);
         renderOpportunities();
     }
@@ -7085,8 +7073,8 @@ async function initOrganizationsPage() {
         container.innerHTML = filtered.length
             ? filtered.map(function (org) { return renderOrganizationCard(org, '../'); }).join('')
             : hasFilters
-                ? '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No matching profiles')) + '</h3><p>' + escapeHtml(gloweText('Try a broader keyword or clear a filter.')) + '</p></div>'
-                : '<div class="empty-state organizations-empty-state"><h3>' + escapeHtml(gloweText('No organizations yet')) + '</h3><p>' + escapeHtml(gloweText('Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.')) + '</p></div>';
+                ? GloweUiPrimitives.emptyStateHtml({ title: gloweText('No matching profiles'), body: gloweText('Try a broader keyword or clear a filter.'), className: 'organizations-empty-state' })
+                : GloweUiPrimitives.emptyStateHtml({ title: gloweText('No organizations yet'), body: gloweText('Organizations join GloWe by creating a profile and completing verification. The first approved profiles will appear here.'), className: 'organizations-empty-state' });
 
         if (filterCtrl) filterCtrl.updateResults({ count: filtered.length, hasFilters: hasFilters });
         hydrateFollowSlots(container);
@@ -7097,7 +7085,7 @@ async function initOrganizationsPage() {
     }
     if (filterCtrl) filterCtrl.refreshI18n();
 
-    container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading organizations…')) + '</p></div>';
+    container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading organizations…'));
     try {
         const rows = await gloweBackend.listApprovedOrgs();
         const ensured = await withEnsuredEnglishNames(rows || []);
@@ -7157,7 +7145,7 @@ async function initWishingWellPage() {
 
     if (filterCtrl) filterCtrl.refreshI18n();
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading wishes…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading wishes…'));
         await Promise.all([loadLiveWishes(), loadPostComments()]);
         renderWishes();
         const deepWish = new URLSearchParams(window.location.search).get('wish');
@@ -7170,11 +7158,11 @@ async function initWishingWellPage() {
 }
 
 function emptyWishFilteredHtml() {
-    return '<div class="empty-state"><div class="empty-state-icon">No results</div><h3>No wishes found</h3><p>Try clearing one of the filters.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ icon: 'No results', title: 'No wishes found', body: 'Try clearing one of the filters.' });
 }
 
 function emptyWishBoardHtml() {
-    return '<div class="empty-state"><h3>No wishes yet</h3><p>The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.</p><button class="btn btn-primary btn-small" type="button" onclick="openWishComposer()">Post a wish</button></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'No wishes yet', body: 'The Wishing Well fills up as community members post support requests, calls for volunteers, and collaboration opportunities. Be the first to share what your project needs.', action: { label: 'Post a wish', onclick: 'openWishComposer()' } });
 }
 
 // Owner-only "Mark as fulfilled" control on a wish card.
@@ -7314,9 +7302,9 @@ async function initCommunityPage() {
 
     function communityFeedEmptyHtml(activeFilter) {
         if (activeFilter === 'event') {
-            return '<div class="empty-state"><h3>No events yet</h3><p>Organization events appear here once published.</p><button class="btn btn-primary btn-small" type="button" onclick="openEventComposer()">Publish an event</button></div>';
+            return GloweUiPrimitives.emptyStateHtml({ title: 'No events yet', body: 'Organization events appear here once published.', action: { label: 'Publish an event', onclick: 'openEventComposer()' } });
         }
-        return '<div class="empty-state"><h3>The conversation starts here</h3><p>No posts yet — share knowledge, ask for support, or open a discussion to get things going.</p><button class="btn btn-primary btn-small" type="button" onclick="openInlineComposer()">Write the first post</button></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'The conversation starts here', body: 'No posts yet — share knowledge, ask for support, or open a discussion to get things going.', action: { label: 'Write the first post', onclick: 'openInlineComposer()' } });
     }
 
     function renderFeed() {
@@ -7374,7 +7362,7 @@ async function initCommunityPage() {
 
     // Fetch posts, comments, and live events (glowe_opportunities + start_at).
     if (container) {
-        container.innerHTML = '<div class="empty-state loading-state" role="status" aria-busy="true"><p class="muted-note">' + escapeHtml(gloweText('Loading posts…')) + '</p></div>';
+        container.innerHTML = GloweUiPrimitives.loadingStateHtml(gloweText('Loading posts…'));
         await Promise.all([
             loadCommunityPosts(),
             loadPostComments(),
@@ -7492,9 +7480,9 @@ async function prefetchAdminHealthBadge() {
 
 function adminHealthErrorHtml(error) {
     if (isForbiddenError(error)) {
-        return '<div class="empty-state"><h3>Reviewers only</h3><p>Production health probes are visible to GloWe reviewers.</p></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'Production health probes are visible to GloWe reviewers.' });
     }
-    return '<div class="empty-state"><h3>Could not load health probes</h3><p>Please refresh and try again.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'Could not load health probes', body: 'Please refresh and try again.' });
 }
 
 function renderAdminHealthSummary(rows) {
@@ -7509,7 +7497,7 @@ function renderAdminHealthSummary(rows) {
     updateAdminHealthBadge(overall);
 
     if (!normalized.length) {
-        summaryEl.innerHTML = '<div class="empty-state"><h3>No probes yet</h3><p>Production synthetics will appear here after the first scheduled run or deploy smoke.</p></div>';
+        summaryEl.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No probes yet', body: 'Production synthetics will appear here after the first scheduled run or deploy smoke.' });
         return;
     }
 
@@ -7539,7 +7527,7 @@ function renderAdminHealthHistory(rows) {
     })).filter(Boolean);
 
     if (!list.length) {
-        historyEl.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>No history yet</h3><p>Recent probe runs will be listed here.</p></div></td></tr>';
+        historyEl.innerHTML = '<tr><td colspan="6">' + GloweUiPrimitives.emptyStateHtml({ title: 'No history yet', body: 'Recent probe runs will be listed here.' }) + '</td></tr>';
         return;
     }
 
@@ -7562,7 +7550,7 @@ async function loadAdminHealthPanel(force = false) {
 
     if (refreshBtn) refreshBtn.disabled = true;
     if (force || !adminHealthLoaded) {
-        summaryEl.innerHTML = '<div class="empty-state admin-health-placeholder"><h3>Loading…</h3><p>Fetching the latest probe results.</p></div>';
+        summaryEl.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching the latest probe results.', className: 'admin-health-placeholder' });
     }
 
     try {
@@ -7587,19 +7575,19 @@ async function loadAdminHealthPanel(force = false) {
 // the RPC, surfaced as a "locked" empty state rather than a crash.
 function moderationQueueErrorHtml(error) {
     if (isForbiddenError(error)) {
-        return '<div class="empty-state"><h3>Reviewers only</h3><p>This queue is visible to GloWe reviewers. Ask an administrator for access.</p></div>';
+        return GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'This queue is visible to GloWe reviewers. Ask an administrator for access.' });
     }
-    return '<div class="empty-state"><h3>Could not load reports</h3><p>Please refresh and try again.</p></div>';
+    return GloweUiPrimitives.emptyStateHtml({ title: 'Could not load reports', body: 'Please refresh and try again.' });
 }
 
 async function loadModerationReports() {
     const container = document.getElementById('admin-reports');
     if (!container) return;
     if (!backendReady()) {
-        container.innerHTML = '<div class="empty-state"><h3>Backend not configured</h3><p>Moderation is available once the shared backend is connected.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Backend not configured', body: 'Moderation is available once the shared backend is connected.' });
         return;
     }
-    container.innerHTML = '<div class="empty-state"><h3>Loading…</h3><p>Fetching community reports.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching community reports.' });
     let rows;
     try {
         rows = await window.gloweBackend.adminListReports();
@@ -7616,7 +7604,7 @@ function renderModerationReports(reports) {
     const reportStat = document.querySelector('[data-admin-stat="reports"]');
     if (reportStat) reportStat.textContent = GloweModeration.openReports(reports).length;
     if (!reports.length) {
-        container.innerHTML = '<div class="empty-state"><h3>No reports yet</h3><p>Community reports will appear here.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No reports yet', body: 'Community reports will appear here.' });
         return;
     }
     const reasonLabel = (value) => {
@@ -7686,18 +7674,18 @@ async function loadPendingOrgs() {
     if (!container) return;
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) {
-        container.innerHTML = '<div class="empty-state"><h3>Backend not configured</h3><p>Organization review is available once the shared backend is connected.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Backend not configured', body: 'Organization review is available once the shared backend is connected.' });
         return;
     }
-    container.innerHTML = '<div class="empty-state"><h3>Loading…</h3><p>Fetching organizations awaiting verification.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: 'Fetching organizations awaiting verification.' });
     let orgs;
     try {
         orgs = await backend.listPendingOrgs();
     } catch (error) {
         const forbidden = error && (error.code === '42501' || /forbidden|permission/i.test(error.message || ''));
         container.innerHTML = forbidden
-            ? '<div class="empty-state"><h3>Reviewers only</h3><p>This queue is visible to GloWe reviewers. Ask an administrator for access.</p></div>'
-            : '<div class="empty-state"><h3>Could not load queue</h3><p>Please refresh and try again.</p></div>';
+            ? GloweUiPrimitives.emptyStateHtml({ title: 'Reviewers only', body: 'This queue is visible to GloWe reviewers. Ask an administrator for access.' })
+            : GloweUiPrimitives.emptyStateHtml({ title: 'Could not load queue', body: 'Please refresh and try again.' });
         return;
     }
     renderPendingOrgs(orgs || []);
@@ -7709,7 +7697,7 @@ function renderPendingOrgs(orgs) {
     const orgStat = document.querySelector('[data-admin-stat="orgs"]');
     if (orgStat) orgStat.textContent = orgs.length;
     if (!orgs.length) {
-        container.innerHTML = '<div class="empty-state"><h3>No pending organizations</h3><p>Only organization applications awaiting review appear here (status: pending). If someone just submitted, ask them to confirm they saw “Application submitted”, then refresh.</p><button type="button" class="btn btn-outline btn-small" onclick="loadPendingOrgs()">Refresh queue</button></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'No pending organizations', body: 'Only organization applications awaiting review appear here (status: pending). If someone just submitted, ask them to confirm they saw “Application submitted”, then refresh.', action: { label: 'Refresh queue', variant: 'outline', onclick: 'loadPendingOrgs()' } });
         return;
     }
     container.innerHTML = orgs.map(org => {
@@ -7925,13 +7913,7 @@ function initSavedPage() {
                     <button class="btn btn-outline btn-small" type="button" onclick="removeSavedItem('${item.type}', '${item.id}')">Remove</button>
                 </div>
             </article>
-        `).join('') : `
-            <div class="empty-state">
-                <h3>No saved items yet</h3>
-                <p>Save posts, profiles, and opportunities to return to them from this screen.</p>
-                <a class="btn btn-primary btn-small" href="community.html">Explore Community</a>
-            </div>
-        `;
+        `).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No saved items yet', body: 'Save posts, profiles, and opportunities to return to them from this screen.', action: { label: 'Explore Community', href: 'community.html' } });
     }
 
     window.renderSavedItemsPage = renderSavedItemsPage;
@@ -8015,7 +7997,7 @@ function initDiscussionGroupPage() {
         : '<p class="muted-note">Members will appear here once they join this group.</p>';
     threads.innerHTML = groupThreads.length > 0
         ? groupThreads.map(thread => renderDiscussionThread(thread, group, allReplies)).join('')
-        : '<div class="empty-state"><h3>No threads yet</h3><p>Start the first conversation in this group.</p></div>';
+        : GloweUiPrimitives.emptyStateHtml({ title: 'No threads yet', body: 'Start the first conversation in this group.' });
     composer.innerHTML = `
         <form class="inline-post-form" onsubmit="handleDiscussionSubmit(event, '${group.id}')">
             <div class="form-group">
@@ -8162,7 +8144,7 @@ async function initProfilePage() {
         return;
     }
 
-    container.innerHTML = '<div class="empty-state"><h3>Loading profile…</h3><p>Fetching from the community directory.</p></div>';
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading profile…', body: 'Fetching from the community directory.' });
     const backend = window.gloweBackend;
     if (!backend || !backend.configured()) { _profileNotFound(container); return; }
     try {
@@ -8272,8 +8254,8 @@ function _renderProfileContent(profile, container) {
                     <details class="profile-more-menu">
                         <summary aria-label="More profile actions">...</summary>
                         <div>
-                            ${isOwnerView ? `<button type="button" onclick="openEditProfile('${safeName}')">Edit profile</button>` : ''}
-                            <button type="button" onclick="openReportModal('profile', '${profile.id}', '${safeName}')">Report</button>
+                            ${isOwnerView ? menuItem({ label: 'Edit profile', onclick: `openEditProfile('${safeName}')` }) : ''}
+                            ${menuItem({ label: 'Report', onclick: `openReportModal('profile', '${profile.id}', '${safeName}')` })}
                         </div>
                     </details>
                 </div>
@@ -9117,13 +9099,7 @@ function initMyApplicationsPage() {
     // back to the guest home; the contextual join modal opens immediately so
     // the tap isn't a dead end.
     if (!(typeof isLoggedIn === 'function' && isLoggedIn())) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to open your personal area</h3>
-                <p>Your profile, applications, needs, and saved items live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="window.GloweGuest.requireMemberForAction('open-personal-area', {}, function(){})">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to open your personal area', body: 'Your profile, applications, needs, and saved items live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'window.GloweGuest.requireMemberForAction(\'open-personal-area\', {}, function(){})' } });
         if (window.GloweGuest) window.GloweGuest.requireMemberForAction('open-personal-area', {}, function () {});
         return;
     }
@@ -9269,13 +9245,7 @@ function initMyApplicationsPage() {
                                 <h2>Opportunities & Applications</h2>
                             </div>
                             <div class="personal-list">
-                                ${userApplications.length ? userApplications.map(renderApplicationCard).join('') : `
-                                    <div class="empty-state compact-empty">
-                                        <h3>No applications yet</h3>
-                                        <p>Apply to opportunities or publish your own request for volunteers and collaborators.</p>
-                                        <a href="volunteer-network.html" class="btn btn-primary btn-small">Open Volunteer Network</a>
-                                    </div>
-                                `}
+                                ${userApplications.length ? userApplications.map(renderApplicationCard).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No applications yet', body: 'Apply to opportunities or publish your own request for volunteers and collaborators.', action: { label: 'Open Volunteer Network', href: 'volunteer-network.html' }, compact: true })}
                             </div>
                         </article>
 
@@ -9357,13 +9327,7 @@ function initMyApplicationsPage() {
                                             <button class="btn btn-outline btn-small" type="button" onclick="removeSavedItem('${item.type}', '${item.id}')">Remove</button>
                                         </div>
                                     </article>
-                                `).join('') : `
-                                    <div class="empty-state compact-empty">
-                                        <h3>No saved items yet</h3>
-                                        <p>Save posts, profiles, wishes, and opportunities to return to them from here.</p>
-                                        <a href="community.html" class="btn btn-primary btn-small">Explore Community</a>
-                                    </div>
-                                `}
+                                `).join('') : GloweUiPrimitives.emptyStateHtml({ title: 'No saved items yet', body: 'Save posts, profiles, wishes, and opportunities to return to them from here.', action: { label: 'Explore Community', href: 'community.html' }, compact: true })}
                             </div>
                         </article>
 
@@ -9473,13 +9437,7 @@ function renderMyEventCard(row, events) {
 }
 
 function emptyMyEventsHtml() {
-    return `
-        <div class="empty-state compact-empty">
-            <h3>No event registrations yet</h3>
-            <p>Register for an event from the Volunteer Network and track it here.</p>
-            <a href="volunteer-network.html" class="btn btn-primary btn-small">Browse events</a>
-        </div>
-    `;
+    return GloweUiPrimitives.emptyStateHtml({ title: 'No event registrations yet', body: 'Register for an event from the Volunteer Network and track it here.', action: { label: 'Browse events', href: 'volunteer-network.html' }, compact: true });
 }
 
 // Cancel a registration from the My Events list, then reload the list.
@@ -9741,13 +9699,7 @@ function initSettingsPage() {
 
     const loggedIn = typeof isLoggedIn === 'function' && isLoggedIn();
     if (!loggedIn) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to manage settings</h3>
-                <p>Your account, language, and session options live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to manage settings', body: 'Your account, language, and session options live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'handleGoogleSignIn()' } });
         return;
     }
 
@@ -9848,17 +9800,11 @@ async function deleteAccount() {
 // backend gets an explanation. Returns true when the inbox may render.
 function messagesPageReady(container) {
     if (!gloweIsLoggedIn()) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>Sign in to see your messages</h3>
-                <p>Direct conversations with volunteers, organizations, and partners live here once you are signed in.</p>
-                <button class="btn btn-primary" type="button" onclick="handleGoogleSignIn()">Sign up / Sign in</button>
-            </div>
-        `;
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Sign in to see your messages', body: 'Direct conversations with volunteers, organizations, and partners live here once you are signed in.', action: { label: 'Sign up / Sign in', size: '', onclick: 'handleGoogleSignIn()' } });
         return false;
     }
     if (!backendReady()) {
-        container.innerHTML = '<div class="empty-state"><h3>Messages are unavailable</h3><p>Messaging needs a live connection right now. Please try again shortly.</p></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Messages are unavailable', body: 'Messaging needs a live connection right now. Please try again shortly.' });
         return false;
     }
     return true;
@@ -9880,7 +9826,7 @@ function initConnectionsPage() {
 }
 
 function chatLoadingState(container, body) {
-    container.innerHTML = `<div class="empty-state"><h3>Loading…</h3><p>${body}</p></div>`;
+    container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Loading…', body: body });
 }
 
 function chatEmptyInboxState(container) {
@@ -9978,7 +9924,7 @@ async function renderChatThread(container, chatId) {
     try {
         rows = await backend.kcGetMessages(chatId, 100);
     } catch (_e) {
-        container.innerHTML = '<div class="empty-state"><h3>Conversation unavailable</h3><p>This conversation could not be opened.</p><a class="btn btn-outline" href="messages.html">Back to messages</a></div>';
+        container.innerHTML = GloweUiPrimitives.emptyStateHtml({ title: 'Conversation unavailable', body: 'This conversation could not be opened.', action: { label: 'Back to messages', variant: 'outline', size: '', href: 'messages.html' } });
         return;
     }
     const counterpartName = await resolveChatCounterpartName(backend, chatId, me.id);
