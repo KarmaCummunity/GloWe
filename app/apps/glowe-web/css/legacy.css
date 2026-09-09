@@ -478,7 +478,7 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 16px;
-    padding-right: 44px;
+    padding-inline-end: 44px;
 }
 
 .opportunity-org {
@@ -512,7 +512,7 @@
 
 .directory-card .opportunity-header {
     margin-bottom: 8px;
-    padding-right: 0;
+    padding-inline-end: 0;
     padding-inline: 0;
     align-items: center;
 }
@@ -754,8 +754,7 @@
     opacity: 0.9;
     margin-bottom: 32px;
     max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-inline: auto;
 }
 
 .registration-wizard {
@@ -861,7 +860,7 @@
 }
 
 .dev-auth-persona-btn:hover {
-    border-color: var(--primary, #2d6a4f);
+    border-color: var(--primary-color);
     background: rgba(45, 106, 79, 0.06);
 }
 
@@ -911,7 +910,7 @@
 }
 
 .wizard-heading h2 {
-    text-align: left;
+    text-align: start;
     margin: 6px 0 10px;
     font-size: clamp(1.8rem, 3vw, 2.7rem);
 }
@@ -1010,7 +1009,7 @@
 
 .profile-type-guidance ul {
     margin: 0;
-    padding-left: 18px;
+    padding-inline-start: 18px;
 }
 
 .profile-type-guidance li + li {
@@ -1075,7 +1074,7 @@
     background: #fbfefd;
     color: inherit;
     font: inherit;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -1158,7 +1157,7 @@
 .wishing-hero {
     background:
         linear-gradient(115deg, #e0f8ec 0%, #f8fcfa 52%, #ece8ff 100%);
-    text-align: left;
+    text-align: start;
     padding: 64px 0 52px;
 }
 
@@ -1190,7 +1189,7 @@
 .wishing-hero h1 {
     max-width: 680px;
     margin: 18px 0 14px;
-    text-align: left;
+    text-align: start;
     font-size: clamp(2.35rem, 4vw, 4.4rem);
     line-height: 1.04;
 }
@@ -1411,7 +1410,7 @@ section.opportunity-detail {
 
 /* ===== Event registration (FR-GLOWE-007) ===== */
 .event-register-form {
-    text-align: right;
+    text-align: start;
     margin-top: 8px;
 }
 
@@ -1478,7 +1477,7 @@ section.opportunity-detail {
 
 /* ===== Organizer portal (FR-GLOWE-007-E) ===== */
 .organizer-panel {
-    text-align: right;
+    text-align: start;
     margin-top: 8px;
 }
 
@@ -1570,7 +1569,7 @@ section.opportunity-detail {
 }
 
 .profile-status-cta {
-    border: 1px solid var(--primary);
+    border: 1px solid var(--primary-color);
     background: var(--primary-light);
     color: var(--primary-dark);
     font: inherit;
@@ -1582,7 +1581,7 @@ section.opportunity-detail {
 }
 .profile-status-cta--pending_review {
     border-color: var(--border-color);
-    background: var(--bg-soft, #f5f5f5);
+    background: var(--surface-muted);
     cursor: default;
 }
 .personal-nav {
@@ -1979,7 +1978,7 @@ section.opportunity-detail {
 
 .personal-stats-grid--compact > .profile-stat-link:hover,
 .personal-stats-grid--compact > .profile-stat-link:focus-visible {
-    border-color: var(--primary, #1a6b5c);
+    border-color: var(--primary-color);
     outline: none;
 }
 
@@ -2306,7 +2305,7 @@ section.opportunity-detail {
     border-radius: var(--radius-sm);
     background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.92)),
-        linear-gradient(135deg, var(--tag-color, var(--primary-light)), var(--sky-light));
+        linear-gradient(135deg, var(--primary-light), var(--sky-light));
 }
 
 .wish-detail-hero h2 {
@@ -2559,7 +2558,7 @@ section.opportunity-detail {
 .person-actions {
     display: flex;
     gap: 8px;
-    padding-left: 52px;
+    padding-inline-start: 52px;
 }
 
 .person-actions button {
@@ -2991,7 +2990,7 @@ section.opportunity-detail {
     background: #fbfefd;
     color: inherit;
     font: inherit;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -3137,7 +3136,7 @@ section.opportunity-detail {
 
 .profile-stats > .profile-stat-link:hover,
 .profile-stats > .profile-stat-link:focus-visible {
-    border-color: var(--primary, #1a6b5c);
+    border-color: var(--primary-color);
     outline: none;
 }
 
@@ -3433,7 +3432,7 @@ section.opportunity-detail {
 .profile-check-list span::before {
     content: '';
     position: absolute;
-    left: 2px;
+    inset-inline-start: 2px;
     top: 17px;
     width: 8px;
     height: 8px;
@@ -3512,7 +3511,7 @@ section.opportunity-detail {
 
     .page-header h1,
     .page-header p {
-        text-align: left;
+        text-align: start;
     }
 
     .wishing-hero .container,
@@ -3882,8 +3881,7 @@ section.opportunity-detail {
 
 .ecosystem-photo figcaption {
     position: absolute;
-    left: 18px;
-    right: 18px;
+    inset-inline: 18px;
     bottom: 18px;
     display: grid;
     gap: 4px;
@@ -4187,7 +4185,7 @@ section.opportunity-detail {
     border: 1px solid rgba(15, 93, 85, 0.13);
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.92);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-sm);
 }
 
 .admin-stats article {
@@ -4271,7 +4269,7 @@ section.opportunity-detail {
     border-radius: 14px;
     border: 1px solid rgba(15, 23, 42, 0.08);
     background: #fff;
-    border-left: 4px solid #d0d5dd;
+    border-inline-start: 4px solid #d0d5dd;
 }
 
 .admin-health-card.health-ok {
@@ -4324,7 +4322,7 @@ section.opportunity-detail {
 }
 
 .admin-health-card-head .health-pill {
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .admin-health-meta,
@@ -4364,7 +4362,7 @@ section.opportunity-detail {
 .admin-health-history summary::before {
     content: '▸';
     display: inline-block;
-    margin-right: 8px;
+    margin-inline-end: 8px;
     transition: transform 0.15s ease;
 }
 
@@ -4387,7 +4385,7 @@ section.opportunity-detail {
 .admin-health-table td {
     padding: 10px 12px;
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-    text-align: left;
+    text-align: start;
     vertical-align: top;
 }
 
@@ -4741,7 +4739,7 @@ section.opportunity-detail {
     color: var(--text-secondary);
     font: inherit;
     font-weight: 700;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
@@ -4788,8 +4786,7 @@ section.opportunity-detail {
 .linkedin-community-layout .post-card h3,
 .linkedin-community-layout .post-card > p,
 .linkedin-community-layout .post-tag-row {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
 }
 
 .linkedin-community-layout .post-card h3 {
@@ -4847,8 +4844,7 @@ section.opportunity-detail {
 }
 
 .linkedin-community-layout .post-comments {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
     padding-bottom: 18px;
 }
 
@@ -4859,8 +4855,7 @@ section.opportunity-detail {
 }
 
 .linkedin-community-layout .post-engagement-row {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
 }
 
 .linkedin-community-layout .person-row {
@@ -4869,7 +4864,7 @@ section.opportunity-detail {
 }
 
 .linkedin-community-layout .person-actions {
-    padding-left: 0;
+    padding-inline-start: 0;
     flex-wrap: wrap;
 }
 
@@ -4900,7 +4895,7 @@ section.opportunity-detail {
 
 .legal-section {
     padding: 56px 0 82px;
-    background: linear-gradient(180deg, var(--background-light), #ffffff 48%, var(--mint-light));
+    background: linear-gradient(180deg, var(--surface-page), #ffffff 48%, var(--surface-brand-soft));
 }
 
 .legal-document {
@@ -4909,7 +4904,7 @@ section.opportunity-detail {
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(15, 93, 85, 0.12);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-sm);
     padding: clamp(26px, 5vw, 58px);
 }
 
@@ -4939,7 +4934,7 @@ section.opportunity-detail {
 
 .legal-document ul {
     margin: 10px 0 18px;
-    padding-left: 24px;
+    padding-inline-start: 24px;
 }
 
 .legal-document a {
@@ -4987,8 +4982,7 @@ section.opportunity-detail {
 /* ===== Cross-device responsive refinements ===== */
 @media (max-width: 1023px) {
     .container {
-        padding-left: clamp(18px, 3vw, 32px);
-        padding-right: clamp(18px, 3vw, 32px);
+        padding-inline: clamp(18px, 3vw, 32px);
     }
 
     .home-intro-section .container,
@@ -5061,7 +5055,7 @@ section.opportunity-detail {
     }
 
     .belonging-strip p {
-        text-align: left;
+        text-align: start;
     }
 
     .values-grid,
@@ -5155,8 +5149,7 @@ section.opportunity-detail {
 
 @media (max-width: 479px) {
     .container {
-        padding-left: 14px;
-        padding-right: 14px;
+        padding-inline: 14px;
     }
 
     .btn,
@@ -5501,73 +5494,12 @@ section.opportunity-detail {
 }
 
 .onboarding-review-note {
-    background: var(--mint-light);
+    background: var(--surface-brand-soft);
     border-radius: var(--radius-md);
     padding: 12px 14px;
     font-size: 0.9rem;
     color: var(--text-secondary);
     margin-bottom: 16px;
-}
-
-/* ===== FR-GLOWE-004 / FR-TRANSLATE-003: localized interface + RTL ===== */
-/* dir="rtl" on <html> handles most layout mirroring (flex order, default
-   alignment, list markers) automatically; the rules below cover spots with
-   explicit physical alignment. Typography is per-script rather than per-
-   direction: Hebrew and Arabic are both RTL but need different font stacks. */
-/* Mirror the in-scope blocks that hard-code text-align:left. */
-html[dir="rtl"] .page-header h1,
-html[dir="rtl"] .page-header p,
-html[dir="rtl"] .wizard-heading h2,
-html[dir="rtl"] .path-grid button,
-html[dir="rtl"] .modal-content,
-html[dir="rtl"] .form-group label,
-html[dir="rtl"] .footer-section,
-html[dir="rtl"] .settings-grid,
-html[dir="rtl"] .filter-pill,
-html[dir="rtl"] .comment-summary,
-html[dir="rtl"] .compact-empty,
-html[dir="rtl"] .post-card,
-html[dir="rtl"] .opportunity-main,
-html[dir="rtl"] .opportunity-card,
-html[dir="rtl"] .opportunity-meta-group {
-    text-align: right;
-}
-
-/* Post-card header is a single flex row (profile | tag | menu) — no side
-   padding reserve; the menu sits in-flow beside the tag (FR-GLOWE-008). */
-html[dir="rtl"] .linkedin-community-layout .post-card-header {
-    padding-right: var(--feed-card-inset, 12px);
-    padding-left: var(--feed-card-inset, 12px);
-}
-
-html[dir="rtl"] .linkedin-community-layout .post-card--feed .post-card-header {
-    padding-right: var(--feed-card-inset, 12px);
-    padding-left: var(--feed-card-inset, 12px);
-}
-
-@media (max-width: 767px) {
-    html[dir="rtl"] .linkedin-community-layout .post-card-header {
-        padding-right: var(--feed-card-inset, 12px);
-        padding-left: var(--feed-card-inset, 12px);
-    }
-}
-
-/* Legacy .post-author-row clearance when menu is absolutely positioned. */
-
-html[dir="rtl"] .opportunity-header {
-    padding-right: 0;
-    padding-left: 44px;
-}
-
-html[dir="rtl"] .directory-card .opportunity-header {
-    padding-left: 0;
-}
-
-/* Inputs/selects keep their own direction so placeholders sit on the right. */
-html[dir="rtl"] input,
-html[dir="rtl"] select,
-html[dir="rtl"] textarea {
-    text-align: right;
 }
 
 /* ===== Auth-aware marketing blocks ===== */
@@ -5748,8 +5680,7 @@ body.glowe-member-home main > section:not(#member-home) {
 .guest-home-feed.linkedin-community-layout .post-card h3,
 .guest-home-feed.linkedin-community-layout .post-card > p,
 .guest-home-feed.linkedin-community-layout .post-tag-row {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
 }
 
 .member-home-community.linkedin-community-layout .post-card h3,
@@ -5766,8 +5697,7 @@ body.glowe-member-home main > section:not(#member-home) {
 
 .member-home-community.linkedin-community-layout .post-actions,
 .guest-home-feed.linkedin-community-layout .post-actions {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
 }
 
 .member-home-community.linkedin-community-layout .post-card--feed .post-comments,
@@ -5777,8 +5707,7 @@ body.glowe-member-home main > section:not(#member-home) {
 
 .member-home-community.linkedin-community-layout .post-comments,
 .guest-home-feed.linkedin-community-layout .post-comments {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-inline: 18px;
 }
 
 /* Tighter inset on phone — menu/actions hug card corners. */
@@ -6125,7 +6054,7 @@ body.glowe-member-home main > section:not(#member-home) {
     align-items: center;
     gap: 0.75rem;
     padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border, #eee);
+    border-bottom: 1px solid var(--border-default);
 }
 .connections-row a.connections-row-main {
     display: flex;
@@ -6141,8 +6070,7 @@ body.glowe-member-home main > section:not(#member-home) {
 .glowe-consent-banner {
     position: fixed;
     z-index: 1100;
-    left: 1rem;
-    right: 1rem;
+    inset-inline: 1rem;
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-wrap: wrap;
@@ -6162,7 +6090,7 @@ body.glowe-member-home main > section:not(#member-home) {
 .glowe-consent-banner__text {
     flex: 1 1 14rem;
     margin: 0;
-    color: var(--text-color, #2c2a26);
+    color: var(--text-body);
 }
 
 .glowe-consent-banner__link {
