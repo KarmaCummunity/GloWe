@@ -8,6 +8,9 @@
  *   3. media queries use the canonical breakpoint set only
  *   4. no render-blocking remote @import (fonts go through <link> in the head partial)
  *   5. ≤ 300 lines per file
+ *   6. nested folders (css/components/**) carry no relative url() and consume no
+ *      url() token (--*-photo / --asset-*): Chromium resolves url() inside var()
+ *      against the sheet that USES it, and the bundle lands at css/glowe.<hash>.css
  * legacy.css is a ratchet: it may only shrink (LEGACY_LINE_BUDGET).
  * HTML pages may link only css/glowe.css.
  *
@@ -18,7 +21,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Shrink this number whenever legacy.css loses lines. It must never grow (TD-192). */
-export const LEGACY_LINE_BUDGET = 8940;
+export const LEGACY_LINE_BUDGET = 8092;
 export const MAX_FILE_LINES = 300;
 
 export const BREAKPOINTS = {
@@ -34,6 +37,8 @@ const COLOR_RE = /#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})\b|\b(?:rgba?|hsla?)
 const MEDIA_RE = /@media[^{]*\{/g;
 const WIDTH_RE = /\((min|max)-width:\s*([0-9.]+)(px|rem|em)\)/g;
 const REMOTE_IMPORT_RE = /@import\s+(?:url\()?['"]?https?:/;
+const RELATIVE_URL_RE = /url\(\s*["']?(?!data[:)]|https?:|\/)[^)]*\)/gi;
+const URL_TOKEN_RE = /var\(\s*(--[a-z0-9-]*(?:photo|asset)[a-z0-9-]*)\s*\)/gi;
 
 function stripComments(css) {
   return css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
@@ -99,6 +104,28 @@ export function lintCssSource(source, fileName) {
     out.push(`${fileName}: remote @import is render-blocking — load fonts via the head partial`);
   }
 
+  if (isNestedSheet(fileName)) out.push(...lintNestedAssetUsage(source, fileName));
+
+  return out;
+}
+
+/** True for css/<folder>/x.css (anything below the css/ root). */
+function isNestedSheet(fileName) {
+  const parts = fileName.replace(/\\/g, '/').split('/');
+  const cssIdx = parts.indexOf('css');
+  return cssIdx !== -1 && parts.length - cssIdx > 2;
+}
+
+/** Nested sheets may not reference assets by relative url(), directly or via url() tokens. */
+export function lintNestedAssetUsage(source, fileName) {
+  const out = [];
+  const css = stripDataUrls(stripComments(source));
+  for (const m of css.matchAll(RELATIVE_URL_RE)) {
+    out.push(`${fileName}:${lineOf(css, m.index)}: relative url() in a nested sheet breaks once bundled — move the rule to a css/-level file`);
+  }
+  for (const m of css.matchAll(URL_TOKEN_RE)) {
+    out.push(`${fileName}:${lineOf(css, m.index)}: url() token ${m[1]} consumed from a nested sheet resolves against this folder — move the rule to a css/-level file`);
+  }
   return out;
 }
 

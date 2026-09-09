@@ -406,12 +406,13 @@ async function logout() {
 // Update UI based on auth state
 function updateAuthUI() {
     if (typeof window.ensureLogoBrand === 'function') window.ensureLogoBrand();
-    const authButtons = document.querySelector('.auth-buttons');
-    const userMenu = document.querySelector('.user-menu');
     const userNameSpan = document.getElementById('user-name');
     const logoGreeting = document.querySelector('.logo-user-greeting');
     
+    // Header auth cluster (.auth-buttons ⇄ .user-menu) is switched purely by
+    // this class — see css/layout/shell.css. No inline display toggles.
     document.body.classList.toggle('glowe-signed-in', isLoggedIn());
+    if (!isLoggedIn() && window.GloweAuthPaint) window.GloweAuthPaint.clearExpectMemberPaint();
 
     if (isLoggedIn()) {
         const user = getCurrentUser();
@@ -419,8 +420,6 @@ function updateAuthUI() {
         const displayName = (typeof GloweLocalizedName !== 'undefined' && typeof getGloweLanguage === 'function')
             ? GloweLocalizedName.localizedProfileName(profile, getGloweLanguage())
             : (user.name || '');
-        if (authButtons) authButtons.style.display = 'none';
-        if (userMenu) userMenu.style.display = 'flex';
         if (logoGreeting) logoGreeting.hidden = false;
         if (userNameSpan) userNameSpan.textContent = (displayName || user.name || '').split(' ')[0];
         // Language is managed in Settings once signed in — remove the header toggle.
@@ -430,8 +429,6 @@ function updateAuthUI() {
             window.applyAdminLink();
         }
     } else {
-        if (authButtons) authButtons.style.display = 'flex';
-        if (userMenu) userMenu.style.display = 'none';
         if (logoGreeting) logoGreeting.hidden = true;
         // Anonymous visitors have no Settings page — expose the toggle in the header.
         if (typeof window.injectLanguageToggle === 'function') window.injectLanguageToggle();

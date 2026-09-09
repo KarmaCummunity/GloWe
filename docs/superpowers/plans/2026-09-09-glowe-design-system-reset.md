@@ -115,10 +115,12 @@ The header, footer, bottom nav and base script list become **partials** stamped 
 
 ### Phase 2 — Shell & layout
 
-- [ ] `css/layout/shell.css`: header (56px, sticky, blur), pill nav, header actions, footer, bottom nav (safe-area), page header, container/grid utilities. Remove the 5 duplicated `.main-nav` blocks and the 992/480/420 dead rules from `legacy.css`.
-- [ ] `js/ui/glowe-ui-shell.js`: move `normalizeMainNavigation`, `ensureLogoBrand`, `normalizeHeaderUserMenu`, `normalizeHeaderAuthButtons`, `ensureGlobalFooter`, `ensureBottomNavigation` out of `app.js`; unit-test link sets and active-state resolution.
-- [ ] Bottom nav appears `< 768px`, top nav `≥ 768px` (was 680px). Replace `display:none !important` toggles with layer-ordered rules.
-- [ ] Visual baselines: add `home`, `wishing-well`, `community`, `organizations`, `my-applications`, `messages`, `settings` at 390 / 768 / 1280 + Hebrew RTL header.
+- [x] Shell CSS in the `layout` layer — split into `css/layout-header.css`, `layout-header-actions.css`, `layout-footer.css`, `layout-bottom-nav.css`, `layout-page-header.css` (flat under `css/` because the logo consumes a `url()` token; nested sheets resolve `url()` against their own folder — `check-glowe-css` now guards this). Removed the duplicated `.main-nav` / header / footer / bottom-nav / page-header blocks from `legacy.css`; tablets (768–1023px) get a two-row header so nav labels never truncate.
+- [x] `js/ui/glowe-ui-shell.js` (UMD + vitest): nav / bottom-nav / footer / user-menu / auth-button builders and page resolution moved out of `app.js`, which now delegates.
+- [x] Bottom nav `< 768px`, top nav `≥ 768px` (was 680px). Auth visibility is `body.glowe-signed-in` (no inline `style.display`, no `!important`). List-filter sheet moved into `css/components/list-filters.css` and its `SHEET_MQ` aligned to `< 768px` (was 900px) — this also fixed the sheet button leaking onto desktop once `.btn` moved into the `components` layer.
+- [x] Visual baselines: shell header for `home`, `wishing-well`, `community`, `organizations`, `my-applications`, `messages`, `settings` × 390 / 768 / 1280, footer × 3, bottom nav @ 390, Hebrew RTL header.
+- [x] TD-193: `GLOWE_BACKEND=dev` pin (`backend-config.js` override via `window.GLOWE_BACKEND_OVERRIDE` / `localStorage['glowe-backend']`, seeded into Playwright storage state) so the journeys job serves the PR checkout on `pull_request`, like the visual job. `tests/e2e/glowe-serve.json` (`cleanUrls: false`) keeps query strings (`messages.html?chat=…`) intact under `serve`.
+- [x] Text gaps: the filter-sheet strings (`Filter wishes/organizations/opportunities`, `Show results`, the three "open" labels) were missing from all four locale bundles.
 
 ### Phase 3 — Controls & cards
 
@@ -150,7 +152,7 @@ The header, footer, bottom nav and base script list become **partials** stamped 
 
 ## 4. Known anomalies to review later (not the focus)
 
-- `.user-menu` visibility is driven by inline `style.display` from `auth.js` and `app.js` plus `html.glowe-expect-member` early-paint rules with `!important`; should become a single `body.glowe-signed-in` state class (Phase 2).
+- ~~`.user-menu` visibility is driven by inline `style.display` from `auth.js` and `app.js` plus `html.glowe-expect-member` early-paint rules with `!important`; should become a single `body.glowe-signed-in` state class.~~ Done in Phase 2.
 - `pages/opportunities.html`, `saved.html`, `write-post.html` are redirect stubs that still ship a full shell; consider server-side `_redirects` entries.
 - `about.html` carries inline layout styles (`max-width`, `margin-top`, `text-align`) — Phase 4.
 - Legacy multi-step registration wizard (`renderRegistrationWizardLegacy`, ~110 dead strings) — `TD-143`.

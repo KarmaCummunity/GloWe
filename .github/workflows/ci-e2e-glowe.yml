@@ -85,6 +85,10 @@ jobs:
           echo "label=$label" >> "$GITHUB_OUTPUT"
           echo "GloWe E2E target ($label): ${url%/}"
 
+  # On pull_request the PR's own checkout is served locally and pinned to the
+  # hosted dev backend (GLOWE_BACKEND=dev → localStorage['glowe-backend'],
+  # TD-193), so journeys validate the proposed code, not the previous deploy.
+  # On push / dispatch the deployed URL is exercised (post-deploy smoke).
   glowe-journeys:
     name: GloWe journeys (${{ needs.resolve-target.outputs.label }})
     needs: resolve-target
@@ -95,16 +99,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Wait for deploy
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Serve PR checkout (pull_request only)
+        if: github.event_name == 'pull_request'
+        run: |
+          (npx --yes serve app/apps/glowe-web --listen 4321 --no-port-switching -c "$GITHUB_WORKSPACE/tests/e2e/glowe-serve.json" > /tmp/glowe-serve.log 2>&1 &)
+          node scripts/wait-for-url.mjs "http://127.0.0.1:4321" 20 1000
+          echo "GLOWE_JOURNEYS_URL=http://127.0.0.1:4321" >> "$GITHUB_ENV"
+          echo "GLOWE_BACKEND=dev" >> "$GITHUB_ENV"
+
+      - name: Wait for deploy (push / dispatch)
+        if: github.event_name != 'pull_request'
         env:
           GLOWE_URL: ${{ needs.resolve-target.outputs.glowe_url }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then sleep 90; fi
           node scripts/wait-for-url.mjs "${GLOWE_URL%/}/" 16 15000
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
+          echo "GLOWE_JOURNEYS_URL=${GLOWE_URL%/}" >> "$GITHUB_ENV"
 
       - name: Install Playwright
         working-directory: tests/e2e
@@ -115,7 +129,8 @@ jobs:
       - name: Run GloWe journeys
         working-directory: tests/e2e
         env:
-          GLOWE_WEB_URL: ${{ needs.resolve-target.outputs.glowe_url }}
+          GLOWE_WEB_URL: ${{ env.GLOWE_JOURNEYS_URL }}
+          GLOWE_BACKEND: ${{ env.GLOWE_BACKEND }}
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
@@ -151,7 +166,7 @@ jobs:
       - name: Serve PR checkout (pull_request only)
         if: github.event_name == 'pull_request'
         run: |
-          (npx --yes serve app/apps/glowe-web --listen 4321 --no-port-switching > /tmp/glowe-serve.log 2>&1 &)
+          (npx --yes serve app/apps/glowe-web --listen 4321 --no-port-switching -c "$GITHUB_WORKSPACE/tests/e2e/glowe-serve.json" > /tmp/glowe-serve.log 2>&1 &)
           node scripts/wait-for-url.mjs "http://127.0.0.1:4321" 20 1000
           echo "GLOWE_VISUAL_URL=http://127.0.0.1:4321" >> "$GITHUB_ENV"
 

@@ -2,5 +2,5 @@
 // Source of truth: app/VERSION. Kept in sync by scripts/bump-app-version.mjs,
 // scripts/stamp-glowe-version.mjs (local dev), and web-postbuild on deploy.
 (function (root) {
-    root.GloweAppVersion = { version: '1.4.8' };
+    root.GloweAppVersion = { version: '1.4.9' };
 })(typeof self !== 'undefined' ? self : this);

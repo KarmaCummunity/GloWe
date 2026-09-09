@@ -68,3 +68,69 @@ test.describe('GloWe visual regression — static chrome', () => {
     });
   });
 });
+
+// FR-GLOWE-029 Phase 2 — the shell (header / bottom nav / footer) is rendered
+// once by js/ui/glowe-ui-shell.js and styled by css/layout-*.css. Snapshot it
+// per page × viewport so active-nav state and the 768px nav swap are pinned
+// without asserting live feed data.
+const SHELL_PAGES = [
+  { slug: 'home', path: `${GLOWE_BASE}/index.html` },
+  { slug: 'wishing-well', path: gloweUrl('wishing-well.html') },
+  { slug: 'community', path: gloweUrl('community.html') },
+  { slug: 'organizations', path: gloweUrl('organizations.html') },
+  { slug: 'my-applications', path: gloweUrl('my-applications.html') },
+  { slug: 'messages', path: gloweUrl('messages.html') },
+  { slug: 'settings', path: gloweUrl('settings.html') },
+];
+const SHELL_VIEWPORTS = [
+  { label: '390', width: 390, height: 844 },
+  { label: '768', width: 768, height: 1024 },
+  { label: '1280', width: 1280, height: 900 },
+];
+
+test.describe('GloWe visual regression — shell per page × viewport', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try { window.localStorage.setItem('glowe-guest-welcomed', '1'); } catch { /* ignore */ }
+    });
+  });
+
+  for (const vp of SHELL_VIEWPORTS) {
+    for (const pg of SHELL_PAGES) {
+      test(`header — ${pg.slug} @ ${vp.label}`, async ({ page }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        await page.goto(pg.path);
+        const header = page.locator('.main-header');
+        await expect(header.locator('.logo-text')).toHaveText('GloWe', { timeout: 20_000 });
+        await expect(header).toHaveScreenshot(`shell-header-${pg.slug}-${vp.label}.png`, {
+          ...SNAPSHOT_OPTS,
+          mask: [page.locator('.auth-buttons'), page.locator('.user-menu')],
+        });
+      });
+    }
+
+    test(`footer — home @ ${vp.label}`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(`${GLOWE_BASE}/index.html`);
+      const footer = page.locator('.main-footer');
+      await expect(footer).toBeVisible({ timeout: 20_000 });
+      await footer.scrollIntoViewIfNeeded();
+      await expect(footer).toHaveScreenshot(`shell-footer-home-${vp.label}.png`, SNAPSHOT_OPTS);
+    });
+  }
+
+  test('bottom nav — home @ 390', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${GLOWE_BASE}/index.html`);
+    const nav = page.locator('.mobile-bottom-nav');
+    await expect(nav).toBeVisible({ timeout: 20_000 });
+    await expect(nav).toHaveScreenshot('shell-bottom-nav-home-390.png', SNAPSHOT_OPTS);
+  });
+
+  test('bottom nav — hidden at 768 and up', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto(`${GLOWE_BASE}/index.html`);
+    await expect(page.locator('.main-nav')).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('.mobile-bottom-nav')).toBeHidden();
+  });
+});

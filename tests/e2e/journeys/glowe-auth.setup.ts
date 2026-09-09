@@ -6,11 +6,14 @@ import { test as setup } from '@playwright/test';
 import fs from 'node:fs';
 import {
   AUTH_DIR, META_FILE, PERSONAS, SEED_PASSWORD,
-  fetchPersonaProfile, gloweStorageState, signInWithPassword, stateFile,
+  fetchPersonaProfile, gloweStorageState, guestStorageState, signInWithPassword, stateFile,
 } from '../lib/glowe';
 
 setup('mint glowe persona sessions', async () => {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
+  // Default state for guest specs (playwright.config `glowe` project): carries
+  // only the GLOWE_BACKEND pin, so a locally served checkout hits the dev backend.
+  fs.writeFileSync(stateFile('guest'), JSON.stringify(guestStorageState()));
 
   const { isLocalSupabaseUrl, mockLoginStorageState } = await import('../lib/mockAuth.js');
   const useMockLogin = isLocalSupabaseUrl();

@@ -1860,37 +1860,10 @@ function renderRegistrationWizardLegacy() {
 function normalizeMainNavigation() {
     const nav = document.querySelector('.main-nav');
     if (!nav) return;
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
-    const homeHref = inPages ? '../index.html' : 'index.html';
-    const signedIn = typeof isLoggedIn === 'function' && isLoggedIn();
-    const profilePages = ['my-applications', 'connections', 'saved', 'settings'];
-    // Home stays in the top nav for every session — parity with the mobile
-    // bottom-nav Home tab. Profile appears in the desktop header only when signed in.
-    const links = [
-        { label: 'Home', href: homeHref, match: 'index' },
-        { label: 'Wishing Well', href: `${prefix}wishing-well.html`, match: 'wishing-well' },
-        { label: 'Organizations', href: `${prefix}organizations.html`, match: 'organizations' },
-        { label: 'Community', href: `${prefix}community.html`, match: 'community' }
-    ];
-    if (signedIn) {
-        links.push({
-            label: 'Profile',
-            href: `${prefix}my-applications.html`,
-            match: 'profile',
-            pages: profilePages
-        });
-    }
-    links.push({ label: 'About', href: `${prefix}about.html`, match: 'about' });
-    const page = resolveGlowePage(window.location.pathname);
-    nav.innerHTML = links.map(link => {
-        const active = page === link.match
-            || (Array.isArray(link.pages) && link.pages.includes(page))
-            || (link.match === 'about' && page === 'whats-next')
-            || (link.match === 'community' && (page === 'forums' || page === 'discussion-group'))
-            || (link.match === 'wishing-well' && (page === 'volunteer-network' || page === 'opportunities' || page === 'opportunity'));
-        return `<a href="${link.href}" class="nav-link${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>${link.label}</a>`;
-    }).join('');
+    nav.innerHTML = GloweUiShell.mainNavHtml({
+        pathname: window.location.pathname,
+        signedIn: typeof isLoggedIn === 'function' && isLoggedIn()
+    });
 }
 window.normalizeMainNavigation = normalizeMainNavigation;
 
@@ -1909,8 +1882,7 @@ function ensureHeaderEnd() {
 function ensureLogoBrand() {
     const logo = document.querySelector('.main-header .logo');
     if (!logo) return;
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
+    const prefix = GloweUiShell.linkContext(window.location.pathname).prefix;
     let brand = logo.querySelector('.logo-brand');
     if (!brand) {
         const logoText = logo.querySelector('.logo-text');
@@ -1943,8 +1915,7 @@ function normalizeHeaderUserMenu() {
     if (!headerContainer) return;
 
     const headerEnd = ensureHeaderEnd();
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
+    const prefix = GloweUiShell.linkContext(window.location.pathname).prefix;
     let userMenu = headerEnd.querySelector('.user-menu') || headerContainer.querySelector('.user-menu');
     if (!userMenu) {
         userMenu = document.createElement('div');
@@ -1953,18 +1924,10 @@ function normalizeHeaderUserMenu() {
     if (userMenu.parentElement !== headerEnd) {
         headerEnd.appendChild(userMenu);
     }
-    userMenu.style.display = 'none';
-    // Personal Area is reached via this greeting link (and the mobile Profile
-    // tab). Top nav always keeps Home — it no longer swaps away when signed in.
-    const chatIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
-    const gearIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
-    userMenu.innerHTML = `
-        <button class="btn btn-primary btn-small header-create-btn" type="button" onclick="openCreateMenu()">+ Create</button>
-        <div class="header-corner-actions">
-            <a class="header-icon-btn" href="${prefix}messages.html" aria-label="Messages" title="Messages">${chatIcon}</a>
-            <a class="header-icon-btn" href="${prefix}settings.html" aria-label="Settings" title="Settings">${gearIcon}</a>
-        </div>
-    `;
+    // Visibility is owned by css/layout/shell.css via body.glowe-signed-in;
+    // strip any inline display left by older static markup.
+    userMenu.style.removeProperty('display');
+    userMenu.innerHTML = GloweUiShell.userMenuHtml(prefix);
 }
 
 async function applyAdminLink() {
@@ -1976,9 +1939,8 @@ async function applyAdminLink() {
     const existing = userMenu.querySelector('.glowe-admin-link');
     if (existing) existing.remove();
     if (!isAdmin) return;
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
-    const shieldSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
+    const prefix = GloweUiShell.linkContext(window.location.pathname).prefix;
+    const shieldSvg = GloweUiShell.ICONS.shield;
     const corner = userMenu.querySelector('.header-corner-actions') || userMenu;
     const link = document.createElement('a');
     link.className = 'header-icon-btn glowe-admin-link';
@@ -2018,144 +1980,30 @@ function normalizeHeaderAuthButtons() {
     }
     const localDev = window.GloweDevAuth
         && (window.GloweDevAuth.isActive() || window.GloweDevAuth.isLocalSupabaseConfigured());
-    const signInLabel = localDev ? 'Dev sign in' : 'Sign up / Sign in';
-    authButtons.innerHTML = `
-        <button class="btn btn-primary btn-small" type="button" onclick="handleGoogleSignIn()">${signInLabel}</button>
-    `;
+    authButtons.style.removeProperty('display');
+    authButtons.innerHTML = GloweUiShell.authButtonsHtml(localDev ? 'Dev sign in' : 'Sign up / Sign in');
 }
 
 function ensureGlobalFooter() {
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
-    const homeHref = inPages ? '../index.html' : 'index.html';
-    const currentYear = new Date().getFullYear();
-    const footerHtml = `
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-section">
-                    <h4>GloWe</h4>
-                    <p>Bridging local solutions to global challenges through shared knowledge, solidarity, and practical action.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Explore</h4>
-                    <a href="${homeHref}">Home</a>
-                    <a href="${prefix}wishing-well.html">Wishing Well</a>
-                    <a href="${prefix}organizations.html">Organizations</a>
-                    <a href="${prefix}community.html">Community</a>
-                    <a href="${prefix}forums.html">Forums</a>
-                    <a href="${prefix}about.html">About</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Participate</h4>
-                    <a href="${prefix}my-applications.html">Personal Area</a>
-                    <a href="${prefix}community.html#community-composer">Write a post</a>
-                    <a href="${prefix}volunteer-network.html">Volunteer Network</a>
-                    <a href="${prefix}whats-next.html">What's next</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Built With Care</h4>
-                    <p>An MVP by the GloWe community, with product and implementation support by Topaz.</p>
-                    <a href="${prefix}terms.html">Terms & Community Charter</a>
-                    <a href="${prefix}privacy.html">Privacy Policy</a>
-                    <a href="${prefix}accessibility.html">Accessibility</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>${currentYear} GloWe. Built for shared knowledge, mutual support, and action that lasts.</p>
-                <p class="footer-build" translate="no">${footerBuildLabel()}</p>
-            </div>
-        </div>
-    `;
-
     let footer = document.querySelector('.main-footer');
     if (!footer) {
         footer = document.createElement('footer');
         footer.className = 'main-footer';
         document.body.appendChild(footer);
     }
-    footer.innerHTML = footerHtml;
-}
-
-/** App-wide semver from glowe-version.js (FR-GLOWE-025). */
-function footerBuildLabel() {
-    const version = window.GloweAppVersion && window.GloweAppVersion.version;
-    if (typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version)) {
-        return `v${version}`;
-    }
-    return 'v0.0.0-local';
-}
-
-// A bottom-nav tab also lights up for its sibling pages (community covers the
-// forums cluster; wishes covers the volunteering cluster).
-function bottomNavActive(page, match) {
-    if (page === match) return true;
-    if (match === 'community') return ['forums', 'discussion-group', 'organizations'].includes(page);
-    if (match === 'wishing-well') return ['volunteer-network', 'opportunities', 'opportunity'].includes(page);
-    return false;
+    footer.innerHTML = GloweUiShell.footerHtml({
+        pathname: window.location.pathname,
+        year: new Date().getFullYear(),
+        versionLabel: GloweUiShell.versionLabel(window.GloweAppVersion && window.GloweAppVersion.version)
+    });
 }
 
 function ensureBottomNavigation() {
     if (document.querySelector('.mobile-bottom-nav')) return;
-    
-    const inPages = window.location.pathname.includes('/pages/');
-    const prefix = inPages ? '' : 'pages/';
-    const homeHref = inPages ? '../index.html' : 'index.html';
-    const page = resolveGlowePage(window.location.pathname);
-
     const nav = document.createElement('nav');
     nav.className = 'mobile-bottom-nav';
-
-    const links = [
-        {
-            label: 'Home',
-            href: homeHref,
-            match: 'index',
-            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
-            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>'
-        },
-        { 
-            label: 'Wishes',
-            href: `${prefix}wishing-well.html`,
-            match: 'wishing-well',
-            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
-            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>'
-        },
-        { 
-            label: 'Community',
-            href: `${prefix}community.html`,
-            match: 'community',
-            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
-            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg>'
-        },
-        { 
-            label: 'Profile',
-            href: `${prefix}my-applications.html`,
-            match: 'my-applications',
-            iconOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-            iconFilled: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>'
-        }
-    ];
-
-    const linkHtml = (link) => {
-        const active = bottomNavActive(page, link.match);
-        const icon = active ? link.iconFilled : link.iconOutline;
-        return `
-            <a href="${link.href}" class="bottom-nav-link${active ? ' active' : ''}"${active ? ' aria-current="page"' : ''}>
-                <span class="nav-icon">${icon}</span>
-                <span class="nav-label">${link.label}</span>
-            </a>
-        `;
-    };
-
-    // FR-GLOWE-016 AC3 — the "+" create FAB sits at the center of the bottom
-    // nav; the menu it opens adapts to the viewer's account type.
-    const createFab = `
-        <button type="button" class="bottom-nav-create" aria-label="Create" onclick="openCreateMenu()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
-    `;
-    nav.innerHTML = links.slice(0, 2).map(linkHtml).join('') + createFab + links.slice(2).map(linkHtml).join('');
-
+    nav.setAttribute('aria-label', 'Primary');
+    nav.innerHTML = GloweUiShell.bottomNavHtml({ pathname: window.location.pathname });
     document.body.appendChild(nav);
 }
 
@@ -10353,14 +10201,7 @@ async function initAboutPage() {
 // extension-style URLs (local: /pages/settings.html) and clean URLs
 // (Cloudflare Pages on dev/prod: /glowe/pages/settings).
 function resolveGlowePage(pathname) {
-    const clean = (pathname || '/').split(/[?#]/)[0].replace(/\/+$/, '');
-    // Every page except the home page lives under /pages/. Anything outside
-    // that directory (the app root, with or without a trailing index.html) is
-    // the home page — this holds for both local .html URLs and the clean URLs
-    // Cloudflare Pages serves on dev/prod (e.g. /glowe, /glowe/pages/settings).
-    if (!clean.includes('/pages/')) return 'index';
-    const seg = clean.split('/').pop().replace(/\.html$/, '');
-    return (!seg || seg === 'index') ? 'index' : seg;
+    return GloweUiShell.resolvePage(pathname);
 }
 
 // Page initialization

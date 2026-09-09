@@ -1,0 +1,52 @@
+/* GloWe shell — footer (FR-GLOWE-029 Phase 2 / D-190). */
+
+/* ===== Footer ===== */
+.main-footer {
+    background: var(--color-neutral-900);
+    color: var(--text-inverse);
+    padding: var(--space-12) 0 var(--space-5);
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+}
+
+.footer-section h4 {
+    margin-bottom: var(--space-4);
+    font-size: var(--text-lg);
+    color: var(--color-primary-400);
+}
+
+.footer-section p,
+.footer-section a {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--color-neutral-300);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.footer-section a:hover {
+    color: var(--color-primary-400);
+}
+
+.footer-bottom {
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--alpha-white-12);
+    text-align: center;
+    color: var(--color-neutral-300);
+}
+
+.footer-bottom p {
+    margin: 0;
+}
+
+.footer-bottom .footer-build {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+    opacity: 0.7;
+}

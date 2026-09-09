@@ -3,7 +3,12 @@
    step (app/scripts/glowe-minify-hash.mjs) bundles them into one hashed file.
 
    Cascade order: later layers win regardless of selector specificity, so a
-   migrated component always beats its legacy rule. `legacy` shrinks to zero. */
+   migrated component always beats its legacy rule. `legacy` shrinks to zero.
+
+   Files that consume url() tokens (photos, brand mark) must live directly in
+   css/: Chromium resolves a url() inside var() against the sheet that USES it,
+   and the production bundle is emitted at css/glowe.<hash>.css. Nested folders
+   (components/) are fine for image-free rules only — check-glowe-css enforces. */
 @layer tokens, base, legacy, components, layout, pages, utilities;
 
 @import url('tokens.css') layer(tokens);
@@ -12,3 +17,9 @@
 @import url('components/buttons.css') layer(components);
 @import url('components/forms.css') layer(components);
 @import url('components/feedback.css') layer(components);
+@import url('components/list-filters.css') layer(components);
+@import url('layout-header.css') layer(layout);
+@import url('layout-header-actions.css') layer(layout);
+@import url('layout-footer.css') layer(layout);
+@import url('layout-bottom-nav.css') layer(layout);
+@import url('layout-page-header.css') layer(layout);
