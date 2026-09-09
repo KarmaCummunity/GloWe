@@ -1,0 +1,198 @@
+/* GloWe page sheet — opportunity detail page (apply card, events, organizer panel) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.opportunity-org {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    min-width: 0;
+}
+
+.directory-card .opportunity-details {
+    margin-bottom: 10px;
+    gap: 6px 12px;
+}
+
+.directory-card .opportunity-meta-group {
+    padding: 8px 10px;
+}
+
+.directory-card .opportunity-skills {
+    margin-bottom: 12px;
+    gap: 6px;
+}
+
+.opportunity-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-bottom: 20px;
+}
+
+.opportunity-meta-group {
+    padding: 12px 14px;
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.opportunity-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.opportunity-detail strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.opportunity-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+section.opportunity-detail {
+    padding: 60px 0;
+}
+
+.opportunity-detail-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+}
+
+.opportunity-main {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 40px;
+    box-shadow: var(--shadow-sm);
+}
+
+.opportunity-main h1 {
+    font-size: 2rem;
+    margin-bottom: 24px;
+}
+
+.opportunity-main h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 28px 0 12px;
+    color: var(--text-primary);
+}
+
+.opportunity-main p,
+.opportunity-main li {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.opportunity-main .empty-detail {
+    list-style: none;
+    margin-inline-start: -20px;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+.opportunity-main ul {
+    margin-inline-start: 20px;
+    list-style: disc;
+}
+
+.opportunity-sidebar {
+    position: sticky;
+    top: 140px;
+    height: fit-content;
+}
+
+.apply-card {
+    padding: 32px;
+    text-align: center;
+}
+
+.apply-card h3 {
+    margin-bottom: 16px;
+}
+
+.apply-card .opportunity-details {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 24px;
+    text-align: start;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.apply-card .opportunity-details .opportunity-detail {
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+}
+
+.apply-card .opportunity-details .opportunity-detail + .opportunity-detail {
+    border-top: 1px solid var(--border-color);
+}
+
+.org-info-card {
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.org-info-card h4 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.org-info-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.event-register-form {
+    text-align: start;
+    margin-top: 8px;
+}
+
+.event-register-status {
+    margin: 4px 0 16px;
+    color: var(--text-secondary);
+}
+
+.event-register-error {
+    background: var(--rose-light);
+    color: var(--color-danger-fg);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+}
+
+.organizer-panel {
+    text-align: start;
+    margin-top: 8px;
+}
+
+.organizer-panel h4 {
+    margin-bottom: 4px;
+}
+
+@media (max-width: 1023px) {
+    .opportunity-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .opportunity-sidebar {
+        position: static;
+    }
+}

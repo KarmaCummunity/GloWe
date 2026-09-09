@@ -1,0 +1,96 @@
+/* GloWe page sheet — dev-only persona login (glowe-dev-auth.js) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.dev-auth-panel {
+    margin-top: 8px;
+    padding: 14px;
+    border: 1px dashed var(--alpha-ink-34);
+    border-radius: var(--radius-md);
+    background: var(--color-neutral-50);
+}
+
+.dev-auth-group {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle, var(--alpha-ink-08));
+}
+
+.dev-auth-group:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0.75rem;
+}
+
+.dev-auth-group-title {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary, var(--color-success-fg));
+}
+
+.dev-auth-group-hint {
+    margin: 0 0 0.65rem;
+    font-size: 0.8rem;
+    color: var(--text-muted, var(--color-neutral-600));
+    line-height: 1.35;
+}
+
+.dev-auth-advanced {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.dev-auth-advanced summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-secondary, var(--color-primary-800));
+}
+
+.dev-auth-advanced[open] {
+    margin-top: 0.5rem;
+}
+
+.dev-auth-persona-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.dev-auth-persona-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: start;
+}
+
+.dev-auth-persona-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--alpha-ink-08);
+}
+
+.dev-auth-persona-name {
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.dev-auth-persona-type {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.dev-auth-footnote {
+    margin: 12px 0 0;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}

@@ -1,0 +1,187 @@
+/* GloWe page sheet — post composer — inline composer, quick actions, create menu (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.opportunity-composer-section {
+    padding: 44px 0 12px;
+    background: linear-gradient(180deg, var(--color-neutral-0) 0%, var(--background) 100%);
+}
+
+.opportunity-composer-section .section-toolbar {
+    align-items: center;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.opportunity-composer-section .section-toolbar p {
+    max-width: 720px;
+    color: var(--text-secondary);
+}
+
+.post-card,
+.project-card,
+.composer-card {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.composer-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.composer-card button,
+.composer-card a,
+.post-actions button,
+.post-actions a {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.inline-composer {
+    display: none;
+}
+
+.inline-composer.active {
+    display: block;
+}
+
+#community-composer,
+.inline-composer.active {
+    scroll-margin-top: 88px;
+}
+
+.inline-post-form {
+    margin-bottom: 20px;
+    padding: 22px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.discussion-layout .inline-composer {
+    margin-bottom: 22px;
+}
+
+.linkedin-composer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 14px;
+}
+
+.composer-quick-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.composer-quick-actions button {
+    min-height: 36px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.composer-quick-actions button:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.composer-input-button {
+    min-height: 44px;
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--color-neutral-50);
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 700;
+    text-align: start;
+    cursor: pointer;
+}
+
+.composer-input-button:hover {
+    border-color: var(--alpha-ink-34);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+@media (max-width: 639px) {
+    .composer-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 767px) {
+    .linkedin-composer {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .linkedin-composer .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .composer-quick-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.create-menu-options {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.create-menu-option {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: start;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--white);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.create-menu-option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.create-menu-option strong {
+    font-size: 1rem;
+}
+
+.create-menu-option span {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}

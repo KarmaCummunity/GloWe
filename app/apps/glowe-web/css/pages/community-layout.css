@@ -1,0 +1,133 @@
+/* GloWe page sheet — community page — three-column layout, rails, filters (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.community-layout {
+    padding: 36px 0 80px;
+}
+
+.community-layout .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+.filter-results-note {
+    margin: 0;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+@media (max-width: 1023px) {
+    .community-layout .container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.linkedin-community-layout {
+    padding: 28px 0 84px;
+}
+
+.linkedin-community-layout .container {
+    display: grid;
+    grid-template-columns: minmax(210px, 250px) minmax(0, 1fr) minmax(260px, 320px);
+    gap: 18px;
+    align-items: start;
+}
+
+.community-left-rail,
+.community-right-rail {
+    display: grid;
+    gap: 14px;
+    position: static;
+    align-self: start;
+}
+
+.community-feed-header,
+.feed-filter-bar {
+    background: var(--white);
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px var(--alpha-ink-08);
+}
+
+.community-feed-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px;
+}
+
+.community-feed-header h1 {
+    margin: 6px 0 8px;
+    font-size: clamp(1.65rem, 3vw, 2.45rem);
+    line-height: 1.08;
+}
+
+.community-feed-header p {
+    color: var(--text-secondary);
+    max-width: 620px;
+}
+
+.feed-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+}
+
+.feed-filter-bar span {
+    color: var(--text-primary);
+    font-weight: 900;
+}
+
+.feed-filter-bar small {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.linkedin-community-layout .feed-list {
+    gap: 12px;
+}
+
+@media (min-width: 1024px) {
+    .linkedin-community-layout .container {
+        grid-template-columns: minmax(210px, 250px) minmax(0, 1fr) minmax(260px, 320px);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .linkedin-community-layout .container {
+        grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+    }
+
+    .community-right-rail {
+        grid-column: 1 / -1;
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .linkedin-community-layout .container {
+        grid-template-columns: 1fr;
+    }
+
+    .community-left-rail,
+    .community-right-rail {
+        position: static;
+    }
+
+    .community-feed-header {
+        display: grid;
+    }
+
+    .feed-filter-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

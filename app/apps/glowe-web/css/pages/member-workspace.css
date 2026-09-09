@@ -1,0 +1,165 @@
+/* GloWe page sheet — member workspace — steps, impact signals, projects, grants (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.match-card,
+.grant-card {
+    padding: 22px;
+}
+
+.match-card h3,
+.grant-card h3 {
+    margin: 10px 0;
+}
+
+.match-card p,
+.grant-card p {
+    color: var(--text-secondary);
+}
+
+.match-card {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.grant-card {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.grant-card small {
+    display: block;
+    color: var(--text-light);
+    font-weight: 800;
+    margin: 10px 0 14px;
+}
+
+.support-summary {
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-light);
+}
+
+.support-summary:empty {
+    display: none;
+}
+
+.support-summary strong,
+.support-summary span {
+    display: block;
+}
+
+.support-summary span,
+.support-summary p {
+    color: var(--text-secondary);
+}
+
+.workspace-header {
+    margin-bottom: 18px;
+}
+
+.workspace-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.workspace-steps article {
+    min-height: 132px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+}
+
+.workspace-steps article.done {
+    background: var(--primary-light);
+    border-color: var(--alpha-ink-20);
+}
+
+.workspace-steps strong,
+.workspace-steps span {
+    display: block;
+}
+
+.workspace-steps span {
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+.impact-update-box {
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--primary-light), var(--color-accent-50));
+}
+
+.my-event-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.my-event-item h3 {
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
+
+.my-event-item .status-badge {
+    margin-top: 6px;
+}
+
+.impact-signals {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 18px;
+}
+
+.impact-signals span {
+    display: block;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-light);
+}
+
+.impact-signals strong,
+.impact-signals small {
+    display: block;
+}
+
+.impact-signals small {
+    color: var(--text-secondary);
+}
+
+.project-card {
+    position: relative;
+}
+
+.project-card:has(.project-card-actions) h3 {
+    padding-inline-end: 4.5rem;
+}
+
+.project-card-actions--icons {
+    position: absolute;
+    inset-block-start: 10px;
+    inset-inline-end: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+@media (max-width: 1023px) {
+    .workspace-steps,
+    .profile-grid,
+    .personal-shell {
+        grid-template-columns: 1fr;
+    }
+}

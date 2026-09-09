@@ -1,0 +1,215 @@
+/* GloWe page sheet — admin dashboard (organizations review, moderation, stats) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.admin-dashboard-section {
+    padding: 64px 0 88px;
+    background: linear-gradient(180deg, var(--color-neutral-0), var(--primary-light));
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.admin-stats article,
+.admin-panel {
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-md);
+    background: var(--alpha-white-92);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-stats article {
+    padding: 20px;
+}
+
+.admin-stats strong,
+.admin-stats span {
+    display: block;
+}
+
+.admin-stats strong {
+    font-size: 2.1rem;
+    color: var(--primary-dark);
+}
+
+.admin-stats span {
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.admin-panel {
+    padding: 22px;
+}
+
+.admin-panel-wide {
+    grid-column: 1 / -1;
+}
+
+.admin-shell {
+    padding: 0;
+    overflow: hidden;
+}
+
+.admin-panel-inset {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.admin-panel-inset .section-toolbar h2 {
+    font-size: 1.45rem;
+}
+
+.admin-list {
+    display: grid;
+    gap: 14px;
+}
+
+.health-ok {
+    background: var(--color-primary-50);
+    color: var(--color-success-fg);
+}
+
+.health-degraded {
+    background: var(--color-accent-50);
+    color: var(--color-warning-fg);
+}
+
+.health-fail {
+    background: var(--color-accent-50);
+    color: var(--color-danger-500);
+}
+
+.health-unknown {
+    background: var(--color-primary-50);
+    color: var(--color-secondary-500);
+}
+
+.admin-card {
+    padding: 18px;
+}
+
+.admin-card h3 {
+    margin: 10px 0 6px;
+}
+
+.admin-card p,
+.admin-card small {
+    color: var(--text-secondary);
+}
+
+.admin-note-label {
+    display: block;
+    margin: 12px 0 6px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.admin-note-required {
+    color: var(--primary-dark);
+    font-style: italic;
+}
+
+.admin-note-label input,
+.admin-note-label textarea {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    resize: vertical;
+}
+
+.admin-org-accordion {
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-md);
+    background: var(--alpha-white-92);
+    overflow: hidden;
+}
+
+.admin-org-accordion + .admin-org-accordion {
+    margin-top: 8px;
+}
+
+.admin-org-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.admin-org-summary::-webkit-details-marker {
+    display: none;
+}
+
+.admin-org-accordion[open] .admin-org-summary {
+    border-bottom: 1px solid var(--alpha-ink-12);
+    background: var(--primary-light);
+}
+
+.admin-org-summary-name {
+    font-weight: 700;
+    color: var(--primary-dark);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-org-summary-meta {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.admin-org-summary-date {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.admin-org-summary-chevron {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.admin-org-accordion[open] .admin-org-summary-chevron {
+    transform: rotate(180deg);
+}
+
+.admin-org-detail {
+    padding: 0;
+}
+
+@media (max-width: 1023px) {
+    .admin-grid,
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .admin-grid,
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+}

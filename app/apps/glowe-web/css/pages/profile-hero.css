@@ -1,0 +1,253 @@
+/* GloWe page sheet — profile page — cover, avatar, identity header (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.social-profile-hero.is-loading .social-profile-body {
+    padding: 24px;
+}
+
+.social-profile-hero {
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.social-cover.has-cover-image,
+.profile-cover-band.has-cover-image {
+    background: linear-gradient(105deg, var(--color-primary-50), var(--color-accent-50), var(--color-primary-100)),
+        var(--profile-cover-image) center / cover no-repeat;
+}
+
+.profile-cover-band.has-cover-image {
+    background: linear-gradient(115deg, var(--alpha-ink-34), var(--color-primary-50)),
+        var(--profile-cover-image) right center / cover no-repeat;
+}
+
+.social-cover-wrap {
+    position: relative;
+}
+
+.social-cover-change {
+    position: absolute;
+    inset-inline-end: 12px;
+    inset-block-end: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--alpha-white-92);
+    color: var(--primary-dark);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.2s;
+}
+
+.social-cover-change:hover {
+    background: var(--primary-light);
+}
+
+.social-cover-change svg {
+    display: block;
+}
+
+.social-profile-body {
+    display: grid;
+    gap: 18px;
+    padding: 0 28px 28px;
+}
+
+.social-profile-head {
+    display: flex;
+    gap: 22px;
+    align-items: flex-end;
+}
+
+.social-avatar-wrap {
+    flex-shrink: 0;
+    margin-top: -64px;
+}
+
+.social-avatar-change {
+    position: absolute;
+    inset-inline-end: -4px;
+    inset-block-end: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--primary-dark);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 5px 9px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.social-avatar-change:hover {
+    background: var(--primary-light);
+}
+
+.social-avatar-change--icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0;
+}
+
+.social-avatar-change--icon svg {
+    display: block;
+}
+
+.social-profile-copy {
+    min-width: 0;
+    padding-bottom: 6px;
+}
+
+.social-profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.social-profile-copy h2 {
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    line-height: 1.1;
+    margin: 4px 0 8px;
+}
+
+.social-profile-name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 4px 0 8px;
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    line-height: 1.1;
+}
+
+.social-profile-copy p {
+    max-width: 720px;
+    color: var(--text-secondary);
+}
+
+.profile-cover {
+    position: relative;
+    margin-bottom: 24px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.profile-story-cover {
+    border-radius: var(--radius-lg);
+}
+
+.profile-hero {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+    padding: 0 28px 24px;
+}
+
+.profile-avatar {
+    margin-top: calc(clamp(48px, 6vw, 66px) * -1);
+}
+
+.profile-story-card {
+    padding: clamp(22px, 3vw, 34px);
+}
+
+@media (max-width: 1023px) {
+    .profile-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .social-profile-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .social-avatar-wrap {
+        margin-top: -76px;
+    }
+
+    .profile-cover {
+        padding: 0;
+    }
+
+    .profile-hero {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-hero {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0 20px 20px;
+    }
+
+    .profile-avatar {
+        margin-top: -52px;
+    }
+
+    .social-cover {
+        min-height: 96px;
+    }
+
+    .social-cover-change {
+        width: 32px;
+        height: 32px;
+        inset-inline-end: 8px;
+        inset-block-end: 8px;
+    }
+
+    .social-profile-body {
+        gap: 12px;
+        padding: 0 14px 16px;
+    }
+
+    .social-avatar-wrap {
+        margin-top: -48px;
+    }
+
+    .social-avatar {
+        border-width: 4px;
+    }
+
+    .social-avatar-change--icon {
+        width: 32px;
+        height: 32px;
+        inset-inline-end: -2px;
+        inset-block-end: 2px;
+    }
+
+    .social-profile-copy h2 {
+        font-size: 1.25rem;
+        margin: 2px 0 4px;
+    }
+
+    .social-profile-copy p {
+        font-size: 0.82rem;
+        line-height: 1.35;
+    }
+}

@@ -1,0 +1,96 @@
+/* GloWe page sheet — saved items and connections (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.saved-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.saved-mini-card {
+    padding: 18px;
+}
+
+.saved-mini-card h3 {
+    margin: 12px 0 8px;
+    font-size: 1.05rem;
+}
+
+.saved-mini-card p {
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+}
+
+.saved-list {
+    display: grid;
+    gap: 14px;
+}
+
+.saved-shell {
+    display: grid;
+    gap: 22px;
+}
+
+.saved-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+@media (max-width: 1023px) {
+    .saved-mini-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .saved-card-actions {
+        justify-content: flex-start;
+    }
+
+    .saved-card-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 767px) {
+    .saved-card-actions .btn,
+    .saved-card-actions a {
+        width: 100%;
+    }
+}
+
+.follow-btn.follow-btn--following {
+    background: var(--surface-muted, var(--color-neutral-100));
+}
+
+.follow-private-note {
+    font-size: 0.85rem;
+    color: var(--text-muted, var(--color-neutral-600));
+    margin: 0.5rem 0 0;
+}
+
+.connections-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.connections-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.connections-row a.connections-row-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}

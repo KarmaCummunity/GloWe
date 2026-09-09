@@ -1,0 +1,110 @@
+/* GloWe page sheet — about page — team grid and testimonials (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.testimonial-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.testimonial-avatar {
+    margin-bottom: 16px;
+}
+
+.about-team-section {
+    margin-top: 48px;
+}
+
+.about-team-section > p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 24px;
+}
+
+.about-team-loading,
+.about-team-error,
+.about-team-empty {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.about-team-error button {
+    margin-inline-start: 8px;
+}
+
+.about-team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.about-team-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.about-team-card-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.about-team-card-link:hover .about-team-name {
+    color: var(--primary-dark);
+}
+
+.about-team-avatar {
+    flex-shrink: 0;
+}
+
+.about-team-meta {
+    min-width: 0;
+}
+
+.about-team-name {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+}
+
+.about-team-role {
+    margin: 0;
+    color: var(--primary-dark);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.about-team-bio {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+.about-team-profile-cta {
+    align-self: flex-start;
+    color: var(--primary-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.about-team-profile-cta:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+    .about-team-grid {
+        grid-template-columns: 1fr;
+    }
+}

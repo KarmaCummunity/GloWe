@@ -1,0 +1,234 @@
+/* GloWe page sheet — home page — member workspace blocks (daily actions, playbooks, matching) (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.daily-workspace-section,
+.smart-matching-section,
+.playbooks-section,
+.values-section {
+    padding: 56px 0;
+}
+
+.daily-workspace-section {
+    background: var(--white);
+}
+
+.smart-matching-section {
+    background: linear-gradient(135deg, var(--primary-light), var(--color-neutral-50));
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.daily-grid,
+.playbook-grid,
+.values-grid,
+.current-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+.daily-action-card,
+.playbook-card,
+.leader-card {
+    padding: 22px;
+}
+
+.values-grid article,
+.current-actions-grid article {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    box-shadow: 0 10px 30px var(--alpha-ink-08);
+}
+
+.daily-action-card span,
+.playbook-card span {
+    color: var(--primary-dark);
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.daily-action-card h3,
+.playbook-card h3,
+.leader-card h3,
+.values-grid h3 {
+    margin: 10px 0;
+}
+
+.daily-action-card p,
+.playbook-card p,
+.leader-card p,
+.values-grid p {
+    color: var(--text-secondary);
+}
+
+.current-actions-grid article strong,
+.current-actions-grid article span {
+    display: block;
+}
+
+.current-actions-grid article strong {
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+
+.current-actions-grid article span {
+    color: var(--text-secondary);
+}
+
+.leader-card {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.flow-board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.flow-board article {
+    position: relative;
+    min-height: 190px;
+    padding: 22px;
+    background: var(--color-neutral-0);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.home-action-board article {
+    min-height: 230px;
+}
+
+.flow-board article span {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    background: var(--primary-dark);
+    color: var(--white);
+    font-weight: 900;
+}
+
+.flow-board h3 {
+    margin-bottom: 8px;
+}
+
+.flow-board p {
+    color: var(--text-secondary);
+}
+
+.path-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.path-grid button {
+    min-height: 180px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--color-neutral-0);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.path-grid button:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.path-grid strong,
+.path-grid span {
+    display: block;
+}
+
+.path-grid strong {
+    margin-bottom: 10px;
+    color: var(--primary-dark);
+}
+
+.path-grid span {
+    color: var(--text-secondary);
+}
+
+.clean-step-list {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+    margin: 12px 0 16px;
+    list-style: none;
+    counter-reset: step;
+}
+
+.clean-step-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0;
+    color: var(--text-secondary);
+    text-align: start;
+}
+
+.clean-step-list li::before {
+    counter-increment: step;
+    content: counter(step);
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+@media (max-width: 1023px) {
+    .flow-board,
+    .trust-strip .container,
+    .trust-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .path-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.daily-workspace-section,
+.smart-matching-section,
+.playbooks-section {
+    display: none;
+}
+
+@media (max-width: 1023px) {
+    .values-grid,
+    .current-actions-grid,
+    .daily-grid,
+    .playbook-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .values-grid,
+    .current-actions-grid,
+    .daily-grid,
+    .playbook-grid {
+        grid-template-columns: 1fr;
+    }
+}

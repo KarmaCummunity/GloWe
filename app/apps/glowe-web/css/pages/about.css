@@ -1,0 +1,225 @@
+/* GloWe page sheet — about and what's-next marketing pages (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.capability-label,
+.roadmap-row span {
+    color: var(--primary-dark);
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.capability-card p,
+.role-row p,
+.roadmap-row p {
+    color: var(--text-secondary);
+}
+
+.role-row,
+.business-row,
+.roadmap-row {
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+}
+
+.role-row strong,
+.roadmap-row h4 {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 48px;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 32px;
+    margin-top: 48px;
+}
+
+.steps-grid--tight {
+    margin-top: 24px;
+}
+
+/* Long-form article column and closing CTA (about.html; formerly inline styles). */
+.about-article {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-cta {
+    text-align: center;
+    margin-top: 48px;
+}
+
+.about-cta p {
+    margin-bottom: 24px;
+}
+
+.whats-next-hero .container {
+    max-width: 920px;
+}
+
+.next-story-section,
+.next-roadmap-section {
+    padding: 76px 0;
+    background: var(--white);
+}
+
+.next-story-section .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 460px);
+    gap: 42px;
+    align-items: start;
+}
+
+.next-story-copy h2 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.08;
+    margin-bottom: 18px;
+}
+
+.next-story-copy p,
+.next-roadmap-section .section-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.06rem;
+    line-height: 1.75;
+}
+
+.next-principle-list,
+.next-roadmap-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.next-principle-list article,
+.next-roadmap-grid article,
+.about-next-callout {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+}
+
+.next-principle-list span {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 900;
+    margin-bottom: 12px;
+}
+
+.next-roadmap-section {
+    background: linear-gradient(180deg, var(--color-neutral-0) 0%, var(--color-neutral-50) 100%);
+}
+
+.next-roadmap-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.next-roadmap-grid h3,
+.next-principle-list h3 {
+    margin-bottom: 8px;
+}
+
+.next-roadmap-grid p,
+.next-principle-list p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+.about-next-callout {
+    margin: 34px 0;
+    background: var(--primary-light);
+}
+
+.about-whats-next-panel {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid var(--alpha-ink-20);
+}
+
+.about-whats-next-panel[hidden] {
+    display: none;
+}
+
+.about-whats-next-panel h3 {
+    margin: 0 0 10px;
+    font-size: 1.15rem;
+}
+
+.about-whats-next-panel > p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 18px;
+}
+
+.about-whats-next-principles {
+    margin: 0 0 24px;
+}
+
+.about-whats-next-roadmap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 4px;
+}
+
+.about-whats-next-roadmap h4,
+.about-whats-next-principles h4 {
+    margin: 0 0 8px;
+    font-size: 1.02rem;
+}
+
+@media (max-width: 767px) {
+    .about-whats-next-roadmap {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1023px) {
+    .next-story-section .container,
+    .next-roadmap-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .next-story-section .container {
+        grid-template-columns: 1fr;
+    }
+
+    .next-story-section,
+    .next-roadmap-section {
+        padding-top: 54px;
+        padding-bottom: 54px;
+    }
+
+    .next-roadmap-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .next-roadmap-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.about-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}

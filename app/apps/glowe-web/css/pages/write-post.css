@@ -1,0 +1,100 @@
+/* GloWe page sheet — write-post composer page (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.filter-heading {
+    padding: 14px;
+    margin: -4px -4px 18px;
+    background: var(--sky-light);
+    border: 1px solid var(--color-info-bg);
+    border-radius: var(--radius-sm);
+}
+
+.filter-heading span {
+    display: block;
+    font-weight: 800;
+}
+
+.filter-heading small {
+    display: block;
+    color: var(--text-secondary);
+}
+
+.write-post-page {
+    padding: 36px 0 80px;
+}
+
+.write-post-page .container {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: start;
+}
+
+.topic-panel,
+.write-post-form-panel,
+.preview-panel {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+}
+
+.topic-panel,
+.preview-panel {
+    position: sticky;
+    top: 104px;
+}
+
+.topic-list {
+    display: grid;
+    gap: 10px;
+}
+
+.topic-prompt strong,
+.topic-prompt span,
+.guideline-box strong,
+.guideline-box span {
+    display: block;
+}
+
+.topic-prompt span,
+.guideline-box span {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+}
+
+.topic-prompt,
+.guideline-box {
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-light);
+}
+
+@media (max-width: 1023px) {
+    .write-post-page .container {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-heading {
+        width: 100%;
+    }
+
+    .topic-panel,
+    .preview-panel {
+        position: static;
+    }
+
+    .write-post-page .container {
+        grid-template-columns: 1fr;
+    }
+
+    .topic-panel,
+    .preview-panel {
+        position: static;
+        width: 100%;
+    }
+}

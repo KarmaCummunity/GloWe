@@ -192,3 +192,24 @@
     --page-photo: url('../assets/glowe-regrowth.webp');
     --asset-brand-mark: url('../assets/glowe-life-flower.webp');
 }
+
+/* Responsive container gutter: wide on tablet, tight on small phones. */
+@media (max-width: 1023px) {
+    :root {
+        --container-pad: clamp(18px, 3vw, 32px);
+    }
+}
+
+@media (max-width: 479px) {
+    :root {
+        --container-pad: 14px;
+    }
+}
+
+/* Phones: hero copy spans the whole band, so the photo wash stays light edge to edge
+   (desktop heroes fall back to their own light→photo sweep). */
+@media (max-width: 767px) {
+    :root {
+        --hero-overlay: linear-gradient(180deg, var(--alpha-white-92), var(--alpha-white-76));
+    }
+}

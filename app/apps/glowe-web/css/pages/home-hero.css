@@ -1,0 +1,221 @@
+/* GloWe page sheet — home page — hero, intro and belonging strip (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.hero .container {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero h1 {
+    font-size: clamp(2.6rem, 5vw, 4.9rem);
+    line-height: 1.03;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 16px;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-copy {
+    max-width: 760px;
+}
+
+.hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    color: var(--primary-dark);
+    background: var(--alpha-white-76);
+    border: 1px solid var(--alpha-ink-20);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+@media (max-width: 1023px) {
+    .hero .container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-cta {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+}
+
+.impact-home-hero .container {
+    min-height: 650px;
+}
+
+.impact-home-hero .hero-content {
+    max-width: 660px;
+}
+
+.impact-home-hero h1 {
+    max-width: 720px;
+}
+
+.glowe-system-figure {
+    margin: 0;
+    display: grid;
+    place-items: center;
+}
+
+.glowe-system-figure img {
+    width: min(500px, 100%);
+    filter: drop-shadow(0 24px 42px var(--alpha-ink-20));
+}
+
+.belonging-strip {
+    padding: 22px 0;
+    background: linear-gradient(90deg, var(--color-primary-50) 0%, var(--color-accent-50) 54%, var(--color-neutral-50) 100%);
+    border-top: 1px solid var(--alpha-ink-12);
+    border-bottom: 1px solid var(--alpha-ink-12);
+}
+
+.belonging-strip p {
+    max-width: 980px;
+    margin: 0 auto;
+    color: var(--text-secondary);
+    font-size: 1.08rem;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.belonging-strip strong {
+    color: var(--primary-dark);
+}
+
+.home-intro-section {
+    padding: 76px 0;
+    background: var(--white);
+}
+
+.home-intro-section .container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 440px);
+    gap: 48px;
+    align-items: center;
+}
+
+@media (max-width: 639px) {
+    .hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 1023px) {
+    .home-intro-section .container {
+        grid-template-columns: 1fr;
+    }
+
+    .hero,
+    .impact-home-hero {
+        padding-top: 58px;
+        padding-bottom: 58px;
+    }
+
+    .hero .container {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .impact-home-hero .container {
+        min-height: auto;
+    }
+
+    .hero-content,
+    .impact-home-hero .hero-content,
+    .hero h1,
+    .impact-home-hero h1 {
+        max-width: 100%;
+    }
+
+    .hero-cta,
+    .hero-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .home-intro-section {
+        padding-top: 54px;
+        padding-bottom: 54px;
+    }
+
+    .belonging-strip p {
+        text-align: start;
+    }
+}
+
+@media (max-width: 767px) {
+    .hero h1 {
+        font-size: clamp(2rem, 11vw, 2.7rem);
+        line-height: 1.06;
+    }
+
+    .hero p {
+        font-size: 1.02rem;
+    }
+
+    .hero-cta,
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-cta .btn,
+    .hero-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 479px) {
+    .glowe-system-figure img {
+        width: min(320px, 92vw);
+    }
+}

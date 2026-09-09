@@ -1,0 +1,248 @@
+/* GloWe page sheet — profile page — sections, meta, actions, edit forms (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.profile-status-cta {
+    border: 1px solid var(--primary-color);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.profile-status-cta--pending_review {
+    border-color: var(--border-color);
+    background: var(--surface-muted);
+    cursor: default;
+}
+
+.profile-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-meta-row span {
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--color-neutral-0);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.personal-card-header .profile-section-heading {
+    margin-bottom: 0;
+}
+
+.profile-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.profile-section-card {
+    padding: 24px;
+}
+
+.profile-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.profile-section-heading span {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 900;
+    font-size: 0.85rem;
+}
+
+.profile-section-heading h2 {
+    margin: 0;
+}
+
+.profile-section-card:not(.is-collapsed) .collapse-chevron {
+    transform: rotate(180deg);
+}
+
+.profile-section-card.is-collapsed .section-collapsible {
+    display: none;
+}
+
+.profile-info-list {
+    display: grid;
+    gap: 12px;
+}
+
+.profile-info-list p {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-info-list.compact {
+    gap: 8px;
+}
+
+.profile-info-list.compact p {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.profile-info-list a {
+    color: var(--primary-dark);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.profile-narrative-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.profile-narrative-grid p {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid var(--alpha-ink-12);
+    border-radius: var(--radius-md);
+    background: var(--alpha-white-92);
+}
+
+.profile-narrative-grid strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+    font-size: 0.92rem;
+}
+
+.profile-narrative-grid span {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.profile-info-list p:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.profile-info-list strong {
+    color: var(--primary-dark);
+}
+
+.profile-info-list span {
+    color: var(--text-secondary);
+}
+
+.profile-sidebar {
+    display: grid;
+    gap: 16px;
+    position: sticky;
+    top: 92px;
+}
+
+.profile-post-list article {
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-0);
+}
+
+.profile-post-list h3 {
+    margin: 12px 0 8px;
+}
+
+.profile-post-list p {
+    color: var(--text-secondary);
+}
+
+@media (max-width: 1023px) {
+    .profile-actions {
+        grid-column: 1 / -1;
+    }
+
+    .profile-narrative-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-sidebar {
+        position: static;
+    }
+
+    .profile-info-list p,
+    .profile-info-list.compact p {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .profile-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+    }
+
+    .profile-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-actions {
+        grid-column: 1;
+        width: 100%;
+    }
+
+    .profile-actions .btn {
+        flex: 1 1 140px;
+    }
+
+    .profile-meta-row {
+        gap: 4px;
+    }
+
+    .profile-meta-row span {
+        padding: 4px 8px;
+        font-size: 0.68rem;
+        font-weight: 700;
+    }
+
+    .profile-section-card {
+        padding: 14px;
+    }
+
+    .profile-section-heading h2 {
+        font-size: 1rem;
+    }
+
+    .profile-section-heading span:first-child {
+        width: 24px;
+        height: 24px;
+        font-size: 0.68rem;
+    }
+}

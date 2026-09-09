@@ -1,0 +1,72 @@
+/* GloWe page sheet — profile media editors — avatar and cover modals (FR-GLOWE-029 Phase 4 / D-190).
+   Page-owned rules moved out of legacy.css; visual primitives (buttons, cards,
+   chips, menus, avatars, forms) come from the components layer. */
+
+.avatar-edit-preview-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 12px;
+}
+
+.avatar-edit-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--white);
+    box-shadow: var(--shadow-md);
+}
+
+.avatar-edit-preview[hidden] {
+    display: none;
+}
+
+#avatar-edit-status {
+    display: block;
+    text-align: center;
+    min-height: 1.2em;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+#avatar-edit-status.is-error {
+    color: var(--color-danger-fg);
+    font-weight: 600;
+}
+
+#avatar-edit-status.is-info {
+    color: var(--text-secondary);
+}
+
+.avatar-edit-actions {
+    justify-content: center;
+}
+
+.cover-edit-preview-wrap {
+    margin: 20px 0 12px;
+}
+
+.cover-edit-preview[hidden] {
+    display: none;
+}
+
+#cover-edit-status {
+    display: block;
+    text-align: center;
+    min-height: 1.2em;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+
+#cover-edit-status.is-error {
+    color: var(--color-danger-fg);
+    font-weight: 600;
+}
+
+#cover-edit-status.is-info {
+    color: var(--text-secondary);
+}
+
+.cover-edit-actions {
+    justify-content: center;
+}
