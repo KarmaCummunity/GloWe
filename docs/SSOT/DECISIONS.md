@@ -1497,12 +1497,9 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-<<<<<<< HEAD
+| 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
 | 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
 | 4.19 | 2026-10-16 | Added `D-190` (GloWe sunset; KC-only codebase; migration `0238`). |
-=======
-| 4.19 | 2026-10-16 | Added `D-190` (KC mobile store track + EAS CI; unpause #836 / #837). |
->>>>>>> ade8ae73 (feat(mobile): unpause KC app and add EAS store CI (#836 #837))
 | 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
 | 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |

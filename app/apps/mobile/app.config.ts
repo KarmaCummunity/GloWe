@@ -48,13 +48,13 @@ function resolveGoogleServicesFile(): string | undefined {
   return undefined;
 }
 
-export default ({ config }: ConfigContext): ExpoConfig => {
+export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
   applySentryBuildDefaults();
   warnMissingSupabaseEnv(process.env.EAS_BUILD_PROFILE);
 
   const googleServicesFile = resolveGoogleServicesFile();
   const android = {
-    ...(config.android ?? {}),
+    ...config.android,
     ...(googleServicesFile ? { googleServicesFile } : {}),
   };
 
@@ -63,7 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android,
     version: readAppVersion(),
     extra: {
-      ...(config.extra ?? {}),
+      ...config.extra,
       gitCommitSha: resolveGitCommitSha(),
       supabaseConfigured: Boolean(
         process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() &&
@@ -71,4 +71,4 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ),
     },
   } as ExpoConfig;
-};
+}

@@ -20,7 +20,7 @@ export function EnablePushModal({
   onAccept,
   onDecline,
   showOpenSettings = false,
-}: Props) {
+}: Readonly<Props>) {
   const { t } = useTranslation();
   const styles = useEnablePushModalStyles();
   useModalHardwareBack(visible, onDecline);

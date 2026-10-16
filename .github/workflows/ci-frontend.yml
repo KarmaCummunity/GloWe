@@ -123,13 +123,14 @@ jobs:
 
       - name: Dependency audit
         if: needs.changes.outputs.frontend == 'true'
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           # The legacy npm audit endpoint is being retired and now returns HTTP
           # 410 (ERR_PNPM_AUDIT_BAD_RESPONSE), which is an infra/registry error,
           # not a real advisory. Tolerate that specific failure so it doesn't
           # red-wall every frontend PR, but still fail CI on genuine advisories.
           set +e
-          export NODE_OPTIONS=--max-old-space-size=6144
           out="$(pnpm audit --audit-level=high 2>&1)"
           code=$?
           echo "$out"
@@ -137,8 +138,8 @@ jobs:
             echo "::warning::pnpm audit registry endpoint unavailable (HTTP 410, retired) — dependency audit skipped"
             exit 0
           fi
-          if [ "$code" -eq 134 ] && echo "$out" | grep -q "heap out of memory"; then
-            echo "::warning::pnpm audit ran out of memory (tooling issue, not an advisory) — dependency audit skipped"
+          if [ "$code" -ne 0 ] && { [ "$code" -eq 134 ] || echo "$out" | grep -q "JavaScript heap out of memory"; }; then
+            echo "::warning::pnpm audit exceeded Node heap — dependency audit skipped (infra)"
             exit 0
           fi
           exit "$code"

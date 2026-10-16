@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from 'react-native';
+import { Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, typography, spacing } from '@kc/ui';
