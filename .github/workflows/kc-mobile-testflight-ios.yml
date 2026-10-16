@@ -1,0 +1,127 @@
+# Manual TestFlight upload: EAS cloud iOS build (production profile) + submit.
+# Upload only — does not submit for App Store review.
+#
+# Required repo secrets: EXPO_TOKEN, ASC_KEY_ID, ASC_ISSUER_ID, ASC_API_KEY_P8
+# Optional: EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY (dev Supabase),
+#           SENTRY_AUTH_TOKEN, EXPO_APPLE_TEAM_ID, KC_ASC_APP_ID (App Store Connect app id)
+name: KC mobile — TestFlight iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile
+        type: choice
+        options:
+          - production
+          - preview
+        default: production
+
+concurrency:
+  group: kc-mobile-testflight-ios
+  cancel-in-progress: true
+
+jobs:
+  testflight:
+    name: EAS build & TestFlight submit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: app/apps/mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preflight secrets
+        id: preflight
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPO_TOKEN:-}" ] || [ -z "${ASC_KEY_ID:-}" ] || [ -z "${ASC_ISSUER_ID:-}" ] || [ -z "${ASC_API_KEY_P8:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set EXPO_TOKEN, ASC_KEY_ID, ASC_ISSUER_ID, ASC_API_KEY_P8 to enable TestFlight builds."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          package_json_file: app/package.json
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm install -g eas-cli@16.28.0 --ignore-scripts
+
+      - name: Write ASC API key
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: bash scripts/ci-write-asc-key.sh
+
+      - name: Patch ascAppId in eas.json when KC_ASC_APP_ID is set
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          KC_ASC_APP_ID: ${{ secrets.KC_ASC_APP_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KC_ASC_APP_ID:-}" ]; then exit 0; fi
+          node -e "
+            const fs = require('fs');
+            const p = 'eas.json';
+            const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+            j.submit.production.ios.ascAppId = process.env.KC_ASC_APP_ID;
+            fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+          "
+
+      - name: Build iOS on EAS
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_WEB_BASE_URL: https://karma-community-kc.com
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          source scripts/ci-export-asc-env.sh
+          eas build \
+            --platform ios \
+            --profile "${{ inputs.profile }}" \
+            --non-interactive \
+            --wait
+
+      - name: Submit to TestFlight
+        if: steps.preflight.outputs.ready == 'true' && inputs.profile == 'production'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.EXPO_APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          source scripts/ci-export-asc-env.sh
+          eas build:download --platform ios --latest --output ./build-kc.ipa
+          bash scripts/eas-submit-testflight.sh ./build-kc.ipa

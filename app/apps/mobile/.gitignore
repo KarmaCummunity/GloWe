@@ -13,4 +13,6 @@ public/manifest.json
 
 # Store submission credentials — NEVER commit (referenced by eas.json submit profile)
 credentials/
+asc-api-key.p8
+google-play-service-account.json
 *.mobileprovision

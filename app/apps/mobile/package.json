@@ -24,7 +24,7 @@
     "start:go": "expo start --go",
     "start:go:tunnel": "expo start --go --tunnel",
     "ios": "expo run:ios",
-    "android": "JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home expo run:android",
+    "android": "expo run:android",
     "web": "node ../../../scripts/generate-web-manifest.mjs && expo start --web",
     "build:web": "node ../../../scripts/generate-web-manifest.mjs && expo export --platform web",
     "typecheck": "node ../../../scripts/generate-typed-routes.mjs && tsc --noEmit"
