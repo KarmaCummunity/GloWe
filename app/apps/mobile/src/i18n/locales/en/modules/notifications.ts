@@ -1,5 +1,17 @@
 // FR-NOTIF-001..015 — notifications strings split from main bundle (TD-35 file-size budget).
 export const notificationsEn = {
+  inboxTitle: 'Notifications',
+  inboxMarkAll: 'Mark all read',
+  inboxEmpty: 'No notifications yet',
+  inboxGrouped: '{{count}} people',
+  postReactionTitle: 'Post reaction',
+  postReactionBody: '{{actorName}} reacted to your post',
+  postReactionGroupedBody: '{{actorName}} and {{othersCount}} others reacted to your post',
+  postCommentTitle: 'New comment',
+  postCommentBody: '{{actorName}} commented on your post',
+  postCommentGroupedBody: '{{actorName}} and {{othersCount}} others commented on your post',
+  postMentionTitle: 'Mentioned you',
+  postMentionBody: '{{actorName}} mentioned you in a comment',
   settingsTitle: 'Notifications',
   criticalLabel: 'Critical',
   criticalCaption: 'Chat messages, being marked as recipient, system alerts, a post about to expire, content removal',

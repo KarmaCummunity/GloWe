@@ -16,6 +16,7 @@ import { TranslatableText } from '../../src/components/TranslatableText';
 import { useReaderLanguage } from '../../src/hooks/useReaderLanguage';
 import { useTranslatedPosts } from '../../src/hooks/useTranslatedPosts';
 import { usePostDetailStyles } from './postDetailScreen.styles';
+import { PostEngagementSection } from '../../src/components/post-detail/PostEngagementSection';
 
 export type PostDetailScrollContentProps = Readonly<{
   post: PostWithOwner;
@@ -158,6 +159,8 @@ export function PostDetailScrollContent({
               ownerHandle={post.ownerHandle}
             />
           </View>
+
+          {isOpen ? <PostEngagementSection postId={post.postId} viewerId={viewerId} /> : null}
         </View>
       </MotionEntry>
     </ScrollView>

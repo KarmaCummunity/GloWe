@@ -200,4 +200,16 @@ export const postHe = {
   showTranslation: 'הצג תרגום',
   autoTranslated: 'תורגם אוטומטית',
 
+  engagement: {
+    title: 'תגובות',
+    meta: '{{reactions}} רגשות · {{comments}} תגובות',
+    commentPlaceholder: 'כתוב תגובה…',
+    commentSend: 'פרסם תגובה',
+    reaction: {
+      like: 'אהבתי',
+      support: 'תמיכה',
+      thanks: 'תודה',
+    },
+  },
+
 } as const;
