@@ -75,3 +75,9 @@ grant insert on public.feed_impressions to authenticated;
 create policy feed_impressions_insert_own on public.feed_impressions
   for insert to authenticated
   with check (user_id = (select auth.uid()));
+
+-- Direct access to the default partition mirrors the parent's insert-own rule
+-- (queries through the parent use the parent's policies).
+create policy feed_impressions_default_insert_own on public.feed_impressions_default
+  for insert to authenticated
+  with check (user_id = (select auth.uid()));
