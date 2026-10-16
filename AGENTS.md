@@ -24,7 +24,7 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 - One issue per PR. Stay inside the issue's "files likely touched" and "out of scope" lists.
 - Don't edit another role's paths without saying so in the PR (see Roles).
 - Small PRs (≤ ~600 changed lines unless generated). Files ≤ 300 lines (`pnpm lint:arch`).
-- PR base is always `dev`. **Never** `main`, kc-prod, or prod deploy workflows without Naveh's explicit approval.
+- PR base is always `dev`. **Never** `main`, kc-prod, or prod deploy workflows without Nave's explicit approval.
 - No secrets in code, logs, issues or PRs.
 
 ## Definition of done
