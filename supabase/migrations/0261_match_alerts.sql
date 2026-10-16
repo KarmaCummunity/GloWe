@@ -103,7 +103,7 @@ begin
        and (
          s.saved_query is null
          or new.search_vector @@ plainto_tsquery('simple', s.saved_query)
-         or similarity(new.title, s.saved_query) > 0.25
+         or extensions.similarity(new.title, s.saved_query) > 0.25
        )
   loop
     perform public.enqueue_notification(
