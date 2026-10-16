@@ -126,6 +126,10 @@ import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { SoftGateProvider } from '../src/components/OnboardingSoftGate';
 import { AuthGate } from '../src/components/AuthGate';
 import { useDetailStackScreenOptions } from '../src/navigation/detailStackScreenOptions';
+import { rootStackGestureEnabled, rootStackScreenAnimation } from '../src/navigation/rootStackAnimation';
+import { ConfigErrorScreen } from '../src/components/ConfigErrorScreen';
+import { isSupabaseConfigured } from '../src/lib/supabasePublicConfig';
+import { ensureAndroidNotificationChannel } from '../src/lib/pushSetup';
 import { DevBanner } from '../src/components/DevBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
@@ -144,6 +148,7 @@ function NotificationsBridge(): null {
   useEffect(() => {
     installForegroundHandler();
     installBadgeAutoClear();
+    void ensureAndroidNotificationChannel();
   }, []);
 
   const pathname = usePathname();
@@ -196,8 +201,10 @@ function ThemedRootShell() {
                 // changes feel like part of the same surface, not a
                 // hard hand-off. 220 ms matches the welcome-screen
                 // hero entry, giving the whole app one motion vocab.
-                animation: 'fade',
-                animationDuration: 220,
+                animation: rootStackScreenAnimation(),
+                animationDuration: Platform.OS === 'web' ? 220 : undefined,
+                gestureEnabled: rootStackGestureEnabled,
+                fullScreenGestureEnabled: Platform.OS === 'ios',
               }}
             >
               <Stack.Screen name="(auth)" />
@@ -237,7 +244,7 @@ function ThemedRootShell() {
   );
 }
 
-export default function RootLayout() {
+function RootLayoutContent() {
   useEffect(() => {
     // FR-SETTINGS-018: keep layout direction aligned with the active UI language.
     // Web resolved its direction at module load from localStorage; here we align
@@ -276,4 +283,17 @@ export default function RootLayout() {
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
+}
+
+export default function RootLayout() {
+  if (!isSupabaseConfigured()) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ConfigErrorScreen />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+  return <RootLayoutContent />;
 }

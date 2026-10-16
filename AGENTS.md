@@ -16,3 +16,5 @@ Read it first.
 The former GloWe static site (`app/apps/glowe-web`) and `glowe_*` database objects were
 removed in migration `0238_drop_glowe_product.sql` (2026-10). Do not reintroduce GloWe-only
 features unless the PM reopens them in SSOT.
+
+Store builds (TestFlight / Play internal): see [`app/apps/mobile/README.md`](app/apps/mobile/README.md).

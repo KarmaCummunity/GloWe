@@ -16,6 +16,8 @@ The former GloWe static site was removed (see `D-190` in [`docs/SSOT/DECISIONS.m
 3. Copy `app/.env.example` → `app/.env.local` with keys from `supabase status`
 4. `pnpm mobile` or `pnpm ios` / `pnpm android`
 
+EAS and store CI: [`app/apps/mobile/README.md`](app/apps/mobile/README.md).
+
 ## Pull requests
 
 - Target branch: **`dev`** (not `main`)

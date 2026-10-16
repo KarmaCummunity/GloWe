@@ -1,7 +1,9 @@
 process.env.EXPO_PUBLIC_SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://example.supabase.co';
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'test-anon-key';
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   deriveThumbPath,
   deriveThumbUrl,
@@ -23,6 +25,25 @@ describe('getSupabasePublicImageUrl', () => {
   });
   it('returns empty string for empty path', () => {
     expect(getSupabasePublicImageUrl({ bucket: 'post-images', path: '' })).toBe('');
+  });
+
+});
+
+describe('getSupabasePublicImageUrl without env', () => {
+  const savedUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const savedKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  afterEach(() => {
+    if (savedUrl === undefined) delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    else process.env.EXPO_PUBLIC_SUPABASE_URL = savedUrl;
+    if (savedKey === undefined) delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    else process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = savedKey;
+  });
+
+  it('returns empty string when Supabase env is missing', () => {
+    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    expect(getSupabasePublicImageUrl({ bucket: 'post-images', path: 'a.jpg' })).toBe('');
   });
 });
 

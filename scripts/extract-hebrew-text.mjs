@@ -131,6 +131,9 @@ function isSkippedContentTreeRel(relPosix) {
     return true;
   }
   if (relPosix === "app/apps/mobile/app.json") return true;
+  if (relPosix === "app/apps/mobile/locales" || relPosix.startsWith("app/apps/mobile/locales/")) {
+    return true;
+  }
   return false;
 }
 
