@@ -19,7 +19,8 @@ begin
          display_name = 'Display ' || p_handle,
          account_status = 'active',
          onboarding_state = 'completed',
-         biography = 'Bio long enough for completeness score'
+         biography = 'Bio long enough for completeness score',
+         city = 'tel-aviv'
    where user_id = v_id;
   return v_id;
 end $$;
