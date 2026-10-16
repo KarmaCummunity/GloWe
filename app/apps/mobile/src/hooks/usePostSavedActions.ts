@@ -9,6 +9,7 @@ import {
 } from '../services/savedPostsComposition';
 import { useAuthStore } from '../store/authStore';
 import { useFeedSessionStore } from '../store/feedSessionStore';
+import { hapticLightImpact } from '../lib/haptics';
 
 export function usePostSavedActions(postId: string) {
   const { t } = useTranslation();
@@ -33,6 +34,7 @@ export function usePostSavedActions(postId: string) {
   const saveMutation = useMutation({
     mutationFn: () => getSavePostUseCase().execute(postId),
     onSuccess: () => {
+      hapticLightImpact();
       toast(t('post.saveSuccess'), 'success');
       invalidate();
     },

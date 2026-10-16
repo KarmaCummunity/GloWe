@@ -1,0 +1,77 @@
+# Internal EAS builds (preview profile) without store submit — smoke for mobile CI.
+name: KC mobile — EAS preview build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Target platform
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+        default: all
+
+concurrency:
+  group: kc-mobile-eas-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: EAS preview build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/apps/mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preflight EXPO_TOKEN
+        id: preflight
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set EXPO_TOKEN to run EAS preview builds."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          package_json_file: app/package.json
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm install -g eas-cli@16.28.0 --ignore-scripts
+
+      - name: EAS build (preview profile)
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_WEB_BASE_URL: https://karma-community-kc.com
+        run: |
+          eas build \
+            --platform "${{ inputs.platform }}" \
+            --profile preview \
+            --non-interactive \
+            --wait

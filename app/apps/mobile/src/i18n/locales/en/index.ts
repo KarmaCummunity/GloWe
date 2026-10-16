@@ -32,10 +32,13 @@ import { researchEn } from './modules/research';
 import { adminEn } from './modules/admin';
 import { karmaEn } from './modules/karma';
 import { asideEn } from './modules/aside';
+import { configEn } from './modules/config';
 
 const en = {
   // App
   appName: 'KC - Karma Community',
+
+  config: configEn,
 
   // Auth (FR-AUTH-001..014) — see modules/auth.ts
   auth: authEn,

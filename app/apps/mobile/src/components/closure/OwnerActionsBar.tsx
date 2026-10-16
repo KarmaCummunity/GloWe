@@ -20,6 +20,7 @@ import { mapPostErrorToHebrew } from '../../services/postMessages';
 import { ClosureSheet } from './ClosureSheet';
 import { ClosureExplainerSheet } from './ClosureExplainerSheet';
 import { ReopenConfirmModal } from './ReopenConfirmModal';
+import { hapticSuccess } from '../../lib/haptics';
 
 interface Props {
   post: Post;
@@ -59,6 +60,7 @@ export function OwnerActionsBar(props: Readonly<Props>) {
   // Chat-initiated closures are handled by AnchoredPostCard's own done-handler.
   useEffect(() => {
     if (closureStep !== 'done' || closureInitiator === 'chat') return;
+    hapticSuccess();
     const closedPostId = post.postId;
     resetClosure();
     void (async () => {

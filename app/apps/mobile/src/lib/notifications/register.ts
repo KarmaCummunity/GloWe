@@ -4,12 +4,14 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { RegisterDeviceUseCase, DeactivateDeviceUseCase } from '@kc/application';
 import type { IDeviceRepository } from '@kc/application';
+import { ensureAndroidNotificationChannel } from '../pushSetup';
 
 export async function registerCurrentDeviceIfPermitted(
   userId: string,
   deps: { deviceRepo: IDeviceRepository },
 ): Promise<void> {
   if (!Device.isDevice) return;
+  await ensureAndroidNotificationChannel();
   const perm = await Notifications.getPermissionsAsync();
   if (perm.status !== 'granted') return;
   const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;

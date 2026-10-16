@@ -37,3 +37,5 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 - [ ] PR body: `Closes #N` and `Mapped to spec: …`, following the CLAUDE.md §6 template
 - [ ] All required CI checks green, then label `agent-ready` to auto-merge
 - [ ] After merge: verified on kc-dev / dev.karma-community.pages.dev
+
+Store builds (TestFlight / Play internal): see [`app/apps/mobile/README.md`](app/apps/mobile/README.md).

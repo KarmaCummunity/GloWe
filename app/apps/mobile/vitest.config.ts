@@ -32,7 +32,8 @@ export default defineConfig({
         // UI surfaces — covered (or not) via RNTL slice TD-150
         'src/components/**',
         'src/features/**',
-        'src/navigation/**',
+        'src/navigation/**/*.tsx',
+        'src/navigation/useShellTabBarVisibility.ts',
         // React-bound hooks need RNTL infra — out of scope until TD-150
         'src/hooks/**',
         // Localization bundles (string maps, no runtime branches)

@@ -1,0 +1,74 @@
+import type { ConfigContext, ExpoConfig } from 'expo/config';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/** Marketing version — single source of truth: `app/VERSION`. */
+function readAppVersion(): string {
+  const versionPath = join(__dirname, '../../VERSION');
+  return readFileSync(versionPath, 'utf8').trim();
+}
+
+function resolveGitCommitSha(): string {
+  const sha =
+    process.env.EAS_BUILD_GIT_COMMIT_HASH ??
+    process.env.GITHUB_SHA ??
+    process.env.EXPO_PUBLIC_GIT_COMMIT_SHA ??
+    '';
+  return sha.trim().slice(0, 7);
+}
+
+function applySentryBuildDefaults(): void {
+  const token = process.env.SENTRY_AUTH_TOKEN?.trim();
+  if (!token) {
+    process.env.SENTRY_DISABLE_AUTO_UPLOAD = 'true';
+    return;
+  }
+  delete process.env.SENTRY_DISABLE_AUTO_UPLOAD;
+  if (!process.env.SENTRY_ORG?.trim()) {
+    process.env.SENTRY_ORG = 'karma-community';
+  }
+}
+
+function warnMissingSupabaseEnv(profile: string | undefined): void {
+  if (process.env.EAS_BUILD !== 'true' && !process.env.CI) return;
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!url || !key) {
+    console.warn(
+      `[app.config] EAS profile "${profile ?? 'unknown'}" is missing EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY`,
+    );
+  }
+}
+
+function resolveGoogleServicesFile(): string | undefined {
+  const fromEnv = process.env.GOOGLE_SERVICES_JSON?.trim();
+  if (fromEnv && existsSync(fromEnv)) return fromEnv;
+  const local = join(__dirname, 'google-services.json');
+  if (existsSync(local)) return './google-services.json';
+  return undefined;
+}
+
+export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
+  applySentryBuildDefaults();
+  warnMissingSupabaseEnv(process.env.EAS_BUILD_PROFILE);
+
+  const googleServicesFile = resolveGoogleServicesFile();
+  const android = {
+    ...config.android,
+    ...(googleServicesFile ? { googleServicesFile } : {}),
+  };
+
+  return {
+    ...config,
+    android,
+    version: readAppVersion(),
+    extra: {
+      ...config.extra,
+      gitCommitSha: resolveGitCommitSha(),
+      supabaseConfigured: Boolean(
+        process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() &&
+          process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+      ),
+    },
+  } as ExpoConfig;
+}

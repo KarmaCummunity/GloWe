@@ -24,7 +24,7 @@
     "start:go": "expo start --go",
     "start:go:tunnel": "expo start --go --tunnel",
     "ios": "expo run:ios",
-    "android": "JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home expo run:android",
+    "android": "expo run:android",
     "web": "node ../../../scripts/generate-web-manifest.mjs && expo start --web",
     "build:web": "node ../../../scripts/generate-web-manifest.mjs && expo export --platform web",
     "typecheck": "node ../../../scripts/generate-typed-routes.mjs && tsc --noEmit"
@@ -49,6 +49,7 @@
     "expo": "~54.0.36",
     "expo-apple-authentication": "~8.0.8",
     "expo-auth-session": "~7.0.11",
+    "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.13",
     "expo-crypto": "~15.0.9",
     "expo-dev-client": "~6.0.21",

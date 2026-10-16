@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
+import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 
 interface Props {
   visible: boolean;
@@ -37,6 +38,7 @@ export function ConfirmActionModal({
   const styles = useConfirmActionModalStyles();
   const { colors } = useTheme();
   const cancelLabel = cancelLabelProp ?? t('general.cancel');
+  useModalHardwareBack(visible, onCancel);
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.backdrop}>

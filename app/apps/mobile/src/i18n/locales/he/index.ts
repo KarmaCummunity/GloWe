@@ -30,10 +30,13 @@ import { researchHe } from './modules/research';
 import { adminHe } from './modules/admin';
 import { karmaHe } from './modules/karma';
 import { asideHe } from './modules/aside';
+import { configHe } from './modules/config';
 
 const he = {
   // App
   appName: 'KC - קהילת קארמה',
+
+  config: configHe,
 
   // Auth (FR-AUTH-001..014) — see modules/auth.ts
   auth: authHe,

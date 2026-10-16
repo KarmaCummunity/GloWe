@@ -4,6 +4,7 @@ export const chatEn = {
   noChats: 'No chats yet',
   noChatsDesc: 'Reach out to posters directly from their posts.',
   inputPlaceholder: 'Write a message...',
+  typingIndicator: 'Typing…',
   send: 'Send',
   read: 'Read',
   report: 'Report chat',

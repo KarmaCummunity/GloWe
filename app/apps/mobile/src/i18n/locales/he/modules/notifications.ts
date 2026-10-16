@@ -1,5 +1,17 @@
 // FR-NOTIF-001..015 — notifications strings split from main bundle (TD-35 file-size budget).
 export const notificationsHe = {
+  inboxTitle: 'מרכז התראות',
+  inboxMarkAll: 'סמן הכל כנקרא',
+  inboxEmpty: 'אין התראות כרגע',
+  inboxGrouped: '{{count}} משתתפים',
+  postReactionTitle: 'תגובה לפוסט',
+  postReactionBody: '{{actorName}} הגיב/ה לפוסט שלך',
+  postReactionGroupedBody: '{{actorName}} ועוד {{othersCount}} הגיבו לפוסט שלך',
+  postCommentTitle: 'תגובה חדשה',
+  postCommentBody: '{{actorName}} הגיב/ה על הפוסט שלך',
+  postCommentGroupedBody: '{{actorName}} ועוד {{othersCount}} הגיבו על הפוסט שלך',
+  postMentionTitle: 'אזכור בתגובה',
+  postMentionBody: '{{actorName}} אזכר/ה אותך בתגובה',
   settingsTitle: 'התראות',
   criticalLabel: 'קריטיות',
   criticalCaption: "הודעות צ'אט, סימון כמקבל, התראות מערכת, פוסט שעומד לפוג, הסרת תוכן",

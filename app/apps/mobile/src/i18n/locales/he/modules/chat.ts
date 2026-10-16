@@ -4,6 +4,7 @@ export const chatHe = {
   noChats: 'אין שיחות עדיין',
   noChatsDesc: 'פנה למפרסמים ישירות מתוך הפוסטים.',
   inputPlaceholder: 'כתוב הודעה...',
+  typingIndicator: 'מקליד/ה…',
   send: 'שלח',
   read: 'נקרא',
   report: 'דווח על שיחה',

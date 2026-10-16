@@ -1,0 +1,96 @@
+# Manual Google Play Internal upload: EAS cloud Android AAB + internal-track submit.
+# Does not promote to production review.
+#
+# Required repo secrets: EXPO_TOKEN, GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+# Optional: EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY, SENTRY_AUTH_TOKEN
+name: KC mobile — Play internal Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile
+        type: choice
+        options:
+          - production
+          - preview
+        default: production
+
+concurrency:
+  group: kc-mobile-play-internal
+  cancel-in-progress: true
+
+jobs:
+  play-internal:
+    name: EAS build & Play internal submit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/apps/mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preflight secrets
+        id: preflight
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPO_TOKEN:-}" ] || [ -z "${GOOGLE_PLAY_SERVICE_ACCOUNT_JSON:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set EXPO_TOKEN and GOOGLE_PLAY_SERVICE_ACCOUNT_JSON to enable Play internal builds."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          package_json_file: app/package.json
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm install -g eas-cli@16.28.0 --ignore-scripts
+
+      - name: Write Google Play service account key
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: bash scripts/ci-write-google-play-key.sh
+
+      - name: Build Android on EAS
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_WEB_BASE_URL: https://karma-community-kc.com
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          eas build \
+            --platform android \
+            --profile "${{ inputs.profile }}" \
+            --non-interactive \
+            --wait
+
+      - name: Submit to Play internal
+        if: steps.preflight.outputs.ready == 'true' && inputs.profile == 'production'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: bash scripts/eas-submit-play-internal.sh
