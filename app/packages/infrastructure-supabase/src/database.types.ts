@@ -1219,6 +1219,52 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          message_id: string
+          reaction_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          message_id: string
+          reaction_id?: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          message_id?: string
+          reaction_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["message_id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string | null
@@ -1226,6 +1272,7 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           kind: string
+          media_payload: Json | null
           message_id: string
           read_at: string | null
           sender_id: string | null
@@ -1240,6 +1287,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           kind?: string
+          media_payload?: Json | null
           message_id?: string
           read_at?: string | null
           sender_id?: string | null
@@ -1254,6 +1302,7 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           kind?: string
+          media_payload?: Json | null
           message_id?: string
           read_at?: string | null
           sender_id?: string | null
@@ -1328,6 +1377,85 @@ export type Database = {
           {
             foreignKeyName: "moderation_queue_entries_resolved_by_fkey"
             columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      notification_inbox: {
+        Row: {
+          body_args: Json
+          body_key: string
+          category: string
+          created_at: string
+          data: Json
+          group_actor_ids: string[]
+          group_count: number
+          group_key: string | null
+          inbox_id: string
+          kind: string
+          outbox_id: string | null
+          read_at: string | null
+          title_key: string
+          updated_at: string
+          user_id: string
+          world: string
+        }
+        Insert: {
+          body_args?: Json
+          body_key: string
+          category: string
+          created_at?: string
+          data?: Json
+          group_actor_ids?: string[]
+          group_count?: number
+          group_key?: string | null
+          inbox_id?: string
+          kind: string
+          outbox_id?: string | null
+          read_at?: string | null
+          title_key: string
+          updated_at?: string
+          user_id: string
+          world?: string
+        }
+        Update: {
+          body_args?: Json
+          body_key?: string
+          category?: string
+          created_at?: string
+          data?: Json
+          group_actor_ids?: string[]
+          group_count?: number
+          group_key?: string | null
+          inbox_id?: string
+          kind?: string
+          outbox_id?: string | null
+          read_at?: string | null
+          title_key?: string
+          updated_at?: string
+          user_id?: string
+          world?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_inbox_outbox_id_fkey"
+            columns: ["outbox_id"]
+            isOneToOne: false
+            referencedRelation: "notifications_outbox"
+            referencedColumns: ["notification_id"]
+          },
+          {
+            foreignKeyName: "notification_inbox_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notification_inbox_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_public"
             referencedColumns: ["user_id"]
@@ -3953,6 +4081,10 @@ export type Database = {
         Returns: boolean
       }
       is_blocked: { Args: { a: string; b: string }; Returns: boolean }
+      is_chat_participant: {
+        Args: { p_chat_id: string; p_user: string }
+        Returns: boolean
+      }
       is_chat_visible_to: {
         Args: {
           p_chat: Database["public"]["Tables"]["chats"]["Row"]
@@ -4015,6 +4147,23 @@ export type Database = {
           last_material_severity: string
           last_material_version: number
         }[]
+      }
+      notification_in_quiet_hours: {
+        Args: { p_at?: string; p_prefs: Json }
+        Returns: boolean
+      }
+      notification_inbox_group_meta: {
+        Args: {
+          p_row: Database["public"]["Tables"]["notifications_outbox"]["Row"]
+        }
+        Returns: {
+          actor_id: string
+          group_key: string
+        }[]
+      }
+      notification_inbox_world_for_kind: {
+        Args: { p_kind: string }
+        Returns: string
       }
       notifications_backlog_check: { Args: never; Returns: undefined }
       notifications_bump_attempt: {
@@ -4442,6 +4591,68 @@ export type Database = {
           post_title: string
         }[]
       }
+      rpc_notification_inbox_list: {
+        Args: {
+          p_category?: string
+          p_cursor_created_at?: string
+          p_cursor_inbox_id?: string
+          p_limit?: number
+          p_world?: string
+        }
+        Returns: {
+          body_args: Json
+          body_key: string
+          category: string
+          created_at: string
+          data: Json
+          group_actor_ids: string[]
+          group_count: number
+          group_key: string | null
+          inbox_id: string
+          kind: string
+          outbox_id: string | null
+          read_at: string | null
+          title_key: string
+          updated_at: string
+          user_id: string
+          world: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_inbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      rpc_notification_inbox_mark_all_read: { Args: never; Returns: number }
+      rpc_notification_inbox_mark_read: {
+        Args: { p_inbox_id: string }
+        Returns: {
+          body_args: Json
+          body_key: string
+          category: string
+          created_at: string
+          data: Json
+          group_actor_ids: string[]
+          group_count: number
+          group_key: string | null
+          inbox_id: string
+          kind: string
+          outbox_id: string | null
+          read_at: string | null
+          title_key: string
+          updated_at: string
+          user_id: string
+          world: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notification_inbox"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_notification_inbox_unread_count: { Args: never; Returns: number }
       rpc_recipient_unmark_self: {
         Args: { p_post_id: string }
         Returns: undefined
@@ -4698,6 +4909,46 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_send_chat_media_message: {
+        Args: { p_body?: string; p_chat_id: string; p_media_payload: Json }
+        Returns: {
+          body: string | null
+          chat_id: string
+          created_at: string
+          delivered_at: string | null
+          kind: string
+          media_payload: Json | null
+          message_id: string
+          read_at: string | null
+          sender_id: string | null
+          source_language: string | null
+          source_language_confidence: number | null
+          status: string
+          system_payload: Json | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_set_message_reaction: {
+        Args: { p_message_id: string; p_reaction_type: string }
+        Returns: {
+          created_at: string
+          message_id: string
+          reaction_id: string
+          reaction_type: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "message_reactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       rpc_set_post_reaction: {
         Args: { p_post_id: string; p_reaction_type: string }
         Returns: {
@@ -4734,6 +4985,35 @@ export type Database = {
           to: "chats"
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      rpc_sync_chat_messages: {
+        Args: {
+          p_after_created_at?: string
+          p_after_message_id?: string
+          p_chat_id: string
+          p_limit?: number
+        }
+        Returns: {
+          body: string | null
+          chat_id: string
+          created_at: string
+          delivered_at: string | null
+          kind: string
+          media_payload: Json | null
+          message_id: string
+          read_at: string | null
+          sender_id: string | null
+          source_language: string | null
+          source_language_confidence: number | null
+          status: string
+          system_payload: Json | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       rpc_unread_counts_for_chats: {
