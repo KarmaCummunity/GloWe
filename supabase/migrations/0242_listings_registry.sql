@@ -135,7 +135,9 @@ begin
       join public.listing_kinds lk on lk.kind_id = new.kind_id
      where w.slug = new.world_slug;
 
-    new.anonymity_level := coalesce(v_world_anon, new.anonymity_level);
+    -- World default caps openness; an explicitly more restrictive level
+    -- (lower number) chosen by the author is preserved.
+    new.anonymity_level := least(new.anonymity_level, coalesce(v_world_anon, new.anonymity_level));
 
     if new.expires_at is null and v_ttl_hours is not null then
       new.expires_at := now() + make_interval(hours => v_ttl_hours);
