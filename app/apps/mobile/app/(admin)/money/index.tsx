@@ -1,10 +1,7 @@
 // app/apps/mobile/app/(admin)/money/index.tsx
 // V2-ADMIN-MONEY-9 — V2 §13.3 Admin Money — minimal donations / expenses ledger.
 import { useMemo, useState } from 'react';
-import {
-  Alert, FlatList, Platform, Pressable, RefreshControl, ScrollView,
-  StyleSheet, Text, View,
-} from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission, isFinanceLedgerError,
@@ -20,6 +17,7 @@ import { AdminFilterChip } from '../../../src/components/admin/AdminFilterChip';
 import { AdminListEmpty } from '../../../src/components/admin/AdminListEmpty';
 import { confirmAction as platformConfirm } from '../../../src/services/platformConfirm';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 type DirFilter = FinanceDirection | 'all';
 
@@ -125,7 +123,7 @@ export default function MoneyScreen() {
       </ScrollView>
       <Text style={styles.totalLabel}>{t.totalCount(list.data?.totalCount ?? 0)}</Text>
 
-      <FlatList
+      <KcFlashList
         data={[...(list.data?.rows ?? [])]}
         keyExtractor={(e) => e.entryId}
         renderItem={({ item }) => (

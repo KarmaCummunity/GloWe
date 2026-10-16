@@ -1,0 +1,6 @@
+{
+  "mobileWebMainBundleGzipKb": 4200,
+  "apiP95Ms": 200,
+  "coldStartMs": 2000,
+  "notes": "Enforced in CI via check-mobile-bundle-budget.mjs; k6 API p95 tracked in #881."
+}

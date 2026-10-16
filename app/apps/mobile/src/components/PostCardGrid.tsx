@@ -12,7 +12,7 @@ import type { IdentityRoleForViewedProfile } from '@kc/domain';
 import { TranslatableText, type TranslatableStatus } from './TranslatableText';
 import { PROFILE_GRID_COLUMNS, usePostGridCardWidth } from '../hooks/useShellContentWidth';
 import { postOwnerDisplayLabel } from '../lib/postOwnerDisplayLabel';
-import { getSupabasePublicImageUrl, getSupabaseImageThumbUrl } from '../lib/imageUrl';
+import { getSupabasePublicImageUrl, getSupabaseFeedImageUrl } from '../lib/imageUrl';
 import { AvatarInitials } from './AvatarInitials';
 import { PostMenuButton } from './post/PostMenuButton';
 import { KCImage } from './ui/KCImage';
@@ -78,9 +78,9 @@ function PostCardGridInner({
   // backfill Edge Function eventually fills these in).
   const thumbUrl = React.useMemo(
     () => firstImagePath
-      ? getSupabaseImageThumbUrl({ bucket: 'post-images', path: firstImagePath })
+      ? getSupabaseFeedImageUrl('post-images', firstImagePath, cardWidth)
       : null,
-    [firstImagePath],
+    [firstImagePath, cardWidth],
   );
   const fullUrl = React.useMemo(
     () => firstImagePath

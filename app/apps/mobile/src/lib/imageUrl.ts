@@ -1,25 +1,22 @@
-// Builds Supabase Storage public URLs.
+// Supabase Storage public + transform URLs (#897).
 //
-// Two helpers:
-//   - getSupabasePublicImageUrl  — full-size object URL
-//   - getSupabaseImageThumbUrl   — derives the sibling -thumb path
-//
-// Background: the `/storage/v1/render/image/` transform endpoint
-// (`?width=N&quality=N`) returns 404 or hangs on the `post-images` bucket on
-// the dev Supabase project (likely a transform-quota / config issue at the
-// Storage tier). PR #397 reverted Wave 1's transform-based resize. The
-// replacement path (PERF-4) generates a sibling `<path>-thumb.<ext>` at
-// upload time and serves that for small surfaces (feed thumb, avatar circle).
-// No transform endpoint, no CDN required.
-//
-// The transform endpoint stays in the code behind
-// `EXPO_PUBLIC_USE_STORAGE_TRANSFORM=1` so a future CDN wave can re-enable it
-// alongside an edge that guarantees the pipeline works.
+// Default path (PERF-4): sibling `-thumb` objects at upload time.
+// When `width` / `quality` / `format` are passed, uses `/render/image/` CDN transforms
+// unless `EXPO_PUBLIC_USE_STORAGE_TRANSFORM=0`.
 
 import { getSupabasePublicEnv } from './supabasePublicConfig';
 
-type Args = { bucket: string; path: string; width?: number; quality?: number };
-type ThumbArgs = { bucket: string; path: string };
+export type ImageTransformFormat = 'origin' | 'webp' | 'avif';
+
+type Args = {
+  bucket: string;
+  path: string;
+  width?: number;
+  quality?: number;
+  format?: ImageTransformFormat;
+};
+
+type ThumbArgs = { bucket: string; path: string; width?: number; format?: ImageTransformFormat };
 
 function getSupabaseBaseUrl(): string | null {
   const env = getSupabasePublicEnv();
@@ -27,24 +24,49 @@ function getSupabaseBaseUrl(): string | null {
   return env.url.replace(/\/$/, '');
 }
 
-const USE_TRANSFORM = process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM === '1';
+function transformsDisabled(): boolean {
+  return process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM === '0';
+}
 
-export function getSupabasePublicImageUrl({ bucket, path, width, quality }: Args): string {
+function wantsTransform(args: Pick<Args, 'width' | 'quality' | 'format'>): boolean {
+  if (transformsDisabled()) return false;
+  if (process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM === '1') return true;
+  return (
+    typeof args.width === 'number' ||
+    typeof args.quality === 'number' ||
+    (args.format !== undefined && args.format !== 'origin')
+  );
+}
+
+/** Builds a Supabase Storage transform URL (CDN resize + modern format). */
+export function buildSupabaseImageTransformUrl({
+  bucket,
+  path,
+  width,
+  quality = 80,
+  format = 'webp',
+}: Args): string {
   if (!path) return '';
   const base = getSupabaseBaseUrl();
   if (!base) return '';
-  const wantsTransform =
-    USE_TRANSFORM && (typeof width === 'number' || typeof quality === 'number');
-  if (!wantsTransform) {
-    return `${base}/storage/v1/object/public/${bucket}/${path}`;
-  }
   const params = new URLSearchParams();
-  if (typeof width === 'number') params.set('width', String(width));
-  if (typeof quality === 'number') params.set('quality', String(quality));
+  if (typeof width === 'number') params.set('width', String(Math.round(width)));
+  params.set('quality', String(quality));
+  if (format && format !== 'origin') params.set('format', format);
   return `${base}/storage/v1/render/image/public/${bucket}/${path}?${params.toString()}`;
 }
 
-/** `a/b/c.jpg` → `a/b/c-thumb.jpg`. Returns the input unchanged if no extension. */
+export function getSupabasePublicImageUrl({ bucket, path, width, quality, format }: Args): string {
+  if (!path) return '';
+  if (wantsTransform({ width, quality, format })) {
+    return buildSupabaseImageTransformUrl({ bucket, path, width, quality, format });
+  }
+  const base = getSupabaseBaseUrl();
+  if (!base) return '';
+  return `${base}/storage/v1/object/public/${bucket}/${path}`;
+}
+
+/** `a/b/c.jpg` → `a/b/c-thumb.jpg`. */
 export function deriveThumbPath(path: string): string {
   if (!path) return path;
   const dotIdx = path.lastIndexOf('.');
@@ -53,18 +75,41 @@ export function deriveThumbPath(path: string): string {
   return `${path.slice(0, dotIdx)}-thumb${path.slice(dotIdx)}`;
 }
 
-/** Public URL for the sibling `-thumb` object alongside the full image. */
-export function getSupabaseImageThumbUrl({ bucket, path }: ThumbArgs): string {
+/** Thumb object URL, optionally via transform when width/format provided. */
+export function getSupabaseImageThumbUrl({ bucket, path, width, format }: ThumbArgs): string {
   if (!path) return '';
+  if (wantsTransform({ width, format })) {
+    return buildSupabaseImageTransformUrl({
+      bucket,
+      path: deriveThumbPath(path),
+      width,
+      quality: 75,
+      format: format ?? 'webp',
+    });
+  }
   return getSupabasePublicImageUrl({ bucket, path: deriveThumbPath(path) });
 }
 
-/**
- * Given a full Supabase Storage public URL (optionally with a `?v=` cache-bust
- * suffix from the avatar pipeline), return the URL pointing at the sibling
- * `-thumb` object. Returns the input unchanged if it isn't a Supabase Storage
- * URL we recognise (e.g., a Google OAuth avatar).
- */
+/** Feed/grid surface: prefer transform at display width, else `-thumb` sibling. */
+export function getSupabaseFeedImageUrl(
+  bucket: string,
+  path: string,
+  displayWidthPx: number,
+): string {
+  if (!path) return '';
+  const scaled = Math.min(1200, Math.max(64, Math.ceil(displayWidthPx * 2)));
+  if (wantsTransform({ width: scaled, format: 'webp' })) {
+    return buildSupabaseImageTransformUrl({
+      bucket,
+      path,
+      width: scaled,
+      quality: 78,
+      format: 'webp',
+    });
+  }
+  return getSupabaseImageThumbUrl({ bucket, path });
+}
+
 export function deriveThumbUrl(fullUrl: string): string {
   if (!fullUrl) return fullUrl;
   if (!fullUrl.includes('/storage/v1/object/public/')) return fullUrl;

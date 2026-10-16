@@ -1,5 +1,5 @@
 // WebRefreshButton — refresh affordance for web (FR-FEED-010 AC2). Renders
-// only on web; native platforms use the FlatList's RefreshControl instead.
+// only on web; native platforms use the KcFlashList's RefreshControl instead.
 // Also wires the global "R" keyboard shortcut while the feed is mounted.
 // Home feed passes an async onPress that shows success/error EphemeralToast when done.
 
@@ -8,7 +8,6 @@ import { Platform, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, useTheme } from '@kc/ui';
-
 interface WebRefreshButtonProps {
   onPress: () => void;
   isLoading: boolean;

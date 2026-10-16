@@ -1,11 +1,11 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import type { ListRenderItem } from 'react-native';
+import type { ListRenderItem } from '@shopify/flash-list';
 import { ChatError, type ChatWithPreview } from '@kc/application';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
 import { useChatStore } from '../../src/store/chatStore';
@@ -17,6 +17,7 @@ import { HideChatConfirmModal } from '../../src/components/HideChatConfirmModal'
 import { InboxChatRow, InboxChatRowSeparator } from '../../src/components/chat/InboxChatRow';
 import { InboxListSkeleton } from '../../src/components/skeletons/InboxListSkeleton';
 import { NotifyModal } from '../../src/components/NotifyModal';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
 
 const PAGE = 30;
 
@@ -95,15 +96,12 @@ export default function ChatListScreen() {
         />
       </View>
 
-      <FlatList
+      <KcFlashList
         data={filtered}
         keyExtractor={(c) => c.chatId}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
-        initialNumToRender={12}
-        maxToRenderPerBatch={12}
-        windowSize={9}
-        removeClippedSubviews
+        estimatedItemSize={76}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

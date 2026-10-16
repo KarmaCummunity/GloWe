@@ -1,0 +1,38 @@
+name: CI — perf budgets
+
+on:
+  pull_request:
+    paths:
+      - 'app/apps/mobile/**'
+      - 'app/scripts/check-mobile-*.mjs'
+      - 'app/scripts/check-sql-no-offset.mjs'
+      - 'app/perf-budgets.json'
+      - '.github/workflows/ci-perf-budgets.yml'
+  workflow_dispatch:
+
+jobs:
+  perf-budgets:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: app/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: No FlatList in mobile (#896)
+        run: node scripts/check-mobile-flatlist.mjs
+      - name: No OFFSET in SQL (#898)
+        run: node scripts/check-sql-no-offset.mjs
+      - name: Web bundle gzip budget (#901)
+        run: |
+          pnpm --filter @kc/mobile exec expo export --platform web
+          KC_MOBILE_WEB_BUNDLE_BUDGET_KB=$(node -p "require('./perf-budgets.json').mobileWebMainBundleGzipKb") \
+            node scripts/check-mobile-bundle-budget.mjs

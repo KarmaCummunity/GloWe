@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+/** #901 — coarse bundle budget after `expo export --platform web` (gzip KB). */
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
+
+const DIST = join(import.meta.dirname, '../apps/mobile/dist');
+const BUDGET_KB = Number(process.env.KC_MOBILE_WEB_BUNDLE_BUDGET_KB ?? '4200');
+
+function gzipSize(path) {
+  return gzipSync(readFileSync(path)).length;
+}
+
+function mainBundlePath() {
+  if (!existsSync(DIST)) return null;
+  const entries = readFileSync(join(DIST, '_expo/static/js/web'), { encoding: 'utf8', flag: 'optional' });
+  void entries;
+  // Expo export: largest JS under dist/_expo/static/js/web/*.js
+  const webJsDir = join(DIST, '_expo/static/js/web');
+  if (!existsSync(webJsDir)) return null;
+  let best = null;
+  let bestSize = 0;
+  for (const name of require('node:fs').readdirSync(webJsDir)) {
+    if (!name.endsWith('.js')) continue;
+    const p = join(webJsDir, name);
+    const sz = gzipSize(p);
+    if (sz > bestSize) {
+      bestSize = sz;
+      best = p;
+    }
+  }
+  return best ? { path: best, gzipKb: Math.round(bestSize / 1024) } : null;
+}
+
+const main = mainBundlePath();
+if (!main) {
+  console.log('check-mobile-bundle-budget: skip (no dist build; run expo export in CI)');
+  process.exit(0);
+}
+
+console.log(`check-mobile-bundle-budget: main ${main.path} gzip ${main.gzipKb}KB (budget ${BUDGET_KB}KB)`);
+if (main.gzipKb > BUDGET_KB) process.exit(1);

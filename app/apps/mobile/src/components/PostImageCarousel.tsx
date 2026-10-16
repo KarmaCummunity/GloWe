@@ -1,17 +1,15 @@
 // PostImageCarousel — horizontal paged carousel for post detail images.
 // FR-POST-014 AC1: posts with up to 5 images expose every image; viewer pages
-// between them. Uses FlatList with pagingEnabled (no extra deps).
+// between them. Uses KcFlashList with pagingEnabled (no extra deps).
 import React, { useState } from 'react';
-import {
-  Dimensions, FlatList, Image, NativeScrollEvent, NativeSyntheticEvent,
-  Pressable, Text, View,
-} from 'react-native';
+import { Dimensions, Image, NativeScrollEvent, NativeSyntheticEvent, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
 import type { MediaAsset } from '@kc/domain';
 import { getSupabaseClient } from '@kc/infrastructure-supabase';
 import { PostImageViewerModal } from './PostImageViewerModal';
+import { KcFlashList } from './lists/KcFlashList';
 
 const STORAGE_BUCKET = 'post-images';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -102,7 +100,7 @@ export function PostImageCarousel({ mediaAssets, fallbackIcon }: Props) {
   return (
     <>
       <View style={styles.frame}>
-        <FlatList
+        <KcFlashList
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}

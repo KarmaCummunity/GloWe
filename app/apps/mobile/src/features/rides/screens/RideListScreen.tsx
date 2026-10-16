@@ -1,10 +1,10 @@
 // Shared list-screen shell for the rides dashboards (FR-RIDE-024 / FR-RIDE-025).
 // MyRidesScreen and MyRequestsScreen render identical scaffolding — title row,
 // grouped sections with count badges, loading/empty state, and pull-to-refresh
-// over a FlatList; only the data source, row component, and copy differ. Extracted
+// over a KcFlashList; only the data source, row component, and copy differ. Extracted
 // here to keep the two screens DRY.
 import React from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ import { IconTile } from '../../../components/ui/IconTile';
 import { useShellTabBarScrollInset } from '../../../navigation/useShellTabBarVisibility';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
 import { rowDirectionStart } from '../../../lib/rtlLayout';
+import { KcFlashList } from '../../../components/lists/KcFlashList';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -99,7 +100,7 @@ export function RideListScreen<T>({
         <View style={styles.titleSpacer} />
       </View>
 
-      <FlatList
+      <KcFlashList
         data={sections as RideListSection<T>[]}
         keyExtractor={(s) => s.key}
         renderItem={({ item }) => {

@@ -1,10 +1,7 @@
 // app/apps/mobile/app/(admin)/time/index.tsx
 // V2-ADMIN-TIME-10 — V2 §13.10 Admin Time (timesheets).
 import { useMemo, useState } from 'react';
-import {
-  Alert, FlatList, Platform, Pressable, RefreshControl, ScrollView,
-  Text, View,
-} from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission, isTimesheetError,
@@ -22,6 +19,7 @@ import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHead
 import { AdminScreenGuard } from '../../../src/components/admin/AdminScreenGuard';
 import { confirmAction as platformConfirm } from '../../../src/services/platformConfirm';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 type Tab = 'mine' | 'pending' | 'all';
 
@@ -90,7 +88,7 @@ export default function TimeScreen() {
       </ScrollView>
       <Text style={styles.totalLabel}>{t.totalCount(list.data?.totalCount ?? 0)}</Text>
 
-      <FlatList
+      <KcFlashList
         data={[...(list.data?.rows ?? [])]}
         keyExtractor={(e) => e.entryId}
         renderItem={({ item }) => {
