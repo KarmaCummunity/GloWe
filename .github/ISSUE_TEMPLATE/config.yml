@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question (Discussions)
-    url: https://github.com/KarmaCummunity/GloWe/discussions
+    url: https://github.com/KarmaCummunity/KC/discussions
     about: Setup help, ideas, and Q&A before opening an issue.
   - name: GloWe project board
     url: https://github.com/orgs/KarmaCummunity/projects/2

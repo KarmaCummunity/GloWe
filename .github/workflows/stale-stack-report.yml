@@ -1,0 +1,44 @@
+name: Stale stack report
+
+# Weekly read-only report: open PRs into dev that are stale (3+ days), conflicting,
+# or failing checks, written to the job summary. Docs: docs/agents/OPERATING_MODEL.md.
+
+on:
+  schedule:
+    - cron: '0 6 * * 0' # Sundays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  report:
+    name: stale stack report
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Build report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cutoff=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          {
+            echo "## Open PRs into dev"
+            echo
+            echo "| PR | Base | Updated | Mergeable | Checks | Flags |"
+            echo "|---|---|---|---|---|---|"
+            gh pr list --repo "$REPO" --state open --limit 100 \
+              --json number,title,baseRefName,updatedAt,mergeable,statusCheckRollup,isDraft \
+              | jq -r --arg cutoff "$cutoff" '.[]
+                | select(.baseRefName == "dev" or (.baseRefName | test("^(feat|fix|cursor|chore|ci)/")))
+                | (.statusCheckRollup // []) as $c
+                | ([$c[] | select((.conclusion // .state) as $s | $s == "FAILURE" or $s == "ERROR")] | length) as $fail
+                | [ (if .updatedAt < $cutoff then "stale" else empty end),
+                    (if .mergeable == "CONFLICTING" then "conflict" else empty end),
+                    (if $fail > 0 then "failing" else empty end),
+                    (if .isDraft then "draft" else empty end) ] as $flags
+                | "| #\(.number) \(.title | gsub("\\|"; "/")) | \(.baseRefName) | \(.updatedAt[0:10]) | \(.mergeable) | \($fail) failing | \($flags | join(", ")) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
