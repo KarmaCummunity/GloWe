@@ -22,11 +22,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0350–0359 | — | free |
 | 0360–0369 | money world (#913) | open PR |
 | 0370–0379 | time world (volunteering, #915) | open PR |
-| 0380+ | — | free |
+| 0380–0389 | items & food worlds (handoffs) | open PR |
+| 0390+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0305–0319`, `0350–0359`, `0380+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0305–0319`, `0350–0359`, `0390+`.
 
 ## How to claim
 
