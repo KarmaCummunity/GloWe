@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +30,11 @@ export default function FollowSuggestionsScreen() {
   return (
     <>
       <Stack.Screen
-        options={{ ...detailStackScreenOptions, headerTitle: t('follow.suggestionsTitle') }}
+        options={{
+          ...detailStackScreenOptions,
+          headerTitle: t('follow.suggestionsTitle'),
+          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+        }}
       />
       {completeness.data && completeness.data.score < 100 ? (
         <View style={styles.nudge}>

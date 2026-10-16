@@ -100,4 +100,5 @@ export function getLastColdStartMs(): number | null {
 // Test-only escape hatch.
 export function _resetForTests(): void {
   active.clear();
+  lastColdStartMs = null;
 }

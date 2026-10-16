@@ -147,6 +147,21 @@ describe('runStartInboxSub', () => {
     expect(qc.getQueryData(chatInboxQueryKey('u_me'))).toMatchObject({ unreadTotal: 42 });
   });
 
+  it('invalidates inbox query when cache missing on chat change', async () => {
+    const qc = new QueryClient();
+    const invalidate = vi.spyOn(qc, 'invalidateQueries');
+    const noopUnsub = vi.fn();
+    let handlers: Record<string, (...args: unknown[]) => void> | null = null;
+    const { api } = makeStoreApi({ inboxSub: noopUnsub });
+    const realtime = makeRealtime({ capture: (h) => { handlers = h; } });
+
+    await runStartInboxSub(api, noopUnsub, 'u_me', makeRepo(), realtime, qc);
+    qc.removeQueries({ queryKey: chatInboxQueryKey('u_me') });
+    handlers!.onChatChanged({ chatId: 'c_1' } as Chat);
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: chatInboxQueryKey('u_me') });
+  });
+
   it('wires onInboxMessageInsert → cache bump', async () => {
     const qc = new QueryClient();
     const noopUnsub = vi.fn();

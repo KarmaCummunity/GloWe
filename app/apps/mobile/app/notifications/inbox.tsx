@@ -1,7 +1,7 @@
 // KC#869 — in-app notification center (read/unread, deep links).
 
 import React, { useCallback } from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -53,7 +53,13 @@ export default function NotificationInboxScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ ...detailOptions, headerTitle: t('notifications.inboxTitle') }} />
+      <Stack.Screen
+        options={{
+          ...detailOptions,
+          headerTitle: t('notifications.inboxTitle'),
+          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+        }}
+      />
       <View style={styles.toolbar}>
         <TouchableOpacity onPress={() => void onMarkAll()} accessibilityRole="button">
           <Text style={styles.markAll}>{t('notifications.inboxMarkAll')}</Text>
