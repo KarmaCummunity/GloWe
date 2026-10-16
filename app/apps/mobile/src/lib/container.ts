@@ -46,6 +46,7 @@ import {
   SubmitSupportIssueUseCase,
   ReportChatUseCase,
   ReportPostUseCase,
+  ReportListingUseCase,
   DeletePostUseCase,
   AdminRemovePostUseCase,
   ListDonationLinksUseCase,
@@ -231,6 +232,7 @@ export const container = {
   // Reports
   reportChat: new ReportChatUseCase(reportRepo),
   reportPost: new ReportPostUseCase(reportRepo),
+  reportListing: new ReportListingUseCase(reportRepo),
 
   // Post moderation
   deletePost: new DeletePostUseCase(postRepo),

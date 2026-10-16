@@ -85,6 +85,8 @@ export { ReportChatUseCase } from './reports/ReportChatUseCase';
 export type { ReportChatInput } from './reports/ReportChatUseCase';
 export { ReportPostUseCase } from './reports/ReportPostUseCase';
 export type { ReportPostInput } from './reports/ReportPostUseCase';
+export { ReportListingUseCase } from './reports/ReportListingUseCase';
+export type { ReportListingInput } from './reports/ReportListingUseCase';
 export { ReportError } from './reports/errors';
 export type { ReportErrorCode } from './reports/errors';
 

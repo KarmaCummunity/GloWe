@@ -1,7 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { IMarketplaceRepository, MarketplaceBrowseFilters } from '@kc/application';
-import type { MarketplaceBrowseRow, MarketplaceMapCluster } from '@kc/domain';
+import type {
+  ListingKindOption,
+  MarketplaceBrowseRow,
+  MarketplaceListingDetail,
+  MarketplaceMapCluster,
+  MarketplaceSimilarListing,
+} from '@kc/domain';
 import type { Database } from '../database.types';
+import { mapListingDetail } from './mapListingDetail';
 
 type BrowseRow = Database['public']['Functions']['browse_listings']['Returns'][number];
 
@@ -79,6 +86,46 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     }));
   }
 
+  async getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null> {
+    const { data, error } = await this.client.rpc('get_marketplace_listing_detail', {
+      p_listing_id: listingId,
+    });
+    if (error || data == null) return null;
+    return mapListingDetail(data);
+  }
+
+  async similarListings(listingId: string, limit = 6): Promise<MarketplaceSimilarListing[]> {
+    const { data, error } = await this.client.rpc('similar_listings', {
+      p_listing_id: listingId,
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return data.map((r) => ({
+      listingId: r.listing_id,
+      title: r.title,
+      worldSlug: r.world_slug,
+      kindSlug: r.kind_slug,
+    }));
+  }
+
+  async listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]> {
+    const { data, error } = await this.client
+      .from('listing_kinds')
+      .select('kind_id, slug, label_en, label_he, direction, detail_schema')
+      .eq('world_slug', worldSlug)
+      .eq('is_active', true)
+      .order('sort_order');
+    if (error || !data) return [];
+    return data.map((k) => ({
+      kindId: k.kind_id,
+      slug: k.slug,
+      labelEn: k.label_en,
+      labelHe: k.label_he,
+      direction: k.direction as ListingKindOption['direction'],
+      detailSchema: (k.detail_schema as Record<string, unknown>) ?? {},
+    }));
+  }
+
   async getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null> {
     const { data, error } = await this.client
       .from('listings')
@@ -107,16 +154,9 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     };
   }
 
-  async createListing(input: {
-    kindId: string;
-    title: string;
-    summary?: string | null;
-    details?: Record<string, unknown>;
-    direction?: 'give' | 'request' | null;
-    cityId?: string | null;
-    urgencyLevel?: number;
-    availabilityStatus?: string;
-  }): Promise<string> {
+  async createListing(
+    input: Parameters<IMarketplaceRepository['createListing']>[0],
+  ): Promise<string> {
     const { data, error } = await this.client.rpc('create_marketplace_listing', {
       p_kind_id: input.kindId,
       p_title: input.title,
@@ -124,6 +164,10 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
       p_details: (input.details ?? {}) as Database['public']['Functions']['create_marketplace_listing']['Args']['p_details'],
       p_direction: input.direction ?? undefined,
       p_city_id: input.cityId ?? undefined,
+      p_lat: input.lat ?? undefined,
+      p_lng: input.lng ?? undefined,
+      p_max_radius_km: input.maxRadiusKm ?? undefined,
+      p_media_paths: input.mediaPaths ?? undefined,
       p_urgency_level: input.urgencyLevel ?? undefined,
       p_availability_status: input.availabilityStatus ?? undefined,
     });

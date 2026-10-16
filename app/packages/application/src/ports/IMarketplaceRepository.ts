@@ -1,4 +1,10 @@
-import type { MarketplaceBrowseRow, MarketplaceMapCluster } from '@kc/domain';
+import type {
+  ListingKindOption,
+  MarketplaceBrowseRow,
+  MarketplaceListingDetail,
+  MarketplaceMapCluster,
+  MarketplaceSimilarListing,
+} from '@kc/domain';
 
 export interface MarketplaceBrowseFilters {
   worldSlug?: string | null;
@@ -24,6 +30,9 @@ export interface IMarketplaceRepository {
     worldSlug?: string | null;
   }): Promise<MarketplaceMapCluster[]>;
   getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null>;
+  getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null>;
+  similarListings(listingId: string, limit?: number): Promise<MarketplaceSimilarListing[]>;
+  listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]>;
   createListing(input: {
     kindId: string;
     title: string;
@@ -31,6 +40,10 @@ export interface IMarketplaceRepository {
     details?: Record<string, unknown>;
     direction?: 'give' | 'request' | null;
     cityId?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    maxRadiusKm?: number | null;
+    mediaPaths?: string[];
     urgencyLevel?: number;
     availabilityStatus?: string;
   }): Promise<string>;

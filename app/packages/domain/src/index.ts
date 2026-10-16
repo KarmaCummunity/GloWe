@@ -39,3 +39,4 @@ export * from './translations/TranslationError';
 export * from './translations/TranslationRequest';
 export * from './translations/cacheKey';
 export * from './marketplace/MarketplaceTypes';
+export * from './marketplace/validateListingDetails';
