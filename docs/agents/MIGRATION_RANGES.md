@@ -22,7 +22,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0350–0359 | — | free |
 | 0360–0369 | money world (#913) | open PR |
 | 0370–0379 | time world (volunteering, #915) | open PR |
-| 0380–0389 | items & food worlds (handoffs) | open PR |
+| 0380–0389 | items & food worlds (handoffs, #916) | open PR |
 | 0390+ | — | free |
 
 ## Next free ranges
