@@ -61,7 +61,7 @@ begin
   insert into public.posts (
     post_id, owner_id, type, status, visibility, title, category, city, street, street_number
   ) values (
-    '00000000-0000-0000-0000-0000002400p1',
+    '00000000-0000-0000-0000-000000240010',
     '00000000-0000-0000-0000-000000240001',
     'Give', 'open', 'Public', 'Listing test chair', 'Other', 'tel-aviv', 'Herzl', '1'
   ) returning post_id into v_post_id;
