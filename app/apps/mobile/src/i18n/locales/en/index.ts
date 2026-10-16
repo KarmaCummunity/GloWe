@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────
 
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { givingHandoff } from './givingHandoff';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -109,6 +110,7 @@ const en = {
   marketplace,
   moneyPayments,
   timeVolunteer,
+  givingHandoff,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

@@ -1522,6 +1522,90 @@ export type Database = {
           },
         ]
       }
+      giving_handoff_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          handoff_id: string
+          ratee_id: string
+          rater_id: string
+          rating: number
+          rating_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          handoff_id: string
+          ratee_id: string
+          rater_id: string
+          rating: number
+          rating_id?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          handoff_id?: string
+          ratee_id?: string
+          rater_id?: string
+          rating?: number
+          rating_id?: string
+        }
+        Relationships: []
+      }
+      giving_handoffs: {
+        Row: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          status: string
+          world_slug: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          confirm_by?: string | null
+          confirmed_at?: string | null
+          handed_over_at?: string | null
+          handoff_id?: string
+          listing_id: string
+          no_show_at?: string | null
+          owner_id: string
+          pickup_mode?: string
+          pickup_window_end?: string | null
+          pickup_window_start?: string | null
+          recipient_id: string
+          reserved_at?: string
+          status?: string
+          world_slug: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          confirm_by?: string | null
+          confirmed_at?: string | null
+          handed_over_at?: string | null
+          handoff_id?: string
+          listing_id?: string
+          no_show_at?: string | null
+          owner_id?: string
+          pickup_mode?: string
+          pickup_window_end?: string | null
+          pickup_window_start?: string | null
+          recipient_id?: string
+          reserved_at?: string
+          status?: string
+          world_slug?: string
+        }
+        Relationships: []
+      }
       external_bodies: {
         Row: {
           body_id: string
@@ -7711,6 +7795,57 @@ export type Database = {
           p_status?: string
         }
         Returns: string
+      }
+      cancel_giving_handoff: {
+        Args: { p_handoff_id: string }
+        Returns: undefined
+      }
+      claim_food_giving: {
+        Args: {
+          p_listing_id: string
+          p_pickup_window_end?: string
+          p_pickup_window_start?: string
+        }
+        Returns: Database['public']['Tables']['giving_handoffs']['Row']
+      }
+      confirm_item_handoff: {
+        Args: { p_handoff_id: string }
+        Returns: Database['public']['Tables']['giving_handoffs']['Row']
+      }
+      get_listing_handoff: {
+        Args: { p_listing_id: string }
+        Returns: Json
+      }
+      list_my_giving_handoffs: {
+        Args: { p_limit?: number }
+        Returns: {
+          handoff_id: string
+          listing_id: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          reserved_at: string
+          role: string
+          status: string
+          title: string
+          world_slug: string
+        }[]
+      }
+      mark_giving_handed_over: {
+        Args: { p_handoff_id: string }
+        Returns: Database['public']['Tables']['giving_handoffs']['Row']
+      }
+      rate_giving_handoff: {
+        Args: { p_comment?: string; p_handoff_id: string; p_rating: number }
+        Returns: Database['public']['Tables']['giving_handoff_ratings']['Row']
+      }
+      reserve_item_giving: {
+        Args: {
+          p_listing_id: string
+          p_pickup_mode?: string
+          p_pickup_window_end?: string
+          p_pickup_window_start?: string
+        }
+        Returns: Database['public']['Tables']['giving_handoffs']['Row']
       }
       find_matches: {
         Args: { p_limit?: number; p_listing_id: string; p_viewer?: string }

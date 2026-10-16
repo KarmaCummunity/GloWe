@@ -298,3 +298,4 @@ export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBu
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';
 export * from './payments';
 export * from './volunteering';
+export * from './giving';

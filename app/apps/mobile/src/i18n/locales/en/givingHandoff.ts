@@ -1,0 +1,17 @@
+export const givingHandoff = {
+  sectionTitle: 'Pickup & handoff',
+  status: 'Status: {{status}}',
+  reserveItem: 'Reserve this item',
+  reserveDelivery: 'Reserve with delivery',
+  claimFood: 'Quick claim food rescue',
+  confirmReservation: 'Confirm reservation',
+  markHandedOver: 'Mark handed over',
+  cancel: 'Cancel handoff',
+  ratingThanks: 'Thanks — your rating builds community trust.',
+  errorGeneric: 'Could not update handoff. Try again.',
+  itemsHubIntro: 'Give and receive items with photos, condition, pickup or delivery, and a clear reservation flow.',
+  foodHubIntro: 'Rescue food before it expires — urgency rises as expiry nears. Quick claim and pickup windows.',
+  myHandoffs: 'My handoffs',
+  createListing: 'Post a listing',
+  urgencyHigh: 'Expires soon',
+} as const;

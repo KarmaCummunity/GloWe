@@ -1,0 +1,17 @@
+export const givingHandoff = {
+  sectionTitle: 'איסוף ומסירה',
+  status: 'סטטוס: {{status}}',
+  reserveItem: 'שריון הפריט',
+  reserveDelivery: 'שריון עם משלוח',
+  claimFood: 'תפיסה מהירה — הצלת מזון',
+  confirmReservation: 'אישור שריון',
+  markHandedOver: 'סומן כנמסר',
+  cancel: 'ביטול מסירה',
+  ratingThanks: 'תודה — הדירוג בונה אמון בקהילה.',
+  errorGeneric: 'לא הצלחנו לעדכן. נסו שוב.',
+  itemsHubIntro: 'מסירת חפצים עם תמונות, מצב, איסוף או משלוח, ושריון ברור.',
+  foodHubIntro: 'הצילו מזון לפני פקיעה — דחיפות עולה ככל שהתאריך קרוב. תפיסה מהירה וחלונות איסוף.',
+  myHandoffs: 'המסירות שלי',
+  createListing: 'פרסום מודעה',
+  urgencyHigh: 'פג תוקף בקרוב',
+} as const;
