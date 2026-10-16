@@ -135,6 +135,7 @@ volatile
 security definer
 set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare
   v_src public.listings;
   v_run uuid;
