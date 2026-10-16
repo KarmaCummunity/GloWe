@@ -1,8 +1,8 @@
-// Local mock-login only — ensures auth.users + glowe_profiles (+ optional admin grant).
+// Local mock-login only — ensures auth.users + public.users (+ optional admin grant).
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
-export const MOCK_DEV_PASSWORD = 'GloweLocal!2026';
+export const MOCK_DEV_PASSWORD = 'KcLocal!2026';
 export const DEFAULT_MOCK_EMAIL = 'test-user@local.dev';
 export const DEFAULT_MOCK_NAME = 'Local Test User';
 
@@ -10,8 +10,6 @@ export type MockLoginInput = {
   userId?: string;
   email?: string;
   role?: string;
-  profileType?: string;
-  approvalStatus?: string;
   displayName?: string;
 };
 
@@ -88,71 +86,18 @@ async function ensurePublicUserRow(
   }, { onConflict: 'user_id' });
 }
 
-function normalizeProfileType(value?: string): 'individual' | 'organization' {
-  return value === 'organization' ? 'organization' : 'individual';
-}
-
-function normalizeApprovalStatus(
-  accountType: 'individual' | 'organization',
-  value?: string,
-): 'approved' | 'pending' | 'not_required' {
-  if (value === 'approved' || value === 'pending' || value === 'not_required') {
-    return value;
-  }
-  return accountType === 'organization' ? 'pending' : 'not_required';
-}
-
-async function ensureGloweProfile(
-  admin: SupabaseClient,
-  userId: string,
-  email: string,
-  displayName: string,
-  input: Pick<MockLoginInput, 'profileType' | 'approvalStatus'> = {},
-): Promise<void> {
-  const accountType = normalizeProfileType(input.profileType);
-  const approvalStatus = normalizeApprovalStatus(accountType, input.approvalStatus);
-  const row: Record<string, unknown> = {
-    id: userId,
-    email,
-    display_name: displayName,
-    profile_type: accountType === 'organization' ? 'Organization' : 'Individual',
-    account_type: accountType,
-    approval_status: approvalStatus,
-    onboarding_complete: true,
-    profile_status: approvalStatus === 'pending' ? 'Pending review' : 'Approved',
-    country: 'Exampleland',
-    about: 'Local mock-login test user.',
-  };
-
-  if (accountType === 'organization') {
-    Object.assign(row, {
-      org_name: displayName,
-      focus: 'Community',
-      org_field: 'Community',
-      org_description: row.about,
-      org_contact_email: email,
-      org_contact_name: displayName,
-      org_country: 'Exampleland',
-      org_submitted_at: new Date().toISOString(),
-      org_reviewed_at: approvalStatus === 'approved' ? new Date().toISOString() : null,
-    });
-  }
-
-  await admin.from('glowe_profiles').upsert(row, { onConflict: 'id' });
-}
-
 async function ensureAdminGrant(admin: SupabaseClient, userId: string): Promise<void> {
   const { data: existing } = await admin
     .from('admin_role_grants')
     .select('grant_id')
     .eq('user_id', userId)
-    .eq('role', 'glowe_admin')
+    .eq('role', 'super_admin')
     .is('revoked_at', null)
     .maybeSingle();
   if (existing) return;
   await admin.from('admin_role_grants').insert({
     user_id: userId,
-    role: 'glowe_admin',
+    role: 'super_admin',
     granted_by: userId,
   });
 }
@@ -166,7 +111,6 @@ export async function ensureMockUser(
     || (email === DEFAULT_MOCK_EMAIL ? DEFAULT_MOCK_NAME : email.split('@')[0]);
   const userId = await ensureAuthUser(admin, email, displayName, input.userId);
   await ensurePublicUserRow(admin, userId, displayName);
-  await ensureGloweProfile(admin, userId, email, displayName, input);
   if (normalizeRole(input.role) === 'admin') {
     await ensureAdminGrant(admin, userId);
   }

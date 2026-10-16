@@ -5,24 +5,22 @@
 
 ## TL;DR
 
-| Concern | `main` (KC production) | `dev` (GloWe production) | `staging` (GloWe integration) |
+| Concern | `main` (KC production) | `dev` (KC integration) | `staging` (KC pre-prod) |
 |---|---|---|---|
 | Git branch | `main` | `dev` | `staging` |
 | Supabase project | `slxijdfvinbjmrsfgbzx` | `roeefqpdbftlndzsvhfj` | `roeefqpdbftlndzsvhfj` |
 | Hosting | Cloudflare Pages — `karma-community-kc.com` | Cloudflare Pages — `dev.karma-community.pages.dev` | Cloudflare Pages — `staging.karma-community.pages.dev` |
-| **Live product URL** | **KC:** `https://karma-community-kc.com/` | **GloWe:** `https://dev.karma-community.pages.dev/glowe/` | **GloWe staging:** `https://staging.karma-community.pages.dev/glowe/` |
+| **Live product URL** | `https://karma-community-kc.com/` | `https://dev.karma-community.pages.dev/` | `https://staging.karma-community.pages.dev/` |
 | GitHub Actions env | `cloudflare-prod` | `cloudflare-dev` | `cloudflare-dev` |
 | `EXPO_PUBLIC_ENVIRONMENT` | `production` | `development` | `development` |
 | In-app dev banner | hidden | visible | visible |
 
-> **Dual production (2026-07-22, D-182):** KC and GloWe ship **separate live URLs** from **separate branches**. The hostname `dev.karma-community.pages.dev` is Cloudflare's branch alias for the `dev` deploy — it is **GloWe's production front door**, not a throwaway preview. Do not point GloWe synthetics at `karma-community-kc.com/glowe` unless that URL is promoted to canonical (it currently lags `dev`).
->
-> **GloWe staging (2026-07-27, D-189):** Ongoing feature work lands on `staging` first (`staging` → `dev` for release). Playwright E2E + visual regression run against `GLOWE_STAGING_URL` on PRs to `staging`, and against `GLOWE_PROD_URL` on PRs/pushes to `dev`.
+> **GloWe sunset (2026-10-16, D-190):** The GloWe static frontend and `glowe_*` schema were removed. All branches deploy the KC web export at the site root. Legacy `/glowe/*` URLs redirect to `/` via `web-postbuild.mjs`.
 
 ## Branching rules
 
-1. **`staging` is the integration branch for GloWe.** Feature/fix/refactor PRs target `staging` first. When stable, open a release PR `staging` → `dev`.
-2. **`dev` is GloWe's production branch.** Merges to `dev` deploy to `https://dev.karma-community.pages.dev/glowe/` (GloWe's live front door). Playwright prod-health + release gates run here.
+1. **`staging` is optional pre-integration.** Feature PRs may target `staging` first, then `staging` → `dev`.
+2. **`dev` is the integration branch.** Merges deploy KC web to `https://dev.karma-community.pages.dev/`.
 3. **`dev` is never behind `main`.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which merges `main` into `dev`. If that workflow fails (merge conflict), resolving it is the operator's first priority.
 4. **`main` is fast-forward only from `dev`.** KC production releases happen by opening a PR from `dev` → `main` and squash-merging.
 5. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). Whenever they happen, the sync workflow brings them into `dev` automatically.
@@ -139,24 +137,12 @@ Draft PRs skip every job except none (PR hygiene waits for `ready_for_review`). 
 
 **Post-merge KC smoke:** `.github/workflows/prod-smoke.yml` polls **`KC_PROD_URL`** (legacy alias: `PROD_WEB_URL`) after `main` deploy.
 
-**GloWe live-site synthetics:** `.github/workflows/glowe-prod-smoke.yml` runs read-only Playwright probes against **`GLOWE_PROD_URL`** after `dev` deploy, on a 15-minute cron, and via `workflow_dispatch`. Results ingest into `glowe_health_checks` on the **dev** Supabase project (GloWe's backend today).
-
-### GloWe production monitoring (`INFRA-QA-W7`)
-
 | GitHub | Name | Value / purpose |
 | --- | --- | --- |
-| Variable | `GLOWE_PROD_URL` | GloWe live URL — `https://dev.karma-community.pages.dev/glowe` |
-| Variable | `GLOWE_STAGING_URL` | GloWe integration URL — `https://staging.karma-community.pages.dev/glowe` |
 | Variable | `KC_PROD_URL` | KC live root — `https://karma-community-kc.com` (for `prod-smoke.yml`) |
-| Environment | `supabase-dev` | Ingest uses Management API service-role key (same as seed workflow) |
+| Variable | `PROD_WEB_URL` | Legacy alias for `KC_PROD_URL` |
 
-Admin visibility: GloWe `admin.html` → **System health** panel. Ingest script: `scripts/record-prod-health.mjs`.
-
-### Legacy alias
-
-| GitHub | Name | Notes |
-| --- | --- | --- |
-| Variable | `PROD_WEB_URL` | Deprecated for GloWe; `prod-smoke.yml` still accepts it as fallback for `KC_PROD_URL` |
+**Manual follow-up:** Remove obsolete repo variables `GLOWE_PROD_URL`, `GLOWE_STAGING_URL`, and `GLOWE_SEED_PASSWORD` from GitHub Actions if still present.
 
 ## E2E automation (Web, `D-55`)
 

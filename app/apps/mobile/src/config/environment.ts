@@ -23,23 +23,6 @@ export function isDevEnvironment(): boolean {
 }
 
 /**
- * Gates the GLOWE partnership entry points inside KC (the Settings support row
- * and the Donations hub banner, which deep-link out to the GLOWE web app).
- * GLOWE is still a development-only product surface, so these links are shown in
- * the development build and hidden in production (`main`). Follows the environment
- * by default — no extra deploy config needed, since `EXPO_PUBLIC_ENVIRONMENT`
- * already differs per environment. An explicit `EXPO_PUBLIC_GLOWE_LINKS` override
- * wins ('1' forces on, '0' forces off) for local testing.
- */
-export function areGloweLinksEnabled(): boolean {
-  const override =
-    typeof process !== 'undefined' ? process.env['EXPO_PUBLIC_GLOWE_LINKS'] : undefined;
-  if (override === '1') return true;
-  if (override === '0') return false;
-  return isDevEnvironment();
-}
-
-/**
  * Gates the dev preview route at `/dev/shell-preview`. Defaults ON in dev
  * (set EXPO_PUBLIC_SHELL_V2=0 to disable), always OFF in production.
  *
