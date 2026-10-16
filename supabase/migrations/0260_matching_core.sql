@@ -234,7 +234,8 @@ begin
    where run_id = v_run;
 
   return query
-  select cid, total, v_score, f_score, g_score, t_score, st
+  select cid, total::numeric, v_score::numeric, f_score::numeric,
+         g_score::numeric, t_score::numeric, st::text
     from pg_temp._find_match_ranked
    where st = 'suggested' or v_is_op
    order by total desc
