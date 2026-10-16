@@ -69,6 +69,7 @@ create index if not exists feed_impressions_user_seen_idx
   on public.feed_impressions (user_id, seen_at desc);
 
 alter table public.feed_impressions enable row level security;
+alter table public.feed_impressions_default enable row level security;
 grant insert on public.feed_impressions to authenticated;
 
 create policy feed_impressions_insert_own on public.feed_impressions
