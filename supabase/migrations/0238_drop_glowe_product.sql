@@ -29,8 +29,8 @@ drop policy if exists glowe_avatars_update_own on storage.objects;
 drop policy if exists glowe_avatars_delete_own on storage.objects;
 drop policy if exists glowe_avatars_read_public on storage.objects;
 
-delete from storage.objects where bucket_id = 'glowe-avatars';
-delete from storage.buckets where id = 'glowe-avatars';
+-- Bucket/object removal is not allowed via SQL (storage.protect_delete); the
+-- empty 'glowe-avatars' bucket is removed via the Storage API / dashboard instead.
 
 -- ── Views ───────────────────────────────────────────────────────────────────
 drop view if exists public.glowe_public_profiles;
