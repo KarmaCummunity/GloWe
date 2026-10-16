@@ -18,9 +18,10 @@ const SORT_KEYS: Record<FeedSortOrder, string> = {
   newest: 'filters.sortNewest',
   oldest: 'filters.sortOldest',
   distance: 'filters.sortDistance',
+  personalized: 'filters.sortPersonalized',
 };
 
-const SORT_ORDER_ENTRIES: FeedSortOrder[] = ['newest', 'oldest', 'distance'];
+const SORT_ORDER_ENTRIES: FeedSortOrder[] = ['newest', 'personalized', 'oldest', 'distance'];
 
 export function SortSection({
   sortOrder,

@@ -205,7 +205,11 @@ export interface IUserRepository {
    */
   updateNotificationPreferences(
     userId: string,
-    partial: { critical?: boolean; social?: boolean },
+    partial: {
+      critical?: boolean;
+      social?: boolean;
+      quietHours?: NotificationPreferences['quietHours'];
+    },
   ): Promise<NotificationPreferences>;
 
   // Auth identities

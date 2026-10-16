@@ -6,6 +6,8 @@
 import type { PostWithOwner } from './IPostRepository';
 import type {
   DonationLinkSearchResult,
+  HashtagSearchResult,
+  OrgSearchResult,
   SearchFilters,
   UserSearchResult,
 } from '@kc/domain';
@@ -15,12 +17,17 @@ export interface UniversalSearchResults {
   readonly posts: PostWithOwner[];
   readonly users: UserSearchResult[];
   readonly links: DonationLinkSearchResult[];
+  readonly orgs: OrgSearchResult[];
+  readonly hashtags: HashtagSearchResult[];
+  readonly suggestedQueries: string[];
   /** Total matches for posts (may exceed `posts.length` when preview-limited). */
   readonly postsTotal: number;
   /** Total matches for users (may exceed `users.length` when preview-limited). */
   readonly usersTotal: number;
   /** Total matches for links (may exceed `links.length` when preview-limited). */
   readonly linksTotal: number;
+  readonly orgsTotal: number;
+  readonly hashtagsTotal: number;
 }
 
 export interface ISearchRepository {

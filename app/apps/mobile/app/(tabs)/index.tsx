@@ -30,6 +30,7 @@ import { useFirstPostNudge } from '../../src/hooks/useFirstPostNudge';
 import { useReaderLanguage } from '../../src/hooks/useReaderLanguage';
 import { useTranslatedPosts } from '../../src/hooks/useTranslatedPosts';
 import { getFeedUseCase } from '../../src/services/postsComposition';
+import { container } from '../../src/lib/container';
 import { startMark } from '../../src/lib/observability/perfMarks';
 import { useScreenAside } from '../../src/components/aside/useScreenAside';
 import { GivingWorldsAside } from '../../src/components/aside/GivingWorldsAside';
@@ -132,9 +133,16 @@ export default function HomeFeedScreen() {
   // dwell in view (60% for 400ms), then materialize only their fields.
   const readerLanguage = useReaderLanguage();
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
+  const loggedImpressionsRef = useRef(new Set<string>());
   const onViewableItemsChanged = useRef(
     (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => {
-      setVisibleIds(info.viewableItems.map((v) => String(v.key)));
+      const ids = info.viewableItems.map((v) => String(v.key));
+      setVisibleIds(ids);
+      const fresh = ids.filter((id) => !loggedImpressionsRef.current.has(id));
+      if (fresh.length > 0 && viewerId) {
+        fresh.forEach((id) => loggedImpressionsRef.current.add(id));
+        void container.socialFeed.logImpressions(fresh.slice(0, 25));
+      }
     },
   ).current;
   const viewabilityConfig = useRef({

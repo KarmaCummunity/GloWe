@@ -19,9 +19,14 @@ class StubSearchRepo implements ISearchRepository {
     posts: [],
     users: [],
     links: [],
+    orgs: [],
+    hashtags: [],
+    suggestedQueries: [],
     postsTotal: 0,
     usersTotal: 0,
     linksTotal: 0,
+    orgsTotal: 0,
+    hashtagsTotal: 0,
   };
 
   async search(

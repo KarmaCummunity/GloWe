@@ -19,11 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/store/authStore';
 import { useSearchStore } from '../../src/store/searchStore';
 import { getUniversalSearchUseCase } from '../../src/services/searchComposition';
-import {
-  UserResultCard,
-  PostResultCard,
-  LinkResultCard,
-} from '../../src/components/SearchResultCard';
 import { SearchFilterSheet } from '../../src/components/SearchFilterSheet';
 import { TopBar } from '../../src/components/TopBar';
 import { Screen } from '../../src/components/ui/Screen';
@@ -31,6 +26,9 @@ import { MotionEntry, ENTRY_DELAY } from '../../src/components/ui/MotionEntry';
 import { useSearchScreenAside } from '../../src/components/aside/useSearchScreenAside';
 import { useDebouncedSearchInput } from '../../src/hooks/useDebouncedSearchInput';
 import { useSearchScreenStyles } from './search.styles';
+import { SearchSuggestedQueries } from '../../src/components/search/SearchSuggestedQueries';
+import { SearchRecentSection } from '../../src/components/search/SearchRecentSection';
+import { SearchResultSections } from '../../src/components/search/SearchResultSections';
 
 // ── Constants ─────────────────────────────────
 const DEBOUNCE_MS = 300; // debounce delay for search input
@@ -105,7 +103,12 @@ export default function SearchScreen() {
 
   const results = query.data;
   const hasResults =
-    results && (results.posts.length > 0 || results.users.length > 0 || results.links.length > 0);
+    results
+    && (results.posts.length > 0
+      || results.users.length > 0
+      || results.links.length > 0
+      || results.orgs.length > 0
+      || results.hashtags.length > 0);
 
   // ── Handlers ────────────────────────────────
 
@@ -191,12 +194,14 @@ export default function SearchScreen() {
         contentContainerStyle={styles.chipRow}
         style={styles.chipContainer}
       >
-        {([null, 'post', 'user', 'link'] as (SearchResultType | null)[]).map((type) => {
+        {([null, 'post', 'user', 'link', 'org', 'hashtag'] as (SearchResultType | null)[]).map((type) => {
           const labels: Record<string, string> = {
             '': t('search.all'),
             post: t('search.posts'),
             user: t('search.people'),
             link: t('search.links'),
+            org: t('search.orgs'),
+            hashtag: t('search.hashtags'),
           };
           const active = filters.resultType === type;
           return (
@@ -279,110 +284,31 @@ export default function SearchScreen() {
         )}
 
         {/* Recent searches (shown in explore mode, above the discovery feed) */}
-        {!isSearchMode && !isSingleCharTyped && store.recentSearches.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('search.recentSearches')}</Text>
-              <TouchableOpacity onPress={() => store.clearRecentSearches()}>
-                <Text style={styles.clearRecentText}>{t('search.clearRecent')}</Text>
-              </TouchableOpacity>
-            </View>
-            {store.recentSearches.map((q, i) => (
-              <Pressable
-                key={`${q}-${i}`}
-                style={({ pressed }) => [styles.recentRow, pressed && styles.recentRowPressed]}
-                onPress={() => handleRecentTap(q)}
-              >
-                <Ionicons name="chevron-back" size={16} color={colors.textDisabled} />
-                <Text style={styles.recentText}>{q}</Text>
-                <Ionicons name="time-outline" size={16} color={colors.textDisabled} />
-              </Pressable>
-            ))}
-          </View>
+        {!isSearchMode && !isSingleCharTyped && (
+          <SearchSuggestedQueries
+            queries={results?.suggestedQueries ?? []}
+            onSelect={handleRecentTap}
+          />
+        )}
+
+        {!isSearchMode && !isSingleCharTyped && (
+          <SearchRecentSection
+            queries={store.recentSearches}
+            onSelect={handleRecentTap}
+            onClear={() => store.clearRecentSearches()}
+          />
         )}
 
         {/* ── Result sections ──────────────── */}
         {!isSingleCharTyped && results && hasResults && (
-          <>
-            {/* Users section */}
-            {results.users.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionTitleRow}>
-                    <Text style={styles.sectionTitle}>{t('search.sectionPeople')}</Text>
-                    <Ionicons name="people" size={18} color={colors.primary} />
-                    <Text style={styles.sectionCount}>({results.usersTotal})</Text>
-                  </View>
-                  {results.usersTotal > PREVIEW_LIMIT && expandedSection !== 'user' && (
-                    <TouchableOpacity
-                      style={styles.showAllBtn}
-                      onPress={() => setExpandedSection('user')}
-                    >
-                      <Text style={styles.showAllText}>{t('search.showAll')}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {results.users.map((user) => (
-                  <UserResultCard key={user.userId} user={user} />
-                ))}
-              </View>
-            )}
-
-            {/* Posts section */}
-            {results.posts.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionTitleRow}>
-                    <Text style={styles.sectionTitle}>{t('search.sectionPosts')}</Text>
-                    <Ionicons name="cube" size={18} color={colors.primary} />
-                    <Text style={styles.sectionCount}>({results.postsTotal})</Text>
-                  </View>
-                  {results.postsTotal > PREVIEW_LIMIT && expandedSection !== 'post' && (
-                    <TouchableOpacity
-                      style={styles.showAllBtn}
-                      onPress={() => setExpandedSection('post')}
-                    >
-                      <Text style={styles.showAllText}>{t('search.showAll')}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {results.posts.map((post) => (
-                  <PostResultCard key={post.postId} post={post} />
-                ))}
-              </View>
-            )}
-
-            {/* Links section */}
-            {results.links.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View style={styles.sectionTitleRow}>
-                    <Text style={styles.sectionTitle}>{t('search.sectionLinks')}</Text>
-                    <Ionicons name="link" size={18} color={colors.secondary} />
-                    <Text style={styles.sectionCount}>({results.linksTotal})</Text>
-                  </View>
-                  {results.linksTotal > PREVIEW_LIMIT && expandedSection !== 'link' && (
-                    <TouchableOpacity
-                      style={styles.showAllBtn}
-                      onPress={() => setExpandedSection('link')}
-                    >
-                      <Text style={styles.showAllText}>{t('search.showAll')}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {/* Note: city filter doesn't apply to links — they're national */}
-                {filters.city && (
-                  <View style={styles.nationalNote}>
-                    <Ionicons name="globe-outline" size={14} color={colors.textSecondary} />
-                    <Text style={styles.nationalNoteText}>{t('search.nationalLinks')}</Text>
-                  </View>
-                )}
-                {results.links.map((link) => (
-                  <LinkResultCard key={link.id} link={link} />
-                ))}
-              </View>
-            )}
-          </>
+          <SearchResultSections
+            results={results}
+            expandedSection={expandedSection}
+            onExpand={setExpandedSection}
+            previewLimit={PREVIEW_LIMIT}
+            showNationalLinksNote={Boolean(filters.city)}
+            onHashtagTap={handleRecentTap}
+          />
         )}
       </ScrollView>
 

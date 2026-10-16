@@ -129,6 +129,7 @@ export interface Message {
   readonly kind: MessageKind;
   body: string;
   systemPayload: Record<string, unknown> | null;
+  mediaPayload: Record<string, unknown> | null;
   status: MessageStatus;
   readonly createdAt: string;
   deliveredAt: string | null;

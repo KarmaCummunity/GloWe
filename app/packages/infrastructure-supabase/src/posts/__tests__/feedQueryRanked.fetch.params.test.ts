@@ -80,6 +80,7 @@ describe('fetchRankedFeedPage — RPC params + early-exit branches', () => {
       p_proximity_sort_city: 'IL-001',
       p_page_limit: 11,
       p_followers_only: true,
+      p_cursor_rank_score: undefined,
     });
   });
 

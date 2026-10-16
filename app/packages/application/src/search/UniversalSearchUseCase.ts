@@ -33,7 +33,10 @@ export class UniversalSearchUseCase {
     // Search mode: query >= 2 chars → full search.
     // Between 1-1 chars → return empty (avoid noise from single-char queries).
     if (trimmed.length > 0 && trimmed.length < 2) {
-      return { posts: [], users: [], links: [], postsTotal: 0, usersTotal: 0, linksTotal: 0 };
+      return {
+        posts: [], users: [], links: [], orgs: [], hashtags: [], suggestedQueries: [],
+        postsTotal: 0, usersTotal: 0, linksTotal: 0, orgsTotal: 0, hashtagsTotal: 0,
+      };
     }
 
     const limits = {

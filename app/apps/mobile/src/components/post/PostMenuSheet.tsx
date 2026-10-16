@@ -1,6 +1,8 @@
 // FR-POST-014 AC4 + FR-POST-015 AC1 + FR-ADMIN-006 + FR-ADMIN-009.
 // Bottom-sheet menu opened from PostMenuButton on PostDetail.
 import { useState, type ComponentProps } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { container } from '../../lib/container';
 import { Modal, Text, Pressable, ScrollView, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +50,7 @@ export function PostMenuSheet({
   onEdit,
 }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { colors } = useTheme();
   const styles = usePostMenuSheetStyles();
   const [active, setActive] = useState<ActiveModal>(null);
@@ -88,6 +91,18 @@ export function PostMenuSheet({
                       if (shareBusy) return;
                       onClose();
                       runAfterBottomSheetDismiss(() => share());
+                    }}
+                  />
+                ) : null}
+                {!isOwner ? (
+                  <MenuItem
+                    icon="eye-off-outline"
+                    label={t('post.menuHideFromFeed')}
+                    onPress={() => {
+                      onClose();
+                      void container.socialFeed.hidePost(post.postId).then(() => {
+                        void queryClient.invalidateQueries({ queryKey: ['feed'] });
+                      });
                     }}
                   />
                 ) : null}

@@ -4,6 +4,8 @@ export const chatEn = {
   noChats: 'No chats yet',
   noChatsDesc: 'Reach out to posters directly from their posts.',
   inputPlaceholder: 'Write a message...',
+  attachImage: 'Attach image',
+  mediaUploadFailed: 'Could not send the image. Try again.',
   typingIndicator: 'Typing…',
   send: 'Send',
   read: 'Read',

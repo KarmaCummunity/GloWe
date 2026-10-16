@@ -263,17 +263,22 @@ export class SupabaseUserRepository implements IUserRepository {
 
   async updateNotificationPreferences(
     userId: string,
-    partial: { critical?: boolean; social?: boolean },
-  ): Promise<{ critical: boolean; social: boolean }> {
-    const merge: Record<string, boolean> = {};
+    partial: {
+      critical?: boolean;
+      social?: boolean;
+      quietHours?: { enabled: boolean; start: string; end: string; timezone: string };
+    },
+  ): Promise<{ critical: boolean; social: boolean; quietHours?: typeof partial.quietHours }> {
+    const merge: Record<string, unknown> = {};
     if (partial.critical !== undefined) merge.critical = partial.critical;
     if (partial.social !== undefined) merge.social = partial.social;
+    if (partial.quietHours !== undefined) merge.quietHours = partial.quietHours;
     const { data, error } = await this.client.rpc(
       'users_merge_notification_preferences',
       { p_user_id: userId, p_merge: merge },
     );
     if (error) throw new Error(`updateNotificationPreferences: ${error.message}`);
-    return data as { critical: boolean; social: boolean };
+    return data as { critical: boolean; social: boolean; quietHours?: typeof partial.quietHours };
   }
 
   async findByAuthIdentity(_provider: string, _subject: string): Promise<never> {

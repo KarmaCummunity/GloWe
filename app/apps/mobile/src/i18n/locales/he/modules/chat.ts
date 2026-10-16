@@ -4,6 +4,8 @@ export const chatHe = {
   noChats: 'אין שיחות עדיין',
   noChatsDesc: 'פנה למפרסמים ישירות מתוך הפוסטים.',
   inputPlaceholder: 'כתוב הודעה...',
+  attachImage: 'צרף תמונה',
+  mediaUploadFailed: 'לא ניתן לשלוח את התמונה. נסה שוב.',
   typingIndicator: 'מקליד/ה…',
   send: 'שלח',
   read: 'נקרא',

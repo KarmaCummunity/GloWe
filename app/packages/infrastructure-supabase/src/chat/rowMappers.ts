@@ -19,7 +19,7 @@ type MessageRow = Pick<
   | 'created_at'
   | 'delivered_at'
   | 'read_at'
->;
+> & { media_payload?: unknown | null };
 
 export function rowToChat(r: ChatRow): Chat {
   return {
@@ -43,6 +43,7 @@ export function rowToMessage(r: MessageRow): Message {
     // Domain says string non-null; DB allows null for system messages — coalesce to ''.
     body: r.body ?? '',
     systemPayload: (r.system_payload ?? null) as Record<string, unknown> | null,
+    mediaPayload: (r.media_payload ?? null) as Record<string, unknown> | null,
     status: r.status as MessageStatus,
     createdAt: r.created_at,
     deliveredAt: r.delivered_at,

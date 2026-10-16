@@ -11,7 +11,21 @@ export { SupabasePostEngagementRepository, type PostReactionType } from './posts
 export { SupabaseSavedPostsRepository } from './posts/SupabaseSavedPostsRepository';
 export { SupabaseNotificationInboxRepository } from './notifications/SupabaseNotificationInboxRepository';
 export { SupabaseChatV2Realtime } from './chat/SupabaseChatV2Realtime';
+export {
+  SupabaseChatV2Repository,
+  type MessageReactionType,
+} from './chat/SupabaseChatV2Repository';
 export { SupabaseChatRepository } from './chat/SupabaseChatRepository';
+export {
+  SupabaseSocialFeedRepository,
+  type FeedMuteFilterKind,
+  type FeedMuteFilterRow,
+} from './feed/SupabaseSocialFeedRepository';
+export {
+  SupabaseFollowSuggestionsRepository,
+  type FollowSuggestionRow,
+  type ProfileCompleteness,
+} from './social/SupabaseFollowSuggestionsRepository';
 export { SupabaseChatRealtime } from './chat/SupabaseChatRealtime';
 export { SupabaseUserRealtime } from './users/SupabaseUserRealtime';
 export { SupabaseFeedRealtime } from './feed/SupabaseFeedRealtime';

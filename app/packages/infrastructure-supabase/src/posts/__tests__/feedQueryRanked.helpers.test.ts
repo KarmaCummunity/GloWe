@@ -18,7 +18,7 @@ describe('encodeRankedCursor', () => {
     const encoded = encodeRankedCursor(original);
     const decoded = decodeRankedCursor(encoded);
 
-    expect(decoded).toEqual(original);
+    expect(decoded).toEqual({ ...original, rankScore: null });
   });
 
   it('round-trips a cursor whose distanceKm is null (newest/oldest sort)', () => {
@@ -28,7 +28,10 @@ describe('encodeRankedCursor', () => {
       postId: 'p_1',
     };
 
-    expect(decodeRankedCursor(encodeRankedCursor(original))).toEqual(original);
+    expect(decodeRankedCursor(encodeRankedCursor(original))).toEqual({
+      ...original,
+      rankScore: null,
+    });
   });
 
   it('produces a URL-safe string (no raw braces / quotes from JSON)', () => {
@@ -85,6 +88,7 @@ describe('decodeRankedCursor', () => {
       distanceKm: null,
       createdAt: '2026-01-01',
       postId: 'p_1',
+      rankScore: null,
     });
   });
 
@@ -95,8 +99,10 @@ describe('decodeRankedCursor', () => {
       distanceKm: null,
       createdAt: '2026-01-01',
       postId: 'p_1',
+      rankScore: null,
     });
   });
+
 });
 
 describe('needsRankedPath', () => {
@@ -106,6 +112,10 @@ describe('needsRankedPath', () => {
 
   it("returns true when sortOrder === 'distance'", () => {
     expect(needsRankedPath({ sortOrder: 'distance' })).toBe(true);
+  });
+
+  it("returns true when sortOrder === 'personalized'", () => {
+    expect(needsRankedPath({ sortOrder: 'personalized' })).toBe(true);
   });
 
   it('returns true when locationFilter has a positive radiusKm', () => {

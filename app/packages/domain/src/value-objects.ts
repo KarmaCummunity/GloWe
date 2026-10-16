@@ -69,7 +69,7 @@ export const ALL_CATEGORIES: Category[] = [
 
 // ── Chat ──────────────────────────────────────
 
-export type MessageKind = 'user' | 'system';
+export type MessageKind = 'user' | 'system' | 'media';
 
 export type MessageStatus = 'pending' | 'delivered' | 'read';
 
@@ -89,7 +89,7 @@ export type QueueReason = 'excessive_reopens' | 'forbidden_keyword' | 'manual_fl
 
 // ── Feed (FR-FEED-004, 006) ──────────────────
 
-export type FeedSortOrder = 'newest' | 'oldest' | 'distance';
+export type FeedSortOrder = 'newest' | 'oldest' | 'distance' | 'personalized';
 
 export type FeedStatusFilter = 'open' | 'closed' | 'all';
 
@@ -130,9 +130,17 @@ export const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 // ── Notification preferences ──────────────────
 
+export interface QuietHoursPreferences {
+  enabled: boolean;
+  start: string;
+  end: string;
+  timezone: string;
+}
+
 export interface NotificationPreferences {
   critical: boolean;
   social: boolean;
+  quietHours?: QuietHoursPreferences;
 }
 
 // ── Donations ─────────────────────────────────
