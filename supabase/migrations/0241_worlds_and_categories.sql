@@ -151,7 +151,7 @@ create policy external_bodies_select_all on public.external_bodies
   for select to anon, authenticated using (true);
 
 -- ── anonymity ↔ legacy visibility helpers ───────────────────────────────────
-create or replace function public.anonymity_level_to_visibility(p_level smallint)
+create or replace function public.anonymity_level_to_visibility(p_level integer)
 returns text
 language sql
 immutable
