@@ -1,0 +1,105 @@
+# Manual Google Play internal-track upload (ported from KupaPay): EAS cloud AAB + `eas submit`.
+# Never promotes beyond the internal track.
+# Secrets (names only): EXPO_TOKEN, GOOGLE_PLAY_SERVICE_ACCOUNT_JSON. Optional: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_URL.
+name: Play Internal Android
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: play-internal-android
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PACKAGE_NAME: org.karmacommunity.app
+
+jobs:
+  play-internal:
+    name: Build AAB & submit to Play internal
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app/apps/mobile
+    steps:
+      - name: Preflight secrets (fail fast)
+        working-directory: .
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for n in EXPO_TOKEN GOOGLE_PLAY_SERVICE_ACCOUNT_JSON; do
+            [ -n "${!n:-}" ] || missing+=("$n")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+          if ! printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" | jq -e '.type == "service_account" and (.client_email|length>0)' >/dev/null; then
+            echo "::error::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not a valid service account JSON"
+            exit 1
+          fi
+          echo "All Play internal secrets present."
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@24.12.1 --ignore-scripts
+
+      - name: Verify Android package
+        run: |
+          set -euo pipefail
+          actual="$(npx --yes expo config --json --type public | jq -r '.android.package')"
+          if [ "$actual" != "$PACKAGE_NAME" ]; then
+            echo "::error::Android package is '$actual', expected '$PACKAGE_NAME'"
+            exit 1
+          fi
+
+      - name: Write Play service account key (runner temp, never committed)
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p credentials
+          printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > credentials/google-play-service-account.json
+
+      - name: Build AAB on EAS & submit to Play internal
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+        run: |
+          set -euo pipefail
+          [ -n "${SENTRY_AUTH_TOKEN:-}" ] || export SENTRY_DISABLE_AUTO_UPLOAD=true
+          eas build --platform android --profile production --non-interactive --wait --json > build.json
+          url="$(jq -r '.[0].artifacts.buildUrl // empty' build.json)"
+          [ -n "$url" ] || { echo "::error::No AAB artifact URL from EAS"; exit 1; }
+          eas submit --platform android --profile production --url "$url" --non-interactive
+          v="$(eas build:version:get -p android 2>/dev/null | grep -oE '[0-9]+$' || true)"
+          [ -n "$v" ] || { echo "::error::Could not read EAS remote Android versionCode"; exit 1; }
+          echo "EAS remote Android versionCode: $v"
+
+      - name: Remove key file
+        if: always()
+        run: rm -f credentials/google-play-service-account.json
