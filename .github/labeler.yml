@@ -1,0 +1,22 @@
+# actions/labeler v5 config: area labels from paths.
+database:
+  - changed-files:
+      - any-glob-to-any-file: ['supabase/migrations/**', 'app/packages/infrastructure-supabase/**']
+area:mobile:
+  - changed-files:
+      - any-glob-to-any-file: ['app/apps/mobile/**', 'app/packages/ui/**']
+area:whatsapp-bot:
+  - changed-files:
+      - any-glob-to-any-file: ['supabase/functions/whatsapp*/**', '**/whatsapp/**', '**/bot/**']
+marketplace:
+  - changed-files:
+      - any-glob-to-any-file: ['**/marketplace/**', '**/listings/**', '**/money/**']
+area:social:
+  - changed-files:
+      - any-glob-to-any-file: ['**/feed/**', '**/chat/**', '**/notifications/**', '**/social/**']
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', '*.md']
+area:ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/**']
