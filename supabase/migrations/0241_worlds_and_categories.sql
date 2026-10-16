@@ -177,7 +177,7 @@ as $$
   end;
 $$;
 
-grant execute on function public.anonymity_level_to_visibility(smallint) to anon, authenticated;
+grant execute on function public.anonymity_level_to_visibility(integer) to anon, authenticated;
 grant execute on function public.visibility_to_anonymity_level(text) to anon, authenticated;
 
 -- ── seed worlds (PRD donation_worlds 01–13) ───────────────────────────────────
