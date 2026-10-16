@@ -48,12 +48,12 @@ returns table (
   geo_mode text,
   radius_km numeric,
   geo_weight numeric,
-  anchor_geo geography
+  anchor_geo extensions.geography
 )
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_world public.worlds;

@@ -5,10 +5,10 @@
 begin;
 
 create or replace function public.listing_geo_from_city(p_city_id text)
-returns geography
+returns extensions.geography
 language sql
 stable
-set search_path = public
+set search_path = public, extensions
 as $$
   select c.geo from public.cities c where c.city_id = p_city_id;
 $$;
@@ -17,12 +17,12 @@ create or replace function public.listing_upsert_from_post(p_post public.posts)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_kind_id uuid;
   v_category_id uuid;
-  v_geo geography;
+  v_geo extensions.geography;
 begin
   select kind_id into v_kind_id
     from public.listing_kinds
@@ -105,11 +105,11 @@ create or replace function public.listing_upsert_from_ride(p_ride public.ride_li
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   v_kind_id uuid;
-  v_geo geography;
+  v_geo extensions.geography;
 begin
   select kind_id into v_kind_id
     from public.listing_kinds
