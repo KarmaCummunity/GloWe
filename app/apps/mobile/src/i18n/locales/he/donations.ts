@@ -4,6 +4,7 @@
 // under the architecture cap.
 
 import { rides } from './donations.rides';
+export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
   tabLabel: 'תרומות',
@@ -58,7 +59,7 @@ export const donations = {
   moneyScreen: {
     title: 'תרומה כספית',
     body:
-      'קטגוריית הכסף תפתח בהמשך. \nועד אז מזמינים אתכם ללתרום לקהילה עצמה, ולעזור לנו לגדול ולהתפתח.\nאבל אם בא לכם לתרום לעמותה קיימת ולקבל החזרי מס, תכנסו לאחד הקישורים פה למטה.',
+      'תרומה לעמותות מאומתות באפליקציה (סandbox — ללא חיוב אמיתי). קישורים חיצוניים נשארים למטה.',
     openLink: 'פתח את jgive.com',
     linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
     linkErrorBody: 'נסו דפדפן אחר או הקלידו את הכתובת ידנית.',

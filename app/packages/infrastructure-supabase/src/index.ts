@@ -63,3 +63,5 @@ export { SupabaseTranslationCacheRepository } from './translations/SupabaseTrans
 export { EdgeFnTranslationService } from './translations/EdgeFnTranslationService';
 export { SupabasePostTranslationReader } from './translations/SupabasePostTranslationReader';
 export { SupabaseMarketplaceRepository } from './marketplace/SupabaseMarketplaceRepository';
+export { SupabasePaymentsRepository } from './payments/SupabasePaymentsRepository';
+export { SandboxPaymentProvider } from './payments/SandboxPaymentProvider';

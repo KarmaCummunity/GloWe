@@ -4,6 +4,7 @@
 // under the architecture cap.
 
 import { rides } from './donations.rides';
+export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
   tabLabel: 'Donations',
@@ -58,7 +59,7 @@ export const donations = {
   moneyScreen: {
     title: 'Monetary donation',
     body:
-      'The money category is coming soon. \nUntil then, we invite you to donate to the community itself and help us grow and develop.\nBut if you would like to donate to an existing nonprofit and get tax deductions, visit one of the links below.',
+      'Donate to verified nonprofits in-app (sandbox — no real charges). External links remain below for legacy flows.',
     openLink: 'Open jgive.com',
     linkErrorTitle: 'We couldn’t open the link',
     linkErrorBody: 'Try a different browser or enter the address manually.',

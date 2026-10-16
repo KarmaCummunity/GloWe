@@ -1,0 +1,65 @@
+import React from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { Screen } from '../../../../../src/components/ui/Screen';
+import { paymentsUseCases } from '../../../../../src/services/paymentsComposition';
+
+const useStyles = makeUseStyles(({ colors }) => ({
+  body: { padding: spacing.lg, gap: spacing.md },
+  title: { ...typography.h2, color: colors.textPrimary },
+  line: { ...typography.body, color: colors.textSecondary },
+  serial: { ...typography.bodyLarge, color: colors.primary, fontWeight: '700' as const },
+  badge: { padding: spacing.sm, borderRadius: 8, backgroundColor: colors.secondaryLight },
+}));
+
+export default function DonationReceiptScreen() {
+  const { paymentId } = useLocalSearchParams<{ paymentId: string }>();
+  const { t } = useTranslation();
+  const styles = useStyles();
+  const receipt = useQuery({
+    queryKey: ['money', 'receipt', paymentId],
+    queryFn: () => paymentsUseCases.getReceipt().execute(paymentId!),
+    enabled: Boolean(paymentId),
+  });
+
+  const r = receipt.data;
+  if (receipt.isLoading) {
+    return (
+      <Screen>
+        <Text style={{ padding: spacing.lg }}>{t('moneyPayments.loading')}</Text>
+      </Screen>
+    );
+  }
+  if (!r) {
+    return (
+      <Screen>
+        <Text style={{ padding: spacing.lg }}>{t('moneyPayments.receiptNotFound')}</Text>
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen>
+      <ScrollView contentContainerStyle={styles.body}>
+        <Text style={styles.title}>{t('moneyPayments.receiptHeading')}</Text>
+        {r.sandbox ? (
+          <View style={styles.badge}>
+            <Text style={styles.line}>{t('moneyPayments.sandboxBanner')}</Text>
+          </View>
+        ) : null}
+        <Text style={styles.line}>{r.orgName}</Text>
+        <Text style={styles.line}>{t('moneyPayments.receiptAmount', { amount: r.amountIls.toFixed(2) })}</Text>
+        <Text style={styles.line}>{new Date(r.paidAt).toLocaleString()}</Text>
+        {r.section46Serial ? (
+          <>
+            <Text style={styles.line}>{t('moneyPayments.section46Label')}</Text>
+            <Text style={styles.serial}>{r.section46Serial}</Text>
+          </>
+        ) : null}
+      </ScrollView>
+    </Screen>
+  );
+}
