@@ -7,7 +7,7 @@
 // Default export: full English resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
-import { donations, search } from './donations';
+import { donations, marketplace, search } from './donations';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -105,6 +105,8 @@ const en = {
 
   // Donations (D-16, FR-DONATE-001..005) — see donations.ts
   donations,
+
+  marketplace,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

@@ -62,3 +62,4 @@ export { SupabasePublicResearchRepository } from './research/SupabasePublicResea
 export { SupabaseTranslationCacheRepository } from './translations/SupabaseTranslationCacheRepository';
 export { EdgeFnTranslationService } from './translations/EdgeFnTranslationService';
 export { SupabasePostTranslationReader } from './translations/SupabasePostTranslationReader';
+export { SupabaseMarketplaceRepository } from './marketplace/SupabaseMarketplaceRepository';

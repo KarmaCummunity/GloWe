@@ -227,4 +227,30 @@ export const search = {
     animals: 'חיות',
     medical: 'רפואה',
   },
+
+  marketplaceHubTitle: 'שוק התרומות',
+  marketplaceHubSubtitle: 'כל עולמות הנתינה במקום אחד',
+} as const;
+
+export const marketplace = {
+  browseTitle: 'שוק',
+  searchPlaceholder: 'חיפוש מודעות…',
+  allWorlds: 'כל העולמות',
+  openMap: 'תצוגת מפה',
+  createListing: 'פרסום מודעה',
+  loading: 'טוען…',
+  empty: 'אין מודעות לפי הסינון.',
+  mapTitle: 'אשכולות במפה',
+  mapEmpty: 'אין מודעות עם מיקום באזור.',
+  clusterLabel: '{{count}} מודעות',
+  notFound: 'המודעה לא נמצאה.',
+  startChat: 'שליחת הודעה',
+  shareFeed: 'שיתוף בפיד',
+  chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
+  createTitle: 'מודעה חדשה — {{world}}',
+  fieldTitle: 'כותרת',
+  fieldSummary: 'תקציר',
+  publish: 'פרסום',
+  publishing: 'מפרסם…',
+  forYouTitle: 'בשבילך',
 } as const;

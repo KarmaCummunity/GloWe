@@ -38,3 +38,4 @@ export * from './translations/TranslationTypes';
 export * from './translations/TranslationError';
 export * from './translations/TranslationRequest';
 export * from './translations/cacheKey';
+export * from './marketplace/MarketplaceTypes';

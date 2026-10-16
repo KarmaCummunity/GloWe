@@ -227,4 +227,30 @@ export const search = {
     animals: 'Animals',
     medical: 'Medical',
   },
+
+  marketplaceHubTitle: 'Unified marketplace',
+  marketplaceHubSubtitle: 'Browse all giving worlds in one place',
+} as const;
+
+export const marketplace = {
+  browseTitle: 'Marketplace',
+  searchPlaceholder: 'Search listings…',
+  allWorlds: 'All worlds',
+  openMap: 'Map view',
+  createListing: 'Create listing',
+  loading: 'Loading…',
+  empty: 'No listings match your filters.',
+  mapTitle: 'Map clusters',
+  mapEmpty: 'No geo-tagged listings in this area.',
+  clusterLabel: '{{count}} listings',
+  notFound: 'Listing not found.',
+  startChat: 'Message publisher',
+  shareFeed: 'Share to feed',
+  chatOpener: 'Hi — I saw your listing on the marketplace.',
+  createTitle: 'New {{world}} listing',
+  fieldTitle: 'Title',
+  fieldSummary: 'Summary',
+  publish: 'Publish',
+  publishing: 'Publishing…',
+  forYouTitle: 'For you',
 } as const;
