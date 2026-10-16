@@ -70,16 +70,18 @@ begin
   perform pg_temp.act_as(v_a);
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id, details
   )
-  select v_a, 'items', kind_id, 'give', 'Blue baby stroller', 'native', 'published', now(), 'tel-aviv'
+  select v_a, 'items', kind_id, 'give', 'Blue baby stroller', 'native', 'published', now(), 'tel-aviv',
+         '{"image_url":"https://example.test/stroller.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
   returning listing_id into v_give;
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id, details
   )
-  select v_b, 'items', kind_id, 'request', 'Need baby stroller', 'native', 'published', now(), 'tel-aviv'
+  select v_b, 'items', kind_id, 'request', 'Need baby stroller', 'native', 'published', now(), 'tel-aviv',
+         '{"image_url":"https://example.test/need.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'request_item'
   returning listing_id into v_req;
 

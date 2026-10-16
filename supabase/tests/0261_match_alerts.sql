@@ -32,9 +32,10 @@ begin
   select count(*) into v_before from public.notifications_outbox where user_id = v_sub;
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, details
   )
-  select v_owner, 'items', kind_id, 'give', 'Compact stroller fold', 'native', 'published', now()
+  select v_owner, 'items', kind_id, 'give', 'Compact stroller fold', 'native', 'published', now(),
+         '{"image_url":"https://example.test/fold.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
 
   select count(*) into v_after from public.notifications_outbox where user_id = v_sub;
@@ -56,16 +57,18 @@ begin
   perform pg_temp.mk_user(v_b, 'own_b');
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, details
   )
-  select v_a, 'items', kind_id, 'give', 'Give lamp', 'native', 'published', now()
+  select v_a, 'items', kind_id, 'give', 'Give lamp', 'native', 'published', now(),
+         '{"image_url":"https://example.test/lamp.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
   returning listing_id into v_give;
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, details
   )
-  select v_b, 'items', kind_id, 'request', 'Need lamp', 'native', 'published', now()
+  select v_b, 'items', kind_id, 'request', 'Need lamp', 'native', 'published', now(),
+         '{"image_url":"https://example.test/need-lamp.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'request_item'
   returning listing_id into v_req;
 
