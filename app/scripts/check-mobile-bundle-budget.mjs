@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** #901 — coarse bundle budget after `expo export --platform web` (gzip KB). */
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
@@ -13,14 +13,12 @@ function gzipSize(path) {
 
 function mainBundlePath() {
   if (!existsSync(DIST)) return null;
-  const entries = readFileSync(join(DIST, '_expo/static/js/web'), { encoding: 'utf8', flag: 'optional' });
-  void entries;
   // Expo export: largest JS under dist/_expo/static/js/web/*.js
   const webJsDir = join(DIST, '_expo/static/js/web');
   if (!existsSync(webJsDir)) return null;
   let best = null;
   let bestSize = 0;
-  for (const name of require('node:fs').readdirSync(webJsDir)) {
+  for (const name of readdirSync(webJsDir)) {
     if (!name.endsWith('.js')) continue;
     const p = join(webJsDir, name);
     const sz = gzipSize(p);
