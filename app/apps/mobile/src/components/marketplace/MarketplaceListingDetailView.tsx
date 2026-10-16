@@ -80,7 +80,14 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
           {worldLabel} · {kindLabel} · {detail.direction}
         </Text>
         {detail.owner ? (
-          <View style={styles.ownerCard}>
+          <Pressable
+            style={styles.ownerCard}
+            accessibilityRole="button"
+            onPress={() => {
+              const handle = detail.owner!.shareHandle || detail.owner!.userId;
+              router.push(`/user/${handle}`);
+            }}
+          >
             {detail.owner.avatarUrl ? (
               <Image source={{ uri: detail.owner.avatarUrl }} style={styles.avatar} />
             ) : (
@@ -92,7 +99,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
                 <Text style={styles.summary}>@{detail.owner.shareHandle}</Text>
               ) : null}
             </View>
-          </View>
+          </Pressable>
         ) : null}
         <View style={styles.actions}>
           <Pressable

@@ -104,3 +104,26 @@ export const MARKETPLACE_CREATE_WORLD_SLUGS = [
 ] as const;
 
 export type MarketplaceCreateWorldSlug = (typeof MARKETPLACE_CREATE_WORLD_SLUGS)[number];
+
+export interface MyListingRow {
+  readonly listingId: string;
+  readonly worldSlug: string;
+  readonly kindSlug: string;
+  readonly direction: 'give' | 'request';
+  readonly status: string;
+  readonly title: string;
+  readonly summary: string | null;
+  readonly urgencyLevel: number;
+  readonly availabilityStatus: string;
+  readonly updatedAt: string;
+}
+
+export interface ProfileListingRow {
+  readonly listingId: string;
+  readonly worldSlug: string;
+  readonly kindSlug: string;
+  readonly direction: 'give' | 'request';
+  readonly status: string;
+  readonly title: string;
+  readonly summary: string | null;
+}

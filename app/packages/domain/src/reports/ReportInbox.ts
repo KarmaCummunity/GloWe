@@ -9,7 +9,7 @@ export const AUTO_REMOVE_THRESHOLD = 3 as const;
  * to these three values. Kept as a re-exported alias rather than a fresh type
  * to avoid two parallel enums diverging.
  */
-export type AdminReportTargetType = Exclude<ReportTargetType, 'none' | 'listing'>;
+export type AdminReportTargetType = Exclude<ReportTargetType, 'none'>;
 
 export interface ReportThresholdProgress {
   readonly count: number;
@@ -47,7 +47,7 @@ export interface ReportInboxPage {
 }
 
 function isTargetType(v: unknown): v is AdminReportTargetType {
-  return v === 'post' || v === 'user' || v === 'chat';
+  return v === 'post' || v === 'user' || v === 'chat' || v === 'listing';
 }
 
 export function parseReportInboxPage(input: unknown): ReportInboxPage {

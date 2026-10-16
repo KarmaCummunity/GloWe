@@ -4,6 +4,8 @@ import type {
   MarketplaceListingDetail,
   MarketplaceMapCluster,
   MarketplaceSimilarListing,
+  MyListingRow,
+  ProfileListingRow,
 } from '@kc/domain';
 
 export interface MarketplaceBrowseFilters {
@@ -50,4 +52,22 @@ export interface IMarketplaceRepository {
   recordSignal(listingId: string, signal: 'view' | 'save' | 'response'): Promise<void>;
   shareToFeed(listingId: string): Promise<string>;
   startChat(listingId: string, openingMessage?: string | null): Promise<string>;
+  listMyListings(limit?: number, offset?: number): Promise<MyListingRow[]>;
+  listProfileListings(ownerId: string, limit?: number): Promise<ProfileListingRow[]>;
+  updateMyListing(
+    listingId: string,
+    patch: {
+      title?: string;
+      summary?: string | null;
+      details?: Record<string, unknown>;
+      cityId?: string | null;
+      maxRadiusKm?: number | null;
+      urgencyLevel?: number;
+      availabilityStatus?: string;
+    },
+  ): Promise<void>;
+  pauseMyListing(listingId: string): Promise<void>;
+  resumeMyListing(listingId: string): Promise<void>;
+  fulfillMyListing(listingId: string): Promise<void>;
+  deleteMyListing(listingId: string): Promise<void>;
 }

@@ -49,6 +49,7 @@ import {
   ReportListingUseCase,
   DeletePostUseCase,
   AdminRemovePostUseCase,
+  AdminRemoveListingUseCase,
   ListDonationLinksUseCase,
   AddDonationLinkUseCase,
   RemoveDonationLinkUseCase,
@@ -237,6 +238,7 @@ export const container = {
   // Post moderation
   deletePost: new DeletePostUseCase(postRepo),
   adminRemovePost: new AdminRemovePostUseCase(postRepo),
+  adminRemoveListing: new AdminRemoveListingUseCase(moderationAdminRepo),
 
   // Moderation admin actions (FR-MOD-007 + FR-ADMIN-002..007)
   restoreTarget: new RestoreTargetUseCase(moderationAdminRepo),

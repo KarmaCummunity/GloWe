@@ -6,6 +6,8 @@ import type {
   MarketplaceListingDetail,
   MarketplaceMapCluster,
   MarketplaceSimilarListing,
+  MyListingRow,
+  ProfileListingRow,
 } from '@kc/domain';
 import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
@@ -195,5 +197,79 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     });
     if (error || !data) throw error ?? new Error('start_listing_chat failed');
     return data as string;
+  }
+
+  async listMyListings(limit = 50, offset = 0): Promise<MyListingRow[]> {
+    const { data, error } = await this.client.rpc('list_my_listings', {
+      p_limit: limit,
+      p_offset: offset,
+    });
+    if (error || !data) return [];
+    return data.map((r) => ({
+      listingId: r.listing_id,
+      worldSlug: r.world_slug,
+      kindSlug: r.kind_slug,
+      direction: r.direction as 'give' | 'request',
+      status: r.status,
+      title: r.title,
+      summary: r.summary,
+      urgencyLevel: r.urgency_level,
+      availabilityStatus: r.availability_status,
+      updatedAt: r.updated_at,
+    }));
+  }
+
+  async listProfileListings(ownerId: string, limit = 24): Promise<ProfileListingRow[]> {
+    const { data, error } = await this.client.rpc('list_profile_listings', {
+      p_owner_id: ownerId,
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return data.map((r) => ({
+      listingId: r.listing_id,
+      worldSlug: r.world_slug,
+      kindSlug: r.kind_slug,
+      direction: r.direction as 'give' | 'request',
+      status: r.status,
+      title: r.title,
+      summary: r.summary,
+    }));
+  }
+
+  async updateMyListing(
+    listingId: string,
+    patch: Parameters<IMarketplaceRepository['updateMyListing']>[1],
+  ): Promise<void> {
+    const { error } = await this.client.rpc('update_my_listing', {
+      p_listing_id: listingId,
+      p_title: patch.title,
+      p_summary: patch.summary ?? undefined,
+      p_details: (patch.details ?? undefined) as Database['public']['Functions']['update_my_listing']['Args']['p_details'],
+      p_city_id: patch.cityId ?? undefined,
+      p_max_radius_km: patch.maxRadiusKm ?? undefined,
+      p_urgency_level: patch.urgencyLevel,
+      p_availability_status: patch.availabilityStatus,
+    });
+    if (error) throw error;
+  }
+
+  async pauseMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('pause_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async resumeMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('resume_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async fulfillMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('fulfill_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async deleteMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('delete_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
   }
 }

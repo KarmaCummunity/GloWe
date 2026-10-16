@@ -87,6 +87,9 @@ export default function MarketplaceBrowseScreen() {
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/create')}>
           <Text style={styles.link}>{t('marketplace.createListing')}</Text>
         </Pressable>
+        <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/my-listings')}>
+          <Text style={styles.link}>{t('marketplace.myListingsNav')}</Text>
+        </Pressable>
       </View>
       <FlatList
         data={rows}

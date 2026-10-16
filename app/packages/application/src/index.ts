@@ -131,10 +131,8 @@ export * from './ports/IAccountGateRepository';
 export * from './moderation/errors';
 
 // Moderation admin use cases (FR-MOD-007 + FR-ADMIN-002..007)
-export { RestoreTargetUseCase } from './moderation/RestoreTargetUseCase';
-export type { RestoreTargetInput } from './moderation/RestoreTargetUseCase';
-export { DismissReportUseCase } from './moderation/DismissReportUseCase';
-export type { DismissReportInput } from './moderation/DismissReportUseCase';
+export { RestoreTargetUseCase, type RestoreTargetInput } from './moderation/RestoreTargetUseCase';
+export { DismissReportUseCase, type DismissReportInput } from './moderation/DismissReportUseCase';
 export { ConfirmReportUseCase } from './moderation/ConfirmReportUseCase';
 export type { ConfirmReportInput } from './moderation/ConfirmReportUseCase';
 export { BanUserUseCase } from './moderation/BanUserUseCase';
@@ -145,6 +143,7 @@ export { LookupAuditUseCase } from './moderation/LookupAuditUseCase';
 export type { LookupAuditInput } from './moderation/LookupAuditUseCase';
 export { ReportUserUseCase } from './moderation/ReportUserUseCase';
 export type { ReportUserInput } from './moderation/ReportUserUseCase';
+export { AdminRemoveListingUseCase, type AdminRemoveListingInput } from './moderation/AdminRemoveListingUseCase';
 export { CheckAccountGateUseCase } from './moderation/CheckAccountGateUseCase';
 export type { CheckAccountGateInput } from './moderation/CheckAccountGateUseCase';
 export type { IDeviceRepository } from './notifications/IDeviceRepository';
@@ -295,7 +294,6 @@ export type { ISurveyAdminRepository } from './ports/ISurveyAdminRepository';
 export { GetAdminSurveyOverviewUseCase } from './survey/GetAdminSurveyOverviewUseCase';
 export { GetAdminSurveyResultsUseCase } from './survey/GetAdminSurveyResultsUseCase';
 export { ListUserFeedbackUseCase } from './survey/ListUserFeedbackUseCase';
-
 // Public research use cases (FR-RESEARCH-001..003)
 export type { IPublicResearchRepository } from './ports/IPublicResearchRepository';
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
