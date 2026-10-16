@@ -1,6 +1,6 @@
 // supabase/functions/_shared/translation/provider.ts
-// Pluggable translation-provider seam shared by the KC `translate` and GLOWE
-// `glowe-translate` Edge Functions. Swapping providers (e.g. free Gemini ->
+// Pluggable translation-provider seam shared by the KC `translate` Edge Function.
+// Swapping providers (e.g. free Gemini ->
 // paid zero-retention/DPA Flash, D-63/D-65) is a TRANSLATION_PROVIDER env change.
 
 export interface ProviderInput {

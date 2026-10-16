@@ -47,59 +47,24 @@ async function rpc(name, token, payload = {}) {
 
 const cases = [
   {
-    name: 'individual (Alex)',
-    login: { email: 'glowe-local-alex@example.test' },
+    name: 'default user',
+    login: { email: 'test-user@local.dev' },
     assert: async (session) => {
       const { body } = await rest(
-        `glowe_profiles?id=eq.${session.user.id}&select=account_type,approval_status`,
+        `users?user_id=eq.${session.user.id}&select=display_name,account_status`,
         session.access_token,
       );
-      if (body[0]?.account_type !== 'individual') throw new Error('expected individual');
+      if (body[0]?.account_status !== 'active') throw new Error('expected active user');
     },
   },
   {
     name: 'admin',
-    login: { email: 'glowe-local-admin@example.test', role: 'admin' },
+    login: { email: 'local-admin@local.dev', role: 'admin' },
     assert: async (session) => {
       const { body } = await rpc('get_my_admin_roles', session.access_token);
-      if (!Array.isArray(body) || !body.includes('glowe_admin')) {
-        throw new Error(`expected glowe_admin, got ${JSON.stringify(body)}`);
+      if (!Array.isArray(body) || !body.includes('super_admin')) {
+        throw new Error(`expected super_admin, got ${JSON.stringify(body)}`);
       }
-    },
-  },
-  {
-    name: 'org approved (Harbor)',
-    login: {
-      email: 'glowe-local-org-harbor-food@example.test',
-      profileType: 'organization',
-      approvalStatus: 'approved',
-    },
-    assert: async (session) => {
-      const { body } = await rest(
-        `glowe_profiles?id=eq.${session.user.id}&select=account_type,approval_status,org_name`,
-        session.access_token,
-      );
-      const row = body[0];
-      if (row?.account_type !== 'organization' || row?.approval_status !== 'approved') {
-        throw new Error(`unexpected org profile: ${JSON.stringify(row)}`);
-      }
-    },
-  },
-  {
-    name: 'org pending (new)',
-    login: {
-      email: `dev-org-pending-${Date.now()}@local.dev`,
-      profileType: 'organization',
-      approvalStatus: 'pending',
-      displayName: 'Verify Pending Org',
-    },
-    assert: async (session) => {
-      const { body } = await rest(
-        `glowe_profiles?id=eq.${session.user.id}&select=approval_status,profile_status`,
-        session.access_token,
-      );
-      const row = body[0];
-      if (row?.approval_status !== 'pending') throw new Error('expected pending approval');
     },
   },
 ];

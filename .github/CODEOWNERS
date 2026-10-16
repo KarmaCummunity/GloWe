@@ -16,7 +16,7 @@
 /app/packages/domain/             @navesarussi
 
 # Active product surface for external contributors (triage → @navesarussi).
-/app/apps/glowe-web/              @navesarussi
+/app/apps/mobile/                 @navesarussi
 /README.md                        @navesarussi
 /CONTRIBUTING.md                  @navesarussi
 /CLA.md                           @navesarussi
@@ -24,5 +24,3 @@
 /SECURITY.md                      @navesarussi
 /CODE_OF_CONDUCT.md               @navesarussi
 /scripts/dev-up.sh                @navesarussi
-/scripts/seed-glowe-local.mjs     @navesarussi
-/scripts/seed-glowe-local-data.mjs @navesarussi

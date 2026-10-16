@@ -140,8 +140,6 @@ export const settingsEn = {
   // Report-issue notify-modal title (FR-MOD-002 / FR-CHAT-007 AC3)
   reportIssueErrorTitle: 'Error',
 
-  // GLOWE partnership link
-  glowe: 'GLOWE – professional knowledge',
 
   // FR-TRANSLATE-003 — translation language preference
   translationLanguage: 'Translation language',

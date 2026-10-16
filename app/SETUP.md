@@ -14,7 +14,7 @@ npm install -g expo-cli@latest
 
 ```bash
 # From the repo root
-cd GloWe/app
+cd app
 
 # Install all dependencies
 pnpm install

@@ -14,6 +14,8 @@ export interface TranslationRequest {
 const FIELDS_BY_TYPE: Record<ContentType, readonly TranslationField[]> = {
   post: ['title', 'description'],
   message: ['body'],
+  ride_listing: ['title', 'description'],
+  user: ['biography'],
 };
 
 export function createTranslationRequest(input: {

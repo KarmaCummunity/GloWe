@@ -10,7 +10,7 @@
 // with the rest of the redesigned main-screen idiom (welcome-style cream
 // backdrop, soft shadow, orange-tinted icon tiles, staggered spring entries).
 import React from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +21,6 @@ import { Screen } from '../../../src/components/ui/Screen';
 import { Card } from '../../../src/components/ui/Card';
 import { IconTile } from '../../../src/components/ui/IconTile';
 import { MotionEntry, ENTRY_DELAY } from '../../../src/components/ui/MotionEntry';
-import { areGloweLinksEnabled } from '../../../src/config/environment';
 import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';
 import { useScreenAside } from '../../../src/components/aside/useScreenAside';
 import { CommunityStatsAside } from '../../../src/components/aside/CommunityStatsAside';
@@ -228,29 +227,6 @@ export default function DonationsHubScreen() {
             </Card>
           </PressableScale>
         </MotionEntry>
-
-        {/* ── GLOWE partnership banner (dev-only; hidden in production) ─────── */}
-        {areGloweLinksEnabled() ? (
-        <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40} style={styles.blockStretch}>
-          <PressableScale
-            onPress={() => Linking.openURL('https://dev.karma-community.pages.dev/glowe')}
-            accessibilityRole="button"
-            accessibilityLabel={t('donations.gloweSubtitle')}
-            style={styles.blockStretch}
-          >
-            <Card padding="base" style={styles.featuredCard}>
-              <IconTile icon="school-outline" size="lg" />
-              <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle} numberOfLines={1}>GLOWE</Text>
-                <Text style={styles.featuredSubtitle} numberOfLines={2}>
-                  {t('donations.gloweSubtitle')}
-                </Text>
-              </View>
-              <Ionicons name="open-outline" size={20} color={colors.primary} />
-            </Card>
-          </PressableScale>
-        </MotionEntry>
-        ) : null}
 
         {/* ── Category grid ────────────────── */}
         <View style={styles.categoriesSection}>

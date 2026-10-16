@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bump app/VERSION patch (MAJOR.MINOR.PATCH) and sync glowe-version.js.
+ * Bump app/VERSION patch (MAJOR.MINOR.PATCH).
  * Usage: node scripts/bump-app-version.mjs [--dry-run]
  * Env: APP_ROOT — override path to the `app/` directory (tests).
  */
@@ -33,28 +33,15 @@ export function bumpPatch(version) {
   return { ...version, patch: version.patch + 1 };
 }
 
-export function gloweVersionSource(version) {
-  return `// App-wide display version (FR-GLOWE-025 / D-181).
-// Source of truth: app/VERSION. Kept in sync by scripts/bump-app-version.mjs
-// and re-stamped by app/scripts/web-postbuild.mjs on every web deploy.
-(function (root) {
-    root.GloweAppVersion = { version: '${version}' };
-})(typeof self !== 'undefined' ? self : this);
-`;
-}
-
 export function bumpAppVersionFiles(root = appRoot) {
   const versionPath = resolve(root, 'VERSION');
-  const glowePath = resolve(root, 'apps', 'glowe-web', 'js', 'glowe-version.js');
   const current = parseSemver(readFileSync(versionPath, 'utf8'));
   const next = formatSemver(bumpPatch(current));
   return {
     previous: formatSemver(current),
     next,
     versionPath,
-    glowePath,
     versionBody: `${next}\n`,
-    gloweBody: gloweVersionSource(next),
   };
 }
 
@@ -63,7 +50,6 @@ function main() {
   const result = bumpAppVersionFiles();
   if (!dryRun) {
     writeFileSync(result.versionPath, result.versionBody, 'utf8');
-    writeFileSync(result.glowePath, result.gloweBody, 'utf8');
   }
   process.stdout.write(`${result.previous} -> ${result.next}\n`);
 }

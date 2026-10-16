@@ -4,17 +4,16 @@
 
 ## ⚠️ APP VERSION (`app/VERSION`) — ALWAYS REMEMBER
 
-**App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`). GloWe footer shows `vX.Y.Z` (FR-GLOWE-025 / D-181).**
+**App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`).**
 
-1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` **and** `app/apps/glowe-web/js/glowe-version.js`, or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
+1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
 2. **When you ship a breaking change → bump MAJOR** (e.g. `1.4.2` → `2.0.0`) in the same PR **before** merge to `dev`.
 3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
-4. **Never hardcode a stale version in HTML/CSS.** Footer reads `GloweAppVersion` from `glowe-version.js` only.
-5. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
 
 ## Quick Start (read this first)
 
-1. **Product focus.** GLOWE web (`app/apps/glowe-web/**`) is the active MVP. KC mobile UI (`app/apps/mobile/**`) is paused — see [`AGENTS.md`](./AGENTS.md).
+1. **Product focus.** KC mobile + web export (`app/apps/mobile/**`) and shared Supabase backend — see [`AGENTS.md`](./AGENTS.md).
 2. **Read order.**
    1. [`docs/SSOT/BACKLOG.md`](./docs/SSOT/BACKLOG.md) — **open items only** (`⏳` / `🟡`)
    2. Relevant [`docs/SSOT/spec/{domain}.md`](./docs/SSOT/spec/)
@@ -51,10 +50,9 @@ docs/SSOT/spec/
 ├── 12_super_admin.md             FR-ADMIN-*
 ├── 13_donations.md               FR-DONATE-*
 ├── 14_karma.md                   FR-KARMA-*
-├── 14_responsive_desktop.md      FR-RESP-*   (KC mobile UI — paused)
+├── 14_responsive_desktop.md      FR-RESP-*
 ├── 15_rides.md                   FR-RIDE-*
 ├── 16_public_research.md         FR-RESEARCH-*
-├── 17_glowe_frontend.md          FR-GLOWE-*
 └── 18_translation.md             FR-TRANSLATE-*
 ```
 

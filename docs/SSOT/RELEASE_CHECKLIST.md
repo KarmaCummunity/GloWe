@@ -50,7 +50,7 @@ Watch **Actions** on `main` (in order, as applicable):
 2. **DB deploy** — when migration paths changed: **dry-run then apply** to `supabase-prod` (no human gate).
 3. **Supabase Functions deploy** — runs when `supabase/functions/**` changed.
 4. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after app/Dockerfile changes on `main`.
-5. **GloWe prod smoke** — `glowe-prod-smoke.yml` runs Playwright probes on `GLOWE_PROD_URL` after `dev` deploy (and every 15 min).
+5. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after `main` deploy.
 6. **Sync main → dev** — must succeed; if it fails (merge conflict), fix before any further `dev` work.
 
 Watch **Railway → prod** — new deployment from `main` reaches **Success**.
@@ -61,7 +61,6 @@ Watch **Railway → prod** — new deployment from `main` reaches **Success**.
 
 Automated checks after deploy:
 - **KC (`main`):** `prod-smoke.yml` — HTTP 200 on `KC_PROD_URL`.
-- **GloWe (`dev`):** `glowe-prod-smoke.yml` — Playwright probes on `GLOWE_PROD_URL`; results in admin **System health** when ingest runs.
 
 Spot-check manually:
 
@@ -101,7 +100,6 @@ Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `d
 | E2E credentials | Settings → Secrets and variables → Actions → **Secrets** | `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `E2E_SUPABASE_ANON_KEY_DEV` (dev publishable anon) |
 | `supabase-prod` environment | Settings → Environments → `supabase-prod` | Secrets only (`SUPABASE_*`); **do not** enable required reviewers |
 | KC prod URL for smoke | Settings → Secrets and variables → Actions → **Variables** | `KC_PROD_URL` = `https://karma-community-kc.com` (legacy: `PROD_WEB_URL`) |
-| GloWe prod URL for synthetics | same | `GLOWE_PROD_URL` = `https://dev.karma-community.pages.dev/glowe` |
 
 Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once confirmed.
 

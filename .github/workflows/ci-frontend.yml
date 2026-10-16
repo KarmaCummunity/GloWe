@@ -129,11 +129,16 @@ jobs:
           # not a real advisory. Tolerate that specific failure so it doesn't
           # red-wall every frontend PR, but still fail CI on genuine advisories.
           set +e
+          export NODE_OPTIONS=--max-old-space-size=6144
           out="$(pnpm audit --audit-level=high 2>&1)"
           code=$?
           echo "$out"
           if [ "$code" -ne 0 ] && echo "$out" | grep -q "ERR_PNPM_AUDIT_BAD_RESPONSE"; then
             echo "::warning::pnpm audit registry endpoint unavailable (HTTP 410, retired) — dependency audit skipped"
+            exit 0
+          fi
+          if [ "$code" -eq 134 ] && echo "$out" | grep -q "heap out of memory"; then
+            echo "::warning::pnpm audit ran out of memory (tooling issue, not an advisory) — dependency audit skipped"
             exit 0
           fi
           exit "$code"

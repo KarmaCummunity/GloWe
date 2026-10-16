@@ -1457,10 +1457,38 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-190 — GloWe product removed; KC-only repo (2026-10-16)
+
+**Decision.** Remove the GloWe static frontend (`app/apps/glowe-web`), GloWe CI/deploy/smoke workflows, Edge Functions `glowe-translate` / `glowe-generate-name-en`, and all `glowe_*` database objects via forward migration `0238_drop_glowe_product.sql`. KC mobile/web export and shared Supabase core remain the sole product surface.
+
+**Rationale.** Repository renamed to Karma Community (KC); maintaining a parallel GloWe product fork inside the monorepo duplicated backend schema and confused contributors.
+
+**Alternatives rejected.** Leave schema in place unused (ongoing RLS/types/CI cost); rename-only without drops (misleading `glowe_*` API surface).
+
+**Affected.** Migration `0238`, `AGENTS.md`, `README.md`, `.github/workflows/*`, `app/scripts/web-postbuild.mjs`, archived spec `docs/SSOT/archive/17_glowe_frontend.md`.
+
+**Manual follow-up.** Delete GitHub Actions variables `GLOWE_PROD_URL`, `GLOWE_STAGING_URL`, `GLOWE_SEED_PASSWORD`; disable or remove branch-protection required checks for deleted workflows (`CI — GloWe E2E`, `glowe-prod-smoke`).
+
+---
+
+## D-191 — Port GloWe smart UGC translation to KC `translate` (2026-10-16)
+
+**Decision.** Retire the separate `glowe-translate` function and `glowe_content_translations` table with GloWe sunset, but **keep** the batch-oriented translation engine on KC: shared `kcSource` registry, server-side source reads, cache poison recovery, and `translateMany` fan-out on the existing `translate` Edge Function writing to `content_translations`. Extend the cache schema for `ride_listing` and `user` biography (migration `0239`).
+
+**Rationale.** Naveh: the smart auto-translation mechanism built for GloWe should power KC UGC (posts today; rides/profiles/chats as registered), without reviving GloWe product tables.
+
+**Alternatives rejected.** Reintroduce `glowe_content_translations` alongside KC cache (duplicate pipelines); client-supplied source text for batch (cache-poisoning risk).
+
+**Affected.** `supabase/functions/translate/**`, `supabase/functions/_shared/translation/kcSource.ts`, migration `0239`, `EdgeFnTranslationService`, `MaterializePostTranslationsUseCase`, `docs/SSOT/UGC_TRANSLATION.md`, `docs/SSOT/spec/18_translation.md`.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
+| 4.19 | 2026-10-16 | Added `D-190` (GloWe sunset; KC-only codebase; migration `0238`). |
 | 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
 | 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |

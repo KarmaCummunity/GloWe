@@ -210,8 +210,6 @@ export const search = {
     Other: 'Other',
   },
 
-  // GLOWE partnership banner
-  gloweSubtitle: 'Professional knowledge platform – expand your impact',
 
   // Donation categories for filter
   donationCategories: {

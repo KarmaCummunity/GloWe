@@ -17,7 +17,6 @@
  * - `docs/`, `PRD_V2_NOT_FOR_MVP/`, `app/apps/mobile/app.json` (Expo metadata).
  * - `app/apps/mobile/src/i18n/**` — canonical locale bundles (`he`, future `en`, etc.).
  * - `app/apps/mobile/web-server/i18n/**` — web-server locale bundles (Hono server has no React/i18next runtime).
- * - `app/apps/glowe-web/js/app.js` — vendored static frontend; its `GLOWE_TRANSLATIONS` dictionary is the locale bundle (no i18next runtime).
  * - `supabase/migrations/**`, `supabase/seed.sql` — excluded until SQL adopts D-24 indirection.
  * - `supabase/functions/**` — Edge bundles (including `i18n.json`).
  * - `__tests__/**`, `*.test.ts(x)`, `*.test.mjs`, `*.test.js` — fixtures.
@@ -48,16 +47,6 @@ const SKIP_HEBREW_SCAN_EXACT_RELS = new Set([
   // (Hebrew is the MVP locale, R-MVP-Core-4). A static manifest.json cannot hold
   // i18next keys, so its localized name is canonical here, not an inline leak.
   "app/apps/mobile/public/manifest.json",
-  // GloWe is a vendored standalone static frontend with no i18next runtime; its
-  // interface translations live in the `GLOWE_TRANSLATIONS` dictionary inside
-  // `js/app.js`, which IS its canonical locale bundle (analogous to the
-  // `app/apps/mobile/src/i18n/**` and `web-server/i18n/**` exclusions). The rest
-  // of the GloWe tree (HTML/CSS/other JS) stays under scan.
-  "app/apps/glowe-web/js/app.js",
-  // Dev-only seed dataset: realistic Hebrew content (org names, posts, chats)
-  // persisted to the dev DB — data fixtures, not UI copy (same rationale as
-  // the supabase/seed.sql exclusion).
-  "scripts/seed-glowe-dev.mjs",
 ]);
 
 function parseArgs(argv) {
