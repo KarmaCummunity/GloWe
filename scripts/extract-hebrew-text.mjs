@@ -119,6 +119,8 @@ function isSkippedContentTreeRel(relPosix) {
     return true;
   }
   if (relPosix === "supabase/seed.sql") return true;
+  // Fake Hebrew test data for kc-dev (supabase/seed/kc-dev/**) – data, not UI copy.
+  if (relPosix.startsWith("supabase/seed/")) return true;
   if (relPosix === "app/apps/mobile/src/i18n" || relPosix.startsWith("app/apps/mobile/src/i18n/")) {
     return true;
   }
