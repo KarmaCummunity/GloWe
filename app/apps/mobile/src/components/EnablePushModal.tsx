@@ -1,19 +1,29 @@
-import { Modal, View, Text, Pressable } from 'react-native';
+import { Linking, Modal, View, Text, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import type { PrePromptTrigger } from '../lib/notifications/usePushPermissionGate';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 
 interface Props {
   visible: boolean;
   trigger: PrePromptTrigger | null;
   onAccept: () => void;
   onDecline: () => void;
+  /** When OS will not re-prompt, offer Settings instead of accept. */
+  showOpenSettings?: boolean;
 }
 
-export function EnablePushModal({ visible, trigger, onAccept, onDecline }: Props) {
+export function EnablePushModal({
+  visible,
+  trigger,
+  onAccept,
+  onDecline,
+  showOpenSettings = false,
+}: Props) {
   const { t } = useTranslation();
   const styles = useEnablePushModalStyles();
+  useModalHardwareBack(visible, onDecline);
   const bodyKey = trigger === 'first-post-published'
     ? 'notifications.enablePushBodyFromPost'
     : 'notifications.enablePushBodyFromChat';
@@ -24,9 +34,18 @@ export function EnablePushModal({ visible, trigger, onAccept, onDecline }: Props
         <View style={styles.card}>
           <Text style={styles.title}>{t('notifications.enablePushTitle')}</Text>
           <Text style={styles.body}>{t(bodyKey)}</Text>
-          <Pressable style={[styles.button, styles.accept]} onPress={onAccept}>
-            <Text style={styles.acceptText}>{t('notifications.enablePushAccept')}</Text>
-          </Pressable>
+          {showOpenSettings ? (
+            <Pressable
+              style={[styles.button, styles.accept]}
+              onPress={() => void Linking.openSettings()}
+            >
+              <Text style={styles.acceptText}>{t('notifications.openOsSettings')}</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={[styles.button, styles.accept]} onPress={onAccept}>
+              <Text style={styles.acceptText}>{t('notifications.enablePushAccept')}</Text>
+            </Pressable>
+          )}
           <Pressable style={styles.button} onPress={onDecline}>
             <Text style={styles.declineText}>{t('notifications.enablePushDecline')}</Text>
           </Pressable>

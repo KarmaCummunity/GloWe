@@ -5,6 +5,10 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
+    "locales": {
+      "en": "./locales/ios-en.json",
+      "he": "./locales/ios-he.json"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,11 +24,58 @@
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "bundleIdentifier": "org.karmacommunity.app",
-      "associatedDomains": ["applinks:karma-community-kc.com"],
+      "associatedDomains": [
+        "applinks:karma-community-kc.com",
+        "webcredentials:karma-community-kc.com"
+      ],
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "CFBundleDisplayName": "KC",
-        "NSCameraUsageDescription": "נדרש לצלם תמונות לפוסטים",
-        "NSPhotoLibraryUsageDescription": "נדרש לבחור תמונות לפוסטים"
+        "CFBundleDevelopmentRegion": "he",
+        "CFBundleLocalizations": ["he", "en"],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "KC needs camera access to take photos for posts.",
+        "NSPhotoLibraryUsageDescription": "KC needs photo library access to choose images for posts.",
+        "NSPhotoLibraryAddUsageDescription": "KC can save images to your photo library when you choose to export or save a photo.",
+        "NSUserNotificationsUsageDescription": "KC sends notifications about messages, post updates, and community activity you care about.",
+        "UIBackgroundModes": ["remote-notification"]
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ],
+        "NSPrivacyCollectedDataTypes": [
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCrashData",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePerformanceData",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAnalytics"
+            ]
+          }
+        ]
       }
     },
     "android": {
@@ -33,16 +84,27 @@
         "backgroundColor": "#F97316"
       },
       "package": "org.karmacommunity.app",
+      "predictiveBackGestureEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
       ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/auth/verify" }
+            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/auth/verify" },
+            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/auth/callback" },
+            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/post" },
+            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/user" },
+            { "scheme": "https", "host": "karma-community-kc.com", "pathPrefix": "/chat" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
@@ -65,17 +127,34 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "נדרש לבחור תמונות לפוסטים"
+          "photosPermission": "KC needs photo library access to choose images for posts.",
+          "cameraPermission": "KC needs camera access to take photos for posts."
         }
       ],
       "expo-localization",
       "expo-font",
       [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#F97316"
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#0A8754",
+          "color": "#F97316",
           "sounds": []
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableEdgeToEdge": true
+          }
         }
       ],
       [

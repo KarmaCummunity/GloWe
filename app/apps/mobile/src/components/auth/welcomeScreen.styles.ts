@@ -165,6 +165,22 @@ export const useWelcomeScreenStyles = makeUseStyles(({ colors, isDark }) => ({
     color: colors.textSecondary,
   },
 
+  oauthDividerRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.sm,
+    marginVertical: spacing.lg,
+  },
+  oauthDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  oauthDividerText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+
   // ── Legal ─────────────────────────────────────────────────────────────
   legal: {
     ...typography.caption,

@@ -25,6 +25,7 @@ import { NotifyModal } from '../../src/components/NotifyModal';
 import { AuthBackground } from '../../src/components/auth/AuthBackground';
 import { AnimatedAuthInput } from '../../src/components/auth/AnimatedAuthInput';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { AuthSocialSignInBlock } from '../../src/components/auth/AuthSocialSignInBlock';
 
 export default function SignInScreen() {
   const styles = useStyles();
@@ -97,6 +98,8 @@ export default function SignInScreen() {
             {/* Form card */}
             <Animated.View style={[styles.card, formStyle]}>
               <Text style={styles.title}>{t('auth.signInScreenTitle')}</Text>
+
+              {!pendingEmail ? <AuthSocialSignInBlock /> : null}
 
               {pendingEmail ? (
                 <VerificationPendingPanel email={pendingEmail} onChangeEmail={() => setPendingEmail(null)} />

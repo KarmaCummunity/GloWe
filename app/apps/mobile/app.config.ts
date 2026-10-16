@@ -1,8 +1,8 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** Marketing version — single source of truth: `app/VERSION` (FR-GLOWE-025 / D-181). */
+/** Marketing version — single source of truth: `app/VERSION`. */
 function readAppVersion(): string {
   const versionPath = join(__dirname, '../../VERSION');
   return readFileSync(versionPath, 'utf8').trim();
@@ -29,17 +29,46 @@ function applySentryBuildDefaults(): void {
   }
 }
 
-// Static base lives in app.json (icons, plugins, native ids). This file injects
-// version + build metadata only so EAS/Constants never drift from app/VERSION.
+function warnMissingSupabaseEnv(profile: string | undefined): void {
+  if (process.env.EAS_BUILD !== 'true' && !process.env.CI) return;
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!url || !key) {
+    console.warn(
+      `[app.config] EAS profile "${profile ?? 'unknown'}" is missing EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY`,
+    );
+  }
+}
+
+function resolveGoogleServicesFile(): string | undefined {
+  const fromEnv = process.env.GOOGLE_SERVICES_JSON?.trim();
+  if (fromEnv && existsSync(fromEnv)) return fromEnv;
+  const local = join(__dirname, 'google-services.json');
+  if (existsSync(local)) return './google-services.json';
+  return undefined;
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   applySentryBuildDefaults();
+  warnMissingSupabaseEnv(process.env.EAS_BUILD_PROFILE);
+
+  const googleServicesFile = resolveGoogleServicesFile();
+  const android = {
+    ...(config.android ?? {}),
+    ...(googleServicesFile ? { googleServicesFile } : {}),
+  };
 
   return {
     ...config,
+    android,
     version: readAppVersion(),
     extra: {
       ...(config.extra ?? {}),
       gitCommitSha: resolveGitCommitSha(),
+      supabaseConfigured: Boolean(
+        process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() &&
+          process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+      ),
     },
   } as ExpoConfig;
 };

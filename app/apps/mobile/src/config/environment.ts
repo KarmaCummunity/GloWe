@@ -25,9 +25,6 @@ export function isDevEnvironment(): boolean {
 /**
  * Gates the dev preview route at `/dev/shell-preview`. Defaults ON in dev
  * (set EXPO_PUBLIC_SHELL_V2=0 to disable), always OFF in production.
- *
- * The real desktop shell (AppShell in root _layout.tsx) is NOT gated by
- * this flag — it always branches on viewport width.
  */
 export const SHELL_V2_ENABLED: boolean =
   typeof __DEV__ !== 'undefined' &&

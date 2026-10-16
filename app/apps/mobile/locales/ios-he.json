@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "infoPlist": {
+      "NSCameraUsageDescription": "נדרש לצלם תמונות לפוסטים.",
+      "NSPhotoLibraryUsageDescription": "נדרש לבחור תמונות מהגלריה לפוסטים.",
+      "NSPhotoLibraryAddUsageDescription": "נדרש כדי לשמור תמונות לגלריה כשבוחרים לשמור או לייצא תמונה.",
+      "NSUserNotificationsUsageDescription": "KC שולח התראות על הודעות, עדכוני פוסטים ופעילות בקהילה."
+    }
+  }
+}

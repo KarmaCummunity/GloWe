@@ -55,7 +55,11 @@ Set Supabase and Sentry values as [EAS secrets](https://docs.expo.dev/build-refe
 1. **Expo / EAS**
    - Create or link an Expo project: from this directory run `eas init` (writes `extra.eas.projectId` into config).
    - Create an access token → GitHub secret `EXPO_TOKEN`.
-   - Configure EAS secrets for hosted dev Supabase, e.g. `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+   - Configure **EAS environment variables** (per profile: `development`, `preview`, `production`):
+     - `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` (hosted dev or prod — never commit values)
+     - `EXPO_PUBLIC_WEB_BASE_URL` (optional; defaults in CI workflows)
+     - `GOOGLE_SERVICES_JSON` — **EAS file** env pointing at `google-services.json` for FCM (Android push)
+     - `SENTRY_AUTH_TOKEN` (optional source maps)
 
 2. **Apple (TestFlight)**
    - App Store Connect app for `org.karmacommunity.app`.

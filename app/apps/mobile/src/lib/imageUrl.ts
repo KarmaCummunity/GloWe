@@ -16,13 +16,15 @@
 // `EXPO_PUBLIC_USE_STORAGE_TRANSFORM=1` so a future CDN wave can re-enable it
 // alongside an edge that guarantees the pipeline works.
 
+import { getSupabasePublicEnv } from './supabasePublicConfig';
+
 type Args = { bucket: string; path: string; width?: number; quality?: number };
 type ThumbArgs = { bucket: string; path: string };
 
-function getSupabaseBaseUrl(): string {
-  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  if (!url) throw new Error('EXPO_PUBLIC_SUPABASE_URL not set');
-  return url.replace(/\/$/, '');
+function getSupabaseBaseUrl(): string | null {
+  const env = getSupabasePublicEnv();
+  if (!env) return null;
+  return env.url.replace(/\/$/, '');
 }
 
 const USE_TRANSFORM = process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM === '1';
@@ -30,6 +32,7 @@ const USE_TRANSFORM = process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM === '1';
 export function getSupabasePublicImageUrl({ bucket, path, width, quality }: Args): string {
   if (!path) return '';
   const base = getSupabaseBaseUrl();
+  if (!base) return '';
   const wantsTransform =
     USE_TRANSFORM && (typeof width === 'number' || typeof quality === 'number');
   if (!wantsTransform) {

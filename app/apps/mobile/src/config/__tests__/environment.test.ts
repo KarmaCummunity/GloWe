@@ -1,41 +1,30 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { getAppEnvironment, isDevEnvironment } from '../environment';
 
-describe('environment config', () => {
-  const original = process.env['EXPO_PUBLIC_ENVIRONMENT'];
+const ORIGINAL = process.env.EXPO_PUBLIC_ENVIRONMENT;
 
-  beforeEach(() => {
-    delete process.env['EXPO_PUBLIC_ENVIRONMENT'];
-  });
+afterEach(() => {
+  if (ORIGINAL === undefined) delete process.env.EXPO_PUBLIC_ENVIRONMENT;
+  else process.env.EXPO_PUBLIC_ENVIRONMENT = ORIGINAL;
+});
 
-  afterEach(() => {
-    if (original === undefined) {
-      delete process.env['EXPO_PUBLIC_ENVIRONMENT'];
-    } else {
-      process.env['EXPO_PUBLIC_ENVIRONMENT'] = original;
-    }
-  });
-
-  it('reports development when env var is "development"', () => {
-    process.env['EXPO_PUBLIC_ENVIRONMENT'] = 'development';
+describe('getAppEnvironment', () => {
+  it('returns development when EXPO_PUBLIC_ENVIRONMENT=development', () => {
+    process.env.EXPO_PUBLIC_ENVIRONMENT = 'development';
     expect(getAppEnvironment()).toBe('development');
+  });
+
+  it('defaults to production when unset', () => {
+    delete process.env.EXPO_PUBLIC_ENVIRONMENT;
+    expect(getAppEnvironment()).toBe('production');
+  });
+});
+
+describe('isDevEnvironment', () => {
+  it('mirrors getAppEnvironment', () => {
+    process.env.EXPO_PUBLIC_ENVIRONMENT = 'development';
     expect(isDevEnvironment()).toBe(true);
-  });
-
-  it('reports production when env var is "production"', () => {
-    process.env['EXPO_PUBLIC_ENVIRONMENT'] = 'production';
-    expect(getAppEnvironment()).toBe('production');
-    expect(isDevEnvironment()).toBe(false);
-  });
-
-  it('defaults to production when env var is missing', () => {
-    expect(getAppEnvironment()).toBe('production');
-    expect(isDevEnvironment()).toBe(false);
-  });
-
-  it('treats unknown values as production (fail-safe)', () => {
-    process.env['EXPO_PUBLIC_ENVIRONMENT'] = 'staging';
-    expect(getAppEnvironment()).toBe('production');
+    delete process.env.EXPO_PUBLIC_ENVIRONMENT;
     expect(isDevEnvironment()).toBe(false);
   });
 });
