@@ -131,7 +131,7 @@ returns table (
   match_status text
 )
 language plpgsql
-stable
+volatile
 security definer
 set search_path = public, extensions
 as $$
