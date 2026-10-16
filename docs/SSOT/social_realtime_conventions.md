@@ -7,6 +7,10 @@
 | Pattern | Example | Events | Source |
 | --- | --- | --- | --- |
 | Post engagement | `post:<post_id>:engagement` | `INSERT` / `UPDATE` / `DELETE` (via `realtime.broadcast_changes`) | `post_reactions`, `post_comments`, `post_shares`, `post_stats` |
+| Notification badge | `user:<user_id>:notifications` | `badge` (via `realtime.send`) | `notification_inbox` read/unread |
+| Chat messages | `chat:<chat_id>:messages` | `INSERT` / `UPDATE` / `reaction` | `messages`, `message_reactions` |
+| Chat typing | `chat:<chat_id>:typing` | `typing` (client broadcast) | — |
+| Chat presence | `chat:<chat_id>:presence` | Presence track (client) | — |
 
 **Client setup (JS):**
 

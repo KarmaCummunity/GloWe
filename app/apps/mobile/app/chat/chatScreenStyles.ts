@@ -18,4 +18,11 @@ export const useChatConversationStyles = makeUseStyles(({ colors }) => ({
   counter: { ...typography.caption, color: colors.textSecondary, alignSelf: 'flex-start', paddingHorizontal: spacing.sm },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
   sendBtnDisabled: { opacity: 0.5 },
+  typingHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.xs,
+    textAlign: 'right',
+  },
 }));

@@ -200,4 +200,16 @@ export const postEn = {
   showTranslation: 'Show translation',
   autoTranslated: 'Auto-translated',
 
+  engagement: {
+    title: 'Engagement',
+    meta: '{{reactions}} reactions · {{comments}} comments',
+    commentPlaceholder: 'Write a comment…',
+    commentSend: 'Post comment',
+    reaction: {
+      like: 'Like',
+      support: 'Support',
+      thanks: 'Thanks',
+    },
+  },
+
 } as const;

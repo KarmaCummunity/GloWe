@@ -11,6 +11,9 @@ import {
   SupabaseReportRepository,
   SupabaseDonationLinksRepository,
   SupabasePostRepository,
+  SupabasePostEngagementRepository,
+  SupabaseNotificationInboxRepository,
+  SupabaseChatV2Realtime,
   SupabaseModerationAdminRepository,
   SupabaseAccountGateRepository,
   SupabaseDeviceRepository,
@@ -125,6 +128,9 @@ const chatRealtime = new SupabaseChatRealtime(supabase);
 const reportRepo = new SupabaseReportRepository(supabase);
 const donationLinksRepo = new SupabaseDonationLinksRepository(supabase);
 const postRepo = new SupabasePostRepository(supabase);
+const postEngagementRepo = new SupabasePostEngagementRepository(supabase);
+const notificationInboxRepo = new SupabaseNotificationInboxRepository(supabase);
+const chatV2Realtime = new SupabaseChatV2Realtime(supabase);
 const moderationAdminRepo = new SupabaseModerationAdminRepository(supabase);
 const accountGateRepo = new SupabaseAccountGateRepository(supabase);
 const deviceRepo = new SupabaseDeviceRepository(supabase);
@@ -151,6 +157,9 @@ export const container = {
   userRepo,
   chatRepo,
   chatRealtime,
+  chatV2Realtime,
+  postEngagement: postEngagementRepo,
+  notificationInbox: notificationInboxRepo,
   moderationAdminRepo, // exposed for hooks that need adminRepo.isUserAdmin pre-checks
   deviceRepo,
   adminRoleRepo,

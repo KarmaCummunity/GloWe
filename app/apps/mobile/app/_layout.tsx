@@ -221,6 +221,10 @@ function ThemedRootShell() {
               {/* FR-MOD-010 AC4 — terminal screen for blocked accounts. */}
               <Stack.Screen name="account-blocked" options={{ headerShown: true, headerTitle: '', headerBackVisible: false, headerStyle: { backgroundColor: colors.surface } }} />
               <Stack.Screen name="settings" />
+              <Stack.Screen
+                name="notifications/inbox"
+                options={{ ...detailStackScreenOptions, headerTitle: i18n.t('notifications.inboxTitle') }}
+              />
               <Stack.Screen name="about" options={{ headerShown: false }} />
               <Stack.Screen name="about-site" options={{ headerShown: false }} />
               {/* FR-RESEARCH-001 — public web survey; no auth shell */}
