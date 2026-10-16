@@ -9,7 +9,7 @@ set search_path = public
 as $$
 declare
   v_uid uuid := coalesce(p_user_id, (select auth.uid()));
-  v_u public.users;
+  v_u record;
   v_score int := 0;
   v_missing text[] := '{}'::text[];
   v_verified boolean;
@@ -17,14 +17,17 @@ begin
   if v_uid is null then
     raise exception 'not_authenticated' using errcode = 'P0001';
   end if;
-  if v_uid <> (select auth.uid()) and not coalesce((
-    select u.is_super_admin from public.users u where u.user_id = (select auth.uid())
-  ), false) then
+  if v_uid <> (select auth.uid()) and not coalesce(public.is_admin((select auth.uid())), false) then
     raise exception 'forbidden' using errcode = 'P0001';
   end if;
 
-  select * into v_u from public.users where user_id = v_uid;
-  if v_u.user_id is null then
+  -- Explicit columns: authenticated has column-scoped SELECT on users (0163).
+  select u.user_id, u.onboarding_state, u.avatar_url, u.biography, u.city,
+         u.followers_count, u.following_count, u.account_status
+    into v_u
+    from public.users u
+   where u.user_id = v_uid;
+  if not found then
     raise exception 'user_not_found' using errcode = 'P0001';
   end if;
 
