@@ -62,6 +62,21 @@ supabase gen types typescript --project-id <project-ref> \
 
 Commit the regenerated file.
 
+## WhatsApp matching bot — Edge secrets (#842–#846)
+
+Configure in Supabase Dashboard → Edge Functions → Secrets (names only; never commit values):
+
+| Secret | Used by |
+|--------|---------|
+| `WHATSAPP_VERIFY_TOKEN` | `whatsapp-webhook` (GET challenge) |
+| `WHATSAPP_APP_SECRET` | `whatsapp-webhook` (signature HMAC) |
+| `WHATSAPP_CLOUD_API_TOKEN` | Outbound Graph API sends |
+| `WHATSAPP_PHONE_NUMBER_ID` | Outbound sends |
+| `WHATSAPP_GRAPH_API_VERSION` | Optional override (default in `whatsapp_channel_config`) |
+| `WHATSAPP_SKIP_SIGNATURE_VERIFY` | Local/dev only when app secret unset |
+
+RPC contract for MCP adapters: `docs/SSOT/MCP_MARKETPLACE_BOT_CONTRACT.md`.
+
 ## Slice plan
 
 See `docs/SSOT/archive/superpowers/plans/2026-05-07-p0-2-db-schema-rls.md` for the full
