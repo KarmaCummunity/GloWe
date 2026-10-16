@@ -6,6 +6,7 @@
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 export { moneyPayments } from './donations.moneyPayments';
+export { timeVolunteer } from './donations.timeVolunteer';
 
 export const donations = {
   tabLabel: 'Donations',

@@ -297,3 +297,4 @@ export type { IPublicResearchRepository } from './ports/IPublicResearchRepositor
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';
 export * from './payments';
+export * from './volunteering';

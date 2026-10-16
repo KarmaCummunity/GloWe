@@ -1522,6 +1522,105 @@ export type Database = {
           },
         ]
       }
+      volunteer_opportunities: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          location_label: string | null
+          opportunity_id: string
+          org_id: string | null
+          organizer_id: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          location_label?: string | null
+          opportunity_id?: string
+          org_id?: string | null
+          organizer_id: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          location_label?: string | null
+          opportunity_id?: string
+          org_id?: string | null
+          organizer_id?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      volunteer_shift_signups: {
+        Row: {
+          checked_in_at: string | null
+          hours_logged: number | null
+          shift_id: string
+          signed_up_at: string
+          signup_id: string
+          status: string
+          user_id: string
+          waitlist_position: number | null
+        }
+        Insert: {
+          checked_in_at?: string | null
+          hours_logged?: number | null
+          shift_id: string
+          signed_up_at?: string
+          signup_id?: string
+          status?: string
+          user_id: string
+          waitlist_position?: number | null
+        }
+        Update: {
+          checked_in_at?: string | null
+          hours_logged?: number | null
+          shift_id?: string
+          signed_up_at?: string
+          signup_id?: string
+          status?: string
+          user_id?: string
+          waitlist_position?: number | null
+        }
+        Relationships: []
+      }
+      volunteer_shifts: {
+        Row: {
+          capacity: number
+          created_at: string
+          ends_at: string
+          opportunity_id: string
+          shift_id: string
+          starts_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          ends_at: string
+          opportunity_id: string
+          shift_id?: string
+          starts_at: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          ends_at?: string
+          opportunity_id?: string
+          shift_id?: string
+          starts_at?: string
+        }
+        Relationships: []
+      }
       external_bodies: {
         Row: {
           body_id: string
@@ -6435,6 +6534,137 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          account_status: string
+          account_status_until: string | null
+          active_posts_count_followers_only_open: number
+          active_posts_count_internal: number
+          active_posts_count_public_open: number
+          auth_provider: string
+          avatar_url: string | null
+          basic_info_skipped: boolean
+          biography: string | null
+          city: string | null
+          city_name: string | null
+          closure_explainer_dismissed: boolean
+          contact_phone: string | null
+          created_at: string
+          display_name: string | null
+          false_report_sanction_count: number
+          false_reports_count: number
+          first_post_nudge_dismissed: boolean
+          followers_count: number
+          following_count: number
+          is_super_admin: boolean
+          items_given_count: number
+          items_received_count: number
+          karma_points: number
+          notification_preferences: Json
+          onboarding_state: string
+          posts_created_total: number
+          preferred_language: string | null
+          privacy_changed_at: string | null
+          privacy_mode: string
+          profile_street: string | null
+          profile_street_number: string | null
+          food_posting_banned_until: string | null
+          search_vector: unknown
+          share_handle: string
+          updated_at: string
+          user_id: string
+          verification_method: string | null
+          verified_at: string | null
+          volunteer_hours_total: number
+        }
+        Insert: {
+          account_status?: string
+          account_status_until?: string | null
+          active_posts_count_followers_only_open?: number
+          active_posts_count_internal?: number
+          active_posts_count_public_open?: number
+          auth_provider: string
+          avatar_url?: string | null
+          basic_info_skipped?: boolean
+          biography?: string | null
+          city?: string | null
+          city_name?: string | null
+          closure_explainer_dismissed?: boolean
+          contact_phone?: string | null
+          created_at?: string
+          display_name?: string | null
+          false_report_sanction_count?: number
+          false_reports_count?: number
+          first_post_nudge_dismissed?: boolean
+          followers_count?: number
+          following_count?: number
+          is_super_admin?: boolean
+          items_given_count?: number
+          items_received_count?: number
+          karma_points?: number
+          notification_preferences?: Json
+          onboarding_state?: string
+          posts_created_total?: number
+          preferred_language?: string | null
+          privacy_changed_at?: string | null
+          privacy_mode?: string
+          profile_street?: string | null
+          profile_street_number?: string | null
+          search_vector?: unknown
+          share_handle: string
+          updated_at?: string
+          user_id: string
+          volunteer_hours_total?: number
+        }
+        Update: {
+          account_status?: string
+          account_status_until?: string | null
+          active_posts_count_followers_only_open?: number
+          active_posts_count_internal?: number
+          active_posts_count_public_open?: number
+          auth_provider?: string
+          avatar_url?: string | null
+          basic_info_skipped?: boolean
+          biography?: string | null
+          city?: string | null
+          city_name?: string | null
+          closure_explainer_dismissed?: boolean
+          contact_phone?: string | null
+          created_at?: string
+          display_name?: string | null
+          false_report_sanction_count?: number
+          false_reports_count?: number
+          first_post_nudge_dismissed?: boolean
+          followers_count?: number
+          following_count?: number
+          is_super_admin?: boolean
+          items_given_count?: number
+          items_received_count?: number
+          karma_points?: number
+          notification_preferences?: Json
+          onboarding_state?: string
+          posts_created_total?: number
+          preferred_language?: string | null
+          privacy_changed_at?: string | null
+          privacy_mode?: string
+          profile_street?: string | null
+          profile_street_number?: string | null
+          search_vector?: unknown
+          share_handle?: string
+          updated_at?: string
+          user_id?: string
+          volunteer_hours_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_city_fkey"
+            columns: ["city"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["city_id"]
+          },
+        ]
+      }
     }
     Views: {
       about_team_profiles: {
@@ -7525,6 +7755,167 @@ export type Database = {
           p_status?: string
         }
         Returns: string
+      }
+      cancel_standing_order: {
+        Args: { p_order_id: string }
+        Returns: Database["public"]["Tables"]["standing_orders"]["Row"]
+      }
+      create_donation_intent: {
+        Args: {
+          p_amount_ils: number
+          p_idempotency_key: string
+          p_listing_id?: string
+          p_org_id: string
+        }
+        Returns: Database["public"]["Tables"]["donation_intents"]["Row"]
+      }
+      complete_sandbox_donation: {
+        Args: { p_intent_id: string }
+        Returns: Json
+      }
+      add_volunteer_shift: {
+        Args: {
+          p_capacity?: number
+          p_ends_at: string
+          p_opportunity_id: string
+          p_starts_at: string
+        }
+        Returns: string
+      }
+      cancel_volunteer_signup: {
+        Args: { p_signup_id: string }
+        Returns: undefined
+      }
+      check_in_volunteer_shift: {
+        Args: { p_signup_id: string }
+        Returns: Json
+      }
+      close_volunteer_opportunity: {
+        Args: { p_opportunity_id: string }
+        Returns: undefined
+      }
+      create_volunteer_opportunity: {
+        Args: {
+          p_city_id?: string
+          p_location_label?: string
+          p_org_id?: string
+          p_summary?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      get_volunteer_opportunity_detail: {
+        Args: { p_opportunity_id: string }
+        Returns: Json
+      }
+      get_volunteer_shift_ics: {
+        Args: { p_shift_id: string }
+        Returns: string
+      }
+      list_my_volunteer_opportunities: {
+        Args: { p_limit?: number }
+        Returns: Database['public']['Tables']['volunteer_opportunities']['Row'][]
+      }
+      list_my_volunteer_signups: {
+        Args: { p_limit?: number }
+        Returns: {
+          ends_at: string
+          hours_logged: number | null
+          opportunity_id: string
+          shift_id: string
+          signup_id: string
+          starts_at: string
+          status: string
+          title: string
+        }[]
+      }
+      list_shift_volunteers: {
+        Args: { p_shift_id: string }
+        Returns: {
+          display_name: string | null
+          hours_logged: number | null
+          share_handle: string | null
+          signup_id: string
+          status: string
+          user_id: string
+          waitlist_position: number | null
+        }[]
+      }
+      list_volunteer_opportunities: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          city_id: string | null
+          location_label: string | null
+          next_shift_at: string | null
+          open_slots: number
+          opportunity_id: string
+          summary: string | null
+          title: string
+        }[]
+      }
+      organizer_message_shift_volunteers: {
+        Args: { p_message: string; p_shift_id: string }
+        Returns: number
+      }
+      publish_volunteer_opportunity: {
+        Args: { p_opportunity_id: string }
+        Returns: undefined
+      }
+      sign_up_volunteer_shift: {
+        Args: { p_shift_id: string }
+        Returns: Database['public']['Tables']['volunteer_shift_signups']['Row']
+      }
+      create_standing_order: {
+        Args: {
+          p_amount_ils: number
+          p_cadence?: string
+          p_idempotency_key: string
+          p_org_id: string
+        }
+        Returns: Database["public"]["Tables"]["standing_orders"]["Row"]
+      }
+      pause_standing_order: {
+        Args: { p_order_id: string }
+        Returns: Database["public"]["Tables"]["standing_orders"]["Row"]
+      }
+      resume_standing_order: {
+        Args: { p_order_id: string }
+        Returns: Database["public"]["Tables"]["standing_orders"]["Row"]
+      }
+      list_my_standing_orders: {
+        Args: { p_limit?: number }
+        Returns: Database["public"]["Tables"]["standing_orders"]["Row"][]
+      }
+      list_verified_nonprofits: {
+        Args: { p_limit?: number }
+        Returns: {
+          is_verified_nonprofit: boolean
+          name: string
+          org_id: string
+          slug: string
+          tagline_en: string | null
+          tagline_he: string | null
+        }[]
+      }
+      get_nonprofit_public_page: {
+        Args: { p_org_slug: string }
+        Returns: Json
+      }
+      list_my_donation_history: {
+        Args: { p_limit?: number }
+        Returns: {
+          amount_ils: number
+          org_id: string
+          org_name: string
+          paid_at: string
+          payment_id: string
+          receipt_id: string | null
+          section46_serial: string | null
+        }[]
+      }
+      get_donation_receipt: {
+        Args: { p_payment_id: string }
+        Returns: Json
       }
       find_matches: {
         Args: { p_limit?: number; p_listing_id: string; p_viewer?: string }
