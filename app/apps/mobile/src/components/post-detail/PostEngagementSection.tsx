@@ -1,16 +1,9 @@
 // KC#867 — reactions + comments on post detail (native-feeling tap targets).
 
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { hapticLightTap } from '../../lib/haptics';
 import { makeUseStyles, spacing, typography, radius } from '@kc/ui';
 import type { PostReactionType } from '@kc/infrastructure-supabase';
 import { container } from '../../lib/container';
@@ -45,13 +38,9 @@ export function PostEngagementSection({ postId, viewerId }: Props) {
     void refresh();
   }, [refresh]);
 
-  const bumpHaptic = () => {
-    if (Platform.OS === 'ios') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
   const onReaction = async (type: PostReactionType) => {
     if (!viewerId || busy) return;
-    bumpHaptic();
+    hapticLightTap();
     setBusy(true);
     try {
       const next = activeReaction === type ? null : type;
@@ -66,7 +55,7 @@ export function PostEngagementSection({ postId, viewerId }: Props) {
   const onSubmitComment = async () => {
     const body = draft.trim();
     if (!viewerId || !body || busy) return;
-    bumpHaptic();
+    hapticLightTap();
     setBusy(true);
     try {
       await container.postEngagement.createComment(postId, body);

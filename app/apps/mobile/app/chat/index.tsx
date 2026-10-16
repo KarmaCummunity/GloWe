@@ -1,14 +1,11 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, RefreshControl, TextInput, Platform } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { ListRenderItem } from '@shopify/flash-list';
 import { ChatError, type ChatWithPreview } from '@kc/application';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
-import { useChatStore } from '../../src/store/chatStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { markNeedFreshThreadWith } from '../../src/lib/chatNavigationPrefs';
@@ -18,6 +15,11 @@ import { InboxChatRow, InboxChatRowSeparator } from '../../src/components/chat/I
 import { InboxListSkeleton } from '../../src/components/skeletons/InboxListSkeleton';
 import { NotifyModal } from '../../src/components/NotifyModal';
 import { KcFlashList } from '../../src/components/lists/KcFlashList';
+import { useChatInboxQuery } from '../../src/hooks/useChatInboxQuery';
+import { useChatStore } from '../../src/store/chatStore';
+import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
+import { queryClient } from '../../src/lib/queryPersist';
+import { chatInboxQueryKey } from '../../src/lib/chatInboxQuery';
 
 const PAGE = 30;
 
@@ -26,27 +28,22 @@ export default function ChatListScreen() {
   const { t } = useTranslation();
   const styles = useChatListStyles();
   const { colors } = useTheme();
+  const detailOptions = useDetailStackScreenOptions();
   const userId = useAuthStore((s) => s.session?.userId);
-  const inbox = useChatStore((s) => s.inbox);
+  const inboxQuery = useChatInboxQuery(userId);
+  const inbox = inboxQuery.data?.chats;
   const [q, setQ] = useState('');
   const [visible, setVisible] = useState(PAGE);
   const [hideTarget, setHideTarget] = useState<{ chatId: string; otherUserId: string | null } | null>(
     null,
   );
   const [hideBusy, setHideBusy] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  // TD-138: Alert.alert is a no-op on react-native-web — surface via NotifyModal.
   const [hideErrorMsg, setHideErrorMsg] = useState<string | null>(null);
 
   const onRefresh = useCallback(async () => {
     if (!userId) return;
-    setRefreshing(true);
-    try {
-      await useChatStore.getState().refreshInbox(userId, container.chatRepo);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [userId]);
+    await inboxQuery.refetch();
+  }, [userId, inboxQuery]);
 
   const filtered = useMemo(() => {
     if (!inbox) return [];
@@ -57,8 +54,6 @@ export default function ChatListScreen() {
     return list.slice(0, visible);
   }, [inbox, q, visible]);
 
-  // Stable callbacks + renderItem so memoized rows skip re-render on every
-  // search keystroke / refresh (only changed rows re-render).
   const handleOpen = useCallback(
     (chatId: string) => router.push(`/chat/${chatId}`),
     [router],
@@ -75,15 +70,17 @@ export default function ChatListScreen() {
   );
   const handleEndReached = useCallback(() => setVisible((v) => v + PAGE), []);
 
+  const showSkeleton = inboxQuery.isLoading && !inbox;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']} testID="chat-inbox-screen">
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('chat.title')}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <View style={styles.container} testID="chat-inbox-screen">
+      <Stack.Screen
+        options={{
+          ...detailOptions,
+          headerTitle: t('chat.title'),
+          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+        }}
+      />
 
       <View style={styles.searchWrap}>
         <TextInput
@@ -96,34 +93,34 @@ export default function ChatListScreen() {
         />
       </View>
 
-      <KcFlashList
-        data={filtered}
-        keyExtractor={(c) => c.chatId}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.6}
-        estimatedItemSize={76}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-        renderItem={renderItem}
-        ItemSeparatorComponent={InboxChatRowSeparator}
-        ListEmptyComponent={
-          inbox === null ? (
-            <InboxListSkeleton />
-          ) : (
+      {showSkeleton ? (
+        <InboxListSkeleton />
+      ) : (
+        <KcFlashList
+          data={filtered}
+          keyExtractor={(c) => c.chatId}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.6}
+          estimatedItemSize={76}
+          refreshControl={
+            <RefreshControl
+              refreshing={inboxQuery.isRefetching}
+              onRefresh={() => void onRefresh()}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          renderItem={renderItem}
+          ItemSeparatorComponent={InboxChatRowSeparator}
+          ListEmptyComponent={
             <EmptyState
               icon="chatbubbles-outline"
               title={t('chat.noChats')}
               subtitle={t('chat.noChatsDesc')}
             />
-          )
-        }
-      />
+          }
+        />
+      )}
 
       <HideChatConfirmModal
         visible={hideTarget != null}
@@ -137,6 +134,7 @@ export default function ChatListScreen() {
             await container.hideChatFromInbox.execute({ chatId: target.chatId });
             if (target.otherUserId) markNeedFreshThreadWith(target.otherUserId);
             await useChatStore.getState().refreshInbox(userId, container.chatRepo);
+            void queryClient.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
             setHideTarget(null);
           } catch (err) {
             const msg =
@@ -150,22 +148,12 @@ export default function ChatListScreen() {
         }}
       />
       <NotifyModal visible={hideErrorMsg !== null} title={t('chat.errorTitle')} message={hideErrorMsg ?? ''} onDismiss={() => setHideErrorMsg(null)} />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const useChatListStyles = makeUseStyles(({ colors }) => ({
   container: { flex: 1, backgroundColor: colors.surface },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: { ...typography.h3, color: colors.textPrimary },
   searchWrap: { padding: spacing.sm, backgroundColor: colors.surface },
   search: {
     backgroundColor: colors.background,

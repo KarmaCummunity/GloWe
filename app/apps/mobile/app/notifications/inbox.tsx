@@ -11,6 +11,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { KcFlashList } from '../../src/components/lists/KcFlashList';
+import { SimpleRowListSkeleton } from '../../src/components/skeletons/SimpleRowListSkeleton';
 
 function resolveDeepLink(data: Record<string, unknown>): { pathname: string; params?: Record<string, string> } | null {
   const route = data.route;
@@ -82,7 +83,11 @@ export default function NotificationInboxScreen() {
           );
         }}
         ListEmptyComponent={
-          <Text style={styles.empty}>{query.isLoading ? '…' : t('notifications.inboxEmpty')}</Text>
+          query.isLoading && !query.data ? (
+            <SimpleRowListSkeleton rows={8} rowHeight={72} />
+          ) : (
+            <Text style={styles.empty}>{t('notifications.inboxEmpty')}</Text>
+          )
         }
       />
     </>

@@ -16,5 +16,6 @@ export function useDetailStackScreenOptions() {
     animation: rootStackScreenAnimation(),
     gestureEnabled: rootStackGestureEnabled,
     fullScreenGestureEnabled: Platform.OS === 'ios',
+    ...(Platform.OS === 'ios' ? { headerLargeTitle: false } : {}),
   } as const;
 }

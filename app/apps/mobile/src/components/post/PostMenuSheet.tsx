@@ -3,7 +3,7 @@
 import { useState, type ComponentProps } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { container } from '../../lib/container';
-import { Modal, Text, Pressable, ScrollView, View, StyleSheet } from 'react-native';
+import { Modal, Text, Pressable, ScrollView, View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
@@ -76,7 +76,13 @@ export function PostMenuSheet({
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Modal
+        visible={visible}
+        animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : undefined}
+        transparent={Platform.OS !== 'ios'}
+        onRequestClose={onClose}
+      >
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.handle} accessibilityElementsHidden importantForAccessibility="no" />

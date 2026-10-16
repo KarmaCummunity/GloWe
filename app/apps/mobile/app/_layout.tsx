@@ -113,7 +113,7 @@ function ThemedRootShell() {
                   must stay off so it never sits above the custom bar on web/mobile (taps). */}
               <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
               {/* chat/index renders its own header inside the screen — disable the Stack one to avoid doubling. */}
-              <Stack.Screen name="chat/index" options={{ headerShown: false }} />
+              <Stack.Screen name="chat/index" options={{ headerShown: true }} />
             </Stack>
               </ShellWithResponsiveChrome>
             </SoftGateProvider>
