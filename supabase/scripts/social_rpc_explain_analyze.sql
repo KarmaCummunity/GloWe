@@ -13,10 +13,10 @@ select * from public.rpc_get_post_engagement_stats(
 explain (analyze, buffers, format text)
 select * from public.feed_ranked_ids(
   p_viewer_id := (select user_id from public.users where account_status = 'active' limit 1),
-  p_limit := 20,
+  p_page_limit := 20,
   p_cursor_created_at := null,
   p_cursor_post_id := null,
-  p_search_query := null
+  p_filter_search_query := null
 );
 
 \echo '=== rpc_unread_counts_for_chats (sample) ==='
