@@ -1550,6 +1550,211 @@ export type Database = {
           },
         ]
       }
+      post_comments: {
+        Row: {
+          author_id: string
+          body: string
+          comment_id: string
+          created_at: string
+          edited_at: string | null
+          mention_user_ids: string[]
+          parent_comment_id: string | null
+          post_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          comment_id?: string
+          created_at?: string
+          edited_at?: string | null
+          mention_user_ids?: string[]
+          parent_comment_id?: string | null
+          post_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          comment_id?: string
+          created_at?: string
+          edited_at?: string | null
+          mention_user_ids?: string[]
+          parent_comment_id?: string | null
+          post_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["comment_id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+        ]
+      }
+      post_reactions: {
+        Row: {
+          created_at: string
+          post_id: string
+          reaction_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          reaction_id?: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          reaction_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      post_shares: {
+        Row: {
+          created_at: string
+          external_channel: string | null
+          post_id: string
+          repost_post_id: string | null
+          share_id: string
+          share_kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          external_channel?: string | null
+          post_id: string
+          repost_post_id?: string | null
+          share_id?: string
+          share_kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          external_channel?: string | null
+          post_id?: string
+          repost_post_id?: string | null
+          share_id?: string
+          share_kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_shares_repost_post_id_fkey"
+            columns: ["repost_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      post_stats: {
+        Row: {
+          comment_count: number
+          post_id: string
+          reaction_count: number
+          share_count: number
+          updated_at: string
+        }
+        Insert: {
+          comment_count?: number
+          post_id: string
+          reaction_count?: number
+          share_count?: number
+          updated_at?: string
+        }
+        Update: {
+          comment_count?: number
+          post_id?: string
+          reaction_count?: number
+          share_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_stats_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           category: string
@@ -3759,6 +3964,10 @@ export type Database = {
         Args: { followed: string; follower: string }
         Returns: boolean
       }
+      is_post_engagement_visible: {
+        Args: { p_post_id: string; p_viewer: string }
+        Returns: boolean
+      }
       is_post_visible_to: {
         Args: {
           p_post: Database["public"]["Tables"]["posts"]["Row"]
@@ -3820,6 +4029,15 @@ export type Database = {
           p_viewer: string
         }
         Returns: boolean
+      }
+      post_stats_bump: {
+        Args: {
+          p_comment_delta?: number
+          p_post_id: string
+          p_reaction_delta?: number
+          p_share_delta?: number
+        }
+        Returns: undefined
       }
       posts_expiry_transition: { Args: never; Returns: number }
       profile_closed_posts: {
@@ -3948,6 +4166,7 @@ export type Database = {
         }
         Returns: Json
       }
+      resolve_comment_mentions: { Args: { p_body: string }; Returns: string[] }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
       ride_listings_expire_check: { Args: never; Returns: number }
@@ -4106,6 +4325,52 @@ export type Database = {
         }
       }
       rpc_chat_unread_total: { Args: never; Returns: number }
+      rpc_create_post_comment: {
+        Args: {
+          p_body: string
+          p_parent_comment_id?: string
+          p_post_id: string
+        }
+        Returns: {
+          author_id: string
+          body: string
+          comment_id: string
+          created_at: string
+          edited_at: string | null
+          mention_user_ids: string[]
+          parent_comment_id: string | null
+          post_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_delete_post_comment: {
+        Args: { p_comment_id: string }
+        Returns: {
+          author_id: string
+          body: string
+          comment_id: string
+          created_at: string
+          edited_at: string | null
+          mention_user_ids: string[]
+          parent_comment_id: string | null
+          post_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       rpc_get_or_create_support_thread: {
         Args: never
         Returns: {
@@ -4124,6 +4389,45 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "chats"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_get_post_engagement_stats: {
+        Args: { p_post_id: string }
+        Returns: {
+          comment_count: number
+          post_id: string
+          reaction_count: number
+          share_count: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_stats"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_log_post_share: {
+        Args: {
+          p_external_channel?: string
+          p_post_id: string
+          p_repost_post_id?: string
+          p_share_kind: string
+        }
+        Returns: {
+          created_at: string
+          external_channel: string | null
+          post_id: string
+          repost_post_id: string | null
+          share_id: string
+          share_kind: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_shares"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -4394,6 +4698,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_set_post_reaction: {
+        Args: { p_post_id: string; p_reaction_type: string }
+        Returns: {
+          created_at: string
+          post_id: string
+          reaction_id: string
+          reaction_type: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_reactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       rpc_submit_support_issue: {
         Args: { p_category: string; p_description: string }
         Returns: {
@@ -4422,6 +4742,27 @@ export type Database = {
           chat_id: string
           unread_count: number
         }[]
+      }
+      rpc_update_post_comment: {
+        Args: { p_body: string; p_comment_id: string }
+        Returns: {
+          author_id: string
+          body: string
+          comment_id: string
+          created_at: string
+          edited_at: string | null
+          mention_user_ids: string[]
+          parent_comment_id: string | null
+          post_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "post_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       stats_recompute_personal_counters_nightly: {
         Args: never
