@@ -19,8 +19,8 @@ describe('TranslationTypes guards', () => {
   });
 
   it('exposes the canonical lists', () => {
-    expect([...CONTENT_TYPES]).toEqual(['post', 'message']);
-    expect([...TRANSLATION_FIELDS]).toEqual(['title', 'description', 'body']);
+    expect([...CONTENT_TYPES]).toEqual(['post', 'message', 'ride_listing', 'user']);
+    expect([...TRANSLATION_FIELDS]).toEqual(['title', 'description', 'body', 'biography']);
   });
 });
 

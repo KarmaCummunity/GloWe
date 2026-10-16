@@ -1,11 +1,25 @@
 // app/packages/infrastructure-supabase/src/translations/EdgeFnTranslationService.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ITranslationService, CachedTranslation } from '@kc/application';
+import type {
+  BatchTranslationItem,
+  CachedTranslation,
+  ITranslationService,
+} from '@kc/application';
 import type { TranslationRequest } from '@kc/domain';
 
-interface EdgeResponse {
+interface SingleEdgeResponse {
   status: 'translated' | 'cached' | 'skipped';
   translation?: CachedTranslation;
+}
+
+interface BatchEdgeResponse {
+  results?: Array<{
+    contentType: string;
+    contentId: string;
+    field: string;
+    status: string;
+    translation?: CachedTranslation;
+  }>;
 }
 
 export class EdgeFnTranslationService implements ITranslationService {
@@ -15,7 +29,7 @@ export class EdgeFnTranslationService implements ITranslationService {
     request: TranslationRequest,
     sourceText: string,
   ): Promise<CachedTranslation | null> {
-    const { data, error } = await this.client.functions.invoke<EdgeResponse>('translate', {
+    const { data, error } = await this.client.functions.invoke<SingleEdgeResponse>('translate', {
       body: {
         contentType: request.contentType,
         contentId: request.contentId,
@@ -24,7 +38,30 @@ export class EdgeFnTranslationService implements ITranslationService {
         sourceText,
       },
     });
-    if (error || !data || !data.translation) return null; // graceful degradation (§6)
+    if (error || !data || !data.translation) return null;
     return data.translation;
+  }
+
+  async requestTranslationsBatch(
+    targetLanguage: string,
+    items: BatchTranslationItem[],
+  ): Promise<(CachedTranslation | null)[]> {
+    if (items.length === 0) return [];
+    const { data, error } = await this.client.functions.invoke<BatchEdgeResponse>('translate', {
+      body: {
+        targetLanguage,
+        items: items.map((it) => ({
+          contentType: it.contentType,
+          contentId: it.contentId,
+          field: it.field,
+        })),
+      },
+    });
+    if (error || !data?.results) {
+      return items.map(() => null);
+    }
+    return data.results.map((r) =>
+      r.translation && (r.status === 'translated' || r.status === 'cached') ? r.translation : null,
+    );
   }
 }

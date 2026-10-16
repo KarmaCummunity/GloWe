@@ -1471,10 +1471,23 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-191 — Port GloWe smart UGC translation to KC `translate` (2026-10-16)
+
+**Decision.** Retire the separate `glowe-translate` function and `glowe_content_translations` table with GloWe sunset, but **keep** the batch-oriented translation engine on KC: shared `kcSource` registry, server-side source reads, cache poison recovery, and `translateMany` fan-out on the existing `translate` Edge Function writing to `content_translations`. Extend the cache schema for `ride_listing` and `user` biography (migration `0239`).
+
+**Rationale.** Naveh: the smart auto-translation mechanism built for GloWe should power KC UGC (posts today; rides/profiles/chats as registered), without reviving GloWe product tables.
+
+**Alternatives rejected.** Reintroduce `glowe_content_translations` alongside KC cache (duplicate pipelines); client-supplied source text for batch (cache-poisoning risk).
+
+**Affected.** `supabase/functions/translate/**`, `supabase/functions/_shared/translation/kcSource.ts`, migration `0239`, `EdgeFnTranslationService`, `MaterializePostTranslationsUseCase`, `docs/SSOT/UGC_TRANSLATION.md`, `docs/SSOT/spec/18_translation.md`.
+
+---
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
 | 4.19 | 2026-10-16 | Added `D-190` (GloWe sunset; KC-only codebase; migration `0238`). |
 | 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
 | 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |

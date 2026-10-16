@@ -7,7 +7,7 @@ export * from './ports/IAuthService';
 export * from './ports/ICityRepository';
 export * from './ports/IStreetRepository';
 export type { ITranslationCacheRepository, CachedTranslation, TranslationCacheKey } from './ports/ITranslationCacheRepository';
-export type { ITranslationService } from './ports/ITranslationService';
+export type { BatchTranslationItem, ITranslationService } from './ports/ITranslationService';
 export type { IPostTranslationReader, PostTranslationHit } from './ports/IPostTranslationReader';
 export * from './translations';
 export type { IChatRealtime, InboxStreamCallbacks, SubscribeInboxOptions, ChatStreamCallbacks, Unsubscribe } from './ports/IChatRealtime';

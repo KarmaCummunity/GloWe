@@ -6,7 +6,6 @@ import {
 } from '../PostTranslationsUseCases';
 import type { IPostTranslationReader, PostTranslationHit } from '../../ports/IPostTranslationReader';
 import type { ITranslationService, CachedTranslation } from '../../index';
-import type { TranslationRequest } from '@kc/domain';
 
 function makeReader(hits: PostTranslationHit[]): {
   reader: IPostTranslationReader;
@@ -83,16 +82,22 @@ describe('GetTranslatedPostsUseCase', () => {
 });
 
 function makeService(
-  fn: (req: TranslationRequest, text: string) => Promise<CachedTranslation | null>,
-): { service: ITranslationService; seen: { req: TranslationRequest; text: string }[] } {
-  const seen: { req: TranslationRequest; text: string }[] = [];
+  fn: (items: { contentId: string; field: string }[]) => Promise<(CachedTranslation | null)[]>,
+): { service: ITranslationService; batchCalls: { targetLanguage: string; items: { contentId: string; field: string }[] }[] } {
+  const batchCalls: { targetLanguage: string; items: { contentId: string; field: string }[] }[] = [];
   const service: ITranslationService = {
-    async requestTranslation(req, text) {
-      seen.push({ req, text });
-      return fn(req, text);
+    async requestTranslation() {
+      return null;
+    },
+    async requestTranslationsBatch(targetLanguage, items) {
+      batchCalls.push({
+        targetLanguage,
+        items: items.map((i) => ({ contentId: i.contentId, field: i.field })),
+      });
+      return fn(items.map((i) => ({ contentId: i.contentId, field: i.field })));
     },
   };
-  return { service, seen };
+  return { service, batchCalls };
 }
 
 const cached = (postId: string, field: 'title' | 'description', text: string): CachedTranslation => ({
@@ -107,8 +112,10 @@ const cached = (postId: string, field: 'title' | 'description', text: string): C
 });
 
 describe('MaterializePostTranslationsUseCase', () => {
-  it('translates each miss and collects produced rows', async () => {
-    const { service, seen } = makeService(async (req) => cached(req.contentId, req.field as 'title', 'X'));
+  it('translates misses in one batch and collects produced rows', async () => {
+    const { service, batchCalls } = makeService(async (items) =>
+      items.map((it) => cached(it.contentId, it.field as 'title', 'X')),
+    );
     const uc = new MaterializePostTranslationsUseCase(service);
 
     const out = await uc.execute({
@@ -117,14 +124,14 @@ describe('MaterializePostTranslationsUseCase', () => {
     });
 
     expect(out).toHaveLength(2);
-    expect(seen.map((s) => s.text)).toEqual(['שלום', 'תיאור']);
-    expect(seen[0]?.req.contentType).toBe('post');
-    expect(seen[0]?.req.targetLanguage).toBe('en');
+    expect(batchCalls).toHaveLength(1);
+    expect(batchCalls[0]?.targetLanguage).toBe('en');
+    expect(batchCalls[0]?.items.map((i) => i.contentId)).toEqual(['p1', 'p2']);
   });
 
   it('drops nulls (skips/failures) so callers render the original', async () => {
-    const { service } = makeService(async (req) =>
-      req.contentId === 'p1' ? cached('p1', 'title', 'X') : null,
+    const { service } = makeService(async (items) =>
+      items.map((it) => (it.contentId === 'p1' ? cached('p1', 'title', 'X') : null)),
     );
     const uc = new MaterializePostTranslationsUseCase(service);
 
@@ -138,9 +145,14 @@ describe('MaterializePostTranslationsUseCase', () => {
   });
 
   it('never throws when the service rejects — degrades gracefully', async () => {
-    const { service } = makeService(async () => {
-      throw new Error('network down');
-    });
+    const service: ITranslationService = {
+      async requestTranslation() {
+        return null;
+      },
+      async requestTranslationsBatch() {
+        throw new Error('network down');
+      },
+    };
     const uc = new MaterializePostTranslationsUseCase(service);
 
     const out = await uc.execute({
