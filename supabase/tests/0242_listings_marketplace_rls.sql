@@ -66,25 +66,7 @@ begin
     'Give', 'open', 'Public', 'Listing test chair', 'Other', 'tel-aviv', 'Herzl', '1'
   ) returning post_id into v_post_id;
 
-  insert into public.listings (
-    owner_id, world_slug, kind_id, direction, status, visibility, anonymity_level,
-    title, origin, legacy_post_id, moderation_status, published_at
-  )
-  select
-    '00000000-0000-0000-0000-000000240001',
-    'items',
-    kind_id,
-    'give',
-    'open',
-    'Public',
-    3,
-    'Listing test chair',
-    'post',
-    v_post_id,
-    'published',
-    now()
-  from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
-
+  -- posts_sync_listing (0243) upserts the registry row; assert sync + visibility only.
   select count(*) into v_cnt
     from public.listings l
    where l.legacy_post_id = v_post_id
