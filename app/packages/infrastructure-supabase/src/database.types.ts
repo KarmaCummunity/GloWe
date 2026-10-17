@@ -7309,6 +7309,7 @@ export type Database = {
           p_city_id?: string
           p_details?: Json
           p_direction?: string
+          p_external_body_id?: string
           p_kind_id: string
           p_lat?: number
           p_lng?: number
@@ -8830,6 +8831,18 @@ export type Database = {
       search_all: {
         Args: { p_limit?: number; p_query: string; p_types?: string[] }
         Returns: Json
+      }
+      search_external_bodies: {
+        Args: { p_limit?: number; p_query?: string; p_world_slug: string }
+        Returns: {
+          body_id: string
+          body_type: string
+          contact_url: string
+          label_en: string
+          label_he: string
+          slug: string
+          world_slug: string
+        }[]
       }
       search_listings: {
         Args: {

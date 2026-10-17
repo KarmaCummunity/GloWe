@@ -12,9 +12,10 @@ import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
-import { validateListingDetails } from '@kc/domain';
+import { ROUTED_WORLDS, validateListingDetails } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
+import { ExternalBodyPicker } from './ExternalBodyPicker';
 import {
   pickListingImages,
   uploadListingImages,
@@ -38,6 +39,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     color: colors.textPrimary,
   },
   label: { ...typography.caption, color: colors.textSecondary },
+  hint: { ...typography.caption, color: colors.textSecondary },
   chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
   chip: {
     paddingHorizontal: spacing.md,
@@ -72,6 +74,8 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   const [details, setDetails] = useState<Record<string, unknown>>({});
   const [city, setCity] = useState<{ id: string; name: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
+  const [org, setOrg] = useState<{ id: string; name: string } | null>(null);
+  const routedWorld = (ROUTED_WORLDS as readonly string[]).includes(worldSlug);
   const [picked, setPicked] = useState<PickedImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -107,7 +111,6 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.body}>
       <Text style={typography.h2}>{t('marketplace.createTitle', { world: worldSlug })}</Text>
-      {ruleError?.field === 'world' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
       <View style={styles.chipRow}>
         {kinds.map((k) => {
@@ -146,6 +149,22 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
       <Text style={typography.bodySmall}>{kindLabel}</Text>
       <ListingSchemaFields schema={activeKind.detailSchema} values={details} onChange={setDetails} />
       {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
+      {routedWorld ? (
+        <>
+          <Text style={styles.label}>{t('marketplace.orgPicker.label')}</Text>
+          <Text style={styles.hint}>{t('marketplace.orgPicker.hint')}</Text>
+          <ExternalBodyPicker
+            worldSlug={worldSlug}
+            value={org}
+            disabled={busy}
+            onChange={(sel) => {
+              setOrg(sel);
+              if (ruleError?.field === 'org') setRuleError(null);
+            }}
+          />
+          {ruleError?.field === 'org' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
+        </>
+      ) : null}
       <Text style={styles.label}>{t('marketplace.fieldCity')}</Text>
       <CityPicker value={city} onChange={setCity} disabled={busy} />
       <Text style={styles.label}>{t('marketplace.fieldRadius', { km: Math.round(radiusKm) })}</Text>
@@ -183,6 +202,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
             worldSlug,
             details,
             photoCount: picked.length,
+            externalBodyId: org?.id ?? null,
           });
           setRuleError(rule);
           if (rule) {
@@ -217,6 +237,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               lng,
               maxRadiusKm: radiusKm,
               mediaPaths,
+              externalBodyId: routedWorld ? (org?.id ?? null) : null,
             });
             onPublished(id);
           } catch (err) {

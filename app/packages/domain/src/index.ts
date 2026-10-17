@@ -41,4 +41,5 @@ export * from './translations/cacheKey';
 export * from './marketplace/MarketplaceTypes';
 export * from './marketplace/validateListingDetails';
 export * from './marketplace/marketplaceWorldRules';
+export * from './marketplace/externalBodies';
 export * from './payments/PaymentTypes';

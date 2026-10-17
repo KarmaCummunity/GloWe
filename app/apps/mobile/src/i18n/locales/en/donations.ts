@@ -5,6 +5,7 @@
 
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
+import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
@@ -287,14 +288,6 @@ export const marketplace = {
   myListingsSave: 'Save changes',
   myListingsUpdated: 'Updated {{date}}',
   mapWebFallback: 'Interactive map is available in the iOS/Android app. Clusters below use the same server data.',
-  world: {
-    money: 'Money',
-    time: 'Time',
-    items: 'Items',
-    food: 'Food',
-    rides: 'Rides',
-    housing: 'Housing',
-    knowledge: 'Knowledge',
-    medical: 'Blood & medical',
-  },
+  world: marketplaceWorldLabels,
+  orgPicker: marketplaceOrgPicker,
 } as const;

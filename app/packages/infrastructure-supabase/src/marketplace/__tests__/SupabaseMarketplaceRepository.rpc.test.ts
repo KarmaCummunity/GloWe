@@ -217,3 +217,47 @@ describe('SupabaseMarketplaceRepository — writes', () => {
     await expect(bad.deleteMyListing('l1')).rejects.toMatchObject({ message: 'boom' });
   });
 });
+
+describe('SupabaseMarketplaceRepository — external bodies', () => {
+  it('searchExternalBodies maps rows and passes world/query', async () => {
+    const { repo, rpcCalls } = makeClient({
+      search_external_bodies: ok([
+        {
+          body_id: 'b1',
+          slug: 'spca_israel',
+          world_slug: 'animals',
+          label_he: 'צער בעלי חיים',
+          label_en: 'SPCA Israel',
+          body_type: 'ngo',
+          contact_url: null,
+        },
+      ]),
+    });
+    expect(await repo.searchExternalBodies('animals', 'spca')).toEqual([
+      {
+        bodyId: 'b1',
+        slug: 'spca_israel',
+        worldSlug: 'animals',
+        labelHe: 'צער בעלי חיים',
+        labelEn: 'SPCA Israel',
+        bodyType: 'ngo',
+        contactUrl: null,
+      },
+    ]);
+    expect(rpcCalls[0]).toMatchObject({
+      fn: 'search_external_bodies',
+      args: { p_world_slug: 'animals', p_query: 'spca', p_limit: 50 },
+    });
+  });
+
+  it('searchExternalBodies returns [] on error', async () => {
+    const { repo } = makeClient({ search_external_bodies: fail });
+    expect(await repo.searchExternalBodies('medical')).toEqual([]);
+  });
+
+  it('createListing forwards externalBodyId', async () => {
+    const { repo, rpcCalls } = makeClient({ create_marketplace_listing: ok('id') });
+    await repo.createListing({ kindId: 'k', title: 'Foster', externalBodyId: 'b1' });
+    expect(rpcCalls[0]?.args).toMatchObject({ p_external_body_id: 'b1' });
+  });
+});

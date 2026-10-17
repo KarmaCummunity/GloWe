@@ -5,8 +5,9 @@
 export const marketplaceErrors = {
   items_image_required: 'Item listings need at least one photo.',
   food_expiry_required: 'Please enter a future expiry date and time for the food.',
-  routed_world_requires_external_body:
-    'Listings in this world are published through a verified organisation only. Contact a partner organisation to post.',
+  routed_world_requires_external_body: 'Please choose a verified organisation before publishing in this world.',
+  medical_listing_requires_external_body: 'This medical listing type requires a verified organisation.',
+  external_body_invalid: 'The selected organisation is not verified or does not belong to this world. Please choose another.',
   food_posting_banned: 'Food posting is temporarily blocked for your account.',
   ride_cost_share_cap_exceeded: 'The ride cost share is above the allowed maximum.',
   money_active_campaign_cap: 'You can have up to 5 active campaigns in the money world.',

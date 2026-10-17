@@ -1,4 +1,5 @@
 import type {
+  ExternalBodyOption,
   ListingKindOption,
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
@@ -35,6 +36,8 @@ export interface IMarketplaceRepository {
   getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null>;
   similarListings(listingId: string, limit?: number): Promise<MarketplaceSimilarListing[]>;
   listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]>;
+  /** Active + verified organisations for a routed world (search_external_bodies). */
+  searchExternalBodies(worldSlug: string, query?: string | null, limit?: number): Promise<ExternalBodyOption[]>;
   createListing(input: {
     kindId: string;
     title: string;
@@ -46,6 +49,8 @@ export interface IMarketplaceRepository {
     lng?: number | null;
     maxRadiusKm?: number | null;
     mediaPaths?: string[];
+    /** Required for routed worlds (medical / animals / environment). */
+    externalBodyId?: string | null;
     urgencyLevel?: number;
     availabilityStatus?: string;
   }): Promise<string>;

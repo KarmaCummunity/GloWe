@@ -5,6 +5,7 @@
 
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
+import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
@@ -287,14 +288,6 @@ export const marketplace = {
   myListingsSave: 'שמירת שינויים',
   myListingsUpdated: 'עודכן {{date}}',
   mapWebFallback: 'מפה אינטראקטיבית זמינה באפליקציה. האשכולות למטה מגיעים מאותו מקור בשרת.',
-  world: {
-    money: 'כסף',
-    time: 'זמן',
-    items: 'חפצים',
-    food: 'מזון',
-    rides: 'נסיעות',
-    housing: 'דיור',
-    knowledge: 'ידע',
-    medical: 'דם ורפואה',
-  },
+  world: marketplaceWorldLabels,
+  orgPicker: marketplaceOrgPicker,
 } as const;

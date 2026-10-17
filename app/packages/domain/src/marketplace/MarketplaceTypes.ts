@@ -101,6 +101,8 @@ export const MARKETPLACE_CREATE_WORLD_SLUGS = [
   'housing',
   'knowledge',
   'medical',
+  'animals',
+  'environment',
 ] as const;
 
 export type MarketplaceCreateWorldSlug = (typeof MARKETPLACE_CREATE_WORLD_SLUGS)[number];
