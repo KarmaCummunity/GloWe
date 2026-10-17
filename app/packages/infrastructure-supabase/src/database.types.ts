@@ -1214,6 +1214,167 @@ export type Database = {
           },
         ]
       }
+      feed_impressions: {
+        Row: {
+          impression_id: string
+          post_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          impression_id?: string
+          post_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          impression_id?: string
+          post_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_impressions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "feed_impressions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "feed_impressions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      feed_impressions_default: {
+        Row: {
+          impression_id: string
+          post_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          impression_id?: string
+          post_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          impression_id?: string
+          post_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_mute_filters: {
+        Row: {
+          created_at: string
+          filter_id: string
+          filter_kind: string
+          filter_value: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filter_id?: string
+          filter_kind: string
+          filter_value: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filter_id?: string
+          filter_kind?: string
+          filter_value?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_mute_filters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "feed_mute_filters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      feed_post_hides: {
+        Row: {
+          hidden_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          hidden_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          hidden_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_post_hides_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "feed_post_hides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "feed_post_hides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      feed_ranking_config: {
+        Row: {
+          config_key: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          config_key: string
+          updated_at?: string
+          weight: number
+        }
+        Update: {
+          config_key?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       field_provenance: {
         Row: {
           extracted_at: string
@@ -3884,6 +4045,24 @@ export type Database = {
           },
         ]
       }
+      search_hashtags: {
+        Row: {
+          tag: string
+          updated_at: string
+          use_count: number
+        }
+        Insert: {
+          tag: string
+          updated_at?: string
+          use_count?: number
+        }
+        Update: {
+          tag?: string
+          updated_at?: string
+          use_count?: number
+        }
+        Relationships: []
+      }
       stats_drift_events: {
         Row: {
           column_name: string
@@ -5265,6 +5444,7 @@ export type Database = {
           p_cursor_created_at?: string
           p_cursor_distance?: number
           p_cursor_post_id?: string
+          p_cursor_rank_score?: number
           p_filter_categories?: string[]
           p_filter_center_city?: string
           p_filter_item_conditions?: string[]
@@ -5281,6 +5461,7 @@ export type Database = {
         Returns: {
           distance_km: number
           post_id: string
+          rank_score: number
         }[]
       }
       finance_ledger_delete: {
@@ -5863,6 +6044,60 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_feed_add_mute_filter: {
+        Args: { p_filter_kind: string; p_filter_value: string }
+        Returns: {
+          created_at: string
+          filter_id: string
+          filter_kind: string
+          filter_value: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "feed_mute_filters"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      rpc_feed_hide_post: { Args: { p_post_id: string }; Returns: undefined }
+      rpc_feed_list_mute_filters: {
+        Args: never
+        Returns: {
+          created_at: string
+          filter_id: string
+          filter_kind: string
+          filter_value: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "feed_mute_filters"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      rpc_feed_log_impressions: {
+        Args: { p_post_ids: string[] }
+        Returns: number
+      }
+      rpc_feed_remove_mute_filter: {
+        Args: { p_filter_id: string }
+        Returns: undefined
+      }
+      rpc_follow_suggestions: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_url: string
+          city_name: string
+          display_name: string
+          followers_count: number
+          reason: string
+          score: number
+          share_handle: string
+          user_id: string
+        }[]
+      }
       rpc_get_or_create_support_thread: {
         Args: never
         Returns: {
@@ -5996,6 +6231,7 @@ export type Database = {
         }
       }
       rpc_notification_inbox_unread_count: { Args: never; Returns: number }
+      rpc_profile_completeness: { Args: { p_user_id?: string }; Returns: Json }
       rpc_recipient_unmark_self: {
         Args: { p_post_id: string }
         Returns: undefined
@@ -6252,6 +6488,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_search_suggested_queries: { Args: never; Returns: string[] }
       rpc_send_chat_media_message: {
         Args: { p_body?: string; p_chat_id: string; p_media_payload: Json }
         Returns: {
@@ -6386,6 +6623,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      search_all: {
+        Args: { p_limit?: number; p_query: string; p_types?: string[] }
+        Returns: Json
       }
       search_listings: {
         Args: {
