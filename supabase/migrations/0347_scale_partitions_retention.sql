@@ -30,6 +30,20 @@ begin
        for values from (%L) to (%L)',
     v_part, v_from, v_to
   );
+  -- Child partitions are directly addressable tables: mirror the parent's RLS
+  -- (0281 feed_impressions_insert_own) so rls-lint and direct access stay safe.
+  execute format('alter table public.%I enable row level security', v_part);
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = v_part
+       and policyname = v_part || '_insert_own'
+  ) then
+    execute format(
+      'create policy %I on public.%I for insert to authenticated
+         with check (user_id = (select auth.uid()))',
+      v_part || '_insert_own', v_part
+    );
+  end if;
   return v_part;
 end;
 $$;
