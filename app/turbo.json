@@ -1,24 +1,38 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*"],
+  "globalDependencies": [
+    "**/.env.*"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".expo/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".expo/**"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "lint": {
-      "dependsOn": ["typecheck"],
+      "dependsOn": [
+        "typecheck"
+      ],
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     },
     "test": {
-      "outputs": ["coverage/**"],
+      "outputs": [
+        "coverage/**"
+      ],
       "cache": false,
       "passThroughEnv": [
         "SUPABASE_URL",
@@ -28,14 +42,23 @@
       ]
     },
     "test:coverage": {
-      "outputs": ["coverage/**"],
-      "cache": false,
+      "outputs": [
+        "coverage/**"
+      ],
       "passThroughEnv": [
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
         "SUPABASE_SERVICE_ROLE_KEY",
-        "NODE_OPTIONS"
+        "NODE_OPTIONS",
+        "CI_LOCAL_SUPABASE"
       ]
     }
-  }
+  },
+  "globalPassThroughEnv": [
+    "CI",
+    "GITHUB_ACTIONS",
+    "TURBO_TOKEN",
+    "TURBO_TEAM",
+    "TURBO_REMOTE_ONLY"
+  ]
 }

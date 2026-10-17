@@ -1,4 +1,5 @@
 name: CI — required-checks drift
+# Re-enabled 2026-10-17 after manual disable; path filters unchanged.
 
 # Meta-guard: the SSOT required-status-check tables (ENVIRONMENTS.md "Dev merge
 # gates", RELEASE_CHECKLIST.md "Merge gates") must reference jobs that actually

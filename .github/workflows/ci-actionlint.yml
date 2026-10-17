@@ -1,4 +1,5 @@
 name: CI — actionlint
+# Re-enabled 2026-10-17 after manual disable; path filters unchanged.
 
 # Meta-guard: validates .github/workflows/** itself. Only AI agents edit this
 # repo, so nothing else reviews workflow changes — a malformed expression or
@@ -11,13 +12,15 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/**'
   push:
     branches: [main, dev]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/**'
 
 concurrency:
-  group: ci-actionlint-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

@@ -19,13 +19,16 @@ interface Row {
 }
 
 export class SupabaseStreetRepository implements IStreetRepository {
-  constructor(private readonly client: SupabaseClient) {}
+  constructor(
+    private readonly client: SupabaseClient,
+    private readonly pageOpts: { pageSize?: number; maxPages?: number } = {},
+  ) {}
 
   async listByCity(cityId: string): Promise<Street[]> {
     // Jerusalem (4384) needs 5 pages; cap at MAX_PAGES so a misconfigured
-    // server can't loop forever.
-    const PAGE_SIZE = 1000;
-    const MAX_PAGES = 10;
+    // server can't loop forever. Tests may inject smaller pageOpts.
+    const PAGE_SIZE = this.pageOpts.pageSize ?? 1000;
+    const MAX_PAGES = this.pageOpts.maxPages ?? 10;
     const out: Row[] = [];
     for (let page = 0; page < MAX_PAGES; page += 1) {
       const from = page * PAGE_SIZE;

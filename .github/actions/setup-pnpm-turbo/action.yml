@@ -1,0 +1,49 @@
+name: Setup pnpm + Turbo cache
+description: >
+  Install pnpm and Node with the pnpm store cache, then restore/save the local
+  Turbo cache under app/.turbo. Callers may also set TURBO_TOKEN / TURBO_TEAM
+  in the job env for remote cache; both are optional.
+
+inputs:
+  node-version-file:
+    description: Path to .nvmrc (relative to repo root). Ignored when node-version is set.
+    required: false
+    default: .nvmrc
+  node-version:
+    description: Explicit Node major/minor (e.g. "22"). When set, overrides node-version-file.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: app/package.json
+        run_install: false
+
+    - name: Setup Node.js (from .nvmrc)
+      if: inputs.node-version == ''
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: pnpm
+        cache-dependency-path: app/pnpm-lock.yaml
+
+    - name: Setup Node.js (pinned)
+      if: inputs.node-version != ''
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+        cache-dependency-path: app/pnpm-lock.yaml
+
+    - name: Restore Turbo local cache
+      uses: actions/cache@v4
+      with:
+        path: app/.turbo
+        key: turbo-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}-${{ github.sha }}
+        restore-keys: |
+          turbo-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}-
+          turbo-${{ runner.os }}-

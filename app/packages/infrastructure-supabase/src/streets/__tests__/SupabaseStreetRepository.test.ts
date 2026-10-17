@@ -194,19 +194,21 @@ describe('SupabaseStreetRepository', () => {
     });
 
     it('throws when MAX_PAGES is exhausted without a short page (truncation guard)', async () => {
-      const data = Array.from({ length: 100000 }, (_, i) => ({
+      const pageSize = 5;
+      const maxPages = 3;
+      const data = Array.from({ length: pageSize * maxPages + 1 }, (_, i) => ({
         city_id: '5000',
         street_id: i + 1,
         name_he: `r${i + 1}`,
       }));
       const { client, calls } = makeFakeClient({ data });
-      const repo = new SupabaseStreetRepository(client);
+      const repo = new SupabaseStreetRepository(client, { pageSize, maxPages });
 
       await expect(repo.listByCity('5000')).rejects.toThrow(
         'listByCity streets truncated: reached MAX_PAGES page cap',
       );
 
-      expect(calls.length).toBeLessThanOrEqual(10);
+      expect(calls.length).toBe(maxPages);
     });
   });
 });

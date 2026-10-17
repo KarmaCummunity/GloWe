@@ -27,7 +27,7 @@ on:
       - '.github/workflows/ci-backend.yml'
 
 concurrency:
-  group: ci-backend-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -137,28 +137,18 @@ jobs:
             exit 1
           fi
 
-      - name: Setup pnpm
+      # Node 22 is deliberate (sqlProbes need native WebSocket; do not use .nvmrc).
+      - name: Setup pnpm + Turbo cache (Node 22)
         if: needs.changes.outputs.backend == 'true'
-        uses: pnpm/action-setup@v4
+        uses: ./.github/actions/setup-pnpm-turbo
         with:
-          package_json_file: app/package.json
-          run_install: false
-
-      - name: Setup Node.js
-        if: needs.changes.outputs.backend == 'true'
-        uses: actions/setup-node@v4
-        with:
-          # Deliberate exception to the repo-wide .nvmrc (20): the sqlProbes
-          # integration tests construct a real SupabaseClient, and
-          # @supabase/realtime-js requires the native WebSocket global that
-          # only exists on Node >= 22. Do not "align" this back to .nvmrc.
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: app/pnpm-lock.yaml
+          node-version: '22'
 
       - name: Install dependencies
         if: needs.changes.outputs.backend == 'true'
         working-directory: app
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
         run: pnpm install --frozen-lockfile
 
       - name: SQL probe integration tests (against local stack)
