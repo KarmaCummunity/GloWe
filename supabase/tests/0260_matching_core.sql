@@ -41,6 +41,8 @@ declare
   v_n int;
 begin
   perform pg_temp.mk_user(v_owner, 'rom_owner');
+  -- romantic_matchmaking requires a verified publisher (0264 has_world_permission).
+  update public.users set verified_at = now() where user_id = v_owner;
   perform pg_temp.act_as(v_owner);
 
   insert into public.listings (
