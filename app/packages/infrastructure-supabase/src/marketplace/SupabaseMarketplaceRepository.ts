@@ -11,6 +11,7 @@ import type {
 } from '@kc/domain';
 import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
+import { searchExternalBodies } from './mapExternalBody';
 import * as handoffs from './givingHandoffs';
 
 type BrowseRow = Database['public']['Functions']['browse_listings']['Returns'][number];
@@ -129,6 +130,9 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     }));
   }
 
+  searchExternalBodies = (worldSlug: string, query?: string | null, limit?: number) =>
+    searchExternalBodies(this.client, worldSlug, query, limit);
+
   async getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null> {
     const { data, error } = await this.client
       .from('listings')
@@ -171,6 +175,7 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
       p_lng: input.lng ?? undefined,
       p_max_radius_km: input.maxRadiusKm ?? undefined,
       p_media_paths: input.mediaPaths ?? undefined,
+      p_external_body_id: input.externalBodyId ?? undefined,
       p_urgency_level: input.urgencyLevel ?? undefined,
       p_availability_status: input.availabilityStatus ?? undefined,
     });

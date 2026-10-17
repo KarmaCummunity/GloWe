@@ -18,14 +18,14 @@ export function marketplaceServerErrorKey(err: unknown): MarketplaceErrorKey {
 export interface MarketplaceRuleFieldError {
   code: MarketplaceRuleErrorCode;
   /** Which form section renders the inline message. */
-  field: 'photos' | 'details' | 'world';
+  field: 'photos' | 'details' | 'org';
   key: MarketplaceErrorKey;
 }
 
 const FIELD_BY_CODE: Record<MarketplaceRuleErrorCode, MarketplaceRuleFieldError['field']> = {
   items_image_required: 'photos',
   food_expiry_required: 'details',
-  routed_world_requires_external_body: 'world',
+  routed_world_requires_external_body: 'org',
 };
 
 /** Client-side world-rule check for the create form (mirrors 0266/0351). */

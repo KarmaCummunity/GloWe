@@ -7799,6 +7799,17 @@ export type Database = {
         Args: { p_report_id: string }
         Returns: undefined
       }
+      admin_create_external_body: {
+        Args: {
+          p_body_type?: string
+          p_contact_url?: string
+          p_label_en: string
+          p_label_he: string
+          p_slug: string
+          p_world_slug: string
+        }
+        Returns: string
+      }
       admin_delete_message: {
         Args: { p_message_id: string }
         Returns: undefined
@@ -7831,6 +7842,28 @@ export type Database = {
           scope_org_id: string
           user_id: string
         }[]
+      }
+      admin_list_external_bodies: {
+        Args: { p_world_slug?: string }
+        Returns: {
+          body_id: string
+          body_type: string
+          contact_url: string | null
+          created_at: string
+          is_active: boolean
+          is_verified: boolean
+          label_en: string
+          label_he: string
+          requires_routing: boolean
+          slug: string
+          world_slug: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "external_bodies"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_org_application_approve: {
         Args: { p_application_id: string; p_note?: string }
@@ -7927,6 +7960,14 @@ export type Database = {
           total_count: number
           user_id: string
         }[]
+      }
+      admin_set_external_body_status: {
+        Args: {
+          p_body_id: string
+          p_is_active?: boolean
+          p_is_verified?: boolean
+        }
+        Returns: undefined
       }
       admin_set_manager: {
         Args: { p_grant_id: string; p_manager_grant_id?: string }
@@ -8385,6 +8426,7 @@ export type Database = {
           p_city_id?: string
           p_details?: Json
           p_direction?: string
+          p_external_body_id?: string
           p_kind_id: string
           p_lat?: number
           p_lng?: number
@@ -10083,6 +10125,18 @@ export type Database = {
       search_all: {
         Args: { p_limit?: number; p_query: string; p_types?: string[] }
         Returns: Json
+      }
+      search_external_bodies: {
+        Args: { p_limit?: number; p_query?: string; p_world_slug: string }
+        Returns: {
+          body_id: string
+          body_type: string
+          contact_url: string
+          label_en: string
+          label_he: string
+          slug: string
+          world_slug: string
+        }[]
       }
       search_listings: {
         Args: {

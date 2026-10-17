@@ -28,7 +28,7 @@ describe('marketplaceRuleFieldError', () => {
   it('food without expiry → inline details error', () => {
     expect(marketplaceRuleFieldError({ worldSlug: 'food', details: {}, photoCount: 0 })?.field).toBe('details');
   });
-  it('routed worlds → world-level error', () => {
-    expect(marketplaceRuleFieldError({ worldSlug: 'medical', details: {}, photoCount: 0 })?.field).toBe('world');
+  it('routed worlds → inline organisation-picker error', () => {
+    expect(marketplaceRuleFieldError({ worldSlug: 'medical', details: {}, photoCount: 0 })?.field).toBe('org');
   });
 });

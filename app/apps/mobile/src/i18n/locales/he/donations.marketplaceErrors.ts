@@ -5,8 +5,10 @@
 export const marketplaceErrors = {
   items_image_required: 'מודעה בעולם החפצים חייבת לפחות תמונה אחת.',
   food_expiry_required: 'יש להזין תאריך ושעת תפוגה עתידיים למזון.',
-  routed_world_requires_external_body:
-    'בעולם זה מפרסמים דרך ארגון מאומת בלבד. פנו לארגון שותף כדי לפרסם.',
+  routed_world_requires_external_body: 'יש לבחור ארגון מאומת לפני הפרסום בעולם זה.',
+  medical_listing_requires_external_body: 'סוג מודעה זה ברפואה מחייב בחירת ארגון מאומת.',
+  external_body_invalid: 'הארגון שנבחר אינו מאומת או אינו שייך לעולם זה. בחרו ארגון אחר.',
+  world_permission_denied: 'הפרסום בעולם זה פתוח רק לחברים מאומתים. השלימו אימות חשבון ונסו שוב.',
   food_posting_banned: 'פרסום מזון חסום לחשבון שלך זמנית.',
   ride_cost_share_cap_exceeded: 'השתתפות בהוצאות הנסיעה גבוהה מהמותר.',
   money_active_campaign_cap: 'אפשר להחזיק עד 5 קמפיינים פעילים בעולם הכסף.',
