@@ -395,6 +395,224 @@ export type Database = {
           },
         ]
       }
+      bot_admin_review_items: {
+        Row: {
+          created_at: string
+          extraction_id: string | null
+          listing_id: string | null
+          reason: string
+          resolved_at: string | null
+          review_id: string
+          reviewer_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          extraction_id?: string | null
+          listing_id?: string | null
+          reason: string
+          resolved_at?: string | null
+          review_id?: string
+          reviewer_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          extraction_id?: string | null
+          listing_id?: string | null
+          reason?: string
+          resolved_at?: string | null
+          review_id?: string
+          reviewer_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_admin_review_items_extraction_id_fkey"
+            columns: ["extraction_id"]
+            isOneToOne: false
+            referencedRelation: "extractions"
+            referencedColumns: ["extraction_id"]
+          },
+          {
+            foreignKeyName: "bot_admin_review_items_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "bot_admin_review_items_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bot_admin_review_items_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      bot_conversation_sessions: {
+        Row: {
+          created_at: string
+          draft: Json
+          extraction_id: string | null
+          identity_id: string
+          listing_id: string | null
+          record_id: string | null
+          session_id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          draft?: Json
+          extraction_id?: string | null
+          identity_id: string
+          listing_id?: string | null
+          record_id?: string | null
+          session_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          draft?: Json
+          extraction_id?: string | null
+          identity_id?: string
+          listing_id?: string | null
+          record_id?: string | null
+          session_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_conversation_sessions_extraction_id_fkey"
+            columns: ["extraction_id"]
+            isOneToOne: false
+            referencedRelation: "extractions"
+            referencedColumns: ["extraction_id"]
+          },
+          {
+            foreignKeyName: "bot_conversation_sessions_identity_id_fkey"
+            columns: ["identity_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_identities"
+            referencedColumns: ["identity_id"]
+          },
+          {
+            foreignKeyName: "bot_conversation_sessions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "bot_conversation_sessions_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "raw_records"
+            referencedColumns: ["record_id"]
+          },
+        ]
+      }
+      bot_match_responses: {
+        Row: {
+          created_at: string
+          match_id: string
+          response: string
+          response_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          match_id: string
+          response: string
+          response_id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          match_id?: string
+          response?: string
+          response_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_match_responses_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "listing_matches"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "bot_match_responses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bot_match_responses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      bot_outbound_messages: {
+        Row: {
+          channel: string
+          created_at: string
+          outbound_id: string
+          payload: Json
+          status: string
+          template_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          outbound_id?: string
+          payload?: Json
+          status?: string
+          template_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          outbound_id?: string
+          payload?: Json
+          status?: string
+          template_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_outbound_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bot_outbound_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           category_id: string
@@ -5698,6 +5916,149 @@ export type Database = {
           },
         ]
       }
+      whatsapp_channel_config: {
+        Row: {
+          config_id: string
+          graph_api_version: string
+          is_enabled: boolean
+          phone_number_id: string | null
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          config_id?: string
+          graph_api_version?: string
+          is_enabled?: boolean
+          phone_number_id?: string | null
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          config_id?: string
+          graph_api_version?: string
+          is_enabled?: boolean
+          phone_number_id?: string | null
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_channel_config_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: true
+            referencedRelation: "ingestion_sources"
+            referencedColumns: ["source_id"]
+          },
+        ]
+      }
+      whatsapp_identities: {
+        Row: {
+          created_at: string
+          identity_id: string
+          updated_at: string
+          user_id: string | null
+          wa_id: string
+        }
+        Insert: {
+          created_at?: string
+          identity_id?: string
+          updated_at?: string
+          user_id?: string | null
+          wa_id: string
+        }
+        Update: {
+          created_at?: string
+          identity_id?: string
+          updated_at?: string
+          user_id?: string | null
+          wa_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_identities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_identities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      whatsapp_match_consent: {
+        Row: {
+          opted_in: boolean
+          opted_in_at: string | null
+          opted_out_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          opted_in?: boolean
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_match_consent_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_match_consent_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      whatsapp_message_templates: {
+        Row: {
+          body_preview: string
+          category: string
+          created_at: string
+          is_approved: boolean
+          language_code: string
+          template_id: string
+          template_name: string
+        }
+        Insert: {
+          body_preview: string
+          category: string
+          created_at?: string
+          is_approved?: boolean
+          language_code?: string
+          template_id?: string
+          template_name: string
+        }
+        Update: {
+          body_preview?: string
+          category?: string
+          created_at?: string
+          is_approved?: boolean
+          language_code?: string
+          template_id?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
       world_links: {
         Row: {
           created_at: string
@@ -6310,6 +6671,130 @@ export type Database = {
       }
       anonymity_level_to_visibility: {
         Args: { p_level: number }
+        Returns: string
+      }
+      api_bot_admin_review_enqueue: {
+        Args: { p_extraction_id: string; p_reason: string }
+        Returns: string
+      }
+      api_bot_admin_review_list: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          extraction_id: string
+          listing_id: string
+          reason: string
+          review_id: string
+          status: string
+        }[]
+      }
+      api_bot_admin_review_resolve: {
+        Args: { p_review_id: string; p_reviewer_id: string; p_status: string }
+        Returns: undefined
+      }
+      api_bot_apply_extraction: {
+        Args: {
+          p_confidence?: number
+          p_details?: Json
+          p_direction: string
+          p_kind_slug: string
+          p_session_id: string
+          p_summary?: string
+          p_title: string
+          p_world_slug: string
+        }
+        Returns: string
+      }
+      api_bot_enqueue_match_notifications: {
+        Args: { p_match_id: string }
+        Returns: Json
+      }
+      api_bot_find_duplicate_listings: {
+        Args: {
+          p_limit?: number
+          p_min_similarity?: number
+          p_title: string
+          p_world_slug: string
+        }
+        Returns: {
+          listing_id: string
+          owner_id: string
+          similarity_score: number
+          title: string
+        }[]
+      }
+      api_bot_find_matches: {
+        Args: { p_limit?: number; p_listing_id: string; p_owner_id: string }
+        Returns: {
+          candidate_listing_id: string
+          fts_score: number
+          geo_score: number
+          match_status: string
+          score: number
+          trust_score: number
+          vector_score: number
+        }[]
+      }
+      api_bot_link_identity: {
+        Args: { p_user_id: string; p_wa_id: string }
+        Returns: string
+      }
+      api_bot_open_session: {
+        Args: { p_record_id?: string; p_wa_id: string }
+        Returns: string
+      }
+      api_bot_publish_listing: {
+        Args: { p_owner_id: string; p_session_id: string }
+        Returns: string
+      }
+      api_bot_record_match_response: {
+        Args: { p_match_id: string; p_response: string; p_user_id: string }
+        Returns: string
+      }
+      api_bot_register_er_candidate: {
+        Args: {
+          p_listing_id_a: string
+          p_listing_id_b: string
+          p_reason?: string
+          p_score: number
+        }
+        Returns: string
+      }
+      api_bot_search_listings: {
+        Args: {
+          p_limit?: number
+          p_owner_id: string
+          p_query: string
+          p_world_slug?: string
+        }
+        Returns: {
+          fts_rank: number
+          geo_rank: number
+          listing_id: string
+          rrf_score: number
+          trgm_rank: number
+          vector_rank: number
+        }[]
+      }
+      api_bot_set_match_consent: {
+        Args: { p_opted_in: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      api_whatsapp_ingest_inbound: {
+        Args: { p_message_id: string; p_payload: Json; p_run_id?: string }
+        Returns: string
+      }
+      api_whatsapp_outbound_log: {
+        Args: { p_payload: Json; p_template_name: string; p_user_id: string }
+        Returns: string
+      }
+      api_whatsapp_queue_outbound: {
+        Args: {
+          p_max_per_hour?: number
+          p_payload: Json
+          p_template_name: string
+          p_user_id: string
+        }
         Returns: string
       }
       auth_check_account_gate: {
