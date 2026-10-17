@@ -45,10 +45,11 @@ describe('parseReportCaseDetail', () => {
     expect(detail!.targetId).toBe('p1');
     expect(detail!.target).toEqual({ title: 'hi' });
     expect(detail!.reporters).toHaveLength(1);
-    expect(detail!.reporters[0].reportId).toBe('r1');
-    expect(detail!.reporters[0].status).toBe('open');
+    const reporter = detail!.reporters[0]!;
+    expect(reporter.reportId).toBe('r1');
+    expect(reporter.status).toBe('open');
     expect(detail!.timeline).toHaveLength(1);
-    expect(detail!.timeline[0].action).toBe('opened');
+    expect(detail!.timeline[0]!.action).toBe('opened');
   });
 
   it('defaults reporter status to open when unknown and empty arrays when missing', () => {
@@ -63,8 +64,9 @@ describe('parseReportCaseDetail', () => {
         },
       ],
     });
-    expect(detail!.reporters[0].status).toBe('open');
-    expect(detail!.reporters[0].reason).toBe('');
+    const reporter = detail!.reporters[0]!;
+    expect(reporter.status).toBe('open');
+    expect(reporter.reason).toBe('');
     expect(detail!.timeline).toEqual([]);
   });
 });
