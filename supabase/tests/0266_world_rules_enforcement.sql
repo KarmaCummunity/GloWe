@@ -16,22 +16,24 @@ begin
    where user_id = p_id;
 end $$;
 
+-- Food always carries an expiry: listings_before_write_trg (0242) applies the
+-- world default TTL (168h) before listings_enforce_world_rules checks it.
 do $$
 declare
   v_user uuid := '00000000-0000-0000-0000-000000266001';
+  v_exp timestamptz;
 begin
   perform pg_temp.mk_user(v_user, 'food_rules');
-  begin
-    insert into public.listings (
-      owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
-    )
-    select v_user, 'food', kind_id, 'give', 'Soup', 'native', 'published',
-           '{"image_url":"https://example.test/f.jpg"}'::jsonb
-      from public.listing_kinds where world_slug = 'food' and slug = 'give_food';
-    raise exception 'ASSERT FAILED: food without expiry should fail';
-  exception when others then
-    if sqlstate <> '23514' then raise; end if;
-  end;
+  insert into public.listings (
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
+  )
+  select v_user, 'food', kind_id, 'give', 'Soup', 'native', 'published',
+         '{"image_url":"https://example.test/f.jpg"}'::jsonb
+    from public.listing_kinds where world_slug = 'food' and slug = 'give_food'
+  returning expires_at into v_exp;
+  if v_exp is null or v_exp > now() + interval '169 hours' then
+    raise exception 'ASSERT FAILED: food listing should get a default expiry <= 168h, got %', v_exp;
+  end if;
 end $$;
 
 do $$
