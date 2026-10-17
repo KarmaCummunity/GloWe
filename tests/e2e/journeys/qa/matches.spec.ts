@@ -28,13 +28,10 @@ test('ui: /matches renders the list or the empty state without API errors', asyn
   const errors = trackApiErrors(page);
   await gotoApp(page, '/matches');
   await expect(page.getByTestId('matches-screen')).toBeVisible();
-  await page.waitForLoadState('networkidle');
   const cards = page.locator('[data-testid^="match-card-"]');
-  if ((await cards.count()) > 0) {
-    await expect(cards.first()).toBeVisible();
-  } else {
-    await expect(page.getByTestId('matches-empty')).toBeVisible();
-  }
+  // The list loads after auth hydration — wait for either outcome instead of sampling once.
+  await expect(cards.first().or(page.getByTestId('matches-empty'))).toBeVisible();
+  await page.waitForLoadState('networkidle');
   await expectNoRawI18nKeys(page);
   expect(errors).toEqual([]);
 });
