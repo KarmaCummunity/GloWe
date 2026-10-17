@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -46,7 +47,7 @@ export default function MoneyHubScreen() {
 
   return (
     <Screen blobs="content">
-      <FlatList
+      <KcFlashList
         data={nonprofits.data ?? []}
         keyExtractor={(item) => item.orgId}
         contentContainerStyle={{ paddingBottom: inset }}

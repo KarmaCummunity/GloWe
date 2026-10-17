@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
@@ -37,7 +38,7 @@ export default function MyStandingOrdersScreen() {
 
   return (
     <Screen>
-      <FlatList
+      <KcFlashList
         data={orders.data ?? []}
         keyExtractor={(item) => item.orderId}
         ListEmptyComponent={
