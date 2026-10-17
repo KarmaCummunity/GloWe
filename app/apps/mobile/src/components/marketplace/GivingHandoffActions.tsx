@@ -6,6 +6,7 @@ import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
+import { track } from '../../lib/analytics';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   box: { gap: spacing.sm, padding: spacing.md, borderRadius: 12, backgroundColor: colors.surfaceRaised },
@@ -45,10 +46,13 @@ export function GivingHandoffActions({ detail }: Props) {
     await qc.invalidateQueries({ queryKey: ['marketplace'] });
   };
 
-  const run = async (fn: () => Promise<void>) => {
+  const run = async (fn: () => Promise<void>, event?: 'match_made') => {
     setBusy(true);
     try {
       await fn();
+      if (event === 'match_made') {
+        track('match_made', { world: detail.worldSlug });
+      }
       await invalidate();
     } catch {
       alert(t('givingHandoff.errorGeneric'));
@@ -71,14 +75,14 @@ export function GivingHandoffActions({ detail }: Props) {
           <Pressable
             style={styles.btn}
             disabled={busy}
-            onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'pickup'); })}
+            onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'pickup'); }, 'match_made')}
           >
             <Text style={styles.btnText}>{t('givingHandoff.reserveItem')}</Text>
           </Pressable>
           <Pressable
             style={[styles.btn, styles.btnSecondary]}
             disabled={busy}
-            onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'delivery'); })}
+            onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'delivery'); }, 'match_made')}
           >
             <Text style={[styles.btnText, styles.btnTextSecondary]}>{t('givingHandoff.reserveDelivery')}</Text>
           </Pressable>
@@ -89,7 +93,7 @@ export function GivingHandoffActions({ detail }: Props) {
         <Pressable
           style={styles.btn}
           disabled={busy}
-          onPress={() => run(async () => { await givingHandoffUseCases.claimFood().execute(detail.listingId); })}
+          onPress={() => run(async () => { await givingHandoffUseCases.claimFood().execute(detail.listingId); }, 'match_made')}
         >
           <Text style={styles.btnText}>{t('givingHandoff.claimFood')}</Text>
         </Pressable>

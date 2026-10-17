@@ -1,5 +1,7 @@
 import { initSentry } from '../src/lib/observability/sentry';
+import { initPosthog } from '../src/lib/observability/posthog';
 initSentry();
+void initPosthog();
 import { startMark, finishMark } from '../src/lib/observability/perfMarks';
 startMark('app.cold_start');
 import '../src/i18n';

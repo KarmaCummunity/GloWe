@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { Screen } from '../../../../../src/components/ui/Screen';
 import { newIdempotencyKey, paymentsUseCases } from '../../../../../src/services/paymentsComposition';
+import { track } from '../../../../../src/lib/analytics';
 
 const PRESETS = [36, 72, 180, 360] as const;
 
@@ -91,6 +92,7 @@ export default function DonateNowScreen() {
                   listingId: listingId ?? null,
                 });
                 const done = await paymentsUseCases.confirmDonation().execute(checkout.intentId);
+                track('donation', { channel: 'money' });
                 router.replace({
                   pathname: '/(tabs)/donations/money/receipt/[paymentId]',
                   params: { paymentId: done.paymentId },

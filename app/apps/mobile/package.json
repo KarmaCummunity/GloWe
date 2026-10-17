@@ -71,6 +71,7 @@
     "expo-web-browser": "~15.0.11",
     "i18next": "^23.16.0",
     "idb-keyval": "^6.2.1",
+    "posthog-react-native": "^4.81.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-i18next": "^15.1.0",
