@@ -1,0 +1,29 @@
+import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+
+export default function TimeVolunteerLayout() {
+  const { t } = useTranslation();
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: true,
+        headerBackTitle: t('general.back'),
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerTitle: t('donations.timeScreen.title') }} />
+      <Stack.Screen name="my-shifts" options={{ headerTitle: t('timeVolunteer.myShiftsTitle') }} />
+      <Stack.Screen name="support" options={{ headerTitle: t('donations.timeScreen.title') }} />
+      <Stack.Screen
+        name="opportunity/[opportunityId]"
+        options={{ headerTitle: t('timeVolunteer.hubTitle') }}
+      />
+      <Stack.Screen name="organizer/index" options={{ headerTitle: t('timeVolunteer.organizerTitle') }} />
+      <Stack.Screen name="organizer/create" options={{ headerTitle: t('timeVolunteer.createTitle') }} />
+      <Stack.Screen
+        name="organizer/[opportunityId]"
+        options={{ headerTitle: t('timeVolunteer.organizerTitle') }}
+      />
+      <Stack.Screen name="shift/[shiftId]/volunteers" options={{ headerTitle: t('timeVolunteer.rosterTitle') }} />
+    </Stack>
+  );
+}

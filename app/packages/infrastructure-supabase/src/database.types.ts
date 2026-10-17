@@ -6094,6 +6094,7 @@ export type Database = {
           user_id: string
           verification_method: string | null
           verified_at: string | null
+          volunteer_hours_total: number
         }
         Insert: {
           account_status?: string
@@ -6135,6 +6136,7 @@ export type Database = {
           user_id: string
           verification_method?: string | null
           verified_at?: string | null
+          volunteer_hours_total?: number
         }
         Update: {
           account_status?: string
@@ -6176,6 +6178,7 @@ export type Database = {
           user_id?: string
           verification_method?: string | null
           verified_at?: string | null
+          volunteer_hours_total?: number
         }
         Relationships: [
           {
@@ -6184,6 +6187,157 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cities"
             referencedColumns: ["city_id"]
+          },
+        ]
+      }
+      volunteer_opportunities: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          location_label: string | null
+          opportunity_id: string
+          org_id: string | null
+          organizer_id: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          location_label?: string | null
+          opportunity_id?: string
+          org_id?: string | null
+          organizer_id: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          location_label?: string | null
+          opportunity_id?: string
+          org_id?: string | null
+          organizer_id?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_opportunities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "volunteer_opportunities_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "volunteer_opportunities_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      volunteer_shift_signups: {
+        Row: {
+          checked_in_at: string | null
+          hours_logged: number | null
+          shift_id: string
+          signed_up_at: string
+          signup_id: string
+          status: string
+          user_id: string
+          waitlist_position: number | null
+        }
+        Insert: {
+          checked_in_at?: string | null
+          hours_logged?: number | null
+          shift_id: string
+          signed_up_at?: string
+          signup_id?: string
+          status?: string
+          user_id: string
+          waitlist_position?: number | null
+        }
+        Update: {
+          checked_in_at?: string | null
+          hours_logged?: number | null
+          shift_id?: string
+          signed_up_at?: string
+          signup_id?: string
+          status?: string
+          user_id?: string
+          waitlist_position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_shift_signups_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_shifts"
+            referencedColumns: ["shift_id"]
+          },
+          {
+            foreignKeyName: "volunteer_shift_signups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "volunteer_shift_signups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      volunteer_shifts: {
+        Row: {
+          capacity: number
+          created_at: string
+          ends_at: string
+          opportunity_id: string
+          shift_id: string
+          starts_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          ends_at: string
+          opportunity_id: string
+          shift_id?: string
+          starts_at: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          ends_at?: string
+          opportunity_id?: string
+          shift_id?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_shifts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_opportunities"
+            referencedColumns: ["opportunity_id"]
           },
         ]
       }
@@ -6708,6 +6862,10 @@ export type Database = {
       }
     }
     Functions: {
+      _volunteer_promote_waitlist: {
+        Args: { p_shift_id: string }
+        Returns: undefined
+      }
       accept_legal_document: {
         Args: {
           p_doc_type: Database["public"]["Enums"]["legal_doc_type"]
@@ -6720,6 +6878,15 @@ export type Database = {
       active_posts_count_for_viewer: {
         Args: { p_owner: string; p_viewer: string }
         Returns: number
+      }
+      add_volunteer_shift: {
+        Args: {
+          p_capacity?: number
+          p_ends_at: string
+          p_opportunity_id: string
+          p_starts_at: string
+        }
+        Returns: string
       }
       admin_assert_role: {
         Args: { allowed: string[]; uid: string }
@@ -7229,6 +7396,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      cancel_volunteer_signup: {
+        Args: { p_signup_id: string }
+        Returns: undefined
+      }
+      check_in_volunteer_shift: { Args: { p_signup_id: string }; Returns: Json }
       check_survey_prompt_eligibility: {
         Args: { p_session_count: number; p_slug: string }
         Returns: Json
@@ -7266,6 +7438,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      close_volunteer_opportunity: {
+        Args: { p_opportunity_id: string }
+        Returns: undefined
       }
       closure_cleanup_expired: { Args: never; Returns: number }
       closure_cleanup_expired_with_metric: { Args: never; Returns: number }
@@ -7347,6 +7523,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      create_volunteer_opportunity: {
+        Args: {
+          p_city_id?: string
+          p_location_label?: string
+          p_org_id?: string
+          p_summary?: string
+          p_title: string
+        }
+        Returns: string
       }
       crm_contact_delete: { Args: { p_contact_id: string }; Returns: undefined }
       crm_contact_list: {
@@ -7563,6 +7749,11 @@ export type Database = {
       }
       get_public_research_questions: { Args: { p_slug: string }; Returns: Json }
       get_survey_bundle: { Args: { p_slug: string }; Returns: Json }
+      get_volunteer_opportunity_detail: {
+        Args: { p_opportunity_id: string }
+        Returns: Json
+      }
+      get_volunteer_shift_ics: { Args: { p_shift_id: string }; Returns: string }
       has_admin_role:
         | { Args: { role_name: string; uid: string }; Returns: boolean }
         | {
@@ -7705,6 +7896,40 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      list_my_volunteer_opportunities: {
+        Args: { p_limit?: number }
+        Returns: {
+          city_id: string | null
+          created_at: string
+          location_label: string | null
+          opportunity_id: string
+          org_id: string | null
+          organizer_id: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "volunteer_opportunities"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_my_volunteer_signups: {
+        Args: { p_limit?: number }
+        Returns: {
+          ends_at: string
+          hours_logged: number
+          opportunity_id: string
+          shift_id: string
+          signup_id: string
+          starts_at: string
+          status: string
+          title: string
+        }[]
+      }
       list_profile_listings: {
         Args: { p_limit?: number; p_owner_id: string }
         Returns: {
@@ -7717,6 +7942,18 @@ export type Database = {
           world_slug: string
         }[]
       }
+      list_shift_volunteers: {
+        Args: { p_shift_id: string }
+        Returns: {
+          display_name: string
+          hours_logged: number
+          share_handle: string
+          signup_id: string
+          status: string
+          user_id: string
+          waitlist_position: number
+        }[]
+      }
       list_verified_nonprofits: {
         Args: { p_limit?: number }
         Returns: {
@@ -7726,6 +7963,18 @@ export type Database = {
           slug: string
           tagline_en: string
           tagline_he: string
+        }[]
+      }
+      list_volunteer_opportunities: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          city_id: string
+          location_label: string
+          next_shift_at: string
+          open_slots: number
+          opportunity_id: string
+          summary: string
+          title: string
         }[]
       }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
@@ -7809,6 +8058,10 @@ export type Database = {
         Returns: undefined
       }
       notifications_post_expiry_check: { Args: never; Returns: undefined }
+      organizer_message_shift_volunteers: {
+        Args: { p_message: string; p_shift_id: string }
+        Returns: number
+      }
       participant_closed_surface_visible: {
         Args: {
           p_actor: string
@@ -7901,6 +8154,10 @@ export type Database = {
           p_title_he: string
         }
         Returns: Json
+      }
+      publish_volunteer_opportunity: {
+        Args: { p_opportunity_id: string }
+        Returns: undefined
       }
       recommend_listings_for_user: {
         Args: { p_limit?: number; p_viewer?: string }
@@ -8852,6 +9109,25 @@ export type Database = {
         Returns: number
       }
       share_listing_to_feed: { Args: { p_listing_id: string }; Returns: string }
+      sign_up_volunteer_shift: {
+        Args: { p_shift_id: string }
+        Returns: {
+          checked_in_at: string | null
+          hours_logged: number | null
+          shift_id: string
+          signed_up_at: string
+          signup_id: string
+          status: string
+          user_id: string
+          waitlist_position: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "volunteer_shift_signups"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       similar_listings: {
         Args: { p_limit?: number; p_listing_id: string }
         Returns: {
@@ -8991,6 +9267,11 @@ export type Database = {
         Args: { p_visibility: string }
         Returns: number
       }
+      volunteer_enqueue_signup_notifications: {
+        Args: { p_signup_id: string }
+        Returns: undefined
+      }
+      volunteer_shift_reminder_sweep: { Args: never; Returns: number }
     }
     Enums: {
       legal_doc_type: "terms" | "privacy"

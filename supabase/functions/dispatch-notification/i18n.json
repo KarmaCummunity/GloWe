@@ -45,5 +45,11 @@
   "notifications.rideRatePromptTitle": "איך הייתה הנסיעה?",
   "notifications.rideRatePromptBody": "{{rideTitle}} — נא לדרג בקרוב",
   "notifications.taskAssignedTitle": "משימת ניהול חדשה הוקצתה לך",
-  "notifications.taskAssignedBody": "{{title}}"
+  "notifications.taskAssignedBody": "{{title}}",
+  "notifications.volunteerSignupTitle": "נרשמת להתנדבות",
+  "notifications.volunteerSignupBody": "{{title}} — משמרת ב-{{starts_at}}",
+  "notifications.volunteerReminderTitle": "תזכורת: משמרת התנדבות מחר",
+  "notifications.volunteerReminderBody": "{{title}} — {{starts_at}}",
+  "notifications.volunteerOrganizerTitle": "עדכון מהמארגן/ת",
+  "notifications.volunteerOrganizerBody": "{{title}}: {{message}}"
 }
