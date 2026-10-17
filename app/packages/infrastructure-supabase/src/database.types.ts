@@ -823,6 +823,90 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_intents: {
+        Row: {
+          amount_ils: number
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          idempotency_key: string
+          intent_id: string
+          listing_id: string | null
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_ils: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          idempotency_key: string
+          intent_id?: string
+          listing_id?: string | null
+          org_id: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_ils?: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          idempotency_key?: string
+          intent_id?: string
+          listing_id?: string | null
+          org_id?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_intents_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "donation_intents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "donation_intents_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "payment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "donation_intents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "donation_intents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       donation_links: {
         Row: {
           category_slug: string
@@ -873,6 +957,65 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "donation_categories"
             referencedColumns: ["slug"]
+          },
+        ]
+      }
+      donation_receipts: {
+        Row: {
+          issued_at: string
+          org_id: string
+          payload: Json
+          payment_id: string
+          receipt_id: string
+          section46_serial: string | null
+          user_id: string
+        }
+        Insert: {
+          issued_at?: string
+          org_id: string
+          payload?: Json
+          payment_id: string
+          receipt_id?: string
+          section46_serial?: string | null
+          user_id: string
+        }
+        Update: {
+          issued_at?: string
+          org_id?: string
+          payload?: Json
+          payment_id?: string
+          receipt_id?: string
+          section46_serial?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_receipts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "donation_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["payment_id"]
+          },
+          {
+            foreignKeyName: "donation_receipts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "donation_receipts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2258,6 +2401,61 @@ export type Database = {
           },
         ]
       }
+      marketplace_rule_params: {
+        Row: {
+          param_key: string
+          param_value: Json
+          rule_code: string
+        }
+        Insert: {
+          param_key: string
+          param_value: Json
+          rule_code: string
+        }
+        Update: {
+          param_key?: string
+          param_value?: Json
+          rule_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_rule_params_rule_code_fkey"
+            columns: ["rule_code"]
+            isOneToOne: false
+            referencedRelation: "marketplace_rules"
+            referencedColumns: ["rule_code"]
+          },
+        ]
+      }
+      marketplace_rules: {
+        Row: {
+          is_active: boolean
+          label_en: string
+          rule_code: string
+          world_slug: string | null
+        }
+        Insert: {
+          is_active?: boolean
+          label_en: string
+          rule_code: string
+          world_slug?: string | null
+        }
+        Update: {
+          is_active?: boolean
+          label_en?: string
+          rule_code?: string
+          world_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_rules_world_slug_fkey"
+            columns: ["world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       match_alert_subscriptions: {
         Row: {
           city_id: string | null
@@ -2826,6 +3024,107 @@ export type Database = {
           },
         ]
       }
+      operator_case_events: {
+        Row: {
+          actor_id: string | null
+          case_id: string
+          created_at: string
+          event_id: string
+          event_type: string
+          payload: Json
+        }
+        Insert: {
+          actor_id?: string | null
+          case_id: string
+          created_at?: string
+          event_id?: string
+          event_type: string
+          payload?: Json
+        }
+        Update: {
+          actor_id?: string | null
+          case_id?: string
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_case_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "operator_case_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "operator_case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "operator_cases"
+            referencedColumns: ["case_id"]
+          },
+        ]
+      }
+      operator_cases: {
+        Row: {
+          assigned_operator_id: string | null
+          case_id: string
+          created_at: string
+          listing_id: string
+          priority: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_operator_id?: string | null
+          case_id?: string
+          created_at?: string
+          listing_id: string
+          priority?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_operator_id?: string | null
+          case_id?: string
+          created_at?: string
+          listing_id?: string
+          priority?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_cases_assigned_operator_id_fkey"
+            columns: ["assigned_operator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "operator_cases_assigned_operator_id_fkey"
+            columns: ["assigned_operator_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "operator_cases_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+        ]
+      }
       org_applications: {
         Row: {
           applicant_user_id: string
@@ -2900,29 +3199,455 @@ export type Database = {
           },
         ]
       }
+      org_memberships: {
+        Row: {
+          created_at: string
+          membership_id: string
+          org_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          membership_id?: string
+          org_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          membership_id?: string
+          org_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "org_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "org_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
           is_platform: boolean
+          is_verified_nonprofit: boolean
           name: string
           org_id: string
           slug: string
+          verification_method: string | null
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
           is_platform?: boolean
+          is_verified_nonprofit?: boolean
           name: string
           org_id?: string
           slug: string
+          verification_method?: string | null
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
           is_platform?: boolean
+          is_verified_nonprofit?: boolean
           name?: string
           org_id?: string
           slug?: string
+          verification_method?: string | null
+          verified_at?: string | null
         }
         Relationships: []
+      }
+      payer_kyc_profiles: {
+        Row: {
+          cumulative_donated_ils: number
+          kyc_required_threshold_ils: number
+          provider_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          cumulative_donated_ils?: number
+          kyc_required_threshold_ils?: number
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          cumulative_donated_ils?: number
+          kyc_required_threshold_ils?: number
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payer_kyc_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payer_kyc_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      payment_ledger_entries: {
+        Row: {
+          account_code: string
+          created_at: string
+          credit_ils: number
+          currency: string
+          debit_ils: number
+          entry_id: string
+          idempotency_key: string
+          ref_id: string | null
+          ref_type: string | null
+          txn_id: string
+        }
+        Insert: {
+          account_code: string
+          created_at?: string
+          credit_ils?: number
+          currency?: string
+          debit_ils?: number
+          entry_id?: string
+          idempotency_key: string
+          ref_id?: string | null
+          ref_type?: string | null
+          txn_id: string
+        }
+        Update: {
+          account_code?: string
+          created_at?: string
+          credit_ils?: number
+          currency?: string
+          debit_ils?: number
+          entry_id?: string
+          idempotency_key?: string
+          ref_id?: string | null
+          ref_type?: string | null
+          txn_id?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          brand: string | null
+          created_at: string
+          exp_month: number | null
+          exp_year: number | null
+          is_default: boolean
+          last4: string | null
+          method_id: string
+          provider_id: string
+          provider_token: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          exp_month?: number | null
+          exp_year?: number | null
+          is_default?: boolean
+          last4?: string | null
+          method_id?: string
+          provider_id: string
+          provider_token: string
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          exp_month?: number | null
+          exp_year?: number | null
+          is_default?: boolean
+          last4?: string | null
+          method_id?: string
+          provider_id?: string
+          provider_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_methods_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "payment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "payment_methods_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payment_methods_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      payment_payouts: {
+        Row: {
+          amount_ils: number
+          created_at: string
+          idempotency_key: string
+          org_id: string
+          payout_id: string
+          provider_ref: string | null
+          status: string
+        }
+        Insert: {
+          amount_ils: number
+          created_at?: string
+          idempotency_key: string
+          org_id: string
+          payout_id?: string
+          provider_ref?: string | null
+          status?: string
+        }
+        Update: {
+          amount_ils?: number
+          created_at?: string
+          idempotency_key?: string
+          org_id?: string
+          payout_id?: string
+          provider_ref?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_payouts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+        ]
+      }
+      payment_providers: {
+        Row: {
+          config_public: Json
+          created_at: string
+          display_name: string
+          is_active: boolean
+          provider_id: string
+          slug: string
+        }
+        Insert: {
+          config_public?: Json
+          created_at?: string
+          display_name: string
+          is_active?: boolean
+          provider_id?: string
+          slug: string
+        }
+        Update: {
+          config_public?: Json
+          created_at?: string
+          display_name?: string
+          is_active?: boolean
+          provider_id?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      payment_recipients_kyc: {
+        Row: {
+          created_at: string
+          org_id: string
+          provider_ref: string | null
+          recipient_kyc_id: string
+          reviewed_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          org_id: string
+          provider_ref?: string | null
+          recipient_kyc_id?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          org_id?: string
+          provider_ref?: string | null
+          recipient_kyc_id?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_recipients_kyc_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+        ]
+      }
+      payment_refunds: {
+        Row: {
+          amount_ils: number
+          created_at: string
+          idempotency_key: string
+          payment_id: string
+          provider_ref: string | null
+          reason: string | null
+          refund_id: string
+          status: string
+        }
+        Insert: {
+          amount_ils: number
+          created_at?: string
+          idempotency_key: string
+          payment_id: string
+          provider_ref?: string | null
+          reason?: string | null
+          refund_id?: string
+          status?: string
+        }
+        Update: {
+          amount_ils?: number
+          created_at?: string
+          idempotency_key?: string
+          payment_id?: string
+          provider_ref?: string | null
+          reason?: string | null
+          refund_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["payment_id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_ils: number
+          created_at: string
+          idempotency_key: string
+          intent_id: string
+          method_id: string | null
+          org_id: string
+          payment_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_ils: number
+          created_at?: string
+          idempotency_key: string
+          intent_id: string
+          method_id?: string | null
+          org_id: string
+          payment_id?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_ils?: number
+          created_at?: string
+          idempotency_key?: string
+          intent_id?: string
+          method_id?: string | null
+          org_id?: string
+          payment_id?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_intent_id_fkey"
+            columns: ["intent_id"]
+            isOneToOne: false
+            referencedRelation: "donation_intents"
+            referencedColumns: ["intent_id"]
+          },
+          {
+            foreignKeyName: "payments_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["method_id"]
+          },
+          {
+            foreignKeyName: "payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "payment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       post_actor_identity: {
         Row: {
@@ -3277,6 +4002,72 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      profile_enrichments: {
+        Row: {
+          enrichments: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          enrichments?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          enrichments?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_enrichments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profile_enrichments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      provider_webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          payload: Json
+          processed_at: string | null
+          provider_event_id: string
+          provider_slug: string
+          status: string
+          webhook_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          payload: Json
+          processed_at?: string | null
+          provider_event_id: string
+          provider_slug: string
+          status?: string
+          webhook_event_id?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          payload?: Json
+          processed_at?: string | null
+          provider_event_id?: string
+          provider_slug?: string
+          status?: string
+          webhook_event_id?: string
+        }
+        Relationships: []
       }
       public_research_contact_requests: {
         Row: {
@@ -4156,6 +4947,80 @@ export type Database = {
         }
         Relationships: []
       }
+      standing_orders: {
+        Row: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_ils: number
+          cadence: string
+          cancelled_at?: string | null
+          created_at?: string
+          idempotency_key: string
+          next_charge_at?: string | null
+          order_id?: string
+          org_id: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_ils?: number
+          cadence?: string
+          cancelled_at?: string | null
+          created_at?: string
+          idempotency_key?: string
+          next_charge_at?: string | null
+          order_id?: string
+          org_id?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standing_orders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "standing_orders_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "payment_providers"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "standing_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "standing_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       stats_drift_events: {
         Row: {
           column_name: string
@@ -4721,6 +5586,7 @@ export type Database = {
           first_post_nudge_dismissed: boolean
           followers_count: number
           following_count: number
+          food_posting_banned_until: string | null
           is_super_admin: boolean
           items_given_count: number
           items_received_count: number
@@ -4737,6 +5603,8 @@ export type Database = {
           share_handle: string
           updated_at: string
           user_id: string
+          verification_method: string | null
+          verified_at: string | null
         }
         Insert: {
           account_status?: string
@@ -4759,6 +5627,7 @@ export type Database = {
           first_post_nudge_dismissed?: boolean
           followers_count?: number
           following_count?: number
+          food_posting_banned_until?: string | null
           is_super_admin?: boolean
           items_given_count?: number
           items_received_count?: number
@@ -4775,6 +5644,8 @@ export type Database = {
           share_handle: string
           updated_at?: string
           user_id: string
+          verification_method?: string | null
+          verified_at?: string | null
         }
         Update: {
           account_status?: string
@@ -4797,6 +5668,7 @@ export type Database = {
           first_post_nudge_dismissed?: boolean
           followers_count?: number
           following_count?: number
+          food_posting_banned_until?: string | null
           is_super_admin?: boolean
           items_given_count?: number
           items_received_count?: number
@@ -4813,6 +5685,8 @@ export type Database = {
           share_handle?: string
           updated_at?: string
           user_id?: string
+          verification_method?: string | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -5450,6 +6324,29 @@ export type Database = {
         Args: { granter_uid: string; target_role: string; target_scope: string }
         Returns: boolean
       }
+      cancel_standing_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "standing_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       check_survey_prompt_eligibility: {
         Args: { p_session_count: number; p_slug: string }
         Returns: Json
@@ -5490,6 +6387,35 @@ export type Database = {
       }
       closure_cleanup_expired: { Args: never; Returns: number }
       closure_cleanup_expired_with_metric: { Args: never; Returns: number }
+      create_donation_intent: {
+        Args: {
+          p_amount_ils: number
+          p_idempotency_key: string
+          p_listing_id?: string
+          p_org_id: string
+        }
+        Returns: {
+          amount_ils: number
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          idempotency_key: string
+          intent_id: string
+          listing_id: string | null
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "donation_intents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       crm_contact_delete: { Args: { p_contact_id: string }; Returns: undefined }
       crm_contact_list: {
         Args: {
@@ -5707,6 +6633,10 @@ export type Database = {
         Args: { blocked: string; blocker: string }
         Returns: boolean
       }
+      has_world_permission: {
+        Args: { p_action?: string; p_user: string; p_world_slug: string }
+        Returns: boolean
+      }
       haversine_km: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
@@ -5841,6 +6771,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      payment_ledger_post_balanced: {
+        Args: { p_idempotency_key: string; p_lines: Json; p_txn_id: string }
+        Returns: undefined
+      }
       post_stats_bump: {
         Args: {
           p_comment_delta?: number
@@ -5872,6 +6806,10 @@ export type Database = {
           p_viewer_user_id: string
         }
         Returns: number
+      }
+      provider_webhook_apply: {
+        Args: { p_event_id: string; p_payload: Json; p_provider_slug: string }
+        Returns: string
       }
       publish_legal_document: {
         Args: {
