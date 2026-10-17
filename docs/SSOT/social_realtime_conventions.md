@@ -26,7 +26,7 @@
 
 - **Feed/search read routing:** route read-only RPCs (`feed_ranked_ids`, `search_all`, engagement reads) to a read replica connection string when available (`DATABASE_READ_URL` in app infra — not stored in repo).
 - **Supavisor:** use **transaction mode** pooler port for serverless/RPC bursts; session mode only when prepared statements are required.
-- **Feed MV + cache:** `feed_open_posts_mv` refreshes via pg_cron when dirty (`0346`); per-user snapshots in `user_feed_cache` via pgmq worker (`0348`).
+- **Feed MV + cache:** `kc_private.feed_open_posts_mv` refreshes via pg_cron when dirty (`0346`); per-user snapshots in `user_feed_cache` via pgmq worker (`0348`).
 
 ## Authorization
 

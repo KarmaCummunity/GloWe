@@ -65,6 +65,8 @@ comment on table public.social_rpc_explain_snapshots is
 
 alter table public.social_rpc_explain_snapshots enable row level security;
 revoke all on public.social_rpc_explain_snapshots from authenticated, anon;
+create policy social_rpc_explain_snapshots_service_read on public.social_rpc_explain_snapshots
+  for select to service_role using (true);
 
 create or replace function public.social_rpc_capture_explain(
   p_rpc_name text,

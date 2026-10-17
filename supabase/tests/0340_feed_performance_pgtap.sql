@@ -51,7 +51,7 @@ select ok(
 select ok(
   exists (
     select 1 from pg_indexes
-     where schemaname = 'public'
+     where schemaname = 'kc_private'
        and indexname = 'feed_open_posts_mv_open_newest_idx'
   ),
   'MV newest index exists'

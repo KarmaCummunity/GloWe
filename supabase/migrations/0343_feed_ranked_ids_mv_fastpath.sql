@@ -112,7 +112,7 @@ begin
         null::double precision as dist_km,
         null::double precision as filter_dist,
         null::double precision as score
-      from public.feed_open_posts_mv fm
+      from kc_private.feed_open_posts_mv fm
       inner join public.posts p on p.post_id = fm.post_id
       join public.cities c on c.city_id = fm.city
       left join viewer_city vc on true

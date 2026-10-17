@@ -41,12 +41,12 @@ declare
   v_count bigint;
 begin
   if p_concurrent then
-    refresh materialized view concurrently public.feed_open_posts_mv;
+    refresh materialized view concurrently kc_private.feed_open_posts_mv;
   else
-    refresh materialized view public.feed_open_posts_mv;
+    refresh materialized view kc_private.feed_open_posts_mv;
   end if;
 
-  select count(*) into v_count from public.feed_open_posts_mv;
+  select count(*) into v_count from kc_private.feed_open_posts_mv;
 
   update public.feed_mv_refresh_state
      set dirty = false,
