@@ -12,9 +12,10 @@ import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
-import { ROUTED_WORLDS, validateListingDetails } from '@kc/domain';
+import { RIDE_ROUTE_DETAIL_KEYS, ROUTED_WORLDS, validateListingDetails } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
+import { RideRouteFields } from '../giving/RideRouteFields';
 import { ExternalBodyPicker } from './ExternalBodyPicker';
 import {
   pickListingImages,
@@ -148,7 +149,21 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
       <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
       <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
-      <ListingSchemaFields schema={activeKind.detailSchema} values={details} onChange={setDetails} />
+      {worldSlug === 'rides' ? (
+        <RideRouteFields
+          key={activeKind.kindId}
+          details={details}
+          onChange={setDetails}
+          onOriginCity={(c) => setCity((prev) => prev ?? c)}
+          disabled={busy}
+        />
+      ) : null}
+      <ListingSchemaFields
+        schema={activeKind.detailSchema}
+        values={details}
+        onChange={setDetails}
+        hiddenKeys={worldSlug === 'rides' ? RIDE_ROUTE_DETAIL_KEYS : undefined}
+      />
       {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       {routedWorld ? (
         <>
@@ -181,13 +196,12 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
             const next = await pickListingImages(picked.length);
             if (!next.length) return;
             setPicked((prev) => [...prev, ...next]);
-            if (ruleError?.field === 'photos') setRuleError(null);
           }}
         >
           <Text style={styles.chipText}>+</Text>
         </Pressable>
       </View>
-      {ruleError?.field === 'photos' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
+      {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
       {validationError ? <Text style={styles.err}>{validationError}</Text> : null}
       <Pressable
         style={styles.btn}

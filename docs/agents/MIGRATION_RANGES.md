@@ -28,15 +28,17 @@ Last applied on kc-dev when this was written: `0239`.
 | 0352 | drop old 9-param create_marketplace_listing overload (#954) | merged |
 | 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | merged |
 | 0354–0356 | Supabase advisors cleanup (#945/#962): RLS initplan, FK indexes, search_path | merged |
-| 0357–0359 | — | free |
+| 0357 | items image optional: drop 0351 deferred image check + last-photo delete block (product decision) | merged |
+| 0358–0359 | — | free |
 | 0360–0369 | money world (#913) | merged |
 | 0370–0379 | time world (volunteering, #915) | merged |
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
-| 0390+ | — | free |
+| 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | in progress (#972) |
+| 0400+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0357–0359`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0358–0359`, `0400+`.
 
 ## How to claim
 

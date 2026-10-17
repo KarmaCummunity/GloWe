@@ -116,6 +116,9 @@ export const donations = {
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
+  knowledge: {
+    hubBody: 'הציעו חונכות או שיעורים, הזמינו משבצת, השלימו ודרגו. ארגוני למידה מופיעים למטה.',
+  },
   addLinkModal: {
     title: 'הוספת קישור חדש',
     editTitle: 'עריכת קישור',
@@ -262,6 +265,7 @@ export const marketplace = {
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
   fieldPhotos: 'תמונות',
+  fieldPhotosHint: 'מודעות עם תמונה מקבלות יותר תגובות.',
   validationFailed: 'בדקו את הטופס ({{code}}).',
   errors: marketplaceErrors,
   shareLink: 'שיתוף קישור',

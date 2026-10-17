@@ -8,23 +8,14 @@ import {
 const now = new Date('2026-10-17T00:00:00Z');
 
 describe('validateMarketplaceWorldRules — items', () => {
-  it('requires a photo or a details image', () => {
-    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 0 })).toBe(
-      'items_image_required',
-    );
-    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_url: '  ' }, photoCount: 0 })).toBe(
-      'items_image_required',
-    );
+  it('does not require a photo (photos are optional)', () => {
+    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 0 })).toBeNull();
+    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_url: '  ' }, photoCount: 0 })).toBeNull();
   });
-  it('passes with an attached photo', () => {
+  it('passes with an attached photo or a details image', () => {
     expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 1 })).toBeNull();
-  });
-  it('passes with image_url or image_path in details (back-compat)', () => {
     expect(
       validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_url: 'https://x/y.jpg' }, photoCount: 0 }),
-    ).toBeNull();
-    expect(
-      validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_path: 'u/a.jpg' }, photoCount: 0 }),
     ).toBeNull();
   });
 });
@@ -72,7 +63,8 @@ describe('validateMarketplaceWorldRules — routed worlds', () => {
 
 describe('mapMarketplaceServerError', () => {
   it('maps PostgREST error messages to codes', () => {
-    expect(mapMarketplaceServerError({ code: '23514', message: 'items_image_required' })).toBe('items_image_required');
+    expect(mapMarketplaceServerError({ code: '23514', message: 'food_expiry_required' })).toBe('food_expiry_required');
+    expect(mapMarketplaceServerError({ code: '23514', message: 'items_image_required' })).toBeNull();
     expect(mapMarketplaceServerError({ message: 'x', details: 'food_posting_banned' })).toBe('food_posting_banned');
     expect(mapMarketplaceServerError('ERROR: money_active_campaign_cap (SQLSTATE 23514)')).toBe(
       'money_active_campaign_cap',
@@ -87,7 +79,7 @@ describe('mapMarketplaceServerError', () => {
   it('returns null for unknown or empty errors', () => {
     expect(mapMarketplaceServerError(null)).toBeNull();
     expect(mapMarketplaceServerError(new Error('network down'))).toBeNull();
-    expect(mapMarketplaceServerError({ message: 'not_items_image_required_x' })).toBeNull();
+    expect(mapMarketplaceServerError({ message: 'not_food_expiry_required_x' })).toBeNull();
   });
   it('every code is unique', () => {
     expect(new Set(MARKETPLACE_SERVER_ERROR_CODES).size).toBe(MARKETPLACE_SERVER_ERROR_CODES.length);

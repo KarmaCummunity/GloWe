@@ -2472,6 +2472,9 @@ export type Database = {
           pickup_window_start: string | null
           recipient_id: string
           reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
           status: string
           world_slug: string
         }
@@ -2489,6 +2492,9 @@ export type Database = {
           pickup_window_start?: string | null
           recipient_id: string
           reserved_at?: string
+          seats?: number
+          slot_ends_at?: string | null
+          slot_starts_at?: string | null
           status?: string
           world_slug: string
         }
@@ -2506,6 +2512,9 @@ export type Database = {
           pickup_window_start?: string | null
           recipient_id?: string
           reserved_at?: string
+          seats?: number
+          slot_ends_at?: string | null
+          slot_starts_at?: string | null
           status?: string
           world_slug?: string
         }
@@ -8547,6 +8556,64 @@ export type Database = {
           until_at: string
         }[]
       }
+      book_knowledge_slot: {
+        Args: { p_listing_id: string }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      book_ride_seat: {
+        Args: { p_listing_id: string; p_seats?: number }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       browse_listings: {
         Args: {
           p_availability?: string
@@ -8581,6 +8648,35 @@ export type Database = {
       cancel_giving_handoff: {
         Args: { p_handoff_id: string }
         Returns: undefined
+      }
+      cancel_ride_booking: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       cancel_standing_order: {
         Args: { p_order_id: string }
@@ -8634,6 +8730,9 @@ export type Database = {
           pickup_window_start: string | null
           recipient_id: string
           reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
           status: string
           world_slug: string
         }
@@ -8684,6 +8783,64 @@ export type Database = {
       }
       closure_cleanup_expired: { Args: never; Returns: number }
       closure_cleanup_expired_with_metric: { Args: never; Returns: number }
+      complete_knowledge_session: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      complete_ride_trip: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       complete_sandbox_donation: {
         Args: { p_intent_id: string }
         Returns: Json
@@ -8704,6 +8861,38 @@ export type Database = {
           pickup_window_start: string | null
           recipient_id: string
           reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_ride_booking: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
           status: string
           world_slug: string
         }
@@ -8991,6 +9180,28 @@ export type Database = {
         }[]
       }
       find_or_create_support_chat: { Args: { p_user: string }; Returns: string }
+      find_ride_listing_matches: {
+        Args: {
+          p_departs_after?: string
+          p_departs_before?: string
+          p_dest_lat: number
+          p_dest_lng: number
+          p_limit?: number
+          p_origin_lat: number
+          p_origin_lng: number
+          p_radius_km?: number
+        }
+        Returns: {
+          departs_at: string
+          dest_label: string
+          direction: string
+          distance_m: number
+          listing_id: string
+          origin_label: string
+          seats_left: number
+          title: string
+        }[]
+      }
       food_expired_listings_sweep: { Args: never; Returns: number }
       food_listing_urgency_level: {
         Args: { p_expires_at: string }
@@ -9306,6 +9517,9 @@ export type Database = {
           pickup_window_start: string | null
           recipient_id: string
           reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
           status: string
           world_slug: string
         }
@@ -9610,6 +9824,9 @@ export type Database = {
           pickup_window_start: string | null
           recipient_id: string
           reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
           status: string
           world_slug: string
         }
