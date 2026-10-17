@@ -13,7 +13,6 @@ export type { IMarketplaceRepository, MarketplaceBrowseFilters } from './ports/I
 export * from './translations';
 export type { IChatRealtime, InboxStreamCallbacks, SubscribeInboxOptions, ChatStreamCallbacks, Unsubscribe } from './ports/IChatRealtime';
 export type { IReportRepository } from './ports/IReportRepository';
-export type { IBlockRepository } from './ports/IBlockRepository';
 export type { IFeedRealtime, FeedRealtimeCallbacks } from './ports/IFeedRealtime';
 export type { IUserRealtime } from './ports/IUserRealtime';
 export type { IRidesRealtime, RidesRealtimeCallbacks } from './ports/IRidesRealtime';
@@ -83,10 +82,8 @@ export type { ChatErrorCode } from './chat/errors';
 // Report use cases
 export { ReportChatUseCase } from './reports/ReportChatUseCase';
 export type { ReportChatInput } from './reports/ReportChatUseCase';
-export { ReportPostUseCase } from './reports/ReportPostUseCase';
-export { SetUserBlockedUseCase } from './blocks/SetUserBlockedUseCase';
-export type { SetUserBlockedInput } from './blocks/SetUserBlockedUseCase';
-export type { ReportPostInput } from './reports/ReportPostUseCase';
+export { ReportPostUseCase, type ReportPostInput } from './reports/ReportPostUseCase';
+export * from './blocks';
 export { ReportListingUseCase } from './reports/ReportListingUseCase';
 export type { ReportListingInput } from './reports/ReportListingUseCase';
 export { ReportError } from './reports/errors';
