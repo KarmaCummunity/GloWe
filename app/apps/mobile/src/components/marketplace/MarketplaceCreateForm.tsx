@@ -181,13 +181,12 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
             const next = await pickListingImages(picked.length);
             if (!next.length) return;
             setPicked((prev) => [...prev, ...next]);
-            if (ruleError?.field === 'photos') setRuleError(null);
           }}
         >
           <Text style={styles.chipText}>+</Text>
         </Pressable>
       </View>
-      {ruleError?.field === 'photos' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
+      {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
       {validationError ? <Text style={styles.err}>{validationError}</Text> : null}
       <Pressable
         style={styles.btn}

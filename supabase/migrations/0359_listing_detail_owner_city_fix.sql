@@ -1,13 +1,9 @@
--- 0358_listing_detail_fix_and_items_photo_optional | QA pass (e2e on dev)
+-- 0359_listing_detail_owner_city_fix | QA pass (e2e on dev)
 --
--- 1. Bug: get_marketplace_listing_detail (0335) read users.city_id, which does not exist
+-- Bug: get_marketplace_listing_detail (0335) read users.city_id, which does not exist
 --    (the column is users.city). plpgsql only fails at run time, so every listing detail
 --    page returned 400 and showed "listing not found". Read users.city; the payload key
 --    stays 'city_id' so clients are unchanged.
---
--- 2. Product decision (Nave, 2026-10-17): a photo is optional for item listings.
---    Drop the deferred items image check from 0351 (triggers + function). The details
---    schema keeps accepting image_url / image_path for back-compat.
 
 begin;
 
@@ -86,10 +82,5 @@ $$;
 
 revoke all on function public.get_marketplace_listing_detail(uuid) from public;
 grant execute on function public.get_marketplace_listing_detail(uuid) to anon, authenticated;
-
-drop trigger if exists listings_items_image_required_ins on public.listings;
-drop trigger if exists listings_items_image_required_upd on public.listings;
-drop trigger if exists listing_media_items_image_required_del on public.listing_media;
-drop function if exists public.listings_items_image_check();
 
 commit;

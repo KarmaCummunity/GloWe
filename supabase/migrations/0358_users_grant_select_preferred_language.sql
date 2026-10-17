@@ -1,4 +1,4 @@
--- 0357_users_grant_select_preferred_language | QA pass (e2e on dev)
+-- 0358_users_grant_select_preferred_language | QA pass (e2e on dev)
 -- Bug: every signed-in page load fires
 --   GET /rest/v1/users?select=...,preferred_language&user_id=eq.<me>  -> 403
 -- 0163 revoked table-wide SELECT on public.users and re-granted a fixed column list;

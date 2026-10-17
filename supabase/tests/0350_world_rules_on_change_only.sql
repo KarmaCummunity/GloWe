@@ -44,34 +44,26 @@ begin
   end if;
 end $$;
 
--- 2) Changing details on that legacy listing succeeds (photo optional since 0358).
+-- 2) Changing details on that legacy listing succeeds without an image (0357: photos optional).
 update public.listings set details = '{"item_condition":"Good"}'::jsonb
  where listing_id = '00000000-0000-0000-0000-0000003500a1';
 
--- 3) A new items listing without an image is accepted (0358).
-insert into public.listings (
-  owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
-)
-select '00000000-0000-0000-0000-000000350001', 'items', kind_id, 'give', 'No image',
-       'native', 'published', '{}'::jsonb
-  from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
-
--- 4) World rules still run on rule-field changes: food without expiry is rejected.
+-- 3) A new items listing without an image succeeds on INSERT (0357) and still gets the
+--    items default expiry from listings_enforce_world_rules.
 do $$
+declare
+  v_exp timestamptz;
 begin
-  begin
-    insert into public.listings (
-      owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
-    )
-    select '00000000-0000-0000-0000-000000350001', 'food', kind_id, 'give', 'No expiry',
-           'native', 'published', '{}'::jsonb
-      from public.listing_kinds where world_slug = 'food' limit 1;
-    raise exception 'ASSERT FAILED: food insert without expiry should fail';
-  exception when check_violation then
-    if sqlerrm <> 'food_expiry_required' then
-      raise exception 'ASSERT FAILED: expected food_expiry_required, got %', sqlerrm;
-    end if;
-  end;
+  insert into public.listings (
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
+  )
+  select '00000000-0000-0000-0000-000000350001', 'items', kind_id, 'give', 'No image',
+         'native', 'published', '{}'::jsonb
+    from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
+  returning expires_at into v_exp;
+  if v_exp is null then
+    raise exception 'ASSERT FAILED: items insert should get a default expiry';
+  end if;
 end $$;
 
 rollback;

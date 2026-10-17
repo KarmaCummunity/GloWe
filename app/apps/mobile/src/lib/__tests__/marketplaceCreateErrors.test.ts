@@ -3,8 +3,8 @@ import { marketplaceRuleFieldError, marketplaceServerErrorKey } from '../marketp
 
 describe('marketplaceServerErrorKey', () => {
   it('maps known server codes to marketplace.errors.<code>', () => {
-    expect(marketplaceServerErrorKey({ code: '23514', message: 'items_image_required' })).toBe(
-      'marketplace.errors.items_image_required',
+    expect(marketplaceServerErrorKey({ code: '23514', message: 'money_active_campaign_cap' })).toBe(
+      'marketplace.errors.money_active_campaign_cap',
     );
     expect(marketplaceServerErrorKey({ message: 'food_expiry_required' })).toBe(
       'marketplace.errors.food_expiry_required',
@@ -17,12 +17,8 @@ describe('marketplaceServerErrorKey', () => {
 });
 
 describe('marketplaceRuleFieldError', () => {
-  it('items without photos → inline photos error', () => {
-    expect(marketplaceRuleFieldError({ worldSlug: 'items', details: {}, photoCount: 0 })).toEqual({
-      code: 'items_image_required',
-      field: 'photos',
-      key: 'marketplace.errors.items_image_required',
-    });
+  it('items without photos → no error (photos are optional)', () => {
+    expect(marketplaceRuleFieldError({ worldSlug: 'items', details: {}, photoCount: 0 })).toBeNull();
     expect(marketplaceRuleFieldError({ worldSlug: 'items', details: {}, photoCount: 2 })).toBeNull();
   });
   it('food without expiry → inline details error', () => {
