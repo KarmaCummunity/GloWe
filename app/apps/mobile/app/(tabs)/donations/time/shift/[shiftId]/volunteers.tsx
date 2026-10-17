@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { KcFlashList } from '../../../../../../src/components/lists/KcFlashList';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -31,7 +32,7 @@ export default function ShiftVolunteersRosterScreen() {
 
   return (
     <Screen blobs="content">
-      <FlatList
+      <KcFlashList
         data={roster.data ?? []}
         keyExtractor={(item) => item.signupId}
         contentContainerStyle={{ paddingVertical: spacing.md }}
