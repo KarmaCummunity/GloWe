@@ -35,13 +35,14 @@ Last applied on kc-dev when this was written: `0239`.
 | 0370–0379 | time world (volunteering, #915) | merged |
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
 | 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | merged (#972) |
-| 0410–0414 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | in progress |
+| 0400 | #982: kc-dev demo verified nonprofits (guarded no-op unless kc-dev seed present) | merged |
+| 0410–0414 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | in progress (#989) |
 | 0415–0419 | realtime: feed new-posts broadcast, chat typing/presence auth, chat message broadcast | in progress |
-| 0400+ | — | free (0400 is taken by #982; 0401–0409 free) |
+| 0401–0409, 0420+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0400+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0401–0409`, `0420+`.
 
 ## How to claim
 
