@@ -17,7 +17,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0286–0299 | — | free |
 | 0300–0304 | WhatsApp bot (#902) | merged |
 | 0305–0306 | WhatsApp consent/STOP/HELP keywords + audit (#937); send limits, 24h window, LLM budget, pgmq outbound backoff queue (#938) | merged |
-| 0307 | WhatsApp message templates as code (#936): registry columns, he/en seed, language-aware queue | in progress |
+| 0307 | WhatsApp message templates as code (#936/#963): registry columns, he/en seed, language-aware queue | merged |
 | 0308–0309 | — | free |
 | 0310–0319 | — | free |
 | 0320–0339 | marketplace (#912) | merged |
