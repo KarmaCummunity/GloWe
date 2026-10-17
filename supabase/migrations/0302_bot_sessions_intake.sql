@@ -81,6 +81,11 @@ alter table public.whatsapp_identities enable row level security;
 alter table public.bot_conversation_sessions enable row level security;
 revoke all on public.whatsapp_identities from authenticated, anon;
 revoke all on public.bot_conversation_sessions from authenticated, anon;
+-- Phone identities and conversation state are bot-internal (service_role only).
+create policy whatsapp_identities_service_all on public.whatsapp_identities
+  for all to service_role using (true) with check (true);
+create policy bot_conversation_sessions_service_all on public.bot_conversation_sessions
+  for all to service_role using (true) with check (true);
 
 create or replace function public.api_bot_link_identity(
   p_wa_id text,

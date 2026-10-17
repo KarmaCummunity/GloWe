@@ -23,6 +23,9 @@ create index bot_outbound_messages_user_created_idx
 
 alter table public.bot_outbound_messages enable row level security;
 revoke all on public.bot_outbound_messages from authenticated, anon;
+-- Bot-internal queue: only service_role (edge functions) touches it.
+create policy bot_outbound_messages_service_all on public.bot_outbound_messages
+  for all to service_role using (true) with check (true);
 
 create or replace function public.api_whatsapp_ingest_inbound(
   p_message_id text,
