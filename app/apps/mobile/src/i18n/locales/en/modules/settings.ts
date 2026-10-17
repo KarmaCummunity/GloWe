@@ -59,6 +59,8 @@ export const settingsEn = {
     },
   },
   privateProfileToggle: 'Private profile',
+  activeStatusToggle: 'Show my active status',
+  activeStatusHint: "When off, others won't see when you're online, and you won't see when they are.",
   followRequests: 'Follow requests',
   appearance: 'Appearance',
   appearanceScreen: {

@@ -11,13 +11,21 @@ import { feedTextSearchOrClause } from './applyFeedTextSearch';
 
 // Return type is inferred so the Supabase PostgrestFilterBuilder<...> with all
 // its nested generics doesn't need to be named here.
+/**
+ * `feed_visible_posts` (0417) = posts minus the viewer's hides and mutes (#985); same columns
+ * and relationships, so signed-in viewers read it instead of `posts`. Guests use `posts`.
+ */
+export type FeedSource = 'posts' | 'feed_visible_posts';
+
 export function buildFeedQuery(
   client: SupabaseClient<Database>,
   filter: PostFeedFilter,
   cursor: string | undefined,
   pageLimit: number,
+  source: FeedSource = 'posts',
 ) {
-  let q = client.from('posts').select(POST_SELECT_OWNER);
+  // The view shares posts' row shape; type it as posts for the select-string parser.
+  let q = client.from(source as 'posts').select(POST_SELECT_OWNER);
 
   // statusFilter: 'open' (default), 'closed' (delivered only), 'all'.
   const status = filter.statusFilter ?? 'open';
@@ -54,4 +62,29 @@ export function buildFeedQuery(
   q = q.limit(pageLimit + 1);
 
   return q;
+}
+
+/**
+ * PostgREST errors that mean "the view isn't usable here" (not yet migrated, or the
+ * relationship cache can't see through it) — fall back to `posts` instead of failing the feed.
+ */
+const VIEW_FALLBACK_CODES = new Set(['42P01', 'PGRST200', 'PGRST201', 'PGRST205', '42501']);
+
+export function shouldFallbackToPosts(error: { code?: string | null } | null | undefined): boolean {
+  return !!error?.code && VIEW_FALLBACK_CODES.has(error.code);
+}
+
+/** Simple-path page: signed-in viewers read feed_visible_posts (hides/mutes, 0417), else posts. */
+export async function runSimpleFeedQuery(
+  client: SupabaseClient<Database>,
+  viewerId: string | null,
+  filter: PostFeedFilter,
+  cursor: string | undefined,
+  pageLimit: number,
+) {
+  const first = await buildFeedQuery(client, filter, cursor, pageLimit, viewerId ? 'feed_visible_posts' : 'posts');
+  if (first.error && viewerId && shouldFallbackToPosts(first.error)) {
+    return buildFeedQuery(client, filter, cursor, pageLimit, 'posts');
+  }
+  return first;
 }

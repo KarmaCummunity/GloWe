@@ -20,6 +20,7 @@ import { SettingsAboutCard } from '../src/components/SettingsAboutCard';
 import { SettingsScreenRow } from '../src/components/SettingsScreenRow';
 import { ConfirmActionModal } from '../src/components/post/ConfirmActionModal';
 import { usePrivateProfileToggle } from '../src/hooks/usePrivateProfileToggle';
+import { useActiveStatusSetting } from '../src/hooks/useActiveStatusSetting';
 import { useSettingsScreenStyles } from './settings.styles';
 import { getUserRepo } from '../src/services/userComposition';
 /** Metro `__DEV__` is false in release; set `EXPO_PUBLIC_DEV_SETTINGS_TOOLS=1` for internal builds only. */
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
   });
   const showFollowRequests = userQuery.data?.privacyMode === 'Private';
   const { isPrivate, canToggle, onToggle, confirmModal } = usePrivateProfileToggle(userId);
+  const activeStatus = useActiveStatusSetting(userId);
   const isSuperAdmin = useIsSuperAdmin();
   const { roles: adminRoles } = useAdminRoles();
   const queryClient = useQueryClient();
@@ -150,6 +152,18 @@ export default function SettingsScreen() {
                 value={isPrivate}
                 onValueChange={onToggle}
                 disabled={!canToggle}
+              />
+            }
+          />
+          <SettingsScreenRow
+            label={t('settings.activeStatusToggle')}
+            icon="radio-button-on-outline"
+            rightElement={
+              <PlatformSwitch
+                value={activeStatus.enabled !== false}
+                onValueChange={activeStatus.setEnabled}
+                disabled={activeStatus.loading || activeStatus.saving}
+                accessibilityLabel={t('settings.activeStatusHint')}
               />
             }
           />

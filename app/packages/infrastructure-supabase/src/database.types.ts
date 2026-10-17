@@ -6897,6 +6897,7 @@ export type Database = {
           profile_street_number: string | null
           search_vector: unknown
           share_handle: string
+          show_active_status: boolean
           updated_at: string
           user_id: string
           verification_method: string | null
@@ -6939,6 +6940,7 @@ export type Database = {
           profile_street_number?: string | null
           search_vector?: unknown
           share_handle: string
+          show_active_status?: boolean
           updated_at?: string
           user_id: string
           verification_method?: string | null
@@ -6981,6 +6983,7 @@ export type Database = {
           profile_street_number?: string | null
           search_vector?: unknown
           share_handle?: string
+          show_active_status?: boolean
           updated_at?: string
           user_id?: string
           verification_method?: string | null
@@ -10184,6 +10187,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_get_show_active_status: { Args: never; Returns: boolean }
       rpc_log_post_share: {
         Args: {
           p_external_channel?: string
@@ -10593,6 +10597,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_set_show_active_status: {
+        Args: { p_enabled: boolean }
+        Returns: boolean
+      }
       rpc_submit_support_issue: {
         Args: { p_category: string; p_description: string }
         Returns: {
@@ -10711,11 +10719,37 @@ export type Database = {
           vector_rank: number
         }[]
       }
+      search_posts_page: {
+        Args: {
+          p_category?: string
+          p_city?: string
+          p_limit?: number
+          p_query: string
+          p_type?: string
+        }
+        Returns: {
+          created_at: string
+          post_id: string
+        }[]
+      }
+      search_users_page: {
+        Args: {
+          p_city?: string
+          p_limit?: number
+          p_min_followers?: number
+          p_query: string
+          p_sort?: string
+        }
+        Returns: {
+          user_id: string
+        }[]
+      }
       seed_feed_performance_posts: {
         Args: { p_city_id: string; p_count?: number; p_owner_id: string }
         Returns: number
       }
       share_listing_to_feed: { Args: { p_listing_id: string }; Returns: string }
+      shows_active_status: { Args: { p_user: string }; Returns: boolean }
       sign_up_volunteer_shift: {
         Args: { p_shift_id: string }
         Returns: {
