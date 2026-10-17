@@ -1757,6 +1757,58 @@ export type Database = {
           },
         ]
       }
+      listing_matches: {
+        Row: {
+          candidate_listing_id: string
+          created_at: string
+          listing_id: string
+          match_id: string
+          run_id: string | null
+          score: number
+          status: string
+        }
+        Insert: {
+          candidate_listing_id: string
+          created_at?: string
+          listing_id: string
+          match_id?: string
+          run_id?: string | null
+          score: number
+          status?: string
+        }
+        Update: {
+          candidate_listing_id?: string
+          created_at?: string
+          listing_id?: string
+          match_id?: string
+          run_id?: string | null
+          score?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_matches_candidate_listing_id_fkey"
+            columns: ["candidate_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_matches_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_matches_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "match_runs"
+            referencedColumns: ["run_id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           anonymity_level: number
@@ -1782,6 +1834,7 @@ export type Database = {
           origin: string
           owner_id: string
           published_at: string | null
+          search_vector: unknown
           status: string
           summary: string | null
           time_window: unknown
@@ -1814,6 +1867,7 @@ export type Database = {
           origin?: string
           owner_id: string
           published_at?: string | null
+          search_vector?: unknown
           status?: string
           summary?: string | null
           time_window?: unknown
@@ -1846,6 +1900,7 @@ export type Database = {
           origin?: string
           owner_id?: string
           published_at?: string | null
+          search_vector?: unknown
           status?: string
           summary?: string | null
           time_window?: unknown
@@ -1973,6 +2028,224 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_public"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      match_alert_subscriptions: {
+        Row: {
+          city_id: string | null
+          created_at: string
+          direction: string | null
+          is_active: boolean
+          saved_query: string | null
+          subscription_id: string
+          updated_at: string
+          user_id: string
+          world_slug: string | null
+        }
+        Insert: {
+          city_id?: string | null
+          created_at?: string
+          direction?: string | null
+          is_active?: boolean
+          saved_query?: string | null
+          subscription_id?: string
+          updated_at?: string
+          user_id: string
+          world_slug?: string | null
+        }
+        Update: {
+          city_id?: string | null
+          created_at?: string
+          direction?: string | null
+          is_active?: boolean
+          saved_query?: string | null
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string
+          world_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_alert_subscriptions_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "match_alert_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_alert_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_alert_subscriptions_world_slug_fkey"
+            columns: ["world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      match_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          feedback_id: string
+          match_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          feedback_id?: string
+          match_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          feedback_id?: string
+          match_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_feedback_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "listing_matches"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "match_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      match_runs: {
+        Row: {
+          finished_at: string | null
+          run_id: string
+          source_listing_id: string
+          started_at: string
+          stats: Json
+          triggered_by: string | null
+        }
+        Insert: {
+          finished_at?: string | null
+          run_id?: string
+          source_listing_id: string
+          started_at?: string
+          stats?: Json
+          triggered_by?: string | null
+        }
+        Update: {
+          finished_at?: string | null
+          run_id?: string
+          source_listing_id?: string
+          started_at?: string
+          stats?: Json
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_runs_source_listing_id_fkey"
+            columns: ["source_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_runs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      match_weights: {
+        Row: {
+          created_at: string
+          user_id: string | null
+          w_fts: number
+          w_geo: number
+          w_trust: number
+          w_vector: number
+          weight_id: string
+          world_slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          user_id?: string | null
+          w_fts?: number
+          w_geo?: number
+          w_trust?: number
+          w_vector?: number
+          weight_id?: string
+          world_slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          user_id?: string | null
+          w_fts?: number
+          w_geo?: number
+          w_trust?: number
+          w_vector?: number
+          weight_id?: string
+          world_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_weights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_weights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_weights_world_slug_fkey"
+            columns: ["world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
           },
         ]
       }
@@ -4388,6 +4661,28 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_owner_trust_score: {
+        Row: {
+          trust_score: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_legal_acceptances_latest: {
         Row: {
           accepted_at: string | null
@@ -5044,6 +5339,18 @@ export type Database = {
         }
         Returns: string
       }
+      find_matches: {
+        Args: { p_limit?: number; p_listing_id: string; p_viewer?: string }
+        Returns: {
+          candidate_listing_id: string
+          fts_score: number
+          geo_score: number
+          match_status: string
+          score: number
+          trust_score: number
+          vector_score: number
+        }[]
+      }
       find_or_create_support_chat: { Args: { p_user: string }; Returns: string }
       get_chat_counterparty_contact: {
         Args: { p_chat_id: string }
@@ -5343,6 +5650,15 @@ export type Database = {
         Returns: Json
       }
       resolve_comment_mentions: { Args: { p_body: string }; Returns: string[] }
+      resolve_match_weights: {
+        Args: { p_user: string; p_world: string }
+        Returns: {
+          w_fts: number
+          w_geo: number
+          w_trust: number
+          w_vector: number
+        }[]
+      }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
       ride_listings_expire_check: { Args: never; Returns: number }
@@ -6070,6 +6386,22 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      search_listings: {
+        Args: {
+          p_limit?: number
+          p_query: string
+          p_viewer?: string
+          p_world_slug?: string
+        }
+        Returns: {
+          fts_rank: number
+          geo_rank: number
+          listing_id: string
+          rrf_score: number
+          trgm_rank: number
+          vector_rank: number
+        }[]
       }
       stats_recompute_personal_counters_nightly: {
         Args: never
