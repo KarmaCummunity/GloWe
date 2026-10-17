@@ -33,7 +33,7 @@ on:
       - '.github/workflows/ci-contract.yml'
 
 concurrency:
-  group: ci-contract-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

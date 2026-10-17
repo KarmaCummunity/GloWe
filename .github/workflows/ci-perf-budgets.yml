@@ -10,6 +10,10 @@ on:
       - '.github/workflows/ci-perf-budgets.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   perf-budgets:
     runs-on: ubuntu-latest
@@ -18,15 +22,13 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
+      - name: Setup pnpm + Turbo cache
+        uses: ./.github/actions/setup-pnpm-turbo
         with:
           node-version: '22'
-          cache: 'pnpm'
-          cache-dependency-path: app/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
       - name: No FlatList in mobile (#896)
         run: node scripts/check-mobile-flatlist.mjs
       - name: No OFFSET in SQL (#898)
