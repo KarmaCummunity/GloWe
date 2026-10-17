@@ -18,7 +18,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0300–0304 | WhatsApp bot (#902) | merged |
 | 0305–0306 | WhatsApp consent/STOP/HELP keywords + audit (#937); send limits, 24h window, LLM budget, pgmq outbound backoff queue (#938) | merged |
 | 0307 | WhatsApp message templates as code (#936/#963): registry columns, he/en seed, language-aware queue | merged |
-| 0308–0309 | — | free |
+| 0308 | WhatsApp admin dashboard RPCs (#939/#968): overview, consent, outbound, rate hits, matches, kill switch, resend, block | merged |
+| 0309 | — | free |
 | 0310–0319 | — | free |
 | 0320–0339 | marketplace (#912) | merged |
 | 0340–0349 | perf (#910, #911) | merged |
@@ -35,7 +36,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0308–0319`, `0357–0359`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0357–0359`, `0390+`.
 
 ## How to claim
 

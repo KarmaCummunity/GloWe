@@ -66,3 +66,4 @@ export { SupabaseMarketplaceRepository } from './marketplace/SupabaseMarketplace
 export { SupabasePaymentsRepository } from './payments/SupabasePaymentsRepository';
 export { SandboxPaymentProvider } from './payments/SandboxPaymentProvider';
 export { SupabaseVolunteerRepository } from './volunteering/SupabaseVolunteerRepository';
+export * from './admin/SupabaseWhatsAppAdminRepository';
