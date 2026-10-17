@@ -25,9 +25,10 @@ begin
   perform pg_temp.mk_user(v_owner, 'search_owner');
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, summary, origin, moderation_status, published_at
+    owner_id, world_slug, kind_id, direction, title, summary, origin, moderation_status, published_at, details
   )
-  select v_owner, 'items', kind_id, 'give', 'Vintage bicycle red', 'City bike', 'native', 'published', now()
+  select v_owner, 'items', kind_id, 'give', 'Vintage bicycle red', 'City bike', 'native', 'published', now(),
+         '{"image_url":"https://example.test/bike.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
   returning listing_id into v_id;
 

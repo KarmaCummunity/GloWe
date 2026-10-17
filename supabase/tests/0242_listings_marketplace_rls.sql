@@ -85,7 +85,7 @@ begin
   perform pg_temp.mk_user('00000000-0000-0000-0000-000000240002', 'lst_anon');
   insert into public.listings (
     owner_id, world_slug, kind_id, direction, title, origin, anonymity_level,
-    moderation_status, published_at
+    moderation_status, published_at, details
   )
   select
     '00000000-0000-0000-0000-000000240002',
@@ -96,7 +96,8 @@ begin
     'native',
     2,
     'published',
-    now()
+    now(),
+    '{"image_url":"https://example.test/tighten.jpg"}'::jsonb
   from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
   returning listing_id into v_id;
 

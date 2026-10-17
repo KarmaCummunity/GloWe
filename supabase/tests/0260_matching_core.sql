@@ -41,6 +41,8 @@ declare
   v_n int;
 begin
   perform pg_temp.mk_user(v_owner, 'rom_owner');
+  -- romantic_matchmaking requires a verified publisher (0264 has_world_permission).
+  update public.users set verified_at = now() where user_id = v_owner;
   perform pg_temp.act_as(v_owner);
 
   insert into public.listings (
@@ -70,16 +72,18 @@ begin
   perform pg_temp.act_as(v_a);
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id, details
   )
-  select v_a, 'items', kind_id, 'give', 'Blue baby stroller', 'native', 'published', now(), 'tel-aviv'
+  select v_a, 'items', kind_id, 'give', 'Blue baby stroller', 'native', 'published', now(), 'tel-aviv',
+         '{"image_url":"https://example.test/stroller.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
   returning listing_id into v_give;
 
   insert into public.listings (
-    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, city_id, details
   )
-  select v_b, 'items', kind_id, 'request', 'Need baby stroller', 'native', 'published', now(), 'tel-aviv'
+  select v_b, 'items', kind_id, 'request', 'Need baby stroller', 'native', 'published', now(), 'tel-aviv',
+         '{"image_url":"https://example.test/need.jpg"}'::jsonb
     from public.listing_kinds where world_slug = 'items' and slug = 'request_item'
   returning listing_id into v_req;
 
