@@ -53,6 +53,9 @@ export class SupabaseSearchRepository implements ISearchRepository {
       postsTotal: postBucket.total,
       usersTotal: userBucket.total,
       linksTotal: linkBucket.total,
+      postsHasMore: postBucket.hasMore,
+      usersHasMore: userBucket.hasMore,
+      linksHasMore: linkBucket.hasMore,
       orgsTotal: socialExtras.orgs.length,
       hashtagsTotal: socialExtras.hashtags.length,
     };

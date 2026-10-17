@@ -884,6 +884,13 @@ export type Database = {
             foreignKeyName: "chats_anchor_post_id_fkey"
             columns: ["anchor_post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "chats_anchor_post_id_fkey"
+            columns: ["anchor_post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -1866,6 +1873,13 @@ export type Database = {
             foreignKeyName: "feed_impressions_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "feed_impressions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -2042,6 +2056,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "feed_post_hides_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "feed_post_hides_post_id_fkey"
             columns: ["post_id"]
@@ -2881,6 +2902,13 @@ export type Database = {
             foreignKeyName: "listing_feed_posts_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: true
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "listing_feed_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -3262,6 +3290,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "listing_kinds"
             referencedColumns: ["kind_id"]
+          },
+          {
+            foreignKeyName: "listings_legacy_post_id_fkey"
+            columns: ["legacy_post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
           },
           {
             foreignKeyName: "listings_legacy_post_id_fkey"
@@ -3707,6 +3742,13 @@ export type Database = {
           size_bytes?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "media_assets_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "media_assets_post_id_fkey"
             columns: ["post_id"]
@@ -4793,6 +4835,13 @@ export type Database = {
             foreignKeyName: "post_actor_identity_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_actor_identity_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -4889,6 +4938,13 @@ export type Database = {
             foreignKeyName: "post_comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -4917,6 +4973,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "post_reactions_post_id_fkey"
             columns: ["post_id"]
@@ -4980,7 +5043,21 @@ export type Database = {
             foreignKeyName: "post_shares_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "post_shares_repost_post_id_fkey"
+            columns: ["repost_post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
             referencedColumns: ["post_id"]
           },
           {
@@ -5036,6 +5113,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_stats_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "post_stats_post_id_fkey"
             columns: ["post_id"]
@@ -5360,6 +5444,13 @@ export type Database = {
           recipient_user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "recipients_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "recipients_post_id_fkey"
             columns: ["post_id"]
@@ -5749,6 +5840,13 @@ export type Database = {
             foreignKeyName: "ride_listings_linked_post_id_fkey"
             columns: ["linked_post_id"]
             isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "ride_listings_linked_post_id_fkey"
+            columns: ["linked_post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["post_id"]
           },
@@ -6119,6 +6217,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
+          },
           {
             foreignKeyName: "saved_posts_post_id_fkey"
             columns: ["post_id"]
@@ -6897,6 +7002,7 @@ export type Database = {
           profile_street_number: string | null
           search_vector: unknown
           share_handle: string
+          show_active_status: boolean
           updated_at: string
           user_id: string
           verification_method: string | null
@@ -6939,6 +7045,7 @@ export type Database = {
           profile_street_number?: string | null
           search_vector?: unknown
           share_handle: string
+          show_active_status?: boolean
           updated_at?: string
           user_id: string
           verification_method?: string | null
@@ -6981,6 +7088,7 @@ export type Database = {
           profile_street_number?: string | null
           search_vector?: unknown
           share_handle?: string
+          show_active_status?: boolean
           updated_at?: string
           user_id?: string
           verification_method?: string | null
@@ -7620,6 +7728,113 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_visible_posts: {
+        Row: {
+          category: string | null
+          city: string | null
+          created_at: string | null
+          delete_after: string | null
+          description: string | null
+          estimated_value: number | null
+          item_condition: string | null
+          location_display_level: string | null
+          owner_id: string | null
+          post_id: string | null
+          reopen_count: number | null
+          search_vector: unknown
+          source_language: string | null
+          source_language_confidence: number | null
+          status: string | null
+          status_before_admin_removal: string | null
+          street: string | null
+          street_number: string | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          urgency: string | null
+          visibility: string | null
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          created_at?: string | null
+          delete_after?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          item_condition?: string | null
+          location_display_level?: string | null
+          owner_id?: string | null
+          post_id?: string | null
+          reopen_count?: number | null
+          search_vector?: unknown
+          source_language?: string | null
+          source_language_confidence?: number | null
+          status?: string | null
+          status_before_admin_removal?: string | null
+          street?: string | null
+          street_number?: string | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          created_at?: string | null
+          delete_after?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          item_condition?: string | null
+          location_display_level?: string | null
+          owner_id?: string | null
+          post_id?: string | null
+          reopen_count?: number | null
+          search_vector?: unknown
+          source_language?: string | null
+          source_language_confidence?: number | null
+          status?: string | null
+          status_before_admin_removal?: string | null
+          street?: string | null
+          street_number?: string | null
+          title?: string | null
+          type?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_city_fkey"
+            columns: ["city"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "posts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "posts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "posts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       giving_user_trust_score: {
         Row: {
           combined_trust_score: number | null
@@ -7711,6 +7926,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "listing_kinds"
             referencedColumns: ["kind_id"]
+          },
+          {
+            foreignKeyName: "listings_legacy_post_id_fkey"
+            columns: ["legacy_post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_visible_posts"
+            referencedColumns: ["post_id"]
           },
           {
             foreignKeyName: "listings_legacy_post_id_fkey"
@@ -10184,6 +10406,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_get_show_active_status: { Args: never; Returns: boolean }
       rpc_log_post_share: {
         Args: {
           p_external_channel?: string
@@ -10593,6 +10816,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_set_show_active_status: {
+        Args: { p_enabled: boolean }
+        Returns: boolean
+      }
       rpc_submit_support_issue: {
         Args: { p_category: string; p_description: string }
         Returns: {
@@ -10711,11 +10938,37 @@ export type Database = {
           vector_rank: number
         }[]
       }
+      search_posts_page: {
+        Args: {
+          p_category?: string
+          p_city?: string
+          p_limit?: number
+          p_query: string
+          p_type?: string
+        }
+        Returns: {
+          created_at: string
+          post_id: string
+        }[]
+      }
+      search_users_page: {
+        Args: {
+          p_city?: string
+          p_limit?: number
+          p_min_followers?: number
+          p_query: string
+          p_sort?: string
+        }
+        Returns: {
+          user_id: string
+        }[]
+      }
       seed_feed_performance_posts: {
         Args: { p_city_id: string; p_count?: number; p_owner_id: string }
         Returns: number
       }
       share_listing_to_feed: { Args: { p_listing_id: string }; Returns: string }
+      shows_active_status: { Args: { p_user: string }; Returns: boolean }
       sign_up_volunteer_shift: {
         Args: { p_shift_id: string }
         Returns: {

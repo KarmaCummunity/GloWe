@@ -5,33 +5,33 @@ import { searchLinks, searchPosts, searchUsers } from '../searchQueryHelpers';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface FakeOpts {
+interface Res {
   data?: unknown;
   error?: { message: string } | null;
-  count?: number | null;
+}
+interface FakeOpts extends Res {
+  /** Per-table results for `.from(table)`; falls back to `data`/`error`. */
+  tables?: Record<string, Res>;
+  rpc?: Record<string, Res>;
 }
 interface Op {
-  kind: 'from' | 'select' | 'eq' | 'in' | 'is' | 'or' | 'gte' | 'order' | 'limit';
+  kind: 'from' | 'rpc' | 'select' | 'eq' | 'in' | 'is' | 'or' | 'gte' | 'order' | 'limit';
   args?: unknown[];
 }
 
 function makeFakeClient(opts: FakeOpts = {}): { client: SupabaseClient<any>; ops: Op[] } {
   const ops: Op[] = [];
-  const result = () => ({
-    data: opts.data ?? null,
-    error: opts.error ?? null,
-    count: opts.count ?? null,
-  });
-  function makeChain(): any {
+  const toResult = (r: Res | undefined) => ({ data: r?.data ?? null, error: r?.error ?? null });
+  function makeChain(res: Res | undefined): any {
     return new Proxy({}, {
       get(_t, prop: string) {
         if (prop === 'then') {
           return (onFulfilled: any, onRejected: any) =>
-            Promise.resolve(result()).then(onFulfilled, onRejected);
+            Promise.resolve(toResult(res)).then(onFulfilled, onRejected);
         }
         return (...args: any[]) => {
           ops.push({ kind: prop as Op['kind'], args });
-          return makeChain();
+          return makeChain(res);
         };
       },
     });
@@ -39,26 +39,30 @@ function makeFakeClient(opts: FakeOpts = {}): { client: SupabaseClient<any>; ops
   const client = {
     from: (table: string) => {
       ops.push({ kind: 'from', args: [table] });
-      return makeChain();
+      return makeChain(opts.tables ? opts.tables[table] ?? { data: [] } : opts);
+    },
+    rpc: async (fn: string, args: unknown) => {
+      ops.push({ kind: 'rpc', args: [fn, args] });
+      return toResult(opts.rpc?.[fn]);
     },
   } as unknown as SupabaseClient<any>;
   return { client, ops };
 }
 
-const POST_ROW = {
-  post_id: 'p_1', owner_id: 'u_1', type: 'Give', status: 'open', visibility: 'Public',
+const postRow = (id: string) => ({
+  post_id: id, owner_id: 'u_1', type: 'Give', status: 'open', visibility: 'Public',
   title: 't', description: null, category: 'Other', city: 'IL-001', street: null,
   street_number: null, location_display_level: 'CityOnly', item_condition: 'Good',
   urgency: null, reopen_count: 0, delete_after: null,
   created_at: '2026-05-16T12:00:00.000Z', updated_at: '2026-05-16T12:00:00.000Z',
   owner: { user_id: 'u_1', display_name: 'A', share_handle: 'a', avatar_url: null, privacy_mode: 'Public' },
-};
+});
 
-const USER_ROW = {
-  user_id: 'u_1', display_name: 'Alice', share_handle: 'alice', avatar_url: null,
+const userRow = (id: string) => ({
+  user_id: id, display_name: 'Alice', share_handle: 'alice', avatar_url: null,
   biography: null, city: 'IL-001', city_name: 'Tel Aviv',
   followers_count: 10, items_given_count: 2,
-};
+});
 
 const LINK_ROW = {
   id: 'l_1', user_id: 'u_1', display_name: 'Soup Kitchen', url: 'https://example.com',
@@ -66,109 +70,79 @@ const LINK_ROW = {
   created_at: '2026-05-16T12:00:00.000Z', updated_at: '2026-05-16T12:00:00.000Z',
 };
 
+const rpcArgs = (ops: Op[]) => ops.find((o) => o.kind === 'rpc')?.args;
+
 describe('searchPosts', () => {
-  it('queries posts with status=open + or(title/description/category ilike), then layers type/category/city eq', async () => {
-    const { client, ops } = makeFakeClient({ data: [POST_ROW] });
+  it('calls search_posts_page with filters and limit + 1 (no count)', async () => {
+    const { client, ops } = makeFakeClient({ rpc: { search_posts_page: { data: [] } } });
     const filters: SearchFilters = { postType: 'Give', category: 'Electronics', city: 'tel-aviv' };
-    await searchPosts(client, 'sofa', filters, 10);
-    expect(ops.find((o) => o.kind === 'from')?.args).toEqual(['posts']);
-    const eqs = ops.filter((o) => o.kind === 'eq').map((o) => o.args?.[0]);
-    expect(eqs).toEqual(['status', 'type', 'category', 'city']);
-    const or = ops.find((o) => o.kind === 'or');
-    expect(or?.args?.[0]).toBe('title.ilike."%sofa%",description.ilike."%sofa%",category.ilike."%sofa%"');
+    const out = await searchPosts(client, 'sofa', filters, 10);
+    expect(rpcArgs(ops)).toEqual(['search_posts_page', {
+      p_query: 'sofa', p_type: 'Give', p_category: 'Electronics', p_city: 'tel-aviv', p_limit: 11,
+    }]);
+    expect(out).toEqual({ items: [], total: 0, hasMore: false });
+    expect(ops.some((o) => o.kind === 'from')).toBe(false);
   });
 
-  it('skips type/category/city when not set; orders by created_at desc + applies limit', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchPosts(client, 'q', {}, 25);
-    expect(ops.filter((o) => o.kind === 'eq').map((o) => o.args?.[0])).toEqual(['status']);
-    expect(ops.find((o) => o.kind === 'order')?.args).toEqual(['created_at', { ascending: false }]);
-    expect(ops.find((o) => o.kind === 'limit')?.args).toEqual([25]);
+  it('omits unset filters', async () => {
+    const { client, ops } = makeFakeClient({ rpc: { search_posts_page: { data: [] } } });
+    await searchPosts(client, 'q', {}, 5);
+    expect(rpcArgs(ops)?.[1]).toEqual({ p_query: 'q', p_type: undefined, p_category: undefined, p_city: undefined, p_limit: 6 });
   });
 
-  it('escapes ilike wildcards and quote-wraps the value in the or() clause', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchPosts(client, 'a%b_c', {}, 10);
-    const or = ops.find((o) => o.kind === 'or');
-    expect(or?.args?.[0]).toBe(
-      String.raw`title.ilike."%a\\%b\\_c%",description.ilike."%a\\%b\\_c%",category.ilike."%a\\%b\\_c%"`,
-    );
+  it('hydrates ids through posts, keeps RPC order and flags hasMore', async () => {
+    const { client, ops } = makeFakeClient({
+      rpc: { search_posts_page: { data: [{ post_id: 'p_2' }, { post_id: 'p_1' }, { post_id: 'p_3' }] } },
+      tables: { posts: { data: [postRow('p_1'), postRow('p_2')] } },
+    });
+    const out = await searchPosts(client, 'q', {}, 2);
+    expect(ops.find((o) => o.kind === 'in')?.args).toEqual(['post_id', ['p_2', 'p_1']]);
+    expect(out.items.map((p) => p.postId)).toEqual(['p_2', 'p_1']);
+    expect(out.hasMore).toBe(true);
+    expect(out.total).toBe(2);
   });
 
-  it('quotes an injected comma/predicate so it stays inside the value (CWE-943)', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchPosts(client, 'x,title.eq.secret', {}, 10);
-    const or = ops.find((o) => o.kind === 'or');
-    expect(or?.args?.[0]).toBe(
-      'title.ilike."%x,title.eq.secret%",description.ilike."%x,title.eq.secret%",category.ilike."%x,title.eq.secret%"',
-    );
-  });
-
-  it('throws with "searchPosts: <msg>" on query error', async () => {
-    const { client } = makeFakeClient({ error: { message: 'rls denied' } });
-    await expect(searchPosts(client, 'q', {}, 10)).rejects.toThrow('searchPosts: rls denied');
-  });
-
-  it('requests count: "exact" on select', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchPosts(client, 'q', {}, 10);
-    expect(ops.find((o) => o.kind === 'select')?.args?.[1]).toEqual({ count: 'exact' });
-  });
-
-  it('returns mapped PostWithOwner rows and total from PostgREST count', async () => {
-    const { client } = makeFakeClient({ data: [POST_ROW], count: 23 });
-    const out = await searchPosts(client, 'q', {}, 5);
-    expect(out.items[0]?.postId).toBe('p_1');
-    expect(out.total).toBe(23);
-  });
-
-  it('returns empty bucket when data is null', async () => {
-    const { client } = makeFakeClient({ data: null });
-    expect(await searchPosts(client, 'q', {}, 10)).toEqual({ items: [], total: 0 });
+  it('throws with "searchPosts: <msg>" on RPC or hydrate error', async () => {
+    const a = makeFakeClient({ rpc: { search_posts_page: { error: { message: 'rls denied' } } } });
+    await expect(searchPosts(a.client, 'q', {}, 10)).rejects.toThrow('searchPosts: rls denied');
+    const b = makeFakeClient({
+      rpc: { search_posts_page: { data: [{ post_id: 'p_1' }] } },
+      tables: { posts: { error: { message: 'boom' } } },
+    });
+    await expect(searchPosts(b.client, 'q', {}, 10)).rejects.toThrow('searchPosts: boom');
   });
 });
 
 describe('searchUsers', () => {
-  it('queries users with or(display_name/biography/share_handle ilike), then layers city + minFollowers', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchUsers(client, 'ali', { city: 'haifa', minFollowers: 5 }, null, 10);
-    expect(ops.find((o) => o.kind === 'from')?.args).toEqual(['users']);
-    const eqs = ops.filter((o) => o.kind === 'eq').map((o) => o.args?.[0]);
-    expect(eqs).toContain('city');
-    const gte = ops.find((o) => o.kind === 'gte');
-    expect(gte?.args).toEqual(['followers_count', 5]);
-    const or = ops.find((o) => o.kind === 'or');
-    expect(or?.args?.[0]).toBe('display_name.ilike."%ali%",biography.ilike."%ali%",share_handle.ilike."%ali%"');
+  it('calls search_users_page with sort/minFollowers and limit + 1', async () => {
+    const { client, ops } = makeFakeClient({ rpc: { search_users_page: { data: [] } } });
+    await searchUsers(client, 'al', { city: 'IL-001', minFollowers: 5 }, null, 10);
+    expect(rpcArgs(ops)).toEqual(['search_users_page', {
+      p_query: 'al', p_city: 'IL-001', p_min_followers: 5, p_sort: 'followers', p_limit: 11,
+    }]);
   });
 
-  it('orders by followers_count desc by default', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchUsers(client, 'q', {}, null, 10);
-    expect(ops.find((o) => o.kind === 'order')?.args).toEqual(['followers_count', { ascending: false }]);
+  it('uses newest sort and drops non-positive minFollowers', async () => {
+    const { client, ops } = makeFakeClient({ rpc: { search_users_page: { data: [] } } });
+    await searchUsers(client, 'al', { sortBy: 'newest', minFollowers: 0 }, null, 3);
+    const args = rpcArgs(ops)?.[1] as Record<string, unknown>;
+    expect(args.p_sort).toBe('newest');
+    expect(args.p_min_followers).toBeUndefined();
   });
 
-  it('orders by created_at desc when sortBy === "newest"', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchUsers(client, 'q', { sortBy: 'newest' }, null, 10);
-    expect(ops.find((o) => o.kind === 'order')?.args).toEqual(['created_at', { ascending: false }]);
-  });
-
-  it('skips minFollowers gte when value is 0 or negative', async () => {
-    const { client, ops } = makeFakeClient({ data: [] });
-    await searchUsers(client, 'q', { minFollowers: 0 }, null, 10);
-    expect(ops.find((o) => o.kind === 'gte')).toBeUndefined();
+  it('hydrates users in RPC order with hasMore', async () => {
+    const { client } = makeFakeClient({
+      rpc: { search_users_page: { data: [{ user_id: 'u_2' }, { user_id: 'u_1' }] } },
+      tables: { users: { data: [userRow('u_1'), userRow('u_2')] } },
+    });
+    const out = await searchUsers(client, 'al', {}, null, 1);
+    expect(out.items.map((u) => u.userId)).toEqual(['u_2']);
+    expect(out.hasMore).toBe(true);
   });
 
   it('throws with "searchUsers: <msg>" on query error', async () => {
-    const { client } = makeFakeClient({ error: { message: 'transport' } });
-    await expect(searchUsers(client, 'q', {}, null, 10)).rejects.toThrow('searchUsers: transport');
-  });
-
-  it('returns mapped UserSearchResult rows on success', async () => {
-    const { client } = makeFakeClient({ data: [USER_ROW], count: 7 });
-    const out = await searchUsers(client, 'q', {}, null, 10);
-    expect(out.items[0]?.userId).toBe('u_1');
-    expect(out.total).toBe(7);
+    const { client } = makeFakeClient({ rpc: { search_users_page: { error: { message: 'nope' } } } });
+    await expect(searchUsers(client, 'q', {}, null, 10)).rejects.toThrow('searchUsers: nope');
   });
 });
 
@@ -204,7 +178,7 @@ describe('searchLinks', () => {
     const { client, ops } = makeFakeClient({ data: [] });
     await searchLinks(client, 'q', {}, 7);
     expect(ops.find((o) => o.kind === 'order')?.args).toEqual(['created_at', { ascending: false }]);
-    expect(ops.find((o) => o.kind === 'limit')?.args).toEqual([7]);
+    expect(ops.find((o) => o.kind === 'limit')?.args).toEqual([8]);
   });
 
   it('throws with "searchLinks: <msg>" on query error', async () => {
@@ -213,9 +187,9 @@ describe('searchLinks', () => {
   });
 
   it('returns mapped DonationLinkSearchResult rows on success', async () => {
-    const { client } = makeFakeClient({ data: [LINK_ROW], count: 12 });
-    const out = await searchLinks(client, 'q', {}, 10);
-    expect(out.items[0]?.id).toBe('l_1');
-    expect(out.total).toBe(12);
+    const { client } = makeFakeClient({ data: [LINK_ROW, { ...LINK_ROW, id: 'l_2' }] });
+    const out = await searchLinks(client, 'q', {}, 1);
+    expect(out.items.map((l) => l.id)).toEqual(['l_1']);
+    expect(out.hasMore).toBe(true);
   });
 });
