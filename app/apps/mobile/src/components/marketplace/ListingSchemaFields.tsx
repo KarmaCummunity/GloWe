@@ -48,13 +48,15 @@ interface Props {
   schema: Record<string, unknown>;
   values: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
+  /** Keys rendered elsewhere (e.g. ride route picker). */
+  hiddenKeys?: readonly string[];
 }
 
-export function ListingSchemaFields({ schema, values, onChange }: Props) {
+export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Props) {
   const styles = useStyles();
   const { t } = useTranslation();
   const props = (schema.properties ?? {}) as Record<string, SchemaProp>;
-  const keys = Object.keys(props).filter((k) => !HIDDEN_FIELDS.has(k));
+  const keys = Object.keys(props).filter((k) => !HIDDEN_FIELDS.has(k) && !hiddenKeys?.includes(k));
   const fieldLabel = (key: string) => t(`marketplace.field.${key}`, { defaultValue: humanize(key) });
   const optionLabel = (opt: string) => t(`marketplace.option.${opt}`, { defaultValue: humanize(opt) });
 

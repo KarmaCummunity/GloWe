@@ -34,11 +34,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0360–0369 | money world (#913) | merged |
 | 0370–0379 | time world (volunteering, #915) | merged |
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
-| 0390+ | — | free |
+| 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | in progress (#972) |
+| 0400+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0400+`.
 
 ## How to claim
 

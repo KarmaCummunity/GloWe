@@ -7,12 +7,27 @@ export const ROUTED_WORLDS = ['medical', 'animals', 'environment'] as const;
 
 export type MarketplaceRuleErrorCode =
   | 'food_expiry_required'
-  | 'routed_world_requires_external_body';
+  | 'routed_world_requires_external_body'
+  | 'ride_route_required'
+  | 'ride_departure_past'
+  | 'knowledge_slot_invalid';
 
 /** Server-raised listing error codes the UI has friendly copy for. */
 export const MARKETPLACE_SERVER_ERROR_CODES = [
   'food_expiry_required',
   'routed_world_requires_external_body',
+  'ride_route_required',
+  'ride_departure_past',
+  'knowledge_slot_invalid',
+  'seats_exhausted',
+  'slots_exhausted',
+  'already_booked',
+  'ride_departed',
+  'ride_not_started',
+  'slot_started',
+  'session_not_started',
+  'own_listing',
+  'listing_not_available',
   'medical_listing_requires_external_body',
   'external_body_invalid',
   'world_permission_denied',
@@ -53,11 +68,86 @@ export function validateMarketplaceWorldRules(input: WorldRulesInput): Marketpla
     if (Number.isNaN(ts) || ts <= now) return 'food_expiry_required';
   }
 
+  if (worldSlug === 'rides') {
+    const code = validateRideDetails(details, input.now);
+    if (code) return code;
+  }
+
+  if (worldSlug === 'knowledge') {
+    const code = validateKnowledgeSlot(details, input.now);
+    if (code) return code;
+  }
+
   if ((ROUTED_WORLDS as readonly string[]).includes(worldSlug) && !nonEmptyString(input.externalBodyId)) {
     return 'routed_world_requires_external_body';
   }
 
   return null;
+}
+
+function finiteNumber(v: unknown): boolean {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+function parseTime(v: unknown): number {
+  return typeof v === 'string' ? Date.parse(v) : Number.NaN;
+}
+
+/** Native rides need both route ends (0391/0392 match on coordinates) and a future departure. */
+export function validateRideDetails(
+  details: Record<string, unknown>,
+  now: Date = new Date(),
+): MarketplaceRuleErrorCode | null {
+  const coords = ['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng'];
+  if (!coords.every((k) => finiteNumber(details[k]))) return 'ride_route_required';
+  const departs = parseTime(details.departs_at);
+  if (Number.isNaN(departs) || departs <= now.getTime()) return 'ride_departure_past';
+  return null;
+}
+
+/** Knowledge offers with a slot need a future start and an end after the start. */
+export function validateKnowledgeSlot(
+  details: Record<string, unknown>,
+  now: Date = new Date(),
+): MarketplaceRuleErrorCode | null {
+  if (details.slot_starts_at === undefined && details.slot_ends_at === undefined) return null;
+  const start = parseTime(details.slot_starts_at);
+  const end = parseTime(details.slot_ends_at);
+  if (Number.isNaN(start) || Number.isNaN(end) || start <= now.getTime() || end <= start) {
+    return 'knowledge_slot_invalid';
+  }
+  return null;
+}
+
+/** Ride route keys filled by the route picker rather than raw schema inputs. */
+export const RIDE_ROUTE_DETAIL_KEYS = [
+  'origin_label', 'origin_lat', 'origin_lng', 'origin_city_id',
+  'dest_label', 'dest_lat', 'dest_lng', 'dest_city_id',
+] as const;
+
+export interface RideEndpoint {
+  cityId: string;
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+/** Writes one route end (origin or destination) into ride listing details. */
+export function withRideEndpoint(
+  details: Record<string, unknown>,
+  end: 'origin' | 'dest',
+  point: RideEndpoint | null,
+): Record<string, unknown> {
+  const next = { ...details };
+  for (const k of ['label', 'lat', 'lng', 'city_id']) delete next[`${end}_${k}`];
+  if (!point) return next;
+  return {
+    ...next,
+    [`${end}_label`]: point.label,
+    [`${end}_lat`]: point.lat,
+    [`${end}_lng`]: point.lng,
+    [`${end}_city_id`]: point.cityId,
+  };
 }
 
 /** Extracts a known listing error code from a PostgREST / Postgres error (or null). */
