@@ -37,7 +37,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | merged (#972) |
 | 0400 | #982: kc-dev demo verified nonprofits (guarded no-op unless kc-dev seed present) | merged |
 | 0401 | #991 store readiness: account-deletion FK fixes (money records de-identified on delete) | merged |
-| 0402 | Store readiness: DRAFT terms + privacy on kc-dev aligned with behaviour (guarded no-op off kc-dev) | in progress |
+| 0402 | Store readiness: DRAFT terms + privacy on kc-dev aligned with behaviour (guarded no-op off kc-dev) | merged (#998) |
 | 0403 | Store readiness: `app_flags` remote config (`ios_in_app_donations`) | in progress |
 | 0404–0409 | — | free |
 | 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
@@ -48,7 +48,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0402–0409`, `0414`, `0420+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0420+`.
 
 ## How to claim
 
