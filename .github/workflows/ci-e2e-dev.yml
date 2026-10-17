@@ -1,7 +1,8 @@
 name: CI — E2E dev
 
 # P0 user journeys against the live dev deployment (D-55).
-# Gates production release PRs (dev → main). Requires DEV_WEB_URL + E2E secrets.
+# Gates production release PRs (dev → main). Targets kc-dev with the public seed users
+# (tests/e2e/lib/env.ts); only DEV_WEB_URL is required.
 
 on:
   pull_request:
@@ -54,15 +55,6 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Verify E2E credentials (Supabase auth API)
-        env:
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          EXPO_PUBLIC_SUPABASE_URL: https://roeefqpdbftlndzsvhfj.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-        run: node scripts/ensure-e2e-user.mjs
-
       - name: Install Playwright
         working-directory: tests/e2e
         run: |
@@ -73,10 +65,6 @@ jobs:
         working-directory: tests/e2e
         env:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-          EXPO_PUBLIC_SUPABASE_URL: https://roeefqpdbftlndzsvhfj.supabase.co
         run: npm test
 
       - uses: actions/upload-artifact@v4
