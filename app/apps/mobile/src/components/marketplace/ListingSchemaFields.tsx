@@ -1,6 +1,7 @@
 import React from 'react';
 import { Switch, Text, TextInput, View, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 
 type SchemaProp = {
@@ -35,8 +36,12 @@ const useStyles = makeUseStyles(({ colors }) => ({
   row: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
 }));
 
-function fieldLabel(key: string): string {
-  return key.replace(/_/g, ' ');
+/** Legacy image fields stay in the schema for back-compat; photos are picked separately. */
+const HIDDEN_FIELDS = new Set(['image_url', 'image_path']);
+
+function humanize(key: string): string {
+  const s = key.replace(/_/g, ' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 interface Props {
@@ -47,8 +52,11 @@ interface Props {
 
 export function ListingSchemaFields({ schema, values, onChange }: Props) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const props = (schema.properties ?? {}) as Record<string, SchemaProp>;
-  const keys = Object.keys(props);
+  const keys = Object.keys(props).filter((k) => !HIDDEN_FIELDS.has(k));
+  const fieldLabel = (key: string) => t(`marketplace.field.${key}`, { defaultValue: humanize(key) });
+  const optionLabel = (opt: string) => t(`marketplace.option.${opt}`, { defaultValue: humanize(opt) });
 
   const setVal = (key: string, val: unknown) => onChange({ ...values, [key]: val });
 
@@ -74,7 +82,7 @@ export function ListingSchemaFields({ schema, values, onChange }: Props) {
                     style={[styles.chip, selected === opt && styles.chipOn]}
                     onPress={() => setVal(key, opt)}
                   >
-                    <Text style={styles.chipText}>{opt}</Text>
+                    <Text style={styles.chipText}>{optionLabel(opt)}</Text>
                   </Pressable>
                 ))}
               </View>

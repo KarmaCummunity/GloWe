@@ -1,4 +1,4 @@
--- supabase/tests/0351_items_image_photo_or_details.sql | items image: photo OR details image
+-- supabase/tests/0351_items_image_photo_or_details.sql | items photos (optional since 0358) + listing detail RPC
 
 begin;
 
@@ -53,42 +53,48 @@ begin
   execute 'set constraints all deferred';
 end $$;
 
--- 3) RPC without any photo or details image fails with items_image_required.
+-- 3) 0358: a photo is optional; an items listing with no photo and no details image succeeds.
 do $$
 declare
   v_kind uuid;
+  v_id uuid;
 begin
   select kind_id into v_kind from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
-  begin
-    perform public.create_marketplace_listing(
-      p_kind_id => v_kind, p_title => 'Table without photo', p_details => '{}'::jsonb,
-      p_media_paths => null::text[]);
-    execute 'set constraints all immediate';
-    raise exception 'ASSERT FAILED: items listing without photo should fail';
-  exception when check_violation then
-    if sqlerrm <> 'items_image_required' then
-      raise exception 'ASSERT FAILED: expected items_image_required, got %', sqlerrm;
-    end if;
-  end;
+  v_id := public.create_marketplace_listing(
+    p_kind_id => v_kind, p_title => 'Table without photo', p_details => '{}'::jsonb,
+    p_media_paths => null::text[]);
+  execute 'set constraints all immediate';
   execute 'set constraints all deferred';
+  if v_id is null then
+    raise exception 'ASSERT FAILED: items listing without photo should be created';
+  end if;
 end $$;
 
--- 4) Removing the last photo of an image-less items listing fails.
+-- 4) Removing the last photo of an items listing is allowed (0358).
 do $$
 declare
   v_id uuid;
 begin
   select listing_id into v_id from public.listings where title = 'Chair with photo';
-  begin
-    delete from public.listing_media where listing_id = v_id;
-    execute 'set constraints all immediate';
-    raise exception 'ASSERT FAILED: deleting the last photo should fail';
-  exception when check_violation then
-    if sqlerrm <> 'items_image_required' then
-      raise exception 'ASSERT FAILED: expected items_image_required, got %', sqlerrm;
-    end if;
-  end;
+  delete from public.listing_media where listing_id = v_id;
+  execute 'set constraints all immediate';
   execute 'set constraints all deferred';
+end $$;
+
+-- 5) 0358: listing detail RPC runs (0335 read the missing users.city_id column).
+do $$
+declare
+  v_id uuid;
+  v_detail jsonb;
+begin
+  select listing_id into v_id from public.listings where title = 'Table without photo';
+  v_detail := public.get_marketplace_listing_detail(v_id);
+  if v_detail is null or v_detail->>'title' <> 'Table without photo' then
+    raise exception 'ASSERT FAILED: listing detail missing, got %', v_detail;
+  end if;
+  if v_detail->'owner'->>'user_id' is null then
+    raise exception 'ASSERT FAILED: listing detail owner missing';
+  end if;
 end $$;
 
 rollback;

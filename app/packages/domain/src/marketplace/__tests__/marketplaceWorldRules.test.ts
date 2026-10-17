@@ -8,13 +8,9 @@ import {
 const now = new Date('2026-10-17T00:00:00Z');
 
 describe('validateMarketplaceWorldRules — items', () => {
-  it('requires a photo or a details image', () => {
-    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 0 })).toBe(
-      'items_image_required',
-    );
-    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_url: '  ' }, photoCount: 0 })).toBe(
-      'items_image_required',
-    );
+  it('does not require a photo (0358)', () => {
+    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 0 })).toBeNull();
+    expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: { image_url: '  ' }, photoCount: 0 })).toBeNull();
   });
   it('passes with an attached photo', () => {
     expect(validateMarketplaceWorldRules({ worldSlug: 'items', details: {}, photoCount: 1 })).toBeNull();

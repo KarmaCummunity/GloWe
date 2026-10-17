@@ -1,6 +1,6 @@
-// Client-side mirror of the server world rules (0266 listings_enforce_world_rules +
-// 0351 items image check) and a mapper from server error codes to stable codes the
-// UI can translate. Keep in sync with supabase/migrations/0266, 0351.
+// Client-side mirror of the server world rules (0266 listings_enforce_world_rules;
+// the 0351 items image check was dropped in 0358) and a mapper from server error codes
+// to stable codes the UI can translate. Keep in sync with supabase/migrations/0266, 0358.
 
 export const ROUTED_WORLDS = ['medical', 'animals', 'environment'] as const;
 
@@ -44,12 +44,9 @@ function nonEmptyString(v: unknown): boolean {
 }
 
 export function validateMarketplaceWorldRules(input: WorldRulesInput): MarketplaceRuleErrorCode | null {
-  const { worldSlug, details, photoCount } = input;
+  const { worldSlug, details } = input;
 
-  if (worldSlug === 'items') {
-    const hasDetailsImage = nonEmptyString(details.image_url) || nonEmptyString(details.image_path);
-    if (photoCount < 1 && !hasDetailsImage) return 'items_image_required';
-  }
+  // Items: a photo is optional (product decision 2026-10-17, migration 0358).
 
   if (worldSlug === 'food') {
     const raw = details.expires_at;

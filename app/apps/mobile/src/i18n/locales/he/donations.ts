@@ -5,6 +5,7 @@
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -142,6 +143,8 @@ export const donations = {
       unknown: 'שגיאה לא צפויה. נסו שוב.',
     },
   },
+  marketplaceHubTitle: 'שוק התרומות',
+  marketplaceHubSubtitle: 'כל עולמות הנתינה במקום אחד',
 } as const;
 
 export const search = {
@@ -230,9 +233,6 @@ export const search = {
     animals: 'חיות',
     medical: 'רפואה',
   },
-
-  marketplaceHubTitle: 'שוק התרומות',
-  marketplaceHubSubtitle: 'כל עולמות הנתינה במקום אחד',
 } as const;
 
 export const marketplace = {
@@ -290,4 +290,6 @@ export const marketplace = {
   mapWebFallback: 'מפה אינטראקטיבית זמינה באפליקציה. האשכולות למטה מגיעים מאותו מקור בשרת.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
+  field: marketplaceFieldLabels,
+  option: marketplaceOptionLabels,
 } as const;

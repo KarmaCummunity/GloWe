@@ -5,6 +5,7 @@
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -142,6 +143,8 @@ export const donations = {
       unknown: 'Unexpected error. Try again.',
     },
   },
+  marketplaceHubTitle: 'Unified marketplace',
+  marketplaceHubSubtitle: 'Browse all giving worlds in one place',
 } as const;
 
 export const search = {
@@ -230,9 +233,6 @@ export const search = {
     animals: 'Animals',
     medical: 'Medical',
   },
-
-  marketplaceHubTitle: 'Unified marketplace',
-  marketplaceHubSubtitle: 'Browse all giving worlds in one place',
 } as const;
 
 export const marketplace = {
@@ -290,4 +290,6 @@ export const marketplace = {
   mapWebFallback: 'Interactive map is available in the iOS/Android app. Clusters below use the same server data.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
+  field: marketplaceFieldLabels,
+  option: marketplaceOptionLabels,
 } as const;
