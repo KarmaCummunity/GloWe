@@ -98,42 +98,10 @@ $$;
 revoke all on function public.create_marketplace_listing(uuid, text, text, jsonb, text, uuid, text, smallint, text) from public;
 grant execute on function public.create_marketplace_listing(uuid, text, text, jsonb, text, uuid, text, smallint, text) to authenticated;
 
--- One demo open listing per world when at least one active user exists (QA seed).
-insert into public.listings (
-  owner_id, world_slug, kind_id, direction, status, title, summary, details,
-  urgency_level, availability_status, origin, moderation_status, published_at
-)
-select
-  u.user_id,
-  lk.world_slug,
-  lk.kind_id,
-  case when lk.direction = 'request' then 'request' when lk.direction = 'give' then 'give' else 'give' end,
-  'open',
-  '[demo] ' || w.label_en || ' — ' || lk.label_en,
-  'Seeded marketplace listing for QA.',
-  '{}'::jsonb,
-  2,
-  'ongoing',
-  'native',
-  'published',
-  now()
-from public.worlds w
-join lateral (
-  select lk2.*
-    from public.listing_kinds lk2
-   where lk2.world_slug = w.slug and lk2.is_active
-   order by lk2.sort_order
-   limit 1
-) lk on true
-cross join lateral (
-  select user_id from public.users where account_status = 'active' order by created_at limit 1
-) u
-where u.user_id is not null
-  and w.is_active
-  and w.slug <> 'romantic_matchmaking'
-  and not exists (
-    select 1 from public.listings l
-     where l.title = '[demo] ' || w.label_en || ' — ' || lk.label_en
-  );
+-- NOTE: an earlier draft seeded one "[demo]" listing per world here. It was removed
+-- before this migration was applied anywhere: the bare '{}' details violate the 0266
+-- world rules (items_image_required, food_expiry_required, routed-world external body)
+-- on any project with active users (failed DB deploy run 38991437180 on kc-dev), and
+-- demo rows must never ship to prod. QA listings belong in supabase/seed/kc-dev.
 
 commit;
