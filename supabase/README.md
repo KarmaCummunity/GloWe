@@ -70,8 +70,8 @@ Configure in Supabase Dashboard → Edge Functions → Secrets (names only; neve
 |--------|---------|
 | `WHATSAPP_VERIFY_TOKEN` | `whatsapp-webhook` (GET challenge) |
 | `WHATSAPP_APP_SECRET` | `whatsapp-webhook` (signature HMAC) |
-| `WHATSAPP_CLOUD_API_TOKEN` | Outbound Graph API sends |
-| `WHATSAPP_PHONE_NUMBER_ID` | Outbound sends |
+| `WHATSAPP_CLOUD_API_TOKEN` | `whatsapp-sender` (outbound Graph API sends) |
+| `WHATSAPP_PHONE_NUMBER_ID` | `whatsapp-sender` |
 | `WHATSAPP_GRAPH_API_VERSION` | Optional override (default in `whatsapp_channel_config`) |
 | `WHATSAPP_SKIP_SIGNATURE_VERIFY` | Local/dev only when app secret unset |
 

@@ -1,4 +1,4 @@
-// whatsapp-intake-worker — Issue #844 (stub LLM extraction → api_* publish path)
+// whatsapp-intake-worker — Issue #844 (stub LLM extraction → api_* publish path), #938 LLM budget
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
@@ -44,6 +44,23 @@ serve(async (req) => {
   });
   if (sessErr) {
     return new Response(JSON.stringify({ ok: false, error: sessErr.message }), { status: 500 });
+  }
+
+  // #938: no LLM call beyond the per-phone / global daily budget. A caller-supplied
+  // extraction skips the LLM entirely, so only the LLM path is metered.
+  if (!body.extraction) {
+    const { data: allowed, error: budgetErr } = await supabase.rpc('api_whatsapp_llm_budget_take', {
+      p_wa_id: waId,
+    });
+    if (budgetErr) {
+      return new Response(JSON.stringify({ ok: false, error: budgetErr.message }), { status: 500 });
+    }
+    if (allowed === false) {
+      return new Response(JSON.stringify({ ok: false, error: 'llm_budget_exceeded', session_id: sessionId }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   const ext = body.extraction ?? {
