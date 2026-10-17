@@ -154,6 +154,30 @@ select c.chat_id, case when k%2=1 then c.asker else c.owner_id end, 'user',
 from s_chats c cross join generate_series(1,6) k;
 alter table public.messages enable trigger messages_rate_limit;
 
+-- #982: demo verified nonprofits (money world). Clearly marked [DEMO]; same rows as migration 0400.
+insert into public.organizations (
+  org_id, name, slug, is_platform, is_verified_nonprofit, verified_at, verification_method,
+  public_tagline_he, public_tagline_en, public_about_he, public_about_en
+)
+values
+  ('00000000-0000-0000-0000-00000000d001'::uuid, '[DEMO] קרן לב חם', 'demo-lev-cham', false, true, now(), 'demo_seed',
+   'עמותת הדגמה – סל מזון לחגים', 'Demo nonprofit – holiday food baskets',
+   'עמותת הדגמה לסביבת הפיתוח בלבד. אין לתרום כסף אמיתי.', 'Demo nonprofit for the dev environment only. Do not send real money.'),
+  ('00000000-0000-0000-0000-00000000d002'::uuid, '[DEMO] ידיים פתוחות', 'demo-yadayim-ptuchot', false, true, now(), 'demo_seed',
+   'עמותת הדגמה – ציוד לימודי לילדים', 'Demo nonprofit – school supplies for kids',
+   'עמותת הדגמה לסביבת הפיתוח בלבד. אין לתרום כסף אמיתי.', 'Demo nonprofit for the dev environment only. Do not send real money.'),
+  ('00000000-0000-0000-0000-00000000d003'::uuid, '[DEMO] בית לכל חיה', 'demo-bayit-lechol-chaya', false, true, now(), 'demo_seed',
+   'עמותת הדגמה – אימוץ וטיפול בבעלי חיים', 'Demo nonprofit – animal adoption and care',
+   'עמותת הדגמה לסביבת הפיתוח בלבד. אין לתרום כסף אמיתי.', 'Demo nonprofit for the dev environment only. Do not send real money.')
+on conflict (slug) do update set
+  is_verified_nonprofit = true,
+  verification_method   = excluded.verification_method,
+  public_tagline_he     = excluded.public_tagline_he,
+  public_tagline_en     = excluded.public_tagline_en,
+  public_about_he       = excluded.public_about_he,
+  public_about_en       = excluded.public_about_en;
+
+
 commit;
 select (select count(*) from public.users where user_id in (select id from auth.users where email like '%@seed.kc.test')) users,
        (select count(*) from public.posts p join auth.users a on a.id=p.owner_id where a.email like '%@seed.kc.test') posts,
