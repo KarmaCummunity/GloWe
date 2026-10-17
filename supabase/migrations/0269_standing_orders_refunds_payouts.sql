@@ -68,6 +68,17 @@ create policy payment_refunds_own on public.payment_refunds
 create policy donation_receipts_own on public.donation_receipts
   for select to authenticated using (user_id = auth.uid());
 
+-- Payouts are visible to the receiving organization's admins/managers only.
+create policy payment_payouts_org_admin_read on public.payment_payouts
+  for select to authenticated using (
+    exists (
+      select 1 from public.org_memberships m
+       where m.org_id = payment_payouts.org_id
+         and m.user_id = auth.uid()
+         and m.role in ('org_admin', 'org_manager')
+    )
+  );
+
 create or replace function public.cancel_standing_order(p_order_id uuid)
 returns public.standing_orders
 language plpgsql

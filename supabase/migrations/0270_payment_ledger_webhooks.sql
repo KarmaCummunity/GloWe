@@ -40,6 +40,9 @@ create policy payment_ledger_operator_read on public.payment_ledger_entries
   for select to authenticated using (public.is_listing_operator(auth.uid()));
 
 revoke all on public.provider_webhook_events from authenticated, anon;
+-- Raw provider payloads: service_role (webhook edge function) only.
+create policy provider_webhook_events_service_read on public.provider_webhook_events
+  for select to service_role using (true);
 
 create or replace function public.payment_ledger_post_balanced(
   p_txn_id uuid,
