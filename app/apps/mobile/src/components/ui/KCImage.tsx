@@ -19,6 +19,12 @@ type Props = {
   style?: StyleProp<ImageStyle>;
   contentFit?: ImageProps['contentFit'];
   blurhash?: string;
+  /** Pass the row id inside recycled lists (FlashList) so a reused cell never flashes the previous image. */
+  recyclingKey?: string;
+  priority?: ImageProps['priority'];
+  /** Skip the blurhash placeholder (e.g. full-screen viewer on black). */
+  noPlaceholder?: boolean;
+  accessibilityLabel?: string;
   onLoad?: () => void;
   onError?: () => void;
 };
@@ -33,6 +39,10 @@ export function KCImage({
   style,
   contentFit = 'cover',
   blurhash,
+  recyclingKey,
+  priority,
+  noPlaceholder,
+  accessibilityLabel,
   onLoad,
   onError,
 }: Props) {
@@ -61,7 +71,10 @@ export function KCImage({
       contentFit={contentFit}
       cachePolicy="memory-disk"
       transition={150}
-      placeholder={{ blurhash: blurhash ?? DEFAULT_PLACEHOLDER }}
+      placeholder={noPlaceholder ? undefined : { blurhash: blurhash ?? DEFAULT_PLACEHOLDER }}
+      recyclingKey={recyclingKey ?? currentUri}
+      priority={priority}
+      accessibilityLabel={accessibilityLabel}
       onLoad={onLoad}
       onError={handleError}
     />

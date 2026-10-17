@@ -8617,6 +8617,10 @@ export type Database = {
       browse_listings: {
         Args: {
           p_availability?: string
+          p_cursor_created_at?: string
+          p_cursor_id?: string
+          p_cursor_sort?: number
+          p_cursor_urgency?: number
           p_direction?: string
           p_lat?: number
           p_limit?: number
@@ -8630,11 +8634,13 @@ export type Database = {
         Returns: {
           availability_status: string
           city_id: string
+          created_at: string
           direction: string
           distance_km: number
           geo: unknown
           kind_slug: string
           listing_id: string
+          sort_key: number
           summary: string
           title: string
           urgency_level: number
@@ -9357,7 +9363,12 @@ export type Database = {
         }[]
       }
       list_my_listings: {
-        Args: { p_limit?: number; p_offset?: number }
+        Args: {
+          p_cursor_id?: string
+          p_cursor_updated_at?: string
+          p_limit?: number
+          p_offset?: number
+        }
         Returns: {
           availability_status: string
           direction: string
@@ -9532,6 +9543,8 @@ export type Database = {
       }
       marketplace_search: {
         Args: {
+          p_cursor_id?: string
+          p_cursor_score?: number
           p_limit?: number
           p_query?: string
           p_viewer?: string
@@ -10681,6 +10694,8 @@ export type Database = {
       }
       search_listings: {
         Args: {
+          p_cursor_id?: string
+          p_cursor_score?: number
           p_limit?: number
           p_query: string
           p_viewer?: string

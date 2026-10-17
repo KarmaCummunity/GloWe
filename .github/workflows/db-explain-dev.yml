@@ -1,0 +1,61 @@
+name: DB explain (kc-dev)
+
+# Read-only EXPLAIN ANALYZE of the hot feed / marketplace / search / chat
+# queries on kc-dev (supabase/perf/explain). Never targets prod: the
+# environment is fixed to supabase-dev and the project ref is checked.
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'supabase/perf/explain/**'
+      - 'scripts/db-explain-dev.sh'
+      - '.github/workflows/db-explain-dev.yml'
+  push:
+    branches: ['perf-explain/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-explain-dev
+  cancel-in-progress: false
+
+jobs:
+  explain:
+    name: explain · kc-dev
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-dev
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      KC_DEV_REF: enbqriuxvvuontiwslun
+    steps:
+      - uses: actions/checkout@v6
+      - name: Guard – kc-dev only
+        run: |
+          set -euo pipefail
+          if [ "$SUPABASE_PROJECT_REF" != "$KC_DEV_REF" ]; then
+            echo "::error::supabase-dev SUPABASE_PROJECT_REF is not kc-dev; refusing."; exit 1
+          fi
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.99.0
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - name: Link (resolves the pooler URL)
+        run: supabase link --project-ref "$KC_DEV_REF" --password "$SUPABASE_DB_PASSWORD" --yes >/dev/null
+      - name: EXPLAIN ANALYZE hot queries
+        run: |
+          set -euo pipefail
+          test -s supabase/.temp/pooler-url || { echo "::error::pooler-url missing after link"; exit 1; }
+          url=$(cat supabase/.temp/pooler-url)
+          # Strip any embedded password; psql reads PGPASSWORD instead.
+          PGURL_NOPASS=$(printf '%s' "$url" | sed -E 's#://([^:@/]+):[^@]*@#://\1@#')
+          export PGURL_NOPASS
+          export PGPASSWORD="$SUPABASE_DB_PASSWORD"
+          export PGSSLMODE=require
+          bash scripts/db-explain-dev.sh
