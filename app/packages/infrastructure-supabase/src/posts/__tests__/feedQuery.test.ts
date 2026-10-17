@@ -13,6 +13,7 @@ type Op =
   | { kind: 'gt'; col: string; val: unknown }
   | { kind: 'lt'; col: string; val: unknown }
   | { kind: 'order'; col: string; ascending: boolean }
+  | { kind: 'or'; expr: string }
   | { kind: 'limit'; n: number };
 
 interface FakeClientResult {
@@ -50,6 +51,9 @@ function makeFakeClient(): FakeClientResult {
               break;
             case 'limit':
               ops.push({ kind: 'limit', n: args[0] });
+              break;
+            case 'or':
+              ops.push({ kind: 'or', expr: args[0] });
               break;
             default:
               throw new Error(`fake: unexpected chain method ${prop}`);
@@ -175,5 +179,37 @@ describe('buildFeedQuery — sort order + cursor', () => {
     buildFeedQuery(client, {}, undefined, 10);
     expect(ops.find((o) => o.kind === 'gt' && o.col === 'created_at')).toBeUndefined();
     expect(ops.find((o) => o.kind === 'lt' && o.col === 'created_at')).toBeUndefined();
+  });
+});
+
+describe('buildFeedQuery — (created_at, post_id) keyset', () => {
+  const postId = '11111111-2222-4333-8444-555555555555';
+  const ts = '2026-05-16T12:00:00.000Z';
+
+  it('pages newest-first on (created_at, post_id) when the cursor carries postId', () => {
+    const { client, ops } = makeFakeClient();
+    buildFeedQuery(client, {}, encodeCursor({ createdAt: ts, postId }), 10);
+    const or = findOp(ops, 'or');
+    expect(or?.expr).toBe(`created_at.lt."${ts}",and(created_at.eq."${ts}",post_id.lt.${postId})`);
+    expect(ops.find((o) => o.kind === 'lt')).toBeUndefined();
+    const orders = ops.filter((o) => o.kind === 'order') as Array<Extract<Op, { kind: 'order' }>>;
+    expect(orders.map((o) => [o.col, o.ascending])).toEqual([
+      ['created_at', false],
+      ['post_id', false],
+    ]);
+  });
+
+  it('uses gt for oldest-first keyset paging', () => {
+    const { client, ops } = makeFakeClient();
+    buildFeedQuery(client, { sortOrder: 'oldest' }, encodeCursor({ createdAt: ts, postId }), 10);
+    expect(findOp(ops, 'or')?.expr).toContain(`post_id.gt.${postId}`);
+  });
+
+  it('ignores a malformed postId and falls back to created_at only', () => {
+    const { client, ops } = makeFakeClient();
+    const raw = encodeURIComponent(JSON.stringify({ createdAt: ts, postId: 'x),or(true' }));
+    buildFeedQuery(client, {}, raw, 10);
+    expect(findOp(ops, 'or')).toBeUndefined();
+    expect(findOp(ops, 'lt')?.val).toBe(ts);
   });
 });

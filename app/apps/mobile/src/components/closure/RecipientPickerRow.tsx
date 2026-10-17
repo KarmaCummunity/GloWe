@@ -1,6 +1,7 @@
 // FR-CLOSURE-003 AC2 — recipient picker row: avatar + name + optional city,
 // selectable radio. Used inside ClosureSheet's Step 2.
-import { Pressable, Text, View, Image } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KCImage } from '../ui/KCImage';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import type { ClosureCandidate } from '@kc/application';
@@ -24,7 +25,7 @@ export function RecipientPickerRow({ candidate, selected, onPress }: Props) {
         {selected ? <View style={styles.radioDot} /> : null}
       </View>
       {candidate.avatarUrl ? (
-        <Image source={{ uri: candidate.avatarUrl }} style={styles.avatar} />
+        <KCImage uri={candidate.avatarUrl} style={styles.avatar} />
       ) : (
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
           <Text style={styles.avatarInitial}>{name[0] ?? '?'}</Text>

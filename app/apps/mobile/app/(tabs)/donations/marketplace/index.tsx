@@ -9,9 +9,12 @@ import { Screen } from '../../../../src/components/ui/Screen';
 import { EmptyState, EmptyStateActions } from '../../../../src/components/EmptyState';
 import { KcRefreshControl } from '../../../../src/components/lists/KcRefreshControl';
 import {
+  flattenPages,
   useMarketplaceBrowse,
   useMarketplaceSearchResults,
 } from '../../../../src/hooks/useMarketplaceBrowse';
+import { useDebouncedValue } from '../../../../src/hooks/useDebouncedValue';
+import { LIST_END_THRESHOLD, usePrefetchNextPage } from '../../../../src/hooks/usePrefetchNextPage';
 import { useShellTabBarScrollInset } from '../../../../src/navigation/useShellTabBarVisibility';
 
 const useStyles = makeUseStyles(({ colors }) => ({
@@ -46,17 +49,20 @@ export default function MarketplaceBrowseScreen() {
   const inset = useShellTabBarScrollInset();
   const [world, setWorld] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const filters = useMemo(
-    () => ({ worldSlug: world, limit: 30, offset: 0 }),
-    [world],
-  );
-  const trimmedQuery = query.trim();
+  const filters = useMemo(() => ({ worldSlug: world }), [world]);
+  // Debounced so typing doesn't fire one hybrid search per keystroke.
+  const debouncedQuery = useDebouncedValue(query, 250);
+  const trimmedQuery = debouncedQuery.trim();
   const useSearch = trimmedQuery.length >= 2;
   const browse = useMarketplaceBrowse(filters);
-  const search = useMarketplaceSearchResults(query, world);
-  const rows = useSearch ? (search.data ?? []) : (browse.data ?? []);
+  const search = useMarketplaceSearchResults(debouncedQuery, world);
   const active = useSearch ? search : browse;
+  const rows = useMemo(() => flattenPages(active.data), [active.data]);
   const isLoading = active.isLoading;
+  usePrefetchNextPage(active);
+  const loadMore = () => {
+    if (active.hasNextPage && !active.isFetchingNextPage) void active.fetchNextPage();
+  };
   const clearAll = () => {
     setQuery('');
     setWorld(null);
@@ -103,7 +109,15 @@ export default function MarketplaceBrowseScreen() {
         data={rows}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}
-        refreshControl={<KcRefreshControl refreshing={active.isRefetching} onRefresh={() => active.refetch()} />}
+        estimatedItemSize={72}
+        onEndReached={loadMore}
+        onEndReachedThreshold={LIST_END_THRESHOLD}
+        refreshControl={
+          <KcRefreshControl
+            refreshing={active.isRefetching && !active.isFetchingNextPage}
+            onRefresh={() => active.refetch()}
+          />
+        }
         ListEmptyComponent={
           isLoading ? (
             <Text style={{ padding: spacing.lg, textAlign: 'center' }}>{t('marketplace.loading')}</Text>

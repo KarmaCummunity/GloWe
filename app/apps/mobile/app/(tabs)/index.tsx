@@ -36,6 +36,7 @@ import { container } from '../../src/lib/container';
 import { startMark } from '../../src/lib/observability/perfMarks';
 import { useScreenAside } from '../../src/components/aside/useScreenAside';
 import { GivingWorldsAside } from '../../src/components/aside/GivingWorldsAside';
+import { usePrefetchNextPage } from '../../src/hooks/usePrefetchNextPage';
 
 // Feed grid shows only the title, so only translate that field here (post
 // detail translates the description on open). FR-TRANSLATE-003.
@@ -125,6 +126,8 @@ export default function HomeFeedScreen() {
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     staleTime: 60_000,
   });
+
+  usePrefetchNextPage(feedQuery);
 
   const feedPosts = useMemo(
     () => feedQuery.data?.pages.flatMap((p) => p.posts) ?? [],
