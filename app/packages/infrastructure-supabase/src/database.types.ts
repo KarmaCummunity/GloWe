@@ -8379,7 +8379,6 @@ export type Database = {
         Args: { p_opted_in: boolean; p_user_id: string }
         Returns: undefined
       }
-
       api_whatsapp_admin_block_user: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -8519,7 +8518,6 @@ export type Database = {
         }
         Returns: string
       }
-
       api_whatsapp_queue_outbound: {
         Args: {
           p_max_per_hour?: number
