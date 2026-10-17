@@ -2,11 +2,11 @@
 // Locale file under `locales/en/`; composed into the bundle via `locales/en/index.ts`.
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
 // under the architecture cap.
-
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 export { moneyPayments } from './donations.moneyPayments';
+export { timeVolunteer } from './donations.timeVolunteer';
 
 export const donations = {
   tabLabel: 'Donations',

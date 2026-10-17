@@ -34,7 +34,7 @@ export default function DonationsLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="money" options={{ ...detailHeader, headerTitle: t('donations.moneyScreen.title') }} />
-      <Stack.Screen name="time" options={{ ...detailHeader, headerTitle: t('donations.timeScreen.title') }} />
+      <Stack.Screen name="time" options={{ headerShown: false }} />
       <Stack.Screen name="category/[slug]" options={{ ...detailHeader, headerTitle: '' }} />
       <Stack.Screen name="rides" options={{ headerShown: false }} />
     </Stack>
