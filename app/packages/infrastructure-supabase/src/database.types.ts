@@ -1266,7 +1266,7 @@ export type Database = {
           provider_ref: string | null
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_ils: number
@@ -1281,7 +1281,7 @@ export type Database = {
           provider_ref?: string | null
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_ils?: number
@@ -1296,7 +1296,7 @@ export type Database = {
           provider_ref?: string | null
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1411,7 +1411,7 @@ export type Database = {
           payment_id: string
           receipt_id: string
           section46_serial: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           issued_at?: string
@@ -1420,7 +1420,7 @@ export type Database = {
           payment_id: string
           receipt_id?: string
           section46_serial?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           issued_at?: string
@@ -1429,7 +1429,7 @@ export type Database = {
           payment_id?: string
           receipt_id?: string
           section46_serial?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -4683,7 +4683,7 @@ export type Database = {
           provider_id: string | null
           provider_ref: string | null
           status: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_ils: number
@@ -4696,7 +4696,7 @@ export type Database = {
           provider_id?: string | null
           provider_ref?: string | null
           status?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_ils?: number
@@ -4709,7 +4709,7 @@ export type Database = {
           provider_id?: string | null
           provider_ref?: string | null
           status?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -8923,7 +8923,7 @@ export type Database = {
           provider_ref: string | null
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         SetofOptions: {
           from: "*"
