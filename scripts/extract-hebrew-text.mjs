@@ -51,6 +51,7 @@ const SKIP_HEBREW_SCAN_EXACT_RELS = new Set([
   // JS so store reviewers and signed-out visitors can read them; bilingual he+en.
   "app/apps/mobile/public/privacy.html",
   "app/apps/mobile/public/terms.html",
+  "app/apps/mobile/public/support.html",
 ]);
 
 function parseArgs(argv) {
