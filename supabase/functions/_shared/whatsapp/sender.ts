@@ -3,6 +3,7 @@
 // (api_whatsapp_outbound_claim / api_whatsapp_outbound_result, migration 0306).
 
 import type { OutboundMessage, SendResult } from './meta.ts';
+import { resolveTemplateParams } from './templates.ts';
 
 export type RpcFn = (
   fn: string,
@@ -27,15 +28,14 @@ export function toOutboundMessage(row: OutboundRow): OutboundMessage | null {
     return row.body ? { kind: 'session', to: row.to_wa_id, body: row.body } : null;
   }
   if (!row.template_name) return null;
+  const language = row.language ?? 'he';
+  // Explicit ordered params win; otherwise resolve named params from the registry (#936).
   const raw = row.payload?.params;
-  const params = Array.isArray(raw) ? raw.map((p) => String(p)) : undefined;
-  return {
-    kind: 'template',
-    to: row.to_wa_id,
-    templateName: row.template_name,
-    language: row.language ?? 'he',
-    params,
-  };
+  const params = Array.isArray(raw)
+    ? raw.map((p) => String(p))
+    : resolveTemplateParams(row.template_name, language, row.payload);
+  if (!params) return null; // unknown template or missing param → fail, never send broken text
+  return { kind: 'template', to: row.to_wa_id, templateName: row.template_name, language, params };
 }
 
 export async function runSenderBatch(opts: {

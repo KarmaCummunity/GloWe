@@ -7361,8 +7361,13 @@ export type Database = {
           created_at: string
           is_approved: boolean
           language_code: string
+          meta_status: string
+          meta_template_id: string | null
+          params: Json
+          registry_version: number | null
           template_id: string
           template_name: string
+          updated_at: string
         }
         Insert: {
           body_preview: string
@@ -7370,8 +7375,13 @@ export type Database = {
           created_at?: string
           is_approved?: boolean
           language_code?: string
+          meta_status?: string
+          meta_template_id?: string | null
+          params?: Json
+          registry_version?: number | null
           template_id?: string
           template_name: string
+          updated_at?: string
         }
         Update: {
           body_preview?: string
@@ -7379,8 +7389,13 @@ export type Database = {
           created_at?: string
           is_approved?: boolean
           language_code?: string
+          meta_status?: string
+          meta_template_id?: string | null
+          params?: Json
+          registry_version?: number | null
           template_id?: string
           template_name?: string
+          updated_at?: string
         }
         Relationships: []
       }

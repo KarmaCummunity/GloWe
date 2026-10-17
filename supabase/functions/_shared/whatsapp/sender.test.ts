@@ -70,6 +70,15 @@ Deno.test('claim errors propagate', async () => {
   }), Error, 'claim failed: boom');
 });
 
+Deno.test('template rows resolve named params from the registry; missing params never send', () => {
+  assertEquals(
+    toOutboundMessage(row('t', { kind: 'template', template_name: 'match_found_v1', language: 'en', payload: { world_label_en: 'Items' } }) as never),
+    { kind: 'template', to: '972500000001', templateName: 'match_found_v1', language: 'en', params: ['Items'] },
+  );
+  assertEquals(toOutboundMessage(row('t', { kind: 'template', template_name: 'match_found_v1', payload: {} }) as never), null);
+  assertEquals(toOutboundMessage(row('t', { kind: 'template', template_name: 'intake_confirm_v1', payload: {} }) as never), null);
+});
+
 Deno.test('toOutboundMessage maps template rows with params', () => {
   assertEquals(
     toOutboundMessage(row('t', { kind: 'template', template_name: 'match_found_v1', language: 'en', payload: { params: ['a', 2] } }) as never),

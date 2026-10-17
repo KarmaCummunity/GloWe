@@ -11,7 +11,7 @@ function base(over: Partial<SenderDeps> = {}, fetchCalls: string[] = []): Sender
     if (fn === 'api_whatsapp_outbound_claim') {
       return Promise.resolve({ data: [{
         outbound_id: 'o1', kind: 'template', to_wa_id: '972500000001', language: 'he',
-        template_name: 'match_found_v1', body: null, payload: {},
+        template_name: 'match_found_v1', body: null, payload: { world_label_he: 'items-he' },
       }], error: null });
     }
     return Promise.resolve({ data: args.p_ok ? 'sent' : 'queued', error: null });
