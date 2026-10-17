@@ -1,5 +1,13 @@
 # Agents (pointer)
 
-**All agent rules** live in the repository root [`CLAUDE.md`](../CLAUDE.md). That file is the single source of truth; nothing under `docs/` overrides it.
+**Rules:** repository root [`CLAUDE.md`](../CLAUDE.md) (single source of truth).
 
-This file exists only as an entry point when you start from the `docs/` tree: open `CLAUDE.md` next. Documentation and code language expectations are in **CLAUDE.md §8** (Documentation language).
+**Start here for operations:**
+
+1. [agents/OPERATING_MODEL.md](./agents/OPERATING_MODEL.md) — flow, labels, `dev` vs `main`
+2. [agents/DEPLOY.md](./agents/DEPLOY.md) — DB / web / mobile deploy
+3. [agents/MIGRATION_RANGES.md](./agents/MIGRATION_RANGES.md) — claim migration numbers
+4. [agents/ARCHITECTURE.md](./agents/ARCHITECTURE.md) — repo map
+5. [agents/RELEASE.md](./agents/RELEASE.md) — store release runbook
+
+Documentation language expectations: **CLAUDE.md §8**.
