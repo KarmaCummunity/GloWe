@@ -42,7 +42,8 @@ export function ProfileMarketplaceListings({ ownerId }: { readonly ownerId: stri
           >
             <Text style={styles.rowTitle}>{item.title}</Text>
             <Text style={styles.meta}>
-              {item.worldSlug} · {item.direction} · {item.kindSlug}
+              {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} ·{' '}
+              {item.direction === 'request' ? t('search.request') : t('search.give')}
               {item.status === 'closed' ? ` · ${t('marketplace.statusClosed')}` : ''}
             </Text>
           </Pressable>

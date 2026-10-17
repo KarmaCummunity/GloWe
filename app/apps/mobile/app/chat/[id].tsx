@@ -33,6 +33,7 @@ import { useChatTypingIndicator } from '../../src/hooks/useChatTypingIndicator';
 import { useChatMessageReactions } from '../../src/hooks/useChatMessageReactions';
 import { pickChatImage, uploadChatImageAndSend } from '../../src/services/chatMediaUpload';
 import type { MessageReactionType } from '@kc/infrastructure-supabase';
+import { webEnterToSend } from '../../src/components/chat/webEnterToSend';
 
 const EMPTY_MESSAGES: OptimisticMessage[] = [];
 
@@ -242,7 +243,8 @@ export default function ChatScreen() {
           >
             <Ionicons name="image-outline" size={22} color={colors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => send()} disabled={sendDisabled}>
+          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => send()} disabled={sendDisabled}
+            accessibilityRole="button" accessibilityLabel={t('chat.send')} testID="chat-send">
             <Ionicons name="send" size={20} color={colors.textInverse} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
@@ -258,6 +260,7 @@ export default function ChatScreen() {
               textAlign="right"
               multiline
               maxLength={MESSAGE_MAX_CHARS}
+              onKeyPress={webEnterToSend(send, sendDisabled)}
             />
             {showCounter && <Text style={styles.counter}>{counter}/{MESSAGE_MAX_CHARS}</Text>}
           </View>

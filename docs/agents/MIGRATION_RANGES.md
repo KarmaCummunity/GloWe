@@ -29,7 +29,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | merged |
 | 0354–0356 | Supabase advisors cleanup (#945/#962): RLS initplan, FK indexes, search_path | merged |
 | 0357 | items image optional: drop 0351 deferred image check + last-photo delete block (product decision) | merged |
-| 0358–0359 | — | free |
+| 0358 | users: grant SELECT (preferred_language), QA pass (#978) | in review |
+| 0359 | get_marketplace_listing_detail: users.city fix, QA pass (#977) | in review |
 | 0360–0369 | money world (#913) | merged |
 | 0370–0379 | time world (volunteering, #915) | merged |
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
@@ -38,7 +39,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0358–0359`, `0400+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0400+`.
 
 ## How to claim
 
