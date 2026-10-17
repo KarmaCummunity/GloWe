@@ -19,6 +19,7 @@ User journeys against the deployed dev web app (`DEV_WEB_URL`, default
 | `journeys/qa/feed.spec.ts` | feed renders without failed API calls, create a post, like, comment |
 | `journeys/qa/marketplace.spec.ts` | browse, search, listing detail, create item with/without photo, reserve by a second user |
 | `journeys/qa/social.spec.ts` | chat between two users, notifications inbox, donations hub, money world, he/en + RTL |
+| `journeys/qa/account-deletion.spec.ts` | **opt-in, destructive**: delete account from Settings (set `E2E_DELETE_ACCOUNT_EMAIL` to a spare seed user) |
 | `journeys/*.spec.ts` | original P0 smoke journeys |
 
 ## CI

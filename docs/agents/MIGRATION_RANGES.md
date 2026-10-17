@@ -36,11 +36,14 @@ Last applied on kc-dev when this was written: `0239`.
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
 | 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | merged (#972) |
 | 0400 | #982: kc-dev demo verified nonprofits (guarded no-op unless kc-dev seed present) | merged |
-| 0401+ | — | free |
+| 0401–0405 | store readiness: account-deletion FK fixes (0401) | in progress |
+| 0406–0409 | — | free |
+| 0410–0414 | perf keyset/indexes (#989) | in progress |
+| 0415+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0401+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0406–0409`, `0415+`.
 
 ## How to claim
 
