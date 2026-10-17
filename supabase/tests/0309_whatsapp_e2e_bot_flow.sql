@@ -69,7 +69,7 @@ begin
 
   v_out := public.api_whatsapp_queue_outbound(
     v_a, 'match_found_v1',
-    jsonb_build_object('world', 'items', 'world_label_he', 'items', 'action', 'open'), 5
+    jsonb_build_object('world_label', 'Items', 'world_label_he', 'Items', 'world_label_en', 'Items'), 5
   );
   if v_out is null then raise exception 'ASSERT FAILED: queue A'; end if;
   if not exists (
@@ -80,7 +80,7 @@ begin
 
   perform public.api_whatsapp_queue_outbound(
     v_b, 'match_found_v1',
-    jsonb_build_object('world', 'items', 'world_label_he', 'items', 'action', 'open'), 5
+    jsonb_build_object('world_label', 'Items', 'world_label_he', 'Items', 'world_label_en', 'Items'), 5
   );
 
   select count(*) into v_n from public.bot_outbound_messages
@@ -98,7 +98,7 @@ begin
 
   v_out := public.api_whatsapp_queue_outbound(
     v_a, 'match_found_v1',
-    jsonb_build_object('world', 'items', 'action', 'open'), 5
+    jsonb_build_object('world_label', 'Items'), 5
   );
   if not exists (
     select 1 from public.bot_outbound_messages

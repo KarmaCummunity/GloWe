@@ -156,11 +156,11 @@ function simulateMatchNotify(state: State, rpc: RpcFn) {
   return Promise.all([
     rpc('api_whatsapp_queue_outbound', {
       p_user_id: 'u-a', p_template_name: 'match_found_v1',
-      p_payload: { world: 'items', action: 'open' },
+      p_payload: { world_label: 'Items', world_label_he: 'Items', world_label_en: 'Items' },
     }),
     rpc('api_whatsapp_queue_outbound', {
       p_user_id: 'u-b', p_template_name: 'match_found_v1',
-      p_payload: { world: 'items', action: 'open' },
+      p_payload: { world_label: 'Items', world_label_he: 'Items', world_label_en: 'Items' },
     }),
   ]);
 }
@@ -216,9 +216,10 @@ Deno.test('e2e: signed free-text → ingest; START → consent; match → outbou
   assertEquals(sendRes.status, 200);
   const summary = await sendRes.json();
   assertEquals(summary.ok, true);
-  assertEquals(summary.sent >= 2, true);
+  const sentTemplates = state.outbound.filter((o) => o.kind === 'template' && o.status === 'sent');
+  assertEquals(sentTemplates.length, 2);
   assertEquals(state.graphBodies.length >= 2, true);
-  assertEquals(state.outbound.filter((o) => o.status === 'sent').length >= 2, true);
+  assertEquals(summary.sent >= 2, true);
 });
 
 Deno.test('e2e: STOP after opt-in blocks further proactive templates; confirmation still queues', async () => {
@@ -261,7 +262,8 @@ Deno.test('e2e: runSenderBatch with injectable send (no network)', async () => {
   state.consentOptedIn = true;
   const rpc = makeRpc(state);
   await rpc('api_whatsapp_queue_outbound', {
-    p_user_id: 'u', p_template_name: 'match_found_v1', p_payload: { world: 'food' },
+    p_user_id: 'u', p_template_name: 'match_found_v1',
+    p_payload: { world_label: 'Food', params: ['Food'] },
   });
   const sent: OutboundMessage[] = [];
   const summary = await runSenderBatch({
