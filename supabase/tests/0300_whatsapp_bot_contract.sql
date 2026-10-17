@@ -80,6 +80,10 @@ begin
   perform pg_temp.mk_user(v_b, 'wa_match_b');
   perform public.api_bot_set_match_consent(v_a, true);
   perform public.api_bot_set_match_consent(v_b, true);
+  -- 0306: proactive sends also need a linked WhatsApp identity and an approved template.
+  perform public.api_bot_link_identity('972500300002', v_a);
+  perform public.api_bot_link_identity('972500300003', v_b);
+  update public.whatsapp_message_templates set is_approved = true where template_name = 'match_found_v1';
 
   insert into public.listings (
     owner_id, world_slug, kind_id, direction, title, origin, moderation_status, published_at, details

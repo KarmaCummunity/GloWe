@@ -15,14 +15,16 @@ Last applied on kc-dev when this was written: `0239`.
 | 0271–0279 | — | free |
 | 0280–0285 | social3 (#892) | open PR |
 | 0286–0299 | — | free |
-| 0300–0304 | WhatsApp bot (#902) | open PR |
-| 0305–0319 | — | free |
+| 0300–0304 | WhatsApp bot (#902) | merged |
+| 0305–0306 | WhatsApp consent/STOP/HELP keywords + audit (#937); send limits, 24h window, LLM budget, pgmq outbound backoff queue (#938) | in progress |
+| 0307–0309 | WhatsApp message templates as code (#936) | reserved |
+| 0310–0319 | — | free |
 | 0320–0339 | marketplace (#912) | open PR |
 | 0340–0349 | perf (#910, #911) | open PR |
 | 0350 | world-rules trigger: enforce on insert / rule-field change only (#952) | merged |
 | 0351 | items image rule: photo or details image, deferred check (#953) | merged |
 | 0352 | drop old 9-param create_marketplace_listing overload (#954) | merged |
-| 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | in progress |
+| 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | merged |
 | 0354–0359 | — | free |
 | 0360–0369 | money world (#913) | open PR |
 | 0370–0379 | time world (volunteering, #915) | open PR |
@@ -31,7 +33,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0305–0319`, `0354–0359`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0310–0319`, `0354–0359`, `0390+`.
 
 ## How to claim
 
