@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, Text, View } from 'react-native';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ import {
 } from '../../../../src/hooks/useMyMarketplaceListings';
 import { marketplaceRepository } from '../../../../src/services/marketplaceComposition';
 import { useShellTabBarScrollInset } from '../../../../src/navigation/useShellTabBarVisibility';
+import { LIST_END_THRESHOLD } from '../../../../src/hooks/usePrefetchNextPage';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   header: { padding: spacing.md, gap: spacing.xs },
@@ -43,7 +44,9 @@ export default function MyListingsScreen() {
   const router = useRouter();
   const styles = useStyles();
   const inset = useShellTabBarScrollInset();
-  const { data: rows = [], isLoading, refetch } = useMyMarketplaceListings();
+  const myQuery = useMyMarketplaceListings();
+  const { isLoading, refetch } = myQuery;
+  const rows = useMemo(() => myQuery.data?.pages.flatMap((p) => p.rows) ?? [], [myQuery.data?.pages]);
   const invalidate = useInvalidateMyListings();
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -138,6 +141,10 @@ export default function MyListingsScreen() {
         data={rows}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}
+        onEndReached={() => {
+          if (myQuery.hasNextPage && !myQuery.isFetchingNextPage) void myQuery.fetchNextPage();
+        }}
+        onEndReachedThreshold={LIST_END_THRESHOLD}
         ListEmptyComponent={
           <Text style={{ padding: spacing.lg, textAlign: 'center' }}>
             {isLoading ? t('marketplace.loading') : t('marketplace.myListingsEmpty')}

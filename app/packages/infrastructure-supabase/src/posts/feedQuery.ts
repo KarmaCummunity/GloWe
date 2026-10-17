@@ -39,12 +39,18 @@ export function buildFeedQuery(
 
   const decoded = decodeCursor(cursor);
   const oldestFirst = filter.sortOrder === 'oldest';
-  if (decoded) {
+  if (decoded?.postId) {
+    // Keyset on (created_at, post_id): posts sharing a timestamp are neither
+    // skipped nor repeated across pages. Values are validated by decodeCursor.
+    const op = oldestFirst ? 'gt' : 'lt';
+    const ts = `"${decoded.createdAt}"`; // quoted: ISO timestamps contain reserved `.` and `:`
+    q = q.or(`created_at.${op}.${ts},and(created_at.eq.${ts},post_id.${op}.${decoded.postId})`);
+  } else if (decoded) {
     q = oldestFirst
       ? q.gt('created_at', decoded.createdAt)
       : q.lt('created_at', decoded.createdAt);
   }
-  q = q.order('created_at', { ascending: oldestFirst });
+  q = q.order('created_at', { ascending: oldestFirst }).order('post_id', { ascending: oldestFirst });
   q = q.limit(pageLimit + 1);
 
   return q;

@@ -49,3 +49,14 @@ describe('cursor (TD-50)', () => {
     expect(out).not.toContain('"');
   });
 });
+
+describe('decodeCursor — postId + strict timestamp', () => {
+  it('round-trips postId', () => {
+    const c = { createdAt: '2026-05-16T12:00:00.123456+00:00', postId: '11111111-2222-4333-8444-555555555555' };
+    expect(decodeCursor(encodeCursor(c))).toEqual(c);
+  });
+  it('rejects timestamps with filter metacharacters', () => {
+    const raw = encodeURIComponent(JSON.stringify({ createdAt: '2026-05-16T12:00:00Z",or(x' }));
+    expect(decodeCursor(raw)).toBeNull();
+  });
+});

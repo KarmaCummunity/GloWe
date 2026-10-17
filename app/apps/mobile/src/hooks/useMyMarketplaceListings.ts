@@ -1,10 +1,14 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { MyListingsCursor } from '@kc/application';
 import { marketplaceRepository } from '../services/marketplaceComposition';
 
-export function useMyMarketplaceListings() {
-  return useQuery({
-    queryKey: ['marketplace', 'my-listings'],
-    queryFn: () => marketplaceRepository().listMyListings(50, 0),
+/** Keyset-paginated "My listings" (0413). */
+export function useMyMarketplaceListings(pageSize = 30) {
+  return useInfiniteQuery({
+    queryKey: ['marketplace', 'my-listings', pageSize],
+    queryFn: ({ pageParam }) => marketplaceRepository().listMyListingsPage(pageSize, pageParam),
+    initialPageParam: null as MyListingsCursor | null,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
     staleTime: 30_000,
   });
 }
