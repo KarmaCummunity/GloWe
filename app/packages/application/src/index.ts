@@ -133,10 +133,8 @@ export * from './moderation/errors';
 // Moderation admin use cases (FR-MOD-007 + FR-ADMIN-002..007)
 export { RestoreTargetUseCase, type RestoreTargetInput } from './moderation/RestoreTargetUseCase';
 export { DismissReportUseCase, type DismissReportInput } from './moderation/DismissReportUseCase';
-export { ConfirmReportUseCase } from './moderation/ConfirmReportUseCase';
-export type { ConfirmReportInput } from './moderation/ConfirmReportUseCase';
-export { BanUserUseCase } from './moderation/BanUserUseCase';
-export type { BanUserInput } from './moderation/BanUserUseCase';
+export { ConfirmReportUseCase, type ConfirmReportInput } from './moderation/ConfirmReportUseCase';
+export { BanUserUseCase, type BanUserInput } from './moderation/BanUserUseCase';
 export { DeleteMessageUseCase } from './moderation/DeleteMessageUseCase';
 export type { DeleteMessageInput } from './moderation/DeleteMessageUseCase';
 export { LookupAuditUseCase } from './moderation/LookupAuditUseCase';
@@ -298,3 +296,4 @@ export { ListUserFeedbackUseCase } from './survey/ListUserFeedbackUseCase';
 export type { IPublicResearchRepository } from './ports/IPublicResearchRepository';
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';
+export * from './payments';
