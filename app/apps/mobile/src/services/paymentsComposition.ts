@@ -19,6 +19,7 @@ import {
   PauseStandingOrderUseCase,
   ResumeStandingOrderUseCase,
 } from '@kc/application';
+import * as Crypto from 'expo-crypto';
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
@@ -56,5 +57,5 @@ export const paymentsUseCases = {
 };
 
 export function newIdempotencyKey(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${prefix}-${Date.now()}-${Crypto.randomUUID()}`;
 }
