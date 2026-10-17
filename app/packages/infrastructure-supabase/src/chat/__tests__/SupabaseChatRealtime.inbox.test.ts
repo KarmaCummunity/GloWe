@@ -57,18 +57,6 @@ function makeFakeClient(rpcImpl?: () => Promise<{ data: unknown; error: unknown 
   return { client, channels, removed, rpcCalls };
 }
 
-const MSG_ROW = {
-  message_id: 'm_1',
-  chat_id: 'c_1',
-  sender_id: 'u_1',
-  kind: 'user',
-  body: 'hi',
-  system_payload: null,
-  status: 'delivered',
-  created_at: '2026-05-16T12:00:00.000Z',
-  delivered_at: null,
-  read_at: null,
-};
 const CHAT_ROW = {
   chat_id: 'c_1',
   participant_a: 'u_1',
@@ -98,13 +86,11 @@ function sub(
 }
 
 describe('SupabaseChatRealtime — subscribeToInbox', () => {
-  it('opens inbox:<userId>:<rand> topic with three postgres_changes listeners (no per-row filter — RLS handles visibility server-side)', () => {
+  it('opens inbox:<userId>:<rand> with a single chats UPDATE listener (messages is Broadcast-only since 0349)', () => {
     const { client, channels } = makeFakeClient();
     sub(client);
     expect(channels[0]?.topic).toMatch(/^inbox:u_me:[a-z0-9]+$/);
     expect(channels[0]?.onCalls.map((c) => c.config)).toEqual([
-      { event: 'INSERT', schema: 'public', table: 'messages' },
-      { event: 'UPDATE', schema: 'public', table: 'messages' },
       { event: 'UPDATE', schema: 'public', table: 'chats' },
     ]);
   });
@@ -112,42 +98,26 @@ describe('SupabaseChatRealtime — subscribeToInbox', () => {
   it('routes UPDATE chats through rowToChat → onChatChanged', () => {
     const { client, channels } = makeFakeClient();
     const { cb } = sub(client);
-    channels[0]?.onCalls[2]?.handler({ new: CHAT_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
     expect(cb.onChatChanged).toHaveBeenCalledWith(expect.objectContaining({ chatId: 'c_1' }));
   });
 
-  it('invokes optional onInboxMessageInsert when provided', () => {
-    const { client, channels } = makeFakeClient();
-    const onInboxMessageInsert = vi.fn();
-    sub(client, { onInboxMessageInsert });
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
-    expect(onInboxMessageInsert).toHaveBeenCalledWith(expect.objectContaining({ messageId: 'm_1' }));
-  });
-
-  it('debounces unread RPC: rapid INSERTs collapse into one rpc_chat_unread_total call after 200ms', async () => {
+  it('debounces unread RPC: rapid chat bumps collapse into one rpc_chat_unread_total call after 200ms', async () => {
     const { client, channels, rpcCalls } = makeFakeClient(async () => ({ data: 5, error: null }));
     const { cb } = sub(client);
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
     expect(rpcCalls).toHaveLength(0);
     await vi.advanceTimersByTimeAsync(200);
     expect(rpcCalls).toEqual(['rpc_chat_unread_total']);
     expect(cb.onUnreadTotalChanged).toHaveBeenCalledWith(5);
   });
 
-  it('also debounces unread RPC on UPDATE messages (not just INSERTs)', async () => {
-    const { client, channels, rpcCalls } = makeFakeClient(async () => ({ data: 2, error: null }));
-    sub(client);
-    channels[0]?.onCalls[1]?.handler({ new: MSG_ROW });
-    await vi.advanceTimersByTimeAsync(200);
-    expect(rpcCalls).toEqual(['rpc_chat_unread_total']);
-  });
-
   it('does not call onUnreadTotalChanged when the RPC errors', async () => {
     const { client, channels } = makeFakeClient(async () => ({ data: null, error: { message: 'boom' } }));
     const { cb } = sub(client);
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
     await vi.advanceTimersByTimeAsync(200);
     expect(cb.onUnreadTotalChanged).not.toHaveBeenCalled();
   });
@@ -161,7 +131,7 @@ describe('SupabaseChatRealtime — subscribeToInbox', () => {
     const { client, channels } = makeFakeClient(() => rpcPromise);
     const { cb } = sub(client, {}, { getSnapshotEpoch: () => epoch });
 
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW });
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW });
     await vi.advanceTimersByTimeAsync(200); // timer body runs; e0 captured = 1; awaits rpc.
     epoch = 2;                              // snapshot rebuilt mid-flight.
     resolveRpc({ data: 9, error: null });
@@ -174,7 +144,7 @@ describe('SupabaseChatRealtime — subscribeToInbox', () => {
   it('unsubscribe removes the channel and clears any pending debounce timer', () => {
     const { client, channels, removed } = makeFakeClient();
     const { unsub } = sub(client);
-    channels[0]?.onCalls[0]?.handler({ new: MSG_ROW }); // arm timer
+    channels[0]?.onCalls[0]?.handler({ new: CHAT_ROW }); // arm timer
     unsub();
     expect(removed[0]).toBe(channels[0]);
     expect(() => vi.advanceTimersByTime(500)).not.toThrow();

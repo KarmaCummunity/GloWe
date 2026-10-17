@@ -8,9 +8,10 @@
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import type { InfiniteData, QueryClient } from '@tanstack/react-query';
-import type { PostFeedFilter, FeedPage } from '@kc/application';
+import type { PostFeedFilter, FeedPage, NewPublicPostSignal } from '@kc/application';
 import { getFeedRealtime, getFeedUseCase } from '../services/postsComposition';
 import { useFeedSessionStore } from '../store/feedSessionStore';
+import { shouldCountNewPost } from '../lib/feedNewPosts';
 
 const BACKGROUND_DISCONNECT_MS = 60_000;
 const GAP_FILL_LIMIT = 50;
@@ -23,17 +24,19 @@ export interface UseFeedRealtimeOptions {
 }
 
 export function useFeedRealtime(opts: UseFeedRealtimeOptions): void {
-  const { queryClient, queryKey, viewerId, feedFilter } = opts;
+  const { queryClient, viewerId } = opts;
   const incrementNewPosts = useFeedSessionStore((s) => s.incrementNewPosts);
 
-  // Track the createdAt of the most recent post we have seen — updated by the
-  // caller via current query data on every render (see useEffect below).
-  const lastSeenAtRef = useRef<string | null>(null);
+  // Latest options in a ref: the caller passes a fresh `queryKey` array every
+  // render, and keying the subscription effect on it re-created the realtime
+  // channel on every render (scroll, viewability, keystrokes).
+  const optsRef = useRef(opts);
+  optsRef.current = opts;
 
-  // Mirror query-cache data into lastSeenAtRef so we always know the newest
-  // post's timestamp without storing the full data in state.
+  // Track the createdAt of the most recent post we have seen.
+  const lastSeenAtRef = useRef<string | null>(null);
   useEffect(() => {
-    const cached = queryClient.getQueryData<InfiniteData<FeedPage>>(queryKey);
+    const cached = queryClient.getQueryData<InfiniteData<FeedPage>>(optsRef.current.queryKey);
     const first = cached?.pages[0]?.posts[0]?.createdAt ?? null;
     if (first && (!lastSeenAtRef.current || first > lastSeenAtRef.current)) {
       lastSeenAtRef.current = first;
@@ -42,49 +45,36 @@ export function useFeedRealtime(opts: UseFeedRealtimeOptions): void {
 
   useEffect(() => {
     const realtime = getFeedRealtime();
+    const counted = new Set<string>();
+    const onNewPublicPost = (post: NewPublicPostSignal) => {
+      if (!shouldCountNewPost(post, viewerId, counted)) return;
+      lastSeenAtRef.current = lastSeenAtRef.current ?? new Date().toISOString();
+      incrementNewPosts();
+    };
 
-    let unsubscribe: (() => void) | null = realtime.subscribeToPublicInserts({
-      onNewPublicPost: () => {
-        // Record the wall-clock time of the last realtime signal so gap-fill
-        // can use it as a lower bound when the subscription was torn down.
-        lastSeenAtRef.current = lastSeenAtRef.current ?? new Date().toISOString();
-        incrementNewPosts();
-      },
-    });
-
+    let unsubscribe: (() => void) | null = realtime.subscribeToPublicInserts({ onNewPublicPost });
     let backgroundTimer: ReturnType<typeof setTimeout> | null = null;
 
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') {
-        // Start the 60s disconnect timer only if we currently have a live
-        // subscription and no timer is already pending.
         if (!backgroundTimer && unsubscribe) {
           backgroundTimer = setTimeout(() => {
+            backgroundTimer = null;
             unsubscribe?.();
             unsubscribe = null;
           }, BACKGROUND_DISCONNECT_MS);
         }
-      } else {
-        if (backgroundTimer) {
-          clearTimeout(backgroundTimer);
-          backgroundTimer = null;
-        }
-        // Only resubscribe + gap-fill if the 60s timer actually tore us down.
-        if (!unsubscribe) {
-          unsubscribe = realtime.subscribeToPublicInserts({
-            onNewPublicPost: () => {
-              lastSeenAtRef.current = lastSeenAtRef.current ?? new Date().toISOString();
-              incrementNewPosts();
-            },
-          });
-          void performGapFill({
-            queryClient,
-            queryKey,
-            viewerId,
-            feedFilter,
-            lastSeenAt: lastSeenAtRef.current,
-          });
-        }
+        return;
+      }
+      if (backgroundTimer) {
+        clearTimeout(backgroundTimer);
+        backgroundTimer = null;
+      }
+      // Only resubscribe + gap-fill if the 60s timer actually tore us down.
+      if (!unsubscribe) {
+        unsubscribe = realtime.subscribeToPublicInserts({ onNewPublicPost });
+        const { queryKey, feedFilter } = optsRef.current;
+        void performGapFill({ queryClient, queryKey, viewerId, feedFilter, lastSeenAt: lastSeenAtRef.current });
       }
     });
 
@@ -92,9 +82,9 @@ export function useFeedRealtime(opts: UseFeedRealtimeOptions): void {
       if (backgroundTimer) clearTimeout(backgroundTimer);
       sub.remove();
       unsubscribe?.();
+      unsubscribe = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incrementNewPosts, queryClient, queryKey, viewerId, feedFilter]);
+  }, [incrementNewPosts, queryClient, viewerId]);
 }
 
 interface GapFillParams {

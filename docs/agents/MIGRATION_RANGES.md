@@ -38,13 +38,14 @@ Last applied on kc-dev when this was written: `0239`.
 | 0400 | #982: kc-dev demo verified nonprofits (guarded no-op unless kc-dev seed present) | merged |
 | 0401 | #991 store readiness: account-deletion FK fixes (money records de-identified on delete) | merged |
 | 0402–0409 | — | free |
-| 0410–0414 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | in progress (#989) |
-| 0415–0419 | realtime: feed new-posts broadcast, chat typing/presence auth, chat message broadcast | in progress |
-| 0420+ | — | free |
+| 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
+| 0414 | — | free |
+| 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | in progress (#994) |
+| 0417+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0402–0409`, `0420+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0402–0409`, `0414`, `0417+`.
 
 ## How to claim
 

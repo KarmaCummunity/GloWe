@@ -9717,6 +9717,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      realtime_topic_uuid: { Args: { p_topic: string }; Returns: string }
       recommend_listings_for_user: {
         Args: { p_limit?: number; p_viewer?: string }
         Returns: {

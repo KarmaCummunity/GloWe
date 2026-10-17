@@ -9,15 +9,18 @@ import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { useTheme } from '@kc/ui';
 import { useChatConversationHeaderStyles } from './chatConversationHeader.styles';
+import { OnlineDot } from './OnlineDot';
 
 interface Props {
   readonly title: string;
   readonly canOpenProfile: boolean;
   readonly shareHandle: string | null | undefined;
   readonly onOpenMenu: () => void;
+  /** Counterpart user id — drives the online dot (null hides it). */
+  readonly peerUserId?: string | null;
 }
 
-export function ChatConversationHeader({ title, canOpenProfile, shareHandle, onOpenMenu }: Props) {
+export function ChatConversationHeader({ title, canOpenProfile, shareHandle, onOpenMenu, peerUserId }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const styles = useChatConversationHeaderStyles();
@@ -61,9 +64,12 @@ export function ChatConversationHeader({ title, canOpenProfile, shareHandle, onO
           accessibilityRole={canOpenProfile ? 'button' : undefined}
           accessibilityState={{ disabled: !canOpenProfile }}
         >
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
+          <View style={styles.titleRow}>
+            <OnlineDot userId={peerUserId} size={10} overlay={false} />
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          </View>
         </TouchableOpacity>
         <Pressable
           onPress={onOpenMenu}

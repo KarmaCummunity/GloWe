@@ -1,8 +1,10 @@
-// KC#873 — typing (broadcast) + optional presence on private chat channels.
+// KC#873 — chat typing indicator (client Broadcast on the private
+// `chat:<id>:typing` topic; send auth in 0415). Online presence lives in
+// SupabaseOnlinePresence (global `presence:online` topic).
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../database.types';
+import { isChannelFailure, openExactTopicChannel } from '../realtime/exactTopicChannel';
 
 export type TypingCallbacks = {
   onPeerTyping?: (payload: { userId: string; typing: boolean }) => void;
@@ -14,69 +16,56 @@ export type TypingSubscription = {
   unsubscribe: () => void;
 };
 
-const TYPING_THROTTLE_MS = 800;
+export const TYPING_THROTTLE_MS = 800;
 
 export class SupabaseChatV2Realtime {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
   subscribeTyping(chatId: string, userId: string, cb: TypingCallbacks): TypingSubscription {
-    const topic = `chat:${chatId}:typing`;
     let lastSent = 0;
-    let channel: RealtimeChannel | null = null;
+    let lastTyping = false;
+    let live: RealtimeChannel | null = null;
+    let closed = false;
 
-    const ensureChannel = () => {
-      if (channel) return channel;
-      channel = this.client
-        .channel(topic, { config: { private: true, broadcast: { self: false } } })
-        .on('broadcast', { event: 'typing' }, (payload) => {
-          const p = payload.payload as { userId?: string; typing?: boolean };
+    const managed = openExactTopicChannel(
+      this.client,
+      `chat:${chatId}:typing`,
+      { private: true, broadcast: { self: false } },
+      (ch) => {
+        ch.on('broadcast', { event: 'typing' }, (msg) => {
+          const p = msg.payload as { userId?: string; typing?: boolean } | undefined;
           if (!p?.userId || p.userId === userId) return;
           cb.onPeerTyping?.({ userId: p.userId, typing: !!p.typing });
-        })
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            cb.onError?.(new Error(`typing channel ${status.toLowerCase()}`));
-          }
         });
-      return channel;
-    };
-
-    ensureChannel();
+      },
+      (status) => {
+        if (isChannelFailure(status)) cb.onError?.(new Error(`typing channel ${status.toLowerCase()}`));
+      },
+    );
+    void managed.ready.then((ch) => {
+      live = ch;
+    });
 
     const sendTyping = (typing: boolean) => {
+      if (closed || !live) return;
       const now = Date.now();
+      // Throttle repeated "typing"; "stopped" only matters after a "typing".
       if (typing && now - lastSent < TYPING_THROTTLE_MS) return;
+      if (!typing && !lastTyping) return;
       lastSent = now;
-      void ensureChannel().send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { userId, typing },
-      });
+      lastTyping = typing;
+      void live.send({ type: 'broadcast', event: 'typing', payload: { userId, typing } });
     };
 
     return {
       sendTyping,
       unsubscribe: () => {
+        if (closed) return;
         sendTyping(false);
-        if (channel) void this.client.removeChannel(channel);
-        channel = null;
+        closed = true;
+        live = null;
+        managed.close();
       },
-    };
-  }
-
-  subscribePresence(chatId: string, userId: string, displayName: string): () => void {
-    const topic = `chat:${chatId}:presence`;
-    const channel = this.client
-      .channel(topic, { config: { private: true, presence: { key: userId } } })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ userId, displayName, at: new Date().toISOString() });
-        }
-      });
-
-    return () => {
-      void channel.untrack();
-      void this.client.removeChannel(channel);
     };
   }
 }

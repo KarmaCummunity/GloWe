@@ -31,5 +31,6 @@ export const useChatConversationHeaderStyles = makeUseStyles(({ colors }) => ({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
-  title: { ...typography.h3, color: colors.textPrimary },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, maxWidth: '100%' },
+  title: { ...typography.h3, color: colors.textPrimary, flexShrink: 1 },
 }));

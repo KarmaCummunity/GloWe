@@ -38,8 +38,9 @@ import { DevBanner } from '../src/components/DevBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
+import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 
-function MeRealtimeMount() { useMeRealtime(); return null; }
+function MeRealtimeMount() { useMeRealtime(); useOnlinePresenceLifecycle(); return null; }
 
 SplashScreen.preventAutoHideAsync();
 

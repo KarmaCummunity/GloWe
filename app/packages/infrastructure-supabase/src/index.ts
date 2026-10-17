@@ -29,6 +29,8 @@ export {
 export { SupabaseChatRealtime } from './chat/SupabaseChatRealtime';
 export { SupabaseUserRealtime } from './users/SupabaseUserRealtime';
 export { SupabaseFeedRealtime } from './feed/SupabaseFeedRealtime';
+export { SupabaseOnlinePresence, ONLINE_PRESENCE_TOPIC } from './realtime/SupabaseOnlinePresence';
+export type { OnlineListener } from './realtime/SupabaseOnlinePresence';
 export { SupabaseStatsRepository } from './stats/SupabaseStatsRepository';
 export { SupabaseAboutRepository } from './about/SupabaseAboutRepository';
 export { SupabaseReportRepository } from './reports/SupabaseReportRepository';

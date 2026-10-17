@@ -7,6 +7,7 @@ export const chatHe = {
   attachImage: 'צרף תמונה',
   mediaUploadFailed: 'לא ניתן לשלוח את התמונה. נסה שוב.',
   typingIndicator: 'מקליד/ה…',
+  onlineNow: 'מחובר/ת עכשיו',
   send: 'שלח',
   read: 'נקרא',
   report: 'דווח על שיחה',

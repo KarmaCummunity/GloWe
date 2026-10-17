@@ -1,56 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { SupabaseChatRealtime } from '../SupabaseChatRealtime';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-interface OnCall {
-  event: string;
-  config: any;
-  handler: (payload: { new: unknown }) => void;
-}
-
-interface FakeChannel {
-  topic: string;
-  onCalls: OnCall[];
-  statusCb?: (status: string) => void;
-}
-
-function makeFakeClient(): {
-  client: SupabaseClient<any>;
-  channels: FakeChannel[];
-  removed: FakeChannel[];
-} {
-  const channels: FakeChannel[] = [];
-  const removed: FakeChannel[] = [];
-  const builderToFc = new WeakMap<object, FakeChannel>();
-
-  const client = {
-    channel: (topic: string) => {
-      const fc: FakeChannel = { topic, onCalls: [] };
-      channels.push(fc);
-      const builder: any = {
-        on: (event: string, config: any, handler: (payload: { new: unknown }) => void) => {
-          fc.onCalls.push({ event, config, handler });
-          return builder;
-        },
-        subscribe: (statusCb: (status: string) => void) => {
-          fc.statusCb = statusCb;
-          return builder;
-        },
-      };
-      builderToFc.set(builder, fc);
-      return builder;
-    },
-    removeChannel: (ch: object) => {
-      const fc = builderToFc.get(ch);
-      if (fc) removed.push(fc);
-      return Promise.resolve();
-    },
-  } as unknown as SupabaseClient<any>;
-
-  return { client, channels, removed };
-}
+import { SupabaseChatRealtime, broadcastRecord } from '../SupabaseChatRealtime';
+import { flush, makeFakeRealtime } from '../../realtime/__tests__/fakeRealtime';
 
 const MSG_ROW = {
   message_id: 'm_1',
@@ -75,51 +25,44 @@ const CHAT_ROW = {
   created_at: '2026-05-16T11:00:00.000Z',
 };
 
-function sub(client: SupabaseClient<any>, extra: Record<string, any> = {}) {
-  const repo = new SupabaseChatRealtime(client);
-  const cb = {
-    onMessage: vi.fn(),
-    onMessageStatusChanged: vi.fn(),
-    onError: vi.fn(),
-    ...extra,
-  };
-  const unsub = repo.subscribeToChat('c_1', cb);
-  return { repo, cb, unsub };
+// realtime.broadcast_changes envelope (0259 trigger).
+const envelope = (op: string, record: unknown) => ({
+  type: 'broadcast',
+  event: op,
+  payload: { operation: op, schema: 'public', table: 'messages', record, old_record: null },
+});
+
+async function sub(extra: Record<string, unknown> = {}) {
+  const f = makeFakeRealtime();
+  const cb = { onMessage: vi.fn(), onMessageStatusChanged: vi.fn(), onError: vi.fn(), ...extra };
+  const unsub = new SupabaseChatRealtime(f.client).subscribeToChat('c_1', cb);
+  await flush();
+  const messages = f.created.find((c) => c.name === 'chat:c_1:messages')!;
+  const chatRow = f.created.find((c) => c.name.startsWith('chat-row:c_1:'));
+  return { f, cb, unsub, messages, chatRow };
 }
 
 describe('SupabaseChatRealtime — subscribeToChat', () => {
-  it('opens a chat:<chatId>:<rand> topic with three postgres_changes listeners', () => {
-    const { client, channels } = makeFakeClient();
-    sub(client);
-    expect(channels[0]?.topic).toMatch(/^chat:c_1:[a-z0-9]+$/);
-    expect(channels[0]?.onCalls).toHaveLength(3);
+  it('listens on the private chat:<id>:messages Broadcast topic (0259)', async () => {
+    const { messages } = await sub();
+    expect(messages.config).toEqual({ private: true });
+    expect(messages.bindings.map((b) => [b.type, b.filter.event])).toEqual([
+      ['broadcast', 'INSERT'],
+      ['broadcast', 'UPDATE'],
+    ]);
   });
 
-  it('produces a different topic on each subscription (avoids stale-channel reuse)', () => {
-    const { client, channels } = makeFakeClient();
-    sub(client);
-    sub(client);
-    expect(channels[0]?.topic).not.toBe(channels[1]?.topic);
-  });
-
-  it('listener 1 routes INSERT on messages (filter chat_id=eq.<id>) → onMessage', () => {
-    const { client, channels } = makeFakeClient();
-    const { cb } = sub(client);
-    const insert = channels[0]?.onCalls[0];
-    expect(insert?.config).toEqual({ event: 'INSERT', schema: 'public', table: 'messages', filter: 'chat_id=eq.c_1' });
-    insert?.handler({ new: MSG_ROW });
+  it('INSERT broadcast → onMessage with the mapped row', async () => {
+    const { messages, cb } = await sub();
+    messages.emit('broadcast', 'INSERT', envelope('INSERT', MSG_ROW));
     expect(cb.onMessage).toHaveBeenCalledTimes(1);
     expect(cb.onMessage.mock.calls[0]?.[0]).toMatchObject({ messageId: 'm_1', chatId: 'c_1' });
   });
 
-  it('listener 2 routes UPDATE on messages → onMessageStatusChanged (status subset)', () => {
-    const { client, channels } = makeFakeClient();
-    const { cb } = sub(client);
-    const update = channels[0]?.onCalls[1];
-    expect(update?.config).toEqual({ event: 'UPDATE', schema: 'public', table: 'messages', filter: 'chat_id=eq.c_1' });
-    update?.handler({ new: { ...MSG_ROW, status: 'read', read_at: '2026-05-16T12:00:05.000Z' } });
-    expect(cb.onMessageStatusChanged).toHaveBeenCalledTimes(1);
-    expect(cb.onMessageStatusChanged.mock.calls[0]?.[0]).toEqual({
+  it('UPDATE broadcast → onMessageStatusChanged (read receipt)', async () => {
+    const { messages, cb } = await sub();
+    messages.emit('broadcast', 'UPDATE', envelope('UPDATE', { ...MSG_ROW, status: 'read', read_at: '2026-05-16T12:00:05.000Z' }));
+    expect(cb.onMessageStatusChanged).toHaveBeenCalledWith({
       messageId: 'm_1',
       status: 'read',
       deliveredAt: '2026-05-16T12:00:01.000Z',
@@ -127,42 +70,59 @@ describe('SupabaseChatRealtime — subscribeToChat', () => {
     });
   });
 
-  it('listener 3 routes UPDATE on chats → onChatChanged with the mapped Chat row', () => {
-    const { client, channels } = makeFakeClient();
+  it('ignores broadcasts without a record (e.g. reaction pings)', async () => {
+    const { messages, cb } = await sub();
+    messages.emit('broadcast', 'INSERT', { payload: { message_id: 'm_1', op: 'INSERT' } });
+    messages.emit('broadcast', 'UPDATE', { payload: null });
+    expect(cb.onMessage).not.toHaveBeenCalled();
+    expect(cb.onMessageStatusChanged).not.toHaveBeenCalled();
+  });
+
+  it('routes chats UPDATE (postgres_changes, unique topic) → onChatChanged', async () => {
     const onChatChanged = vi.fn();
-    sub(client, { onChatChanged });
-    const update = channels[0]?.onCalls[2];
-    expect(update?.config).toEqual({ event: 'UPDATE', schema: 'public', table: 'chats', filter: 'chat_id=eq.c_1' });
-    update?.handler({ new: CHAT_ROW });
+    const { chatRow } = await sub({ onChatChanged });
+    expect(chatRow!.bindings[0]!.filter).toEqual({ event: 'UPDATE', schema: 'public', table: 'chats', filter: 'chat_id=eq.c_1' });
+    chatRow!.bindings[0]!.handler({ new: CHAT_ROW });
     expect(onChatChanged).toHaveBeenCalledWith(expect.objectContaining({ chatId: 'c_1' }));
   });
 
-  it('silently no-ops when onChatChanged is omitted (optional callback)', () => {
-    const { client, channels } = makeFakeClient();
-    sub(client);
-    expect(() => channels[0]?.onCalls[2]?.handler({ new: CHAT_ROW })).not.toThrow();
+  it('opens no chat-row channel when onChatChanged is omitted', async () => {
+    const { chatRow } = await sub();
+    expect(chatRow).toBeUndefined();
   });
 
-  it('routes CHANNEL_ERROR / TIMED_OUT statuses to onError with lowercased message', () => {
-    const { client, channels } = makeFakeClient();
-    const { cb } = sub(client);
-    channels[0]?.statusCb?.('CHANNEL_ERROR');
-    channels[0]?.statusCb?.('TIMED_OUT');
+  it('routes CHANNEL_ERROR / TIMED_OUT to onError, not SUBSCRIBED', async () => {
+    const { messages, cb } = await sub();
+    messages.statusCb!('SUBSCRIBED');
+    messages.statusCb!('CHANNEL_ERROR');
+    messages.statusCb!('TIMED_OUT');
+    expect(cb.onError).toHaveBeenCalledTimes(2);
     expect(cb.onError.mock.calls[0]?.[0]?.message).toBe('chat channel channel_error');
     expect(cb.onError.mock.calls[1]?.[0]?.message).toBe('chat channel timed_out');
   });
 
-  it('does not invoke onError on SUBSCRIBED', () => {
-    const { client, channels } = makeFakeClient();
-    const { cb } = sub(client);
-    channels[0]?.statusCb?.('SUBSCRIBED');
-    expect(cb.onError).not.toHaveBeenCalled();
+  it('unsubscribe removes every channel it opened', async () => {
+    const { f, unsub } = await sub({ onChatChanged: vi.fn() });
+    expect(f.live).toHaveLength(2);
+    unsub();
+    expect(f.live).toHaveLength(0);
   });
 
-  it('unsubscribe removes the channel via client.removeChannel', () => {
-    const { client, channels, removed } = makeFakeClient();
-    const { unsub } = sub(client);
+  it('unsubscribe before the channel opens leaks nothing', async () => {
+    const f = makeFakeRealtime();
+    const unsub = new SupabaseChatRealtime(f.client).subscribeToChat('c_1', {
+      onMessage: vi.fn(), onMessageStatusChanged: vi.fn(), onError: vi.fn(),
+    });
     unsub();
-    expect(removed[0]).toBe(channels[0]);
+    await flush();
+    expect(f.live).toHaveLength(0);
+  });
+});
+
+describe('broadcastRecord', () => {
+  it('extracts the record or returns null', () => {
+    expect(broadcastRecord({ payload: { record: { a: 1 } } })).toEqual({ a: 1 });
+    expect(broadcastRecord({ payload: { record: null } })).toBeNull();
+    expect(broadcastRecord({})).toBeNull();
   });
 });
