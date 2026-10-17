@@ -47,13 +47,31 @@ begin
       details, expires_at
     )
     select v_user, 'rides', kind_id, 'give', 'Ride offer', 'native', 'published',
-           jsonb_build_object('cost_share_ils', 999, 'image_url', 'https://example.test/r.jpg'),
+           jsonb_build_object('cost_share_ils', 999, 'departs_at', '2030-01-01T08:00:00Z', 'seats_available', 2),
            now() + interval '1 day'
       from public.listing_kinds where world_slug = 'rides' and slug = 'ride_offer';
     raise exception 'ASSERT FAILED: ride cost cap should fail';
   exception when others then
     if sqlstate <> '23514' then raise; end if;
   end;
+end $$;
+
+-- Items: an image is optional (0357). A native items listing with no image succeeds.
+do $$
+declare
+  v_user uuid := '00000000-0000-0000-0000-000000266003';
+  v_id uuid;
+begin
+  perform pg_temp.mk_user(v_user, 'items_no_image');
+  insert into public.listings (
+    owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
+  )
+  select v_user, 'items', kind_id, 'give', 'Chair, no photo', 'native', 'published', '{}'::jsonb
+    from public.listing_kinds where world_slug = 'items' and slug = 'give_item'
+  returning listing_id into v_id;
+  if v_id is null then
+    raise exception 'ASSERT FAILED: items listing without image should succeed';
+  end if;
 end $$;
 
 rollback;

@@ -5,6 +5,7 @@ begin;
 update public.listing_kinds
    set detail_schema = '{
      "type":"object",
+     "additionalProperties":false,
      "required":["topic","modality","slot_starts_at","slot_ends_at","slots_available"],
      "properties":{
        "topic":{"type":"string","minLength":2,"maxLength":80},
@@ -21,6 +22,7 @@ update public.listing_kinds
 update public.listing_kinds
    set detail_schema = '{
      "type":"object",
+     "additionalProperties":false,
      "required":["topic","modality","slot_starts_at","slot_ends_at","slots_available"],
      "properties":{
        "topic":{"type":"string","minLength":2,"maxLength":80},
@@ -37,6 +39,7 @@ update public.listing_kinds
 update public.listing_kinds
    set detail_schema = '{
      "type":"object",
+     "additionalProperties":false,
      "required":["topic"],
      "properties":{
        "topic":{"type":"string","minLength":2,"maxLength":80},

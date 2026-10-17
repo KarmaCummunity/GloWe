@@ -14,3 +14,4 @@ export * from './TimesheetEntry';
 export * from './FinanceLedger';
 export * from './CrmContact';
 export * from './OrgApplication';
+export * from './WhatsAppAdmin';

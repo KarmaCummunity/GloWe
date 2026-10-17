@@ -3,9 +3,20 @@
 // Keys mirror MARKETPLACE_SERVER_ERROR_CODES in @kc/domain (marketplaceWorldRules.ts).
 
 export const marketplaceErrors = {
-  items_image_required: 'Item listings need at least one photo.',
   food_expiry_required: 'Please enter a future expiry date and time for the food.',
   routed_world_requires_external_body: 'Please choose a verified organisation before publishing in this world.',
+  ride_route_required: 'Choose where the ride starts and where it ends.',
+  ride_departure_past: 'Choose a departure time in the future.',
+  knowledge_slot_invalid: 'Choose a future start time and an end time after it.',
+  seats_exhausted: 'No seats left on this ride.',
+  slots_exhausted: 'No slots left for this session.',
+  already_booked: 'You already have a booking here.',
+  ride_departed: 'This ride has already left.',
+  ride_not_started: 'You can mark the trip completed from an hour before departure.',
+  slot_started: 'This session has already started.',
+  session_not_started: 'You can mark the session completed from 15 minutes before it starts.',
+  own_listing: 'You cannot book your own listing.',
+  listing_not_available: 'This listing is no longer available.',
   medical_listing_requires_external_body: 'This medical listing type requires a verified organisation.',
   external_body_invalid: 'The selected organisation is not verified or does not belong to this world. Please choose another.',
   world_permission_denied: 'Publishing in this world is open to verified members only. Complete account verification and try again.',

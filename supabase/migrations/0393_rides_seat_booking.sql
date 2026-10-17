@@ -1,4 +1,4 @@
--- 0393: book / cancel ride seats via giving_handoffs.
+-- 0393: book / confirm / cancel ride seats via giving_handoffs (row-locked capacity).
 
 begin;
 
@@ -21,14 +21,26 @@ declare
 begin
   if v_uid is null then raise exception 'auth_required' using errcode = '42501'; end if;
 
+  -- Lock the listing row so concurrent bookings can't oversell seats.
   select * into v_l from public.listings
-   where listing_id = p_listing_id and world_slug = 'rides' and status = 'open';
+   where listing_id = p_listing_id and world_slug = 'rides' and status = 'open'
+   for update;
   if not found then raise exception 'listing_not_available' using errcode = 'P0002'; end if;
   if not public.is_listing_visible_to(v_l, v_uid) then
     raise exception 'listing_not_available' using errcode = 'P0002';
   end if;
   if v_l.owner_id = v_uid then raise exception 'own_listing' using errcode = '23514'; end if;
   if v_l.direction <> 'give' then raise exception 'not_ride_offer' using errcode = '23514'; end if;
+  if nullif(v_l.details->>'departs_at', '')::timestamptz <= now() then
+    raise exception 'ride_departed' using errcode = '23514';
+  end if;
+  if exists (
+    select 1 from public.giving_handoffs
+     where listing_id = p_listing_id and recipient_id = v_uid
+       and status in ('reserved', 'confirmed')
+  ) then
+    raise exception 'already_booked' using errcode = '23505';
+  end if;
 
   v_cap := coalesce((v_l.details->>'seats_available')::int, 1);
   select coalesce(sum(seats), 0)::int into v_taken

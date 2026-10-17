@@ -2,6 +2,7 @@
 // Screens import the use cases from here, not from @kc/application directly.
 // Mapped to SRS: FR-CHAT-001..013, FR-POST-010, FR-POST-014 AC4, FR-POST-015 AC1, FR-MOD-001, FR-MOD-007, FR-ADMIN-009.
 import { Platform } from 'react-native';
+import { createWhatsAppAdminUseCases } from './whatsappAdminContainer';
 import { createAuthSecureStorage } from '../services/authSecureStorage';
 import {
   getSupabaseClient,
@@ -205,6 +206,7 @@ export const container = {
   deleteTimesheet:  new DeleteTimesheetUseCase(timesheetsRepo),
   // V2-ADMIN-MONEY-9
   listFinanceLedger:   new ListFinanceLedgerUseCase(financeLedgerRepo),
+  ...createWhatsAppAdminUseCases(supabase),
   getFinanceSummary:   new GetFinanceSummaryUseCase(financeLedgerRepo),
   upsertFinanceEntry:  new UpsertFinanceEntryUseCase(financeLedgerRepo),
   deleteFinanceEntry:  new DeleteFinanceEntryUseCase(financeLedgerRepo),

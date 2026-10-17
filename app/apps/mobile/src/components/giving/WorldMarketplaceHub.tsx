@@ -27,10 +27,12 @@ type Props = {
   createPath: string;
   linksCategory?: 'transport' | 'knowledge';
   handoffsPath?: string;
+  /** Extra header content under the links (e.g. the rides route search). */
+  headerExtra?: React.ReactNode;
 };
 
 export function WorldMarketplaceHub({
-  worldSlug, icon, introKey, createPath, linksCategory, handoffsPath,
+  worldSlug, icon, introKey, createPath, linksCategory, handoffsPath, headerExtra,
 }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -70,6 +72,7 @@ export function WorldMarketplaceHub({
                 <Text style={styles.link}>{t('marketplace.createListing')}</Text>
               </Pressable>
             </View>
+            {headerExtra}
             {linksCategory ? (
               <View style={styles.secondary}>
                 <DonationLinksList categorySlug={linksCategory} />

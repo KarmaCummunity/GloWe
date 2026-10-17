@@ -38,6 +38,10 @@ export default function RidesLayout() {
         name="[id]"
         options={{ ...detailHeader, headerTitle: t('donations.rides.detailTitle') }}
       />
+      <Stack.Screen
+        name="handoffs"
+        options={{ ...detailHeader, headerTitle: t('givingHandoff.myHandoffs') }}
+      />
     </Stack>
   );
 }

@@ -265,6 +265,7 @@ export const marketplace = {
   fieldCity: 'City / area',
   fieldRadius: 'Search radius: {{km}} km',
   fieldPhotos: 'Photos',
+  fieldPhotosHint: 'Listings with a photo get more responses.',
   validationFailed: 'Please check the form ({{code}}).',
   errors: marketplaceErrors,
   shareLink: 'Share link',

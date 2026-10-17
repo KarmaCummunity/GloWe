@@ -7,7 +7,7 @@ create index if not exists listings_world_open_created_idx
   on public.listings (world_slug, created_at desc)
   where status = 'open';
 
-create index if not exists listings_rides_departs_gin_idx
+create index if not exists listings_rides_departs_idx
   on public.listings ((details->>'departs_at'))
   where world_slug = 'rides' and status = 'open';
 

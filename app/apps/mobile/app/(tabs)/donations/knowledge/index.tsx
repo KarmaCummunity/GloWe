@@ -8,6 +8,7 @@ export default function KnowledgeHubScreen() {
       introKey="donations.knowledge.hubBody"
       createPath="/(tabs)/donations/marketplace/create/knowledge"
       linksCategory="knowledge"
+      handoffsPath="/(tabs)/donations/knowledge/handoffs"
     />
   );
 }

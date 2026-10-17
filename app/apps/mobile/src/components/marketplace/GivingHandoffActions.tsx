@@ -8,6 +8,8 @@ import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
 import { ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
 import { track } from '../../lib/analytics';
+import { hapticSuccess } from '../../lib/haptics';
+import { handoffErrorKey } from '../../lib/marketplaceCreateErrors';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   box: { gap: spacing.sm, padding: spacing.md, borderRadius: 12, backgroundColor: colors.surfaceRaised },
@@ -55,9 +57,10 @@ export function GivingHandoffActions({ detail }: Props) {
       if (event === 'match_made') {
         track('match_made', { world: detail.worldSlug });
       }
+      hapticSuccess();
       await invalidate();
-    } catch {
-      alert(t('givingHandoff.errorGeneric'));
+    } catch (err) {
+      alert(t(handoffErrorKey(err) ?? 'givingHandoff.errorGeneric'));
     } finally {
       setBusy(false);
     }

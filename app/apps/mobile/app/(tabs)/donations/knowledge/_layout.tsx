@@ -33,6 +33,10 @@ export default function KnowledgeLayout() {
         name="index"
         options={{ ...detailHeader, headerTitle: t('donations.categories.knowledge.title') }}
       />
+      <Stack.Screen
+        name="handoffs"
+        options={{ ...detailHeader, headerTitle: t('givingHandoff.myHandoffs') }}
+      />
     </Stack>
   );
 }

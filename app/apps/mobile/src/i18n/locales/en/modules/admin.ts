@@ -4,6 +4,7 @@ import { adminTimeEn } from './adminTime';
 import { adminMoneyEn } from './adminMoney';
 import { adminCrmEn } from './adminCrm';
 import { adminOrgApprovalsEn } from './adminOrgApprovals';
+import { adminWhatsAppEn } from './adminWhatsApp';
 import { adminSurveysEn } from './adminSurveys';
 import { adminTasksEn } from './adminTasks';
 import { adminAdminsEn } from './adminAdmins';
@@ -24,6 +25,7 @@ export const adminEn = {
     crm:           'CRM',
     orgApprovals:  'Org Approvals',
     audit:         'Audit Log',
+    whatsapp:      'WhatsApp',
   },
   roles: {
     super_admin: 'Super Admin',
@@ -136,6 +138,7 @@ export const adminEn = {
   content: adminContentEn,
   time: adminTimeEn,
   money: adminMoneyEn,
+  whatsapp: adminWhatsAppEn,
   crm: adminCrmEn,
   orgApprovals: adminOrgApprovalsEn,
   surveys: adminSurveysEn,
