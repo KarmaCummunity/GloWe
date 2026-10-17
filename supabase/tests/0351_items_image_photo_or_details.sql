@@ -1,4 +1,4 @@
--- supabase/tests/0351_items_image_photo_or_details.sql | items image: photo OR details image
+-- supabase/tests/0351_items_image_photo_or_details.sql | items image optional (0357 removed the 0351 rule)
 
 begin;
 
@@ -20,7 +20,7 @@ select pg_temp.mk_user('00000000-0000-0000-0000-000000351001', 'items_photo');
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', '00000000-0000-0000-0000-000000351001', 'role', 'authenticated')::text, true);
 
--- 1) RPC with an attached photo (no image in details) succeeds at commit-time check.
+-- 1) RPC with an attached photo (no image in details) succeeds.
 do $$
 declare
   v_kind uuid;
@@ -53,42 +53,46 @@ begin
   execute 'set constraints all deferred';
 end $$;
 
--- 3) RPC without any photo or details image fails with items_image_required.
+-- 3) RPC without any photo or details image succeeds (0357: photos are optional).
 do $$
 declare
   v_kind uuid;
+  v_id uuid;
 begin
   select kind_id into v_kind from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
-  begin
-    perform public.create_marketplace_listing(
-      p_kind_id => v_kind, p_title => 'Table without photo', p_details => '{}'::jsonb,
-      p_media_paths => null::text[]);
-    execute 'set constraints all immediate';
-    raise exception 'ASSERT FAILED: items listing without photo should fail';
-  exception when check_violation then
-    if sqlerrm <> 'items_image_required' then
-      raise exception 'ASSERT FAILED: expected items_image_required, got %', sqlerrm;
-    end if;
-  end;
+  v_id := public.create_marketplace_listing(
+    p_kind_id => v_kind, p_title => 'Table without photo', p_details => '{}'::jsonb,
+    p_media_paths => null::text[]);
+  execute 'set constraints all immediate';
   execute 'set constraints all deferred';
+  if not exists (select 1 from public.listings where listing_id = v_id) then
+    raise exception 'ASSERT FAILED: items listing without photo should be created';
+  end if;
 end $$;
 
--- 4) Removing the last photo of an image-less items listing fails.
+-- 4) Removing the last photo of an image-less items listing succeeds.
 do $$
 declare
   v_id uuid;
 begin
   select listing_id into v_id from public.listings where title = 'Chair with photo';
-  begin
-    delete from public.listing_media where listing_id = v_id;
-    execute 'set constraints all immediate';
-    raise exception 'ASSERT FAILED: deleting the last photo should fail';
-  exception when check_violation then
-    if sqlerrm <> 'items_image_required' then
-      raise exception 'ASSERT FAILED: expected items_image_required, got %', sqlerrm;
-    end if;
-  end;
+  delete from public.listing_media where listing_id = v_id;
+  execute 'set constraints all immediate';
   execute 'set constraints all deferred';
+  if exists (select 1 from public.listing_media where listing_id = v_id) then
+    raise exception 'ASSERT FAILED: last photo should be deletable';
+  end if;
+end $$;
+
+-- 5) The image check triggers and function are gone.
+do $$
+begin
+  if exists (select 1 from pg_trigger where tgname like '%items_image_required%') then
+    raise exception 'ASSERT FAILED: items image triggers should be dropped';
+  end if;
+  if to_regprocedure('public.listings_items_image_check()') is not null then
+    raise exception 'ASSERT FAILED: listings_items_image_check should be dropped';
+  end if;
 end $$;
 
 rollback;

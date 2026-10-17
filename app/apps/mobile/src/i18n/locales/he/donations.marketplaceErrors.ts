@@ -3,7 +3,6 @@
 // Keys mirror MARKETPLACE_SERVER_ERROR_CODES in @kc/domain (marketplaceWorldRules.ts).
 
 export const marketplaceErrors = {
-  items_image_required: 'מודעה בעולם החפצים חייבת לפחות תמונה אחת.',
   food_expiry_required: 'יש להזין תאריך ושעת תפוגה עתידיים למזון.',
   routed_world_requires_external_body: 'יש לבחור ארגון מאומת לפני הפרסום בעולם זה.',
   medical_listing_requires_external_body: 'סוג מודעה זה ברפואה מחייב בחירת ארגון מאומת.',

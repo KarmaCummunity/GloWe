@@ -3,7 +3,6 @@
 // Keys mirror MARKETPLACE_SERVER_ERROR_CODES in @kc/domain (marketplaceWorldRules.ts).
 
 export const marketplaceErrors = {
-  items_image_required: 'Item listings need at least one photo.',
   food_expiry_required: 'Please enter a future expiry date and time for the food.',
   routed_world_requires_external_body: 'Please choose a verified organisation before publishing in this world.',
   medical_listing_requires_external_body: 'This medical listing type requires a verified organisation.',

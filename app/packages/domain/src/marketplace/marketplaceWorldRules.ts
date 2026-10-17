@@ -1,17 +1,16 @@
-// Client-side mirror of the server world rules (0266 listings_enforce_world_rules +
-// 0351 items image check) and a mapper from server error codes to stable codes the
-// UI can translate. Keep in sync with supabase/migrations/0266, 0351.
+// Client-side mirror of the server world rules (0266 listings_enforce_world_rules) and a
+// mapper from server error codes to stable codes the UI can translate.
+// Items photos are optional (product decision; 0357 dropped the 0351 items image check).
+// Keep in sync with supabase/migrations/0266, 0357.
 
 export const ROUTED_WORLDS = ['medical', 'animals', 'environment'] as const;
 
 export type MarketplaceRuleErrorCode =
-  | 'items_image_required'
   | 'food_expiry_required'
   | 'routed_world_requires_external_body';
 
 /** Server-raised listing error codes the UI has friendly copy for. */
 export const MARKETPLACE_SERVER_ERROR_CODES = [
-  'items_image_required',
   'food_expiry_required',
   'routed_world_requires_external_body',
   'medical_listing_requires_external_body',
@@ -34,6 +33,7 @@ export type MarketplaceServerErrorCode = (typeof MARKETPLACE_SERVER_ERROR_CODES)
 export interface WorldRulesInput {
   worldSlug: string;
   details: Record<string, unknown>;
+  /** Number of attached photos. Informational only: photos are optional in every world. */
   photoCount: number;
   externalBodyId?: string | null;
   now?: Date;
@@ -44,12 +44,7 @@ function nonEmptyString(v: unknown): boolean {
 }
 
 export function validateMarketplaceWorldRules(input: WorldRulesInput): MarketplaceRuleErrorCode | null {
-  const { worldSlug, details, photoCount } = input;
-
-  if (worldSlug === 'items') {
-    const hasDetailsImage = nonEmptyString(details.image_url) || nonEmptyString(details.image_path);
-    if (photoCount < 1 && !hasDetailsImage) return 'items_image_required';
-  }
+  const { worldSlug, details } = input;
 
   if (worldSlug === 'food') {
     const raw = details.expires_at;
