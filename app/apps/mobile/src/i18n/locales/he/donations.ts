@@ -116,6 +116,9 @@ export const donations = {
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
+  knowledge: {
+    hubBody: 'הציעו חונכות או שיעורים, הזמינו משבצת, השלימו ודרגו. ארגוני למידה מופיעים למטה.',
+  },
   addLinkModal: {
     title: 'הוספת קישור חדש',
     editTitle: 'עריכת קישור',

@@ -6,6 +6,7 @@ import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
+import { ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
 import { track } from '../../lib/analytics';
 
 const useStyles = makeUseStyles(({ colors }) => ({
@@ -36,7 +37,8 @@ export function GivingHandoffActions({ detail }: Props) {
   });
 
   if (detail.direction !== 'give') return null;
-  if (detail.worldSlug !== 'items' && detail.worldSlug !== 'food') return null;
+  const handoffWorlds = ['items', 'food', 'rides', 'knowledge'] as const;
+  if (!(handoffWorlds as readonly string[]).includes(detail.worldSlug)) return null;
   if (!userId || detail.ownerId === userId) {
     if (!handoff.data) return null;
   }
@@ -99,24 +101,68 @@ export function GivingHandoffActions({ detail }: Props) {
         </Pressable>
       ) : null}
 
-      {h?.status === 'reserved' && isOwner ? (
+      {!h && detail.worldSlug === 'rides' && !isOwner ? (
         <Pressable
           style={styles.btn}
           disabled={busy}
-          onPress={() => run(async () => { await givingHandoffUseCases.confirmItem().execute(h.handoffId); })}
+          onPress={() => run(async () => { await ridesKnowledgeRpcs.bookRideSeat(detail.listingId, 1); }, 'match_made')}
+        >
+          <Text style={styles.btnText}>{t('givingHandoff.bookRideSeat')}</Text>
+        </Pressable>
+      ) : null}
+
+      {!h && detail.worldSlug === 'knowledge' && !isOwner ? (
+        <Pressable
+          style={styles.btn}
+          disabled={busy}
+          onPress={() => run(async () => { await ridesKnowledgeRpcs.bookKnowledgeSlot(detail.listingId); }, 'match_made')}
+        >
+          <Text style={styles.btnText}>{t('givingHandoff.bookKnowledgeSlot')}</Text>
+        </Pressable>
+      ) : null}
+
+      {h?.status === 'reserved' && isOwner && detail.worldSlug !== 'knowledge' ? (
+        <Pressable
+          style={styles.btn}
+          disabled={busy}
+          onPress={() =>
+            run(async () => {
+              if (detail.worldSlug === 'rides') {
+                await ridesKnowledgeRpcs.confirmRideBooking(h.handoffId);
+              } else if (detail.worldSlug === 'items' || detail.worldSlug === 'food') {
+                await givingHandoffUseCases.confirmItem().execute(h.handoffId);
+              }
+            })
+          }
         >
           <Text style={styles.btnText}>{t('givingHandoff.confirmReservation')}</Text>
         </Pressable>
       ) : null}
 
-      {h?.status === 'confirmed' && (isOwner || isRecipient) ? (
+      {(h?.status === 'confirmed' || (h?.status === 'reserved' && (detail.worldSlug === 'knowledge'))) && (isOwner || isRecipient) ? (
         <>
           <Pressable
             style={styles.btn}
             disabled={busy}
-            onPress={() => run(async () => { await givingHandoffUseCases.markHandedOver().execute(h.handoffId); })}
+            onPress={() =>
+              run(async () => {
+                if (detail.worldSlug === 'rides') {
+                  await ridesKnowledgeRpcs.completeRideTrip(h.handoffId);
+                } else if (detail.worldSlug === 'knowledge') {
+                  await ridesKnowledgeRpcs.completeKnowledgeSession(h.handoffId);
+                } else {
+                  await givingHandoffUseCases.markHandedOver().execute(h.handoffId);
+                }
+              })
+            }
           >
-            <Text style={styles.btnText}>{t('givingHandoff.markHandedOver')}</Text>
+            <Text style={styles.btnText}>
+              {detail.worldSlug === 'rides'
+                ? t('givingHandoff.completeTrip')
+                : detail.worldSlug === 'knowledge'
+                  ? t('givingHandoff.completeSession')
+                  : t('givingHandoff.markHandedOver')}
+            </Text>
           </Pressable>
           <Pressable
             style={[styles.btn, styles.btnSecondary]}

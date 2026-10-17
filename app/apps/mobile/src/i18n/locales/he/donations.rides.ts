@@ -3,6 +3,7 @@
 // size cap. Composed back into `donations.rides` at the export site.
 
 export const rides = {
+  hubBody: 'הציעו או בקשו נסיעה עם מוצא, יעד, זמן ומקומות. התאמות לפי קרבת מסלול. ארגוני תחבורה למטה.',
   hubTitle: 'טרמפים',
   hubSubtitle: 'הצעה או בקשה — בלי לחפש בקבוצות',
   detailTitle: 'פרטי נסיעה',

@@ -116,6 +116,9 @@ export const donations = {
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
+  knowledge: {
+    hubBody: 'Offer mentoring or lessons, book a slot, then complete and rate. Learning organisations are listed below.',
+  },
   addLinkModal: {
     title: 'Add a new link',
     editTitle: 'Edit link',

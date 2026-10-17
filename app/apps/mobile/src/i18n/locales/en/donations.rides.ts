@@ -3,6 +3,7 @@
 // size cap. Composed back into `donations.rides` at the export site.
 
 export const rides = {
+  hubBody: 'Offer or request a ride with origin, destination, time and seats. Matches use route proximity. Curated transport organisations are below.',
   hubTitle: 'Rides',
   hubSubtitle: 'Offer or request — without searching through groups',
   detailTitle: 'Ride details',
