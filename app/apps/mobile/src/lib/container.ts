@@ -10,6 +10,7 @@ import {
   SupabaseChatRepository,
   SupabaseChatRealtime,
   SupabaseReportRepository,
+  SupabaseBlockRepository,
   SupabaseDonationLinksRepository,
   SupabasePostRepository,
   SupabasePostEngagementRepository,
@@ -47,6 +48,7 @@ import {
   SubmitSupportIssueUseCase,
   ReportChatUseCase,
   ReportPostUseCase,
+  SetUserBlockedUseCase,
   ReportListingUseCase,
   DeletePostUseCase,
   AdminRemovePostUseCase,
@@ -132,6 +134,7 @@ const userRepo = new SupabaseUserRepository(supabase);
 const chatRepo = new SupabaseChatRepository(supabase);
 const chatRealtime = new SupabaseChatRealtime(supabase);
 const reportRepo = new SupabaseReportRepository(supabase);
+const blockRepo = new SupabaseBlockRepository(supabase);
 const donationLinksRepo = new SupabaseDonationLinksRepository(supabase);
 const postRepo = new SupabasePostRepository(supabase);
 const postEngagementRepo = new SupabasePostEngagementRepository(supabase);
@@ -235,6 +238,8 @@ export const container = {
   // Reports
   reportChat: new ReportChatUseCase(reportRepo),
   reportPost: new ReportPostUseCase(reportRepo),
+  blockRepo,
+  setUserBlocked: new SetUserBlockedUseCase(blockRepo),
   reportListing: new ReportListingUseCase(reportRepo),
 
   // Post moderation

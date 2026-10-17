@@ -16,6 +16,7 @@ import { useAdminRoles } from '../../hooks/useAdminRoles';
 import { useTranslation } from 'react-i18next';
 import { ReportUserModal } from './ReportUserModal';
 import { BanUserModal } from './BanUserModal';
+import { useUserBlock } from '../../hooks/useUserBlock';
 
 interface Props {
   targetUserId: string;
@@ -29,6 +30,7 @@ export function ProfileOverflowMenu({ targetUserId }: Props) {
   const { t } = useTranslation();
   const { roles } = useAdminRoles();
   const canBan = hasPermission(roles as readonly AdminRole[], 'reports.permanent_ban');
+  const block = useUserBlock(targetUserId);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [openModal, setOpenModal] = useState<OpenModal>(null);
 
@@ -60,6 +62,25 @@ export function ProfileOverflowMenu({ targetUserId }: Props) {
             >
               <Text style={styles.itemText}>{t('moderation.report.user.title')}</Text>
             </TouchableOpacity>
+            {block.canBlock ? (
+              <>
+                <View style={styles.divider} />
+                <TouchableOpacity
+                  style={styles.item}
+                  onPress={() => {
+                    close();
+                    void block.toggle();
+                  }}
+                  disabled={block.busy}
+                  accessibilityRole="button"
+                  testID="profile-block-toggle"
+                >
+                  <Text style={[styles.itemText, block.isBlocked ? null : styles.itemDestructive]}>
+                    {t(block.isBlocked ? 'moderation.block.unblock' : 'moderation.block.block')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
             {canBan ? (
               <>
                 <View style={styles.divider} />
