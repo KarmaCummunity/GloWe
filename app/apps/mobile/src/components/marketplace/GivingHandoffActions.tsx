@@ -137,7 +137,7 @@ export function GivingHandoffActions({ detail }: Props) {
                 })
               }
             >
-              <Text style={typography.h2}>{star <= 3 ? '★' : '★'}</Text>
+              <Text style={typography.h2}>★</Text>
             </Pressable>
           ))}
         </View>

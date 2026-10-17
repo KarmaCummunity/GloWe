@@ -4,26 +4,15 @@ import { KcFlashList } from '../lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing } from '@kc/ui';
 import { Screen } from '../ui/Screen';
+import { worldHubBaseStyles } from './worldHubStyles';
 import { IconTile } from '../ui/IconTile';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibility';
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  hero: { alignItems: 'center' as const, gap: spacing.md, padding: spacing.lg },
-  body: { ...typography.body, color: colors.textSecondary, textAlign: 'center' as const },
-  links: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.md, paddingHorizontal: spacing.lg },
-  link: { ...typography.body, color: colors.primary, fontWeight: '600' as const },
-  row: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceRaised,
-  },
-  rowTitle: { ...typography.bodyLarge, color: colors.textPrimary },
-  rowMeta: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
+  ...worldHubBaseStyles(colors),
   urgent: { color: colors.error, fontWeight: '600' as const },
 }));
 
