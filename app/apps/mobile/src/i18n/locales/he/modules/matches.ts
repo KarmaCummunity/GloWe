@@ -1,0 +1,26 @@
+// Matching v2 (0420–0423) — "Matches for you" screen + donations hub card.
+export const matchesHe = {
+  title: 'התאמות בשבילך',
+  titleWithCount: 'התאמות בשבילך ({{count}})',
+  intro: 'אנחנו מתאימים אוטומטית בין הבקשות וההצעות שלך לאחרים בסביבה. אשרו כדי ליצור קשר, או דחו כדי לראות פחות כאלה.',
+  empty: 'עדיין אין התאמות. פרסמו בקשה או הצעה ונחפש התאמה.',
+  error: 'לא הצלחנו לטעון התאמות. נסו שוב.',
+  seeAll: 'לכל ההתאמות',
+  someone: 'חבר/ת קהילה',
+  score: 'התאמה של {{pct}}%',
+  distanceKm: 'במרחק {{km}} ק"מ',
+  forYourOffer: 'להצעה שלך: {{title}}',
+  forYourRequest: 'לבקשה שלך: {{title}}',
+  accept: 'אישור',
+  decline: 'דחייה',
+  viewListing: 'צפייה',
+  accepted: 'אושר — עדכנו את הצד השני.',
+  mutual: 'יש התאמה! תאמו בצ\'אט.',
+  declined: 'נדחה. נציע התאמות טובות יותר.',
+  state: {
+    new: 'חדש',
+    theyAccepted: 'הצד השני אישר',
+    waiting: 'ממתין לצד השני',
+    mutual: 'הותאם',
+  },
+};

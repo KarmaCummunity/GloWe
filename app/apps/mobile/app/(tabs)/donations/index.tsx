@@ -25,6 +25,7 @@ import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBa
 import { useScreenAside } from '../../../src/components/aside/useScreenAside';
 import { CommunityStatsAside } from '../../../src/components/aside/CommunityStatsAside';
 import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
+import { MatchesForYouCard } from '../../../src/components/matching/MatchesForYouCard';
 
 interface CategoryTile {
   key: string;
@@ -204,7 +205,7 @@ export default function DonationsHubScreen() {
           <Text style={styles.heroTitle}>{t('donations.hubHeroTitle')}</Text>
           <Text style={styles.heroSubtitle}>{t('donations.hubHeroSubtitle')}</Text>
         </MotionEntry>
-
+        <MatchesForYouCard />
         {/* ── Featured: items ──────────────── */}
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
           <PressableScale
