@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   Share,
@@ -11,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
+import { KCImage } from '../ui/KCImage';
 import { listingImagePublicUrl } from '../../services/listingImageUpload';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useSimilarListings } from '../../hooks/useMarketplaceListingDetail';
@@ -66,9 +66,9 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
         {detail.media.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {detail.media.map((item) => (
-              <Image
+              <KCImage
                 key={item.storagePath}
-                source={{ uri: listingImagePublicUrl(item.storagePath) }}
+                uri={listingImagePublicUrl(item.storagePath)}
                 style={styles.galleryImg}
               />
             ))}
@@ -89,7 +89,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
             }}
           >
             {detail.owner.avatarUrl ? (
-              <Image source={{ uri: detail.owner.avatarUrl }} style={styles.avatar} />
+              <KCImage uri={detail.owner.avatarUrl} style={styles.avatar} />
             ) : (
               <View style={styles.avatar} />
             )}

@@ -20,12 +20,50 @@ export interface MarketplaceBrowseFilters {
   lng?: number | null;
   radiusKm?: number | null;
   limit?: number;
+  /** @deprecated use `cursor` (keyset); honoured by the server only without a cursor. */
   offset?: number;
+  cursor?: MarketplaceBrowseCursor | null;
+}
+
+/** Keyset cursor for browse_listings: (sortKey asc, urgency/createdAt/listingId desc). */
+export interface MarketplaceBrowseCursor {
+  sortKey: number;
+  urgencyLevel: number;
+  createdAt: string;
+  listingId: string;
+}
+
+/** Keyset cursor for marketplace_search: (score desc, listingId desc). */
+export interface MarketplaceSearchCursor {
+  score: number;
+  listingId: string;
+}
+
+/** Keyset cursor for list_my_listings: (updatedAt desc, listingId desc). */
+export interface MyListingsCursor {
+  updatedAt: string;
+  listingId: string;
+}
+
+export interface MarketplacePage<T, C> {
+  rows: T[];
+  nextCursor: C | null;
 }
 
 export interface IMarketplaceRepository {
   browse(filters: MarketplaceBrowseFilters): Promise<MarketplaceBrowseRow[]>;
+  browsePage(
+    filters: MarketplaceBrowseFilters,
+  ): Promise<MarketplacePage<MarketplaceBrowseRow, MarketplaceBrowseCursor>>;
   search(query: string, worldSlug?: string | null, limit?: number): Promise<string[]>;
+  searchPage(
+    query: string,
+    worldSlug: string | null,
+    limit: number,
+    cursor?: MarketplaceSearchCursor | null,
+  ): Promise<MarketplacePage<string, MarketplaceSearchCursor>>;
+  /** One round trip for many cards, in the order of `listingIds`. */
+  getListingCards(listingIds: readonly string[]): Promise<MarketplaceBrowseRow[]>;
   recommendForYou(limit?: number): Promise<string[]>;
   mapClusters(bounds: {
     swLat: number;
@@ -60,6 +98,10 @@ export interface IMarketplaceRepository {
   shareToFeed(listingId: string): Promise<string>;
   startChat(listingId: string, openingMessage?: string | null): Promise<string>;
   listMyListings(limit?: number, offset?: number): Promise<MyListingRow[]>;
+  listMyListingsPage(
+    limit: number,
+    cursor?: MyListingsCursor | null,
+  ): Promise<MarketplacePage<MyListingRow, MyListingsCursor>>;
   listProfileListings(ownerId: string, limit?: number): Promise<ProfileListingRow[]>;
   updateMyListing(
     listingId: string,
