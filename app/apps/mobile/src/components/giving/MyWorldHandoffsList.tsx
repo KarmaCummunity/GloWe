@@ -11,7 +11,7 @@ import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
 const useStyles = makeUseStyles(({ colors }) => worldHubBaseStyles(colors));
 
 /** My handoffs (as owner or recipient) for one giving world. */
-export function MyWorldHandoffsList({ worldSlug }: { readonly worldSlug: 'items' | 'food' }) {
+export function MyWorldHandoffsList({ worldSlug }: { readonly worldSlug: 'items' | 'food' | 'rides' | 'knowledge' }) {
   const router = useRouter();
   const styles = useStyles();
   const rows = useQuery({

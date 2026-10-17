@@ -47,7 +47,7 @@ begin
       details, expires_at
     )
     select v_user, 'rides', kind_id, 'give', 'Ride offer', 'native', 'published',
-           jsonb_build_object('cost_share_ils', 999, 'image_url', 'https://example.test/r.jpg'),
+           jsonb_build_object('cost_share_ils', 999, 'departs_at', '2030-01-01T08:00:00Z', 'seats_available', 2),
            now() + interval '1 day'
       from public.listing_kinds where world_slug = 'rides' and slug = 'ride_offer';
     raise exception 'ASSERT FAILED: ride cost cap should fail';

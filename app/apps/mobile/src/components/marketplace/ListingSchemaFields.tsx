@@ -43,12 +43,14 @@ interface Props {
   schema: Record<string, unknown>;
   values: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
+  /** Keys rendered elsewhere (e.g. ride route picker). */
+  hiddenKeys?: readonly string[];
 }
 
-export function ListingSchemaFields({ schema, values, onChange }: Props) {
+export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Props) {
   const styles = useStyles();
   const props = (schema.properties ?? {}) as Record<string, SchemaProp>;
-  const keys = Object.keys(props);
+  const keys = Object.keys(props).filter((k) => !hiddenKeys?.includes(k));
 
   const setVal = (key: string, val: unknown) => onChange({ ...values, [key]: val });
 

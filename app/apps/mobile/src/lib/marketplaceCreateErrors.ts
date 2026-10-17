@@ -25,7 +25,16 @@ export interface MarketplaceRuleFieldError {
 const FIELD_BY_CODE: Record<MarketplaceRuleErrorCode, MarketplaceRuleFieldError['field']> = {
   food_expiry_required: 'details',
   routed_world_requires_external_body: 'org',
+  ride_route_required: 'details',
+  ride_departure_past: 'details',
+  knowledge_slot_invalid: 'details',
 };
+
+/** i18n key for a booking / handoff RPC error; null when there is no specific copy. */
+export function handoffErrorKey(err: unknown): MarketplaceErrorKey | null {
+  const code = mapMarketplaceServerError(err);
+  return code ? `marketplace.errors.${code}` : null;
+}
 
 /** Client-side world-rule check for the create form (mirrors 0266; photos are optional). */
 export function marketplaceRuleFieldError(input: WorldRulesInput): MarketplaceRuleFieldError | null {
