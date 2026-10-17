@@ -82,3 +82,7 @@ Tracking: **No**. Data sold: **No**. Data encrypted in transit: **Yes**. Users c
 
 > Karma Community is a free giving community (items, food, rides, volunteering, knowledge, donations to verified nonprofits). Sign in with the demo account below. To test reporting: open any post → ⋮ → Report. To block a user: open a profile → ⋮ → Block. To delete an account: Settings → Delete account.
 > Demo account: *(to be created by Nave on prod — never commit credentials)*
+
+## Screenshots
+
+Draft captures at the required sizes are in [`screenshots/`](screenshots/README.md): iPhone 6.9", iPhone 6.5", Android phone.
