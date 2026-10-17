@@ -1,0 +1,57 @@
+name: E2E nightly (dev)
+
+# Full Playwright QA suite against https://dev.karma-community.pages.dev + kc-dev.
+# Uses the public kc-dev seed users (supabase/seed/kc-dev) and the publishable anon key
+# read from the deployed bundle, so it needs no repository secrets. Never targets prod.
+on:
+  schedule:
+    - cron: '0 1 * * *' # 04:00 Asia/Jerusalem (summer time)
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-nightly-dev
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    name: playwright (dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEV_WEB_URL: ${{ vars.DEV_WEB_URL || 'https://dev.karma-community.pages.dev' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Wait for dev deployment
+        run: node scripts/wait-for-url.mjs "${DEV_WEB_URL%/}/" 12 15000
+
+      - name: Install Playwright
+        working-directory: tests/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run QA suite
+        working-directory: tests/e2e
+        run: npx playwright test
+
+      - name: Summary
+        if: always()
+        working-directory: tests/e2e
+        run: node scripts/summary.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-nightly
+          path: |
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
+          retention-days: 14

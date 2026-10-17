@@ -1,0 +1,58 @@
+/**
+ * Shared E2E environment for the kc-dev QA suite.
+ * Defaults target dev (https://dev.karma-community.pages.dev + kc-dev Supabase) and the
+ * public seed users from supabase/seed/kc-dev/seed.sql (dev-only credentials, already in repo).
+ * Never point this at production.
+ */
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+export const BASE_URL = (process.env.DEV_WEB_URL ?? 'https://dev.karma-community.pages.dev').replace(/\/$/, '');
+export const SUPABASE_URL = (process.env.E2E_SUPABASE_URL ?? 'https://enbqriuxvvuontiwslun.supabase.co').replace(/\/$/, '');
+
+if (/kdqtbdbzwvlugkhonexg/.test(SUPABASE_URL) || /karma-community-kc\.com/.test(BASE_URL)) {
+  throw new Error('E2E suite refuses to run against production.');
+}
+
+/** Seed users' password, read from the committed kc-dev seed so it is not duplicated here. */
+function seedPassword(): string {
+  const seed = readFileSync(
+    fileURLToPath(new URL('../../../supabase/seed/kc-dev/seed.sql', import.meta.url)),
+    'utf8',
+  );
+  const m = seed.match(/@seed\.kc\.test',\s*crypt\('([^']+)'/);
+  if (!m) throw new Error('Could not read the seed password from supabase/seed/kc-dev/seed.sql');
+  return m[1]!;
+}
+const SEED_PASSWORD = process.env.E2E_SEED_PASSWORD ?? seedPassword();
+export const USER_A = {
+  email: process.env.E2E_USER_A_EMAIL ?? 'user1@seed.kc.test',
+  password: process.env.E2E_USER_A_PASSWORD ?? SEED_PASSWORD,
+};
+export const USER_B = {
+  email: process.env.E2E_USER_B_EMAIL ?? 'user2@seed.kc.test',
+  password: process.env.E2E_USER_B_PASSWORD ?? SEED_PASSWORD,
+};
+
+let cachedAnon: string | undefined;
+
+/** Publishable anon key: env first, else read it from the deployed web bundle (it is public). */
+export async function anonKey(): Promise<string> {
+  if (process.env.E2E_SUPABASE_ANON_KEY) return process.env.E2E_SUPABASE_ANON_KEY;
+  if (cachedAnon) return cachedAnon;
+  const html = await (await fetch(`${BASE_URL}/`)).text();
+  const ref = new URL(SUPABASE_URL).hostname.split('.')[0];
+  for (const m of html.matchAll(/\/_expo\/static\/js\/web\/[^"']+\.js/g)) {
+    const js = await (await fetch(`${BASE_URL}${m[0]}`)).text();
+    for (const k of js.matchAll(/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g)) {
+      const payload = JSON.parse(Buffer.from(k[0].split('.')[1]!, 'base64url').toString());
+      if (payload.role === 'anon' && payload.ref === ref) return (cachedAnon = k[0]);
+    }
+    const pub = js.match(/sb_publishable_[A-Za-z0-9_-]+/);
+    if (pub) return (cachedAnon = pub[0]);
+  }
+  throw new Error('Could not find the Supabase anon key; set E2E_SUPABASE_ANON_KEY.');
+}
+
+export const STORAGE_A = '.auth/user-a.json';
+export const STORAGE_B = '.auth/user-b.json';
