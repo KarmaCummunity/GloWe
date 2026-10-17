@@ -10,7 +10,7 @@
 | Secondary category (iOS) | Lifestyle | |
 | Privacy policy URL | https://karma-community-kc.com/privacy (dev: https://dev.karma-community.pages.dev/privacy#en) | |
 | Terms URL | https://karma-community-kc.com/terms#en | |
-| Support URL | mailto:karmacommunity2.0@gmail.com (a /support page is recommended) | |
+| Support URL | https://karma-community-kc.com/support#en (dev: https://dev.karma-community.pages.dev/support#en) | |
 
 ## Full description
 
