@@ -35,6 +35,7 @@
 |----|------|--------|------|
 | P3.1 | Block / unblock + visibility restoration | ⏳ Deferred (EXEC-9) | `spec/08_moderation.md` FR-MOD-003/004/009 |
 | P3.3 | Quiet hours / DND | ⏳ Deferred | `spec/09_notifications.md` FR-NOTIF-016 |
+| P3.MATCH-XW | **Cross-world matching** (improvement, P3). Goal: pair listings across worlds when one enables the other (item give ↔ ride offer for pickup/delivery; food give ↔ volunteer time for distribution). AC: opt-in per world pair in `matching_settings`; reuses `match_candidates` with a `link_kind`; geo/time windows of both legs respected; never notifies above the per-user cap; SQL test + seed sample; off by default. | ⏳ Deferred (PM 2026-10-18) | `docs/SSOT/MATCHING_V2.md` |
 
 ---
 

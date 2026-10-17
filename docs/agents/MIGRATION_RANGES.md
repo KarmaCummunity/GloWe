@@ -45,7 +45,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | merged (#994) |
 | 0417–0419 | feed hides/mutes view (`feed_visible_posts`), paged post/user search RPCs (no exact count), "show my active status" presence privacy | merged (#1001) |
 | 0420–0423 | matching engine v2: `match_candidates` + scorer across worlds (PostGIS/time/trust/mutes/blocks), pg_cron sweep + on-write trigger, in-app/WhatsApp delivery (consent, quiet hours, daily cap), accept/decline feedback, LLM re-rank hooks (flag off) — see `docs/SSOT/MATCHING_V2.md` | merged (#1004) |
-| 0424–0429 | matching engine v2 follow-ups (reserved) | claimed (matching v2) |
+| 0424–0427 | matching v2 quality: Hebrew-aware head-noun/keyword text score + notify text floor, rides route corridor/direction/window/seats + re-score, kc-dev demo ride requests (guarded), kc-dev daily e2e listing cleanup (guarded) | in progress (feat/matching-quality) |
+| 0428–0429 | matching engine v2 follow-ups (reserved) | claimed (matching v2) |
 | 0430+ | — | free |
 
 ## Next free ranges
