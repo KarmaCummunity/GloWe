@@ -120,14 +120,16 @@ Do **not** require **CI — main release guard** on `dev` (prod-only release-sou
 
 Operator checklist: [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 
-**CI layout (2026-05-22):** PR/push checks are split by responsibility with path filters so unrelated work doesn't burn time:
+**CI layout (2026-05-22, speed pass 2026-10-17):** PR/push checks are split by responsibility. Required job **names stay stable** and always report; a cheap `dorny/paths-filter` `changes` job skips heavy work when the PR does not touch that area (so DB-only PRs do not burn mobile/web minutes and vice versa). PR workflows use `concurrency: group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true` so superseded pushes cancel. Shared setup: `.github/actions/setup-pnpm-turbo` (pnpm store cache + local Turbo cache under `app/.turbo`; optional remote cache via `TURBO_TOKEN`/`TURBO_TEAM` if set later).
 
 - `.github/workflows/ci-frontend.yml` — `app/**`, `Dockerfile`, Hebrew scan. Jobs: `typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`.
 - `.github/workflows/ci-dev-guard.yml` — every non-draft PR to `dev`; migration destructive-op scan (`D-54`).
 - `.github/workflows/ci-backend.yml` — `supabase/**` + the migration chain script. Jobs: `migration chain lint`, then `apply migrations · rls · types · sql probes` against a fresh local Supabase stack (replaces the old `db-validate.yml`).
 - `.github/workflows/ci-contract.yml` — infra/application/domain packages + migrations + locale + manifest script. Jobs: `rpc · table contract`, `coalesce mirror · layer invariants` (file-size + layer + domain-typed-error guard), `web manifest parity`.
 - `.github/workflows/ci-pr.yml` — `pull_request` only, non-draft. Job: `PR hygiene` (Conventional Commits title + required `Mapped to spec` line).
-- `.github/workflows/ci-actionlint.yml` — `.github/workflows/**` only; runs `actionlint` (pinned) + shellcheck over every workflow's `run:` blocks. Meta-guard: agents edit CI unsupervised, so workflow files need their own linter. **Not** a required check (path-filtered — would hang "Expected" on non-workflow PRs).
+- `.github/workflows/ci-actionlint.yml` — `.github/workflows/**` (+ composite actions); runs `actionlint` (pinned) + shellcheck over every workflow's `run:` blocks. Meta-guard: agents edit CI unsupervised, so workflow files need their own linter. **Not** a required check (path-filtered — would hang "Expected" on non-workflow PRs).
+
+**Store pipelines (manual only):** one TestFlight workflow (`.github/workflows/testflight-ios.yml`) and one Play internal workflow (`.github/workflows/play-internal.yml`). Both are `workflow_dispatch` only — never auto-run on push; prod/release submit stays disabled.
 
 Tooling pins: Node version comes from the repo-root `.nvmrc` (all `setup-node` steps use `node-version-file`); pnpm version comes from the `packageManager` field in `app/package.json` (all `pnpm/action-setup` steps use `package_json_file`). Bump either in one place only. **One deliberate exception:** the `ci-backend.yml` db-validate job pins Node 22 — `@supabase/realtime-js` needs the native WebSocket global (Node ≥ 22) for the sqlProbes integration tests; do not align it back to `.nvmrc`.
 

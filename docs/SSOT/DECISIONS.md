@@ -1493,10 +1493,19 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ---
 
+## D-193 — CI speed + single store workflows (2026-10-17)
+
+**Decision.** Keep required CI job display names stable; gate heavy work with `dorny/paths-filter` so DB-only and FE-only PRs still report required contexts but skip unrelated minutes. Use `${{ github.workflow }}-${{ github.ref }}` concurrency with `cancel-in-progress` on PR CI. Share pnpm + local Turbo cache via `.github/actions/setup-pnpm-turbo`. Consolidate mobile store pipelines to one TestFlight (`testflight-ios.yml`) and one Play internal (`play-internal.yml`) workflow; delete the duplicate `kc-mobile-testflight-ios.yml` / `kc-mobile-play-internal.yml`. Store and prod release workflows stay manual / not auto-promoted.
+
+**Why.** Issues #941 / #942 — cut median PR CI time and remove duplicate store entrypoints without breaking branch-protection required checks.
+
+**Affected.** `.github/workflows/ci-*.yml`, `.github/actions/setup-pnpm-turbo`, `app/turbo.json`, `app/apps/mobile/README.md`, `docs/SSOT/ENVIRONMENTS.md`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
 | 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
 | 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
 | 4.19 | 2026-10-16 | Added `D-190` (GloWe sunset; KC-only codebase; migration `0238`). |

@@ -11,13 +11,15 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/**'
   push:
     branches: [main, dev]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/**'
 
 concurrency:
-  group: ci-actionlint-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
