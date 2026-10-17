@@ -42,7 +42,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0404–0409 | — | free |
 | 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
 | 0414 | — | free |
-| 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | in progress (#994) |
+| 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | merged (#994) |
 | 0417+ | — | free |
 
 ## Next free ranges
