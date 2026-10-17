@@ -1,9 +1,11 @@
 import type {
+  GivingHandoffSnapshot,
   ListingKindOption,
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
   MarketplaceMapCluster,
   MarketplaceSimilarListing,
+  MyGivingHandoffRow,
   MyListingRow,
   ProfileListingRow,
 } from '@kc/domain';
@@ -70,4 +72,21 @@ export interface IMarketplaceRepository {
   resumeMyListing(listingId: string): Promise<void>;
   fulfillMyListing(listingId: string): Promise<void>;
   deleteMyListing(listingId: string): Promise<void>;
+  getListingHandoff(listingId: string): Promise<GivingHandoffSnapshot | null>;
+  listMyGivingHandoffs(limit?: number): Promise<MyGivingHandoffRow[]>;
+  reserveItemGiving(
+    listingId: string,
+    pickupMode?: 'pickup' | 'delivery',
+    pickupWindowStart?: string | null,
+    pickupWindowEnd?: string | null,
+  ): Promise<GivingHandoffSnapshot>;
+  confirmItemHandoff(handoffId: string): Promise<GivingHandoffSnapshot>;
+  claimFoodGiving(
+    listingId: string,
+    pickupWindowStart?: string | null,
+    pickupWindowEnd?: string | null,
+  ): Promise<GivingHandoffSnapshot>;
+  cancelGivingHandoff(handoffId: string): Promise<void>;
+  markGivingHandedOver(handoffId: string): Promise<GivingHandoffSnapshot>;
+  rateGivingHandoff(handoffId: string, rating: number, comment?: string | null): Promise<void>;
 }

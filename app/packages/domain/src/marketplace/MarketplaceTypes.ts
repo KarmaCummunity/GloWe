@@ -127,3 +127,30 @@ export interface ProfileListingRow {
   readonly title: string;
   readonly summary: string | null;
 }
+
+export interface GivingHandoffSnapshot {
+  readonly handoffId: string;
+  readonly listingId: string;
+  readonly ownerId: string;
+  readonly recipientId: string;
+  readonly worldSlug: string;
+  readonly status: string;
+  readonly pickupMode: string;
+  readonly pickupWindowStart: string | null;
+  readonly pickupWindowEnd: string | null;
+  readonly confirmBy: string | null;
+  readonly reservedAt: string;
+  readonly confirmedAt: string | null;
+}
+
+export interface MyGivingHandoffRow {
+  readonly handoffId: string;
+  readonly listingId: string;
+  readonly title: string;
+  readonly worldSlug: string;
+  readonly status: string;
+  readonly role: 'owner' | 'recipient';
+  readonly pickupWindowStart: string | null;
+  readonly pickupWindowEnd: string | null;
+  readonly reservedAt: string;
+}
