@@ -19,7 +19,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0305–0319 | — | free |
 | 0320–0339 | marketplace (#912) | open PR |
 | 0340–0349 | perf (#910, #911) | open PR |
-| 0350–0359 | — | free |
+| 0350 | world-rules trigger: enforce on insert / rule-field change only (follow-up to #950) | in progress |
+| 0351–0359 | — | free |
 | 0360–0369 | money world (#913) | open PR |
 | 0370–0379 | time world (volunteering, #915) | open PR |
 | 0380–0389 | items & food worlds (handoffs, #916) | open PR |
@@ -27,7 +28,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0305–0319`, `0350–0359`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0305–0319`, `0351–0359`, `0390+`.
 
 ## How to claim
 
