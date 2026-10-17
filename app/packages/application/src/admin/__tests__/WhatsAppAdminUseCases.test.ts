@@ -2,8 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   BlockWhatsAppUserUseCase,
   GetWhatsAppAdminOverviewUseCase,
+  GetWhatsAppChannelUseCase,
   ListWhatsAppConsentUseCase,
+  ListWhatsAppConversationsUseCase,
   ListWhatsAppOutboundUseCase,
+  ListWhatsAppRateHitsUseCase,
+  ListWhatsAppRecentMatchesUseCase,
   ResendWhatsAppOutboundUseCase,
   SetWhatsAppChannelEnabledUseCase,
 } from '../WhatsAppAdminUseCases';
@@ -53,5 +57,23 @@ describe('WhatsApp admin use cases', () => {
     expect(repo.setChannelEnabled).toHaveBeenCalledWith(true);
     expect(repo.resend).toHaveBeenCalledWith('o1');
     expect(repo.blockUser).toHaveBeenCalledWith('u1');
+  });
+
+  it('channel / rate hits / matches / conversations pass through', async () => {
+    const repo = makeRepo();
+    await new GetWhatsAppChannelUseCase(repo).execute();
+    await new ListWhatsAppRateHitsUseCase(repo).execute(7);
+    await new ListWhatsAppRecentMatchesUseCase(repo).execute(3);
+    await new ListWhatsAppConversationsUseCase(repo).execute(9);
+    expect(repo.getChannel).toHaveBeenCalled();
+    expect(repo.listRateHits).toHaveBeenCalledWith(7);
+    expect(repo.listRecentMatches).toHaveBeenCalledWith(3);
+    expect(repo.listConversations).toHaveBeenCalledWith(9);
+  });
+
+  it('list outbound defaults filters to empty object', async () => {
+    const repo = makeRepo();
+    await new ListWhatsAppOutboundUseCase(repo).execute();
+    expect(repo.listOutbound).toHaveBeenCalledWith({});
   });
 });

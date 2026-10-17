@@ -125,4 +125,33 @@ describe('SupabaseWhatsAppAdminRepository', () => {
     expect((await repo.listConversations(10))[0]?.state).toBe('collecting');
     expect((await repo.getChannel()).isEnabled).toBe(true);
   });
+
+  it('maps not_found / invalid_status / not_resendable / unknown', async () => {
+    const cases: Array<{ err: { code?: string; message: string }; code: string }> = [
+      { err: { code: 'P0002', message: 'missing row' }, code: 'not_found' },
+      { err: { message: 'invalid_status' }, code: 'invalid_status' },
+      { err: { message: 'not_resendable' }, code: 'not_resendable' },
+      { err: { message: 'boom' }, code: 'unknown' },
+    ];
+    for (const c of cases) {
+      const repo = new SupabaseWhatsAppAdminRepository(
+        mockClient(() => ({ data: null, error: c.err })),
+      );
+      await expect(repo.overview()).rejects.toSatisfy(
+        (e) => isWhatsAppAdminError(e) && e.code === c.code,
+      );
+    }
+  });
+
+  it('empty list responses yield zero totals', async () => {
+    const repo = new SupabaseWhatsAppAdminRepository(
+      mockClient(() => ({ data: [], error: null })),
+    );
+    expect(await repo.listConsent()).toEqual({ rows: [], totalCount: 0 });
+    expect(await repo.listOutbound({})).toEqual({ rows: [], totalCount: 0 });
+    expect(await repo.listRateHits()).toEqual([]);
+    expect(await repo.listRecentMatches()).toEqual([]);
+    expect(await repo.listConversations()).toEqual([]);
+  });
+
 });

@@ -29,6 +29,10 @@ function asDate(v: string | null | undefined): Date | null {
   return v ? new Date(v) : null;
 }
 
+function asString(v: unknown, fallback: string): string {
+  return typeof v === 'string' ? v : fallback;
+}
+
 function mapChannel(raw: Record<string, unknown>): WhatsAppChannelConfig {
   return {
     isEnabled: Boolean(raw.is_enabled),
@@ -85,7 +89,7 @@ export class SupabaseWhatsAppAdminRepository implements IWhatsAppAdminRepository
       rows: rows.map((r) => ({
         userId: (r.user_id as string | null) ?? null,
         waIdMasked: (r.wa_id_masked as string | null) ?? null,
-        consentStatus: String(r.consent_status ?? 'unknown'),
+        consentStatus: asString(r.consent_status, 'unknown'),
         optedIn: Boolean(r.opted_in),
         optedInAt: asDate(r.opted_in_at as string | null),
         optedOutAt: asDate(r.opted_out_at as string | null),
@@ -110,9 +114,9 @@ export class SupabaseWhatsAppAdminRepository implements IWhatsAppAdminRepository
         outboundId: String(r.outbound_id),
         userId: (r.user_id as string | null) ?? null,
         waIdMasked: (r.wa_id_masked as string | null) ?? null,
-        kind: String(r.kind ?? 'template'),
+        kind: asString(r.kind, 'template'),
         templateName: (r.template_name as string | null) ?? null,
-        language: String(r.language ?? 'he'),
+        language: asString(r.language, 'he'),
         status: String(r.status),
         attempts: Number(r.attempts ?? 0),
         lastError: (r.last_error as string | null) ?? null,
@@ -140,7 +144,7 @@ export class SupabaseWhatsAppAdminRepository implements IWhatsAppAdminRepository
       outboundId: String(r.outbound_id),
       userId: (r.user_id as string | null) ?? null,
       waIdMasked: (r.wa_id_masked as string | null) ?? null,
-      language: String(r.language ?? 'he'),
+      language: asString(r.language, 'he'),
       status: String(r.status),
       payload: (r.payload as Record<string, unknown>) ?? {},
       createdAt: new Date(String(r.created_at)),
