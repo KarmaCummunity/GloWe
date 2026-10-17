@@ -41,7 +41,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
 | 0414 | — | free |
 | 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | merged (#994) |
-| 0417–0419 | feed hides/mutes view (`feed_visible_posts`), paged post/user search RPCs (no exact count), "show my active status" presence privacy | in progress (fix/feed-mutes-search-presence) |
+| 0417–0419 | feed hides/mutes view (`feed_visible_posts`), paged post/user search RPCs (no exact count), "show my active status" presence privacy | in progress (#1001) |
 | 0420+ | — | free |
 
 ## Next free ranges
