@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  FlatList,
   Image,
   Pressable,
   ScrollView,
@@ -64,15 +63,15 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
     <>
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: bottomInset }]}>
         {detail.media.length > 0 ? (
-          <FlatList
-            horizontal
-            data={detail.media}
-            keyExtractor={(m) => m.storagePath}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <Image source={{ uri: listingImagePublicUrl(item.storagePath) }} style={styles.galleryImg} />
-            )}
-          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {detail.media.map((item) => (
+              <Image
+                key={item.storagePath}
+                source={{ uri: listingImagePublicUrl(item.storagePath) }}
+                style={styles.galleryImg}
+              />
+            ))}
+          </ScrollView>
         ) : null}
         <Text style={styles.title}>{detail.title}</Text>
         {detail.summary ? <Text style={styles.summary}>{detail.summary}</Text> : null}
@@ -130,20 +129,18 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
         {similar.length > 0 ? (
           <>
             <Text style={styles.section}>{t('marketplace.similarTitle')}</Text>
-            <FlatList
-              horizontal
-              data={similar}
-              keyExtractor={(s) => s.listingId}
-              renderItem={({ item }) => (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {similar.map((item) => (
                 <Pressable
+                  key={item.listingId}
                   style={styles.similar}
                   onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
                 >
                   <Text numberOfLines={2}>{item.title}</Text>
                   <Text style={styles.summary}>{item.kindSlug}</Text>
                 </Pressable>
-              )}
-            />
+              ))}
+            </ScrollView>
           </>
         ) : null}
       </ScrollView>

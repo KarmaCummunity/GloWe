@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KcFlashList } from '../lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
+import type { MarketplaceMapCluster } from '@kc/domain';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
 
 const useStyles = makeUseStyles(({ colors }) => ({
@@ -18,9 +20,7 @@ export function MarketplaceMapView() {
   const { t } = useTranslation();
   const router = useRouter();
   const styles = useStyles();
-  const [clusters, setClusters] = useState<
-    Awaited<ReturnType<typeof marketplaceRepository.prototype.mapClusters>>
-  >([]);
+  const [clusters, setClusters] = useState<readonly MarketplaceMapCluster[]>([]);
 
   useEffect(() => {
     void marketplaceRepository()
@@ -31,8 +31,8 @@ export function MarketplaceMapView() {
   return (
     <View style={styles.wrap}>
       <Text style={styles.note}>{t('marketplace.mapWebFallback')}</Text>
-      <FlatList
-        data={clusters}
+      <KcFlashList
+        data={clusters as MarketplaceMapCluster[]}
         keyExtractor={(c) => c.clusterKey}
         ListEmptyComponent={<Text style={{ padding: spacing.lg }}>{t('marketplace.mapEmpty')}</Text>}
         renderItem={({ item }) => (

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
@@ -91,7 +92,7 @@ export default function MarketplaceBrowseScreen() {
           <Text style={styles.link}>{t('marketplace.myListingsNav')}</Text>
         </Pressable>
       </View>
-      <FlatList
+      <KcFlashList
         data={rows}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}

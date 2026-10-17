@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, FlatList, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, Text, View } from 'react-native';
+import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
@@ -133,7 +134,7 @@ export default function MyListingsScreen() {
         <Text style={styles.title}>{t('marketplace.myListingsTitle')}</Text>
         <Text style={styles.hint}>{t('marketplace.myListingsSubtitle')}</Text>
       </View>
-      <FlatList
+      <KcFlashList
         data={rows}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}
