@@ -3917,6 +3917,7 @@ export type Database = {
           min_score: number
           notify_max_age_hours: number
           notify_min_score: number
+          notify_min_text: number
           quiet_end: string
           quiet_start: string
           quiet_tz: string
@@ -3938,6 +3939,7 @@ export type Database = {
           min_score?: number
           notify_max_age_hours?: number
           notify_min_score?: number
+          notify_min_text?: number
           quiet_end?: string
           quiet_start?: string
           quiet_tz?: string
@@ -3959,6 +3961,7 @@ export type Database = {
           min_score?: number
           notify_max_age_hours?: number
           notify_min_score?: number
+          notify_min_text?: number
           quiet_end?: string
           quiet_start?: string
           quiet_tz?: string
@@ -9831,6 +9834,12 @@ export type Database = {
         }[]
       }
       karma_value_bonus: { Args: { p_value: number }; Returns: number }
+      kc_dev_cleanup_e2e_listings: {
+        Args: { p_min_age?: string }
+        Returns: Json
+      }
+      kc_dev_is_e2e_title: { Args: { p_title: string }; Returns: boolean }
+      kc_dev_is_seeded: { Args: never; Returns: boolean }
       list_active_surveys: { Args: never; Returns: Json }
       list_my_donation_history: {
         Args: { p_limit?: number }
@@ -10101,6 +10110,24 @@ export type Database = {
           score: number
         }[]
       }
+      match_text_heads: { Args: { p: string }; Returns: string[] }
+      match_text_norm: { Args: { p: string }; Returns: string }
+      match_text_score: {
+        Args: {
+          p_offer_summary: string
+          p_offer_title: string
+          p_request_summary: string
+          p_request_title: string
+        }
+        Returns: Json
+      }
+      match_text_stopwords: { Args: never; Returns: string[] }
+      match_text_tokens: { Args: { p: string }; Returns: string[] }
+      match_token_in: {
+        Args: { p_list: string[]; p_tok: string }
+        Returns: boolean
+      }
+      match_token_stems: { Args: { p: string }; Returns: string[] }
       match_user_feedback: {
         Args: { p_user: string; p_world: string }
         Returns: number
