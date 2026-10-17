@@ -82,8 +82,8 @@ export type { ChatErrorCode } from './chat/errors';
 // Report use cases
 export { ReportChatUseCase } from './reports/ReportChatUseCase';
 export type { ReportChatInput } from './reports/ReportChatUseCase';
-export { ReportPostUseCase } from './reports/ReportPostUseCase';
-export type { ReportPostInput } from './reports/ReportPostUseCase';
+export { ReportPostUseCase, type ReportPostInput } from './reports/ReportPostUseCase';
+export * from './blocks';
 export { ReportListingUseCase } from './reports/ReportListingUseCase';
 export type { ReportListingInput } from './reports/ReportListingUseCase';
 export { ReportError } from './reports/errors';

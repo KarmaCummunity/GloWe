@@ -67,6 +67,17 @@ export const moderationHe = {
       a11yOpenProfile: 'פתח פרופיל של {who}',
     },
   },
+  block: {
+    block: 'חסימת משתמש',
+    unblock: 'ביטול חסימה',
+    confirmBlockTitle: 'לחסום את המשתמש?',
+    confirmBlockBody: 'לא תראו זה את הפוסטים, המודעות והפרופיל של זה, לא תוכלו לשלוח הודעות זה לזה, והמעקב ביניכם יוסר. המשתמש לא יקבל הודעה על כך.',
+    confirmUnblockTitle: 'לבטל את החסימה?',
+    confirmUnblockBody: 'תוכלו לראות שוב זה את זה. מעקב שהוסר בגלל החסימה לא יחזור.',
+    blockedToast: 'המשתמש נחסם.',
+    unblockedToast: 'החסימה בוטלה.',
+    failed: 'משהו השתבש. נסו שוב.',
+  },
   actions: {
     restore: '↩ שחזר',
     dismiss: '🗑 דחה דיווח',

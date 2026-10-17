@@ -32,6 +32,7 @@ export { SupabaseFeedRealtime } from './feed/SupabaseFeedRealtime';
 export { SupabaseStatsRepository } from './stats/SupabaseStatsRepository';
 export { SupabaseAboutRepository } from './about/SupabaseAboutRepository';
 export { SupabaseReportRepository } from './reports/SupabaseReportRepository';
+export { SupabaseBlockRepository } from './blocks/SupabaseBlockRepository';
 export { SupabaseModerationAdminRepository } from './moderation/SupabaseModerationAdminRepository';
 export { SupabaseAccountGateRepository } from './auth/SupabaseAccountGateRepository';
 export { SupabaseDonationLinksRepository } from './donations/SupabaseDonationLinksRepository';
