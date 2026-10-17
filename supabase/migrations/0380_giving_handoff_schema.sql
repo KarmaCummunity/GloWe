@@ -41,12 +41,19 @@ create table public.giving_handoff_ratings (
   constraint giving_handoff_ratings_once unique (handoff_id, rater_id)
 );
 
+create index giving_handoff_ratings_handoff_idx on public.giving_handoff_ratings (handoff_id);
+create index giving_handoff_ratings_rater_idx on public.giving_handoff_ratings (rater_id);
+create index giving_handoff_ratings_ratee_idx on public.giving_handoff_ratings (ratee_id);
+
 alter table public.giving_handoffs enable row level security;
 alter table public.giving_handoff_ratings enable row level security;
 
 create policy giving_handoffs_participant_read on public.giving_handoffs
   for select to authenticated
-  using (owner_id = auth.uid() or recipient_id = auth.uid());
+  using (
+    owner_id = (select auth.uid())
+    or recipient_id = (select auth.uid())
+  );
 
 create policy giving_handoff_ratings_participant_read on public.giving_handoff_ratings
   for select to authenticated
@@ -54,7 +61,10 @@ create policy giving_handoff_ratings_participant_read on public.giving_handoff_r
     exists (
       select 1 from public.giving_handoffs h
        where h.handoff_id = giving_handoff_ratings.handoff_id
-         and (h.owner_id = auth.uid() or h.recipient_id = auth.uid())
+         and (
+           h.owner_id = (select auth.uid())
+           or h.recipient_id = (select auth.uid())
+         )
     )
   );
 

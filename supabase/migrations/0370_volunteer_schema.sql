@@ -43,8 +43,12 @@ create table public.volunteer_shift_signups (
 );
 
 create index volunteer_opportunities_status_idx on public.volunteer_opportunities (status, created_at desc);
+create index volunteer_opportunities_organizer_idx on public.volunteer_opportunities (organizer_id);
+create index volunteer_opportunities_org_idx on public.volunteer_opportunities (org_id) where org_id is not null;
 create index volunteer_shifts_starts_idx on public.volunteer_shifts (starts_at);
+create index volunteer_shifts_opportunity_idx on public.volunteer_shifts (opportunity_id);
 create index volunteer_signups_user_idx on public.volunteer_shift_signups (user_id, signed_up_at desc);
+create index volunteer_signups_shift_idx on public.volunteer_shift_signups (shift_id);
 
 create trigger volunteer_opportunities_set_updated_at
   before update on public.volunteer_opportunities
@@ -56,12 +60,12 @@ alter table public.volunteer_shift_signups enable row level security;
 
 create policy volunteer_opportunities_read_open on public.volunteer_opportunities
   for select to authenticated
-  using (status = 'open' or organizer_id = auth.uid());
+  using (status = 'open' or organizer_id = (select auth.uid()));
 
 create policy volunteer_opportunities_organizer_write on public.volunteer_opportunities
   for all to authenticated
-  using (organizer_id = auth.uid())
-  with check (organizer_id = auth.uid());
+  using (organizer_id = (select auth.uid()))
+  with check (organizer_id = (select auth.uid()));
 
 create policy volunteer_shifts_read on public.volunteer_shifts
   for select to authenticated using (true);
@@ -72,29 +76,27 @@ create policy volunteer_shifts_organizer_write on public.volunteer_shifts
     exists (
       select 1 from public.volunteer_opportunities o
        where o.opportunity_id = volunteer_shifts.opportunity_id
-         and o.organizer_id = auth.uid()
+         and o.organizer_id = (select auth.uid())
     )
   )
   with check (
     exists (
       select 1 from public.volunteer_opportunities o
        where o.opportunity_id = volunteer_shifts.opportunity_id
-         and o.organizer_id = auth.uid()
+         and o.organizer_id = (select auth.uid())
     )
   );
 
-create policy volunteer_signups_self on public.volunteer_shift_signups
-  for select to authenticated
-  using (user_id = auth.uid());
-
-create policy volunteer_signups_organizer_read on public.volunteer_shift_signups
+-- single SELECT policy (avoid dual permissive) — self or organizer
+create policy volunteer_signups_read on public.volunteer_shift_signups
   for select to authenticated
   using (
-    exists (
+    user_id = (select auth.uid())
+    or exists (
       select 1 from public.volunteer_shifts s
       join public.volunteer_opportunities o on o.opportunity_id = s.opportunity_id
        where s.shift_id = volunteer_shift_signups.shift_id
-         and o.organizer_id = auth.uid()
+         and o.organizer_id = (select auth.uid())
     )
   );
 
