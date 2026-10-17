@@ -8,6 +8,7 @@ export const marketplaceErrors = {
   routed_world_requires_external_body: 'Please choose a verified organisation before publishing in this world.',
   medical_listing_requires_external_body: 'This medical listing type requires a verified organisation.',
   external_body_invalid: 'The selected organisation is not verified or does not belong to this world. Please choose another.',
+  world_permission_denied: 'Publishing in this world is open to verified members only. Complete account verification and try again.',
   food_posting_banned: 'Food posting is temporarily blocked for your account.',
   ride_cost_share_cap_exceeded: 'The ride cost share is above the allowed maximum.',
   money_active_campaign_cap: 'You can have up to 5 active campaigns in the money world.',

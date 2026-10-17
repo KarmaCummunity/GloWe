@@ -18,6 +18,8 @@ end $$;
 
 select pg_temp.mk_user('00000000-0000-0000-0000-000000353001', 'org_member');
 select pg_temp.mk_user('00000000-0000-0000-0000-000000353002', 'org_moderator');
+-- animals / medical worlds require a verified member (0264 has_world_permission).
+update public.users set verified_at = now() where user_id = '00000000-0000-0000-0000-000000353001';
 insert into public.admin_role_grants (user_id, role)
 values ('00000000-0000-0000-0000-000000353002', 'moderator');
 

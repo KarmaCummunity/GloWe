@@ -16,6 +16,7 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   'routed_world_requires_external_body',
   'medical_listing_requires_external_body',
   'external_body_invalid',
+  'world_permission_denied',
   'food_posting_banned',
   'ride_cost_share_cap_exceeded',
   'money_active_campaign_cap',

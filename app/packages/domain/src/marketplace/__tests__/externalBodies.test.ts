@@ -46,6 +46,9 @@ describe('routed worlds with a picked organisation', () => {
   });
   it('maps the new server codes', () => {
     expect(mapMarketplaceServerError({ message: 'external_body_invalid' })).toBe('external_body_invalid');
+    expect(mapMarketplaceServerError({ code: '42501', message: 'world_permission_denied' })).toBe(
+      'world_permission_denied',
+    );
     expect(mapMarketplaceServerError({ message: 'medical_listing_requires_external_body' })).toBe(
       'medical_listing_requires_external_body',
     );
