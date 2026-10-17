@@ -78,7 +78,8 @@ export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath, create
               {worldSlug === 'food' && item.urgencyLevel >= 4
                 ? `${t('givingHandoff.urgencyHigh')} · `
                 : ''}
-              {item.availabilityStatus} · {t(`marketplace.world.${worldSlug}`)}
+              {t(`marketplace.availability.${item.availabilityStatus}`, { defaultValue: item.availabilityStatus })} ·{' '}
+              {t(`marketplace.world.${worldSlug}`)}
             </Text>
           </Pressable>
         )}

@@ -90,3 +90,9 @@ export const marketplaceOptionLabels = {
   practical: 'עזרה מעשית',
   escort: 'ליווי',
 } as const;
+
+export const marketplaceAvailabilityLabels = {
+  immediate: 'מיידי',
+  scheduled: 'מתוזמן',
+  ongoing: 'זמין תמיד',
+} as const;

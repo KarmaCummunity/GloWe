@@ -5,7 +5,7 @@
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
-import { marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -292,4 +292,5 @@ export const marketplace = {
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,
+  availability: marketplaceAvailabilityLabels,
 } as const;

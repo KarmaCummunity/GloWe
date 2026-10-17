@@ -90,3 +90,9 @@ export const marketplaceOptionLabels = {
   practical: 'Practical help',
   escort: 'Escort',
 } as const;
+
+export const marketplaceAvailabilityLabels = {
+  immediate: 'Available now',
+  scheduled: 'Scheduled',
+  ongoing: 'Ongoing',
+} as const;
