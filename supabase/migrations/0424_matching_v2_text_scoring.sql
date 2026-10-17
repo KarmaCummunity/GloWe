@@ -120,6 +120,7 @@ begin
   if p is null or p = '' then
     return res;
   end if;
+  p := translate(lower(p), U&'\05DA\05DD\05DF\05E3\05E5', U&'\05DB\05DE\05E0\05E4\05E6');
   bases := array[p];
   n := char_length(p);
   if n - 1 >= 3 and position(left(p, 1) in pre) > 0 then
