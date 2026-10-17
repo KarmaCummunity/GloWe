@@ -262,6 +262,7 @@ export const marketplace = {
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
   fieldPhotos: 'תמונות',
+  fieldPhotosHint: 'מודעות עם תמונה מקבלות יותר תגובות.',
   validationFailed: 'בדקו את הטופס ({{code}}).',
   errors: marketplaceErrors,
   shareLink: 'שיתוף קישור',
