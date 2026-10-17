@@ -1,0 +1,37 @@
+// Feature flags: compiled defaults + optional remote override (public.app_flags, 0403).
+// A remote row wins when present; otherwise (no row, offline, still loading) the default applies.
+
+export const FEATURE_FLAG_DEFAULTS = {
+  /** iOS only: false → donation flows open in Safari (App Store 3.2.2(iv)). One-line switch. */
+  ios_in_app_donations: false,
+} as const satisfies Record<string, boolean>;
+
+export type FeatureFlagKey = keyof typeof FEATURE_FLAG_DEFAULTS;
+export type RemoteFeatureFlags = Partial<Record<string, boolean>>;
+
+export function resolveFeatureFlag(key: FeatureFlagKey, remote: RemoteFeatureFlags | undefined): boolean {
+  const value = remote?.[key];
+  return typeof value === 'boolean' ? value : FEATURE_FLAG_DEFAULTS[key];
+}
+
+/** iOS with in-app donations off → hand the donation to the external browser. */
+export function shouldOpenDonationsExternally(platformOS: string, iosInAppDonations: boolean): boolean {
+  return platformOS === 'ios' && !iosInAppDonations;
+}
+
+export type ExternalDonationKind = 'donate' | 'standing-order';
+
+export function buildExternalDonationUrl(
+  baseUrl: string,
+  kind: ExternalDonationKind,
+  orgId: string,
+  listingId?: string | null,
+): string {
+  const base = baseUrl.replace(/\/+$/, '');
+  const path = `${base}/donations/money/${kind}/${encodeURIComponent(orgId)}`;
+  return kind === 'donate' && listingId ? `${path}?listingId=${encodeURIComponent(listingId)}` : path;
+}
+
+export function webBaseUrl(): string {
+  return process.env['EXPO_PUBLIC_WEB_BASE_URL'] ?? 'https://karma-community-kc.com';
+}
