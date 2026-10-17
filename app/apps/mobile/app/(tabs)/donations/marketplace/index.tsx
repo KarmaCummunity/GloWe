@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { MARKETPLACE_WORLD_SLUGS } from '@kc/domain';
 import { Screen } from '../../../../src/components/ui/Screen';
+import { EmptyState, EmptyStateActions } from '../../../../src/components/EmptyState';
+import { KcRefreshControl } from '../../../../src/components/lists/KcRefreshControl';
 import {
   useMarketplaceBrowse,
   useMarketplaceSearchResults,
@@ -53,7 +55,12 @@ export default function MarketplaceBrowseScreen() {
   const browse = useMarketplaceBrowse(filters);
   const search = useMarketplaceSearchResults(query, world);
   const rows = useSearch ? (search.data ?? []) : (browse.data ?? []);
-  const isLoading = useSearch ? search.isLoading : browse.isLoading;
+  const active = useSearch ? search : browse;
+  const isLoading = active.isLoading;
+  const clearAll = () => {
+    setQuery('');
+    setWorld(null);
+  };
 
   return (
     <Screen>
@@ -96,10 +103,35 @@ export default function MarketplaceBrowseScreen() {
         data={rows}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}
+        refreshControl={<KcRefreshControl refreshing={active.isRefetching} onRefresh={() => active.refetch()} />}
         ListEmptyComponent={
-          <Text style={{ padding: spacing.lg, textAlign: 'center' }}>
-            {isLoading ? t('marketplace.loading') : t('marketplace.empty')}
-          </Text>
+          isLoading ? (
+            <Text style={{ padding: spacing.lg, textAlign: 'center' }}>{t('marketplace.loading')}</Text>
+          ) : (
+            <EmptyState
+              icon={useSearch ? 'search-outline' : 'storefront-outline'}
+              title={
+                useSearch
+                  ? t('emptyStates.marketplaceSearchTitle', { query: trimmedQuery })
+                  : t('emptyStates.marketplaceTitle')
+              }
+              subtitle={t('emptyStates.marketplaceBody')}
+              action={
+                <EmptyStateActions
+                  primary={{
+                    label: t('emptyStates.marketplaceCreate'),
+                    onPress: () => router.push('/(tabs)/donations/marketplace/create'),
+                    testID: 'marketplace-empty-create',
+                  }}
+                  secondary={
+                    useSearch || world
+                      ? { label: t('emptyStates.marketplaceClear'), onPress: clearAll, testID: 'marketplace-empty-clear' }
+                      : undefined
+                  }
+                />
+              }
+            />
+          )
         }
         renderItem={({ item }) => (
           <Pressable

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { hapticLightTap } from '../../lib/haptics';
+import { hapticLightTap, hapticSuccess } from '../../lib/haptics';
 import { makeUseStyles, spacing, typography, radius } from '@kc/ui';
 import type { PostReactionType } from '@kc/infrastructure-supabase';
 import { container } from '../../lib/container';
@@ -42,11 +42,14 @@ export function PostEngagementSection({ postId, viewerId }: Props) {
     if (!viewerId || busy) return;
     hapticLightTap();
     setBusy(true);
+    const previous = activeReaction;
+    const next = activeReaction === type ? null : type;
+    setActiveReaction(next); // optimistic: the chip flips instantly with the haptic
     try {
-      const next = activeReaction === type ? null : type;
       await container.postEngagement.setReaction(postId, next);
-      setActiveReaction(next);
       await refresh();
+    } catch {
+      setActiveReaction(previous);
     } finally {
       setBusy(false);
     }
@@ -59,6 +62,7 @@ export function PostEngagementSection({ postId, viewerId }: Props) {
     setBusy(true);
     try {
       await container.postEngagement.createComment(postId, body);
+      hapticSuccess();
       setDraft('');
       await refresh();
     } finally {

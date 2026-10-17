@@ -14,6 +14,7 @@ import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
 import { chatEn } from './modules/chat';
 import { notificationsEn } from './modules/notifications';
+import { emptyStatesEn, feedSettingsEn } from './modules/feedSettings';
 import { moderationEn, auditEn, accountBlockedEn } from './modules/moderation';
 import { postEn } from './modules/post';
 import { settingsEn } from './modules/settings';
@@ -71,6 +72,8 @@ const en = {
 
   // Notifications (FR-NOTIF-001..015) — see modules/notifications.ts
   notifications: notificationsEn,
+  feedSettings: feedSettingsEn,
+  emptyStates: emptyStatesEn,
 
   // Moderation (FR-MOD-007/010 + FR-ADMIN-002..007) — see modules/moderation.ts
   moderation: moderationEn,
