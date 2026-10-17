@@ -1,9 +1,7 @@
 // Chat conversation screen — FR-CHAT-002, 003, 004, 005, 010, 011, 013, 016.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View, Text, FlatList, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, type ListRenderItem,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import type { ListRenderItem } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +24,7 @@ import { useChatInit } from '../../src/components/useChatInit';
 import { useChatSend } from '../../src/hooks/useChatSend';
 import { useChatConversationStyles } from './chatScreenStyles';
 import { usePushPermissionGate, registerCurrentDeviceIfPermitted } from '../../src/lib/notifications';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
 import { EnablePushModal } from '../../src/components/EnablePushModal';
 import { ChatNotFoundView } from '../../src/components/chat/ChatNotFoundView';
 import { NotifyModal } from '../../src/components/NotifyModal';
@@ -151,7 +150,7 @@ export default function ChatScreen() {
     }
   }, [chatId, userId, t]);
 
-  // Stable renderItem so the thread FlatList doesn't re-render every bubble on
+  // Stable renderItem so the thread KcFlashList doesn't re-render every bubble on
   // each composer keystroke — deps change only on real data changes.
   const renderItem = useCallback<ListRenderItem<ChatThreadListRow>>(
     ({ item }) =>
@@ -224,7 +223,7 @@ export default function ChatScreen() {
             counterpartId={chat.participantIds[0] === userId ? chat.participantIds[1] : chat.participantIds[0]}
           />
         ) : null}
-        <FlatList
+        <KcFlashList
           data={listRows}
           inverted
           keyExtractor={(row) => (row.rowType === 'message' ? row.message.clientId : row.rowKey)}

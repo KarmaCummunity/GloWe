@@ -5,10 +5,7 @@
 // out of scope here — it lands in a separate slice when the org world
 // schema is built.
 import { useMemo, useState } from 'react';
-import {
-  Alert, FlatList, Platform, Pressable, RefreshControl, ScrollView,
-  StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission, isOrgApplicationError,
@@ -19,6 +16,7 @@ import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 type StatusFilter = OrgApplicationStatus | 'all';
 
@@ -100,7 +98,7 @@ export default function OrgApprovalsScreen() {
         ))}
       </ScrollView>
       <Text style={styles.totalLabel}>{t.totalCount(query.data?.totalCount ?? 0)}</Text>
-      <FlatList
+      <KcFlashList
         data={[...(query.data?.rows ?? [])]}
         keyExtractor={(a) => a.applicationId}
         renderItem={({ item }) => (

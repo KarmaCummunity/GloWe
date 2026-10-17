@@ -1,8 +1,18 @@
-// FR-CHAT-001..013, FR-CHAT-016 — Zustand store owning chat state + realtime subscription lifecycle.
+// FR-CHAT-001..013, FR-CHAT-016 — Zustand store for threads + realtime lifecycle; inbox in React Query.
 import { create } from 'zustand';
 import type { Message } from '@kc/domain';
+import type { Chat } from '@kc/domain';
 import type { ChatState, OptimisticMessage } from './chatStoreTypes';
 import { runRefreshInbox, runStartInboxSub } from './chatStoreInboxLifecycle';
+import { useAuthStore } from './authStore';
+import { queryClient } from '../lib/queryPersist';
+import {
+  chatInboxQueryKey,
+  readChatInboxSnapshot,
+  upsertChatPreviewInSnapshot,
+  markChatReadInSnapshot,
+  writeChatInboxSnapshot,
+} from '../lib/chatInboxQuery';
 import { reduceBumpInboxForIncomingInsert } from './chatStoreInboxBump';
 import { useActiveScreenStore } from '../lib/notifications/useActiveScreenStore';
 
@@ -13,57 +23,57 @@ const compareCreatedAt = (a: { createdAt: string }, b: { createdAt: string }) =>
 
 const toOptimistic = (m: Message): OptimisticMessage => ({ ...m, clientId: m.messageId });
 
+function inboxUserId(): string | null {
+  return useAuthStore.getState().session?.userId ?? null;
+}
+
 export const useChatStore = create<ChatState>((set, get) => ({
-  inbox: null,
   unreadTotal: 0,
   inboxSnapshotEpoch: 0,
   threads: {},
   inboxSub: null,
   threadSubs: {},
 
-  setInbox: (chats) => set({ inbox: chats }),
-
-  upsertChatPreview: (chat) => {
-    const inbox = get().inbox ?? [];
-    const idx = inbox.findIndex((c) => c.chatId === chat.chatId);
-    const next =
-      idx >= 0 ? inbox.map((c, i) => (i === idx ? { ...c, ...chat } : c)) : inbox;
-    next.sort((a, b) => {
-      const ta = a.lastMessageAt ? Date.parse(a.lastMessageAt) : 0;
-      const tb = b.lastMessageAt ? Date.parse(b.lastMessageAt) : 0;
-      return tb - ta;
-    });
-    set({ inbox: next });
+  upsertChatPreview: (chat: Chat) => {
+    const userId = inboxUserId();
+    if (!userId) return;
+    const snap = readChatInboxSnapshot(queryClient, userId);
+    if (!snap) {
+      void queryClient.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
+      return;
+    }
+    writeChatInboxSnapshot(queryClient, userId, upsertChatPreviewInSnapshot(snap, chat));
   },
 
   setUnreadTotal: (n) => set({ unreadTotal: n }),
 
   markChatLocallyRead: (chatId) =>
     set((s) => {
-      const inbox = s.inbox;
-      if (!inbox) return s;
-      const row = inbox.find((c) => c.chatId === chatId);
-      if (!row || row.unreadCount === 0) return s;
-      const nextTotal = Math.max(0, s.unreadTotal - row.unreadCount);
-      const nextInbox = inbox.map((c) =>
-        c.chatId === chatId ? { ...c, unreadCount: 0 } : c,
-      );
+      const userId = inboxUserId();
+      if (!userId) return s;
+      const snap = readChatInboxSnapshot(queryClient, userId);
+      if (!snap) return s;
+      const patched = markChatReadInSnapshot(snap, chatId);
+      if (!patched) return s;
+      writeChatInboxSnapshot(queryClient, userId, patched.snapshot);
       return {
-        inbox: nextInbox,
-        unreadTotal: nextTotal,
+        unreadTotal: patched.snapshot.unreadTotal,
         inboxSnapshotEpoch: s.inboxSnapshotEpoch + 1,
       };
     }),
 
   bumpInboxForIncomingInsert: (viewerId, msg) =>
     set((s) => {
-      // TD-110 bug 1: suppress unread bump when the viewer is actively in this
-      // chat's screen — the markChatLocallyRead path races the Realtime tick
-      // and produces a brief flicker on the badge otherwise.
+      const userId = inboxUserId();
+      if (!userId) return s;
+      const snap = readChatInboxSnapshot(queryClient, userId);
+      if (!snap) return s;
       const activeRoute = useActiveScreenStore.getState().route;
       const isActiveChat = activeRoute === `/chat/${msg.chatId}`;
-      const p = reduceBumpInboxForIncomingInsert(s, viewerId, msg, isActiveChat);
-      return p ? { ...s, ...p } : s;
+      const next = reduceBumpInboxForIncomingInsert(snap, viewerId, msg, isActiveChat);
+      if (!next) return s;
+      writeChatInboxSnapshot(queryClient, userId, next);
+      return { ...s, unreadTotal: next.unreadTotal };
     }),
 
   setThreadMessages: (chatId, msgs) => {
@@ -134,7 +144,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const noopUnsub = () => {};
     set({ inboxSub: noopUnsub });
     try {
-      await runStartInboxSub({ getState: get, setState: set }, noopUnsub, userId, repo, realtime);
+      await runStartInboxSub(
+        { getState: get, setState: set },
+        noopUnsub,
+        userId,
+        repo,
+        realtime,
+        queryClient,
+      );
     } catch (err) {
       if (get().inboxSub === noopUnsub) set({ inboxSub: null });
       throw err;
@@ -174,14 +191,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { threadSubs: rest };
     }),
 
-  refreshInbox: async (userId, repo) => runRefreshInbox({ getState: get, setState: set }, userId, repo),
+  refreshInbox: async (userId, repo) =>
+    runRefreshInbox({ getState: get, setState: set }, userId, repo, queryClient),
 
   resetOnSignOut: () => {
     const s = get();
+    const userId = inboxUserId();
     if (s.inboxSub) s.inboxSub();
     Object.values(s.threadSubs).forEach((u) => u());
+    if (userId) queryClient.removeQueries({ queryKey: chatInboxQueryKey(userId) });
     set({
-      inbox: null,
       unreadTotal: 0,
       inboxSnapshotEpoch: 0,
       threads: {},

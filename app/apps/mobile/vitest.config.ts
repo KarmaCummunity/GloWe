@@ -50,7 +50,6 @@ export default defineConfig({
         'src/services/hostPostSession.ts',
         // Zustand stores that are just facades over services
         'src/store/authStore.ts',
-        'src/store/chatStore.ts',
         'src/store/chatStoreTypes.ts',
         'src/store/allStoresReset.ts',
         // Misc one-liners

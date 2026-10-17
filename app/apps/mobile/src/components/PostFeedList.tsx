@@ -1,13 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import type { ViewToken } from 'react-native';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
@@ -18,6 +11,7 @@ import { PostCardGrid } from './PostCardGrid';
 import { EmptyState } from './EmptyState';
 import { PostGridSkeleton } from './skeletons/PostGridSkeleton';
 import { finishMark } from '../lib/observability/perfMarks';
+import { KcFlashList, type KcFlashListRef } from './lists/KcFlashList';
 
 interface Props {
   data: PostWithOwner[] | undefined;
@@ -34,8 +28,8 @@ interface Props {
   emptyComponent?: React.ReactNode;
   /** Optional sticky/scrollable banner rendered above the list. */
   ListHeaderComponent?: React.ReactNode;
-  /** Forwarded to the underlying FlatList — used by the feed for scroll-to-top. */
-  listRef?: React.Ref<FlatList<PostWithOwner>>;
+  /** Forwarded to the underlying KcFlashList — used by the feed for scroll-to-top. */
+  listRef?: React.Ref<KcFlashListRef<PostWithOwner>>;
   /** FR-TRANSLATE-003 — viewport tracking for viewport-gated translation. */
   onViewableItemsChanged?: (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => void;
   viewabilityConfig?: { itemVisiblePercentThreshold?: number; minimumViewTime?: number };
@@ -102,13 +96,13 @@ export function PostFeedList({
     );
   }
   return (
-    <FlatList
+    <KcFlashList
       ref={listRef}
+      estimatedItemSize={280}
       style={styles.list}
       data={data ?? []}
       keyExtractor={keyExtractor}
       numColumns={HOME_FEED_GRID_COLUMNS}
-      columnWrapperStyle={styles.row}
       renderItem={renderItem}
       contentContainerStyle={listContentStyle as unknown as object}
       ListHeaderComponent={ListHeaderComponent as React.ComponentType | null | undefined}
@@ -140,13 +134,6 @@ export function PostFeedList({
       onEndReached={onEndReached}
       onEndReachedThreshold={0.4}
       showsVerticalScrollIndicator={false}
-      // Windowing: the default windowSize (21) keeps ~10 screens of
-      // image-bearing post cards mounted each direction on the app's
-      // highest-traffic screen. Cap it so memory and scroll work stay bounded;
-      // counts are per-row (numColumns groups items into rows).
-      initialNumToRender={6}
-      maxToRenderPerBatch={6}
-      windowSize={7}
     />
   );
 }

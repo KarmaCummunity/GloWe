@@ -1,7 +1,7 @@
 // KC#869 — in-app notification center (read/unread, deep links).
 
 import React, { useCallback } from 'react';
-import { FlatList, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,8 @@ import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScr
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
+import { SimpleRowListSkeleton } from '../../src/components/skeletons/SimpleRowListSkeleton';
 
 function resolveDeepLink(data: Record<string, unknown>): { pathname: string; params?: Record<string, string> } | null {
   const route = data.route;
@@ -51,13 +53,19 @@ export default function NotificationInboxScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ ...detailOptions, headerTitle: t('notifications.inboxTitle') }} />
+      <Stack.Screen
+        options={{
+          ...detailOptions,
+          headerTitle: t('notifications.inboxTitle'),
+          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+        }}
+      />
       <View style={styles.toolbar}>
         <TouchableOpacity onPress={() => void onMarkAll()} accessibilityRole="button">
           <Text style={styles.markAll}>{t('notifications.inboxMarkAll')}</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
+      <KcFlashList
         data={query.data ?? []}
         keyExtractor={(item) => item.inboxId}
         contentContainerStyle={styles.list}
@@ -81,7 +89,11 @@ export default function NotificationInboxScreen() {
           );
         }}
         ListEmptyComponent={
-          <Text style={styles.empty}>{query.isLoading ? '…' : t('notifications.inboxEmpty')}</Text>
+          query.isLoading && !query.data ? (
+            <SimpleRowListSkeleton rows={8} rowHeight={72} />
+          ) : (
+            <Text style={styles.empty}>{t('notifications.inboxEmpty')}</Text>
+          )
         }
       />
     </>

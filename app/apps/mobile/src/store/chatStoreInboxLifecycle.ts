@@ -1,7 +1,16 @@
 // Inbox load + Realtime wiring extracted from chatStore.ts (architecture LOC cap, TD-118).
+import type { QueryClient } from '@tanstack/react-query';
 import type { IChatRepository, IChatRealtime } from '@kc/application';
 import type { ChatState } from './chatStoreTypes';
+import {
+  chatInboxQueryKey,
+  readChatInboxSnapshot,
+  upsertChatPreviewInSnapshot,
+  writeChatInboxSnapshot,
+} from '../lib/chatInboxQuery';
+import { reduceBumpInboxForIncomingInsert } from './chatStoreInboxBump';
 import { runRefreshInbox } from './chatStoreInboxRefresh';
+import { useActiveScreenStore } from '../lib/notifications/useActiveScreenStore';
 
 type StoreApi = {
   getState: () => ChatState;
@@ -14,8 +23,9 @@ export async function runStartInboxSub(
   userId: string,
   repo: IChatRepository,
   realtime: IChatRealtime,
+  qc: QueryClient,
 ): Promise<void> {
-  await runRefreshInbox(api, userId, repo);
+  await runRefreshInbox(api, userId, repo, qc);
 
   if (api.getState().inboxSub !== noopUnsub) {
     return;
@@ -25,13 +35,33 @@ export async function runStartInboxSub(
     userId,
     {
       onChatChanged: (chat) => {
-        api.getState().upsertChatPreview(chat);
+        const snap = readChatInboxSnapshot(qc, userId);
+        if (!snap) {
+          void qc.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
+          return;
+        }
+        const next = upsertChatPreviewInSnapshot(snap, chat);
+        writeChatInboxSnapshot(qc, userId, next);
       },
       onUnreadTotalChanged: (total) => {
         api.setState({ unreadTotal: total });
+        const snap = readChatInboxSnapshot(qc, userId);
+        if (snap) writeChatInboxSnapshot(qc, userId, { ...snap, unreadTotal: total });
+        else void qc.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
       },
       onInboxMessageInsert: (message) => {
-        api.getState().bumpInboxForIncomingInsert(userId, message);
+        const activeRoute = useActiveScreenStore.getState().route;
+        const isActiveChat = activeRoute === `/chat/${message.chatId}`;
+        const snap = readChatInboxSnapshot(qc, userId);
+        if (!snap) {
+          void qc.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
+          return;
+        }
+        const next = reduceBumpInboxForIncomingInsert(snap, userId, message, isActiveChat);
+        if (next) {
+          writeChatInboxSnapshot(qc, userId, next);
+          api.setState({ unreadTotal: next.unreadTotal });
+        }
       },
     },
     { getSnapshotEpoch: () => api.getState().inboxSnapshotEpoch },

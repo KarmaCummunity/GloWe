@@ -37,7 +37,13 @@ function getGate(): SentryGate | null {
 type MarkName = 'app.cold_start' | 'feed.first_render' | 'image.first_paint';
 type Span = { end?(): void; finish?(): void };
 
+const coldStartT0 =
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : 0;
+
 const active = new Map<MarkName, Span>();
+let lastColdStartMs: number | null = null;
 const noopSpan: Span = { end() { /* no-op when Sentry unavailable */ } };
 
 function endSpan(span: Span): void {
@@ -80,10 +86,19 @@ export function finishMark(name: MarkName): boolean {
   if (!span) return false;
   endSpan(span);
   active.delete(name);
+  if (name === 'app.cold_start' && coldStartT0 > 0) {
+    lastColdStartMs = Math.round(performance.now() - coldStartT0);
+  }
   return true;
+}
+
+/** Last measured cold-start ms (JS bundle → first themed shell paint). */
+export function getLastColdStartMs(): number | null {
+  return lastColdStartMs;
 }
 
 // Test-only escape hatch.
 export function _resetForTests(): void {
   active.clear();
+  lastColdStartMs = null;
 }

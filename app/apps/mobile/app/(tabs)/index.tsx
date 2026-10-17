@@ -7,7 +7,7 @@
 // counter; tapping the pill refetches + scrolls to top.
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, View, type ViewToken } from 'react-native';
+import { View, type ViewToken } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
@@ -23,6 +23,7 @@ import { FeedEmptyState } from '../../src/components/FeedEmptyState';
 import { PostFilterSheet, type PostFilterValue } from '../../src/components/PostFilterSheet';
 import { Screen } from '../../src/components/ui/Screen';
 import { useAuthStore } from '../../src/store/authStore';
+import type { KcFlashListRef } from '../../src/components/lists/KcFlashList';
 import { useFilterStore } from '../../src/store/filterStore';
 import { useFeedSessionStore } from '../../src/store/feedSessionStore';
 import { useFeedRealtime } from '../../src/hooks/useFeedRealtime';
@@ -82,7 +83,7 @@ export default function HomeFeedScreen() {
   const resetNewPosts = useFeedSessionStore((s) => s.resetNewPosts);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const listRef = useRef<FlatList<PostWithOwner>>(null);
+  const listRef = useRef<KcFlashListRef<PostWithOwner>>(null);
 
   const feedFilter = useMemo(
     () => ({

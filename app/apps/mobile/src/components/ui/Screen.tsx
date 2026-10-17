@@ -4,7 +4,7 @@
 //   - Optional ambient orange blobs behind everything (density configurable).
 //   - A single mount point so every main screen looks identical at the edges.
 //
-// `scroll` is intentional: if the screen already brings its own FlatList /
+// `scroll` is intentional: if the screen already brings its own KcFlashList /
 // ScrollView (e.g. feed), pass `scroll={false}` and render the list directly.
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
@@ -30,7 +30,7 @@ interface ScreenProps {
    * routes that suppress the bar (auth, onboarding, chat conversation) this
    * prop is a no-op even if true. Pass `false` only when the screen owns its
    * own footer (CTA bar, composer) and already reserves space, or when
-   * wrapping a `FlatList` directly.
+   * wrapping a `KcFlashList` directly.
    */
   readonly tabBarInset?: boolean;
   /**
@@ -66,7 +66,7 @@ export function Screen({
   const effectiveEdges: readonly Edge[] =
     edges ?? (hasNativeHeader ? [] : ['top']);
 
-  // Memoized so FlatList / ScrollView don't see a fresh array on every parent
+  // Memoized so KcFlashList / ScrollView don't see a fresh array on every parent
   // re-render — FR-RESP-006 AC15.
   const scrollContentStyle = useMemo<ViewStyle[]>(() => {
     const out: ViewStyle[] = [staticStyles.scrollContent];

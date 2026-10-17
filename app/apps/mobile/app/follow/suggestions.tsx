@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,8 @@ import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScr
 import { container } from '../../src/lib/container';
 import { AvatarInitials } from '../../src/components/AvatarInitials';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
+import { SimpleRowListSkeleton } from '../../src/components/skeletons/SimpleRowListSkeleton';
 
 export default function FollowSuggestionsScreen() {
   const { t } = useTranslation();
@@ -28,7 +30,11 @@ export default function FollowSuggestionsScreen() {
   return (
     <>
       <Stack.Screen
-        options={{ ...detailStackScreenOptions, headerTitle: t('follow.suggestionsTitle') }}
+        options={{
+          ...detailStackScreenOptions,
+          headerTitle: t('follow.suggestionsTitle'),
+          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+        }}
       />
       {completeness.data && completeness.data.score < 100 ? (
         <View style={styles.nudge}>
@@ -41,13 +47,14 @@ export default function FollowSuggestionsScreen() {
           ) : null}
         </View>
       ) : null}
-      {query.isLoading ? (
-        <ActivityIndicator style={{ marginTop: spacing.xl }} />
+      {query.isLoading && !query.data ? (
+        <SimpleRowListSkeleton rows={6} rowHeight={64} />
       ) : (
-        <FlatList
+        <KcFlashList
           data={query.data ?? []}
           keyExtractor={(item) => item.userId}
-          contentContainerStyle={{ padding: spacing.base, gap: spacing.sm }}
+          contentContainerStyle={{ padding: spacing.base }}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
           renderItem={({ item }) => (
             <Pressable
               style={styles.row}

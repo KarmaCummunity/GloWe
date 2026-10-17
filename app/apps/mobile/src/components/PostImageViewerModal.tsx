@@ -1,21 +1,12 @@
 // Full-screen image viewer for post detail — tap carousel to inspect images (contain, no crop).
 // Mapped to: FR-POST-014 AC1.
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Image, Modal, NativeScrollEvent, NativeSyntheticEvent, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { KcFlashList, type KcFlashListRef } from './lists/KcFlashList';
 
 export interface PostImageViewerModalProps {
   readonly visible: boolean;
@@ -35,7 +26,7 @@ export function PostImageViewerModal({
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const listRef = useRef<FlatList<string>>(null);
+  const listRef = useRef<KcFlashListRef<string>>(null);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
 
   const safeInitial = Math.min(Math.max(0, initialIndex), Math.max(0, urls.length - 1));
@@ -87,7 +78,7 @@ export function PostImageViewerModal({
           </View>
         ) : null}
 
-        <FlatList
+        <KcFlashList
           ref={listRef}
           style={styles.list}
           horizontal
@@ -96,19 +87,7 @@ export function PostImageViewerModal({
           data={[...urls]}
           keyExtractor={(u, i) => `viewer-${i}-${u}`}
           initialScrollIndex={safeInitial}
-          getItemLayout={(_, index) => ({
-            length: width,
-            offset: width * index,
-            index,
-          })}
-          onScrollToIndexFailed={(info) => {
-            setTimeout(() => {
-              listRef.current?.scrollToIndex({
-                index: info.index,
-                animated: false,
-              });
-            }, 80);
-          }}
+          estimatedItemSize={width}
           renderItem={({ item }) => (
             <Image
               source={{ uri: item }}

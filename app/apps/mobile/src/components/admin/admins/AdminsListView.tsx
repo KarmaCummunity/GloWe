@@ -2,7 +2,7 @@
 // FR-ADMIN-022 — the "list" tab of the admins screen: one card per user with an
 // include-revoked toggle. Split out of the screen to keep each unit small.
 import { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, Switch, Text, View } from 'react-native';
+import { RefreshControl, Switch, Text, View } from 'react-native';
 import { type AdminPerson, groupGrantsByUser } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminsList } from '../../../hooks/useAdminsList';
@@ -10,6 +10,7 @@ import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { AdminPersonCard } from './AdminPersonCard';
 import { buildAdminListItems, type AdminListItem } from './adminListItems';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
+import { KcFlashList } from '../../lists/KcFlashList';
 
 export interface AdminsListViewProps {
   readonly isWide: boolean;
@@ -42,7 +43,7 @@ export function AdminsListView({ isWide, onSelect }: AdminsListViewProps) {
         <Switch value={includeRevoked} onValueChange={setIncludeRevoked} />
         <Text style={styles.toggleLabel}>{L.admin.admins.includeRevokedLabel}</Text>
       </View>
-      <FlatList
+      <KcFlashList
         data={items}
         keyExtractor={(it, i) => (it.kind === 'header' ? `h:${it.title}` : `p:${it.person.userId}:${i}`)}
         contentContainerStyle={[styles.listContent, isWide && styles.listContentWide]}

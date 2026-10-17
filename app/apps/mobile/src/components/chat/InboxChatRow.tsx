@@ -9,14 +9,13 @@ import { AvatarInitials } from '../AvatarInitials';
 import { formatRelativeChatTime } from '../../lib/formatRelativeChatTime';
 import { formatInboxPreview } from '../../lib/formatInboxPreview';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
-
 interface Props {
   readonly item: ChatWithPreview;
   readonly onOpen: (chatId: string) => void;
   readonly onRequestHide: (chatId: string, otherUserId: string | null) => void;
 }
 
-// Memoized: the inbox FlatList re-renders on every search keystroke and
+// Memoized: the inbox KcFlashList re-renders on every search keystroke and
 // refresh, but each row only depends on its own `item` and stable parent
 // callbacks — without memo every row re-rendered on each keystroke.
 function InboxChatRowInner({ item, onOpen, onRequestHide }: Props) {
