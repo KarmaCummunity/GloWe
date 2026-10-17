@@ -42,8 +42,7 @@ begin
     raise exception 'ASSERT FAILED: expected registered signup';
   end if;
 
-  perform set_config('request.jwt.claim.sub', v_organizer::text, true);
-  perform set_config('role', 'authenticated', true);
+  -- Check-in is self-service: the volunteer checks themselves in.
   v_check := public.check_in_volunteer_shift(v_signup.signup_id);
   if (v_check->>'hours_logged') is null then
     raise exception 'ASSERT FAILED: check-in should return hours';

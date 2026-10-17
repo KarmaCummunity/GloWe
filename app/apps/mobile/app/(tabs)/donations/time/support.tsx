@@ -6,7 +6,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
