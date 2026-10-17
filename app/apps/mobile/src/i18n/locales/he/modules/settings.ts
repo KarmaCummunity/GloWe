@@ -59,6 +59,8 @@ export const settingsHe = {
     },
   },
   privateProfileToggle: 'פרופיל פרטי',
+  activeStatusToggle: 'הצגת הסטטוס הפעיל שלי',
+  activeStatusHint: 'כשהאפשרות כבויה, אחרים לא יראו מתי אתם מחוברים, וגם אתם לא תראו מתי אחרים מחוברים.',
   followRequests: 'בקשות עקיבה',
   appearance: 'מראה',
   appearanceScreen: {

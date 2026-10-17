@@ -9,6 +9,7 @@ Release mechanics: [docs/agents/RELEASE.md](../agents/RELEASE.md).
 | [listing-he.md](./listing-he.md) / [listing-en.md](./listing-en.md) | Name, subtitle, short/full description, keywords, categories, URLs, what's new |
 | `app/apps/mobile/public/privacy.html` → `/privacy` | Public privacy policy, he + en (`#en`), no login, no JS |
 | `app/apps/mobile/public/terms.html` → `/terms` | Public terms of use, he + en, incl. zero-tolerance UGC clause (Apple 1.2) |
+| `app/apps/mobile/public/support.html` → `/support` | **Support URL**: contact email, FAQ, how to report / block / delete account (he + en) |
 
 ## Readiness checklist
 
@@ -25,7 +26,8 @@ Release mechanics: [docs/agents/RELEASE.md](../agents/RELEASE.md).
 | In-app account deletion (5.1.1(v)) | ✅ Settings → מחק חשבון (needs `delete-account` deployed per env) |
 | Report post / listing / chat / user (1.2) | ✅ |
 | Block user (1.2) | ✅ profile ⋮ menu |
-| Public privacy + terms URLs | ✅ on dev; reaches `karma-community-kc.com` only with a dev → main release |
+| Public privacy + terms + support URLs | ✅ on dev; reaches `karma-community-kc.com` only with a dev → main release |
+| In-app `/legal/*` readable while signed out | ✅ |
 | Store listing text he + en | ✅ draft |
 | Screenshots (6.7" + 6.5" iPhone, Play phone) | ⏳ to capture from a preview build |
 | Review demo account | ⏳ needs Nave (see decisions) |
@@ -45,7 +47,7 @@ Release mechanics: [docs/agents/RELEASE.md](../agents/RELEASE.md).
 4. **24-hour report handling.** Terms commit to reviewing reports within 24 hours (Apple expects timely action on UGC reports). Confirm someone owns the moderation queue.
 5. **Store name.** Proposed "קהילת קארמה – נתינה" / "Karma Community: Give & Get" (name must be unique on the App Store).
 6. **Review account.** Apple/Google reviewers need a working login on prod (email + password) and notes; create a dedicated reviewer account on prod.
-7. **Support URL.** Stores require a support URL; currently only an email. A simple `/support` page is recommended.
+7. **Support URL.** Done: `/support` (he + en). Confirm the support email `karmacommunity2.0@gmail.com` is the one to publish.
 8. **WhatsApp bot data** (phone numbers) is collected outside the app but by the same service — include it in the App Privacy answers (done below) or keep the bot separate.
 
 ## Age rating answers (draft)
