@@ -12,6 +12,7 @@ import { onboardingHe } from './modules/onboarding';
 import { errorsHe } from './modules/errors';
 import { chatHe } from './modules/chat';
 import { notificationsHe } from './modules/notifications';
+import { emptyStatesHe, feedSettingsHe } from './modules/feedSettings';
 import { moderationHe, auditHe, accountBlockedHe } from './modules/moderation';
 import { postHe } from './modules/post';
 import { settingsHe } from './modules/settings';
@@ -69,6 +70,8 @@ const he = {
 
   // Notifications (FR-NOTIF-001..015) — see modules/notifications.ts
   notifications: notificationsHe,
+  feedSettings: feedSettingsHe,
+  emptyStates: emptyStatesHe,
 
   // Moderation (FR-MOD-007/010 + FR-ADMIN-002..007) — see modules/moderation.ts
   moderation: moderationHe,

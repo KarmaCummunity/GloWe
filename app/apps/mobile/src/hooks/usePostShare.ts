@@ -13,6 +13,7 @@ import { postOwnerDisplayLabel } from '../lib/postOwnerDisplayLabel';
 import { postRecipientDisplayLabel } from '../lib/postRecipientDisplayLabel';
 import { useAuthStore } from '../store/authStore';
 import { useFeedSessionStore } from '../store/feedSessionStore';
+import { hapticLightTap, hapticSuccess } from '../lib/haptics';
 
 const POST_IMAGES_BUCKET = 'post-images';
 
@@ -25,6 +26,7 @@ export function usePostShare(post: PostWithOwner) {
 
   const share = useCallback(async () => {
     if (busy || !canShare) return;
+    hapticLightTap();
     setBusy(true);
     try {
       const webBaseUrl = resolveWebBaseUrl({
@@ -68,6 +70,7 @@ export function usePostShare(post: PostWithOwner) {
         webBaseUrl,
         remoteImageUrl,
       });
+      if (outcome.kind === 'shared' || outcome.kind === 'copied') hapticSuccess();
       if (outcome.kind === 'copied') {
         showToast(t('post.detail.shareCopiedToast'), 'success', 1800);
       } else if (outcome.kind === 'failed') {

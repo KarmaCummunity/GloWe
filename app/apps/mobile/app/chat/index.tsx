@@ -1,6 +1,6 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, RefreshControl, TextInput, Platform } from 'react-native';
+import { View, Text, TextInput, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -9,7 +9,8 @@ import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { markNeedFreshThreadWith } from '../../src/lib/chatNavigationPrefs';
-import { EmptyState } from '../../src/components/EmptyState';
+import { EmptyState, EmptyStateActions } from '../../src/components/EmptyState';
+import { KcRefreshControl } from '../../src/components/lists/KcRefreshControl';
 import { HideChatConfirmModal } from '../../src/components/HideChatConfirmModal';
 import { InboxChatRow, InboxChatRowSeparator } from '../../src/components/chat/InboxChatRow';
 import { InboxListSkeleton } from '../../src/components/skeletons/InboxListSkeleton';
@@ -103,21 +104,29 @@ export default function ChatListScreen() {
           onEndReachedThreshold={0.6}
           estimatedItemSize={76}
           refreshControl={
-            <RefreshControl
-              refreshing={inboxQuery.isRefetching}
-              onRefresh={() => void onRefresh()}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
+            <KcRefreshControl refreshing={inboxQuery.isRefetching} onRefresh={onRefresh} />
           }
           renderItem={renderItem}
           ItemSeparatorComponent={InboxChatRowSeparator}
           ListEmptyComponent={
-            <EmptyState
-              icon="chatbubbles-outline"
-              title={t('chat.noChats')}
-              subtitle={t('chat.noChatsDesc')}
-            />
+            q.trim() ? (
+              <EmptyState icon="search-outline" title={t('chat.noChats')} subtitle={t('chat.noChatsDesc')} />
+            ) : (
+              <EmptyState
+                icon="chatbubbles-outline"
+                title={t('emptyStates.chatTitle')}
+                subtitle={t('emptyStates.chatBody')}
+                action={
+                  <EmptyStateActions
+                    primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)' as never) }}
+                    secondary={{
+                      label: t('emptyStates.chatMarketplaceCta'),
+                      onPress: () => router.push('/(tabs)/donations/marketplace' as never),
+                    }}
+                  />
+                }
+              />
+            )
           }
         />
       )}

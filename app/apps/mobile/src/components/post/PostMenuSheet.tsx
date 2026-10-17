@@ -17,6 +17,8 @@ import { usePostShare } from '../../hooks/usePostShare';
 import { shouldShowPostExposureControls } from '../../hooks/usePostActorPrivacyModel';
 import { PostMenuExposureBlock } from './PostMenuExposureBlock';
 import { runAfterBottomSheetDismiss } from '../../lib/runAfterBottomSheetDismiss';
+import { hapticLightTap } from '../../lib/haptics';
+import { useFeedSessionStore } from '../../store/feedSessionStore';
 
 interface Props {
   visible: boolean;
@@ -51,6 +53,7 @@ export function PostMenuSheet({
 }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const showToast = useFeedSessionStore((st) => st.showEphemeralToast);
   const { colors } = useTheme();
   const styles = usePostMenuSheetStyles();
   const [active, setActive] = useState<ActiveModal>(null);
@@ -108,6 +111,20 @@ export function PostMenuSheet({
                       onClose();
                       void container.socialFeed.hidePost(post.postId).then(() => {
                         void queryClient.invalidateQueries({ queryKey: ['feed'] });
+                      });
+                    }}
+                  />
+                ) : null}
+                {!isOwner && viewerId ? (
+                  <MenuItem
+                    icon="volume-mute-outline"
+                    label={t('feedSettings.menuMuteUser')}
+                    onPress={() => {
+                      onClose();
+                      hapticLightTap();
+                      void container.socialFeed.addMuteFilter('user', post.ownerId).then(() => {
+                        showToast(t('feedSettings.mutedUserToast'), 'success', 2200);
+                        for (const key of ['feed', 'feed-mute-filters']) void queryClient.invalidateQueries({ queryKey: [key] });
                       });
                     }}
                   />

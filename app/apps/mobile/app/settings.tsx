@@ -133,6 +133,11 @@ export default function SettingsScreen() {
             icon="notifications-outline"
             onPress={() => router.push('/settings/notifications' as never)}
           />
+          <SettingsScreenRow
+            label={t('feedSettings.settingsRow')}
+            icon="options-outline"
+            onPress={() => router.push('/settings/feed' as never)}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>

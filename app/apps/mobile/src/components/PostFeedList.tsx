@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { KcRefreshControl } from './lists/KcRefreshControl';
 import type { ViewToken } from 'react-native';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
@@ -123,11 +124,7 @@ export function PostFeedList({
         ) : null
       }
       refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
+        <KcRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
       }
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}

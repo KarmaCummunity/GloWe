@@ -33,7 +33,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0360–0369 | money world (#913) | merged |
 | 0370–0379 | time world (volunteering, #915) | merged |
 | 0380–0389 | items & food worlds (handoffs, #916) | merged |
-| 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | in progress (#972) |
+| 0390–0399 | rides + knowledge marketplace worlds (geo match, seats/slots, handoffs) | merged (#972) |
 | 0400+ | — | free |
 
 ## Next free ranges
