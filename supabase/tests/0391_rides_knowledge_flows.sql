@@ -156,6 +156,8 @@ begin
 end $$;
 
 -- 4) Knowledge: one-slot private lesson starting in 10 minutes.
+-- Publishing in knowledge requires a verified member (0264 has_world_permission).
+update public.users set verified_at = now() where user_id = '00000000-0000-0000-0000-000000391001';
 select pg_temp.as_user('00000000-0000-0000-0000-000000391001');
 insert into public.listings (
   listing_id, owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
