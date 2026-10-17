@@ -36,4 +36,6 @@ export const moneyPayments = {
   pauseStanding: 'Pause',
   resumeStanding: 'Resume',
   cancelStanding: 'Cancel',
+  externalNotice: 'Donations are completed on the Karma Community website in your browser. Your receipt will also appear in your history in the app.',
+  continueInBrowser: 'Continue to donate in browser',
 } as const;

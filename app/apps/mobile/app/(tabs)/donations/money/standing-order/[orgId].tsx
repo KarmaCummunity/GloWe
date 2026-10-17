@@ -12,6 +12,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { Screen } from '../../../../../src/components/ui/Screen';
+import { ExternalDonationNotice } from '../../../../../src/components/money/ExternalDonationNotice';
+import { useExternalDonations } from '../../../../../src/hooks/useExternalDonations';
 import { newIdempotencyKey, paymentsUseCases } from '../../../../../src/services/paymentsComposition';
 
 const useStyles = makeUseStyles(({ colors }) => ({
@@ -35,10 +37,19 @@ export default function StandingOrderScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const styles = useStyles();
+  const { external } = useExternalDonations();
   const [amount, setAmount] = useState('36');
   const [busy, setBusy] = useState(false);
   const parsed = Number(amount.replace(',', '.'));
   const valid = Number.isFinite(parsed) && parsed >= 5;
+
+  if (external && orgId) {
+    return (
+      <Screen>
+        <ExternalDonationNotice kind="standing-order" orgId={orgId} />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

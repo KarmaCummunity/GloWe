@@ -38,7 +38,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0400 | #982: kc-dev demo verified nonprofits (guarded no-op unless kc-dev seed present) | merged |
 | 0401 | #991 store readiness: account-deletion FK fixes (money records de-identified on delete) | merged |
 | 0402 | Store readiness: DRAFT terms + privacy on kc-dev aligned with behaviour (guarded no-op off kc-dev) | merged (#998) |
-| 0403 | Store readiness: `app_flags` remote config (`ios_in_app_donations`) | in progress (#999) |
+| 0403 | Store readiness: `app_flags` remote config (`ios_in_app_donations`) | merged (#999) |
 | 0404–0409 | — | free |
 | 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
 | 0414 | — | free |
