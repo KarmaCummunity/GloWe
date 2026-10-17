@@ -10648,6 +10648,7 @@ export type Database = {
         Returns: undefined
       }
       volunteer_shift_reminder_sweep: { Args: never; Returns: number }
+      whatsapp_mask_wa_id: { Args: { p_wa_id: string }; Returns: string }
       whatsapp_outbound_enqueue: {
         Args: { p_delay_seconds?: number; p_outbound_id: string }
         Returns: undefined
@@ -10666,7 +10667,6 @@ export type Database = {
         Args: { p_window_seconds: number }
         Returns: string
       }
-      whatsapp_mask_wa_id: { Args: { p_wa_id: string }; Returns: string }
       whatsapp_user_can_receive: {
         Args: { p_user_id: string }
         Returns: boolean
