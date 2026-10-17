@@ -140,8 +140,8 @@ export default function MarketplaceBrowseScreen() {
           >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.meta}>
-              {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} · {item.direction} ·{' '}
-              {item.kindSlug}
+              {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} ·{' '}
+              {item.direction === 'request' ? t('search.request') : t('search.give')}
             </Text>
           </Pressable>
         )}

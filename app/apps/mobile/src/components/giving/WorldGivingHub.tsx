@@ -22,9 +22,10 @@ export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath, create
       createPath={createPath}
       createLabelKey="givingHandoff.createListing"
       rowMeta={(item) =>
-        `${worldSlug === 'food' && item.urgencyLevel >= 4 ? `${t('givingHandoff.urgencyHigh')} · ` : ''}${
-          item.availabilityStatus
-        } · ${t(`marketplace.world.${worldSlug}`)}`
+        `${worldSlug === 'food' && item.urgencyLevel >= 4 ? `${t('givingHandoff.urgencyHigh')} · ` : ''}${t(
+          `marketplace.availability.${item.availabilityStatus}`,
+          { defaultValue: item.availabilityStatus },
+        )} · ${t(`marketplace.world.${worldSlug}`)}`
       }
     />
   );

@@ -12,6 +12,9 @@ export const marketplaceWorldLabels = {
   medical: 'Blood & medical',
   animals: 'Animals',
   environment: 'Environment',
+  creative: 'Creative',
+  app_design: 'App design',
+  romantic_matchmaking: 'Matchmaking',
 } as const;
 
 export const marketplaceOrgPicker = {

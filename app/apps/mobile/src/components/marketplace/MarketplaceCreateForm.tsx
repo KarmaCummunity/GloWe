@@ -112,7 +112,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.body}>
-      <Text style={typography.h2}>{t('marketplace.createTitle', { world: worldSlug })}</Text>
+      <Text style={typography.h2}>{t('marketplace.createTitle', { world: t(`marketplace.world.${worldSlug}`, { defaultValue: worldSlug }) })}</Text>
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
       <View style={styles.chipRow}>
         {kinds.map((k) => {

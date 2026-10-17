@@ -148,7 +148,7 @@ export default function MyListingsScreen() {
             <Pressable onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}>
               <Text style={styles.rowTitle}>{item.title}</Text>
               <Text style={styles.meta}>
-                {item.worldSlug} · {item.status} · {t('marketplace.myListingsUpdated', {
+                {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} · {item.status} · {t('marketplace.myListingsUpdated', {
                   date: new Date(item.updatedAt).toLocaleDateString(),
                 })}
               </Text>
