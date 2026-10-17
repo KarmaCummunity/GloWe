@@ -1,0 +1,26 @@
+// Matching v2 (0420–0423) — "Matches for you" screen + donations hub card.
+export const matchesEn = {
+  title: 'Matches for you',
+  titleWithCount: 'Matches for you ({{count}})',
+  intro: 'We automatically pair your requests and offers with others nearby. Accept to connect, or decline to see fewer like it.',
+  empty: 'No matches yet. Post a request or an offer and we will look for a fit.',
+  error: 'Could not load matches. Try again.',
+  seeAll: 'See all matches',
+  someone: 'A community member',
+  score: '{{pct}}% match',
+  distanceKm: '{{km}} km away',
+  forYourOffer: 'For your offer: {{title}}',
+  forYourRequest: 'For your request: {{title}}',
+  accept: 'Accept',
+  decline: 'Decline',
+  viewListing: 'View',
+  accepted: 'Accepted — we let them know.',
+  mutual: "It's a match! Coordinate in chat.",
+  declined: 'Declined. We will suggest better matches.',
+  state: {
+    new: 'New',
+    theyAccepted: 'They accepted',
+    waiting: 'Waiting for them',
+    mutual: 'Matched',
+  },
+};

@@ -92,7 +92,7 @@ jobs:
           deno-version: v2.x
       - name: Deno test WhatsApp handlers (mocked Meta, no secrets)
         working-directory: supabase/functions
-        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender --allow-read
+        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank --allow-read
 
   db-validate:
     # REQUIRED status check — always runs so the context reports on every PR.

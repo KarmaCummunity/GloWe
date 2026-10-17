@@ -51,5 +51,11 @@
   "notifications.volunteerReminderTitle": "תזכורת: משמרת התנדבות מחר",
   "notifications.volunteerReminderBody": "{{title}} — {{starts_at}}",
   "notifications.volunteerOrganizerTitle": "עדכון מהמארגן/ת",
-  "notifications.volunteerOrganizerBody": "{{title}}: {{message}}"
+  "notifications.volunteerOrganizerBody": "{{title}}: {{message}}",
+  "notifications.matchSuggestedTitle": "נמצאה התאמה בשבילך",
+  "notifications.matchSuggestedBody": "\"{{otherTitle}}\" עשוי להתאים ל\"{{myTitle}}\" שלך ({{worldHe}})",
+  "notifications.matchInterestTitle": "מישהו מעוניין",
+  "notifications.matchInterestBody": "{{partnerName}} אישר/ה את ההתאמה עבור \"{{listingTitle}}\"",
+  "notifications.matchAcceptedTitle": "יש התאמה!",
+  "notifications.matchAcceptedBody": "גם {{partnerName}} אישר/ה — תאמו את \"{{listingTitle}}\" בצ'אט"
 }

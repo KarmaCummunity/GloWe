@@ -34,6 +34,7 @@ import { karmaHe } from './modules/karma';
 import { asideHe } from './modules/aside';
 import { configHe } from './modules/config';
 import { followHe } from './modules/follow';
+import { matchesHe } from './modules/matches';
 
 const he = {
   // App
@@ -117,6 +118,8 @@ const he = {
   search,
 
   follow: followHe,
+  // Matching v2 — see modules/matches.ts
+  matches: matchesHe,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsHe,
