@@ -61,17 +61,21 @@ export function useOptimisticFollowAction({
 
     qc.setQueryData<FollowStateInfo>(followStateKey, { state: nextState });
     if (countDelta !== 0) {
+      // Functional updaters: TanStack Query ≥5.104 Updater typing rejects object
+      // literals under exactOptionalPropertyTypes / NoInfer.
       if (prevTarget) {
-        qc.setQueryData<User | null>(profileOtherKey, {
-          ...prevTarget,
-          followersCount: Math.max(0, prevTarget.followersCount + countDelta),
-        });
+        qc.setQueryData<User | null>(profileOtherKey, (old) =>
+          old
+            ? { ...old, followersCount: Math.max(0, old.followersCount + countDelta) }
+            : old,
+        );
       }
       if (prevViewer) {
-        qc.setQueryData<User | null>(userProfileKey, {
-          ...prevViewer,
-          followingCount: Math.max(0, prevViewer.followingCount + countDelta),
-        });
+        qc.setQueryData<User | null>(userProfileKey, (old) =>
+          old
+            ? { ...old, followingCount: Math.max(0, old.followingCount + countDelta) }
+            : old,
+        );
       }
     }
 

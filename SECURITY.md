@@ -39,6 +39,7 @@ Repository security features (verified 2026-07-19 via `gh api` read-back):
 | Private vulnerability reporting | enabled |
 | Dependabot security updates | enabled |
 | Dependabot version updates | enabled (`.github/dependabot.yml` → weekly npm + monthly Actions on `dev`) |
+| Override / ignoreGhsas review | monthly — prune patched GHSA ignores; keep CI `pnpm audit --audit-level=high` (#948) |
 | Secret scanning | enabled (org/repo policy; do not disable) |
 | Secret scanning push protection | enabled (do not disable) |
 | Fork PR workflow approval | `first_time_contributors` |

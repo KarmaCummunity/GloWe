@@ -8,21 +8,35 @@ updates:
       day: "monday"
     groups:
       typescript-eslint:
-        patterns: ["typescript-eslint", "@eslint/*", "eslint*"]
+        patterns: ["typescript-eslint", "@eslint/*", "eslint", "eslint-*"]
       vitest:
         patterns: ["vitest", "@vitest/*"]
+        # Keep major bumps ungrouped noise low — open separately
+        update-types: ["minor", "patch"]
+      tanstack-query:
+        patterns: ["@tanstack/query-*", "@tanstack/react-query*"]
+      turbo:
+        patterns: ["turbo"]
       expo:
         patterns: ["expo", "expo-*", "@expo/*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "react-native"
         update-types: ["version-update:semver-major"]
       - dependency-name: "expo"
         update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 5
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
+    open-pull-requests-limit: 8
 
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "dev"
     schedule:
       interval: "monthly"
+    groups:
+      github-actions:
+        patterns: ["*"]
     open-pull-requests-limit: 5
