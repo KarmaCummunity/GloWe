@@ -22,6 +22,7 @@ stable
 security definer
 set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare
   v_q text := nullif(trim(coalesce(p_query, '')), '');
   v_lim int := least(greatest(coalesce(p_limit, 20), 1), 50);
@@ -96,7 +97,8 @@ begin
     left join trgm t on t.listing_id = b.listing_id
     left join vec v on v.listing_id = b.listing_id
     left join geo g on g.listing_id = b.listing_id
-    where f.listing_id is not null or t.listing_id is not null or g.listing_id is not null
+    -- A text signal (FTS or trigram) is required; geo/vector only re-rank.
+    where f.listing_id is not null or t.listing_id is not null
   )
   select listing_id, score::numeric, fts_rank, trgm_rank, vector_rank, geo_rank
     from fused
