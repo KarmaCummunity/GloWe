@@ -47,6 +47,10 @@ const SKIP_HEBREW_SCAN_EXACT_RELS = new Set([
   // (Hebrew is the MVP locale, R-MVP-Core-4). A static manifest.json cannot hold
   // i18next keys, so its localized name is canonical here, not an inline leak.
   "app/apps/mobile/public/manifest.json",
+  // Public static legal pages (store privacy-policy / terms URLs). Served without
+  // JS so store reviewers and signed-out visitors can read them; bilingual he+en.
+  "app/apps/mobile/public/privacy.html",
+  "app/apps/mobile/public/terms.html",
 ]);
 
 function parseArgs(argv) {
