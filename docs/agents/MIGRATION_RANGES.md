@@ -41,11 +41,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0410–0413 | perf: keyset pagination + hot-query indexes (feed / marketplace / search) | merged (#989) |
 | 0414 | — | free |
 | 0415–0416 | realtime: typing/presence send auth, online presence topic, feed:public new-post broadcast | merged (#994) |
-| 0417+ | — | free |
+| 0417–0419 | feed hides/mutes view (`feed_visible_posts`), paged post/user search RPCs (no exact count), "show my active status" presence privacy | in progress (#1001) |
+| 0420+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0402–0409`, `0414`, `0417+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0402–0409`, `0414`, `0420+`.
 
 ## How to claim
 

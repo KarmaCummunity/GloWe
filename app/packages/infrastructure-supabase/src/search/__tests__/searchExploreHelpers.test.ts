@@ -12,7 +12,6 @@ import {
 interface FakeOpts {
   data?: unknown;
   error?: { message: string } | null;
-  count?: number | null;
 }
 interface Op {
   kind: 'from' | 'select' | 'eq' | 'in' | 'is' | 'or' | 'gte' | 'order' | 'limit';
@@ -24,7 +23,6 @@ function makeFakeClient(opts: FakeOpts = {}): { client: SupabaseClient<any>; ops
   const result = () => ({
     data: opts.data ?? null,
     error: opts.error ?? null,
-    count: opts.count ?? null,
   });
   function makeChain(): any {
     return new Proxy({}, {
@@ -73,7 +71,7 @@ describe('explorePosts', () => {
     expect(ops.filter((o) => o.kind === 'eq').map((o) => o.args?.[0])).toEqual(['status']);
     const order = ops.find((o) => o.kind === 'order');
     expect(order?.args).toEqual(['created_at', { ascending: false }]);
-    expect(ops.find((o) => o.kind === 'limit')?.args).toEqual([25]);
+    expect(ops.find((o) => o.kind === 'limit')?.args).toEqual([26]);
   });
 
   it('throws with "explorePosts: <msg>" on query error', async () => {
@@ -81,22 +79,23 @@ describe('explorePosts', () => {
     await expect(explorePosts(client, {}, 10)).rejects.toThrow('explorePosts: rls denied');
   });
 
-  it('requests count: "exact" on select', async () => {
+  it('never requests an exact count (0418)', async () => {
     const { client, ops } = makeFakeClient({ data: [] });
     await explorePosts(client, {}, 10);
-    expect(ops.find((o) => o.kind === 'select')?.args?.[1]).toEqual({ count: 'exact' });
+    expect(ops.find((o) => o.kind === 'select')?.args?.[1]).toBeUndefined();
   });
 
-  it('returns mapped PostWithOwner rows and total from PostgREST count', async () => {
-    const { client } = makeFakeClient({ data: [POST_ROW], count: 41 });
-    const out = await explorePosts(client, {}, 5);
-    expect(out.items[0]?.postId).toBe('p_1');
-    expect(out.total).toBe(41);
+  it('returns mapped rows and flags hasMore from the extra row', async () => {
+    const { client } = makeFakeClient({ data: [POST_ROW, { ...POST_ROW, post_id: 'p_2' }] });
+    const out = await explorePosts(client, {}, 1);
+    expect(out.items.map((p) => p.postId)).toEqual(['p_1']);
+    expect(out.hasMore).toBe(true);
+    expect(out.total).toBe(1);
   });
 
   it('returns empty bucket when data is null', async () => {
     const { client } = makeFakeClient({ data: null });
-    expect(await explorePosts(client, {}, 10)).toEqual({ items: [], total: 0 });
+    expect(await explorePosts(client, {}, 10)).toEqual({ items: [], total: 0, hasMore: false });
   });
 });
 

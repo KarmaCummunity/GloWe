@@ -1,17 +1,22 @@
 // Online presence (green dot): one shared `presence:online` channel per signed-in,
-// foregrounded app session. Rows/headers read the shared set via useIsOnline —
+// foregrounded app session whose "Show my active status" is ON. Rows/headers read the shared set via useIsOnline —
 // they never open their own channels.
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { container } from '../lib/container';
+import { useActiveStatusSetting } from './useActiveStatusSetting';
 
 /** Mount once near the root: tracks the signed-in user while the app is active. */
 export function useOnlinePresenceLifecycle(): void {
   const userId = useAuthStore((s) => s.session?.userId ?? null);
+  // "Show my active status" (0419): only join once we know it's ON; when OFF we neither
+  // broadcast nor receive (the server enforces both directions too).
+  const { enabled: showActiveStatus } = useActiveStatusSetting(userId);
+  const shouldTrack = Boolean(userId) && showActiveStatus === true;
   useEffect(() => {
     const presence = container.onlinePresence;
-    if (!userId) {
+    if (!userId || !shouldTrack) {
       presence.stop();
       return;
     }
@@ -24,7 +29,7 @@ export function useOnlinePresenceLifecycle(): void {
       sub.remove();
       presence.stop();
     };
-  }, [userId]);
+  }, [userId, shouldTrack]);
 }
 
 /** True while `userId` is tracked on presence:online. */
