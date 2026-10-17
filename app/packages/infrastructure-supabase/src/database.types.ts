@@ -2616,6 +2616,7 @@ export type Database = {
         Row: {
           anonymity_level: number
           availability_status: string
+          beneficiary_org_id: string | null
           canonical_id: string | null
           category_id: string | null
           city_id: string | null
@@ -2651,6 +2652,7 @@ export type Database = {
         Insert: {
           anonymity_level?: number
           availability_status?: string
+          beneficiary_org_id?: string | null
           canonical_id?: string | null
           category_id?: string | null
           city_id?: string | null
@@ -2686,6 +2688,7 @@ export type Database = {
         Update: {
           anonymity_level?: number
           availability_status?: string
+          beneficiary_org_id?: string | null
           canonical_id?: string | null
           category_id?: string | null
           city_id?: string | null
@@ -2719,6 +2722,13 @@ export type Database = {
           world_slug?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "listings_beneficiary_org_id_fkey"
+            columns: ["beneficiary_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["org_id"]
+          },
           {
             foreignKeyName: "listings_canonical_id_fkey"
             columns: ["canonical_id"]
@@ -3719,6 +3729,10 @@ export type Database = {
           is_verified_nonprofit: boolean
           name: string
           org_id: string
+          public_about_en: string | null
+          public_about_he: string | null
+          public_tagline_en: string | null
+          public_tagline_he: string | null
           slug: string
           verification_method: string | null
           verified_at: string | null
@@ -3729,6 +3743,10 @@ export type Database = {
           is_verified_nonprofit?: boolean
           name: string
           org_id?: string
+          public_about_en?: string | null
+          public_about_he?: string | null
+          public_tagline_en?: string | null
+          public_tagline_he?: string | null
           slug: string
           verification_method?: string | null
           verified_at?: string | null
@@ -3739,6 +3757,10 @@ export type Database = {
           is_verified_nonprofit?: boolean
           name?: string
           org_id?: string
+          public_about_en?: string | null
+          public_about_he?: string | null
+          public_tagline_en?: string | null
+          public_tagline_he?: string | null
           slug?: string
           verification_method?: string | null
           verified_at?: string | null
@@ -7247,6 +7269,10 @@ export type Database = {
       }
       closure_cleanup_expired: { Args: never; Returns: number }
       closure_cleanup_expired_with_metric: { Args: never; Returns: number }
+      complete_sandbox_donation: {
+        Args: { p_intent_id: string }
+        Returns: Json
+      }
       create_donation_intent: {
         Args: {
           p_amount_ils: number
@@ -7309,6 +7335,34 @@ export type Database = {
             }
             Returns: string
           }
+      create_standing_order: {
+        Args: {
+          p_amount_ils: number
+          p_cadence?: string
+          p_idempotency_key: string
+          p_org_id: string
+        }
+        Returns: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "standing_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       crm_contact_delete: { Args: { p_contact_id: string }; Returns: undefined }
       crm_contact_list: {
         Args: {
@@ -7505,11 +7559,13 @@ export type Database = {
         Args: { p_chat_id: string }
         Returns: string
       }
+      get_donation_receipt: { Args: { p_payment_id: string }; Returns: Json }
       get_marketplace_listing_detail: {
         Args: { p_listing_id: string }
         Returns: Json
       }
       get_my_admin_roles: { Args: never; Returns: string[] }
+      get_nonprofit_public_page: { Args: { p_org_slug: string }; Returns: Json }
       get_post_translations: {
         Args: { p_post_ids: string[]; p_target_language: string }
         Returns: {
@@ -7614,6 +7670,18 @@ export type Database = {
       }
       karma_value_bonus: { Args: { p_value: number }; Returns: number }
       list_active_surveys: { Args: never; Returns: Json }
+      list_my_donation_history: {
+        Args: { p_limit?: number }
+        Returns: {
+          amount_ils: number
+          org_id: string
+          org_name: string
+          paid_at: string
+          payment_id: string
+          receipt_id: string
+          section46_serial: string
+        }[]
+      }
       list_my_listings: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -7629,6 +7697,29 @@ export type Database = {
           world_slug: string
         }[]
       }
+      list_my_standing_orders: {
+        Args: { p_limit?: number }
+        Returns: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "standing_orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       list_profile_listings: {
         Args: { p_limit?: number; p_owner_id: string }
         Returns: {
@@ -7639,6 +7730,17 @@ export type Database = {
           summary: string
           title: string
           world_slug: string
+        }[]
+      }
+      list_verified_nonprofits: {
+        Args: { p_limit?: number }
+        Returns: {
+          is_verified_nonprofit: boolean
+          name: string
+          org_id: string
+          slug: string
+          tagline_en: string
+          tagline_he: string
         }[]
       }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
@@ -7731,6 +7833,29 @@ export type Database = {
         Returns: boolean
       }
       pause_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      pause_standing_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "standing_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       payment_ledger_post_balanced: {
         Args: { p_idempotency_key: string; p_lines: Json; p_txn_id: string }
         Returns: undefined
@@ -7902,6 +8027,29 @@ export type Database = {
         }[]
       }
       resume_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      resume_standing_order: {
+        Args: { p_order_id: string }
+        Returns: {
+          amount_ils: number
+          cadence: string
+          cancelled_at: string | null
+          created_at: string
+          idempotency_key: string
+          next_charge_at: string | null
+          order_id: string
+          org_id: string
+          provider_id: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "standing_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
       ride_listings_expire_check: { Args: never; Returns: number }
