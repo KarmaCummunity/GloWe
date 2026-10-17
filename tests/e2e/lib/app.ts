@@ -22,7 +22,7 @@ export function trackApiErrors(page: Page) {
 /** Raw i18n keys like `donations.marketplaceHubTitle` leaking into the UI. */
 export async function expectNoRawI18nKeys(page: Page) {
   const body = await page.locator('body').innerText();
-  const leaks = body.match(/\b(?:donations|marketplace|givingHandoff|post|feed|chat|notifications|settings)\.[a-z][A-Za-z]+(?:\.[A-Za-z]+)*\b/g) ?? [];
+  const leaks = body.match(/\b(?:donations|marketplace|givingHandoff|post|feed|chat|notifications|settings|matches)\.[a-z][A-Za-z]+(?:\.[A-Za-z]+)*\b/g) ?? [];
   expect(leaks, `raw i18n keys on ${page.url()}`).toEqual([]);
 }
 

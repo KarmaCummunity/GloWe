@@ -104,6 +104,7 @@ function ThemedRootShell() {
                 name="notifications/inbox"
                 options={{ ...detailStackScreenOptions, headerTitle: i18n.t('notifications.inboxTitle') }}
               />
+              <Stack.Screen name="matches" options={{ ...detailStackScreenOptions, headerTitle: i18n.t('matches.title') }} />
               <Stack.Screen name="about" options={{ headerShown: false }} />
               <Stack.Screen name="about-site" options={{ headerShown: false }} />
               {/* FR-RESEARCH-001 — public web survey; no auth shell */}

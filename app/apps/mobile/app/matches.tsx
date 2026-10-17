@@ -1,0 +1,83 @@
+// Matching v2 — "Matches for you": automatic offer↔request pairs computed in Postgres.
+import React, { useCallback, useState } from 'react';
+import { RefreshControl, Text, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { useDetailStackScreenOptions } from '../src/navigation/detailStackScreenOptions';
+import { KcFlashList } from '../src/components/lists/KcFlashList';
+import { SimpleRowListSkeleton } from '../src/components/skeletons/SimpleRowListSkeleton';
+import { MatchSuggestionCard } from '../src/components/matching/MatchSuggestionCard';
+import { useMyMatches, useRefreshMyMatches, useRespondToMatch } from '../src/hooks/useMyMatches';
+import { sortMatches } from '../src/lib/matching';
+import { rtlTextAlignStart } from '../src/lib/rtlTextAlignStart';
+
+export default function MatchesScreen() {
+  const { t } = useTranslation();
+  const styles = useStyles();
+  const detailOptions = useDetailStackScreenOptions();
+  const query = useMyMatches(50);
+  const respond = useRespondToMatch();
+  const refresh = useRefreshMyMatches();
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const onRespond = useCallback(
+    (candidateId: string, response: 'accept' | 'decline') => {
+      setBusyId(candidateId);
+      setNotice(null);
+      respond.mutate(
+        { candidateId, response },
+        {
+          onSuccess: (r) =>
+            setNotice(t(response === 'decline' ? 'matches.declined' : r.mutual ? 'matches.mutual' : 'matches.accepted')),
+          onError: () => setNotice(t('matches.error')),
+          onSettled: () => setBusyId(null),
+        },
+      );
+    },
+    [respond, t],
+  );
+
+  return (
+    <>
+      <Stack.Screen options={{ ...detailOptions, headerTitle: t('matches.title') }} />
+      <KcFlashList
+        data={sortMatches(query.data ?? [])}
+        keyExtractor={(m) => m.candidateId}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refresh.isPending} onRefresh={() => refresh.mutate()} />
+        }
+        ListHeaderComponent={
+          <View testID="matches-screen">
+            <Text style={styles.intro}>{t('matches.intro')}</Text>
+            {notice ? <Text style={styles.notice}>{notice}</Text> : null}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <MatchSuggestionCard match={item} busy={busyId === item.candidateId} onRespond={onRespond} />
+          </View>
+        )}
+        ListEmptyComponent={
+          query.isLoading ? (
+            <SimpleRowListSkeleton rows={4} rowHeight={140} />
+          ) : (
+            <Text style={styles.empty} testID="matches-empty">
+              {query.isError ? t('matches.error') : t('matches.empty')}
+            </Text>
+          )
+        }
+      />
+    </>
+  );
+}
+
+const useStyles = makeUseStyles(({ colors }) => ({
+  list: { paddingHorizontal: spacing.base, paddingBottom: spacing.xl },
+  intro: { ...typography.body, color: colors.textSecondary, marginVertical: spacing.md, textAlign: rtlTextAlignStart },
+  notice: { ...typography.body, color: colors.primary, marginBottom: spacing.md, textAlign: rtlTextAlignStart },
+  item: { marginBottom: spacing.md },
+  empty: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
+}));
