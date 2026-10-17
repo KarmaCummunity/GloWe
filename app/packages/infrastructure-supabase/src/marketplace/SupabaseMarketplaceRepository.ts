@@ -1,18 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { IMarketplaceRepository, MarketplaceBrowseFilters } from '@kc/application';
 import type {
-  GivingHandoffSnapshot,
   ListingKindOption,
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
   MarketplaceMapCluster,
   MarketplaceSimilarListing,
-  MyGivingHandoffRow,
   MyListingRow,
   ProfileListingRow,
 } from '@kc/domain';
 import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
+import * as handoffs from './givingHandoffs';
 
 type BrowseRow = Database['public']['Functions']['browse_listings']['Returns'][number];
 
@@ -275,117 +274,21 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     if (error) throw error;
   }
 
-  private mapHandoffRow(row: Database['public']['Tables']['giving_handoffs']['Row']): GivingHandoffSnapshot {
-    return {
-      handoffId: row.handoff_id,
-      listingId: row.listing_id,
-      ownerId: row.owner_id,
-      recipientId: row.recipient_id,
-      worldSlug: row.world_slug,
-      status: row.status,
-      pickupMode: row.pickup_mode,
-      pickupWindowStart: row.pickup_window_start,
-      pickupWindowEnd: row.pickup_window_end,
-      confirmBy: row.confirm_by,
-      reservedAt: row.reserved_at,
-      confirmedAt: row.confirmed_at,
-    };
-  }
 
-  private parseHandoffJson(data: unknown): GivingHandoffSnapshot | null {
-    if (data == null || typeof data !== 'object') return null;
-    const o = data as Record<string, unknown>;
-    return {
-      handoffId: String(o.handoff_id),
-      listingId: String(o.listing_id),
-      ownerId: String(o.owner_id),
-      recipientId: String(o.recipient_id),
-      worldSlug: String(o.world_slug),
-      status: String(o.status),
-      pickupMode: String(o.pickup_mode),
-      pickupWindowStart: o.pickup_window_start != null ? String(o.pickup_window_start) : null,
-      pickupWindowEnd: o.pickup_window_end != null ? String(o.pickup_window_end) : null,
-      confirmBy: o.confirm_by != null ? String(o.confirm_by) : null,
-      reservedAt: String(o.reserved_at),
-      confirmedAt: o.confirmed_at != null ? String(o.confirmed_at) : null,
-    };
-  }
-
-  async getListingHandoff(listingId: string) {
-    const { data, error } = await this.client.rpc('get_listing_handoff', { p_listing_id: listingId });
-    if (error) return null;
-    return this.parseHandoffJson(data);
-  }
-
-  async listMyGivingHandoffs(limit = 50): Promise<MyGivingHandoffRow[]> {
-    const { data, error } = await this.client.rpc('list_my_giving_handoffs', { p_limit: limit });
-    if (error || !data) return [];
-    return data.map((r) => ({
-      handoffId: r.handoff_id,
-      listingId: r.listing_id,
-      title: r.title,
-      worldSlug: r.world_slug,
-      status: r.status,
-      role: r.role as 'owner' | 'recipient',
-      pickupWindowStart: r.pickup_window_start,
-      pickupWindowEnd: r.pickup_window_end,
-      reservedAt: r.reserved_at,
-    }));
-  }
-
-  async reserveItemGiving(
+  // Items/food handoffs — see givingHandoffs.ts.
+  getListingHandoff = (listingId: string) => handoffs.getListingHandoff(this.client, listingId);
+  listMyGivingHandoffs = (limit?: number) => handoffs.listMyGivingHandoffs(this.client, limit);
+  reserveItemGiving = (
     listingId: string,
-    pickupMode: 'pickup' | 'delivery' = 'pickup',
-    pickupWindowStart?: string | null,
-    pickupWindowEnd?: string | null,
-  ) {
-    const { data, error } = await this.client.rpc('reserve_item_giving', {
-      p_listing_id: listingId,
-      p_pickup_mode: pickupMode,
-      p_pickup_window_start: pickupWindowStart ?? undefined,
-      p_pickup_window_end: pickupWindowEnd ?? undefined,
-    });
-    if (error || !data) throw error ?? new Error('reserve_item_giving failed');
-    return this.mapHandoffRow(data);
-  }
-
-  async confirmItemHandoff(handoffId: string) {
-    const { data, error } = await this.client.rpc('confirm_item_handoff', { p_handoff_id: handoffId });
-    if (error || !data) throw error ?? new Error('confirm_item_handoff failed');
-    return this.mapHandoffRow(data);
-  }
-
-  async claimFoodGiving(
-    listingId: string,
-    pickupWindowStart?: string | null,
-    pickupWindowEnd?: string | null,
-  ) {
-    const { data, error } = await this.client.rpc('claim_food_giving', {
-      p_listing_id: listingId,
-      p_pickup_window_start: pickupWindowStart ?? undefined,
-      p_pickup_window_end: pickupWindowEnd ?? undefined,
-    });
-    if (error || !data) throw error ?? new Error('claim_food_giving failed');
-    return this.mapHandoffRow(data);
-  }
-
-  async cancelGivingHandoff(handoffId: string) {
-    const { error } = await this.client.rpc('cancel_giving_handoff', { p_handoff_id: handoffId });
-    if (error) throw error;
-  }
-
-  async markGivingHandedOver(handoffId: string) {
-    const { data, error } = await this.client.rpc('mark_giving_handed_over', { p_handoff_id: handoffId });
-    if (error || !data) throw error ?? new Error('mark_giving_handed_over failed');
-    return this.mapHandoffRow(data);
-  }
-
-  async rateGivingHandoff(handoffId: string, rating: number, comment?: string | null) {
-    const { error } = await this.client.rpc('rate_giving_handoff', {
-      p_handoff_id: handoffId,
-      p_rating: rating,
-      p_comment: comment ?? undefined,
-    });
-    if (error) throw error;
-  }
+    pickupMode?: 'pickup' | 'delivery',
+    start?: string | null,
+    end?: string | null,
+  ) => handoffs.reserveItemGiving(this.client, listingId, pickupMode, start, end);
+  confirmItemHandoff = (id: string) => handoffs.confirmItemHandoff(this.client, id);
+  claimFoodGiving = (listingId: string, start?: string | null, end?: string | null) =>
+    handoffs.claimFoodGiving(this.client, listingId, start, end);
+  cancelGivingHandoff = (id: string) => handoffs.cancelGivingHandoff(this.client, id);
+  markGivingHandedOver = (id: string) => handoffs.markGivingHandedOver(this.client, id);
+  rateGivingHandoff = (id: string, rating: number, comment?: string | null) =>
+    handoffs.rateGivingHandoff(this.client, id, rating, comment);
 }
