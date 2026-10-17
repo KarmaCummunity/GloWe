@@ -27,6 +27,7 @@ import { useRedirectIntentStore } from '../store/redirectIntentStore';
 import { container } from '../lib/container';
 import { useEnforceAccountGate } from '../hooks/useEnforceAccountGate';
 import { isPublicResearchPath } from '../navigation/publicResearchPaths';
+import { isPublicLegalSegment } from '../navigation/publicLegalPaths';
 
 export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) {
   const { colors } = useTheme();
@@ -194,6 +195,8 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
     const isResearchSurface =
       (segments[0] as string | undefined) === 'research' ||
       (typeof pathname === 'string' && isPublicResearchPath(pathname));
+    // Terms / privacy must be readable before sign-up (store review, D-47).
+    const isLegalSurface = isPublicLegalSegment(segments as readonly string[]);
 
     if (!isAuthenticated) {
       if (
@@ -203,7 +206,8 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
         !isEmailVerify &&
         !isAccountBlocked &&
         !isAboutSurface &&
-        !isResearchSurface
+        !isResearchSurface &&
+        !isLegalSurface
       ) {
         // FR-POST-023 AC6 — remember the deep-link target so we can restore
         // it after the user completes sign-in / onboarding.

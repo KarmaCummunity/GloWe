@@ -12,7 +12,7 @@
 | קטגוריה משנית (iOS) | Lifestyle | |
 | כתובת מדיניות פרטיות | https://karma-community-kc.com/privacy (dev: https://dev.karma-community.pages.dev/privacy) | |
 | כתובת תנאי שימוש | https://karma-community-kc.com/terms | |
-| כתובת תמיכה | mailto:karmacommunity2.0@gmail.com (מומלץ דף /support) | |
+| כתובת תמיכה | https://karma-community-kc.com/support (dev: https://dev.karma-community.pages.dev/support) | |
 
 ## תיאור מלא
 
