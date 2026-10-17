@@ -36,6 +36,7 @@ import { karmaEn } from './modules/karma';
 import { asideEn } from './modules/aside';
 import { configEn } from './modules/config';
 import { followEn } from './modules/follow';
+import { matchesEn } from './modules/matches';
 
 const en = {
   // App
@@ -119,6 +120,8 @@ const en = {
   search,
 
   follow: followEn,
+  // Matching v2 — see modules/matches.ts
+  matches: matchesEn,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsEn,

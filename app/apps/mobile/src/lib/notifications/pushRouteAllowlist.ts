@@ -107,6 +107,10 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
     const id = requireUuid(d.params?.id);
     return id ? { pathname: '/(tabs)/donations/rides/[id]/rate', params: { id } } : null;
   },
+  // Matching v2 — every match notification lands on the "Matches for you" list.
+  match_suggested: () => ({ pathname: '/matches', params: {} }),
+  match_interest: () => ({ pathname: '/matches', params: {} }),
+  match_accepted: () => ({ pathname: '/matches', params: {} }),
 };
 
 export function resolvePushRoute(data: Partial<PushData>): ResolvedRoute | null {

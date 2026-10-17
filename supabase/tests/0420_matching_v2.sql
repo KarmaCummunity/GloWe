@@ -84,6 +84,7 @@ update public.matching_settings set quiet_start = '00:00', quiet_end = '00:00', 
 
 -- ── fixtures ────────────────────────────────────────────────────────────────
 create temp table t (k text primary key, id uuid) on commit drop;
+grant select on t to authenticated;
 
 do $$
 declare

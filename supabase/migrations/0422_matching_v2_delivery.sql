@@ -151,7 +151,7 @@ begin
         'notifications.matchSuggestedTitle', 'notifications.matchSuggestedBody',
         jsonb_build_object('otherTitle', left(v_other.title, 80), 'myTitle', left(v_own.title, 80),
                            'worldHe', coalesce(v_label_he, r.world_slug), 'worldEn', coalesce(v_label_en, r.world_slug)),
-        jsonb_build_object('candidate_id', r.candidate_id, 'listing_id', v_own.listing_id,
+        jsonb_build_object('candidate_id', r.candidate_id, 'listing_id', v_own.listing_id, 'route', '/matches',
                            'params', jsonb_build_object('id', r.candidate_id::text)),
         'match_cand:' || r.candidate_id::text || ':' || v_side,
         false
@@ -270,7 +270,7 @@ begin
       v_other, 'social', 'match_accepted',
       'notifications.matchAcceptedTitle', 'notifications.matchAcceptedBody',
       jsonb_build_object('partnerName', v_name, 'listingTitle', left(v_offer.title, 80)),
-      jsonb_build_object('candidate_id', m.candidate_id, 'params', jsonb_build_object('id', m.candidate_id::text)),
+      jsonb_build_object('candidate_id', m.candidate_id, 'route', '/matches', 'params', jsonb_build_object('id', m.candidate_id::text)),
       'match_cand:' || m.candidate_id::text || ':accepted:' || v_other::text, false
     );
     perform public.match_whatsapp_send(
@@ -286,7 +286,7 @@ begin
     v_other, 'social', 'match_interest',
     'notifications.matchInterestTitle', 'notifications.matchInterestBody',
     jsonb_build_object('partnerName', v_name, 'listingTitle', left(v_offer.title, 80)),
-    jsonb_build_object('candidate_id', m.candidate_id, 'params', jsonb_build_object('id', m.candidate_id::text)),
+    jsonb_build_object('candidate_id', m.candidate_id, 'route', '/matches', 'params', jsonb_build_object('id', m.candidate_id::text)),
     'match_cand:' || m.candidate_id::text || ':interest:' || v_other::text, false
   );
   return jsonb_build_object('status', m.status, 'mutual', false);
