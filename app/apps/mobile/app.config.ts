@@ -69,6 +69,8 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
         process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() &&
           process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim(),
       ),
+      sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || undefined,
+      posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY?.trim() || undefined,
     },
   } as ExpoConfig;
 }

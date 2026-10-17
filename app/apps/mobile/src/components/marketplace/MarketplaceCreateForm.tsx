@@ -24,6 +24,7 @@ import {
 import { marketplaceRepository, getMarketplaceSupabaseClient } from '../../services/marketplaceComposition';
 import { useAuthStore } from '../../store/authStore';
 import {
+import { track } from '../../lib/analytics';
   marketplaceRuleFieldError,
   marketplaceServerErrorKey,
   type MarketplaceRuleFieldError,
@@ -239,6 +240,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               mediaPaths,
               externalBodyId: routedWorld ? (org?.id ?? null) : null,
             });
+            track('listing_created', { world: worldSlug });
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

@@ -1,7 +1,8 @@
-// Analytics — V1 stub (no-op in production; console.log in __DEV__).
-// FR-SETTINGS-016 AC6: survey + feedback events.
-// TD-161: Wire to a real analytics backend (first-party ingest per SRS §6.1).
-// Properties must be PII-free: slug, version, question_index only.
+// Product analytics facade — PostHog when EXPO_PUBLIC_POSTHOG_KEY is set, else no-op
+// (console in __DEV__). PII-free properties only (slugs, enums, counts — never email/phone).
+// Survey events: FR-SETTINGS-016 AC6. Funnel events: KC#946.
+
+import { capturePosthog } from './observability/posthog';
 
 export type SurveyAnalyticsEvent =
   | 'survey_opened'
@@ -11,19 +12,25 @@ export type SurveyAnalyticsEvent =
   | 'feedback_submitted'
   | 'research_share_initiated';
 
-type AnalyticsEvent = SurveyAnalyticsEvent;
+/** Key product funnels (#946). */
+export type FunnelAnalyticsEvent =
+  | 'signup'
+  | 'listing_created'
+  | 'match_made'
+  | 'donation';
+
+export type AnalyticsEvent = SurveyAnalyticsEvent | FunnelAnalyticsEvent;
 
 type EventProperties = Record<string, unknown>;
 
 /**
  * Emit a product analytics event.
- * V1: logs to console in __DEV__, no-ops in production.
- * Never include PII — only slugs, version numbers, and indices.
+ * Forwards to PostHog when initialised; otherwise __DEV__ console only.
  */
 export function track(event: AnalyticsEvent, properties?: EventProperties): void {
   if (__DEV__) {
     // eslint-disable-next-line no-console
     console.log('[analytics]', event, properties ?? {});
   }
-  // Production: send to /analytics/ingest Edge Function (TD-161).
+  capturePosthog(event, properties);
 }

@@ -58,8 +58,10 @@ Set Supabase and Sentry values as [EAS secrets](https://docs.expo.dev/build-refe
    - Configure **EAS environment variables** (per profile: `development`, `preview`, `production`):
      - `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` (hosted dev or prod — never commit values)
      - `EXPO_PUBLIC_WEB_BASE_URL` (optional; defaults in CI workflows)
+     - `EXPO_PUBLIC_SENTRY_DSN` (optional; Sentry is a no-op without it)
+     - `EXPO_PUBLIC_POSTHOG_KEY` / optional `EXPO_PUBLIC_POSTHOG_HOST` (PostHog is a no-op without the key)
      - `GOOGLE_SERVICES_JSON` — **EAS file** env pointing at `google-services.json` for FCM (Android push)
-     - `SENTRY_AUTH_TOKEN` (optional source maps)
+     - `SENTRY_AUTH_TOKEN` (optional source maps; store workflows set `SENTRY_DISABLE_AUTO_UPLOAD` when absent)
 
 2. **Apple (TestFlight)**
    - App Store Connect app for `org.karmacommunity.app`.
