@@ -6,7 +6,7 @@
 
 | Package | Statements | Branches | Lines |
 | --- | --- | --- | --- |
-| `@kc/domain` | 82.2% | 78.0% | 81.8% |
+| `@kc/domain` | **91.6%** (was 82.2%) | **89.1%** (was 78.0%) | **91.4%** (was 81.8%) |
 | `@kc/application` | 88.8% | 90.7% | 89.1% |
 | `@kc/infrastructure-supabase` | 86.6% | 82.4% | 88.1% |
 | `@kc/ui` | 90.6% | 74.5% | 92.6% |
