@@ -313,6 +313,27 @@ export type Database = {
           },
         ]
       }
+      app_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_events: {
         Row: {
           action: string
