@@ -84,8 +84,8 @@ begin
 end;
 $$;
 
-revoke all on function public.seed_feed_performance_posts(uuid, text, integer) from public;
-revoke all on function public.feed_newest_explain_analyze_ms(uuid) from public;
+revoke all on function public.seed_feed_performance_posts(uuid, text, integer) from public, authenticated, anon;
+revoke all on function public.feed_newest_explain_analyze_ms(uuid) from public, authenticated, anon;
 grant execute on function public.seed_feed_performance_posts(uuid, text, integer) to service_role;
 grant execute on function public.feed_newest_explain_analyze_ms(uuid) to service_role;
 

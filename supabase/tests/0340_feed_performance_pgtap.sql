@@ -23,15 +23,21 @@ begin
    where user_id = p_id;
 end $$;
 
+-- posts_enforce_active_cap (0002) allows max 20 open posts per owner, so the
+-- 900-row load is spread across 45 synthetic owners × 20 posts.
 do $$
 declare
-  v_owner uuid := '00000000-0000-0000-0000-000000899001';
+  v_owner uuid;
   v_city text;
-  v_seeded int;
+  v_seeded int := 0;
+  v_u int;
 begin
-  perform pg_temp.mk_user(v_owner, 'feed_perf');
   select city_id into v_city from public.cities limit 1;
-  v_seeded := public.seed_feed_performance_posts(v_owner, v_city, 900);
+  for v_u in 1..45 loop
+    v_owner := ('00000000-0000-0000-0000-000000' || lpad((899000 + v_u)::text, 6, '0'))::uuid;
+    perform pg_temp.mk_user(v_owner, 'feed_perf_' || v_u::text);
+    v_seeded := v_seeded + public.seed_feed_performance_posts(v_owner, v_city, 20);
+  end loop;
   perform set_config('test.feed_seeded', v_seeded::text, true);
 end $$;
 
