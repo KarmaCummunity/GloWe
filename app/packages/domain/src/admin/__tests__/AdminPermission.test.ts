@@ -45,3 +45,9 @@ describe('AdminPermission matrix', () => {
     expect(hasPermission([], 'chat.delete_message')).toBe(false);
   });
 });
+
+  it('whatsapp.manage is moderator+; support cannot', () => {
+    expect(hasPermission(['moderator'], 'whatsapp.manage')).toBe(true);
+    expect(hasPermission(['super_admin'], 'whatsapp.manage')).toBe(true);
+    expect(hasPermission(['support'], 'whatsapp.manage')).toBe(false);
+  });
