@@ -36,4 +36,6 @@ export const moneyPayments = {
   pauseStanding: 'השהיה',
   resumeStanding: 'חידוש',
   cancelStanding: 'ביטול',
+  externalNotice: 'התרומה מתבצעת באתר קהילת קארמה בדפדפן. אחרי התשלום הקבלה תופיע גם בהיסטוריה שלך באפליקציה.',
+  continueInBrowser: 'המשך לתרומה בדפדפן',
 } as const;

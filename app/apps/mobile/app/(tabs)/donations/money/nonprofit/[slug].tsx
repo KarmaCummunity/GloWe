@@ -8,6 +8,7 @@ import { Screen } from '../../../../../src/components/ui/Screen';
 import { CampaignProgressBar } from '../../../../../src/components/money/CampaignProgressBar';
 import { paymentsUseCases } from '../../../../../src/services/paymentsComposition';
 import { useShellTabBarScrollInset } from '../../../../../src/navigation/useShellTabBarVisibility';
+import { useExternalDonations } from '../../../../../src/hooks/useExternalDonations';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.lg },
@@ -29,6 +30,7 @@ export default function NonprofitPublicScreen() {
   const router = useRouter();
   const styles = useStyles();
   const inset = useShellTabBarScrollInset();
+  const { external, openExternal } = useExternalDonations();
   const page = useQuery({
     queryKey: ['money', 'nonprofit', slug],
     queryFn: () => paymentsUseCases.getNonprofitPage().execute(slug!),
@@ -68,7 +70,9 @@ export default function NonprofitPublicScreen() {
           <Pressable
             style={styles.btn}
             onPress={() =>
-              router.push({ pathname: '/(tabs)/donations/money/donate/[orgId]', params: { orgId: p.orgId } })
+              external
+                ? void openExternal('donate', p.orgId)
+                : router.push({ pathname: '/(tabs)/donations/money/donate/[orgId]', params: { orgId: p.orgId } })
             }
           >
             <Text style={styles.btnText}>{t('moneyPayments.donateNow')}</Text>
@@ -76,10 +80,12 @@ export default function NonprofitPublicScreen() {
           <Pressable
             style={[styles.btn, styles.btnSecondary]}
             onPress={() =>
-              router.push({
-                pathname: '/(tabs)/donations/money/standing-order/[orgId]',
-                params: { orgId: p.orgId },
-              })
+              external
+                ? void openExternal('standing-order', p.orgId)
+                : router.push({
+                    pathname: '/(tabs)/donations/money/standing-order/[orgId]',
+                    params: { orgId: p.orgId },
+                  })
             }
           >
             <Text style={[styles.btnText, styles.btnTextSecondary]}>{t('moneyPayments.monthlyGift')}</Text>
