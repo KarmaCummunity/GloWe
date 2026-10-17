@@ -8438,6 +8438,87 @@ export type Database = {
         }
         Returns: string
       }
+
+      api_whatsapp_admin_block_user: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      api_whatsapp_admin_get_channel: { Args: never; Returns: Json }
+      api_whatsapp_admin_list_consent: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          consent_status: string
+          last_inbound_at: string | null
+          opted_in: boolean
+          opted_in_at: string | null
+          opted_out_at: string | null
+          preferred_language: string | null
+          total_count: number
+          updated_at: string
+          user_id: string | null
+          wa_id_masked: string | null
+        }[]
+      }
+      api_whatsapp_admin_list_conversations: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          listing_id: string | null
+          session_id: string
+          state: string
+          updated_at: string
+          user_id: string | null
+          wa_id_masked: string | null
+        }[]
+      }
+      api_whatsapp_admin_list_outbound: {
+        Args: { p_limit?: number; p_offset?: number; p_status?: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          kind: string
+          language: string
+          last_error: string | null
+          next_attempt_at: string | null
+          outbound_id: string
+          sent_at: string | null
+          status: string
+          template_name: string | null
+          total_count: number
+          user_id: string | null
+          wa_id_masked: string | null
+        }[]
+      }
+      api_whatsapp_admin_list_rate_hits: {
+        Args: { p_limit?: number }
+        Returns: {
+          bucket: string
+          hits: number
+          window_start: string
+        }[]
+      }
+      api_whatsapp_admin_list_recent_matches: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          language: string
+          outbound_id: string
+          payload: Json
+          sent_at: string | null
+          status: string
+          user_id: string | null
+          wa_id_masked: string | null
+        }[]
+      }
+      api_whatsapp_admin_overview: { Args: never; Returns: Json }
+      api_whatsapp_admin_resend: {
+        Args: { p_outbound_id: string }
+        Returns: string
+      }
+      api_whatsapp_admin_set_channel_enabled: {
+        Args: { p_enabled: boolean }
+        Returns: Json
+      }
       api_whatsapp_queue_outbound: {
         Args: {
           p_max_per_hour?: number
@@ -10584,6 +10665,7 @@ export type Database = {
         Args: { p_window_seconds: number }
         Returns: string
       }
+      whatsapp_mask_wa_id: { Args: { p_wa_id: string }; Returns: string }
       whatsapp_user_can_receive: {
         Args: { p_user_id: string }
         Returns: boolean

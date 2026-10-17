@@ -43,15 +43,16 @@ begin
      set is_approved = true
    where template_name = 'match_found_v1' and language_code = 'he';
 
-  perform set_config('request.jwt.claim.sub', v_stranger::text, true);
-  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  perform set_config('request.jwt.claims',
+    jsonb_build_object('sub', v_stranger::text, 'role', 'authenticated')::text, true);
   begin
     perform public.api_whatsapp_admin_overview();
     raise exception 'ASSERT FAILED: stranger must be forbidden';
   exception when insufficient_privilege then null;
   end;
 
-  perform set_config('request.jwt.claim.sub', v_admin::text, true);
+  perform set_config('request.jwt.claims',
+    jsonb_build_object('sub', v_admin::text, 'role', 'authenticated')::text, true);
 
   v_overview := public.api_whatsapp_admin_overview();
   if (v_overview->>'consent_opted_in')::int < 1 then

@@ -27,6 +27,7 @@ export const ADMIN_PERMISSIONS = [
   'money.manage',
   'crm.manage',
   'org.review_applications',
+  'whatsapp.manage',
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
@@ -60,6 +61,7 @@ export const PERMISSION_MATRIX: Readonly<Record<AdminPermission, readonly AdminR
   'money.manage':               ['super_admin', 'moderator'],
   'crm.manage':                 ['super_admin', 'moderator'],
   'org.review_applications':    ['super_admin', 'moderator'],
+  'whatsapp.manage':            ['super_admin', 'moderator'],
 };
 
 export function hasPermission(
