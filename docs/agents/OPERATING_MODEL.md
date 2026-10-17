@@ -43,3 +43,7 @@ issue (agent_task form) -> branch from origin/dev -> PR to dev -> CI green
 ## Secrets
 
 Secrets live only in encrypted GitHub environment secrets. Never print, echo, commit or paste them in issues or PRs.
+
+## Releases
+
+Mobile/store versioning and promotion: [RELEASE.md](./RELEASE.md).
