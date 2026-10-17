@@ -1,10 +1,9 @@
 {
   "ios": {
     "infoPlist": {
-      "NSCameraUsageDescription": "KC needs camera access to take photos for posts.",
-      "NSPhotoLibraryUsageDescription": "KC needs photo library access to choose images for posts.",
-      "NSPhotoLibraryAddUsageDescription": "KC can save images to your photo library when you choose to export or save a photo.",
-      "NSUserNotificationsUsageDescription": "KC sends notifications about messages, post updates, and community activity you care about."
+      "NSCameraUsageDescription": "KC uses the camera only when you choose to take a photo for a post, listing, chat message or your profile picture.",
+      "NSPhotoLibraryUsageDescription": "KC opens your photo library only when you choose a photo to add to a post, listing, chat message or your profile picture.",
+      "NSUserNotificationsUsageDescription": "KC sends notifications about new messages, replies and updates on items and requests you're involved in. You can turn them off in Settings."
     }
   }
 }
