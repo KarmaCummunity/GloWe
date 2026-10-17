@@ -291,7 +291,6 @@ export type { ISurveyAdminRepository } from './ports/ISurveyAdminRepository';
 export { GetAdminSurveyOverviewUseCase } from './survey/GetAdminSurveyOverviewUseCase';
 export { GetAdminSurveyResultsUseCase } from './survey/GetAdminSurveyResultsUseCase';
 export { ListUserFeedbackUseCase } from './survey/ListUserFeedbackUseCase';
-// Public research use cases (FR-RESEARCH-001..003)
 export type { IPublicResearchRepository } from './ports/IPublicResearchRepository';
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';
