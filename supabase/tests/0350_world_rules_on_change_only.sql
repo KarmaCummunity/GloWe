@@ -18,8 +18,12 @@ end $$;
 
 select pg_temp.mk_user('00000000-0000-0000-0000-000000350001', 'legacy_items');
 
+-- 0351 moved the image rule into deferred constraint triggers; check per statement here.
+set constraints listings_items_image_required_ins, listings_items_image_required_upd immediate;
+
 -- Simulate a legacy image-less items listing (created before 0266 existed).
 alter table public.listings disable trigger listings_enforce_world_rules;
+alter table public.listings disable trigger listings_items_image_required_ins;
 insert into public.listings (
   listing_id, owner_id, world_slug, kind_id, direction, title, origin, moderation_status, details
 )
@@ -27,6 +31,7 @@ select '00000000-0000-0000-0000-0000003500a1', '00000000-0000-0000-0000-00000035
        'items', kind_id, 'give', 'Legacy chair', 'native', 'published', '{}'::jsonb
   from public.listing_kinds where world_slug = 'items' and slug = 'give_item';
 alter table public.listings enable trigger listings_enforce_world_rules;
+alter table public.listings enable trigger listings_items_image_required_ins;
 
 -- 1) Status-only updates (pause → resume → fulfill → admin-remove) succeed.
 do $$
