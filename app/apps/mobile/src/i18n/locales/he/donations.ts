@@ -4,6 +4,7 @@
 // under the architecture cap.
 
 import { rides } from './donations.rides';
+import { marketplaceErrors } from './donations.marketplaceErrors';
 export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
@@ -261,6 +262,7 @@ export const marketplace = {
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
   fieldPhotos: 'תמונות',
   validationFailed: 'בדקו את הטופס ({{code}}).',
+  errors: marketplaceErrors,
   shareLink: 'שיתוף קישור',
   report: 'דיווח על מודעה',
   reportTitle: 'דיווח על מודעה זו',

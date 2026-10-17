@@ -4,6 +4,7 @@
 // under the architecture cap.
 
 import { rides } from './donations.rides';
+import { marketplaceErrors } from './donations.marketplaceErrors';
 export { moneyPayments } from './donations.moneyPayments';
 
 export const donations = {
@@ -261,6 +262,7 @@ export const marketplace = {
   fieldRadius: 'Search radius: {{km}} km',
   fieldPhotos: 'Photos',
   validationFailed: 'Please check the form ({{code}}).',
+  errors: marketplaceErrors,
   shareLink: 'Share link',
   report: 'Report listing',
   reportTitle: 'Report this listing',
