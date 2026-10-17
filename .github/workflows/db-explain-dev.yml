@@ -54,7 +54,8 @@ jobs:
           test -s supabase/.temp/pooler-url || { echo "::error::pooler-url missing after link"; exit 1; }
           url=$(cat supabase/.temp/pooler-url)
           # Strip any embedded password; psql reads PGPASSWORD instead.
-          export PGURL_NOPASS=$(printf '%s' "$url" | sed -E 's#://([^:@/]+):[^@]*@#://\1@#')
+          PGURL_NOPASS=$(printf '%s' "$url" | sed -E 's#://([^:@/]+):[^@]*@#://\1@#')
+          export PGURL_NOPASS
           export PGPASSWORD="$SUPABASE_DB_PASSWORD"
           export PGSSLMODE=require
           bash scripts/db-explain-dev.sh
