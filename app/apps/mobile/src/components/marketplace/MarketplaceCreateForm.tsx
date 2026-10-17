@@ -24,11 +24,11 @@ import {
 import { marketplaceRepository, getMarketplaceSupabaseClient } from '../../services/marketplaceComposition';
 import { useAuthStore } from '../../store/authStore';
 import {
-import { track } from '../../lib/analytics';
   marketplaceRuleFieldError,
   marketplaceServerErrorKey,
   type MarketplaceRuleFieldError,
 } from '../../lib/marketplaceCreateErrors';
+import { track } from '../../lib/analytics';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
