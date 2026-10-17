@@ -22,6 +22,11 @@ import {
 } from '../../services/listingImageUpload';
 import { marketplaceRepository, getMarketplaceSupabaseClient } from '../../services/marketplaceComposition';
 import { useAuthStore } from '../../store/authStore';
+import {
+  marketplaceRuleFieldError,
+  marketplaceServerErrorKey,
+  type MarketplaceRuleFieldError,
+} from '../../lib/marketplaceCreateErrors';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
@@ -70,6 +75,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   const [picked, setPicked] = useState<PickedImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [ruleError, setRuleError] = useState<MarketplaceRuleFieldError | null>(null);
 
   useEffect(() => {
     void marketplaceRepository()
@@ -86,6 +92,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
 
   useEffect(() => {
     setDetails({});
+    setRuleError(null);
     if (activeKind?.direction === 'give' || activeKind?.direction === 'request') {
       setDirection(activeKind.direction);
     }
@@ -100,6 +107,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.body}>
       <Text style={typography.h2}>{t('marketplace.createTitle', { world: worldSlug })}</Text>
+      {ruleError?.field === 'world' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
       <View style={styles.chipRow}>
         {kinds.map((k) => {
@@ -137,6 +145,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
       <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
       <ListingSchemaFields schema={activeKind.detailSchema} values={details} onChange={setDetails} />
+      {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       <Text style={styles.label}>{t('marketplace.fieldCity')}</Text>
       <CityPicker value={city} onChange={setCity} disabled={busy} />
       <Text style={styles.label}>{t('marketplace.fieldRadius', { km: Math.round(radiusKm) })}</Text>
@@ -152,11 +161,13 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
             const next = await pickListingImages(picked.length);
             if (!next.length) return;
             setPicked((prev) => [...prev, ...next]);
+            if (ruleError?.field === 'photos') setRuleError(null);
           }}
         >
           <Text style={styles.chipText}>+</Text>
         </Pressable>
       </View>
+      {ruleError?.field === 'photos' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       {validationError ? <Text style={styles.err}>{validationError}</Text> : null}
       <Pressable
         style={styles.btn}
@@ -166,6 +177,16 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
           const schemaErr = validateListingDetails(activeKind.detailSchema, details);
           if (schemaErr) {
             setValidationError(t('marketplace.validationFailed', { code: schemaErr }));
+            return;
+          }
+          const rule = marketplaceRuleFieldError({
+            worldSlug,
+            details,
+            photoCount: picked.length,
+          });
+          setRuleError(rule);
+          if (rule) {
+            setValidationError(null);
             return;
           }
           setValidationError(null);
@@ -198,6 +219,8 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               mediaPaths,
             });
             onPublished(id);
+          } catch (err) {
+            setValidationError(t(marketplaceServerErrorKey(err)));
           } finally {
             setBusy(false);
           }

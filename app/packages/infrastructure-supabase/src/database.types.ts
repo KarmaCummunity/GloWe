@@ -7302,39 +7302,24 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_marketplace_listing:
-        | {
-            Args: {
-              p_availability_status?: string
-              p_category_id?: string
-              p_city_id?: string
-              p_details?: Json
-              p_direction?: string
-              p_kind_id: string
-              p_summary?: string
-              p_title: string
-              p_urgency_level?: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_availability_status?: string
-              p_category_id?: string
-              p_city_id?: string
-              p_details?: Json
-              p_direction?: string
-              p_kind_id: string
-              p_lat?: number
-              p_lng?: number
-              p_max_radius_km?: number
-              p_media_paths?: string[]
-              p_summary?: string
-              p_title: string
-              p_urgency_level?: number
-            }
-            Returns: string
-          }
+      create_marketplace_listing: {
+        Args: {
+          p_availability_status?: string
+          p_category_id?: string
+          p_city_id?: string
+          p_details?: Json
+          p_direction?: string
+          p_kind_id: string
+          p_lat?: number
+          p_lng?: number
+          p_max_radius_km?: number
+          p_media_paths?: string[]
+          p_summary?: string
+          p_title: string
+          p_urgency_level?: number
+        }
+        Returns: string
+      }
       create_standing_order: {
         Args: {
           p_amount_ils: number
