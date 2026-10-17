@@ -7,30 +7,30 @@ Last applied on kc-dev when this was written: `0239`.
 | Range | Owner / issue | Status |
 |---|---|---|
 | 0238–0239 | #852 (GloWe removal, translation) | merged |
-| 0240–0247 | #860 (unified schema) | open PR |
+| 0240–0247 | #860 (unified schema) | merged |
 | 0248–0249 | — | free |
-| 0250–0259 | social (#885, #887) | open PR |
-| 0260–0262 | #886 (matching) | open PR |
-| 0263–0270 | #889 (PRD roles / payments) | open PR |
+| 0250–0259 | social (#885, #887) | merged |
+| 0260–0262 | #886 (matching) | merged |
+| 0263–0270 | #889 (PRD roles / payments) | merged |
 | 0271–0279 | — | free |
-| 0280–0285 | social3 (#892) | open PR |
+| 0280–0285 | social3 (#892) | merged |
 | 0286–0299 | — | free |
 | 0300–0304 | WhatsApp bot (#902) | merged |
 | 0305–0306 | WhatsApp consent/STOP/HELP keywords + audit (#937); send limits, 24h window, LLM budget, pgmq outbound backoff queue (#938) | merged |
 | 0307 | WhatsApp message templates as code (#936): registry columns, he/en seed, language-aware queue | in progress |
 | 0308–0309 | — | free |
 | 0310–0319 | — | free |
-| 0320–0339 | marketplace (#912) | open PR |
-| 0340–0349 | perf (#910, #911) | open PR |
+| 0320–0339 | marketplace (#912) | merged |
+| 0340–0349 | perf (#910, #911) | merged |
 | 0350 | world-rules trigger: enforce on insert / rule-field change only (#952) | merged |
 | 0351 | items image rule: photo or details image, deferred check (#953) | merged |
 | 0352 | drop old 9-param create_marketplace_listing overload (#954) | merged |
 | 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | merged |
-| 0354–0356 | Supabase advisors cleanup (#945): RLS initplan, FK indexes, search_path | this PR |
+| 0354–0356 | Supabase advisors cleanup (#945/#962): RLS initplan, FK indexes, search_path | merged |
 | 0357–0359 | — | free |
-| 0360–0369 | money world (#913) | open PR |
-| 0370–0379 | time world (volunteering, #915) | open PR |
-| 0380–0389 | items & food worlds (handoffs, #916) | open PR |
+| 0360–0369 | money world (#913) | merged |
+| 0370–0379 | time world (volunteering, #915) | merged |
+| 0380–0389 | items & food worlds (handoffs, #916) | merged |
 | 0390+ | — | free |
 
 ## Next free ranges
