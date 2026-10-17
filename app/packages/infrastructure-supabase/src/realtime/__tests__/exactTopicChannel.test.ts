@@ -64,3 +64,11 @@ describe('openExactTopicChannel', () => {
     expect(isChannelFailure('CLOSED')).toBe(false);
   });
 });
+
+describe('uniqueTopicSuffix', () => {
+  it('never repeats within a process', async () => {
+    const { uniqueTopicSuffix } = await import('../exactTopicChannel');
+    const seen = new Set(Array.from({ length: 50 }, () => uniqueTopicSuffix()));
+    expect(seen.size).toBe(50);
+  });
+});

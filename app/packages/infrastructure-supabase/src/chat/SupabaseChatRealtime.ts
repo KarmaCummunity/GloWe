@@ -17,7 +17,7 @@ import type {
 } from '@kc/application';
 import type { Database } from '../database.types';
 import { rowToChat, rowToMessage } from './rowMappers';
-import { isChannelFailure, openExactTopicChannel } from '../realtime/exactTopicChannel';
+import { isChannelFailure, openExactTopicChannel, uniqueTopicSuffix } from '../realtime/exactTopicChannel';
 
 /** `realtime.broadcast_changes` payload → the changed row (null when absent). */
 export function broadcastRecord(msg: { [key: string]: unknown }): Record<string, unknown> | null {
@@ -61,7 +61,7 @@ export class SupabaseChatRealtime implements IChatRealtime {
     );
 
     // chats stays on the publication; unique suffix avoids cached-channel reuse.
-    const chatTopic = `chat-row:${chatId}:${Math.random().toString(36).slice(2, 10)}`;
+    const chatTopic = `chat-row:${chatId}:${uniqueTopicSuffix()}`;
     const chatRow = cb.onChatChanged
       ? this.client
           .channel(chatTopic)
@@ -92,7 +92,7 @@ export class SupabaseChatRealtime implements IChatRealtime {
       }, UNREAD_DEBOUNCE_MS);
     };
 
-    const inboxTopic = `inbox:${userId}:${Math.random().toString(36).slice(2, 10)}`;
+    const inboxTopic = `inbox:${userId}:${uniqueTopicSuffix()}`;
     const channel = this.client
       .channel(inboxTopic)
       // RLS filters server-side: only events on visible chats reach the client.

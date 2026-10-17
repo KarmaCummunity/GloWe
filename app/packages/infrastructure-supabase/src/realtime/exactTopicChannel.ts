@@ -47,7 +47,7 @@ export function openExactTopicChannel(
       // The socket retries auth on join; fall through.
     }
     const stale = client.getChannels().filter((c) => c.topic === `realtime:${topic}`);
-    for (const s of stale) await client.removeChannel(s);
+    await Promise.all(stale.map((s) => client.removeChannel(s)));
     if (closed) return null;
     const ch = client.channel(topic, { config });
     channel = ch;
@@ -69,4 +69,15 @@ export function openExactTopicChannel(
 
 export function isChannelFailure(status: string): boolean {
   return status === 'CHANNEL_ERROR' || status === 'TIMED_OUT';
+}
+
+let topicSeq = 0;
+
+/**
+ * Per-process unique suffix for public postgres_changes topics (avoids reusing
+ * a cached, already-joined channel). Not security-sensitive; no randomness needed.
+ */
+export function uniqueTopicSuffix(): string {
+  topicSeq += 1;
+  return `${Date.now().toString(36)}${topicSeq.toString(36)}`;
 }
