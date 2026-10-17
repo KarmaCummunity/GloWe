@@ -31,6 +31,7 @@ import { adminHe } from './modules/admin';
 import { karmaHe } from './modules/karma';
 import { asideHe } from './modules/aside';
 import { configHe } from './modules/config';
+import { followHe } from './modules/follow';
 
 const he = {
   // App
@@ -105,6 +106,8 @@ const he = {
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,
+
+  follow: followHe,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsHe,

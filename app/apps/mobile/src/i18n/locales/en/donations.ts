@@ -151,6 +151,8 @@ export const search = {
   posts: 'Posts',
   people: 'People',
   links: 'Links',
+  orgs: 'Organizations',
+  hashtags: 'Hashtags',
 
   // Sort options
   sortBy: 'Sort by',
@@ -174,6 +176,9 @@ export const search = {
   sectionPeople: 'People',
   sectionPosts: 'Posts',
   sectionLinks: 'Links',
+  sectionOrgs: 'Organizations',
+  sectionHashtags: 'Hashtags',
+  suggested: 'Suggested searches',
   showAll: 'Show all',
 
   // Result info

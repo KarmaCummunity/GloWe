@@ -2,6 +2,7 @@
 export const postMenuEn = {
   menuA11y: 'Actions menu',
   menuShare: 'Share post',
+  menuHideFromFeed: 'Hide from my feed',
   menuEdit: 'Edit post',
   menuSave: 'Save',
   menuUnsave: 'Remove from saved',

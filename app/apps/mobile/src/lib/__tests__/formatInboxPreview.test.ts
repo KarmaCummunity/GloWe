@@ -13,6 +13,7 @@ const msg = (over: Partial<Message> = {}): Message => ({
   kind: 'user',
   body: 'hello there',
   systemPayload: null,
+  mediaPayload: null,
   status: 'delivered',
   createdAt: '2026-01-01T00:00:00.000Z',
   deliveredAt: null,

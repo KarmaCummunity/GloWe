@@ -113,6 +113,7 @@ describe('fetchRankedFeedPage — page assembly (reorder, distance, nextCursor)'
       distanceKm: 2.0,
       createdAt: '2026-05-16T12:00:00.000Z',
       postId: 'p_b',
+      rankScore: null,
     });
   });
 

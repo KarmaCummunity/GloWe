@@ -60,7 +60,7 @@ export class SupabaseChatRepository implements IChatRepository {
     if (beforeCreatedAt) q = q.lt('created_at', beforeCreatedAt);
     const { data, error } = await q;
     if (error) throw mapChatError(error);
-    return (data ?? []).map(rowToMessage);
+    return ((data ?? []) as unknown as Parameters<typeof rowToMessage>[0][]).map(rowToMessage);
   }
 
   async sendMessage(
@@ -80,7 +80,7 @@ export class SupabaseChatRepository implements IChatRepository {
       .select('message_id, chat_id, sender_id, body, kind, system_payload, status, created_at, delivered_at, read_at')
       .single();
     if (error) throw mapChatError(error);
-    return rowToMessage(data);
+    return rowToMessage(data as unknown as Parameters<typeof rowToMessage>[0]);
   }
 
   async markRead(chatId: string, _userId: string): Promise<void> {

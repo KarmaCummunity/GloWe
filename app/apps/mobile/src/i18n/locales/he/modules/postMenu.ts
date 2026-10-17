@@ -2,6 +2,7 @@
 export const postMenuHe = {
   menuA11y: 'תפריט פעולות',
   menuShare: 'שתף פוסט',
+  menuHideFromFeed: 'הסתר מהפיד שלי',
   menuEdit: 'ערוך פוסט',
   menuSave: 'שמור',
   menuUnsave: 'הסר מהשמורים',

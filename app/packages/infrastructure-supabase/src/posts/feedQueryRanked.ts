@@ -28,6 +28,7 @@ export interface RankedCursor {
   distanceKm: number | null;
   createdAt: string;
   postId: string;
+  rankScore?: number | null;
 }
 
 export function encodeRankedCursor(c: RankedCursor): string {
@@ -43,6 +44,7 @@ export function decodeRankedCursor(raw: string | undefined): RankedCursor | null
       distanceKm: typeof parsed.distanceKm === 'number' ? parsed.distanceKm : null,
       createdAt: parsed.createdAt,
       postId: parsed.postId,
+      rankScore: typeof parsed.rankScore === 'number' ? parsed.rankScore : null,
     };
   } catch {
     return null;
@@ -51,6 +53,7 @@ export function decodeRankedCursor(raw: string | undefined): RankedCursor | null
 
 export function needsRankedPath(filter: PostFeedFilter): boolean {
   if (filter.sortOrder === 'distance') return true;
+  if (filter.sortOrder === 'personalized') return true;
   if (filter.locationFilter && filter.locationFilter.radiusKm > 0) return true;
   if (filter.followersOnly) return true;
   return false;
@@ -81,10 +84,15 @@ export async function fetchRankedFeedPage(
     p_cursor_post_id: cursorParsed?.postId,
     p_filter_search_query: filter.searchQuery ?? undefined,
     p_followers_only: filter.followersOnly ?? false,
-  });
+    p_cursor_rank_score: cursorParsed?.rankScore ?? undefined,
+  } as never);
   if (rpcError) throw new Error(`feed_ranked_ids: ${rpcError.message}`);
 
-  const ranked = (rankedRows ?? []) as Array<{ post_id: string; distance_km: number | null }>;
+  const ranked = (rankedRows ?? []) as Array<{
+    post_id: string;
+    distance_km: number | null;
+    rank_score?: number | null;
+  }>;
   if (ranked.length === 0) return { posts: [], nextCursor: null };
 
   const hasMore = ranked.length > pageLimit;
@@ -118,6 +126,7 @@ export async function fetchRankedFeedPage(
         distanceKm: last.distance_km,
         createdAt: byId.get(last.post_id)?.createdAt ?? '',
         postId: last.post_id,
+        rankScore: last.rank_score ?? null,
       })
     : null;
 

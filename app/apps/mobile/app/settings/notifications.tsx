@@ -7,6 +7,8 @@ import {
   Linking,
   Pressable,
   Platform,
+  TextInput,
+  Switch,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -53,11 +55,36 @@ const useStyles = makeUseStyles(({ colors }) => ({
     borderRadius: radius.sm,
   },
   buttonText: { ...typography.body, color: colors.textInverse, fontSize: 14 },
+  quietRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    ...webViewRtl,
+  },
+  timeInput: {
+    minWidth: 88,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    textAlign: 'center',
+    color: colors.textPrimary,
+  },
 }));
 
 type PermStatus = 'granted' | 'denied' | 'undetermined';
 
-const DEFAULT_PREFS: NotificationPreferences = { critical: true, social: true };
+const DEFAULT_QH = {
+  enabled: false,
+  start: '22:00',
+  end: '07:00',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+};
+
+const DEFAULT_PREFS: NotificationPreferences = { critical: true, social: true, quietHours: DEFAULT_QH };
 
 export default function NotificationSettingsScreen() {
   const detailStackScreenOptions = useDetailStackScreenOptions();
@@ -87,7 +114,11 @@ export default function NotificationSettingsScreen() {
   });
 
   const mutation = useMutation({
-    mutationFn: (partial: { critical?: boolean; social?: boolean }) =>
+    mutationFn: (partial: {
+      critical?: boolean;
+      social?: boolean;
+      quietHours?: NotificationPreferences['quietHours'];
+    }) =>
       container.updateNotificationPreferences.execute({
         userId: userId!,
         ...partial,
@@ -130,6 +161,48 @@ export default function NotificationSettingsScreen() {
           value={prefs.social}
           onValueChange={(v) => mutation.mutate({ social: v })}
         />
+
+        <Text style={styles.sectionHeader}>{t('notifications.quietHoursSection')}</Text>
+        <Text style={[styles.sectionHeader, { paddingTop: 0 }]}>
+          {t('notifications.quietHoursCaption')}
+        </Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusText}>{t('notifications.quietHoursEnabled')}</Text>
+          <Switch
+            value={prefs.quietHours?.enabled ?? false}
+            onValueChange={(enabled) =>
+              mutation.mutate({
+                quietHours: { ...(prefs.quietHours ?? DEFAULT_QH), enabled },
+              })
+            }
+          />
+        </View>
+        <View style={styles.quietRow}>
+          <Text style={styles.statusText}>{t('notifications.quietHoursStart')}</Text>
+          <TextInput
+            style={styles.timeInput}
+            value={prefs.quietHours?.start ?? DEFAULT_QH.start}
+            onChangeText={(start) =>
+              mutation.mutate({
+                quietHours: { ...(prefs.quietHours ?? DEFAULT_QH), start },
+              })
+            }
+            placeholder="22:00"
+          />
+        </View>
+        <View style={styles.quietRow}>
+          <Text style={styles.statusText}>{t('notifications.quietHoursEnd')}</Text>
+          <TextInput
+            style={styles.timeInput}
+            value={prefs.quietHours?.end ?? DEFAULT_QH.end}
+            onChangeText={(end) =>
+              mutation.mutate({
+                quietHours: { ...(prefs.quietHours ?? DEFAULT_QH), end },
+              })
+            }
+            placeholder="07:00"
+          />
+        </View>
 
         {Platform.OS !== 'web' && (
           <>

@@ -26,7 +26,9 @@ import { SupabaseSearchRepository } from '../SupabaseSearchRepository';
 import { explorePosts, exploreUsers, exploreLinks } from '../searchExploreHelpers';
 import { searchPosts, searchUsers, searchLinks } from '../searchQueryHelpers';
 
-const FAKE_CLIENT = {} as SupabaseClient<any>;
+const FAKE_CLIENT = {
+  rpc: vi.fn(async () => ({ data: [], error: null })),
+} as unknown as SupabaseClient<any>;
 const LIMITS = { posts: 10, users: 10, links: 10 };
 
 beforeEach(() => {

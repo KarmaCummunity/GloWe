@@ -41,6 +41,7 @@ export const filtersHe = {
   sortNewest: '🆕 חדש קודם',
   sortOldest: '🕓 ישן קודם',
   sortDistance: '📍 לפי מיקום',
+  sortPersonalized: '✨ מומלץ עבורך',
   sortDistanceCenterHint: 'מרכז המיון (ברירת מחדל: העיר שלך)',
 
   // Location

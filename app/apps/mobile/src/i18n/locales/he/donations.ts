@@ -151,6 +151,8 @@ export const search = {
   posts: 'פוסטים',
   people: 'אנשים',
   links: 'קישורים',
+  orgs: 'ארגונים',
+  hashtags: 'האשטגים',
 
   // Sort options
   sortBy: 'מיין לפי',
@@ -174,6 +176,9 @@ export const search = {
   sectionPeople: 'אנשים',
   sectionPosts: 'פוסטים',
   sectionLinks: 'קישורים',
+  sectionOrgs: 'ארגונים',
+  sectionHashtags: 'האשטגים',
+  suggested: 'חיפושים מומלצים',
   showAll: 'הצג הכל',
 
   // Result info

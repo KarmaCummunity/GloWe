@@ -33,6 +33,7 @@ import { adminEn } from './modules/admin';
 import { karmaEn } from './modules/karma';
 import { asideEn } from './modules/aside';
 import { configEn } from './modules/config';
+import { followEn } from './modules/follow';
 
 const en = {
   // App
@@ -107,6 +108,8 @@ const en = {
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,
+
+  follow: followEn,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsEn,
