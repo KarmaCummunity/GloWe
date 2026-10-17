@@ -675,31 +675,64 @@ export type Database = {
       }
       bot_outbound_messages: {
         Row: {
+          attempts: number
+          body: string | null
           channel: string
+          claimed_at: string | null
           created_at: string
+          kind: string
+          language: string
+          last_error: string | null
+          next_attempt_at: string
           outbound_id: string
           payload: Json
+          queue_msg_id: number | null
+          sent_at: string | null
           status: string
           template_name: string | null
+          to_wa_id: string | null
           user_id: string | null
+          wa_message_id: string | null
         }
         Insert: {
+          attempts?: number
+          body?: string | null
           channel?: string
+          claimed_at?: string | null
           created_at?: string
+          kind?: string
+          language?: string
+          last_error?: string | null
+          next_attempt_at?: string
           outbound_id?: string
           payload?: Json
+          queue_msg_id?: number | null
+          sent_at?: string | null
           status?: string
           template_name?: string | null
+          to_wa_id?: string | null
           user_id?: string | null
+          wa_message_id?: string | null
         }
         Update: {
+          attempts?: number
+          body?: string | null
           channel?: string
+          claimed_at?: string | null
           created_at?: string
+          kind?: string
+          language?: string
+          last_error?: string | null
+          next_attempt_at?: string
           outbound_id?: string
           payload?: Json
+          queue_msg_id?: number | null
+          sent_at?: string | null
           status?: string
           template_name?: string | null
+          to_wa_id?: string | null
           user_id?: string | null
+          wa_message_id?: string | null
         }
         Relationships: [
           {
@@ -7155,24 +7188,98 @@ export type Database = {
           },
         ]
       }
+      whatsapp_consent_events: {
+        Row: {
+          action: string
+          created_at: string
+          event_id: string
+          keyword: string | null
+          record_id: string | null
+          source: string
+          user_id: string | null
+          wa_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          event_id?: string
+          keyword?: string | null
+          record_id?: string | null
+          source: string
+          user_id?: string | null
+          wa_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          event_id?: string
+          keyword?: string | null
+          record_id?: string | null
+          source?: string
+          user_id?: string | null
+          wa_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_consent_events_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "raw_records"
+            referencedColumns: ["record_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_consent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_consent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_consent_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       whatsapp_identities: {
         Row: {
+          consent_status: string
+          consent_updated_at: string | null
           created_at: string
           identity_id: string
+          last_inbound_at: string | null
+          preferred_language: string
           updated_at: string
           user_id: string | null
           wa_id: string
         }
         Insert: {
+          consent_status?: string
+          consent_updated_at?: string | null
           created_at?: string
           identity_id?: string
+          last_inbound_at?: string | null
+          preferred_language?: string
           updated_at?: string
           user_id?: string | null
           wa_id: string
         }
         Update: {
+          consent_status?: string
+          consent_updated_at?: string | null
           created_at?: string
           identity_id?: string
+          last_inbound_at?: string | null
+          preferred_language?: string
           updated_at?: string
           user_id?: string | null
           wa_id?: string
@@ -7274,6 +7381,69 @@ export type Database = {
           language_code?: string
           template_id?: string
           template_name?: string
+        }
+        Relationships: []
+      }
+      whatsapp_rate_counters: {
+        Row: {
+          bucket: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
+      whatsapp_send_limits: {
+        Row: {
+          backoff_base_seconds: number
+          global_per_minute: number
+          global_template_recipients_day: number
+          id: boolean
+          inbound_per_phone_minute: number
+          llm_global_day: number
+          llm_per_phone_day: number
+          max_attempts: number
+          per_user_day: number
+          per_user_hour: number
+          reply_per_phone_hour: number
+          updated_at: string
+        }
+        Insert: {
+          backoff_base_seconds?: number
+          global_per_minute?: number
+          global_template_recipients_day?: number
+          id?: boolean
+          inbound_per_phone_minute?: number
+          llm_global_day?: number
+          llm_per_phone_day?: number
+          max_attempts?: number
+          per_user_day?: number
+          per_user_hour?: number
+          reply_per_phone_hour?: number
+          updated_at?: string
+        }
+        Update: {
+          backoff_base_seconds?: number
+          global_per_minute?: number
+          global_template_recipients_day?: number
+          id?: boolean
+          inbound_per_phone_minute?: number
+          llm_global_day?: number
+          llm_per_phone_day?: number
+          max_attempts?: number
+          per_user_day?: number
+          per_user_hour?: number
+          reply_per_phone_hour?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -8194,12 +8364,63 @@ export type Database = {
         Args: { p_opted_in: boolean; p_user_id: string }
         Returns: undefined
       }
+      api_whatsapp_handle_keyword: {
+        Args: { p_record_id?: string; p_text: string; p_wa_id: string }
+        Returns: Json
+      }
+      api_whatsapp_inbound_allowed: {
+        Args: { p_wa_id: string }
+        Returns: boolean
+      }
       api_whatsapp_ingest_inbound: {
         Args: { p_message_id: string; p_payload: Json; p_run_id?: string }
         Returns: string
       }
+      api_whatsapp_llm_budget_take: {
+        Args: { p_wa_id: string }
+        Returns: boolean
+      }
+      api_whatsapp_outbound_claim: {
+        Args: { p_batch?: number; p_visibility_seconds?: number }
+        Returns: {
+          attempts: number
+          body: string | null
+          channel: string
+          claimed_at: string | null
+          created_at: string
+          kind: string
+          language: string
+          last_error: string | null
+          next_attempt_at: string
+          outbound_id: string
+          payload: Json
+          queue_msg_id: number | null
+          sent_at: string | null
+          status: string
+          template_name: string | null
+          to_wa_id: string | null
+          user_id: string | null
+          wa_message_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "bot_outbound_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       api_whatsapp_outbound_log: {
         Args: { p_payload: Json; p_template_name: string; p_user_id: string }
+        Returns: string
+      }
+      api_whatsapp_outbound_result: {
+        Args: {
+          p_error?: string
+          p_ok: boolean
+          p_outbound_id: string
+          p_retryable?: boolean
+          p_wa_message_id?: string
+        }
         Returns: string
       }
       api_whatsapp_queue_outbound: {
@@ -8210,6 +8431,14 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      api_whatsapp_queue_reply: {
+        Args: { p_body: string; p_reply_kind?: string; p_wa_id: string }
+        Returns: string
+      }
+      api_whatsapp_rate_counters_prune: {
+        Args: { p_older_than?: string }
+        Returns: number
       }
       attach_listing_media: {
         Args: { p_listing_id: string; p_storage_paths: string[] }
@@ -10322,6 +10551,28 @@ export type Database = {
         Returns: undefined
       }
       volunteer_shift_reminder_sweep: { Args: never; Returns: number }
+      whatsapp_outbound_enqueue: {
+        Args: { p_delay_seconds?: number; p_outbound_id: string }
+        Returns: undefined
+      }
+      whatsapp_parse_keyword: { Args: { p_text: string }; Returns: Json }
+      whatsapp_pgmq_enabled: { Args: never; Returns: boolean }
+      whatsapp_rate_peek: {
+        Args: { p_bucket: string; p_window_seconds: number }
+        Returns: number
+      }
+      whatsapp_rate_take: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
+        Returns: boolean
+      }
+      whatsapp_rate_window: {
+        Args: { p_window_seconds: number }
+        Returns: string
+      }
+      whatsapp_user_can_receive: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       legal_doc_type: "terms" | "privacy"
