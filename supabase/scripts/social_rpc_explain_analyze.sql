@@ -25,3 +25,22 @@ select * from public.rpc_unread_counts_for_chats(
   (select user_id from public.users where account_status = 'active' limit 1),
   (select coalesce(array_agg(chat_id), '{}'::uuid[]) from public.chats limit 5)
 );
+
+\echo '=== search_all (sample) ==='
+explain (analyze, buffers, format text)
+select public.search_all(
+  p_query := 'stroller',
+  p_limit := 15
+);
+
+\echo '=== rpc_notification_inbox_list (sample) ==='
+explain (analyze, buffers, format text)
+select * from public.rpc_notification_inbox_list(20, null, null, null, null);
+
+\echo '=== feed_ranked_ids personalized (sample) ==='
+explain (analyze, buffers, format text)
+select * from public.feed_ranked_ids(
+  p_viewer_id := (select user_id from public.users where account_status = 'active' limit 1),
+  p_sort_order := 'personalized',
+  p_page_limit := 20
+);

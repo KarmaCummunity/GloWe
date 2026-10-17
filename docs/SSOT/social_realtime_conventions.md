@@ -20,6 +20,14 @@
 
 **Do not** add engagement tables to `supabase_realtime` publication; fan-out uses Broadcast to avoid per-subscriber RLS on WAL (KC#878).
 
+**Postgres Changes removal (0349):** `public.messages` is **removed** from `supabase_realtime`; chat delivery uses Broadcast triggers in `0259_chat_v2_realtime_broadcast.sql` only. Do not re-add `messages` to the publication.
+
+## Read replicas & pooling (KC#879)
+
+- **Feed/search read routing:** route read-only RPCs (`feed_ranked_ids`, `search_all`, engagement reads) to a read replica connection string when available (`DATABASE_READ_URL` in app infra — not stored in repo).
+- **Supavisor:** use **transaction mode** pooler port for serverless/RPC bursts; session mode only when prepared statements are required.
+- **Feed MV + cache:** `kc_private.feed_open_posts_mv` refreshes via pg_cron when dirty (`0346`); per-user snapshots in `user_feed_cache` via pgmq worker (`0348`).
+
 ## Authorization
 
 Policy `post_engagement_broadcast_receive` on `realtime.messages` (migration `0253`) allows `SELECT` when:

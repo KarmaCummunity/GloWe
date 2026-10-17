@@ -1278,6 +1278,48 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_impressions_y2026m10: {
+        Row: {
+          impression_id: string
+          post_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          impression_id?: string
+          post_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          impression_id?: string
+          post_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_impressions_y2026m11: {
+        Row: {
+          impression_id: string
+          post_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          impression_id?: string
+          post_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          impression_id?: string
+          post_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feed_mute_filters: {
         Row: {
           created_at: string
@@ -1316,6 +1358,30 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      feed_mv_refresh_state: {
+        Row: {
+          dirty: boolean
+          last_refresh_at: string | null
+          row_count: number
+          singleton_id: number
+          updated_at: string
+        }
+        Insert: {
+          dirty?: boolean
+          last_refresh_at?: string | null
+          row_count?: number
+          singleton_id?: number
+          updated_at?: string
+        }
+        Update: {
+          dirty?: boolean
+          last_refresh_at?: string | null
+          row_count?: number
+          singleton_id?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       feed_post_hides: {
         Row: {
@@ -4063,6 +4129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      social_rpc_explain_snapshots: {
+        Row: {
+          captured_at: string
+          elapsed_ms: number | null
+          notes: string | null
+          plan_text: string
+          rpc_name: string
+          snapshot_id: string
+        }
+        Insert: {
+          captured_at?: string
+          elapsed_ms?: number | null
+          notes?: string | null
+          plan_text: string
+          rpc_name: string
+          snapshot_id?: string
+        }
+        Update: {
+          captured_at?: string
+          elapsed_ms?: number | null
+          notes?: string | null
+          plan_text?: string
+          rpc_name?: string
+          snapshot_id?: string
+        }
+        Relationships: []
+      }
       stats_drift_events: {
         Row: {
           column_name: string
@@ -4406,6 +4499,39 @@ export type Database = {
             foreignKeyName: "timesheet_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_feed_cache: {
+        Row: {
+          post_ids: string[]
+          refreshed_at: string
+          user_id: string
+        }
+        Insert: {
+          post_ids?: string[]
+          refreshed_at?: string
+          user_id: string
+        }
+        Update: {
+          post_ids?: string[]
+          refreshed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feed_cache_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_feed_cache_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users_public"
             referencedColumns: ["user_id"]
           },
@@ -5407,7 +5533,13 @@ export type Database = {
         }
         Returns: string
       }
+      cron_feed_cache_worker: { Args: never; Returns: number }
+      cron_refresh_feed_open_posts_mv_if_dirty: { Args: never; Returns: number }
       delete_account_data: { Args: never; Returns: Json }
+      drop_feed_impressions_partitions_older_than: {
+        Args: { p_retention?: string }
+        Returns: number
+      }
       effective_geo: {
         Args: {
           p_listing: Database["public"]["Tables"]["listings"]["Row"]
@@ -5438,7 +5570,22 @@ export type Database = {
         }
         Returns: string
       }
+      ensure_feed_impressions_month_partition: {
+        Args: { p_at?: string }
+        Returns: string
+      }
       escape_ilike: { Args: { p: string }; Returns: string }
+      feed_cache_enqueue: { Args: { p_user_id: string }; Returns: number }
+      feed_cache_enqueue_active_users: {
+        Args: { p_limit?: number }
+        Returns: number
+      }
+      feed_cache_process_queue: { Args: { p_batch?: number }; Returns: number }
+      feed_cache_refresh_user: { Args: { p_user_id: string }; Returns: number }
+      feed_newest_explain_analyze_ms: {
+        Args: { p_viewer_id?: string }
+        Returns: Json
+      }
       feed_ranked_ids: {
         Args: {
           p_cursor_created_at?: string
@@ -5746,6 +5893,10 @@ export type Database = {
           p_title_he: string
         }
         Returns: Json
+      }
+      refresh_feed_open_posts_mv: {
+        Args: { p_concurrent?: boolean }
+        Returns: number
       }
       reopen_post_deleted_no_recipient: {
         Args: { p_post_id: string }
@@ -6624,6 +6775,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      scale_retention_purge_notifications_outbox: {
+        Args: { p_older_than?: string }
+        Returns: number
+      }
       search_all: {
         Args: { p_limit?: number; p_query: string; p_types?: string[] }
         Returns: Json
@@ -6643,6 +6798,19 @@ export type Database = {
           trgm_rank: number
           vector_rank: number
         }[]
+      }
+      seed_feed_performance_posts: {
+        Args: { p_city_id: string; p_count?: number; p_owner_id: string }
+        Returns: number
+      }
+      social_rpc_capture_explain: {
+        Args: {
+          p_elapsed_ms?: number
+          p_notes?: string
+          p_plan_text: string
+          p_rpc_name: string
+        }
+        Returns: string
       }
       stats_recompute_personal_counters_nightly: {
         Args: never
