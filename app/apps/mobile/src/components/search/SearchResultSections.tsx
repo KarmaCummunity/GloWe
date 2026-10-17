@@ -42,9 +42,9 @@ export function SearchResultSections({
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitle}>{t('search.sectionPeople')}</Text>
               <Ionicons name="people" size={18} color={colors.primary} />
-              <Text style={styles.sectionCount}>({results.usersTotal})</Text>
+              <Text style={styles.sectionCount}>({formatSearchCount(results.usersTotal, results.usersHasMore)})</Text>
             </View>
-            {results.usersTotal > previewLimit && expandedSection !== 'user' && (
+            {(results.usersHasMore || results.usersTotal > previewLimit) && expandedSection !== 'user' && (
               <TouchableOpacity style={styles.showAllBtn} onPress={() => onExpand('user')}>
                 <Text style={styles.showAllText}>{t('search.showAll')}</Text>
               </TouchableOpacity>
@@ -62,9 +62,9 @@ export function SearchResultSections({
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitle}>{t('search.sectionPosts')}</Text>
               <Ionicons name="cube" size={18} color={colors.primary} />
-              <Text style={styles.sectionCount}>({results.postsTotal})</Text>
+              <Text style={styles.sectionCount}>({formatSearchCount(results.postsTotal, results.postsHasMore)})</Text>
             </View>
-            {results.postsTotal > previewLimit && expandedSection !== 'post' && (
+            {(results.postsHasMore || results.postsTotal > previewLimit) && expandedSection !== 'post' && (
               <TouchableOpacity style={styles.showAllBtn} onPress={() => onExpand('post')}>
                 <Text style={styles.showAllText}>{t('search.showAll')}</Text>
               </TouchableOpacity>
@@ -84,9 +84,9 @@ export function SearchResultSections({
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitle}>{t('search.sectionLinks')}</Text>
               <Ionicons name="link" size={18} color={colors.secondary} />
-              <Text style={styles.sectionCount}>({results.linksTotal})</Text>
+              <Text style={styles.sectionCount}>({formatSearchCount(results.linksTotal, results.linksHasMore)})</Text>
             </View>
-            {results.linksTotal > previewLimit && expandedSection !== 'link' && (
+            {(results.linksHasMore || results.linksTotal > previewLimit) && expandedSection !== 'link' && (
               <TouchableOpacity style={styles.showAllBtn} onPress={() => onExpand('link')}>
                 <Text style={styles.showAllText}>{t('search.showAll')}</Text>
               </TouchableOpacity>
@@ -105,4 +105,9 @@ export function SearchResultSections({
       )}
     </>
   );
+}
+
+/** Totals are "at least" (0418 — no exact counts); show `N+` when more exist. */
+export function formatSearchCount(total: number, hasMore: boolean | undefined): string {
+  return hasMore ? `${total}+` : String(total);
 }
