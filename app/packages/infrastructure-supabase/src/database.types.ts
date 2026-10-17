@@ -3532,6 +3532,162 @@ export type Database = {
           },
         ]
       }
+      match_candidates: {
+        Row: {
+          candidate_id: string
+          components: Json
+          computed_at: string
+          created_at: string
+          delivery: Json
+          distance_km: number | null
+          llm_reason: string | null
+          llm_score: number | null
+          llm_scored_at: string | null
+          notified_offer_at: string | null
+          notified_request_at: string | null
+          offer_listing_id: string
+          offer_owner_id: string
+          offer_responded_at: string | null
+          offer_response: string | null
+          request_listing_id: string
+          request_owner_id: string
+          request_responded_at: string | null
+          request_response: string | null
+          score: number
+          status: string
+          updated_at: string
+          world_slug: string
+        }
+        Insert: {
+          candidate_id?: string
+          components?: Json
+          computed_at?: string
+          created_at?: string
+          delivery?: Json
+          distance_km?: number | null
+          llm_reason?: string | null
+          llm_score?: number | null
+          llm_scored_at?: string | null
+          notified_offer_at?: string | null
+          notified_request_at?: string | null
+          offer_listing_id: string
+          offer_owner_id: string
+          offer_responded_at?: string | null
+          offer_response?: string | null
+          request_listing_id: string
+          request_owner_id: string
+          request_responded_at?: string | null
+          request_response?: string | null
+          score: number
+          status?: string
+          updated_at?: string
+          world_slug: string
+        }
+        Update: {
+          candidate_id?: string
+          components?: Json
+          computed_at?: string
+          created_at?: string
+          delivery?: Json
+          distance_km?: number | null
+          llm_reason?: string | null
+          llm_score?: number | null
+          llm_scored_at?: string | null
+          notified_offer_at?: string | null
+          notified_request_at?: string | null
+          offer_listing_id?: string
+          offer_owner_id?: string
+          offer_responded_at?: string | null
+          offer_response?: string | null
+          request_listing_id?: string
+          request_owner_id?: string
+          request_responded_at?: string | null
+          request_response?: string | null
+          score?: number
+          status?: string
+          updated_at?: string
+          world_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_candidates_offer_listing_id_fkey"
+            columns: ["offer_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_offer_listing_id_fkey"
+            columns: ["offer_listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_offer_owner_id_fkey"
+            columns: ["offer_owner_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_offer_owner_id_fkey"
+            columns: ["offer_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_offer_owner_id_fkey"
+            columns: ["offer_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_request_listing_id_fkey"
+            columns: ["request_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_request_listing_id_fkey"
+            columns: ["request_listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_request_owner_id_fkey"
+            columns: ["request_owner_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_request_owner_id_fkey"
+            columns: ["request_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_request_owner_id_fkey"
+            columns: ["request_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "match_candidates_world_slug_fkey"
+            columns: ["world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       match_feedback: {
         Row: {
           comment: string | null
@@ -3585,6 +3741,42 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_public"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      match_listing_state: {
+        Row: {
+          candidates: number
+          computed_at: string
+          last_error: string | null
+          listing_id: string
+        }
+        Insert: {
+          candidates?: number
+          computed_at?: string
+          last_error?: string | null
+          listing_id: string
+        }
+        Update: {
+          candidates?: number
+          computed_at?: string
+          last_error?: string | null
+          listing_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_listing_state_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_listing_state_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
           },
         ]
       }
@@ -3712,6 +3904,72 @@ export type Database = {
             referencedColumns: ["slug"]
           },
         ]
+      }
+      matching_settings: {
+        Row: {
+          enabled: boolean
+          id: boolean
+          inline_on_write: boolean
+          llm_rerank_enabled: boolean
+          llm_weight: number
+          max_candidates_per_listing: number
+          max_notify_per_user_day: number
+          min_score: number
+          notify_max_age_hours: number
+          notify_min_score: number
+          quiet_end: string
+          quiet_start: string
+          quiet_tz: string
+          recompute_after_hours: number
+          scan_limit: number
+          sweep_batch: number
+          updated_at: string
+          weights: Json
+          worlds: string[]
+        }
+        Insert: {
+          enabled?: boolean
+          id?: boolean
+          inline_on_write?: boolean
+          llm_rerank_enabled?: boolean
+          llm_weight?: number
+          max_candidates_per_listing?: number
+          max_notify_per_user_day?: number
+          min_score?: number
+          notify_max_age_hours?: number
+          notify_min_score?: number
+          quiet_end?: string
+          quiet_start?: string
+          quiet_tz?: string
+          recompute_after_hours?: number
+          scan_limit?: number
+          sweep_batch?: number
+          updated_at?: string
+          weights?: Json
+          worlds?: string[]
+        }
+        Update: {
+          enabled?: boolean
+          id?: boolean
+          inline_on_write?: boolean
+          llm_rerank_enabled?: boolean
+          llm_weight?: number
+          max_candidates_per_listing?: number
+          max_notify_per_user_day?: number
+          min_score?: number
+          notify_max_age_hours?: number
+          notify_min_score?: number
+          quiet_end?: string
+          quiet_start?: string
+          quiet_tz?: string
+          recompute_after_hours?: number
+          scan_limit?: number
+          sweep_batch?: number
+          updated_at?: string
+          weights?: Json
+          worlds?: string[]
+        }
+        Relationships: []
       }
       media_assets: {
         Row: {
@@ -8610,6 +8868,22 @@ export type Database = {
         Args: { p_opted_in: boolean; p_user_id: string }
         Returns: undefined
       }
+      api_match_llm_pending: {
+        Args: { p_limit?: number }
+        Returns: {
+          candidate_id: string
+          offer_summary: string
+          offer_title: string
+          request_summary: string
+          request_title: string
+          score: number
+          world_slug: string
+        }[]
+      }
+      api_match_llm_store: {
+        Args: { p_candidate_id: string; p_reason: string; p_score: number }
+        Returns: boolean
+      }
       api_whatsapp_admin_block_user: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -9781,6 +10055,69 @@ export type Database = {
           vector_rank: number
         }[]
       }
+      match_compute_for_listing: {
+        Args: { p_listing_id: string }
+        Returns: number
+      }
+      match_deliver_pending: {
+        Args: { p_limit?: number; p_listing_id?: string }
+        Returns: Json
+      }
+      match_effective_score: {
+        Args: { p_llm: number; p_score: number }
+        Returns: number
+      }
+      match_in_quiet_hours: {
+        Args: { p_at?: string; p_user: string }
+        Returns: boolean
+      }
+      match_listing_anchor: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: unknown
+      }
+      match_listing_dest: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: unknown
+      }
+      match_listing_window: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: unknown
+      }
+      match_owners_declined: {
+        Args: { p_a: string; p_b: string }
+        Returns: boolean
+      }
+      match_run_sweep: { Args: { p_batch?: number }; Returns: Json }
+      match_score_pair: {
+        Args: {
+          p_offer: Database["public"]["Tables"]["listings"]["Row"]
+          p_request: Database["public"]["Tables"]["listings"]["Row"]
+        }
+        Returns: {
+          components: Json
+          distance_km: number
+          eligible: boolean
+          reason: string
+          score: number
+        }[]
+      }
+      match_user_feedback: {
+        Args: { p_user: string; p_world: string }
+        Returns: number
+      }
+      match_user_mutes_listing: {
+        Args: {
+          p_listing: Database["public"]["Tables"]["listings"]["Row"]
+          p_user: string
+        }
+        Returns: boolean
+      }
+      match_user_notified_today: { Args: { p_user: string }; Returns: number }
+      match_user_trust: { Args: { p_user: string }; Returns: number }
+      match_whatsapp_send: {
+        Args: { p_payload: Json; p_template: string; p_user: string }
+        Returns: string
+      }
       merge_entities: {
         Args: { p_actor?: string; p_merged: string; p_survivor: string }
         Returns: string
@@ -10430,6 +10767,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rpc_match_refresh_mine: { Args: never; Returns: number }
+      rpc_match_respond: {
+        Args: { p_candidate_id: string; p_response: string }
+        Returns: Json
+      }
       rpc_my_activity_timeline: {
         Args: { p_limit?: number }
         Returns: {
@@ -10438,6 +10780,31 @@ export type Database = {
           occurred_at: string
           post_id: string
           post_title: string
+        }[]
+      }
+      rpc_my_matches: {
+        Args: { p_limit?: number }
+        Returns: {
+          candidate_id: string
+          components: Json
+          created_at: string
+          distance_km: number
+          llm_reason: string
+          my_listing_id: string
+          my_listing_title: string
+          my_response: string
+          my_role: string
+          other_listing_id: string
+          other_listing_summary: string
+          other_listing_title: string
+          other_owner_avatar: string
+          other_owner_handle: string
+          other_owner_id: string
+          other_owner_name: string
+          other_response: string
+          score: number
+          status: string
+          world_slug: string
         }[]
       }
       rpc_notification_inbox_list: {

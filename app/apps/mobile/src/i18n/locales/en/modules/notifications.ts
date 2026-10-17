@@ -88,11 +88,11 @@ export const notificationsEn = {
   // FR-RIDE-037 — ratings prompt.
   rideRatePromptTitle: 'How was the ride?',
   rideRatePromptBody: '{{rideTitle}} — please rate soon',
-} as const;  // Matching v2 — automatic offer↔request suggestions.
+  // Matching v2 — automatic offer↔request suggestions.
   matchSuggestedTitle: 'A match for you',
   matchSuggestedBody: '"{{otherTitle}}" may fit your "{{myTitle}}" ({{worldEn}})',
   matchInterestTitle: 'Someone is interested',
   matchInterestBody: '{{partnerName}} accepted the match for "{{listingTitle}}"',
   matchAcceptedTitle: "It's a match!",
   matchAcceptedBody: '{{partnerName}} also accepted — coordinate "{{listingTitle}}" in chat',
-
+} as const;

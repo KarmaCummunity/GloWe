@@ -88,11 +88,11 @@ export const notificationsHe = {
   // FR-RIDE-037 — ratings prompt.
   rideRatePromptTitle: 'איך הייתה הנסיעה?',
   rideRatePromptBody: '{{rideTitle}} — נא לדרג בקרוב',
-} as const;  // Matching v2 — automatic offer↔request suggestions.
+  // Matching v2 — automatic offer↔request suggestions.
   matchSuggestedTitle: 'נמצאה התאמה בשבילך',
   matchSuggestedBody: '"{{otherTitle}}" עשוי להתאים ל"{{myTitle}}" שלך ({{worldHe}})',
   matchInterestTitle: 'מישהו מעוניין',
   matchInterestBody: '{{partnerName}} אישר/ה את ההתאמה עבור "{{listingTitle}}"',
   matchAcceptedTitle: 'יש התאמה!',
   matchAcceptedBody: 'גם {{partnerName}} אישר/ה — תאמו את "{{listingTitle}}" בצ\'אט',
-
+} as const;
