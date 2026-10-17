@@ -2,6 +2,7 @@
 // Screens import the use cases from here, not from @kc/application directly.
 // Mapped to SRS: FR-CHAT-001..013, FR-POST-010, FR-POST-014 AC4, FR-POST-015 AC1, FR-MOD-001, FR-MOD-007, FR-ADMIN-009.
 import { Platform } from 'react-native';
+import { createWhatsAppAdminUseCases } from './whatsappAdminContainer';
 import { createAuthSecureStorage } from '../services/authSecureStorage';
 import {
   getSupabaseClient,
@@ -28,7 +29,6 @@ import {
   SupabaseTimesheetsRepository,
   SupabaseFinanceLedgerRepository,
   SupabaseCrmContactsRepository,
-  SupabaseWhatsAppAdminRepository,
   SupabaseReportsRepository,
   SupabaseSurveyRepository,
   SupabaseSurveyAdminRepository,
@@ -97,16 +97,6 @@ import {
   UpsertCrmContactUseCase,
   DeleteCrmContactUseCase,
   MarkCrmContactContactedUseCase,
-  GetWhatsAppAdminOverviewUseCase,
-  GetWhatsAppChannelUseCase,
-  SetWhatsAppChannelEnabledUseCase,
-  ListWhatsAppConsentUseCase,
-  ListWhatsAppOutboundUseCase,
-  ListWhatsAppRateHitsUseCase,
-  ListWhatsAppRecentMatchesUseCase,
-  ListWhatsAppConversationsUseCase,
-  ResendWhatsAppOutboundUseCase,
-  BlockWhatsAppUserUseCase,
   ListOpenReportsUseCase,
   GetReportCaseDetailUseCase,
   ListActiveSurveysUseCase,
@@ -159,7 +149,6 @@ const orgHierarchyRepo = new SupabaseOrgHierarchyRepository(supabase);
 const adminContentRepo = new SupabaseAdminContentRepository(supabase);
 const timesheetsRepo = new SupabaseTimesheetsRepository(supabase);
 const financeLedgerRepo = new SupabaseFinanceLedgerRepository(supabase);
-const whatsappAdminRepo = new SupabaseWhatsAppAdminRepository(supabase);
 const crmContactsRepo = new SupabaseCrmContactsRepository(supabase);
 const orgApplicationsRepo = new SupabaseOrgApplicationsRepository(supabase);
 const reportsRepo = new SupabaseReportsRepository(supabase);
@@ -217,16 +206,7 @@ export const container = {
   deleteTimesheet:  new DeleteTimesheetUseCase(timesheetsRepo),
   // V2-ADMIN-MONEY-9
   listFinanceLedger:   new ListFinanceLedgerUseCase(financeLedgerRepo),
-  getWhatsAppAdminOverview: new GetWhatsAppAdminOverviewUseCase(whatsappAdminRepo),
-  getWhatsAppChannel: new GetWhatsAppChannelUseCase(whatsappAdminRepo),
-  setWhatsAppChannelEnabled: new SetWhatsAppChannelEnabledUseCase(whatsappAdminRepo),
-  listWhatsAppConsent: new ListWhatsAppConsentUseCase(whatsappAdminRepo),
-  listWhatsAppOutbound: new ListWhatsAppOutboundUseCase(whatsappAdminRepo),
-  listWhatsAppRateHits: new ListWhatsAppRateHitsUseCase(whatsappAdminRepo),
-  listWhatsAppRecentMatches: new ListWhatsAppRecentMatchesUseCase(whatsappAdminRepo),
-  listWhatsAppConversations: new ListWhatsAppConversationsUseCase(whatsappAdminRepo),
-  resendWhatsAppOutbound: new ResendWhatsAppOutboundUseCase(whatsappAdminRepo),
-  blockWhatsAppUser: new BlockWhatsAppUserUseCase(whatsappAdminRepo),
+  ...createWhatsAppAdminUseCases(supabase),
   getFinanceSummary:   new GetFinanceSummaryUseCase(financeLedgerRepo),
   upsertFinanceEntry:  new UpsertFinanceEntryUseCase(financeLedgerRepo),
   deleteFinanceEntry:  new DeleteFinanceEntryUseCase(financeLedgerRepo),

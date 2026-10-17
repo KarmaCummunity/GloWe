@@ -72,7 +72,7 @@ begin
 
   v_out := public.api_whatsapp_queue_outbound(
     v_user, 'match_found_v1',
-    jsonb_build_object('world', 'items', 'world_label_he', 'חפצים', 'action', 'פתח'),
+    jsonb_build_object('world', 'items', 'world_label_he', 'items', 'action', 'open'),
     5
   );
   -- service_role style queue from admin context may skip if template path needs service;

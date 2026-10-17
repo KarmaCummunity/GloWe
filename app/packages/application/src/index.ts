@@ -298,5 +298,4 @@ export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicRese
 export * from './payments';
 export * from './volunteering';
 export * from './giving';
-export * from './admin/IWhatsAppAdminRepository';
-export * from './admin/WhatsAppAdminUseCases';
+export * from './admin/whatsapp';
