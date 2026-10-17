@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────
 
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { givingHandoff } from './givingHandoff';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
 import { errorsHe } from './modules/errors';
@@ -107,6 +108,7 @@ const he = {
   marketplace,
   moneyPayments,
   timeVolunteer,
+  givingHandoff,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

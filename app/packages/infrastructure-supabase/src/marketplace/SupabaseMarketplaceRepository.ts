@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { IMarketplaceRepository, MarketplaceBrowseFilters } from '@kc/application';
 import type {
-  ExternalBodyOption,
   ListingKindOption,
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
@@ -12,7 +11,8 @@ import type {
 } from '@kc/domain';
 import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
-import { mapExternalBody } from './mapExternalBody';
+import { searchExternalBodies } from './mapExternalBody';
+import * as handoffs from './givingHandoffs';
 
 type BrowseRow = Database['public']['Functions']['browse_listings']['Returns'][number];
 
@@ -130,15 +130,8 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     }));
   }
 
-  async searchExternalBodies(worldSlug: string, query?: string | null, limit = 50): Promise<ExternalBodyOption[]> {
-    const { data, error } = await this.client.rpc('search_external_bodies', {
-      p_world_slug: worldSlug,
-      p_query: query ?? undefined,
-      p_limit: limit,
-    });
-    if (error || !data) return [];
-    return data.map(mapExternalBody);
-  }
+  searchExternalBodies = (worldSlug: string, query?: string | null, limit?: number) =>
+    searchExternalBodies(this.client, worldSlug, query, limit);
 
   async getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null> {
     const { data, error } = await this.client
@@ -285,4 +278,22 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     const { error } = await this.client.rpc('delete_my_listing', { p_listing_id: listingId });
     if (error) throw error;
   }
+
+
+  // Items/food handoffs — see givingHandoffs.ts.
+  getListingHandoff = (listingId: string) => handoffs.getListingHandoff(this.client, listingId);
+  listMyGivingHandoffs = (limit?: number) => handoffs.listMyGivingHandoffs(this.client, limit);
+  reserveItemGiving = (
+    listingId: string,
+    pickupMode?: 'pickup' | 'delivery',
+    start?: string | null,
+    end?: string | null,
+  ) => handoffs.reserveItemGiving(this.client, listingId, pickupMode, start, end);
+  confirmItemHandoff = (id: string) => handoffs.confirmItemHandoff(this.client, id);
+  claimFoodGiving = (listingId: string, start?: string | null, end?: string | null) =>
+    handoffs.claimFoodGiving(this.client, listingId, start, end);
+  cancelGivingHandoff = (id: string) => handoffs.cancelGivingHandoff(this.client, id);
+  markGivingHandedOver = (id: string) => handoffs.markGivingHandedOver(this.client, id);
+  rateGivingHandoff = (id: string, rating: number, comment?: string | null) =>
+    handoffs.rateGivingHandoff(this.client, id, rating, comment);
 }

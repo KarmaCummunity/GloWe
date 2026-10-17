@@ -15,6 +15,7 @@ import { listingImagePublicUrl } from '../../services/listingImageUpload';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useSimilarListings } from '../../hooks/useMarketplaceListingDetail';
 import { ReportListingModal } from './ReportListingModal';
+import { GivingHandoffActions } from './GivingHandoffActions';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
@@ -100,6 +101,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
             </View>
           </Pressable>
         ) : null}
+        <GivingHandoffActions detail={detail} />
         <View style={styles.actions}>
           <Pressable
             style={[styles.btn, styles.btnPrimary]}
