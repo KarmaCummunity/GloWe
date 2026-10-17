@@ -6,7 +6,10 @@ import type { ViewToken } from 'react-native';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import type { useTranslatedPosts } from '../hooks/useTranslatedPosts';
-import { HOME_FEED_GRID_COLUMNS } from '../hooks/useShellContentWidth';
+import { HOME_FEED_GRID_COLUMNS, usePostGridCardWidth } from '../hooks/useShellContentWidth';
+import { LIST_END_THRESHOLD } from '../hooks/usePrefetchNextPage';
+import { prefetchImages } from '../lib/imagePrefetch';
+import { getSupabaseFeedImageUrl } from '../lib/imageUrl';
 import { useShellTabBarScrollInset } from '../navigation/useShellTabBarVisibility';
 import { PostCardGrid } from './PostCardGrid';
 import { EmptyState } from './EmptyState';
@@ -83,6 +86,19 @@ export function PostFeedList({
     if ((data ?? []).length > 0) finishMark('feed.first_render');
   }, [data]);
 
+  // Warm the image cache for the most recently loaded page (usually still
+  // below the fold) so cards render with their photo instead of a placeholder.
+  const cardWidth = usePostGridCardWidth(HOME_FEED_GRID_COLUMNS);
+  React.useEffect(() => {
+    const tail = (data ?? []).slice(-20);
+    prefetchImages(
+      tail.map((p) => {
+        const path = p.mediaAssets[0]?.path;
+        return path ? getSupabaseFeedImageUrl('post-images', path, cardWidth) : null;
+      }),
+    );
+  }, [data, cardWidth]);
+
   if (isLoading && !data) {
     return <PostGridSkeleton columns={HOME_FEED_GRID_COLUMNS} count={HOME_FEED_GRID_COLUMNS * 3} />;
   }
@@ -129,7 +145,7 @@ export function PostFeedList({
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       onEndReached={onEndReached}
-      onEndReachedThreshold={0.4}
+      onEndReachedThreshold={LIST_END_THRESHOLD}
       showsVerticalScrollIndicator={false}
     />
   );

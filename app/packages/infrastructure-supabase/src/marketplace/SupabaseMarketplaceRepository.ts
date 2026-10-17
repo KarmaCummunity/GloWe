@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { IMarketplaceRepository, MarketplaceBrowseFilters } from '@kc/application';
+import type {
+  IMarketplaceRepository,
+  MarketplaceBrowseFilters,
+  MarketplaceSearchCursor,
+  MyListingsCursor,
+} from '@kc/application';
 import type {
   ListingKindOption,
   MarketplaceBrowseRow,
@@ -13,41 +18,25 @@ import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
 import { searchExternalBodies } from './mapExternalBody';
 import * as handoffs from './givingHandoffs';
-
-type BrowseRow = Database['public']['Functions']['browse_listings']['Returns'][number];
-
-function mapBrowse(row: BrowseRow): MarketplaceBrowseRow {
-  return {
-    listingId: row.listing_id,
-    worldSlug: row.world_slug,
-    kindSlug: row.kind_slug,
-    direction: row.direction as 'give' | 'request',
-    title: row.title,
-    summary: row.summary,
-    urgencyLevel: row.urgency_level,
-    availabilityStatus: row.availability_status,
-    cityId: row.city_id,
-    distanceKm: row.distance_km,
-  };
-}
+import * as paging from './marketplacePaging';
 
 export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
   async browse(filters: MarketplaceBrowseFilters): Promise<MarketplaceBrowseRow[]> {
-    const { data, error } = await this.client.rpc('browse_listings', {
-      p_world_slug: filters.worldSlug ?? undefined,
-      p_direction: filters.direction ?? undefined,
-      p_urgency_min: filters.urgencyMin ?? undefined,
-      p_availability: filters.availability ?? undefined,
-      p_lat: filters.lat ?? undefined,
-      p_lng: filters.lng ?? undefined,
-      p_radius_km: filters.radiusKm ?? undefined,
-      p_limit: filters.limit ?? 24,
-      p_offset: filters.offset ?? 0,
-    });
-    if (error || !data) return [];
-    return data.map(mapBrowse);
+    return (await paging.fetchBrowsePage(this.client, filters)).rows;
+  }
+
+  browsePage(filters: MarketplaceBrowseFilters) {
+    return paging.fetchBrowsePage(this.client, filters);
+  }
+
+  searchPage(query: string, worldSlug: string | null, limit: number, cursor?: MarketplaceSearchCursor | null) {
+    return paging.fetchSearchPage(this.client, query, worldSlug, limit, cursor);
+  }
+
+  getListingCards(listingIds: readonly string[]) {
+    return paging.fetchListingCards(this.client, listingIds);
   }
 
   async search(query: string, worldSlug?: string | null, limit = 20): Promise<string[]> {
@@ -206,23 +195,11 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
   }
 
   async listMyListings(limit = 50, offset = 0): Promise<MyListingRow[]> {
-    const { data, error } = await this.client.rpc('list_my_listings', {
-      p_limit: limit,
-      p_offset: offset,
-    });
-    if (error || !data) return [];
-    return data.map((r) => ({
-      listingId: r.listing_id,
-      worldSlug: r.world_slug,
-      kindSlug: r.kind_slug,
-      direction: r.direction as 'give' | 'request',
-      status: r.status,
-      title: r.title,
-      summary: r.summary,
-      urgencyLevel: r.urgency_level,
-      availabilityStatus: r.availability_status,
-      updatedAt: r.updated_at,
-    }));
+    return (await paging.fetchMyListingsPage(this.client, limit, null, offset)).rows;
+  }
+
+  listMyListingsPage(limit: number, cursor?: MyListingsCursor | null) {
+    return paging.fetchMyListingsPage(this.client, limit, cursor);
   }
 
   async listProfileListings(ownerId: string, limit = 24): Promise<ProfileListingRow[]> {

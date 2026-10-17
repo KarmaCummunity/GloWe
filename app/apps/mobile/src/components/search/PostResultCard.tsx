@@ -1,5 +1,6 @@
 // FR-FEED-017 — post result card for universal search.
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KCImage } from '../ui/KCImage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +31,7 @@ export function PostResultCard({ post }: { post: PostWithOwner }) {
       accessibilityLabel={post.title}
     >
       {firstImageUrl ? (
-        <Image source={{ uri: firstImageUrl }} style={styles.postThumb} resizeMode="cover" />
+        <KCImage uri={firstImageUrl} style={styles.postThumb} contentFit="cover" />
       ) : (
         <View style={[styles.postThumb, styles.postThumbPlaceholder]}>
           <Ionicons

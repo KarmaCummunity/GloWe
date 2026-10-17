@@ -90,7 +90,7 @@ export class SupabasePostRepository implements IPostRepository {
     const posts = page.map(mapPostWithOwnerRow);
     const projected = await applyPostActorIdentityProjectionBatch(this.client, posts, viewerId);
     const last = projected[projected.length - 1];
-    const nextCursor = hasMore && last ? encodeCursor({ createdAt: last.createdAt }) : null;
+    const nextCursor = hasMore && last ? encodeCursor({ createdAt: last.createdAt, postId: last.postId }) : null;
     return { posts: projected, nextCursor };
   }
 
