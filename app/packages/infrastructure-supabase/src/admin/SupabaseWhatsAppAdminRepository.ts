@@ -81,7 +81,7 @@ export class SupabaseWhatsAppAdminRepository implements IWhatsAppAdminRepository
     if (error) throw toError(error);
     const rows = (Array.isArray(data) ? data : []) as Record<string, unknown>[];
     return {
-      totalCount: rows.length ? Number(rows[0].total_count ?? 0) : 0,
+      totalCount: rows.length ? Number(rows[0]?.total_count ?? 0) : 0,
       rows: rows.map((r) => ({
         userId: (r.user_id as string | null) ?? null,
         waIdMasked: (r.wa_id_masked as string | null) ?? null,
@@ -105,7 +105,7 @@ export class SupabaseWhatsAppAdminRepository implements IWhatsAppAdminRepository
     if (error) throw toError(error);
     const rows = (Array.isArray(data) ? data : []) as Record<string, unknown>[];
     return {
-      totalCount: rows.length ? Number(rows[0].total_count ?? 0) : 0,
+      totalCount: rows.length ? Number(rows[0]?.total_count ?? 0) : 0,
       rows: rows.map((r) => ({
         outboundId: String(r.outbound_id),
         userId: (r.user_id as string | null) ?? null,
