@@ -57,6 +57,7 @@ jobs:
               - 'scripts/check-migration-chain.mjs'
               - 'app/packages/infrastructure-supabase/src/database.types.ts'
               - 'app/packages/infrastructure-supabase/src/rpc/__tests__/sqlProbes.integration.test.ts'
+              - 'supabase/functions/**'
               - '.github/workflows/ci-backend.yml'
 
   migration-chain:
@@ -74,6 +75,24 @@ jobs:
           node-version-file: .nvmrc
       - name: Verify Alembic-style single-head migration chain
         run: node scripts/check-migration-chain.mjs
+
+
+  whatsapp-deno:
+    name: WhatsApp edge unit + e2e (Deno)
+    needs: changes
+    if: >-
+      needs.changes.outputs.backend == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno test WhatsApp handlers (mocked Meta, no secrets)
+        working-directory: supabase/functions
+        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender --allow-read
 
   db-validate:
     # REQUIRED status check — always runs so the context reports on every PR.
