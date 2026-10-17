@@ -9,8 +9,17 @@
 | Post engagement | `post:<post_id>:engagement` | `INSERT` / `UPDATE` / `DELETE` (via `realtime.broadcast_changes`) | `post_reactions`, `post_comments`, `post_shares`, `post_stats` |
 | Notification badge | `user:<user_id>:notifications` | `badge` (via `realtime.send`) | `notification_inbox` read/unread |
 | Chat messages | `chat:<chat_id>:messages` | `INSERT` / `UPDATE` / `reaction` | `messages`, `message_reactions` |
-| Chat typing | `chat:<chat_id>:typing` | `typing` (client broadcast) | — |
-| Chat presence | `chat:<chat_id>:presence` | Presence track (client) | — |
+| Chat typing | `chat:<chat_id>:typing` | `typing` (client broadcast; send auth `0415`) | — |
+| Chat presence | `chat:<chat_id>:presence` | Presence track (client; track auth `0415`) | — |
+| Online presence | `presence:online` | Presence track, key = user id (active members; `0415`) | — |
+| Feed new posts | `feed:public` | `new_post` `{post_id, owner_id}` (via `realtime.send`, `0416`) | `posts` INSERT (Public + open) |
+
+**Client lifecycle:** private topics are exact (policies match on them), so the client
+uses `openExactTopicChannel` (infrastructure-supabase `realtime/`): it removes any stale
+cached channel on the topic before re-creating, and `close()` is idempotent and safe
+before the channel opens. Online presence is one shared app-level channel
+(`SupabaseOnlinePresence`, started while signed in + foregrounded); UI rows read the
+shared set and never open their own channels.
 
 **Client setup (JS):**
 

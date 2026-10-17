@@ -7,6 +7,7 @@ export const chatEn = {
   attachImage: 'Attach image',
   mediaUploadFailed: 'Could not send the image. Try again.',
   typingIndicator: 'Typing…',
+  onlineNow: 'Online now',
   send: 'Send',
   read: 'Read',
   report: 'Report chat',

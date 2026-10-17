@@ -1,91 +1,76 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { SupabaseChatV2Realtime } from '../SupabaseChatV2Realtime';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-function fakeClient() {
-  const state: { handler?: (p: any) => void; status?: (s: string) => unknown } = {};
-  const channel: any = {
-    on: vi.fn((_t: string, _f: unknown, h: (p: any) => void) => {
-      state.handler = h;
-      return channel;
-    }),
-    subscribe: vi.fn((cb: (s: string) => unknown) => {
-      state.status = cb;
-      return channel;
-    }),
-    send: vi.fn(async () => 'ok'),
-    track: vi.fn(async () => 'ok'),
-    untrack: vi.fn(async () => 'ok'),
-  };
-  const client = {
-    channel: vi.fn(() => channel),
-    removeChannel: vi.fn(async () => 'ok'),
-  };
-  return { client: client as unknown as SupabaseClient<any>, raw: client, channel, state };
-}
+import { SupabaseChatV2Realtime, TYPING_THROTTLE_MS } from '../SupabaseChatV2Realtime';
+import { flush, makeFakeRealtime } from '../../realtime/__tests__/fakeRealtime';
 
 afterEach(() => vi.useRealTimers());
 
+async function sub(cb: Parameters<SupabaseChatV2Realtime['subscribeTyping']>[2] = {}) {
+  const f = makeFakeRealtime();
+  const s = new SupabaseChatV2Realtime(f.client).subscribeTyping('c1', 'me', cb);
+  await flush();
+  return { f, s, ch: f.created[0]! };
+}
+
 describe('SupabaseChatV2Realtime.subscribeTyping', () => {
-  it('forwards peer typing, ignores self/invalid payloads', () => {
-    const f = fakeClient();
+  it('opens the private chat:<id>:typing topic without self-echo', async () => {
+    const { ch } = await sub();
+    expect(ch.name).toBe('chat:c1:typing');
+    expect(ch.config).toEqual({ private: true, broadcast: { self: false } });
+  });
+
+  it('forwards peer typing, ignores self/invalid payloads', async () => {
     const onPeerTyping = vi.fn();
-    new SupabaseChatV2Realtime(f.client).subscribeTyping('c1', 'me', { onPeerTyping });
-    expect(f.raw.channel).toHaveBeenCalledWith('chat:c1:typing', expect.anything());
-    f.state.handler!({ payload: { userId: 'me', typing: true } });
-    f.state.handler!({ payload: {} });
-    f.state.handler!({ payload: { userId: 'peer', typing: 1 } });
+    const { ch } = await sub({ onPeerTyping });
+    ch.emit('broadcast', 'typing', { payload: { userId: 'me', typing: true } });
+    ch.emit('broadcast', 'typing', { payload: {} });
+    ch.emit('broadcast', 'typing', {});
+    ch.emit('broadcast', 'typing', { payload: { userId: 'peer', typing: 1 } });
     expect(onPeerTyping).toHaveBeenCalledTimes(1);
     expect(onPeerTyping).toHaveBeenCalledWith({ userId: 'peer', typing: true });
   });
 
-  it('reports channel errors', () => {
-    const f = fakeClient();
+  it('reports channel errors', async () => {
     const onError = vi.fn();
-    new SupabaseChatV2Realtime(f.client).subscribeTyping('c1', 'me', { onError });
-    f.state.status!('SUBSCRIBED');
-    f.state.status!('CHANNEL_ERROR');
-    f.state.status!('TIMED_OUT');
+    const { ch } = await sub({ onError });
+    ch.statusCb!('SUBSCRIBED');
+    ch.statusCb!('CHANNEL_ERROR');
+    ch.statusCb!('TIMED_OUT');
     expect(onError).toHaveBeenCalledTimes(2);
-    expect((onError.mock.calls[1]?.[0] as Error | undefined)?.message).toBe('typing channel timed_out');
+    expect((onError.mock.calls[1]?.[0] as Error).message).toBe('typing channel timed_out');
   });
 
-  it('throttles typing=true, always sends false, unsubscribes', () => {
-    vi.useFakeTimers();
+  it('throttles typing=true, sends false only after true, then cleans up', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(10_000);
-    const f = fakeClient();
-    const sub = new SupabaseChatV2Realtime(f.client).subscribeTyping('c1', 'me', {});
-    sub.sendTyping(true);
-    sub.sendTyping(true);
-    expect(f.channel.send).toHaveBeenCalledTimes(1);
-    vi.setSystemTime(11_000);
-    sub.sendTyping(true);
-    expect(f.channel.send).toHaveBeenCalledTimes(2);
-    sub.unsubscribe();
-    expect(f.channel.send).toHaveBeenLastCalledWith({
-      type: 'broadcast',
-      event: 'typing',
-      payload: { userId: 'me', typing: false },
-    });
-    expect(f.raw.removeChannel).toHaveBeenCalledTimes(1);
-    // channel recreated lazily after unsubscribe
-    sub.sendTyping(false);
-    expect(f.raw.channel).toHaveBeenCalledTimes(2);
+    const { f, s, ch } = await sub();
+    s.sendTyping(false); // nothing to stop yet
+    expect(ch.send).not.toHaveBeenCalled();
+    s.sendTyping(true);
+    s.sendTyping(true);
+    expect(ch.send).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(10_000 + TYPING_THROTTLE_MS + 1);
+    s.sendTyping(true);
+    expect(ch.send).toHaveBeenCalledTimes(2);
+    s.unsubscribe();
+    expect(ch.send).toHaveBeenLastCalledWith({ type: 'broadcast', event: 'typing', payload: { userId: 'me', typing: false } });
+    expect(f.live).toHaveLength(0);
   });
-});
 
-describe('SupabaseChatV2Realtime.subscribePresence', () => {
-  it('tracks on SUBSCRIBED and cleans up', async () => {
-    const f = fakeClient();
-    const off = new SupabaseChatV2Realtime(f.client).subscribePresence('c1', 'me', 'Me');
-    await f.state.status!('CLOSED');
-    expect(f.channel.track).not.toHaveBeenCalled();
-    await f.state.status!('SUBSCRIBED');
-    expect(f.channel.track).toHaveBeenCalledWith(expect.objectContaining({ userId: 'me', displayName: 'Me' }));
-    off();
-    expect(f.channel.untrack).toHaveBeenCalled();
-    expect(f.raw.removeChannel).toHaveBeenCalled();
+  it('is inert after unsubscribe (no channel re-created = no leak)', async () => {
+    const { f, s, ch } = await sub();
+    s.unsubscribe();
+    s.unsubscribe();
+    s.sendTyping(true);
+    expect(ch.send).not.toHaveBeenCalled();
+    expect(f.created).toHaveLength(1);
+    expect(f.removeChannel).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops sends before the channel is open', () => {
+    const f = makeFakeRealtime();
+    const s = new SupabaseChatV2Realtime(f.client).subscribeTyping('c1', 'me', {});
+    s.sendTyping(true);
+    s.unsubscribe();
+    expect(f.created).toHaveLength(0);
   });
 });
