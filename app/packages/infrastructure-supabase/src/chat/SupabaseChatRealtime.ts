@@ -1,6 +1,6 @@
-// Supabase adapter for IChatRealtime. Wraps postgres_changes channels for
-// inbox + per-chat subscriptions over the schema in migration 0004 (publication
-// supabase_realtime includes chats + messages).
+// Supabase adapter for IChatRealtime. Per-chat messages use the private
+// Broadcast topic from 0259; chat rows use postgres_changes (chats is on the
+// supabase_realtime publication; messages is not, see 0349).
 //
 // RLS filters server-side: clients only receive events for rows they can SELECT,
 // preserving the FR-CHAT-009 carve-out.
@@ -17,6 +17,13 @@ import type {
 } from '@kc/application';
 import type { Database } from '../database.types';
 import { rowToChat, rowToMessage } from './rowMappers';
+import { isChannelFailure, openExactTopicChannel } from '../realtime/exactTopicChannel';
+
+/** `realtime.broadcast_changes` payload → the changed row (null when absent). */
+export function broadcastRecord(msg: { [key: string]: unknown }): Record<string, unknown> | null {
+  const p = msg?.payload as { record?: Record<string, unknown> } | undefined;
+  return p?.record && typeof p.record === 'object' ? p.record : null;
+}
 
 const UNREAD_DEBOUNCE_MS = 200;
 
@@ -24,60 +31,51 @@ export class SupabaseChatRealtime implements IChatRealtime {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
   subscribeToChat(chatId: string, cb: ChatStreamCallbacks): Unsubscribe {
-    // Unique topic suffix avoids cached-channel reuse (`joinedOnce=true` on
-    // re-mount would otherwise reject `.on('postgres_changes', ...)`).
-    const topic = `chat:${chatId}:${Math.random().toString(36).slice(2, 10)}`;
-    const channel = this.client
-      .channel(topic)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${chatId}`,
-        },
-        (payload) => cb.onMessage(rowToMessage(payload.new as never)),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${chatId}`,
-        },
-        (payload) => {
-          const m = rowToMessage(payload.new as never);
+    // Messages arrive via the 0259 Broadcast trigger on the private
+    // `chat:<id>:messages` topic (messages is off the publication since 0349).
+    // INSERT → new message; UPDATE → delivered/read receipts.
+    const messages = openExactTopicChannel(
+      this.client,
+      `chat:${chatId}:messages`,
+      { private: true },
+      (ch) => {
+        ch.on('broadcast', { event: 'INSERT' }, (msg) => {
+          const row = broadcastRecord(msg);
+          if (row) cb.onMessage(rowToMessage(row as never));
+        });
+        ch.on('broadcast', { event: 'UPDATE' }, (msg) => {
+          const row = broadcastRecord(msg);
+          if (!row) return;
+          const m = rowToMessage(row as never);
           cb.onMessageStatusChanged({
             messageId: m.messageId,
             status: m.status,
             deliveredAt: m.deliveredAt,
             readAt: m.readAt,
           });
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chats',
-          filter: `chat_id=eq.${chatId}`,
-        },
-        (payload) => {
-          if (cb.onChatChanged) {
-            cb.onChatChanged(rowToChat(payload.new as never));
-          }
-        },
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          cb.onError(new Error(`chat channel ${status.toLowerCase()}`));
-        }
-      });
+        });
+      },
+      (status) => {
+        if (isChannelFailure(status)) cb.onError(new Error(`chat channel ${status.toLowerCase()}`));
+      },
+    );
+
+    // chats stays on the publication; unique suffix avoids cached-channel reuse.
+    const chatTopic = `chat-row:${chatId}:${Math.random().toString(36).slice(2, 10)}`;
+    const chatRow = cb.onChatChanged
+      ? this.client
+          .channel(chatTopic)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'chats', filter: `chat_id=eq.${chatId}` },
+            (payload) => cb.onChatChanged?.(rowToChat(payload.new as never)),
+          )
+          .subscribe()
+      : null;
+
     return () => {
-      void this.client.removeChannel(channel);
+      messages.close();
+      if (chatRow) void this.client.removeChannel(chatRow);
     };
   }
 
@@ -98,23 +96,15 @@ export class SupabaseChatRealtime implements IChatRealtime {
     const channel = this.client
       .channel(inboxTopic)
       // RLS filters server-side: only events on visible chats reach the client.
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          cb.onInboxMessageInsert?.(rowToMessage(payload.new as never));
-          fireUnreadDebounced();
-        },
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'messages' },
-        () => fireUnreadDebounced(),
-      )
+      // A new message bumps chats.last_message_at, so chat UPDATEs also drive
+      // the unread total (messages itself is Broadcast-only since 0349).
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'chats' },
-        (payload) => cb.onChatChanged(rowToChat(payload.new as never)),
+        (payload) => {
+          cb.onChatChanged(rowToChat(payload.new as never));
+          fireUnreadDebounced();
+        },
       )
       .subscribe();
 

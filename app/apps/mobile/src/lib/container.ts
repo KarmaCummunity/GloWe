@@ -16,6 +16,7 @@ import {
   SupabasePostEngagementRepository,
   SupabaseNotificationInboxRepository,
   SupabaseChatV2Realtime,
+  SupabaseOnlinePresence,
   SupabaseChatV2Repository,
   SupabaseSocialFeedRepository,
   SupabaseFollowSuggestionsRepository,
@@ -140,6 +141,7 @@ const postRepo = new SupabasePostRepository(supabase);
 const postEngagementRepo = new SupabasePostEngagementRepository(supabase);
 const notificationInboxRepo = new SupabaseNotificationInboxRepository(supabase);
 const chatV2Realtime = new SupabaseChatV2Realtime(supabase);
+const onlinePresence = new SupabaseOnlinePresence(supabase);
 const chatV2Repo = new SupabaseChatV2Repository(supabase);
 const socialFeedRepo = new SupabaseSocialFeedRepository(supabase);
 const followSuggestionsRepo = new SupabaseFollowSuggestionsRepository(supabase);
@@ -170,6 +172,7 @@ export const container = {
   chatRepo,
   chatRealtime,
   chatV2Realtime,
+  onlinePresence,
   chatV2Repo,
   socialFeed: socialFeedRepo,
   followSuggestions: followSuggestionsRepo,

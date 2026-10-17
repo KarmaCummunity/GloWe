@@ -74,16 +74,8 @@ export default function ChatScreen() {
   const [hideBusy, setHideBusy] = useState(false);
   const { modalState, presentPrePrompt, handleAccept, handleDecline } = usePushPermissionGate();
   const send = useChatSend({ chatId, userId, input, setInput, presentPrePrompt, setNotify });
-  const { peerTyping, notifyComposerChanged } = useChatTypingIndicator(chatId, userId);
+  const { peerTyping, notifyComposerChanged, notifyMessageSent } = useChatTypingIndicator(chatId, userId);
 
-  useEffect(() => {
-    const unsub = container.chatV2Realtime.subscribePresence(
-      chatId,
-      userId,
-      counterpart.displayName ?? 'user',
-    );
-    return unsub;
-  }, [chatId, userId, counterpart.displayName]);
   // `send` is recreated each render (it closes over `input`); keep a stable
   // retry callback via a ref so memoized MessageBubbles don't re-render on every
   // composer keystroke.
@@ -208,6 +200,7 @@ export default function ChatScreen() {
         canOpenProfile={!counterpart.isDeleted && Boolean(counterpart.shareHandle)}
         shareHandle={counterpart.shareHandle ?? undefined}
         onOpenMenu={() => setMenuOpen(true)}
+        peerUserId={counterpart.isDeleted ? null : counterpart.userId}
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -243,7 +236,7 @@ export default function ChatScreen() {
           >
             <Ionicons name="image-outline" size={22} color={colors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => send()} disabled={sendDisabled}
+          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => { notifyMessageSent(); void send(); }} disabled={sendDisabled}
             accessibilityRole="button" accessibilityLabel={t('chat.send')} testID="chat-send">
             <Ionicons name="send" size={20} color={colors.textInverse} />
           </TouchableOpacity>
