@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { KcFlashList } from '../lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -53,7 +54,7 @@ export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath, create
 
   return (
     <Screen blobs="content">
-      <FlatList
+      <KcFlashList
         data={listings.data ?? []}
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset }}

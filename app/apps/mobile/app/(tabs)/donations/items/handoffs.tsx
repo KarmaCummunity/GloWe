@@ -1,5 +1,6 @@
 import React from 'react';
-import { FlatList, Pressable, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
+import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +34,7 @@ export default function ItemsHandoffsScreen() {
 
   return (
     <Screen blobs="content">
-      <FlatList
+      <KcFlashList
         data={rows.data ?? []}
         keyExtractor={(item) => item.handoffId}
         contentContainerStyle={{ paddingVertical: spacing.md }}
