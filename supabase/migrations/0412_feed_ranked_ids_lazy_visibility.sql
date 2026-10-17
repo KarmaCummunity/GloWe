@@ -10,7 +10,8 @@
 -- page_limit rows are accepted. Ordering, filters and the cursor contract are
 -- unchanged except that newest/oldest now tie-break on post_id (previously posts
 -- sharing a created_at could be skipped across pages).
--- The newest fast path still reads kc_private.feed_open_posts_mv.
+-- The newest fast path still reads kc_private.feed_open_posts_mv; personalized and
+-- distance (without a text query) now score from it too and fetch live rows lazily.
 
 begin;
 
@@ -65,6 +66,7 @@ declare
   v_cats text[] := '{}'::text[];
   v_vc_lat double precision;
   v_vc_lon double precision;
+  v_post public.posts;
 begin
   v_sort := coalesce(p_sort_order, 'newest');
   if v_sort not in ('newest', 'oldest', 'distance', 'personalized') then
@@ -152,6 +154,62 @@ begin
            or (fm.created_at, fm.post_id) < (p_cursor_created_at, p_cursor_post_id)
          )
        order by fm.created_at desc, fm.post_id desc;
+  elsif v_sort in ('personalized', 'distance') and v_search_esc is null then
+    -- Ranked sorts must score every candidate before ordering. Scoring reads the
+    -- RLS-free feed_open_posts_mv; the live posts row (RLS + current status) is
+    -- fetched lazily in the loop below, only for rows that reach the page.
+    open v_cur for
+      select q.prow, q.pid, q.dist, q.score
+        from (
+          select
+            null::public.posts as prow,
+            fm.post_id as pid,
+            fm.created_at as cat,
+            case when v_sort = 'distance'
+                 then public.haversine_km(v_center_lat, v_center_lon, c.lat, c.lon)
+            end as dist,
+            case when v_filter_lat is not null
+                 then public.haversine_km(v_filter_lat, v_filter_lon, c.lat, c.lon)
+            end as filter_dist,
+            case when v_sort = 'personalized' then (
+              w_fresh * (1.0 / (1.0 + extract(epoch from (now() - fm.created_at)) / 86400.0))
+              + w_follow * case when fm.owner_id = any(v_followed) then 1.0 else 0.0 end
+              + w_eng * ln(1.0 + fm.reaction_count + fm.comment_count)
+              + w_geo * case when v_vc_lat is not null then
+                  1.0 / (1.0 + public.haversine_km(v_vc_lat, v_vc_lon, c.lat, c.lon) / 50.0)
+                else 0.0 end
+              + w_cat * case when fm.category = any(v_cats) then 1.0 else 0.0 end
+            )::double precision end as score
+          from kc_private.feed_open_posts_mv fm
+          join public.cities c on c.city_id = fm.city
+          where fm.status = any(v_status_set)
+            and (p_filter_type is null or fm.type = p_filter_type)
+            and (p_filter_categories is null or fm.category = any(p_filter_categories))
+            and (p_filter_item_conditions is null or fm.item_condition = any(p_filter_item_conditions))
+            and (coalesce(p_followers_only, false) = false or fm.owner_id = any(v_followed))
+        ) q
+       where (p_filter_radius_km is null or q.filter_dist is null or q.filter_dist <= p_filter_radius_km)
+         and (
+           case
+             when p_cursor_created_at is null then true
+             when v_sort = 'personalized' then
+               coalesce(q.score, 0) < coalesce(p_cursor_rank_score, 1e9)
+               or (coalesce(q.score, 0) = coalesce(p_cursor_rank_score, 0)
+                   and (q.cat, q.pid) < (p_cursor_created_at, p_cursor_post_id))
+             else
+               coalesce(q.dist, 1e9) > coalesce(p_cursor_distance, -1)
+               or (coalesce(q.dist, 1e9) = coalesce(p_cursor_distance, -1)
+                   and q.cat < p_cursor_created_at)
+               or (coalesce(q.dist, 1e9) = coalesce(p_cursor_distance, -1)
+                   and q.cat = p_cursor_created_at
+                   and q.pid > p_cursor_post_id)
+           end
+         )
+       order by
+         case when v_sort = 'personalized' then q.score end desc nulls last,
+         case when v_sort = 'distance' then q.dist end asc nulls last,
+         q.cat desc,
+         q.pid desc;
   else
     open v_cur for
       select q.prow, q.pid, q.dist, q.score
@@ -224,7 +282,15 @@ begin
   loop
     fetch v_cur into r;
     exit when not found;
-    continue when not public.is_post_visible_to(r.prow, p_viewer_id);
+    if (r.prow).post_id is null then
+      select p.* into v_post
+        from public.posts p
+       where p.post_id = r.pid and p.status = any(v_status_set);
+      continue when not found;
+    else
+      v_post := r.prow;
+    end if;
+    continue when not public.is_post_visible_to(v_post, p_viewer_id);
     if p_viewer_id is not null then
       continue when exists (
         select 1 from public.feed_post_hides h
@@ -234,11 +300,11 @@ begin
         select 1 from public.feed_mute_filters mf
          where mf.user_id = p_viewer_id
            and (
-             (mf.filter_kind = 'user' and mf.filter_value = (r.prow).owner_id::text)
-             or (mf.filter_kind in ('category', 'world') and mf.filter_value = (r.prow).category)
+             (mf.filter_kind = 'user' and mf.filter_value = v_post.owner_id::text)
+             or (mf.filter_kind in ('category', 'world') and mf.filter_value = v_post.category)
              or (mf.filter_kind = 'keyword' and (
-               (r.prow).title ilike '%' || public.escape_ilike(mf.filter_value) || '%' escape '\'
-               or (r.prow).description ilike '%' || public.escape_ilike(mf.filter_value) || '%' escape '\'
+               v_post.title ilike '%' || public.escape_ilike(mf.filter_value) || '%' escape '\'
+               or v_post.description ilike '%' || public.escape_ilike(mf.filter_value) || '%' escape '\'
              ))
            )
       );
