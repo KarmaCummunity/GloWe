@@ -25,7 +25,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0351 | items image rule: photo or details image, deferred check (#953) | merged |
 | 0352 | drop old 9-param create_marketplace_listing overload (#954) | merged |
 | 0353 | external-organisation picker: external_bodies RLS, search + admin RPCs, create RPC p_external_body_id | merged |
-| 0354–0359 | — | free |
+| 0354–0356 | Supabase advisors cleanup (#945): RLS initplan, FK indexes, search_path | this PR |
+| 0357–0359 | — | free |
 | 0360–0369 | money world (#913) | open PR |
 | 0370–0379 | time world (volunteering, #915) | open PR |
 | 0380–0389 | items & food worlds (handoffs, #916) | open PR |
@@ -33,7 +34,7 @@ Last applied on kc-dev when this was written: `0239`.
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0310–0319`, `0354–0359`, `0390+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0310–0319`, `0357–0359`, `0390+`.
 
 ## How to claim
 
