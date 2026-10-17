@@ -64,6 +64,11 @@ export class SupabaseModerationAdminRepository implements IModerationAdminReposi
     if (error) this.mapError(error, error);
   }
 
+  async removeListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('admin_remove_listing', { p_listing_id: listingId });
+    if (error) this.mapError(error, error);
+  }
+
   async dismissReport(reportId: string): Promise<void> {
     const { error } = await this.client.rpc('admin_dismiss_report', { p_report_id: reportId });
     if (error) this.mapError(error, error);

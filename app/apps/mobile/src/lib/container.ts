@@ -46,8 +46,10 @@ import {
   SubmitSupportIssueUseCase,
   ReportChatUseCase,
   ReportPostUseCase,
+  ReportListingUseCase,
   DeletePostUseCase,
   AdminRemovePostUseCase,
+  AdminRemoveListingUseCase,
   ListDonationLinksUseCase,
   AddDonationLinkUseCase,
   RemoveDonationLinkUseCase,
@@ -231,10 +233,12 @@ export const container = {
   // Reports
   reportChat: new ReportChatUseCase(reportRepo),
   reportPost: new ReportPostUseCase(reportRepo),
+  reportListing: new ReportListingUseCase(reportRepo),
 
   // Post moderation
   deletePost: new DeletePostUseCase(postRepo),
   adminRemovePost: new AdminRemovePostUseCase(postRepo),
+  adminRemoveListing: new AdminRemoveListingUseCase(moderationAdminRepo),
 
   // Moderation admin actions (FR-MOD-007 + FR-ADMIN-002..007)
   restoreTarget: new RestoreTargetUseCase(moderationAdminRepo),

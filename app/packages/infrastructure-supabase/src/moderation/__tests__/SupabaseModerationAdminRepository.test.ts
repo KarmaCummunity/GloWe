@@ -108,6 +108,19 @@ describe('SupabaseModerationAdminRepository — admin RPCs', () => {
     expect(calls.rpcs).toEqual([{ fn: 'admin_restore_target', args: { p_target_type: 'post', p_target_id: 'p_1' } }]);
   });
 
+  it('removeListing → admin_remove_listing', async () => {
+    const { client, calls } = makeFakeClient({});
+    await new SupabaseModerationAdminRepository(client).removeListing('l_1');
+    expect(calls.rpcs).toEqual([{ fn: 'admin_remove_listing', args: { p_listing_id: 'l_1' } }]);
+  });
+
+  it('removeListing maps rpc errors', async () => {
+    const { client } = makeFakeClient({ rpcError: { message: 'no code' } });
+    await expect(
+      new SupabaseModerationAdminRepository(client).removeListing('l_1'),
+    ).rejects.toMatchObject({ name: 'ModerationError', code: 'unknown' });
+  });
+
   it('dismissReport → admin_dismiss_report', async () => {
     const { client, calls } = makeFakeClient({});
     await new SupabaseModerationAdminRepository(client).dismissReport('r_1');

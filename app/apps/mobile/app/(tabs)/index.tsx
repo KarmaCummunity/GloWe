@@ -20,6 +20,7 @@ import { FirstPostNudge } from '../../src/components/FirstPostNudge';
 import { SurveyPromptBanner } from '../../src/components/survey/SurveyPromptBanner';
 import { useSurveyBanner } from '../../src/hooks/useSurveyBanner';
 import { FeedEmptyState } from '../../src/components/FeedEmptyState';
+import { MarketplaceForYouSection } from '../../src/components/marketplace/MarketplaceForYouSection';
 import { PostFilterSheet, type PostFilterValue } from '../../src/components/PostFilterSheet';
 import { Screen } from '../../src/components/ui/Screen';
 import { useAuthStore } from '../../src/store/authStore';
@@ -218,6 +219,7 @@ export default function HomeFeedScreen() {
         />
       )}
       <NewPostsBanner count={newPostsCount} onPress={refetchAndReset} />
+      <MarketplaceForYouSection />
     </View>
   );
 

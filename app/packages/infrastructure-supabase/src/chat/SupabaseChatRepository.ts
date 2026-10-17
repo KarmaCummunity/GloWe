@@ -26,7 +26,7 @@ export class SupabaseChatRepository implements IChatRepository {
   async findById(chatId: string): Promise<Chat | null> {
     const { data, error } = await this.client
       .from('chats')
-      .select('chat_id, participant_a, participant_b, anchor_post_id, anchor_ride_id, is_support_thread, last_message_at, inbox_hidden_at_a, inbox_hidden_at_b, removed_at, created_at')
+      .select('chat_id, participant_a, participant_b, anchor_post_id, anchor_ride_id, anchor_listing_id, is_support_thread, last_message_at, inbox_hidden_at_a, inbox_hidden_at_b, removed_at, created_at')
       .eq('chat_id', chatId)
       .maybeSingle();
     if (error) throw mapChatError(error);

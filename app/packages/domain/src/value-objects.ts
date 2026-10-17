@@ -81,7 +81,7 @@ export type FollowRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancell
 
 export type ReportReason = 'Spam' | 'Offensive' | 'Misleading' | 'Illegal' | 'Other';
 
-export type ReportTargetType = 'post' | 'user' | 'chat' | 'none';
+export type ReportTargetType = 'post' | 'user' | 'chat' | 'listing' | 'none';
 
 export type ReportStatus = 'open' | 'confirmed_violation' | 'dismissed_no_violation';
 

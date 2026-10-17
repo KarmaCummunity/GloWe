@@ -71,6 +71,51 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
     );
   }
 
+  if (targetType === 'listing') {
+    const title = asString(target['title']);
+    const summary = asString(target['summary']);
+    const status = asString(target['status']);
+    const ownerId = asString(target['owner_id']);
+    const worldSlug = asString(target['world_slug']);
+    const kindSlug = asString(target['kind_slug']);
+    return (
+      <View style={styles.card}>
+        <View style={styles.headerRow}>
+          <Text style={styles.kind}>{t.listingKind}</Text>
+          {status && <Badge label={status} />}
+        </View>
+        <Text style={styles.preview} numberOfLines={2}>
+          {title ?? t.noPreview}
+        </Text>
+        {summary ? (
+          <Text style={styles.metaText} numberOfLines={3}>
+            {summary}
+          </Text>
+        ) : null}
+        {(worldSlug || kindSlug) && (
+          <Text style={styles.metaText}>
+            {[worldSlug, kindSlug].filter(Boolean).join(' · ')}
+          </Text>
+        )}
+        {ownerId ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push(`/user/${ownerId}` as never)}
+          >
+            <Text style={styles.link}>{t.openOwner}</Text>
+          </Pressable>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          style={styles.primaryBtn}
+          onPress={() => router.push(`/(tabs)/donations/marketplace/${targetId}` as never)}
+        >
+          <Text style={styles.primaryBtnText}>{t.openListing}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   if (targetType === 'user') {
     const displayName = asString(target['display_name']);
     const status      = asString(target['status']);

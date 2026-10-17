@@ -442,6 +442,13 @@ export type Database = {
             referencedColumns: ["listing_id"]
           },
           {
+            foreignKeyName: "bot_admin_review_items_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
             foreignKeyName: "bot_admin_review_items_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
@@ -511,6 +518,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "bot_conversation_sessions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -679,6 +693,7 @@ export type Database = {
       }
       chats: {
         Row: {
+          anchor_listing_id: string | null
           anchor_post_id: string | null
           anchor_ride_id: string | null
           chat_id: string
@@ -692,6 +707,7 @@ export type Database = {
           removed_at: string | null
         }
         Insert: {
+          anchor_listing_id?: string | null
           anchor_post_id?: string | null
           anchor_ride_id?: string | null
           chat_id?: string
@@ -705,6 +721,7 @@ export type Database = {
           removed_at?: string | null
         }
         Update: {
+          anchor_listing_id?: string | null
           anchor_post_id?: string | null
           anchor_ride_id?: string | null
           chat_id?: string
@@ -718,6 +735,20 @@ export type Database = {
           removed_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chats_anchor_listing_id_fkey"
+            columns: ["anchor_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "chats_anchor_listing_id_fkey"
+            columns: ["anchor_listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
           {
             foreignKeyName: "chats_anchor_post_id_fkey"
             columns: ["anchor_post_id"]
@@ -820,6 +851,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "claim_requests_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -1096,6 +1134,13 @@ export type Database = {
             referencedColumns: ["listing_id"]
           },
           {
+            foreignKeyName: "donation_intents_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
             foreignKeyName: "donation_intents_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
@@ -1313,6 +1358,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: true
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "embedding_jobs_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
         ]
@@ -1557,6 +1609,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "extractions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -1833,6 +1892,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "field_provenance_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -2295,6 +2361,46 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_feed_posts: {
+        Row: {
+          created_at: string
+          listing_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_feed_posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_feed_posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_feed_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+        ]
+      }
       listing_kinds: {
         Row: {
           created_at: string
@@ -2382,10 +2488,24 @@ export type Database = {
             referencedColumns: ["listing_id"]
           },
           {
+            foreignKeyName: "listing_matches_candidate_listing_id_fkey"
+            columns: ["candidate_listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
             foreignKeyName: "listing_matches_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_matches_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -2397,9 +2517,105 @@ export type Database = {
           },
         ]
       }
+      listing_media: {
+        Row: {
+          created_at: string
+          listing_id: string
+          media_id: string
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          media_id?: string
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          media_id?: string
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_media_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_media_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+        ]
+      }
+      listing_user_signals: {
+        Row: {
+          created_at: string
+          listing_id: string
+          signal_id: string
+          signal_type: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          signal_id?: string
+          signal_type: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          signal_id?: string
+          signal_type?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_user_signals_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_user_signals_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_user_signals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listing_user_signals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           anonymity_level: number
+          availability_status: string
           canonical_id: string | null
           category_id: string | null
           city_id: string | null
@@ -2428,11 +2644,13 @@ export type Database = {
           time_window: unknown
           title: string
           updated_at: string
+          urgency_level: number
           visibility: string
           world_slug: string
         }
         Insert: {
           anonymity_level?: number
+          availability_status?: string
           canonical_id?: string | null
           category_id?: string | null
           city_id?: string | null
@@ -2461,11 +2679,13 @@ export type Database = {
           time_window?: unknown
           title: string
           updated_at?: string
+          urgency_level?: number
           visibility?: string
           world_slug: string
         }
         Update: {
           anonymity_level?: number
+          availability_status?: string
           canonical_id?: string | null
           category_id?: string | null
           city_id?: string | null
@@ -2494,6 +2714,7 @@ export type Database = {
           time_window?: unknown
           title?: string
           updated_at?: string
+          urgency_level?: number
           visibility?: string
           world_slug?: string
         }
@@ -2503,6 +2724,13 @@ export type Database = {
             columns: ["canonical_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listings_canonical_id_fkey"
+            columns: ["canonical_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -2601,6 +2829,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "marketplace_actors_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -2819,6 +3054,13 @@ export type Database = {
             columns: ["source_listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "match_runs_source_listing_id_fkey"
+            columns: ["source_listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
           {
@@ -3339,6 +3581,13 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: true
             referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "operator_cases_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
           },
         ]
@@ -6223,6 +6472,97 @@ export type Database = {
           },
         ]
       }
+      marketplace_listing_card: {
+        Row: {
+          anonymity_level: number | null
+          availability_status: string | null
+          category_id: string | null
+          city_id: string | null
+          created_at: string | null
+          details: Json | null
+          direction: string | null
+          expires_at: string | null
+          geo: unknown
+          kind_id: string | null
+          kind_label_en: string | null
+          kind_label_he: string | null
+          kind_slug: string | null
+          legacy_post_id: string | null
+          legacy_ride_id: string | null
+          listing_id: string | null
+          origin: string | null
+          owner_id: string | null
+          published_at: string | null
+          status: string | null
+          summary: string | null
+          time_window: unknown
+          title: string | null
+          updated_at: string | null
+          urgency_level: number | null
+          visibility: string | null
+          world_label_en: string | null
+          world_label_he: string | null
+          world_slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "listings_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "listings_kind_id_fkey"
+            columns: ["kind_id"]
+            isOneToOne: false
+            referencedRelation: "listing_kinds"
+            referencedColumns: ["kind_id"]
+          },
+          {
+            foreignKeyName: "listings_legacy_post_id_fkey"
+            columns: ["legacy_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["post_id"]
+          },
+          {
+            foreignKeyName: "listings_legacy_ride_id_fkey"
+            columns: ["legacy_ride_id"]
+            isOneToOne: false
+            referencedRelation: "ride_listings"
+            referencedColumns: ["ride_id"]
+          },
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listings_world_slug_fkey"
+            columns: ["world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       user_legal_acceptances_latest: {
         Row: {
           accepted_at: string | null
@@ -6511,6 +6851,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_remove_listing: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
       admin_remove_post: { Args: { p_post_id: string }; Returns: undefined }
       admin_restore_target: {
         Args: { p_target_id: string; p_target_type: string }
@@ -6797,12 +7141,43 @@ export type Database = {
         }
         Returns: string
       }
+      attach_listing_media: {
+        Args: { p_listing_id: string; p_storage_paths: string[] }
+        Returns: undefined
+      }
       auth_check_account_gate: {
         Args: { p_user_id: string }
         Returns: {
           allowed: boolean
           reason: string
           until_at: string
+        }[]
+      }
+      browse_listings: {
+        Args: {
+          p_availability?: string
+          p_direction?: string
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_offset?: number
+          p_radius_km?: number
+          p_urgency_min?: number
+          p_viewer?: string
+          p_world_slug?: string
+        }
+        Returns: {
+          availability_status: string
+          city_id: string
+          direction: string
+          distance_km: number
+          geo: unknown
+          kind_slug: string
+          listing_id: string
+          summary: string
+          title: string
+          urgency_level: number
+          world_slug: string
         }[]
       }
       can_grant_role: {
@@ -6901,6 +7276,39 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_marketplace_listing:
+        | {
+            Args: {
+              p_availability_status?: string
+              p_category_id?: string
+              p_city_id?: string
+              p_details?: Json
+              p_direction?: string
+              p_kind_id: string
+              p_summary?: string
+              p_title: string
+              p_urgency_level?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_availability_status?: string
+              p_category_id?: string
+              p_city_id?: string
+              p_details?: Json
+              p_direction?: string
+              p_kind_id: string
+              p_lat?: number
+              p_lng?: number
+              p_max_radius_km?: number
+              p_media_paths?: string[]
+              p_summary?: string
+              p_title: string
+              p_urgency_level?: number
+            }
+            Returns: string
+          }
       crm_contact_delete: { Args: { p_contact_id: string }; Returns: undefined }
       crm_contact_list: {
         Args: {
@@ -6947,6 +7355,7 @@ export type Database = {
       cron_feed_cache_worker: { Args: never; Returns: number }
       cron_refresh_feed_open_posts_mv_if_dirty: { Args: never; Returns: number }
       delete_account_data: { Args: never; Returns: Json }
+      delete_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       drop_feed_impressions_partitions_older_than: {
         Args: { p_retention?: string }
         Returns: number
@@ -7091,9 +7500,14 @@ export type Database = {
         }[]
       }
       find_or_create_support_chat: { Args: { p_user: string }; Returns: string }
+      fulfill_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       get_chat_counterparty_contact: {
         Args: { p_chat_id: string }
         Returns: string
+      }
+      get_marketplace_listing_detail: {
+        Args: { p_listing_id: string }
+        Returns: Json
       }
       get_my_admin_roles: { Args: never; Returns: string[] }
       get_post_translations: {
@@ -7200,6 +7614,33 @@ export type Database = {
       }
       karma_value_bonus: { Args: { p_value: number }; Returns: number }
       list_active_surveys: { Args: never; Returns: Json }
+      list_my_listings: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          availability_status: string
+          direction: string
+          kind_slug: string
+          listing_id: string
+          status: string
+          summary: string
+          title: string
+          updated_at: string
+          urgency_level: number
+          world_slug: string
+        }[]
+      }
+      list_profile_listings: {
+        Args: { p_limit?: number; p_owner_id: string }
+        Returns: {
+          direction: string
+          kind_slug: string
+          listing_id: string
+          status: string
+          summary: string
+          title: string
+          world_slug: string
+        }[]
+      }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
       listing_upsert_from_post: {
         Args: { p_post: Database["public"]["Tables"]["posts"]["Row"] }
@@ -7208,6 +7649,39 @@ export type Database = {
       listing_upsert_from_ride: {
         Args: { p_ride: Database["public"]["Tables"]["ride_listings"]["Row"] }
         Returns: undefined
+      }
+      map_listing_clusters: {
+        Args: {
+          p_ne_lat: number
+          p_ne_lng: number
+          p_sw_lat: number
+          p_sw_lng: number
+          p_viewer?: string
+          p_world_slug?: string
+        }
+        Returns: {
+          center_lat: number
+          center_lng: number
+          cluster_key: string
+          listing_count: number
+          sample_listing_id: string
+        }[]
+      }
+      marketplace_search: {
+        Args: {
+          p_limit?: number
+          p_query?: string
+          p_viewer?: string
+          p_world_slug?: string
+        }
+        Returns: {
+          fts_rank: number
+          geo_rank: number
+          listing_id: string
+          rrf_score: number
+          trgm_rank: number
+          vector_rank: number
+        }[]
       }
       merge_entities: {
         Args: { p_actor?: string; p_merged: string; p_survivor: string }
@@ -7256,6 +7730,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      pause_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       payment_ledger_post_balanced: {
         Args: { p_idempotency_key: string; p_lines: Json; p_txn_id: string }
         Returns: undefined
@@ -7316,6 +7791,18 @@ export type Database = {
           p_title_he: string
         }
         Returns: Json
+      }
+      recommend_listings_for_user: {
+        Args: { p_limit?: number; p_viewer?: string }
+        Returns: {
+          listing_id: string
+          reason: string
+          score: number
+        }[]
+      }
+      record_listing_signal: {
+        Args: { p_listing_id: string; p_signal_type: string; p_weight?: number }
+        Returns: undefined
       }
       refresh_feed_open_posts_mv: {
         Args: { p_concurrent?: boolean }
@@ -7414,6 +7901,7 @@ export type Database = {
           w_vector: number
         }[]
       }
+      resume_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
       ride_listings_expire_check: { Args: never; Returns: number }
@@ -7530,6 +8018,7 @@ export type Database = {
       rpc_chat_set_anchor: {
         Args: { p_anchor_post_id: string; p_chat_id: string }
         Returns: {
+          anchor_listing_id: string | null
           anchor_post_id: string | null
           anchor_ride_id: string | null
           chat_id: string
@@ -7552,6 +8041,7 @@ export type Database = {
       rpc_chat_set_anchor_ride: {
         Args: { p_anchor_ride_id: string; p_chat_id: string }
         Returns: {
+          anchor_listing_id: string | null
           anchor_post_id: string | null
           anchor_ride_id: string | null
           chat_id: string
@@ -7675,6 +8165,7 @@ export type Database = {
       rpc_get_or_create_support_thread: {
         Args: never
         Returns: {
+          anchor_listing_id: string | null
           anchor_post_id: string | null
           anchor_ride_id: string | null
           chat_id: string
@@ -8122,6 +8613,7 @@ export type Database = {
       rpc_submit_support_issue: {
         Args: { p_category: string; p_description: string }
         Returns: {
+          anchor_listing_id: string | null
           anchor_post_id: string | null
           anchor_ride_id: string | null
           chat_id: string
@@ -8226,6 +8718,16 @@ export type Database = {
         Args: { p_city_id: string; p_count?: number; p_owner_id: string }
         Returns: number
       }
+      share_listing_to_feed: { Args: { p_listing_id: string }; Returns: string }
+      similar_listings: {
+        Args: { p_limit?: number; p_listing_id: string }
+        Returns: {
+          kind_slug: string
+          listing_id: string
+          title: string
+          world_slug: string
+        }[]
+      }
       social_rpc_capture_explain: {
         Args: {
           p_elapsed_ms?: number
@@ -8233,6 +8735,10 @@ export type Database = {
           p_plan_text: string
           p_rpc_name: string
         }
+        Returns: string
+      }
+      start_listing_chat: {
+        Args: { p_listing_id: string; p_opening_message?: string }
         Returns: string
       }
       stats_recompute_personal_counters_nightly: {
@@ -8314,6 +8820,19 @@ export type Database = {
         Args: { p_actor?: string; p_merge_id: string }
         Returns: undefined
       }
+      update_my_listing: {
+        Args: {
+          p_availability_status?: string
+          p_city_id?: string
+          p_details?: Json
+          p_listing_id: string
+          p_max_radius_km?: number
+          p_summary?: string
+          p_title?: string
+          p_urgency_level?: number
+        }
+        Returns: undefined
+      }
       upsert_post_actor_identity: {
         Args: {
           p_hide_from_counterparty: boolean
@@ -8330,6 +8849,10 @@ export type Database = {
       users_merge_notification_preferences: {
         Args: { p_merge: Json; p_user_id: string }
         Returns: Json
+      }
+      validate_listing_details: {
+        Args: { p_details: Json; p_kind_id: string }
+        Returns: boolean
       }
       visibility_to_anonymity_level: {
         Args: { p_visibility: string }

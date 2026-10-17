@@ -83,8 +83,13 @@ export function CaseActions({ detail, onActed }: CaseActionsProps) {
           });
           break;
         case 'manualRemove':
-          if (detail.targetType !== 'post') return;
-          await container.adminRemovePost.execute({ postId: detail.targetId });
+          if (detail.targetType === 'post') {
+            await container.adminRemovePost.execute({ postId: detail.targetId });
+          } else if (detail.targetType === 'listing') {
+            await container.adminRemoveListing.execute({ listingId: detail.targetId });
+          } else {
+            return;
+          }
           break;
         case 'openSupport':
           // FR-ADMIN-013 — A4 will wire this to the actual support-thread flow
@@ -126,7 +131,7 @@ export function CaseActions({ detail, onActed }: CaseActionsProps) {
           onPress={() => { void run('restore'); }}
         />
       )}
-      {show('reports.manual_remove_post') && detail.targetType === 'post' && (
+      {show('reports.manual_remove_post') && (detail.targetType === 'post' || detail.targetType === 'listing') && (
         <ActionButton
           label={L.admin.caseDetail.actionLabels.manualRemove}
           disabled={busy}

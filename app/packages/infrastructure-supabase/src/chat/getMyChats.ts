@@ -55,7 +55,7 @@ export async function getMyChats(
 ): Promise<ChatWithPreview[]> {
   const chatsRes = await client
     .from('chats')
-    .select('chat_id, participant_a, participant_b, anchor_post_id, anchor_ride_id, is_support_thread, last_message_at, inbox_hidden_at_a, inbox_hidden_at_b, removed_at, created_at')
+    .select('chat_id, participant_a, participant_b, anchor_post_id, anchor_ride_id, anchor_listing_id, is_support_thread, last_message_at, inbox_hidden_at_a, inbox_hidden_at_b, removed_at, created_at')
     .or(`participant_a.eq.${userId},participant_b.eq.${userId}`)
     .order('last_message_at', { ascending: false })
     .limit(50);

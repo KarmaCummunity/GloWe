@@ -38,6 +38,7 @@ import { profilePostOwnerFromUser } from '../../../src/lib/profilePostOwnerConte
 import { getRestoredProfileTab, persistProfileTab } from '../../../src/lib/profileTabSession';
 import { useOtherProfileScreenStyles } from '../../../src/components/profile/otherProfileScreen.styles';
 import { nativeStackHeaderRightIconOnly } from '../../../src/navigation/nativeHeaderIconOnly';
+import { ProfileMarketplaceListings } from '../../../src/components/profile/ProfileMarketplaceListings';
 
 export default function OtherProfileScreen() {
   const styles = useOtherProfileScreenStyles();
@@ -182,6 +183,11 @@ export default function OtherProfileScreen() {
             onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
           />
 
+          <View style={styles.karmaRow}>
+            <Text style={styles.karmaLabel}>{t('karma.badgeLabel')}</Text>
+            <Text style={styles.karmaValue}>{u.karmaPoints}</Text>
+          </View>
+
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
@@ -213,11 +219,13 @@ export default function OtherProfileScreen() {
           ) : null}
         </View>
 
+        <ProfileMarketplaceListings ownerId={u.userId} />
+
         <ProfileTabs
           active={activeTab}
-          onChange={(t) => {
-            if (handle) persistProfileTab({ otherHandle: handle }, t);
-            setActiveTab(t);
+          onChange={(tab) => {
+            if (handle) persistProfileTab({ otherHandle: handle }, tab);
+            setActiveTab(tab);
           }}
           openCount={tabCounts.openCount}
           closedCount={tabCounts.closedCount}

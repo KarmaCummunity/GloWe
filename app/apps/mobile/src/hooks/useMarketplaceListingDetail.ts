@@ -1,0 +1,23 @@
+import { useQuery } from '@tanstack/react-query';
+import { marketplaceRepository } from '../services/marketplaceComposition';
+
+export function useMarketplaceListingDetail(listingId: string | undefined) {
+  return useQuery({
+    queryKey: ['marketplace-detail', listingId],
+    enabled: Boolean(listingId),
+    queryFn: async () => {
+      if (!listingId) return null;
+      const detail = await marketplaceRepository().getListingDetail(listingId);
+      if (detail) void marketplaceRepository().recordSignal(detail.listingId, 'view');
+      return detail;
+    },
+  });
+}
+
+export function useSimilarListings(listingId: string | undefined) {
+  return useQuery({
+    queryKey: ['marketplace-similar', listingId],
+    enabled: Boolean(listingId),
+    queryFn: () => (listingId ? marketplaceRepository().similarListings(listingId, 8) : []),
+  });
+}
