@@ -117,6 +117,11 @@ export default function SettingsScreen() {
             icon="globe-outline"
             onPress={() => router.push('/settings/language' as never)}
           />
+          <SettingsScreenRow
+            label={t('settings.whatsappRow')}
+            icon="logo-whatsapp"
+            onPress={() => router.push('/settings/whatsapp' as never)}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>{t('settings.translationLanguage')}</Text>
