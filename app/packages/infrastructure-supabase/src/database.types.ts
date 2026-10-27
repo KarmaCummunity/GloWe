@@ -7031,6 +7031,55 @@ export type Database = {
           },
         ]
       }
+      user_entitlements: {
+        Row: {
+          active: boolean
+          expires_at: string | null
+          source: string
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          expires_at?: string | null
+          source?: string
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          expires_at?: string | null
+          source?: string
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_feed_cache: {
         Row: {
           post_ids: string[]
@@ -8908,6 +8957,16 @@ export type Database = {
         Args: { p_candidate_id: string; p_reason: string; p_score: number }
         Returns: boolean
       }
+      api_my_pro_status: { Args: never; Returns: Json }
+      api_set_pro_entitlement: {
+        Args: {
+          p_active: boolean
+          p_expires_at?: string
+          p_source?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       api_whatsapp_admin_block_user: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -9827,6 +9886,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_pro: { Args: { p_user_id: string }; Returns: boolean }
       karma_apply: {
         Args: {
           p_delta: number
