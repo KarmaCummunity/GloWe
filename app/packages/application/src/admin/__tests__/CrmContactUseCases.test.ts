@@ -17,7 +17,7 @@ function makeRepo(): ICrmContactsRepository & {
     upsert:          vi.fn(async () => 'new-id'),
     delete:          vi.fn(async () => undefined),
     markContacted:   vi.fn(async () => undefined),
-  } as never;
+  };
 }
 
 describe('CRM use cases — delegate to repo', () => {
@@ -46,14 +46,14 @@ describe('CRM use cases — delegate to repo', () => {
 describe('UpsertCrmContactUseCase', () => {
   it('rejects creation when name is missing', async () => {
     const repo = makeRepo();
-    await expect(new UpsertCrmContactUseCase(repo).execute({} as never))
+    await expect(new UpsertCrmContactUseCase(repo).execute({}))
       .rejects.toBeInstanceOf(CrmContactError);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects creation when name is blank', async () => {
     const repo = makeRepo();
-    await expect(new UpsertCrmContactUseCase(repo).execute({ name: '   ' } as never))
+    await expect(new UpsertCrmContactUseCase(repo).execute({ name: '   ' }))
       .rejects.toBeInstanceOf(CrmContactError);
   });
 

@@ -158,7 +158,7 @@ jobs:
 
     env:
       EXPO_PUBLIC_ENVIRONMENT: production
-      EXPO_PUBLIC_SUPABASE_URL: https://roeefqpdbftlndzsvhfj.supabase.co
+      EXPO_PUBLIC_SUPABASE_URL: https://enbqriuxvvuontiwslun.supabase.co
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-web-build-placeholder-not-for-runtime
       # Pinned so the smoke step is deterministic; browser binaries are cached
       # under this key. Bump deliberately (cache key rolls with it).

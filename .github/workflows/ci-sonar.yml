@@ -15,7 +15,8 @@ name: CI — SonarCloud
 
 on:
   push:
-    branches: [main, dev]
+    # SonarCloud free plan analyses the main branch only; dev is covered by PR scans.
+    branches: [main]
   pull_request:
     branches: [main, dev]
     types: [opened, synchronize, reopened, ready_for_review]
