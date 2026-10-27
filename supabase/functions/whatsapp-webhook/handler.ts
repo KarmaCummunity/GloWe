@@ -52,6 +52,7 @@ export type MessageOutcome = {
   message_id: string;
   record_id: string | null;
   throttled?: boolean;
+  duplicate?: boolean;
   keyword?: string;
   link_status?: string;
   access?: string;
@@ -66,6 +67,29 @@ async function handleMessage(
   const messageId = String(msg.id ?? '');
   const from = msg.from ? String(msg.from) : '';
 
+  // #1089: Meta retries deliveries; claim the wamid first and skip duplicates entirely.
+  const { data: claimed, error: claimErr } = await deps.rpc('api_whatsapp_claim_inbound', {
+    p_message_id: messageId,
+  });
+  if (claimErr) throw new Error(claimErr.message);
+  if (claimed === false) return { message_id: messageId, record_id: null, duplicate: true };
+
+  try {
+    return await processClaimed(deps, msg, metadata, messageId, from);
+  } catch (e) {
+    // Release so Meta's retry of this delivery is processed instead of skipped.
+    await deps.rpc('api_whatsapp_release_inbound', { p_message_id: messageId }).catch(() => undefined);
+    throw e;
+  }
+}
+
+async function processClaimed(
+  deps: WebhookDeps,
+  msg: InboundMessage,
+  metadata: unknown,
+  messageId: string,
+  from: string,
+): Promise<MessageOutcome> {
   let throttled = false;
   if (from) {
     const { data: allowed, error } = await deps.rpc('api_whatsapp_inbound_allowed', { p_wa_id: from });

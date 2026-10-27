@@ -2,7 +2,7 @@
 // Lives under src/ (not app/) so expo-router does not register it as a route.
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 

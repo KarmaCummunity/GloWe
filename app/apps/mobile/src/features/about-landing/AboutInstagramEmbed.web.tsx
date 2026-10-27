@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
 import { Ionicons } from '@expo/vector-icons';

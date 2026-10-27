@@ -5,6 +5,10 @@ Meta WhatsApp Cloud API webhook (issues #843, #937, #938). Logic is in `handler.
 
 Per inbound message:
 
+0. `api_whatsapp_claim_inbound(wamid)` — dedupe of Meta retries (#1089). A duplicate wamid is
+   skipped entirely; if processing fails the claim is released so the retry is handled.
+   Signature: `X-Hub-Signature-256` HMAC with `WHATSAPP_APP_SECRET`; with no secret the POST
+   is rejected (401) unless `WHATSAPP_SKIP_SIGNATURE_VERIFY=true` (dev only).
 1. `api_whatsapp_inbound_allowed(wa_id)` — per-phone inbound throttle (#938). Throttled
    messages are not stored or sent to intake (Meta still gets `200`).
 2. `api_whatsapp_ingest_inbound` — idempotent raw-record storage; stamps

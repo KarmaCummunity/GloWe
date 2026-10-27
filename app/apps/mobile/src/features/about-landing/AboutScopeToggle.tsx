@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useAboutContentScope } from './AboutContentScopeContext';

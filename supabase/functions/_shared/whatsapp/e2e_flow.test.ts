@@ -44,7 +44,15 @@ function freshState(): State {
 }
 
 function makeRpc(state: State): RpcFn {
+  const claimed = new Set<string>();
   return (fn, args) => {
+    if (fn === 'api_whatsapp_claim_inbound') {
+      // #1089 dedupe: first delivery of a wamid wins.
+      const id = String(args.p_message_id);
+      const fresh = !claimed.has(id);
+      claimed.add(id);
+      return Promise.resolve({ data: fresh, error: null });
+    }
     if (fn === 'api_whatsapp_inbound_allowed') {
       return Promise.resolve({ data: state.allowed, error: null });
     }

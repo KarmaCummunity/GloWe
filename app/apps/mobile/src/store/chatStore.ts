@@ -1,7 +1,6 @@
 // FR-CHAT-001..013, FR-CHAT-016 — Zustand store for threads + realtime lifecycle; inbox in React Query.
 import { create } from 'zustand';
-import type { Message } from '@kc/domain';
-import type { Chat } from '@kc/domain';
+import type { Message, Chat } from '@kc/domain';
 import type { ChatState, OptimisticMessage } from './chatStoreTypes';
 import { runRefreshInbox, runStartInboxSub } from './chatStoreInboxLifecycle';
 import { useAuthStore } from './authStore';
