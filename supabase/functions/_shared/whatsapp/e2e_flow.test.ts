@@ -132,6 +132,10 @@ function makeRpc(state: State): RpcFn {
       row.status = 'failed';
       return Promise.resolve({ data: 'failed', error: null });
     }
+    if (fn === 'api_whatsapp_bot_access') {
+      // #1086: e2e phone is not linked; upsell rate-limited away.
+      return Promise.resolve({ data: { access: 'unlinked', user_id: null, upsell: false }, error: null });
+    }
     return Promise.resolve({ data: null, error: { message: `unexpected ${fn}` } });
   };
 }

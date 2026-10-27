@@ -7705,6 +7705,7 @@ export type Database = {
           created_at: string
           identity_id: string
           last_inbound_at: string | null
+          last_upsell_at: string | null
           preferred_language: string
           updated_at: string
           user_id: string | null
@@ -7716,6 +7717,7 @@ export type Database = {
           created_at?: string
           identity_id?: string
           last_inbound_at?: string | null
+          last_upsell_at?: string | null
           preferred_language?: string
           updated_at?: string
           user_id?: string | null
@@ -7727,6 +7729,7 @@ export type Database = {
           created_at?: string
           identity_id?: string
           last_inbound_at?: string | null
+          last_upsell_at?: string | null
           preferred_language?: string
           updated_at?: string
           user_id?: string | null
@@ -7768,6 +7771,64 @@ export type Database = {
         Update: {
           claimed_at?: string
           message_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_link_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      whatsapp_link_failures: {
+        Row: {
+          failed_at: string
+          wa_id: string
+        }
+        Insert: {
+          failed_at?: string
+          wa_id: string
+        }
+        Update: {
+          failed_at?: string
+          wa_id?: string
         }
         Relationships: []
       }
@@ -8915,6 +8976,41 @@ export type Database = {
         Args: { p_user_id: string; p_wa_id: string }
         Returns: string
       }
+      api_bot_listing_cards: {
+        Args: { p_ids: string[]; p_viewer_id: string }
+        Returns: {
+          city_id: string
+          created_at: string
+          direction: string
+          listing_id: string
+          summary: string
+          title: string
+          world_slug: string
+        }[]
+      }
+      api_bot_my_listings: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          created_at: string
+          direction: string
+          listing_id: string
+          title: string
+          world_slug: string
+        }[]
+      }
+      api_bot_my_matches: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          candidate_id: string
+          distance_km: number
+          my_listing_title: string
+          other_listing_id: string
+          other_title: string
+          score: number
+          status: string
+          world_slug: string
+        }[]
+      }
       api_bot_open_session: {
         Args: { p_record_id?: string; p_wa_id: string }
         Returns: string
@@ -9062,10 +9158,12 @@ export type Database = {
         Args: { p_enabled: boolean }
         Returns: Json
       }
+      api_whatsapp_bot_access: { Args: { p_wa_id: string }; Returns: Json }
       api_whatsapp_claim_inbound: {
         Args: { p_message_id: string }
         Returns: boolean
       }
+      api_whatsapp_create_link_code: { Args: never; Returns: Json }
       api_whatsapp_handle_keyword: {
         Args: { p_record_id?: string; p_text: string; p_wa_id: string }
         Returns: Json
@@ -9082,6 +9180,7 @@ export type Database = {
         Args: { p_wa_id: string }
         Returns: boolean
       }
+      api_whatsapp_my_link_status: { Args: never; Returns: Json }
       api_whatsapp_outbound_claim: {
         Args: { p_batch?: number; p_visibility_seconds?: number }
         Returns: {
@@ -9142,10 +9241,15 @@ export type Database = {
         Args: { p_older_than?: string }
         Returns: number
       }
+      api_whatsapp_redeem_link_code: {
+        Args: { p_code: string; p_wa_id: string }
+        Returns: Json
+      }
       api_whatsapp_release_inbound: {
         Args: { p_message_id: string }
         Returns: undefined
       }
+      api_whatsapp_unlink_me: { Args: never; Returns: undefined }
       attach_listing_media: {
         Args: { p_listing_id: string; p_storage_paths: string[] }
         Returns: undefined
@@ -11630,6 +11734,7 @@ export type Database = {
         Returns: undefined
       }
       volunteer_shift_reminder_sweep: { Args: never; Returns: number }
+      whatsapp_link_code_hash: { Args: { p_code: string }; Returns: string }
       whatsapp_mask_wa_id: { Args: { p_wa_id: string }; Returns: string }
       whatsapp_outbound_enqueue: {
         Args: { p_delay_seconds?: number; p_outbound_id: string }

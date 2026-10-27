@@ -2,11 +2,16 @@
 // #937 (STOP/START/HELP keywords → consent + confirmation reply),
 // #938 (per-phone inbound throttle). Dependencies are injected so it is unit-testable.
 
-import { isKeywordAction, keywordReply, replyKind } from '../_shared/whatsapp/replies.ts';
+import { detectLang, isKeywordAction, keywordReply, replyKind, upsellReply } from '../_shared/whatsapp/replies.ts';
+import { isLinkStatus, linkReply, parseLinkCode } from '../_shared/whatsapp/link.ts';
 import type { RpcFn } from '../_shared/whatsapp/sender.ts';
+
+export type BotAccess = { access: 'pro' | 'unlinked' | 'not_pro'; user_id: string | null; upsell: boolean };
 
 export type WebhookDeps = {
   rpc: RpcFn;
+  /** #1091: run the Pro agent for a linked Pro user. Absent → gate only. */
+  onProMessage?: (args: { waId: string; userId: string; text: string; recordId: string | null }) => Promise<void>;
   verifyToken: string;
   appSecret: string;
   skipSignatureVerify: boolean;
@@ -49,6 +54,8 @@ export type MessageOutcome = {
   throttled?: boolean;
   duplicate?: boolean;
   keyword?: string;
+  link_status?: string;
+  access?: string;
   reply_id?: string | null;
 };
 
@@ -112,7 +119,12 @@ async function processClaimed(
   });
   if (kwErr) throw new Error(kwErr.message);
   const res = (kw ?? {}) as { action?: unknown; language?: string };
-  if (!isKeywordAction(res.action)) return outcome;
+  if (!isKeywordAction(res.action)) {
+    if (outcome.throttled) return outcome;
+    if (await maybeRedeemLinkCode(deps, from, text, outcome)) return outcome;
+    await gateBot(deps, from, text, outcome);
+    return outcome;
+  }
 
   outcome.keyword = res.action;
   const { data: replyId, error: repErr } = await deps.rpc('api_whatsapp_queue_reply', {
@@ -123,6 +135,51 @@ async function processClaimed(
   if (repErr) throw new Error(repErr.message);
   outcome.reply_id = (replyId as string) ?? null;
   return outcome;
+}
+
+// #1090: "123456" / "LINK 123456" from WhatsApp links this number to the app account.
+async function maybeRedeemLinkCode(deps: WebhookDeps, from: string, text: string, outcome: MessageOutcome) {
+  const parsed = parseLinkCode(text);
+  if (!parsed) return false;
+  const { data, error } = await deps.rpc('api_whatsapp_redeem_link_code', {
+    p_wa_id: from,
+    p_code: parsed.code,
+  });
+  if (error) throw new Error(error.message);
+  const status = (data as { status?: unknown } | null)?.status;
+  if (!isLinkStatus(status)) return true;
+  outcome.link_status = status;
+  const { data: replyId, error: repErr } = await deps.rpc('api_whatsapp_queue_reply', {
+    p_wa_id: from,
+    p_body: linkReply(status, parsed.lang),
+    p_reply_kind: 'reply',
+  });
+  if (repErr) throw new Error(repErr.message);
+  outcome.reply_id = (replyId as string) ?? null;
+  return true;
+}
+
+// #1086: server-enforced Pro gate. Non-Pro gets a rate-limited upsell (DB decides).
+async function gateBot(deps: WebhookDeps, from: string, text: string, outcome: MessageOutcome) {
+  const { data, error } = await deps.rpc('api_whatsapp_bot_access', { p_wa_id: from });
+  if (error) throw new Error(error.message);
+  const access = (data ?? {}) as Partial<BotAccess>;
+  outcome.access = access.access;
+  if (access.access === 'pro' && access.user_id) {
+    if (deps.onProMessage) {
+      await deps.onProMessage({ waId: from, userId: access.user_id, text, recordId: outcome.record_id });
+    }
+    return;
+  }
+  if ((access.access === 'unlinked' || access.access === 'not_pro') && access.upsell) {
+    const { data: replyId, error: repErr } = await deps.rpc('api_whatsapp_queue_reply', {
+      p_wa_id: from,
+      p_body: upsellReply(access.access, detectLang(text)),
+      p_reply_kind: 'reply',
+    });
+    if (repErr) throw new Error(repErr.message);
+    outcome.reply_id = (replyId as string) ?? null;
+  }
 }
 
 export function createWebhookHandler(deps: WebhookDeps) {
