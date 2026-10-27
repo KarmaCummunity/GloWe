@@ -15,7 +15,7 @@ function keyPaths(value: unknown, prefix = ''): string[] {
   }
   const record = value as Record<string, unknown>;
   return Object.keys(record)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .flatMap((key) => keyPaths(record[key], prefix ? `${prefix}.${key}` : key));
 }
 
