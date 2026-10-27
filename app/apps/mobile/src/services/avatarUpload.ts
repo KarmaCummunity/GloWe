@@ -80,7 +80,7 @@ export async function pickAvatarImage(source: AvatarSource): Promise<PickedImage
     if (!(await ensureCameraPermission())) return null;
     const r = await ImagePicker.launchCameraAsync({ mediaTypes, quality: 1, exif: false });
     if (r.canceled) return null;
-    const a = r.assets[0];
+    const a = r.assets[0]!;
     return { uri: a.uri, width: a.width, height: a.height, fileSize: a.fileSize ?? null };
   }
 
@@ -89,7 +89,7 @@ export async function pickAvatarImage(source: AvatarSource): Promise<PickedImage
     mediaTypes, allowsMultipleSelection: false, quality: 1, exif: false,
   });
   if (r.canceled) return null;
-  const a = r.assets[0];
+  const a = r.assets[0]!;
   return { uri: a.uri, width: a.width, height: a.height, fileSize: a.fileSize ?? null };
 }
 
