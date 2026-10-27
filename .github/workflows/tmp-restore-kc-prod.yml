@@ -1,0 +1,23 @@
+name: TMP restore kc-prod (delete after use)
+on:
+  pull_request:
+    paths: ['.github/workflows/tmp-restore-kc-prod.yml']
+permissions:
+  contents: read
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: supabase-prod
+    env:
+      T: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      P: kdqtbdbzwvlugkhonexg
+    steps:
+      - run: |
+          st() { curl -s -H "Authorization: Bearer $T" https://api.supabase.com/v1/projects/$P | jq -r .status; }
+          echo "before: $(st)"
+          code=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST -H "Authorization: Bearer $T" https://api.supabase.com/v1/projects/$P/restore)
+          echo "restore HTTP $code"; cat /tmp/r.json; echo
+          case "$code" in 2*) ;; *) exit 1;; esac
+          for i in $(seq 1 50); do s=$(st); echo "poll $i: $s"; [ "$s" = ACTIVE_HEALTHY ] && exit 0; sleep 30; done
+          exit 1
