@@ -14,8 +14,7 @@ let _listTeamMembers: ListAboutTeamMembersUseCase | null = null;
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    return globalThis.window?.localStorage;
   }
   return AsyncStorage;
 }

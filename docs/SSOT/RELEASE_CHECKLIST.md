@@ -51,7 +51,7 @@ Watch **Actions** on `main` (in order, as applicable):
 3. **Supabase Functions deploy** — runs when `supabase/functions/**` changed.
 4. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after app/Dockerfile changes on `main`.
 5. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after `main` deploy.
-6. **Sync main → dev** — must succeed; if it fails (merge conflict), fix before any further `dev` work.
+6. **Sync main → dev** — the workflow opens a zero-diff PR `sync/main-into-dev-<sha>` (`git merge -s ours main`). Merge it as a **merge commit** (temporarily enable *Allow merge commits*, merge, disable) — a squash drops the ancestry and the next release PR will conflict.
 
 Watch **Railway → prod** — new deployment from `main` reaches **Success**.
 

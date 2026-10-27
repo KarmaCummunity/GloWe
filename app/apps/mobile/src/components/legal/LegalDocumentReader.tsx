@@ -35,7 +35,7 @@ export function LegalDocumentReader({ docType }: LegalDocumentReaderProps) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const content = await getLoadLegalDocumentUseCase().execute({ docType });
         if (!cancelled) setState({ kind: 'ready', content });
