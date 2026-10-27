@@ -17,14 +17,14 @@ class FakeUserRepo {
 describe('UpdateNotificationPreferencesUseCase', () => {
   it('updates only the supplied field', async () => {
     const repo = new FakeUserRepo();
-    const uc = new UpdateNotificationPreferencesUseCase(repo as never);
+    const uc = new UpdateNotificationPreferencesUseCase(repo);
     const result = await uc.execute({ userId: 'u1', critical: false });
     expect(result).toEqual({ critical: false, social: true });
   });
 
   it('updates both when both supplied', async () => {
     const repo = new FakeUserRepo();
-    const uc = new UpdateNotificationPreferencesUseCase(repo as never);
+    const uc = new UpdateNotificationPreferencesUseCase(repo);
     const result = await uc.execute({ userId: 'u1', critical: false, social: false });
     expect(result).toEqual({ critical: false, social: false });
   });
