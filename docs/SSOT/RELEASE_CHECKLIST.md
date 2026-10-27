@@ -1,6 +1,6 @@
 # Production release checklist (`dev` → `main`)
 
-> **Scope:** Web app on Railway + Supabase prod (`slxijdfvinbjmrsfgbzx`).
+> **Scope:** Web app on Railway + Supabase prod (`kdqtbdbzwvlugkhonexg`).
 > **Branch topology:** [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) · **DB/Functions runbook:** [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md)
 
 Use this checklist for every production release. CI automates gates; the agent (CTO) executes the flow — no human approval on deploy environments (`D-53`).
@@ -110,7 +110,7 @@ Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once c
 | Concern | Value |
 | --- | --- |
 | Git branch | `main` |
-| Supabase project | `slxijdfvinbjmrsfgbzx` |
+| Supabase project | `kdqtbdbzwvlugkhonexg` |
 | `EXPO_PUBLIC_ENVIRONMENT` | `production` |
 | Railway service | `prod` (branch `main`) |
 

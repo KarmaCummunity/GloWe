@@ -25,7 +25,7 @@
 
 ## E2E test user (dev only)
 
-**Canonical dev CI user** (Supabase dev `roeefqpdbftlndzsvhfj`):
+**Canonical dev CI user** (Supabase dev `enbqriuxvvuontiwslun`):
 
 | Field | Value |
 | --- | --- |
@@ -47,7 +47,7 @@ Preflight: `set -a && source ~/.kc-dev-secrets.env && set +a && node scripts/ens
 
 ## Agent test users (dev only)
 
-Two canonical "looks-real" users for AI agent testing on Supabase dev `roeefqpdbftlndzsvhfj`.
+Two canonical "looks-real" users for AI agent testing on Supabase dev `enbqriuxvvuontiwslun`.
 Unlike the CI E2E user above, these users have completed onboarding, realistic Hebrew profiles,
 and are used for multi-user interaction tests (chat, post closure, follow flows, etc.).
 
