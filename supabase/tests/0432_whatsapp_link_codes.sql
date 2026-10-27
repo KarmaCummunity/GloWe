@@ -15,13 +15,13 @@ end $$;
 create temp table t_codes (who text primary key, code text);
 grant all on t_codes to authenticated;
 
-select pg_temp.mk_user('00000000-0000-0000-0000-000000432001', 'wa_pro');
-select pg_temp.mk_user('00000000-0000-0000-0000-000000432002', 'wa_free');
-select public.api_set_pro_entitlement('00000000-0000-0000-0000-000000432001', true, null, 'admin');
+select pg_temp.mk_user('a4320001-0000-4000-8000-000000000001', 'wa_pro');
+select pg_temp.mk_user('a4320002-0000-4000-8000-000000000002', 'wa_free');
+select public.api_set_pro_entitlement('a4320001-0000-4000-8000-000000000001', true, null, 'admin');
 
 -- Free user cannot get a code.
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000432002","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"a4320002-0000-4000-8000-000000000002","role":"authenticated"}', true);
 do $$
 begin
   begin
@@ -32,7 +32,7 @@ begin
 end $$;
 
 -- Pro user gets a 6-digit code.
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000432001","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"a4320001-0000-4000-8000-000000000001","role":"authenticated"}', true);
 insert into t_codes values ('pro', public.api_whatsapp_create_link_code() ->> 'code');
 do $$
 begin
@@ -58,7 +58,7 @@ begin
     raise exception 'right code must link';
   end if;
   if (select user_id from public.whatsapp_identities where wa_id = '972500432001')
-     <> '00000000-0000-0000-0000-000000432001' then
+     <> 'a4320001-0000-4000-8000-000000000001' then
     raise exception 'identity must be linked to the pro user';
   end if;
   if public.api_whatsapp_redeem_link_code('972500432001', v_code) ->> 'status' <> 'invalid' then
@@ -79,7 +79,7 @@ begin
 end $$;
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000432001","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"a4320001-0000-4000-8000-000000000001","role":"authenticated"}', true);
 do $$
 begin
   if (public.api_whatsapp_my_link_status() ->> 'wa_id_masked') <> '•••2001' then
