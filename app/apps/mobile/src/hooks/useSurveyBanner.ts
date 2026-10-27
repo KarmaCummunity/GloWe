@@ -43,7 +43,7 @@ export function useSurveyBanner(): SurveyBannerState {
       try {
         // Increment and read session count.
         const raw = await AsyncStorage.getItem(SESSION_COUNT_KEY);
-        const count = raw ? parseInt(raw, 10) + 1 : 1;
+        const count = raw ? Number.parseInt(raw, 10) + 1 : 1;
         await AsyncStorage.setItem(SESSION_COUNT_KEY, String(count));
 
         // Check client-side snooze first (no network needed).

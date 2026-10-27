@@ -6,7 +6,7 @@ export function useReducedMotion(): boolean {
 
   useEffect(() => {
     let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+    void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (mounted) setReduced(v);
     });
     const sub = AccessibilityInfo.addEventListener(
