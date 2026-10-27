@@ -110,16 +110,11 @@ jobs:
           set -euo pipefail
           umask 077
           sd="$RUNNER_TEMP/sign"; mkdir -p "$sd"
-          printf '%s' "$KC_IOS_DIST_P12_B64" | base64 --decode > "$sd/in.p12"
-          openssl pkcs12 -in "$sd/in.p12" -passin env:KC_IOS_DIST_P12_PASSWORD -nocerts -nodes -out "$sd/key.pem" 2>/dev/null \
-            || openssl pkcs12 -legacy -in "$sd/in.p12" -passin env:KC_IOS_DIST_P12_PASSWORD -nocerts -nodes -out "$sd/key.pem"
-          openssl pkcs12 -in "$sd/in.p12" -passin env:KC_IOS_DIST_P12_PASSWORD -clcerts -nokeys -out "$sd/cert.pem" 2>/dev/null \
-            || openssl pkcs12 -legacy -in "$sd/in.p12" -passin env:KC_IOS_DIST_P12_PASSWORD -clcerts -nokeys -out "$sd/cert.pem"
+          printf '%s' "$KC_IOS_DIST_P12_B64" | base64 --decode > "$sd/dist.p12"
           gem list -i fastlane >/dev/null || sudo gem install fastlane --no-document >/dev/null
           ruby -rspaceship -e1 2>/dev/null || sudo gem install fastlane --no-document >/dev/null
           ruby "$GITHUB_WORKSPACE/.github/scripts/ios-signing.rb" "$sd"
-          pw="$(openssl rand -hex 16)"; echo "::add-mask::$pw"
-          /usr/bin/openssl pkcs12 -export -inkey "$sd/key.pem" -in "$sd/cert.pem" -out "$sd/dist.p12" -passout "pass:$pw"
+          pw="$KC_IOS_DIST_P12_PASSWORD"
           jq -n --arg p "$sd/kc.mobileprovision" --arg c "$sd/dist.p12" --arg pw "$pw" \
             '{ios:{provisioningProfilePath:$p,distributionCertificate:{path:$c,password:$pw}}}' > credentials.json
           tmp="$(mktemp)"; jq '.build.production.ios.credentialsSource = "local"' eas.json > "$tmp" && mv "$tmp" eas.json

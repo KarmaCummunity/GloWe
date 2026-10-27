@@ -23,10 +23,9 @@ puts "existing capabilities: #{existing.join(',')}"
 end
 # Reuse the persistent distribution cert (GitHub secrets KC_IOS_DIST_P12_B64 /
 # KC_IOS_DIST_P12_PASSWORD, var KC_IOS_DIST_CERT_ID). The workflow extracts
-# key.pem + cert.pem into `out` before calling this script. Creating a new cert
+# dist.p12 into `out` and hands it to EAS as-is. Creating a new cert
 # per run hits Apple's distribution-cert limit (409), so never do that here.
 cert_id = ENV.fetch('KC_IOS_DIST_CERT_ID')
-abort 'missing key.pem/cert.pem from KC_IOS_DIST_P12_B64' unless File.exist?(File.join(out, 'key.pem')) && File.exist?(File.join(out, 'cert.pem'))
 cert = Spaceship::ConnectAPI::Certificate.all.find { |c| c.id == cert_id }
 abort "distribution cert #{cert_id} not found (revoked/expired?) - rotate KC_IOS_DIST_* secrets" unless cert
 puts "using certificate: #{cert.id}"
