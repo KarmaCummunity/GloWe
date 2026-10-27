@@ -140,6 +140,9 @@ jobs:
         # Retry: image pulls from the public registry intermittently fail with
         # `toomanyrequests` (registry rate limit), which is infra, not a code error.
         run: |
+          # ghcr.io has been returning `toomanyrequests` even for authenticated pulls;
+          # pull the same Supabase images from the public ECR mirror instead.
+          export SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws
           for i in 1 2 3 4; do
             supabase start -x studio,inbucket,imgproxy,edge-runtime,realtime,storage-api && exit 0
             echo "::warning::supabase start failed (attempt $i), retrying in $((i*45))s"
