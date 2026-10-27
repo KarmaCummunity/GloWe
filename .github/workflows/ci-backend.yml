@@ -130,7 +130,16 @@ jobs:
 
       - name: Start Supabase (applies all migrations + seed.sql)
         if: needs.changes.outputs.backend == 'true'
-        run: supabase start -x studio,inbucket,imgproxy,edge-runtime,realtime,storage-api
+        # Retry: image pulls from the public registry intermittently fail with
+        # `toomanyrequests` (registry rate limit), which is infra, not a code error.
+        run: |
+          for i in 1 2 3 4; do
+            supabase start -x studio,inbucket,imgproxy,edge-runtime,realtime,storage-api && exit 0
+            echo "::warning::supabase start failed (attempt $i), retrying in $((i*45))s"
+            supabase stop --no-backup >/dev/null 2>&1 || true
+            sleep $((i*45))
+          done
+          exit 1
 
       - name: Run all DB tests (supabase/tests/*.sql)
         if: needs.changes.outputs.backend == 'true'
