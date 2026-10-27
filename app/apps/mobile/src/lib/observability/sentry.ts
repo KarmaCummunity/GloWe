@@ -17,8 +17,17 @@ const DSN: string | undefined =
   (Constants.expoConfig?.extra as { sentryDsn?: string } | undefined)?.sentryDsn;
 
 type Env = 'dev' | 'prod';
+/**
+ * Environment comes from the EAS build profile (eas.json sets
+ * EXPO_PUBLIC_ENVIRONMENT=production only on the `production` profile),
+ * falling back to the EAS Update channel. Everything else reports as `dev`.
+ */
 function detectEnv(): Env {
-  return process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
+  const profileEnv = process.env.EXPO_PUBLIC_ENVIRONMENT;
+  if (profileEnv) return profileEnv === 'production' ? 'prod' : 'dev';
+  const channel = (Constants.expoConfig?.updates as { requestHeaders?: Record<string, string> } | undefined)
+    ?.requestHeaders?.['expo-channel-name'];
+  return channel === 'production' ? 'prod' : 'dev';
 }
 
 export function hasDsn(): boolean {
@@ -41,7 +50,8 @@ export async function initSentry(): Promise<void> {
       dsn: DSN,
       environment: env,
       enableAutoSessionTracking: true,
-      tracesSampleRate: env === 'prod' ? 0.25 : 1.0,
+      // Shared kupay-hb free quota: keep prod tracing <= 0.1 (shared-dev conventions).
+      tracesSampleRate: env === 'prod' ? 0.1 : 1.0,
       enableNativeFramesTracking: true,
     });
     sentryModule = mod;

@@ -25,7 +25,10 @@ function applySentryBuildDefaults(): void {
   }
   delete process.env.SENTRY_DISABLE_AUTO_UPLOAD;
   if (!process.env.SENTRY_ORG?.trim()) {
-    process.env.SENTRY_ORG = 'karma-community';
+    process.env.SENTRY_ORG = 'kupay-hb';
+  }
+  if (!process.env.SENTRY_URL?.trim()) {
+    process.env.SENTRY_URL = 'https://de.sentry.io/';
   }
 }
 
