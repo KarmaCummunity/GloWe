@@ -351,7 +351,7 @@ The `backfill-image-thumbs` Edge Function scans `post-images` and `avatars` buck
 From a machine with the Supabase CLI logged in (or a service-role JWT in `$SR`):
 
 ```bash
-SUPABASE_REF=roeefqpdbftlndzsvhfj
+SUPABASE_REF=enbqriuxvvuontiwslun
 SR="$(cat ~/.kc-dev-secrets.env | grep SUPABASE_SERVICE_ROLE_KEY | cut -d= -f2-)"
 
 # Dry-run first to see what would be processed:
