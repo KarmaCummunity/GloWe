@@ -77,7 +77,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
         <Text style={styles.title}>{detail.title}</Text>
         {detail.summary ? <Text style={styles.summary}>{detail.summary}</Text> : null}
         <Text style={styles.summary}>
-          {worldLabel} · {kindLabel} · {detail.direction}
+          {worldLabel} · {kindLabel} · {detail.direction === 'request' ? t('search.request') : t('search.give')}
         </Text>
         {detail.owner ? (
           <Pressable
@@ -139,7 +139,9 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
                   onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
                 >
                   <Text numberOfLines={2}>{item.title}</Text>
-                  <Text style={styles.summary}>{item.kindSlug}</Text>
+                  <Text style={styles.summary}>
+                    {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })}
+                  </Text>
                 </Pressable>
               ))}
             </ScrollView>
