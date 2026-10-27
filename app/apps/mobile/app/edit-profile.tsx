@@ -58,7 +58,7 @@ export default function EditProfileScreen() {
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const p = await getEditableProfile(session.userId);
         if (cancelled) return;

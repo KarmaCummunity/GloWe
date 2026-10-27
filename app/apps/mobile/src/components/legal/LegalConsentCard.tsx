@@ -24,7 +24,7 @@ export function LegalConsentCard({ item, checked, onToggle, onOpenReader }: Lega
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const c = await getLoadLegalDocumentUseCase().execute({ docType: item.docType });
         if (!cancelled) setContent(c);
