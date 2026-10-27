@@ -188,8 +188,8 @@ d('A1 reports inbox + case detail RPCs (integration)', () => {
       expect(payload.target_id).toBe(postId);
       expect(payload.target.status).toBeDefined();
       expect(payload.reporters).toHaveLength(2);
-      const reportIds = payload.reporters.map((r) => r.report_id).sort();
-      expect(reportIds).toEqual([id1, id2].sort());
+      const reportIds = payload.reporters.map((r) => r.report_id).sort((a, b) => a.localeCompare(b));
+      expect(reportIds).toEqual([id1, id2].sort((a, b) => a.localeCompare(b)));
 
       // Timeline (target=post) holds 'manual_remove_target' / 'restore_target'
       // entries. The confirm/dismiss audit rows attach to target_type='report'
