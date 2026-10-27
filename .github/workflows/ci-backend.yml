@@ -33,6 +33,7 @@ concurrency:
 permissions:
   contents: read
   pull-requests: read
+  packages: read
 
 jobs:
   changes:
@@ -127,6 +128,12 @@ jobs:
       - name: Install psql client
         if: needs.changes.outputs.backend == 'true'
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Log in to ghcr.io (authenticated image pulls avoid anonymous rate limits)
+        if: needs.changes.outputs.backend == 'true'
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Start Supabase (applies all migrations + seed.sql)
         if: needs.changes.outputs.backend == 'true'
