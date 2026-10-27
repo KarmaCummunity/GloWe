@@ -14,6 +14,9 @@ create index if not exists whatsapp_inbound_claims_claimed_at_idx
   on public.whatsapp_inbound_claims (claimed_at);
 
 alter table public.whatsapp_inbound_claims enable row level security;
+drop policy if exists whatsapp_inbound_claims_service_all on public.whatsapp_inbound_claims;
+create policy whatsapp_inbound_claims_service_all on public.whatsapp_inbound_claims
+  for all to service_role using (true) with check (true);
 revoke all on public.whatsapp_inbound_claims from anon, authenticated;
 
 -- true = first delivery (go ahead), false = duplicate (skip).
