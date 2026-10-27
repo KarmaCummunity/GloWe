@@ -209,7 +209,7 @@ export default function DonationsHubScreen() {
         {/* ── Featured: items ──────────────── */}
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
           <PressableScale
-            onPress={() => router.push(FEATURED.href)}
+            onPress={() => router.push(FEATURED.href as Parameters<typeof router.push>[0])}
             accessibilityRole="button"
             accessibilityLabel={`${t(FEATURED.titleKey)} — ${t(FEATURED.subtitleKey)}`}
             style={styles.blockStretch}
@@ -269,7 +269,7 @@ export default function DonationsHubScreen() {
                   {pair.map((cat) => (
                     <PressableScale
                       key={cat.key}
-                      onPress={() => router.push(cat.href)}
+                      onPress={() => router.push(cat.href as Parameters<typeof router.push>[0])}
                       accessibilityRole="button"
                       accessibilityLabel={`${t(cat.titleKey)} — ${t(cat.subtitleKey)}`}
                       style={styles.gridPressable}

@@ -28,7 +28,7 @@ import { getMyPostsUseCase } from '../../../src/services/postsComposition';
 import { getGetFollowStateUseCase } from '../../../src/services/followComposition';
 import { useOptimisticFollowAction, type FollowActionError } from '../../../src/hooks/useOptimisticFollowAction';
 import { useOtherProfileActions } from '../../../src/hooks/useOtherProfileActions';
-import { hasPermission, } from '@kc/domain';
+import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPerson } from '../../../src/hooks/useAdminPerson';
 import { NotifyModal } from '../../../src/components/NotifyModal';
@@ -63,10 +63,10 @@ export default function OtherProfileScreen() {
       // miss. Detect UUID-shaped params and route to `findById` so old taps
       // also resolve.
       const repo = getUserRepo();
-      const handleByName = await repo.findByHandle(handle);
+      const handleByName = await repo.findByHandle(handle!);
       if (handleByName) return handleByName;
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle)) {
-        return repo.findById(handle);
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(handle!)) {
+        return repo.findById(handle!);
       }
       return null;
     },
@@ -105,7 +105,7 @@ export default function OtherProfileScreen() {
   // FR-ADMIN-022 — if the viewer can see the admin roster and this user holds
   // an admin grant, expose a cross-link to their admin-detail card.
   const { roles: viewerRoles } = useAdminRoles();
-  const canViewAdmins = hasPermission(viewerRoles, 'admins.view');
+  const canViewAdmins = hasPermission(viewerRoles as readonly AdminRole[], 'admins.view');
   const { person: adminPerson } = useAdminPerson(u?.userId, canViewAdmins);
   const showAdminLink = canViewAdmins && adminPerson !== null && adminPerson.grants.length > 0;
 
@@ -179,8 +179,8 @@ export default function OtherProfileScreen() {
             followingCount={u.followingCount}
             postsCount={tabCounts.totalCount ?? 0}
             enabled
-            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers', params: { handle } })}
-            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following', params: { handle } })}
+            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers' as never, params: { handle } } as never)}
+            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
           />
 
           <View style={styles.karmaRow}>
@@ -191,7 +191,7 @@ export default function OtherProfileScreen() {
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
-              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]', params: { userId: u.userId } })}
+              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId: u.userId } } as never)}
             >
               <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
               <Text style={styles.adminLinkText}>{t('admin.admins.profileLink')}</Text>

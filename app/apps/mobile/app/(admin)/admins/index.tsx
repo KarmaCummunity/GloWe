@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { type AdminPermission, hasPermission } from '@kc/domain';
+import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles, useBreakpoint } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { rowDirectionStart } from '../../../src/lib/rtlLayout';
@@ -34,7 +34,7 @@ export default function AdminsScreen() {
   const [grantOpen, setGrantOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
 
   if (rolesLoading) {
     return <View style={styles.center}><Text>{L.admin.admins.loading}</Text></View>;
@@ -50,7 +50,7 @@ export default function AdminsScreen() {
 
   const canGrant = can('admins.grant_role');
   const openDetail = (userId: string) =>
-    router.push({ pathname: '/(admin)/admins/[userId]', params: { userId } });
+    router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId } } as never);
 
   return (
     <View style={styles.root}>

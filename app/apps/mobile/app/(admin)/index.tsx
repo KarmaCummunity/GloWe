@@ -92,7 +92,7 @@ export default function AdminDashboard(): ReactElement {
   if (canViewSurveys) cards.push({ key: 'surveys', label: t.surveysKpi, value: t.auditOpenLabel, icon: 'bar-chart-outline', accent: colors.secondary, accentBg: colors.secondaryLight, href: '/(admin)/surveys' });
   if (canViewAudit) cards.push({ key: 'audit', label: t.auditKpi, value: t.auditOpenLabel, icon: 'time-outline', accent: colors.warning, accentBg: colors.warningLight, href: '/(admin)/audit' });
 
-  const goTo = (path: string): void => router.push(path);
+  const goTo = (path: string): void => router.push(path as never);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.root}>

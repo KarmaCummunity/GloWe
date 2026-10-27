@@ -26,7 +26,7 @@ export function MatchesForYouCard() {
 
   return (
     <View style={styles.wrap}>
-      <Card onPress={() => router.push('/matches')} testID="matches-for-you-card"
+      <Card onPress={() => router.push('/matches' as never)} testID="matches-for-you-card"
             accessibilityLabel={t('matches.title')}>
         <Text style={styles.title}>{t('matches.titleWithCount', { count: open.length })}</Text>
         {open.slice(0, 3).map((m) => (

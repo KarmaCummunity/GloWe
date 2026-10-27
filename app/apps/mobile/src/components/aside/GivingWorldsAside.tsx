@@ -37,7 +37,7 @@ export function GivingWorldsAside() {
           style={styles.row}
           accessibilityRole="button"
           testID={`aside-world-${world.key}`}
-          onPress={() => router.push(world.href)}
+          onPress={() => router.push(world.href as never)}
         >
           <View style={styles.iconWrap}>
             <Ionicons name={world.icon} size={16} color={colors.primary} />
@@ -51,7 +51,7 @@ export function GivingWorldsAside() {
         style={styles.row}
         accessibilityRole="button"
         testID="aside-follow-suggestions"
-        onPress={() => router.push('/follow/suggestions')}
+        onPress={() => router.push('/follow/suggestions' as never)}
       >
         <View style={styles.iconWrap}>
           <Ionicons name="person-add-outline" size={16} color={colors.primary} />
@@ -63,7 +63,7 @@ export function GivingWorldsAside() {
       <TouchableOpacity
         accessibilityRole="button"
         testID="aside-world-all"
-        onPress={() => router.push('/(tabs)/donations')}
+        onPress={() => router.push('/(tabs)/donations' as never)}
       >
         <Text style={styles.allLink}>{t('aside.givingWorldsAll')}</Text>
       </TouchableOpacity>

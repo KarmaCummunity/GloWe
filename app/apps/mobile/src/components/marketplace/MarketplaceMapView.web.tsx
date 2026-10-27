@@ -32,7 +32,7 @@ export function MarketplaceMapView() {
     <View style={styles.wrap}>
       <Text style={styles.note}>{t('marketplace.mapWebFallback')}</Text>
       <KcFlashList
-        data={clusters}
+        data={clusters as MarketplaceMapCluster[]}
         keyExtractor={(c) => c.clusterKey}
         ListEmptyComponent={<Text style={{ padding: spacing.lg }}>{t('marketplace.mapEmpty')}</Text>}
         renderItem={({ item }) => (

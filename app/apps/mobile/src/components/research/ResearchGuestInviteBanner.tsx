@@ -2,7 +2,7 @@
 // Shown only when the visitor is not signed in; keeps the survey fully usable.
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useRouter, } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
@@ -21,7 +21,7 @@ export function ResearchGuestInviteBanner(): React.JSX.Element | null {
   if (isLoading || isAuthenticated) return null;
 
   function handleSignUp() {
-    router.push('/(auth)');
+    router.push('/(auth)' as Href);
   }
 
   return (

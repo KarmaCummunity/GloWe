@@ -59,11 +59,11 @@ export function WorldMarketplaceHub({
       </View>
       <View style={styles.links}>
         {handoffsPath ? (
-          <Pressable onPress={() => router.push(handoffsPath)}>
+          <Pressable onPress={() => router.push(handoffsPath as never)}>
             <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
           </Pressable>
         ) : null}
-        <Pressable onPress={() => router.push(createPath)}>
+        <Pressable onPress={() => router.push(createPath as never)}>
           <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
         </Pressable>
       </View>

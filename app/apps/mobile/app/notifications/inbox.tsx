@@ -46,7 +46,7 @@ export default function NotificationInboxScreen() {
         await qc.invalidateQueries({ queryKey: ['notification-inbox', userId] });
       }
       const link = resolveDeepLink(data);
-      if (link) router.push(link);
+      if (link) router.push(link as never);
     },
     [qc, router, userId],
   );

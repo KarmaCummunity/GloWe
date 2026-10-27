@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { type AdminPermission, hasPermission } from '@kc/domain';
+import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import type { AdminUserSearchResult } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
@@ -35,7 +35,7 @@ export function UserSearchRow({ row }: UserSearchRowProps) {
   const L = useLocaleBundle();
   const tone = statusTone(row.accountStatus);
   const { roles } = useAdminRoles();
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
   const showBan = can('reports.permanent_ban') && canShowBanButton(row.accountStatus);
   const [banOpen, setBanOpen] = useState(false);
 

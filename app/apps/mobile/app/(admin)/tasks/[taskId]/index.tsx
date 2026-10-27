@@ -7,7 +7,8 @@ import {
   StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import {
-  ADMIN_TASK_STATUSES, type AdminPermission, type AdminTaskCategory, type AdminTaskStatus,
+  ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
+  type AdminTaskCategory, type AdminTaskStatus,
   hasPermission, isAdminTaskError, isStatusTransitionAllowed,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
@@ -43,7 +44,7 @@ export default function TaskDetailScreen() {
   const taskId = params.taskId;
   const { roles, isLoading: rolesLoading } = useAdminRoles();
   const myId = useAuthStore((s) => s.session?.userId ?? null);
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
   const q = useAdminTaskDetail(taskId);
 
   const setStatus = useSetAdminTaskStatus();
@@ -67,11 +68,11 @@ export default function TaskDetailScreen() {
   const t = q.detail.task;
   const canMoveStatus =
     can('tasks.view')
-    && (hasPermission(roles, 'tasks.delete_any')
+    && (hasPermission(roles as readonly AdminRole[], 'tasks.delete_any')
         || t.createdBy === myId
         || t.assigneeId === myId);
   const canDelete =
-    hasPermission(roles, 'tasks.delete_any') || t.createdBy === myId;
+    hasPermission(roles as readonly AdminRole[], 'tasks.delete_any') || t.createdBy === myId;
 
   async function moveStatus(newStatus: AdminTaskStatus) {
     setErrorCode(null);

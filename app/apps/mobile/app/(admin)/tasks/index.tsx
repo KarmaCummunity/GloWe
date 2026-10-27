@@ -5,7 +5,8 @@ import { router } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   ADMIN_TASK_CATEGORIES,
-  ADMIN_TASK_STATUSES, type AdminPermission, type AdminTaskCategory, type AdminTaskStatus,
+  ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
+  type AdminTaskCategory, type AdminTaskStatus,
   hasPermission,
 } from '@kc/domain';
 import type { AdminTaskListFilters } from '@kc/application';
@@ -66,7 +67,7 @@ export default function TasksScreen() {
   }, [statusFilter, categoryFilter, assigneeFilter, dueFromText, dueToText, onlyMine, overdueOnly]);
 
   const q = useAdminTasksList(filters);
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
 
   if (rolesLoading) {
     return <View style={styles.center}><Text>{L.admin.tasks.loading}</Text></View>;
@@ -146,7 +147,7 @@ export default function TasksScreen() {
         right={can('tasks.create') ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push('/(admin)/tasks/new')}
+            onPress={() => router.push('/(admin)/tasks/new' as never)}
             style={styles.newBtn}
           >
             <Text style={styles.newBtnText}>{L.admin.tasks.newBtn}</Text>

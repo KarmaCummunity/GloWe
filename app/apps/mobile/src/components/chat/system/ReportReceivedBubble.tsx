@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { makeUseStyles, useTheme } from '@kc/ui';
-import { hasPermission, } from '@kc/domain';
+import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { useAdminPortalReportsFlag } from '../../../hooks/useAdminPortalReportsFlag';
 import { container } from '../../../lib/container';
@@ -23,7 +23,7 @@ export function ReportReceivedBubble({
   handledByLaterAction,
 }: SystemMessageBubbleProps) {
   const { roles } = useAdminRoles();
-  const canViewReports = hasPermission(roles, 'reports.view');
+  const canViewReports = hasPermission(roles as readonly AdminRole[], 'reports.view');
   const portalActive = useAdminPortalReportsFlag();
   const styles = useReportReceivedBubbleStyles();
   const { colors } = useTheme();
@@ -96,7 +96,7 @@ export function ReportReceivedBubble({
               onPress={() =>
                 confirmAndRun({
                   action: 'dismiss',
-                  onConfirm: () => container.dismissReport.execute({ reportId: reportId }),
+                  onConfirm: () => container.dismissReport.execute({ reportId: reportId! }),
                   onSuccess: () => showAdminToast(t('moderation.actions.success.dismiss')),
                   onError: showAdminToast,
                 })
@@ -108,7 +108,7 @@ export function ReportReceivedBubble({
               onPress={() =>
                 confirmAndRun({
                   action: 'confirm',
-                  onConfirm: () => container.confirmReport.execute({ reportId: reportId }),
+                  onConfirm: () => container.confirmReport.execute({ reportId: reportId! }),
                   onSuccess: () => showAdminToast(t('moderation.actions.success.confirm')),
                   onError: showAdminToast,
                 })

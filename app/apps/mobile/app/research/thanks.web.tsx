@@ -1,7 +1,7 @@
 // Web-only thank-you page — shown after the finish popup is dismissed (FR-RESEARCH-001 AC5).
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
-import { useRouter, } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
@@ -59,7 +59,7 @@ export default function ResearchThanksScreen() {
             <Text style={styles.signUpLead}>{t('research.thanksSignUpLead')}</Text>
             <Pressable
               style={styles.signUpBtn}
-              onPress={() => router.push('/(auth)')}
+              onPress={() => router.push('/(auth)' as Href)}
               accessibilityRole="button"
             >
               <Text style={styles.signUpBtnText}>{t('research.guestInvite.signUpCta')}</Text>

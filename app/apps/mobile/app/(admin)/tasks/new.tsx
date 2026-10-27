@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import {
   ADMIN_TASK_CATEGORY_DEFAULT,
-  ADMIN_TASK_PRIORITIES, type AdminPermission, type AdminTaskCategory, type AdminTaskPriority,
+  ADMIN_TASK_PRIORITIES, type AdminPermission, type AdminRole,
+  type AdminTaskCategory, type AdminTaskPriority,
   hasPermission, isAdminTaskError,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
@@ -21,7 +22,7 @@ export default function NewTaskScreen() {
   const styles = useStyles();
   const L = useLocaleBundle();
   const { roles } = useAdminRoles();
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -60,7 +61,7 @@ export default function NewTaskScreen() {
         assigneeId,
         labels,
       });
-      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } });
+      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } } as never);
     } catch (e) {
       console.error('[admin tasks] create failed', e);
       if (isAdminTaskError(e)) {

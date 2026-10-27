@@ -8,7 +8,7 @@ import { Pressable, Text } from 'react-native';
 import { spacing, typography } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, View } from 'react-native';
-import { useRouter, useSegments, usePathname, } from 'expo-router';
+import { useRouter, useSegments, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@kc/ui';
@@ -196,7 +196,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
       (segments[0] as string | undefined) === 'research' ||
       (typeof pathname === 'string' && isPublicResearchPath(pathname));
     // Terms / privacy must be readable before sign-up (store review, D-47).
-    const isLegalSurface = isPublicLegalSegment(segments);
+    const isLegalSurface = isPublicLegalSegment(segments as readonly string[]);
 
     if (!isAuthenticated) {
       if (
@@ -224,14 +224,14 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
       // FR-POST-023 AC6 — restore a captured deep-link if the user signed in
       // straight through the basic-info skip path.
       const pending = consumePendingPath();
-      router.replace((pending ?? '/(tabs)'));
+      router.replace((pending ?? '/(tabs)') as Href);
     } else if (onboardingState === 'pending_basic_info') {
       router.replace('/(onboarding)/about-intro');
     } else if (onboardingState === 'pending_avatar') {
       router.replace('/(onboarding)/photo');
     } else {
       const pending = consumePendingPath();
-      router.replace((pending ?? '/(tabs)'));
+      router.replace((pending ?? '/(tabs)') as Href);
     }
   }, [isLoading, isAuthenticated, onboardingState, basicInfoSkipped, segments, pathname, router, capturePendingPath, consumePendingPath]);
 

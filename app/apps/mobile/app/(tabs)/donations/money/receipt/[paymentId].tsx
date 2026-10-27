@@ -21,7 +21,7 @@ export default function DonationReceiptScreen() {
   const styles = useStyles();
   const receipt = useQuery({
     queryKey: ['money', 'receipt', paymentId],
-    queryFn: () => paymentsUseCases.getReceipt().execute(paymentId),
+    queryFn: () => paymentsUseCases.getReceipt().execute(paymentId!),
     enabled: Boolean(paymentId),
   });
 

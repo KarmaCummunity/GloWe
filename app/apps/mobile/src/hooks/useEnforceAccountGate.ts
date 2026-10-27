@@ -1,6 +1,6 @@
 // FR-MOD-010 AC4 — sign-in + periodic mid-session enforcement + fetch-level ban detection.
 import { useEffect, useRef } from 'react';
-import { useRouter, } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { container, supabase } from '../lib/container';
 import { useAuthStore } from '../store/authStore';
@@ -50,7 +50,7 @@ export function useEnforceAccountGate(userId: string | null) {
             reason: result.reason ?? 'banned',
             until: result.until ?? '',
           },
-        });
+        } as unknown as Href);
       } catch {
         // Network failure is best-effort — the next interval tick retries.
       }

@@ -116,13 +116,13 @@ export function MyProfileChrome({ activeTab }: Readonly<{ activeTab: ProfilePost
                   enabled={Boolean(user)}
                   onPressFollowers={() =>
                     router.push({
-                      pathname: '/user/[handle]/followers',
+                      pathname: '/user/[handle]/followers' as never,
                       params: { handle: user?.shareHandle ?? '' },
                     })
                   }
                   onPressFollowing={() =>
                     router.push({
-                      pathname: '/user/[handle]/following',
+                      pathname: '/user/[handle]/following' as never,
                       params: { handle: user?.shareHandle ?? '' },
                     })
                   }

@@ -118,10 +118,10 @@ export default function ChatListScreen() {
                 subtitle={t('emptyStates.chatBody')}
                 action={
                   <EmptyStateActions
-                    primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)') }}
+                    primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)' as never) }}
                     secondary={{
                       label: t('emptyStates.chatMarketplaceCta'),
-                      onPress: () => router.push('/(tabs)/donations/marketplace'),
+                      onPress: () => router.push('/(tabs)/donations/marketplace' as never),
                     }}
                   />
                 }
