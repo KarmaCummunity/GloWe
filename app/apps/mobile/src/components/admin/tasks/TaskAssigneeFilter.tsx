@@ -5,7 +5,6 @@
 //   value = '<userId>'         → only tasks assigned to that admin
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
-import type { AdminGrant } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
@@ -29,7 +28,7 @@ export function TaskAssigneeFilter({ value, onChange }: TaskAssigneeFilterProps)
 
   const seen = new Set<string>();
   const entries: { userId: string; displayName: string }[] = [];
-  for (const g of (q.data ?? []) as readonly AdminGrant[]) {
+  for (const g of (q.data ?? [])) {
     if (g.revokedAt !== null) continue;
     if (seen.has(g.userId)) continue;
     seen.add(g.userId);

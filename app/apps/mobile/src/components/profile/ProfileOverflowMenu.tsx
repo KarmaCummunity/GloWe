@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
-import { hasPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, } from '@kc/domain';
 import { useAdminRoles } from '../../hooks/useAdminRoles';
 import { useTranslation } from 'react-i18next';
 import { ReportUserModal } from './ReportUserModal';
@@ -29,7 +29,7 @@ export function ProfileOverflowMenu({ targetUserId }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { roles } = useAdminRoles();
-  const canBan = hasPermission(roles as readonly AdminRole[], 'reports.permanent_ban');
+  const canBan = hasPermission(roles, 'reports.permanent_ban');
   const block = useUserBlock(targetUserId);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [openModal, setOpenModal] = useState<OpenModal>(null);

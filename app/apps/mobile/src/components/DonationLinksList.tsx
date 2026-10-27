@@ -18,7 +18,7 @@ import { useDonationLinksListStyles } from './DonationLinksList.styles';
 import { DonationLinkRow } from './DonationLinkRow';
 import { DonationLinkRowMenu } from './DonationLinkRowMenu';
 import { useDonationLinkActions } from './useDonationLinkActions';
-import { hasPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, } from '@kc/domain';
 import { useAdminRoles } from '../hooks/useAdminRoles';
 import { useDonationLinksListState } from './useDonationLinksListState';
 
@@ -32,7 +32,7 @@ export function DonationLinksList({ categorySlug }: Readonly<Props>) {
   const styles = useDonationLinksListStyles();
   const me = useAuthStore((s) => s.session?.userId ?? null);
   const { roles } = useAdminRoles();
-  const canManuallyRemovePost = hasPermission(roles as readonly AdminRole[], 'reports.manual_remove_post');
+  const canManuallyRemovePost = hasPermission(roles, 'reports.manual_remove_post');
 
   const { links, loading, errored, load, onAdded, onUpdated, onRemoved } =
     useDonationLinksListState(categorySlug);

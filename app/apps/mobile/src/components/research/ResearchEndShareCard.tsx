@@ -22,7 +22,7 @@ export function ResearchEndShareCard(): React.JSX.Element {
   const handleShare = useCallback(async () => {
     const origin =
       globalThis.window?.location?.origin
-      ?? (process.env.EXPO_PUBLIC_WEB_BASE_URL as string | undefined)
+      ?? (process.env.EXPO_PUBLIC_WEB_BASE_URL)
       ?? '';
 
     const outcome = await shareResearchSurvey({

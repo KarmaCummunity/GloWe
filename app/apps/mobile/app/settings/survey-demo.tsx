@@ -70,7 +70,7 @@ export default function SurveyDemoScreen() {
   const scrollBottomPad =
     SURVEY_FLOAT_NAV_CLEARANCE + floatNavBottom + spacing.lg;
 
-  const question = questions[activeIndex] as SurveyDemoQuestion;
+  const question = questions[activeIndex];
   const answer = answers[question.id] ?? { rating: null, text: '' };
   const total = questions.length;
 

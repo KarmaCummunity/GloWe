@@ -8,7 +8,7 @@ import type { ComponentProps, ReactElement } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
-import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
+import { type AdminPermission, hasPermission } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../hooks/useAdminRoles';
 import { rowDirectionStart, textAlignStart } from '../../lib/rtlLayout';
@@ -50,7 +50,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
   const labels = L.admin.nav;
 
   const items = ITEMS.filter(
-    (it) => it.perm == null || hasPermission(roles as readonly AdminRole[], it.perm),
+    (it) => it.perm == null || hasPermission(roles, it.perm),
   );
   const current = normalize(pathname || '/admin');
 
@@ -61,7 +61,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
     return (
       <Pressable
         key={it.key}
-        onPress={() => router.push(it.href as never)}
+        onPress={() => router.push(it.href)}
         accessibilityRole="link"
         accessibilityState={{ selected: active }}
         style={[base, active && activeStyle]}

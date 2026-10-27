@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import type { PostWithOwner } from '@kc/application';
 import { makeUseStyles, useTheme } from '@kc/ui';
-import { hasPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { useAdminRoles } from '../../hooks/useAdminRoles';
 import { invalidatePersonalStatsCaches } from '../../lib/invalidatePersonalStatsCaches';
@@ -42,7 +42,7 @@ export function PostMenuButton({
   const { colors } = useTheme();
   const viewerId = useAuthStore((s) => s.session?.userId ?? null);
   const { roles } = useAdminRoles();
-  const canManuallyRemovePost = hasPermission(roles as readonly AdminRole[], 'reports.manual_remove_post');
+  const canManuallyRemovePost = hasPermission(roles, 'reports.manual_remove_post');
   const [open, setOpen] = useState(false);
   const { isSaved, busy: saveBusy, toggleSave } = usePostSavedActions(post.postId);
 
@@ -93,7 +93,7 @@ export function PostMenuButton({
           router.back();
         }}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onEdit={() => router.push(`/edit-post/${post.postId}` as any)}
+        onEdit={() => router.push(`/edit-post/${post.postId}`)}
       />
     </>
   );

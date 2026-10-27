@@ -44,8 +44,8 @@ let _reconcileAuthProfile: ReconcileAuthProfileMetadataUseCase | null = null;
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    if (typeof globalThis.window === 'undefined' || !globalThis.window.localStorage) return undefined;
+    return globalThis.window.localStorage;
   }
   return AsyncStorage;
 }

@@ -65,7 +65,7 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
   return (
     <View>
       {keys.map((key) => {
-        const prop = props[key]!;
+        const prop = props[key];
         const val = values[key];
 
         if (prop.const !== undefined) {

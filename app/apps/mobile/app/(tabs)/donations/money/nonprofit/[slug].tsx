@@ -33,7 +33,7 @@ export default function NonprofitPublicScreen() {
   const { external, openExternal } = useExternalDonations();
   const page = useQuery({
     queryKey: ['money', 'nonprofit', slug],
-    queryFn: () => paymentsUseCases.getNonprofitPage().execute(slug!),
+    queryFn: () => paymentsUseCases.getNonprofitPage().execute(slug),
     enabled: Boolean(slug),
   });
 

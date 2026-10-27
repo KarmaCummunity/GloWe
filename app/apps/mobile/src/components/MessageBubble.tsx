@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { OptimisticMessage } from '../store/chatStore';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
 import { SystemMessageBubble } from './chat/system/SystemMessageBubble';
-import { hasPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, } from '@kc/domain';
 import { useAdminRoles } from '../hooks/useAdminRoles';
 import { container } from '../lib/container';
 import { confirmAndRun, showAdminToast } from './chat/system/adminActions';
@@ -42,7 +42,7 @@ function MessageBubbleInner({
   const [showTime, setShowTime] = useState(false);
   const { t } = useTranslation();
   const { roles } = useAdminRoles();
-  const canDeleteMessage = hasPermission(roles as readonly AdminRole[], 'chat.delete_message');
+  const canDeleteMessage = hasPermission(roles, 'chat.delete_message');
   const styles = useMessageBubbleStyles();
   const { colors } = useTheme();
   const mineMetaColor = { color: colors.textInverse, opacity: 0.7 };
@@ -100,7 +100,7 @@ function MessageBubbleInner({
   // through Realtime DELETE events, so the bubble disappears on its own.
   const onAdminLongPress = canDeleteMessage && m.messageId
     ? () => {
-        const messageId = m.messageId!;
+        const messageId = m.messageId;
         confirmAndRun({
           action: 'deleteMessage',
           onConfirm: () => container.deleteMessage.execute({ messageId }),

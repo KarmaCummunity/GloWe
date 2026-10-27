@@ -14,7 +14,7 @@ export type DownloadedImage = Readonly<{
 }>;
 
 function extFromUrl(url: string): string {
-  const cleaned = url.split('?')[0]!.split('#')[0]!;
+  const cleaned = url.split('?')[0].split('#')[0];
   const dot = cleaned.lastIndexOf('.');
   if (dot < 0) return 'jpg';
   const ext = cleaned.slice(dot + 1).toLowerCase();

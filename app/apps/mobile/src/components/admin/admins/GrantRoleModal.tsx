@@ -34,7 +34,7 @@ async function lookupUsers(q: string): Promise<readonly UserMatch[]> {
     .ilike('display_name', `%${trimmed}%`)
     .limit(8);
   if (error || !Array.isArray(data)) return [];
-  return data as UserMatch[];
+  return data;
 }
 
 export function GrantRoleModal({ visible, onClose }: GrantRoleModalProps) {

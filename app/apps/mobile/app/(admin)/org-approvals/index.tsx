@@ -9,8 +9,7 @@ import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission, isOrgApplicationError,
-  type AdminPermission, type AdminRole,
-  type OrgApplication, type OrgApplicationStatus,
+  type AdminPermission, type OrgApplication, type OrgApplicationStatus,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -46,7 +45,7 @@ export default function OrgApprovalsScreen() {
   const L = useLocaleBundle();
   const t = L.admin.orgApprovals;
   const { roles, isLoading: rolesLoading } = useAdminRoles();
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<StatusFilter>('pending');
 
@@ -112,7 +111,7 @@ export default function OrgApprovalsScreen() {
                 await decide.mutateAsync({ applicationId: item.applicationId, approve, note });
               } catch (err) {
                 const code = isOrgApplicationError(err) ? err.code : 'unknown';
-                const msg = t.errors[code as keyof typeof t.errors] ?? t.errors.unknown;
+                const msg = t.errors[code] ?? t.errors.unknown;
                 if (Platform.OS === 'web') {
                   if (typeof window !== 'undefined') window.alert(msg);
                 } else {

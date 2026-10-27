@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { makeUseStyles, useTheme } from '@kc/ui';
-import { hasPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { useAuthStore } from '../../../store/authStore';
 import { container } from '../../../lib/container';
@@ -23,7 +23,7 @@ export function AutoRemovedBubble({
   handledByLaterAction,
 }: SystemMessageBubbleProps) {
   const { roles } = useAdminRoles();
-  const canViewReports = hasPermission(roles as readonly AdminRole[], 'reports.view');
+  const canViewReports = hasPermission(roles, 'reports.view');
   const me = useAuthStore((s) => s.session?.userId ?? null);
   const styles = useAutoRemovedBubbleStyles();
   const { colors } = useTheme();
@@ -58,8 +58,8 @@ export function AutoRemovedBubble({
                 action: 'restore',
                 onConfirm: () =>
                   container.restoreTarget.execute({
-                    targetType: targetType!,
-                    targetId: targetId!,
+                    targetType: targetType,
+                    targetId: targetId,
                   }),
                 onSuccess: () => showAdminToast(t('moderation.actions.success.restore')),
                 onError: showAdminToast,
@@ -76,7 +76,7 @@ export function AutoRemovedBubble({
                   onConfirm: () =>
                     container.banUser.execute({
                       adminId: me,
-                      targetUserId: targetId!,
+                      targetUserId: targetId,
                       reason: 'policy_violation',
                       note: 'auto-removed at threshold',
                     }),

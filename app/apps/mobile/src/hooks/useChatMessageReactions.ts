@@ -24,7 +24,7 @@ export function useChatMessageReactions(chatId: string, messageIds: string[]) {
       }
       for (const r of rows) {
         counts[r.messageId] = counts[r.messageId] ?? {};
-        counts[r.messageId]![r.reactionType] = (counts[r.messageId]![r.reactionType] ?? 0) + 1;
+        counts[r.messageId][r.reactionType] = (counts[r.messageId][r.reactionType] ?? 0) + 1;
         if (viewerId && r.userId === viewerId) own[r.messageId] = r.reactionType;
       }
       setByMessage(counts);

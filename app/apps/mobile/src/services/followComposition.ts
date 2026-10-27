@@ -27,15 +27,15 @@ import {
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    if (typeof globalThis.window === 'undefined' || !globalThis.window.localStorage) return undefined;
+    return globalThis.window.localStorage;
   }
   return AsyncStorage;
 }
 
 let repo: SupabaseUserRepository | null = null;
 function getRepo() {
-  if (!repo) repo = new SupabaseUserRepository(getSupabaseClient({ storage: pickStorage() }));
+  repo ??= new SupabaseUserRepository(getSupabaseClient({ storage: pickStorage() }));
   return repo;
 }
 

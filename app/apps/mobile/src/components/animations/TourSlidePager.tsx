@@ -78,7 +78,7 @@ export function TourSlidePager({ slides, index, onIndexChange }: TourSlidePagerP
     transform: [{ scale: iconScale.value }],
   }));
 
-  const slide = slides[index]!;
+  const slide = slides[index];
 
   return (
     <View style={styles.wrap}>

@@ -111,7 +111,7 @@ export function SurveyQuestionMap({
         >
           {q.shortLabelHe}
         </Text>
-        <Ionicons name={statusIcon as never} size={16} color={statusColor} />
+        <Ionicons name={statusIcon} size={16} color={statusColor} />
       </Pressable>
     );
   };

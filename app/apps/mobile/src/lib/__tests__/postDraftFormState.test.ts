@@ -24,7 +24,7 @@ describe('isFormStateAtDefaults', () => {
       mimeType: 'image/jpeg',
       sizeBytes: 1,
       previewUri: 'file://x',
-    } as PostDraftFormState['uploads'][number];
+    };
     expect(isFormStateAtDefaults({ ...POST_DRAFT_DEFAULTS, uploads: [upload] })).toBe(false);
   });
 

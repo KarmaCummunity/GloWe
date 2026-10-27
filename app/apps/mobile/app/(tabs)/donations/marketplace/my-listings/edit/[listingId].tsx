@@ -32,7 +32,7 @@ export default function EditMyListingScreen() {
 
   const detailQuery = useQuery({
     queryKey: ['marketplace', 'detail', listingId],
-    queryFn: () => marketplaceRepository().getListingDetail(listingId!),
+    queryFn: () => marketplaceRepository().getListingDetail(listingId),
     enabled: Boolean(listingId),
   });
 
@@ -78,7 +78,7 @@ export default function EditMyListingScreen() {
           onPress={async () => {
             setSaving(true);
             try {
-              await marketplaceRepository().updateMyListing(listingId!, {
+              await marketplaceRepository().updateMyListing(listingId, {
                 title: title.trim(),
                 summary: summary.trim() || null,
               });

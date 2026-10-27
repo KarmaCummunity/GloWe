@@ -22,7 +22,7 @@ export async function registerCurrentDeviceIfPermitted(
   const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
   const platform = (
     Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : 'web'
-  ) as 'ios' | 'android' | 'web';
+  );
   await new RegisterDeviceUseCase(deps.deviceRepo).execute({ userId, pushToken: token, platform });
 }
 

@@ -4,7 +4,7 @@
 // docs/SSOT/spec/01_auth_and_onboarding.md
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter, } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -212,7 +212,7 @@ export default function WelcomeScreen() {
           />
           <TouchableOpacity
             style={styles.guestBtn}
-            onPress={() => { setGuest(true); router.replace('/(guest)/feed' as Href); }}
+            onPress={() => { setGuest(true); router.replace('/(guest)/feed'); }}
           >
             <Text style={styles.guestBtnText}>{t('auth.guestPreviewCta')}</Text>
           </TouchableOpacity>

@@ -37,7 +37,7 @@ export default function FollowersListScreen() {
 
   const userQuery = useQuery({
     queryKey: ['profile-other', handle],
-    queryFn: () => getUserRepo().findByHandle(handle!),
+    queryFn: () => getUserRepo().findByHandle(handle),
     enabled: Boolean(handle),
     staleTime: 60_000, // PERF-3: profile (others) — follow state can flip; keep relatively fresh
   });

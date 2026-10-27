@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { hasPermission, isWhatsAppAdminError, type AdminPermission, type AdminRole } from '@kc/domain';
+import { hasPermission, isWhatsAppAdminError, type AdminPermission, } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
@@ -18,7 +18,7 @@ export default function WhatsAppAdminScreen() {
   const L = useLocaleBundle();
   const t = L.admin.whatsapp;
   const { roles, isLoading: rolesLoading } = useAdminRoles();
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
   const queryClient = useQueryClient();
   const [outFilter, setOutFilter] = useState<OutFilter>('all');
 

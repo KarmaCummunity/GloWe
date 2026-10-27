@@ -19,7 +19,7 @@ const webGlass: ViewStyle =
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       } as unknown as ViewStyle)
-    : ({} as ViewStyle);
+    : ({});
 
 export const TAB_BAR_HEIGHT = 50;
 
@@ -93,7 +93,7 @@ export function TabBar() {
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         const label = t(tab.labelI18nKey);
-        const onPress = () => router.push(tab.route as never);
+        const onPress = () => router.push(tab.route);
         if (tab.isComposer) {
           return <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} />;
         }

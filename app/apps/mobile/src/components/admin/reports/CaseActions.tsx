@@ -7,9 +7,7 @@ import { Alert, Pressable, Text, View, Platform } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   type AdminPermission,
-  type AdminRole,
   type ReportCaseDetail,
-  type AdminReportTargetType,
   hasPermission,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
@@ -68,7 +66,7 @@ export function CaseActions({ detail, onActed }: CaseActionsProps) {
           break;
         case 'restore':
           await container.restoreTarget.execute({
-            targetType: detail.targetType as AdminReportTargetType,
+            targetType: detail.targetType,
             targetId: detail.targetId,
           });
           break;
@@ -105,7 +103,7 @@ export function CaseActions({ detail, onActed }: CaseActionsProps) {
   }
 
   function show(perm: AdminPermission): boolean {
-    return hasPermission(roles as readonly AdminRole[], perm);
+    return hasPermission(roles, perm);
   }
 
   return (

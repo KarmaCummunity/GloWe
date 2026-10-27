@@ -44,7 +44,7 @@ function routeStringParam(v: string | string[] | undefined): string | undefined 
 
 export default function ChatScreen() {
   const { id, prefill } = useLocalSearchParams<{ id: string; prefill?: string | string[] }>();
-  const chatId = id!;
+  const chatId = id;
   const router = useRouter();
   const { t } = useTranslation();
   const styles = useChatConversationStyles();
@@ -163,7 +163,7 @@ export default function ChatScreen() {
           }
           onReactionPick={
             item.message.messageId
-              ? (r) => handleReactionPick(item.message.messageId!, r)
+              ? (r) => handleReactionPick(item.message.messageId, r)
               : undefined
           }
         />

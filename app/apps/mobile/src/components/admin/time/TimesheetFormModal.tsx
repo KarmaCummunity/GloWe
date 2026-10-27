@@ -43,7 +43,7 @@ export function TimesheetFormModal({ initial, onClose, onSaved }: TimesheetFormM
     onSuccess: () => onSaved(),
     onError:   (err) => {
       const code = isTimesheetError(err) ? err.code : 'unknown';
-      setErrorMsg(t.errors[code as keyof typeof t.errors] ?? t.errors.unknown);
+      setErrorMsg(t.errors[code] ?? t.errors.unknown);
     },
   });
 

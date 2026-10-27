@@ -39,7 +39,7 @@ export function MatchSuggestionCard({ match, busy, onRespond }: Props) {
   const state = matchStateOf(match);
   const owner = match.otherOwner.displayName ?? t('matches.someone');
   const openListing = () =>
-    router.push({ pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId: match.otherListingId } } as never);
+    router.push({ pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId: match.otherListingId } });
 
   return (
     <Card testID={`match-card-${match.candidateId}`}>

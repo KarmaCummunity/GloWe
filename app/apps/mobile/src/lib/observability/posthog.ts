@@ -5,11 +5,11 @@
 import Constants from 'expo-constants';
 
 const KEY: string | undefined =
-  (process.env.EXPO_PUBLIC_POSTHOG_KEY as string | undefined)?.trim() ||
+  (process.env.EXPO_PUBLIC_POSTHOG_KEY)?.trim() ||
   (Constants.expoConfig?.extra as { posthogKey?: string } | undefined)?.posthogKey?.trim();
 
 const HOST: string =
-  (process.env.EXPO_PUBLIC_POSTHOG_HOST as string | undefined)?.trim() ||
+  (process.env.EXPO_PUBLIC_POSTHOG_HOST)?.trim() ||
   'https://us.i.posthog.com';
 
 type PostHogClient = {

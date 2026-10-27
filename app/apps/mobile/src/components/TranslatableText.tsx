@@ -17,7 +17,7 @@ interface Props {
 export function TranslatableText({ source, translated, status, numberOfLines, style, indicatorStyle }: Props) {
   const { t } = useTranslation();
   const isHit = status === 'hit' && !!translated;
-  const shown = isHit ? (translated as string) : source;
+  const shown = isHit ? (translated) : source;
   return (
     <View>
       <Text

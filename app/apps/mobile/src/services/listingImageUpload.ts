@@ -39,7 +39,7 @@ export async function uploadListingImages(
   const slice = picked.slice(0, MAX_LISTING_IMAGES);
   for (let i = 0; i < slice.length; i += 1) {
     const path = buildPostImagePath(userId, batch, i);
-    const bytes = await encodeJpeg(slice[i]!.uri);
+    const bytes = await encodeJpeg(slice[i].uri);
     const { error } = await client.storage.from(LISTING_BUCKET).upload(path, bytes, {
       contentType: 'image/jpeg',
       upsert: true,

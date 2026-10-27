@@ -3,7 +3,7 @@ import { shareResearchSurvey, type ShareResearchOutcome } from './shareResearchS
 import { track } from './analytics';
 
 const WEB_BASE_URL =
-  (process.env.EXPO_PUBLIC_WEB_BASE_URL as string | undefined) ??
+  (process.env.EXPO_PUBLIC_WEB_BASE_URL) ??
   'https://karma-community-kc.com';
 
 type ShareLabels = Readonly<{

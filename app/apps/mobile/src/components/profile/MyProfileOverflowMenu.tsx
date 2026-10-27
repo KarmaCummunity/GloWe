@@ -19,7 +19,7 @@ export function MyProfileOverflowMenu({ showFollowRequests }: Readonly<{ showFol
 
   const go = (path: string) => {
     close();
-    router.push(path as never);
+    router.push(path);
   };
 
   return (

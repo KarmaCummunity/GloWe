@@ -6,8 +6,7 @@ import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Tex
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CRM_CONTACT_STATUSES, hasPermission, isCrmContactError,
-  type AdminPermission, type AdminRole,
-  type CrmContact, type CrmContactStatus,
+  type AdminPermission, type CrmContact, type CrmContactStatus,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -36,7 +35,7 @@ export default function CrmScreen() {
   const L = useLocaleBundle();
   const t = L.admin.crm;
   const { roles, isLoading: rolesLoading } = useAdminRoles();
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
   const queryClient = useQueryClient();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -120,7 +119,7 @@ export default function CrmScreen() {
               try { await remove.mutateAsync(item.contactId); }
               catch (err) {
                 const code = isCrmContactError(err) ? err.code : 'unknown';
-                const msg = t.errors[code as keyof typeof t.errors] ?? t.errors.unknown;
+                const msg = t.errors[code] ?? t.errors.unknown;
                 if (Platform.OS === 'web') { if (typeof window !== 'undefined') window.alert(msg); }
                 else Alert.alert(msg);
               }

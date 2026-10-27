@@ -7,7 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
-  type AdminPermission, type AdminRole, hasPermission, isAdminRoleError,
+  type AdminPermission, hasPermission, isAdminRoleError,
 } from '@kc/domain';
 import { makeUseStyles, radius, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -30,7 +30,7 @@ export default function AdminDetailScreen() {
   const revoke = useRevokeAdminRole();
   const [revokeErr, setRevokeErr] = useState<string | null>(null);
 
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
   const canRevoke = can('admins.revoke_role');
 
   async function onRevoke(grantId: string) {

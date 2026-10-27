@@ -39,13 +39,13 @@ function NavigationRailItem({ tab, expanded }: { tab: TabDefinition; expanded: b
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useStyles();
-  const active = isTabActive(tab, segments as string[]);
+  const active = isTabActive(tab, segments);
   const iconName = active ? tab.iconActive : tab.iconInactive;
   const activeBg = (colors as { surfaceVariant?: string }).surfaceVariant ?? colors.surface;
 
   return (
     <Pressable
-      onPress={() => router.push(tab.route as never)}
+      onPress={() => router.push(tab.route)}
       style={[
         styles.item,
         expanded ? styles.itemExpanded : styles.itemCollapsed,

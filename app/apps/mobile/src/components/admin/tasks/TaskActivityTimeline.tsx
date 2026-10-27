@@ -2,8 +2,7 @@
 // FR-ADMIN-018 — activity timeline (comments + status/assignment/priority/due changes).
 import { StyleSheet, Text, View } from 'react-native';
 import {
-  type AdminTaskActivity, type AdminTaskActivityKind, type AdminTaskCategory,
-  parseAdminTaskCategory,
+  type AdminTaskActivity, parseAdminTaskCategory,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
@@ -11,7 +10,7 @@ import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundl
 function categoryLabel(value: unknown, L: LocaleBundle): string {
   if (typeof value !== 'string') return '';
   const parsed = parseAdminTaskCategory(value);
-  return parsed ? L.admin.tasks.category[parsed as AdminTaskCategory] : value;
+  return parsed ? L.admin.tasks.category[parsed] : value;
 }
 
 export interface TaskActivityTimelineProps {
@@ -25,13 +24,13 @@ function fmtTs(d: Date): string {
 }
 
 function describe(activity: AdminTaskActivity, L: LocaleBundle): string {
-  const p = (activity.payload ?? {}) as Record<string, unknown>;
-  const k = activity.kind as AdminTaskActivityKind;
+  const p = (activity.payload ?? {});
+  const k = activity.kind;
   switch (k) {
     case 'created':
       return L.admin.tasks.timeline.created;
     case 'comment':
-      return typeof p['body'] === 'string' ? (p['body'] as string) : '';
+      return typeof p['body'] === 'string' ? (p['body']) : '';
     case 'status_change':
       return L.admin.tasks.timeline.statusChange(
         String(p['from'] ?? ''), String(p['to'] ?? ''),

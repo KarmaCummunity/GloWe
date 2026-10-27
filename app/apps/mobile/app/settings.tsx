@@ -106,7 +106,7 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.appearance')}
             icon="contrast-outline"
-            onPress={() => router.push('/settings/appearance' as never)}
+            onPress={() => router.push('/settings/appearance')}
           />
         </View>
 
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.language')}
             icon="globe-outline"
-            onPress={() => router.push('/settings/language' as never)}
+            onPress={() => router.push('/settings/language')}
           />
         </View>
 
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.translationLanguage')}
             icon="language-outline"
-            onPress={() => router.push('/settings/translation-language' as never)}
+            onPress={() => router.push('/settings/translation-language')}
           />
         </View>
 
@@ -133,12 +133,12 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.notifications')}
             icon="notifications-outline"
-            onPress={() => router.push('/settings/notifications' as never)}
+            onPress={() => router.push('/settings/notifications')}
           />
           <SettingsScreenRow
             label={t('feedSettings.settingsRow')}
             icon="options-outline"
-            onPress={() => router.push('/settings/feed' as never)}
+            onPress={() => router.push('/settings/feed')}
           />
         </View>
 
@@ -171,7 +171,7 @@ export default function SettingsScreen() {
             <SettingsScreenRow
               label={t('settings.followRequests')}
               icon="people-outline"
-              onPress={() => router.push('/settings/follow-requests' as never)}
+              onPress={() => router.push('/settings/follow-requests')}
             />
           ) : null}
         </View>
@@ -205,7 +205,7 @@ export default function SettingsScreen() {
             <SettingsScreenRow
               label={t('audit.title')}
               icon="document-text-outline"
-              onPress={() => router.push('/settings/audit' as never)}
+              onPress={() => router.push('/settings/audit')}
             />
           ) : null}
           {adminRoles.length > 0 ? (

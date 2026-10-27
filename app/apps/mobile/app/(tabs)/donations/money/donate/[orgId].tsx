@@ -97,7 +97,7 @@ export default function DonateNowScreen() {
               setBusy(true);
               try {
                 const checkout = await paymentsUseCases.donateNow().execute({
-                  orgId: orgId!,
+                  orgId: orgId,
                   amountIls: parsed,
                   idempotencyKey: newIdempotencyKey('donate'),
                   listingId: listingId ?? null,

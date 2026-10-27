@@ -70,7 +70,7 @@ export default function StandingOrderScreen() {
               setBusy(true);
               try {
                 await paymentsUseCases.createStandingOrder().execute({
-                  orgId: orgId!,
+                  orgId: orgId,
                   amountIls: parsed,
                   idempotencyKey: newIdempotencyKey('standing'),
                 });

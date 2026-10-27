@@ -65,8 +65,8 @@ let _materializePostTranslations: MaterializePostTranslationsUseCase | null = nu
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    if (typeof globalThis.window === 'undefined' || !globalThis.window.localStorage) return undefined;
+    return globalThis.window.localStorage;
   }
   return AsyncStorage;
 }
@@ -78,32 +78,32 @@ function getRepo(): IPostRepository {
 }
 
 export function getCreatePostUseCase(): CreatePostUseCase {
-  if (!_create) _create = new CreatePostUseCase(getRepo());
+  _create ??= new CreatePostUseCase(getRepo());
   return _create;
 }
 
 export function getUpdatePostUseCase(): UpdatePostUseCase {
-  if (!_update) _update = new UpdatePostUseCase(getRepo());
+  _update ??= new UpdatePostUseCase(getRepo());
   return _update;
 }
 
 export function getFeedUseCase(): GetFeedUseCase {
-  if (!_getFeed) _getFeed = new GetFeedUseCase(getRepo());
+  _getFeed ??= new GetFeedUseCase(getRepo());
   return _getFeed;
 }
 
 export function getPostByIdUseCase(): GetPostByIdUseCase {
-  if (!_getById) _getById = new GetPostByIdUseCase(getRepo());
+  _getById ??= new GetPostByIdUseCase(getRepo());
   return _getById;
 }
 
 export function getMyPostsUseCase(): GetMyPostsUseCase {
-  if (!_myPosts) _myPosts = new GetMyPostsUseCase(getRepo());
+  _myPosts ??= new GetMyPostsUseCase(getRepo());
   return _myPosts;
 }
 
 export function getProfileClosedPostsUseCase(): GetProfileClosedPostsUseCase {
-  if (!_profileClosedPosts) _profileClosedPosts = new GetProfileClosedPostsUseCase(getRepo());
+  _profileClosedPosts ??= new GetProfileClosedPostsUseCase(getRepo());
   return _profileClosedPosts;
 }
 
@@ -114,22 +114,22 @@ export function getPostRepo(): IPostRepository {
 
 // ── Closure (FR-CLOSURE-001..005) ─────────────────────────────────────────
 export function getMarkAsDeliveredUseCase(): MarkAsDeliveredUseCase {
-  if (!_markDelivered) _markDelivered = new MarkAsDeliveredUseCase(getRepo());
+  _markDelivered ??= new MarkAsDeliveredUseCase(getRepo());
   return _markDelivered;
 }
 
 export function getReopenPostUseCase(): ReopenPostUseCase {
-  if (!_reopen) _reopen = new ReopenPostUseCase(getRepo());
+  _reopen ??= new ReopenPostUseCase(getRepo());
   return _reopen;
 }
 
 export function getRepublishPostUseCase(): RepublishPostUseCase {
-  if (!_republish) _republish = new RepublishPostUseCase(getRepo());
+  _republish ??= new RepublishPostUseCase(getRepo());
   return _republish;
 }
 
 export function getUnmarkRecipientSelfUseCase(): UnmarkRecipientSelfUseCase {
-  if (!_unmrkRecipientSelf) _unmrkRecipientSelf = new UnmarkRecipientSelfUseCase(getRepo());
+  _unmrkRecipientSelf ??= new UnmarkRecipientSelfUseCase(getRepo());
   return _unmrkRecipientSelf;
 }
 
@@ -156,7 +156,7 @@ export function getStatsRepo(): IStatsRepository {
 }
 
 export function getActivePostsCountUseCase(): GetActivePostsCountUseCase {
-  if (!_getActivePostsCount) _getActivePostsCount = new GetActivePostsCountUseCase(getStatsRepo());
+  _getActivePostsCount ??= new GetActivePostsCountUseCase(getStatsRepo());
   return _getActivePostsCount;
 }
 

@@ -12,7 +12,7 @@ import { decideTapAction, isReadyToRoute, type ResolvedRoute } from './tapRoutin
 // `data.route`. tapRouting.ts owns that resolution plus the cold-start gating.
 
 function pushRoute(route: ResolvedRoute): void {
-  router.push({ pathname: route.pathname as never, params: route.params });
+  router.push({ pathname: route.pathname, params: route.params });
 }
 
 // A single queued cold-start tap, flushed once auth becomes ready. Module-level
@@ -41,12 +41,12 @@ export function useNotificationTapRouting(): void {
       return undefined;
     }
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      handleNotificationTap(response.notification.request.content.data as Partial<PushData>);
+      handleNotificationTap(response.notification.request.content.data);
     });
     // Cold-start: a tap may have launched the app (native only).
     void Notifications.getLastNotificationResponseAsync().then((response) => {
       if (response) {
-        handleNotificationTap(response.notification.request.content.data as Partial<PushData>);
+        handleNotificationTap(response.notification.request.content.data);
       }
     });
     // Flush a queued cold-start tap once the session has restored and onboarding

@@ -3,7 +3,7 @@
 // V2-ADMIN-AUDIT-5 — date-range filter + CSV export (web).
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
+import { type AdminPermission, hasPermission } from '@kc/domain';
 import type { AdminAuditSearchFilters } from '@kc/application';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -66,7 +66,7 @@ export default function AuditScreen() {
   }), [targetIdRaw, action, fromRaw, toRaw]);
 
   const result = useAdminAuditSearch(filters);
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
 
   async function doExport() {
     setExportError(null);

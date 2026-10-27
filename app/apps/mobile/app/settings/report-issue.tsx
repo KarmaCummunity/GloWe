@@ -116,7 +116,7 @@ export default function ReportIssueScreen() {
               placeholderTextColor={colors.textSecondary}
               value={description}
               onChangeText={setDescription}
-              textAlign={rtlTextAlignStart as 'left' | 'right'}
+              textAlign={rtlTextAlignStart}
               maxLength={MAX_DESC}
             />
             <View style={styles.inputFooter}>

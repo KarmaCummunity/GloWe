@@ -73,7 +73,7 @@ export function RideListScreen<T>({
         <Pressable
           style={styles.cta}
           onPress={() =>
-            router.push('/(tabs)/donations/rides' as Parameters<typeof router.push>[0])
+            router.push('/(tabs)/donations/rides')
           }
           accessibilityRole="button"
         >
@@ -101,7 +101,7 @@ export function RideListScreen<T>({
       </View>
 
       <KcFlashList
-        data={sections as RideListSection<T>[]}
+        data={sections}
         keyExtractor={(s) => s.key}
         renderItem={({ item }) => {
           if (item.kind === 'header') {

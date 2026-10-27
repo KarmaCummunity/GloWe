@@ -54,7 +54,7 @@ export function AdminRow({ grant, canRevoke, onRevoke, busy }: AdminRowProps) {
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
         <Text style={styles.meta}>
           {revoked
-            ? L.admin.admins.row.revokedAt(fmtDate(grant.revokedAt!))
+            ? L.admin.admins.row.revokedAt(fmtDate(grant.revokedAt))
             : fmtLastSeen(L, grant.lastSeenAt)}
         </Text>
         <Text style={styles.metaSmall}>

@@ -20,8 +20,8 @@ let _search: UniversalSearchUseCase | null = null;
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    if (typeof globalThis.window === 'undefined' || !globalThis.window.localStorage) return undefined;
+    return globalThis.window.localStorage;
   }
   return AsyncStorage;
 }
@@ -33,6 +33,6 @@ function getRepo(): ISearchRepository {
 }
 
 export function getUniversalSearchUseCase(): UniversalSearchUseCase {
-  if (!_search) _search = new UniversalSearchUseCase(getRepo());
+  _search ??= new UniversalSearchUseCase(getRepo());
   return _search;
 }

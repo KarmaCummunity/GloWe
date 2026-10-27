@@ -50,7 +50,7 @@ export function RateeCard({ rideId, target, alreadyRated, onSubmitted }: Props) 
       await getSubmitRideRatingUseCase().execute({
         rideId,
         rateeId: target.userId,
-        stars: stars as 1 | 2 | 3 | 4 | 5,
+        stars: stars,
         comment: comment.trim() || null,
       });
       onSubmitted();

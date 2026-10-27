@@ -56,7 +56,7 @@ export function useMyRideRequests(): UseMyRideRequestsResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewerId, queryClient]);
 
-  const all = (query.data ?? []) as readonly RideParticipant[];
+  const all = (query.data ?? []);
 
   const buckets = useMemo<MyRequestsBuckets>(() => {
     const pending: RideParticipant[] = [];

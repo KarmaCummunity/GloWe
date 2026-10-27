@@ -61,7 +61,7 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
     const id = requireUuid(d.params?.task_id ?? d.params?.id);
     return id
       ? { pathname: '/(admin)/tasks/[taskId]', params: { taskId: id } }
-      : { pathname: '/(admin)/tasks', params: {} as Record<string, string> };
+      : { pathname: '/(admin)/tasks', params: {} };
   },
   // FR-RIDE-013, FR-RIDE-019 — ride participant lifecycle notifications all
   // deep-link to the ride detail screen. The participant_id is also carried

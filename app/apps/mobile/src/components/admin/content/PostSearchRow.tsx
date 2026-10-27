@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
+import { type AdminPermission, hasPermission } from '@kc/domain';
 import type { AdminPostSearchResult } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
@@ -38,7 +38,7 @@ export function PostSearchRow({ row }: PostSearchRowProps) {
   const tone = statusTone(row.status);
   const { roles } = useAdminRoles();
   const queryClient = useQueryClient();
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
   const [busy, setBusy] = useState(false);
 
   const canRemove  = can('reports.confirm_or_dismiss') && row.status === 'open';

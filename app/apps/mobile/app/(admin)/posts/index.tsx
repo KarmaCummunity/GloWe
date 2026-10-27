@@ -2,7 +2,7 @@
 // FR-ADMIN-019 — admin posts search screen.
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
+import { type AdminPermission, hasPermission } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPostSearch } from '../../../src/hooks/useAdminContentSearch';
@@ -33,7 +33,7 @@ export default function PostsScreen() {
   }), [query, statusFilter]);
 
   const result = useAdminPostSearch(filters);
-  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
+  const can = (perm: AdminPermission) => hasPermission(roles, perm);
 
   if (rolesLoading) {
     return <View style={styles.center}><Text>{L.admin.content.loading}</Text></View>;

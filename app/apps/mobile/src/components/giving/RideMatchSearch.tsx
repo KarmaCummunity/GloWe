@@ -67,7 +67,7 @@ export function RideMatchSearch() {
                 router.push({
                   pathname: '/(tabs)/donations/marketplace/[listingId]',
                   params: { listingId: m.listing_id },
-                } as never)
+                })
               }
             >
               <Text style={styles.rowTitle}>{m.title}</Text>

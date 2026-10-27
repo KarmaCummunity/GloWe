@@ -71,8 +71,8 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
       (m) =>
         m.kind === 'system' &&
         m.systemPayload != null &&
-        (m.systemPayload as Record<string, unknown>).kind === 'post_closed' &&
-        (m.systemPayload as Record<string, unknown>).post_id === anchorPostId,
+        (m.systemPayload).kind === 'post_closed' &&
+        (m.systemPayload).post_id === anchorPostId,
     );
   }, [messages, anchorPostId]);
 
