@@ -218,7 +218,7 @@ d('admin portal hardening (integration)', () => {
     expect(Array.isArray(reporters)).toBe(true);
     expect(reporters).toHaveLength(3);
     // Deterministic order: the migration sorts by reporter_id ascending.
-    const expected = [...reporterUids].sort();
+    const expected = [...reporterUids].sort((a, b) => a.localeCompare(b));
     expect(reporters).toEqual(expected);
   }, 60_000);
 
