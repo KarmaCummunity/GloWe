@@ -33,6 +33,7 @@ concurrency:
 permissions:
   contents: read
   pull-requests: read
+  packages: read
 
 jobs:
   changes:
@@ -128,9 +129,27 @@ jobs:
         if: needs.changes.outputs.backend == 'true'
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
+      - name: Log in to ghcr.io (authenticated image pulls avoid anonymous rate limits)
+        if: needs.changes.outputs.backend == 'true'
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Start Supabase (applies all migrations + seed.sql)
         if: needs.changes.outputs.backend == 'true'
-        run: supabase start -x studio,inbucket,imgproxy,edge-runtime,realtime,storage-api
+        # Retry: image pulls from the public registry intermittently fail with
+        # `toomanyrequests` (registry rate limit), which is infra, not a code error.
+        run: |
+          # ghcr.io has been returning `toomanyrequests` even for authenticated pulls;
+          # pull the same Supabase images from the public ECR mirror instead.
+          export SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws
+          for i in 1 2 3 4; do
+            supabase start -x studio,inbucket,imgproxy,edge-runtime,realtime,storage-api && exit 0
+            echo "::warning::supabase start failed (attempt $i), retrying in $((i*45))s"
+            supabase stop --no-backup >/dev/null 2>&1 || true
+            sleep $((i*45))
+          done
+          exit 1
 
       - name: Run all DB tests (supabase/tests/*.sql)
         if: needs.changes.outputs.backend == 'true'
