@@ -64,8 +64,7 @@ export const AUTH_VERIFY_URL =
  */
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    return globalThis.window?.localStorage;
   }
   return createAuthSecureStorage();
 }
@@ -161,12 +160,12 @@ export async function redirectToGoogleSignInWeb(): Promise<void> {
 }
 
 export function getSignUpUseCase(): SignUpWithEmailUseCase {
-  if (!_signUp) _signUp = new SignUpWithEmailUseCase(getAuthService());
+  _signUp ??= new SignUpWithEmailUseCase(getAuthService());
   return _signUp;
 }
 
 export function getSignInUseCase(): SignInWithEmailUseCase {
-  if (!_signIn) _signIn = new SignInWithEmailUseCase(getAuthService());
+  _signIn ??= new SignInWithEmailUseCase(getAuthService());
   return _signIn;
 }
 
@@ -186,7 +185,7 @@ export function getSignInWithAppleUseCase(): SignInWithAppleUseCase {
 }
 
 export function getSignOutUseCase(): SignOutUseCase {
-  if (!_signOut) _signOut = new SignOutUseCase(getAuthService());
+  _signOut ??= new SignOutUseCase(getAuthService());
   return _signOut;
 }
 
@@ -202,12 +201,12 @@ export function getRestoreSessionUseCase(): RestoreSessionUseCase {
 }
 
 export function getResendVerificationEmailUseCase(): ResendVerificationEmailUseCase {
-  if (!_resend) _resend = new ResendVerificationEmailUseCase(getAuthService());
+  _resend ??= new ResendVerificationEmailUseCase(getAuthService());
   return _resend;
 }
 
 export function getVerifyEmailUseCase(): VerifyEmailUseCase {
-  if (!_verifyEmail) _verifyEmail = new VerifyEmailUseCase(getAuthService());
+  _verifyEmail ??= new VerifyEmailUseCase(getAuthService());
   return _verifyEmail;
 }
 
