@@ -40,7 +40,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
 const HIDDEN_FIELDS = new Set(['image_url', 'image_path']);
 
 function humanize(key: string): string {
-  const s = key.replace(/_/g, ' ');
+  const s = key.replaceAll('_', ' ');
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -127,7 +127,7 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
                 keyboardType="numeric"
                 value={val != null ? String(val) : ''}
                 onChangeText={(t) => {
-                  const n = prop.type === 'integer' ? parseInt(t, 10) : parseFloat(t);
+                  const n = prop.type === 'integer' ? Number.parseInt(t, 10) : Number.parseFloat(t);
                   setVal(key, Number.isFinite(n) ? n : null);
                 }}
               />

@@ -173,7 +173,7 @@ export const DONATION_LINK_URL_PATTERN = /^https?:\/\//i;
 // portable (no JS-only features) so the Postgres-side
 // `biography !~* '...'` enforces identical semantics.
 export const BIOGRAPHY_MAX_LENGTH = 200;
-export const BIOGRAPHY_URL_PATTERN = /(https?:\/\/|www\.|[\w.-]+\.[a-z]{2,})/i;
+export const BIOGRAPHY_URL_PATTERN = /(https?:\/\/|www\.|[\w.-]\.[a-z]{2})/i;
 
 /** FR-PROFILE-014 — true when the text contains an http(s) URL, a `www.`
  *  prefix, or a bare token with a TLD-like suffix. Centralised so the

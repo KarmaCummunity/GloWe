@@ -57,7 +57,9 @@
       "@xmldom/xmldom@0.8": "^0.8.15",
       "@xmldom/xmldom@0.9": "^0.9.12",
       "source-map-js": "^1.2.2",
-      "compression": "^1.8.2"
+      "compression": "^1.8.2",
+      "vite@6": "^6.4.4",
+      "zod@4": "^4.6.6"
     },
     "auditConfig": {
       "ignoreGhsas": [
@@ -83,7 +85,8 @@
         "GHSA-86w9-cpqp-85rv",
         "GHSA-vfj7-8cjw-p6xm",
         "GHSA-5p2g-fcmc-qvqq",
-        "GHSA-w3rx-r6r6-pgpr"
+        "GHSA-w3rx-r6r6-pgpr",
+        "GHSA-r7fv-28h4-cvq7"
       ]
     }
   }

@@ -58,7 +58,7 @@ export default function CreateVolunteerOpportunityScreen() {
         id,
         starts.toISOString(),
         ends.toISOString(),
-        Math.max(1, parseInt(capacity, 10) || 10),
+        Math.max(1, Number.parseInt(capacity, 10) || 10),
       );
       await volunteerUseCases.publish().execute(id);
       router.replace({

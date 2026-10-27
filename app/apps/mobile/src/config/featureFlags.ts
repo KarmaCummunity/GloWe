@@ -27,7 +27,8 @@ export function buildExternalDonationUrl(
   orgId: string,
   listingId?: string | null,
 ): string {
-  const base = baseUrl.replace(/\/+$/, '');
+  let base = baseUrl;
+  while (base.endsWith('/')) base = base.slice(0, -1);
   const path = `${base}/donations/money/${kind}/${encodeURIComponent(orgId)}`;
   return kind === 'donate' && listingId ? `${path}?listingId=${encodeURIComponent(listingId)}` : path;
 }

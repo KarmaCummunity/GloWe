@@ -69,7 +69,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
       };
     }
 
-    (async () => {
+    void (async () => {
       try {
         const { session } = await getRestoreSessionUseCase().execute();
         const devSession = await tryDevAutoSignIn(session);
@@ -90,7 +90,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   }, [setSession]);
 
   useEffect(() => {
-    if (!isLoading) SplashScreen.hideAsync();
+    if (!isLoading) void SplashScreen.hideAsync();
   }, [isLoading]);
 
   // FR-AUTH-007 AC2: read users.onboarding_state once we know the user.
@@ -105,7 +105,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
     }
     let cancelled = false;
     setOnboardingBootstrapError(false);
-    (async () => {
+    void (async () => {
       try {
         const boot = await getOnboardingBootstrap(session.userId);
         if (!cancelled) {
@@ -139,7 +139,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   useEffect(() => {
     if (isDevGhostSessionEnabled()) return;
     if (session?.userId) {
-      useChatStore.getState().startInboxSub(session.userId, container.chatRepo, container.chatRealtime);
+      void useChatStore.getState().startInboxSub(session.userId, container.chatRepo, container.chatRealtime);
     } else {
       useChatStore.getState().resetOnSignOut();
       queryClient.clear();
@@ -154,7 +154,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   useEffect(() => {
     if (!session?.userId || isDevGhostSessionEnabled()) return;
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         await getReconcileAuthProfileMetadataUseCase().execute({ userId: session.userId });
       } catch {
