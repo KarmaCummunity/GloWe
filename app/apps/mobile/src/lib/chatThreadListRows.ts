@@ -17,7 +17,7 @@ function localCalendarDayKey(iso: string): string {
 export function buildChatThreadRowsNewestFirst(messages: readonly OptimisticMessage[]): ChatThreadListRow[] {
   const out: ChatThreadListRow[] = [];
   for (let i = 0; i < messages.length; i += 1) {
-    const cur = messages[i];
+    const cur = messages[i]!;
     out.push({ rowType: 'message', message: cur });
     const next = messages[i + 1];
     if (!next) continue;

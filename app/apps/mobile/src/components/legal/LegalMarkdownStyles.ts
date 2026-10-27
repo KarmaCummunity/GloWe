@@ -1,4 +1,4 @@
-import { StyleSheet, } from 'react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 import { typography, spacing, type ColorPalette } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
@@ -34,7 +34,7 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       color: colors.textPrimary,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     paragraph: {
       ...typography.body,
       color: colors.textPrimary,
@@ -42,7 +42,7 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
       lineHeight: 26,
-    },
+    } as TextStyle,
     heading1: {
       ...typography.h2,
       color: colors.textPrimary,
@@ -50,7 +50,7 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       marginBottom: spacing.md,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     heading2: {
       ...typography.h3,
       color: colors.textPrimary,
@@ -58,7 +58,7 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       marginBottom: spacing.sm,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     heading3: {
       ...typography.h4,
       color: colors.textPrimary,
@@ -66,40 +66,40 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       marginBottom: spacing.sm,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     link: {
       color: colors.primary,
       textDecorationLine: 'underline',
       writingDirection: 'rtl',
-    },
+    } as TextStyle,
     list_item: {
       flexDirection: rowDirectionStart,
       marginBottom: spacing.sm,
-    },
+    } as ViewStyle,
     bullet_list_icon: {
       ...typography.body,
       color: colors.textSecondary,
       marginStart: 0,
       marginEnd: spacing.sm,
       writingDirection: 'rtl',
-    },
+    } as TextStyle,
     ordered_list_icon: {
       ...typography.body,
       color: colors.textSecondary,
       marginStart: 0,
       marginEnd: spacing.sm,
       writingDirection: 'rtl',
-    },
+    } as TextStyle,
     bullet_list_content: {
       flex: 1,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     ordered_list_content: {
       flex: 1,
       writingDirection: 'rtl',
       textAlign: rtlTextAlignStart,
-    },
+    } as TextStyle,
     blockquote: {
       backgroundColor: colors.surfaceRaised,
       // Logical border: lands on inline-start (right in RTL) on both platforms.
@@ -109,16 +109,16 @@ export function makeLegalMarkdownStyles(colors: ColorPalette) {
       paddingVertical: spacing.sm,
       marginVertical: spacing.sm,
       borderRadius: 6,
-    },
+    } as ViewStyle,
     strong: {
       ...typography.body,
       fontWeight: '700',
       writingDirection: 'rtl',
-    },
+    } as TextStyle,
     em: {
       ...typography.body,
       fontStyle: 'italic',
       writingDirection: 'rtl',
-    },
+    } as TextStyle,
   });
 }

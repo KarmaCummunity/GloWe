@@ -2,7 +2,7 @@
 // FR-ADMIN-019 — admin users search screen.
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { type AdminPermission, hasPermission } from '@kc/domain';
+import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminUserSearch } from '../../../src/hooks/useAdminContentSearch';
@@ -34,7 +34,7 @@ export default function UsersScreen() {
   }), [query, statusFilter]);
 
   const result = useAdminUserSearch(filters);
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
 
   if (rolesLoading) {
     return <View style={styles.center}><Text>{L.admin.content.loading}</Text></View>;

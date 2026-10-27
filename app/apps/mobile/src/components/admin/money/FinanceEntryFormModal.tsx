@@ -67,7 +67,7 @@ export function FinanceEntryFormModal({ initial, onClose, onSaved }: FinanceEntr
     onSuccess: () => onSaved(),
     onError:   (err) => {
       const code = isFinanceLedgerError(err) ? err.code : 'unknown';
-      setErrorMsg(t.errors[code] ?? t.errors.unknown);
+      setErrorMsg(t.errors[code as keyof typeof t.errors] ?? t.errors.unknown);
     },
   });
 

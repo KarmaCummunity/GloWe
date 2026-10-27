@@ -64,7 +64,7 @@ export function normalizeQuietTime(raw: string): string | null {
     h = Number(colon[1]);
     m = Number(colon[2]);
   } else if (digits) {
-    const d = digits[1];
+    const d = digits[1]!;
     if (d.length <= 2) {
       h = Number(d);
       m = 0;

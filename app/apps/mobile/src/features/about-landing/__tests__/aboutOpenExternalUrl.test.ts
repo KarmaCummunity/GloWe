@@ -24,7 +24,7 @@ describe('aboutOpenExternalUrl', () => {
 
   it('calls Linking.openURL on ios', async () => {
     (Platform as { OS: typeof Platform.OS }).OS = 'ios';
-    const spy = vi.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const spy = vi.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
     await aboutOpenExternalUrl('https://example.com', 'err');
     expect(spy).toHaveBeenCalledWith('https://example.com');
   });

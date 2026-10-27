@@ -16,5 +16,5 @@ export function mapEditProfileSaveError(code: string): string {
     invalid_city: 'errors.profile.invalid_city',
   };
   const match = Object.keys(keys).find((k) => code.includes(k));
-  return match ? i18n.t(keys[match]) : code;
+  return match ? i18n.t(keys[match]!) : code;
 }

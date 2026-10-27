@@ -5,7 +5,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, useTheme } from '@kc/ui';
-import { hasPermission, } from '@kc/domain';
+import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { openExternalUrl } from '../../../utils/openExternalUrl';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ export function DonationLinkReportedBubble({
   handledByLaterAction,
 }: SystemMessageBubbleProps) {
   const { roles } = useAdminRoles();
-  const canViewReports = hasPermission(roles, 'reports.view');
+  const canViewReports = hasPermission(roles as readonly AdminRole[], 'reports.view');
   const styles = useDonationLinkReportedBubbleStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();

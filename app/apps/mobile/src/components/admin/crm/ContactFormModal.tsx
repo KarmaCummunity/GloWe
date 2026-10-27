@@ -47,7 +47,7 @@ export function ContactFormModal({ initial, onClose, onSaved }: ContactFormModal
     onSuccess: () => onSaved(),
     onError:   (err) => {
       const code = isCrmContactError(err) ? err.code : 'unknown';
-      setErrorMsg(t.errors[code] ?? t.errors.unknown);
+      setErrorMsg(t.errors[code as keyof typeof t.errors] ?? t.errors.unknown);
     },
   });
 

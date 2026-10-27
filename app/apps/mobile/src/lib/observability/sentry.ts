@@ -13,7 +13,7 @@
 import Constants from 'expo-constants';
 
 const DSN: string | undefined =
-  (process.env.EXPO_PUBLIC_SENTRY_DSN) ??
+  (process.env.EXPO_PUBLIC_SENTRY_DSN as string | undefined) ??
   (Constants.expoConfig?.extra as { sentryDsn?: string } | undefined)?.sentryDsn;
 
 type Env = 'dev' | 'prod';
@@ -25,7 +25,7 @@ type Env = 'dev' | 'prod';
 function detectEnv(): Env {
   const profileEnv = process.env.EXPO_PUBLIC_ENVIRONMENT;
   if (profileEnv) return profileEnv === 'production' ? 'prod' : 'dev';
-  const channel = (Constants.expoConfig?.updates)
+  const channel = (Constants.expoConfig?.updates as { requestHeaders?: Record<string, string> } | undefined)
     ?.requestHeaders?.['expo-channel-name'];
   return channel === 'production' ? 'prod' : 'dev';
 }

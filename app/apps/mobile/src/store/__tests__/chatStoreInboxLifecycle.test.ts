@@ -157,7 +157,7 @@ describe('runStartInboxSub', () => {
 
     await runStartInboxSub(api, noopUnsub, 'u_me', makeRepo(), realtime, qc);
     qc.removeQueries({ queryKey: chatInboxQueryKey('u_me') });
-    handlers!.onChatChanged({ chatId: 'c_1' });
+    handlers!.onChatChanged({ chatId: 'c_1' } as Chat);
 
     expect(invalidate).toHaveBeenCalledWith({ queryKey: chatInboxQueryKey('u_me') });
   });

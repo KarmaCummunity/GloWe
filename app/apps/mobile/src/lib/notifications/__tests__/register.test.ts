@@ -68,7 +68,7 @@ describe('registerCurrentDeviceIfPermitted', () => {
       pushToken: 'ExponentPushToken[xyz]',
     });
     // Platform in vitest (jsdom-via-react-native-web) is 'web'.
-    expect(['ios', 'android', 'web']).toContain(registered[0].platform);
+    expect(['ios', 'android', 'web']).toContain(registered[0]!.platform);
   });
 
   it('is a no-op on a simulator/emulator (Device.isDevice === false)', async () => {

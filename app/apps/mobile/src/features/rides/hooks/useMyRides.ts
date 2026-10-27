@@ -55,7 +55,7 @@ export function useMyRides(): UseMyRidesResult {
     all: rides,
     isLoading: query.isLoading,
     isRefetching: query.isFetching && !query.isLoading,
-    error: (query.error) ?? null,
+    error: (query.error as Error | null) ?? null,
     refetch: async () => {
       await query.refetch();
     },

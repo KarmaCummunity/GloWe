@@ -51,7 +51,7 @@ describe('decideTapAction', () => {
       kind: 'drop',
     });
     expect(
-      decideTapAction({ kind: 'chat_message', chat_id: 'not-a-uuid' }, READY),
+      decideTapAction({ kind: 'chat_message', chat_id: 'not-a-uuid' } as Partial<PushData>, READY),
     ).toEqual({ kind: 'drop' });
   });
 

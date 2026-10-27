@@ -171,7 +171,7 @@ export function SearchablePicker<T>(props: SearchablePickerProps<T>) {
                 </View>
               ) : (
                 <KcFlashList
-                  data={filtered}
+                  data={filtered as T[]}
                   keyExtractor={(item, idx) => `${renderRow(item).id}-${idx}`}
                   keyboardShouldPersistTaps="handled"
                   ListHeaderComponent={

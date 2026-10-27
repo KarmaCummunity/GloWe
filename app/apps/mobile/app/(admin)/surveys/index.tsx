@@ -4,7 +4,7 @@
 // "Feedback" (free-text entries). RBAC-gated by surveys.view.
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { type AdminPermission, hasPermission } from '@kc/domain';
+import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import {
@@ -31,7 +31,7 @@ export default function AdminSurveysScreen() {
   const [tab, setTab] = useState<Tab>('surveys');
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
-  const can = (perm: AdminPermission) => hasPermission(roles, perm);
+  const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
   const allowed = can('surveys.view');
 
   const overview = useAdminSurveyOverview(allowed && tab === 'surveys');
