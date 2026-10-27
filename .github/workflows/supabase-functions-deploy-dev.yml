@@ -61,5 +61,5 @@ jobs:
         run: |
           set -euo pipefail
           for f in $FUNCTIONS; do
-            supabase functions deploy "$f" --project-ref "$KC_DEV_REF"
+            supabase functions deploy "$f" --project-ref "$KC_DEV_REF" --use-api
           done
