@@ -14,7 +14,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useProfileClosedPosts } from '../../../src/hooks/useProfileClosedPosts';
 import { useProfileTabCounts } from '../../../src/hooks/useProfileTabCounts';
-import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';
 import { useTheme } from '@kc/ui';
 import { ProfileHeader } from '../../../src/components/profile/ProfileHeader';
 import { ProfileStatsRow } from '../../../src/components/profile/ProfileStatsRow';
@@ -26,7 +25,10 @@ import { useAuthStore } from '../../../src/store/authStore';
 import { getUserRepo } from '../../../src/services/userComposition';
 import { getMyPostsUseCase } from '../../../src/services/postsComposition';
 import { getGetFollowStateUseCase } from '../../../src/services/followComposition';
-import { useOptimisticFollowAction, type FollowActionError } from '../../../src/hooks/useOptimisticFollowAction';
+import {
+  useOptimisticFollowAction,
+  type FollowActionError,
+} from '../../../src/hooks/useOptimisticFollowAction';
 import { useOtherProfileActions } from '../../../src/hooks/useOtherProfileActions';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -36,9 +38,13 @@ import { ProfileOverflowMenu } from '../../../src/components/profile/ProfileOver
 import { formatUserLocationLine } from '../../../src/lib/formatUserLocationLine';
 import { profilePostOwnerFromUser } from '../../../src/lib/profilePostOwnerContext';
 import { getRestoredProfileTab, persistProfileTab } from '../../../src/lib/profileTabSession';
-import { useOtherProfileScreenStyles } from '../../../src/components/profile/otherProfileScreen.styles';
+import {
+  useOtherProfileScreenStyles,
+} from '../../../src/components/profile/otherProfileScreen.styles';
 import { nativeStackHeaderRightIconOnly } from '../../../src/navigation/nativeHeaderIconOnly';
-import { ProfileMarketplaceListings } from '../../../src/components/profile/ProfileMarketplaceListings';
+import {
+  ProfileMarketplaceListings,
+} from '../../../src/components/profile/ProfileMarketplaceListings';
 
 export default function OtherProfileScreen() {
   const styles = useOtherProfileScreenStyles();

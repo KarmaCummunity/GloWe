@@ -1,11 +1,15 @@
 // app/apps/mobile/app/(admin)/time/index.tsx
 // V2-ADMIN-TIME-10 — V2 §13.10 Admin Time (timesheets).
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  hasPermission, isTimesheetError,
-  type AdminPermission, type AdminRole, type TimesheetEntry, type TimesheetStatus,
+  hasPermission,
+  isTimesheetError,
+  type AdminPermission,
+  type AdminRole,
+  type TimesheetEntry,
+  type TimesheetStatus,
 } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAuthStore } from '../../../src/store/authStore';

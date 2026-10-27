@@ -2,7 +2,7 @@
 // FR-ADMIN-025 — pick a direct manager for a grant from the same org (or detach
 // to a tree root). Cycle/scope rules are enforced server-side; this list only
 // excludes the grant itself.
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text } from 'react-native';
 import type { OrgTreeMember } from '@kc/domain';
 import { makeUseStyles, radius, useTheme } from '@kc/ui';
 import { AvatarInitials } from '../../AvatarInitials';

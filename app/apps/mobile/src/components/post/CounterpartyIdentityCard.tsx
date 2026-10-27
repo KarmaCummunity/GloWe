@@ -3,7 +3,6 @@ import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, PlatformSwitch, radius, spacing, typography } from '@kc/ui';
 import {
-  crossAxisAlignStart,
   layoutDirectionStyle,
   layoutWritingDirectionStyle,
   textAlignStart,

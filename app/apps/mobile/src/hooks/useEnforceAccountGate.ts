@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, type Href } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { container, supabase } from '../lib/container';
+import { container } from '../lib/container';
 import { useAuthStore } from '../store/authStore';
 import { setOnForbiddenCallback } from '@kc/infrastructure-supabase';
 import { performFullSignOut } from '../services/performFullSignOut';
