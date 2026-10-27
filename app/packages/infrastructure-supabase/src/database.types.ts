@@ -7756,6 +7756,21 @@ export type Database = {
           },
         ]
       }
+      whatsapp_inbound_claims: {
+        Row: {
+          claimed_at: string
+          message_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          message_id: string
+        }
+        Update: {
+          claimed_at?: string
+          message_id?: string
+        }
+        Relationships: []
+      }
       whatsapp_match_consent: {
         Row: {
           opted_in: boolean
@@ -9047,6 +9062,10 @@ export type Database = {
         Args: { p_enabled: boolean }
         Returns: Json
       }
+      api_whatsapp_claim_inbound: {
+        Args: { p_message_id: string }
+        Returns: boolean
+      }
       api_whatsapp_handle_keyword: {
         Args: { p_record_id?: string; p_text: string; p_wa_id: string }
         Returns: Json
@@ -9122,6 +9141,10 @@ export type Database = {
       api_whatsapp_rate_counters_prune: {
         Args: { p_older_than?: string }
         Returns: number
+      }
+      api_whatsapp_release_inbound: {
+        Args: { p_message_id: string }
+        Returns: undefined
       }
       attach_listing_media: {
         Args: { p_listing_id: string; p_storage_paths: string[] }
