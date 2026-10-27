@@ -10,7 +10,12 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import type { DonationCategorySlug, DonationLink } from '@kc/domain';
+import {
+  type DonationCategorySlug,
+  type DonationLink,
+  hasPermission,
+  type AdminRole,
+} from '@kc/domain';
 import { useTheme } from '@kc/ui';
 import { useAuthStore } from '../store/authStore';
 import { AddDonationLinkModal } from './AddDonationLinkModal';
@@ -18,7 +23,6 @@ import { useDonationLinksListStyles } from './DonationLinksList.styles';
 import { DonationLinkRow } from './DonationLinkRow';
 import { DonationLinkRowMenu } from './DonationLinkRowMenu';
 import { useDonationLinkActions } from './useDonationLinkActions';
-import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../hooks/useAdminRoles';
 import { useDonationLinksListState } from './useDonationLinksListState';
 

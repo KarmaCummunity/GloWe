@@ -1,6 +1,6 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, TextInput, Platform } from 'react-native';
+import { View, TextInput, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { ListRenderItem } from '@shopify/flash-list';

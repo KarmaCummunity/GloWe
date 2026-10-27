@@ -4,22 +4,19 @@
 // FR-AUTH-010 AC3 (Skip preserves location).
 // FR-CHAT-001: inbox subscription started on sign-in, torn down on sign-out.
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text } from 'react-native';
-import { spacing, typography } from '@kc/ui';
+import { Pressable, Text, ActivityIndicator, Image, View } from 'react-native';
+import { spacing, typography, useTheme } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, View } from 'react-native';
 import { useRouter, useSegments, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTheme } from '@kc/ui';
 import {
   getRestoreSessionUseCase,
   subscribeToSession,
 } from '../services/authComposition';
 import { tryDevAutoSignIn } from '../services/devAutoSignIn';
-import { getDevGhostSession } from '../services/devGhostSession';
+import { getDevGhostSession, isDevGhostSessionEnabled } from '../services/devGhostSession';
 import { getOnboardingBootstrap, getReconcileAuthProfileMetadataUseCase } from '../services/userComposition';
-import { isDevGhostSessionEnabled } from '../services/devGhostSession';
 import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
 import { usePostDraftStore } from '../store/postDraftStore';
