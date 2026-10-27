@@ -71,6 +71,10 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
       ),
       sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || undefined,
       posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY?.trim() || undefined,
+      // EAS project id is injected from the KC_EAS_PROJECT_ID repo variable (CI) or local env.
+      ...(process.env.EAS_PROJECT_ID?.trim()
+        ? { eas: { ...(config.extra?.eas ?? {}), projectId: process.env.EAS_PROJECT_ID.trim() } }
+        : {}),
     },
   } as ExpoConfig;
 }
