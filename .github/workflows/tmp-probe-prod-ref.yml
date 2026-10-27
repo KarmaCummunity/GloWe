@@ -1,0 +1,30 @@
+name: TMP probe prod ref (delete after use)
+on:
+  pull_request:
+    paths: ['.github/workflows/tmp-probe-prod-ref.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    environment: supabase-prod
+    env:
+      REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - run: |
+          echo "ref_length=${#REF}"
+          for c in kdqtbdbzwvlugkhonexg slxijdfvinbjmrsfgbzx enbqriuxvvuontiwslun roeefqpdbftlndzsvhfj; do
+            if [ "$REF" = "$c" ]; then echo "MATCH $c"; else echo "no-match $c"; fi
+          done
+          for c in kdqtbdbzwvlugkhonexg slxijdfvinbjmrsfgbzx; do
+            echo "$c auth-health HTTP $(curl -s -o /dev/null -w '%{http_code}' -m 15 https://$c.supabase.co/auth/v1/health)"
+          done
+      - name: Public web bundle supabase host
+        run: |
+          for site in https://karmacommunity.org https://karma-community-kc.com; do
+            html=$(curl -sL -m 20 "$site/" || true)
+            echo "$site html_bytes=${#html}"
+            for js in $(echo "$html" | grep -oE '/_expo/static/js/[^"]+\.js' | head -3); do
+              curl -sL -m 30 "$site$js" | grep -oE '[a-z]{20}\.supabase\.co' | sort | uniq -c
+            done
+          done
