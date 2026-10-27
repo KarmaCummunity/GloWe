@@ -37,7 +37,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, privacyMode: 'Private' as const },
+      target: { ...baseRaw.target, privacyMode: 'Private' as const },
     };
     const uc = new GetFollowStateUseCase(repo);
     const out = await uc.execute({ viewerId: 'u_a', targetUserId: 'u_b' });
@@ -48,7 +48,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, privacyMode: 'Private' as const },
+      target: { ...baseRaw.target, privacyMode: 'Private' as const },
       pendingRequestExists: true,
     };
     const uc = new GetFollowStateUseCase(repo);
@@ -60,7 +60,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, privacyMode: 'Private' as const },
+      target: { ...baseRaw.target, privacyMode: 'Private' as const },
       cooldownUntil: '2026-06-01T00:00:00Z',
     };
     const uc = new GetFollowStateUseCase(repo);
@@ -82,7 +82,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, accountStatus: 'suspended_admin' },
+      target: { ...baseRaw.target, accountStatus: 'suspended_admin' },
       followingExists: true,
     };
     const uc = new GetFollowStateUseCase(repo);
@@ -95,7 +95,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, privacyMode: 'Private', accountStatus: 'pending_verification' },
+      target: { ...baseRaw.target, privacyMode: 'Private', accountStatus: 'pending_verification' },
       pendingRequestExists: true,
     };
     const uc = new GetFollowStateUseCase(repo);
@@ -108,7 +108,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, accountStatus: 'suspended_admin' },
+      target: { ...baseRaw.target, accountStatus: 'suspended_admin' },
     };
     const uc = new GetFollowStateUseCase(repo);
     const out = await uc.execute({ viewerId: 'u_a', targetUserId: 'u_b' });
@@ -120,7 +120,7 @@ describe('GetFollowStateUseCase', () => {
     const repo = new FollowFakeUserRepository();
     repo.followStateRaw = {
       ...baseRaw,
-      target: { ...baseRaw.target!, privacyMode: 'Private', accountStatus: 'pending_verification' },
+      target: { ...baseRaw.target, privacyMode: 'Private', accountStatus: 'pending_verification' },
     };
     const uc = new GetFollowStateUseCase(repo);
     const out = await uc.execute({ viewerId: 'u_a', targetUserId: 'u_b' });
