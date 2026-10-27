@@ -1,3 +1,4 @@
+import '../src/lib/polyfills';
 import { initSentry } from '../src/lib/observability/sentry';
 import { initPosthog } from '../src/lib/observability/posthog';
 void initSentry();
