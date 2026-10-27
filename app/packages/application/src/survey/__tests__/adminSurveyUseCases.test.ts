@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type {
   AdminSurveyOverviewItem,
-  AdminSurveyResults,
   AdminFeedbackEntry,
 } from '@kc/domain';
 import type { ISurveyAdminRepository } from '../../ports/ISurveyAdminRepository';
@@ -19,7 +18,7 @@ function makeRepo(over: Partial<ISurveyAdminRepository> = {}): ISurveyAdminRepos
       respondentCount: 0,
       questions: [],
       respondents: [],
-    } as AdminSurveyResults)),
+    })),
     listFeedback: vi.fn(async () => [] as AdminFeedbackEntry[]),
     ...over,
   };

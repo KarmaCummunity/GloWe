@@ -52,15 +52,15 @@ jobs:
           echo "ready=true" >> "$GITHUB_OUTPUT"
           echo "All Play internal secrets present."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         if: steps.preflight.outputs.ready == 'true'
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         if: steps.preflight.outputs.ready == 'true'
         with:
           package_json_file: app/package.json
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.preflight.outputs.ready == 'true'
         with:
           node-version: "20"

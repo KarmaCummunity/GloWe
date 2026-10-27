@@ -4,6 +4,13 @@
 
 const DEFAULT_WEB_BASE_URL = 'https://karma-community-kc.com';
 
+/** Strip trailing `/` characters without a backtracking regex. */
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '/') end -= 1;
+  return value.slice(0, end);
+}
+
 export function buildPostShareUrl(postId: string, webBaseUrl: string): string {
   if (!postId || !postId.trim()) {
     throw new Error('buildPostShareUrl: postId is required');
@@ -11,7 +18,7 @@ export function buildPostShareUrl(postId: string, webBaseUrl: string): string {
   if (!webBaseUrl || !webBaseUrl.trim()) {
     throw new Error('buildPostShareUrl: webBaseUrl is required');
   }
-  const trimmed = webBaseUrl.replace(/\/+$/, '');
+  const trimmed = trimTrailingSlashes(webBaseUrl);
   return `${trimmed}/post/${encodeURIComponent(postId.trim())}`;
 }
 
@@ -22,7 +29,7 @@ export function buildPostShareUrl(postId: string, webBaseUrl: string): string {
 export function resolveWebBaseUrl(env: { EXPO_PUBLIC_WEB_BASE_URL?: string | undefined }): string {
   const raw = env.EXPO_PUBLIC_WEB_BASE_URL;
   if (typeof raw === 'string' && raw.trim() !== '') {
-    return raw.trim().replace(/\/+$/, '');
+    return trimTrailingSlashes(raw.trim());
   }
   return DEFAULT_WEB_BASE_URL;
 }

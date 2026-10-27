@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type {
-  AdminAuditRow, AdminPostSearchResult, AdminSearchPage, AdminUserSearchResult,
+  AdminSearchPage, AdminUserSearchResult,
 } from '@kc/domain';
 import { AdminSearchUsersUseCase } from '../AdminSearchUsersUseCase';
 import { AdminSearchPostsUseCase } from '../AdminSearchPostsUseCase';
@@ -9,9 +9,9 @@ import type { IAdminContentRepository } from '../IAdminContentRepository';
 
 function fakeRepo(overrides: Partial<IAdminContentRepository> = {}): IAdminContentRepository {
   return {
-    searchUsers: vi.fn(async () => ({ rows: [], totalCount: 0 } as AdminSearchPage<AdminUserSearchResult>)),
-    searchPosts: vi.fn(async () => ({ rows: [], totalCount: 0 } as AdminSearchPage<AdminPostSearchResult>)),
-    searchAudit: vi.fn(async () => ({ rows: [], totalCount: 0 } as AdminSearchPage<AdminAuditRow>)),
+    searchUsers: vi.fn(async () => ({ rows: [], totalCount: 0 })),
+    searchPosts: vi.fn(async () => ({ rows: [], totalCount: 0 })),
+    searchAudit: vi.fn(async () => ({ rows: [], totalCount: 0 })),
     ...overrides,
   };
 }

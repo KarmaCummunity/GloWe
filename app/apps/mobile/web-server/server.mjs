@@ -20,6 +20,14 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/** Strip trailing `/` characters without a backtracking regex. */
+function trimTrailingSlashes(value) {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '/') end -= 1;
+  return value.slice(0, end);
+}
+
+
 const here = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = process.env.WEB_DIST_DIR ?? resolve(here, 'dist');
 
@@ -57,7 +65,7 @@ function truncate(s, max) {
 
 function publicMediaUrl(path) {
   const trimmed = path.startsWith('/') ? path.slice(1) : path;
-  return `${SUPABASE_URL.replace(/\/+$/, '')}/storage/v1/object/public/${STORAGE_BUCKET}/${trimmed}`;
+  return `${trimTrailingSlashes(SUPABASE_URL)}/storage/v1/object/public/${STORAGE_BUCKET}/${trimmed}`;
 }
 
 function renderOgHtml({ title, description, imageUrl, canonicalUrl }) {
@@ -105,7 +113,7 @@ async function fetchPostForShare(postId, fetchImpl) {
   if (!POST_UUID.test(postId)) return null;
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
   const url =
-    `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/posts` +
+    `${trimTrailingSlashes(SUPABASE_URL)}/rest/v1/posts` +
     `?select=post_id,title,description,visibility,status,media_assets(path,ordinal)` +
     `&post_id=eq.${encodeURIComponent(postId)}` +
     `&limit=1`;
