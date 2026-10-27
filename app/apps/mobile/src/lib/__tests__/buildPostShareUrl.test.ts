@@ -48,3 +48,17 @@ describe('resolveWebBaseUrl', () => {
     expect(resolveWebBaseUrl({ EXPO_PUBLIC_WEB_BASE_URL: '   ' })).toBe('https://karma-community-kc.com');
   });
 });
+
+describe('trailing slash handling', () => {
+  it('strips any number of trailing slashes', () => {
+    expect(buildPostShareUrl('p1', 'https://x.test///')).toBe('https://x.test/post/p1');
+    expect(resolveWebBaseUrl({ EXPO_PUBLIC_WEB_BASE_URL: ' https://y.test// ' })).toBe('https://y.test');
+  });
+
+  it('handles long slash-only runs in linear time', () => {
+    const base = `https://x.test${'/'.repeat(100_000)}a`;
+    const t0 = Date.now();
+    expect(buildPostShareUrl('p', base)).toBe(`${base}/post/p`);
+    expect(Date.now() - t0).toBeLessThan(500);
+  });
+});
