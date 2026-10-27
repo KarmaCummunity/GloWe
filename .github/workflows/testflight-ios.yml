@@ -7,6 +7,8 @@ name: TestFlight iOS
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ci/testflight-run]
 
 concurrency:
   group: testflight-ios
@@ -95,6 +97,28 @@ jobs:
           umask 077
           printf '%s\n' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc-api-key.p8"
 
+      - name: Create signing credentials via ASC API (runner only)
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc-api-key.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          KC_IOS_DIST_P12_B64: ${{ secrets.KC_IOS_DIST_P12_B64 }}
+          KC_IOS_DIST_P12_PASSWORD: ${{ secrets.KC_IOS_DIST_P12_PASSWORD }}
+          KC_IOS_DIST_CERT_ID: ${{ vars.KC_IOS_DIST_CERT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          sd="$RUNNER_TEMP/sign"; mkdir -p "$sd"
+          printf '%s' "$KC_IOS_DIST_P12_B64" | base64 --decode > "$sd/dist.p12"
+          gem list -i fastlane >/dev/null || sudo gem install fastlane --no-document >/dev/null
+          ruby -rspaceship -e1 2>/dev/null || sudo gem install fastlane --no-document >/dev/null
+          ruby "$GITHUB_WORKSPACE/.github/scripts/ios-signing.rb" "$sd"
+          pw="$KC_IOS_DIST_P12_PASSWORD"
+          jq -n --arg p "$sd/kc.mobileprovision" --arg c "$sd/dist.p12" --arg pw "$pw" \
+            '{ios:{provisioningProfilePath:$p,distributionCertificate:{path:$c,password:$pw}}}' > credentials.json
+          tmp="$(mktemp)"; jq '.build.production.ios.credentialsSource = "local"' eas.json > "$tmp" && mv "$tmp" eas.json
+
       - name: Build iOS locally & upload to TestFlight
         if: steps.preflight.outputs.ready == 'true'
         env:
@@ -117,10 +141,10 @@ jobs:
           [ -n "${SENTRY_AUTH_TOKEN:-}" ] || export SENTRY_DISABLE_AUTO_UPLOAD=true
           eas build --platform ios --profile production --local --non-interactive --output ./build-kc.ipa
           # eas.json keeps a placeholder (public repo); inject the real ASC app id on the runner only.
-          tmp="$(mktemp)"; jq --arg id "$ASC_APP_ID" '.submit.production.ios.ascAppId = $id' eas.json > "$tmp" && mv "$tmp" eas.json
+          tmp="$(mktemp)"; jq --arg id "$ASC_APP_ID" --arg k "$EXPO_ASC_API_KEY_PATH" --arg kid "$EXPO_ASC_KEY_ID" --arg iss "$EXPO_ASC_ISSUER_ID" '.submit.production.ios += {ascAppId: $id, ascApiKeyPath: $k, ascApiKeyId: $kid, ascApiKeyIssuerId: $iss}' eas.json > "$tmp" && mv "$tmp" eas.json
           eas submit --platform ios --profile production --path ./build-kc.ipa --non-interactive
           echo "EAS remote iOS buildNumber: $(eas build:version:get -p ios 2>/dev/null | grep -oE '[0-9]+$' || echo unknown)"
 
       - name: Remove key file
         if: always() && steps.preflight.outputs.ready == 'true'
-        run: rm -f "$RUNNER_TEMP/asc-api-key.p8"
+        run: rm -rf "$RUNNER_TEMP/asc-api-key.p8" "$RUNNER_TEMP/sign" credentials.json
