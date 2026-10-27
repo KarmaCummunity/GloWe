@@ -26,6 +26,9 @@ drop policy if exists whatsapp_link_codes_service_all on public.whatsapp_link_co
 create policy whatsapp_link_codes_service_all on public.whatsapp_link_codes
   for all to service_role using (true) with check (true);
 alter table public.whatsapp_link_failures enable row level security;
+drop policy if exists whatsapp_link_failures_service_all on public.whatsapp_link_failures;
+create policy whatsapp_link_failures_service_all on public.whatsapp_link_failures
+  for all to service_role using (true) with check (true);
 revoke all on public.whatsapp_link_codes from anon, authenticated;
 revoke all on public.whatsapp_link_failures from anon, authenticated;
 
