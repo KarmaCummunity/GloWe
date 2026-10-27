@@ -37,7 +37,7 @@ describe('TriggerRideEmergencyUseCase', () => {
 
   it('accepts null coordinates when the user denied location permission', async () => {
     const input: TriggerRideEmergencyInput = { rideId: 'ride-2', lat: null, lng: null, note: null };
-    const trigger = vi.fn().mockResolvedValue({} as RideEmergencyEvent);
+    const trigger = vi.fn().mockResolvedValue({});
     const repo: IRideEmergencyRepository = { trigger, listForRide: vi.fn() };
 
     await new TriggerRideEmergencyUseCase(repo).execute(input);

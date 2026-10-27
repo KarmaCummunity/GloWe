@@ -41,7 +41,7 @@ export default function AuthCallbackScreen() {
       return;
     }
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const session = await exchangeOAuthCode(code);
         if (cancelled) return;

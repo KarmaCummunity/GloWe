@@ -17,7 +17,7 @@ function makeRepo(): IFinanceLedgerRepository & {
     upsert:  vi.fn(async () => 'id-1'),
     delete:  vi.fn(async () => undefined),
     summary: vi.fn(async () => []),
-  } as never;
+  };
 }
 
 describe('Finance ledger use cases — pass-throughs', () => {
@@ -29,7 +29,7 @@ describe('Finance ledger use cases — pass-throughs', () => {
 
   it('List forwards filters', async () => {
     const repo = makeRepo();
-    await new ListFinanceLedgerUseCase(repo).execute({ limit: 10 } as never);
+    await new ListFinanceLedgerUseCase(repo).execute({ limit: 10 });
     expect(repo.list).toHaveBeenCalledWith({ limit: 10 });
   });
 
@@ -46,7 +46,7 @@ describe('UpsertFinanceEntryUseCase', () => {
   it('rejects creation without a kind', async () => {
     const repo = makeRepo();
     await expect(
-      new UpsertFinanceEntryUseCase(repo).execute({ amountCents: 100 } as never),
+      new UpsertFinanceEntryUseCase(repo).execute({ amountCents: 100 }),
     ).rejects.toBeInstanceOf(FinanceLedgerError);
     expect(repo.upsert).not.toHaveBeenCalled();
   });

@@ -8,7 +8,7 @@
 | Concern | `main` (KC production) | `dev` (KC integration) | `staging` (KC pre-prod) |
 |---|---|---|---|
 | Git branch | `main` | `dev` | `staging` |
-| Supabase project | `slxijdfvinbjmrsfgbzx` | `roeefqpdbftlndzsvhfj` | `roeefqpdbftlndzsvhfj` |
+| Supabase project | `kdqtbdbzwvlugkhonexg` | `enbqriuxvvuontiwslun` | `enbqriuxvvuontiwslun` |
 | Hosting | Cloudflare Pages — `karma-community-kc.com` | Cloudflare Pages — `dev.karma-community.pages.dev` | Cloudflare Pages — `staging.karma-community.pages.dev` |
 | **Live product URL** | `https://karma-community-kc.com/` | `https://dev.karma-community.pages.dev/` | `https://staging.karma-community.pages.dev/` |
 | GitHub Actions env | `cloudflare-prod` | `cloudflare-dev` | `cloudflare-dev` |
@@ -33,7 +33,7 @@ All variables prefixed `EXPO_PUBLIC_*` are exposed to the client bundle by Expo'
 | Variable | `main` value | `dev` value | Where it's read |
 |---|---|---|---|
 | `EXPO_PUBLIC_ENVIRONMENT` | `production` | `development` | `apps/mobile/src/config/environment.ts` — drives the in-app dev banner |
-| `EXPO_PUBLIC_SUPABASE_URL` | `https://slxijdfvinbjmrsfgbzx.supabase.co` | `https://roeefqpdbftlndzsvhfj.supabase.co` | `packages/infrastructure-supabase/src/client.ts` |
+| `EXPO_PUBLIC_SUPABASE_URL` | `https://kdqtbdbzwvlugkhonexg.supabase.co` | `https://enbqriuxvvuontiwslun.supabase.co` | `packages/infrastructure-supabase/src/client.ts` |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | (publishable key for prod project) | (publishable key for dev project) | `packages/infrastructure-supabase/src/client.ts` |
 
 **Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by **Supabase Functions deploy**). Values: prod → `https://karma-community-kc.com`; dev → `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006`. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
@@ -78,7 +78,7 @@ Checklist in order:
 
 `.github/workflows/db-deploy.yml` trigger modes:
 
-- **Auto** — on push to `dev` or `main` when any of these paths change: `supabase/migrations/**`, `supabase/seed.sql`, `supabase/config.toml`, or the workflow file. Pending migrations are applied via `supabase db push` to the matching GitHub Environment: `dev` → `supabase-dev` (`roeefqpdbftlndzsvhfj`); `main` → `supabase-prod` (`slxijdfvinbjmrsfgbzx`). PRs must keep **CI — backend** (`apply migrations · rls · types · sql probes`) green before merge — it applies all migrations on a fresh local stack.
+- **Auto** — on push to `dev` or `main` when any of these paths change: `supabase/migrations/**`, `supabase/seed.sql`, `supabase/config.toml`, or the workflow file. Pending migrations are applied via `supabase db push` to the matching GitHub Environment: `dev` → `supabase-dev` (`enbqriuxvvuontiwslun`); `main` → `supabase-prod` (`kdqtbdbzwvlugkhonexg`). PRs must keep **CI — backend** (`apply migrations · rls · types · sql probes`) green before merge — it applies all migrations on a fresh local stack.
 - **Manual** — `workflow_dispatch` lets an operator target `supabase-prod` or `supabase-dev`. Defaults to dry-run; flip `apply` to true to push (useful for inspection, retries, or one-off applies).
 
 Concurrency group `db-deploy-<environment>` (with `cancel-in-progress: false`) ensures back-to-back migration pushes queue rather than race.

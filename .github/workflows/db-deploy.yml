@@ -68,10 +68,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install Supabase CLI
-        uses: supabase/setup-cli@v3
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
         with:
           # Pinned for deterministic CI. Bump intentionally with a separate PR
           # that re-runs DB validate/deploy against the new version.
@@ -106,18 +106,35 @@ jobs:
           echo "SUPABASE_PROJECT_REF length=${#SUPABASE_PROJECT_REF}"
           supabase --version
 
+      - name: Check project is active (skip cleanly if paused)
+        id: active
+        run: |
+          set -euo pipefail
+          status=$(curl -s -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF" | jq -r '.status // "UNKNOWN"')
+          echo "project status: $status"
+          if [ "$status" = "INACTIVE" ] || [ "$status" = "PAUSING" ]; then
+            echo "::warning::Supabase project is paused ($status); skipping DB deploy. Restore it and re-run this workflow to apply pending migrations."
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Link to remote project
+        if: steps.active.outputs.active == 'true'
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --yes
 
       - name: List pending migrations
+        if: steps.active.outputs.active == 'true'
         run: supabase migration list --linked --yes
 
       - name: Dry-run push (before apply)
         if: >-
-          github.event_name == 'push' ||
-          (github.event_name == 'workflow_dispatch' && inputs.apply)
+          steps.active.outputs.active == 'true' &&
+          (github.event_name == 'push' ||
+          (github.event_name == 'workflow_dispatch' && inputs.apply))
         run: supabase db push --dry-run --include-all --linked --yes
 
       - name: Push migrations to remote
-        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply) }}
+        if: ${{ steps.active.outputs.active == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply)) }}
         run: supabase db push --include-all --linked --yes
