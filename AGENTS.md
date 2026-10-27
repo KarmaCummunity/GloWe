@@ -42,3 +42,7 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 - [ ] After merge: verified on kc-dev / dev.karma-community.pages.dev
 
 Store builds (TestFlight / Play internal): see [`app/apps/mobile/README.md`](app/apps/mobile/README.md).
+
+## Migrations rule
+
+Every schema change must be a committed file in `supabase/migrations/NNNN_snake.sql`, applied only via `supabase db push` / the `DB deploy` workflow. **Never** use the Supabase MCP `apply_migration` tool on any KC project (dev or prod). The `CI — migration drift` workflow scans the dev ledger against the **dev** branch's files (pinned with `ref: dev`, since scheduled runs execute from `main`). See `CLAUDE.md` §9 and `docs/SSOT/OPERATOR_RUNBOOK.md` → "Migration application rules".
