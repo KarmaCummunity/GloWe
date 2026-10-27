@@ -1,0 +1,22 @@
+name: TMP probe token orgs (delete after use)
+on:
+  pull_request:
+    paths: ['.github/workflows/tmp-probe-orgs.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    strategy:
+      matrix:
+        env: [supabase-prod, supabase-dev]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.env }}
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - run: |
+          echo "env=${{ matrix.env }} token_len=${#SUPABASE_ACCESS_TOKEN}"
+          code=$(curl -s -o /tmp/o.json -w '%{http_code}' -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" https://api.supabase.com/v1/organizations)
+          echo "orgs HTTP $code"
+          jq -r '.[]? | "org " + .id + " " + .name' /tmp/o.json || true
+          curl -s -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" https://api.supabase.com/v1/projects | jq -r '.[]? | "project " + .id + " org=" + .organization_id + " " + .name + " " + .status' || true
