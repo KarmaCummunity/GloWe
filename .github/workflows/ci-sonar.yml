@@ -14,6 +14,8 @@
 name: CI — SonarCloud
 
 on:
+  push:
+    branches: [main, dev]
   pull_request:
     branches: [main, dev]
     types: [opened, synchronize, reopened, ready_for_review]
