@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Require DEV_WEB_URL
         env:
@@ -51,7 +51,7 @@ jobs:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
         run: node scripts/wait-for-url.mjs "${DEV_WEB_URL%/}/" 12 15000
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
 
@@ -67,7 +67,7 @@ jobs:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
         run: npm test
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: playwright-report
