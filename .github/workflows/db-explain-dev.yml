@@ -34,14 +34,14 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       KC_DEV_REF: enbqriuxvvuontiwslun
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Guard – kc-dev only
         run: |
           set -euo pipefail
           if [ "$SUPABASE_PROJECT_REF" != "$KC_DEV_REF" ]; then
             echo "::error::supabase-dev SUPABASE_PROJECT_REF is not kc-dev; refusing."; exit 1
           fi
-      - uses: supabase/setup-cli@v3
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
         with:
           version: 2.99.0
       - name: Install psql

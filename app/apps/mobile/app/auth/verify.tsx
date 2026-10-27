@@ -30,7 +30,7 @@ export default function AuthVerifyScreen() {
       return;
     }
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const { session } = await getVerifyEmailUseCase().execute({ tokenHash });
         if (cancelled) return;
