@@ -8,6 +8,8 @@ export function useReducedMotion(): boolean {
     let mounted = true;
     AccessibilityInfo.isReduceMotionEnabled().then((v) => {
       if (mounted) setReduced(v);
+    }, () => {
+      // Platform query failed — keep the default (motion allowed).
     });
     const sub = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',

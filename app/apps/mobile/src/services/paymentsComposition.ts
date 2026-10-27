@@ -23,8 +23,7 @@ import * as Crypto from 'expo-crypto';
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    return globalThis.window?.localStorage;
   }
   return AsyncStorage;
 }
@@ -33,12 +32,12 @@ let _repo: SupabasePaymentsRepository | null = null;
 let _provider: SandboxPaymentProvider | null = null;
 
 function repo() {
-  if (!_repo) _repo = new SupabasePaymentsRepository(getSupabaseClient({ storage: pickStorage() }));
+  _repo ??= new SupabasePaymentsRepository(getSupabaseClient({ storage: pickStorage() }));
   return _repo;
 }
 
 function provider() {
-  if (!_provider) _provider = new SandboxPaymentProvider(repo());
+  _provider ??= new SandboxPaymentProvider(repo());
   return _provider;
 }
 

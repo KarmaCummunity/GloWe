@@ -38,7 +38,7 @@ export const ridesKnowledgeRpcs = {
       p_radius_km: input.radiusKm ?? 15,
     });
     if (error) throw error;
-    return (data ?? []) as RideMatchRow[];
+    return (data ?? []);
   },
   async bookRideSeat(listingId: string, seats = 1) {
     const { data, error } = await getMarketplaceSupabaseClient().rpc('book_ride_seat', {

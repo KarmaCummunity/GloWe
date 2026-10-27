@@ -2,7 +2,7 @@
 //
 // Stand-in for the SECURITY DEFINER RPCs in 0139_ride_participants.sql. Models
 // only the invariants that the use cases need to drive — not full RLS.
-import type { RideParticipant, RideParticipantStatus } from '@kc/domain';
+import type { RideParticipant, } from '@kc/domain';
 import { RideParticipantError } from '@kc/domain';
 import type { IRideParticipantRepository } from '../../ports/IRideParticipantRepository';
 
@@ -92,7 +92,7 @@ export class FakeRideParticipantRepository implements IRideParticipantRepository
 
     const updated: RideParticipant = {
       ...row,
-      status: input.status as RideParticipantStatus,
+      status: input.status,
       decidedAt: new Date().toISOString(),
       decidedBy: this.callerId,
     };
