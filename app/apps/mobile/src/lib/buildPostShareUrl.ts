@@ -7,7 +7,7 @@ const DEFAULT_WEB_BASE_URL = 'https://karma-community-kc.com';
 /** Strip trailing `/` characters without a backtracking regex. */
 function trimTrailingSlashes(value: string): string {
   let end = value.length;
-  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  while (end > 0 && value[end - 1] === '/') end -= 1;
   return value.slice(0, end);
 }
 

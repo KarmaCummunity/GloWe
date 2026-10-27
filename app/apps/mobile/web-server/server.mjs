@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 /** Strip trailing `/` characters without a backtracking regex. */
 function trimTrailingSlashes(value) {
   let end = value.length;
-  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  while (end > 0 && value[end - 1] === '/') end -= 1;
   return value.slice(0, end);
 }
 
