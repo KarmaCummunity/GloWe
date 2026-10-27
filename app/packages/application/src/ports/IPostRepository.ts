@@ -1,5 +1,7 @@
-import type { Post, ProfileClosedPostsItem, ProfileClosedPostsListMode } from '@kc/domain';
 import type {
+  Post,
+  ProfileClosedPostsItem,
+  ProfileClosedPostsListMode,
   Address,
   Category,
   FeedSortOrder,
