@@ -13,6 +13,7 @@ function deps(overrides: Partial<Record<string, unknown>> = {}, calls: Call[] = 
       api_whatsapp_ingest_inbound: 'rec-1',
       api_whatsapp_handle_keyword: overrides.keyword ?? { action: null },
       api_whatsapp_queue_reply: 'out-1',
+      api_whatsapp_redeem_link_code: { status: overrides.linkStatus ?? 'linked' },
     };
     return Promise.resolve({ data: canned[fn] ?? null, error: null });
   };
@@ -105,4 +106,23 @@ Deno.test('load: 50 messages from one phone with a 20/min DB throttle → 30 dro
   }
   assertEquals(throttled, 30);
   assertEquals(calls.filter((c) => c.fn === 'api_whatsapp_ingest_inbound').length, 20);
+});
+
+Deno.test('#1090: a 6-digit code from WhatsApp is redeemed and answered', async () => {
+  const calls: Call[] = [];
+  const out = await (await post(createWebhookHandler(deps({}, calls)), metaBody('LINK 123456'))).json();
+  assertEquals(out.results[0].link_status, 'linked');
+  const redeem = calls.find((c) => c.fn === 'api_whatsapp_redeem_link_code')!;
+  assertEquals(redeem.args, { p_wa_id: '972500000001', p_code: '123456' });
+  const reply = calls.find((c) => c.fn === 'api_whatsapp_queue_reply')!;
+  assertEquals(String(reply.args.p_body).includes('linked'), true);
+});
+
+Deno.test('#1090: an invalid code gets the retry reply; plain text is not redeemed', async () => {
+  const calls: Call[] = [];
+  const out = await (await post(createWebhookHandler(deps({ linkStatus: 'invalid' }, calls)), metaBody('654321'))).json();
+  assertEquals(out.results[0].link_status, 'invalid');
+  const calls2: Call[] = [];
+  await post(createWebhookHandler(deps({}, calls2)), metaBody('I have 2 chairs'));
+  assertEquals(calls2.some((c) => c.fn === 'api_whatsapp_redeem_link_code'), false);
 });

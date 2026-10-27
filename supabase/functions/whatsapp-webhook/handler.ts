@@ -3,6 +3,7 @@
 // #938 (per-phone inbound throttle). Dependencies are injected so it is unit-testable.
 
 import { isKeywordAction, keywordReply, replyKind } from '../_shared/whatsapp/replies.ts';
+import { isLinkStatus, linkReply, parseLinkCode } from '../_shared/whatsapp/link.ts';
 import type { RpcFn } from '../_shared/whatsapp/sender.ts';
 
 export type WebhookDeps = {
@@ -48,6 +49,7 @@ export type MessageOutcome = {
   record_id: string | null;
   throttled?: boolean;
   keyword?: string;
+  link_status?: string;
   reply_id?: string | null;
 };
 
@@ -88,7 +90,10 @@ async function handleMessage(
   });
   if (kwErr) throw new Error(kwErr.message);
   const res = (kw ?? {}) as { action?: unknown; language?: string };
-  if (!isKeywordAction(res.action)) return outcome;
+  if (!isKeywordAction(res.action)) {
+    if (!outcome.throttled) await maybeRedeemLinkCode(deps, from, text, outcome);
+    return outcome;
+  }
 
   outcome.keyword = res.action;
   const { data: replyId, error: repErr } = await deps.rpc('api_whatsapp_queue_reply', {
@@ -99,6 +104,27 @@ async function handleMessage(
   if (repErr) throw new Error(repErr.message);
   outcome.reply_id = (replyId as string) ?? null;
   return outcome;
+}
+
+// #1090: "123456" / "LINK 123456" from WhatsApp links this number to the app account.
+async function maybeRedeemLinkCode(deps: WebhookDeps, from: string, text: string, outcome: MessageOutcome) {
+  const parsed = parseLinkCode(text);
+  if (!parsed) return;
+  const { data, error } = await deps.rpc('api_whatsapp_redeem_link_code', {
+    p_wa_id: from,
+    p_code: parsed.code,
+  });
+  if (error) throw new Error(error.message);
+  const status = (data as { status?: unknown } | null)?.status;
+  if (!isLinkStatus(status)) return;
+  outcome.link_status = status;
+  const { data: replyId, error: repErr } = await deps.rpc('api_whatsapp_queue_reply', {
+    p_wa_id: from,
+    p_body: linkReply(status, parsed.lang),
+    p_reply_kind: 'reply',
+  });
+  if (repErr) throw new Error(repErr.message);
+  outcome.reply_id = (replyId as string) ?? null;
 }
 
 export function createWebhookHandler(deps: WebhookDeps) {
