@@ -33,30 +33,30 @@ export function makeFakeUserRepo(seed: Record<string, Row> = {}): FakeUserRepo {
     };
   return {
     rows,
-    findById: notImpl('findById') as IUserRepository['findById'],
-    findByHandle: notImpl('findByHandle') as IUserRepository['findByHandle'],
-    getChatCounterpartyContact: notImpl('getChatCounterpartyContact') as IUserRepository['getChatCounterpartyContact'],
-    create: notImpl('create') as IUserRepository['create'],
-    update: notImpl('update') as IUserRepository['update'],
-    delete: notImpl('delete') as IUserRepository['delete'],
-    deleteAccountViaEdgeFunction: notImpl('deleteAccountViaEdgeFunction') as IUserRepository['deleteAccountViaEdgeFunction'],
-    follow: notImpl('follow') as IUserRepository['follow'],
-    unfollow: notImpl('unfollow') as IUserRepository['unfollow'],
-    isFollowing: notImpl('isFollowing') as IUserRepository['isFollowing'],
-    getFollowers: notImpl('getFollowers') as IUserRepository['getFollowers'],
-    getFollowing: notImpl('getFollowing') as IUserRepository['getFollowing'],
-    sendFollowRequest: notImpl('sendFollowRequest') as IUserRepository['sendFollowRequest'],
-    acceptFollowRequest: notImpl('acceptFollowRequest') as IUserRepository['acceptFollowRequest'],
-    rejectFollowRequest: notImpl('rejectFollowRequest') as IUserRepository['rejectFollowRequest'],
-    cancelFollowRequest: notImpl('cancelFollowRequest') as IUserRepository['cancelFollowRequest'],
+    findById: notImpl('findById'),
+    findByHandle: notImpl('findByHandle'),
+    getChatCounterpartyContact: notImpl('getChatCounterpartyContact'),
+    create: notImpl('create'),
+    update: notImpl('update'),
+    delete: notImpl('delete'),
+    deleteAccountViaEdgeFunction: notImpl('deleteAccountViaEdgeFunction'),
+    follow: notImpl('follow'),
+    unfollow: notImpl('unfollow'),
+    isFollowing: notImpl('isFollowing'),
+    getFollowers: notImpl('getFollowers'),
+    getFollowing: notImpl('getFollowing'),
+    sendFollowRequest: notImpl('sendFollowRequest'),
+    acceptFollowRequest: notImpl('acceptFollowRequest'),
+    rejectFollowRequest: notImpl('rejectFollowRequest'),
+    cancelFollowRequest: notImpl('cancelFollowRequest'),
     getPendingFollowRequests: notImpl(
       'getPendingFollowRequests',
-    ) as IUserRepository['getPendingFollowRequests'],
+    ),
     getPendingFollowRequestsWithUsers: notImpl(
       'getPendingFollowRequestsWithUsers',
-    ) as IUserRepository['getPendingFollowRequestsWithUsers'],
-    findByAuthIdentity: notImpl('findByAuthIdentity') as IUserRepository['findByAuthIdentity'],
-    createAuthIdentity: notImpl('createAuthIdentity') as IUserRepository['createAuthIdentity'],
+    ),
+    findByAuthIdentity: notImpl('findByAuthIdentity'),
+    createAuthIdentity: notImpl('createAuthIdentity'),
     async getOnboardingBootstrap(userId): Promise<OnboardingBootstrap> {
       const row = rows.get(userId);
       if (!row) throw new Error(`onboardingFakeUserRepo: no row for userId=${userId}`);
@@ -190,9 +190,9 @@ export function makeFakeUserRepo(seed: Record<string, Row> = {}): FakeUserRepo {
       };
       rows.set(userId, { ...row, firstPostNudgeDismissed: true });
     },
-    searchUsers: notImpl('searchUsers') as IUserRepository['searchUsers'],
-    setPrivacyMode: notImpl('setPrivacyMode') as IUserRepository['setPrivacyMode'],
-    getFollowStateRaw: notImpl('getFollowStateRaw') as IUserRepository['getFollowStateRaw'],
-    updateNotificationPreferences: notImpl('updateNotificationPreferences') as IUserRepository['updateNotificationPreferences'],
+    searchUsers: notImpl('searchUsers'),
+    setPrivacyMode: notImpl('setPrivacyMode'),
+    getFollowStateRaw: notImpl('getFollowStateRaw'),
+    updateNotificationPreferences: notImpl('updateNotificationPreferences'),
   };
 }
