@@ -48,6 +48,19 @@ export function GivingWorldsAside() {
         </TouchableOpacity>
       ))}
       <TouchableOpacity
+        style={styles.row}
+        accessibilityRole="button"
+        testID="aside-follow-suggestions"
+        onPress={() => router.push('/follow/suggestions' as never)}
+      >
+        <View style={styles.iconWrap}>
+          <Ionicons name="person-add-outline" size={16} color={colors.primary} />
+        </View>
+        <Text style={styles.rowLabel} numberOfLines={1}>
+          {t('follow.suggestionsTitle')}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         accessibilityRole="button"
         testID="aside-world-all"
         onPress={() => router.push('/(tabs)/donations' as never)}

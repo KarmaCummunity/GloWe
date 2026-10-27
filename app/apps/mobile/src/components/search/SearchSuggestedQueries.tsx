@@ -1,0 +1,32 @@
+import React from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useSearchScreenStyles } from '../../../app/(tabs)/search.styles';
+import { localizeSuggestedTag } from './localizeSuggestedTag';
+
+type Props = {
+  queries: string[];
+  onSelect: (q: string) => void;
+};
+
+export function SearchSuggestedQueries({ queries, onSelect }: Props) {
+  const styles = useSearchScreenStyles();
+  const { t } = useTranslation();
+  if (queries.length === 0) return null;
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{t('search.suggested')}</Text>
+      <View style={styles.chipRow}>
+        {queries.map((q) => {
+          const label = localizeSuggestedTag(q, t);
+          return (
+            <Pressable key={q} style={styles.chip} onPress={() => onSelect(label)}>
+              <Text style={styles.chipText}>#{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}

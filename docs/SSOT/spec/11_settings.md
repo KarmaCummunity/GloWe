@@ -1,6 +1,6 @@
 # 2.11 Settings
 
-> **Status:** ✅ Core Complete — Settings layout, privacy, legal, about, logout shipped. FR-SETTINGS-006 (Notifications toggles) shipped in P1.5 PR-1. ⚠️ Audit 2026-05-16: 🔴 **FR-SETTINGS-010** Terms/Privacy are static inline strings, not in-app web views with remote-config URLs + AC3 re-acknowledge (TD-80, BACKLOG P2.18 — EU/IL privacy gap). 🟠 FR-SETTINGS-002 Account section unbuilt; FR-SETTINGS-011 AC1 logout has no confirmation modal; FR-SETTINGS-012 AC1 delete-account modal uses keyword instead of display_name. (✅ 2026-06-09: the un-owned About `support@karma.community` mailto was removed — single operated mailbox `karmacommunity2.0@gmail.com`, `D-59`.) TD-99. See `docs/SSOT/audit/2026-05-16/06_donations_stats_settings.md`. 🟡 **FR-SETTINGS-015..017** (Surveys & feedback hub, server-driven survey runner, free feedback form) — code complete, post-merge QA pending (BACKLOG P2.34); individual FR statuses remain ⏳ Planned until manual QA on dev confirms ACs. ✅ 2026-07-05: **FR-SETTINGS-018** (App language — Hebrew/English UI switch) shipped — opt-in English, machine-translated (TD-176), direction-aware layout (residual long-form RTL polish TD-177; native prod reload TD-178).
+> **Status:** ✅ Core Complete — Settings layout, privacy, legal, about, logout shipped. FR-SETTINGS-006 (Notifications toggles) shipped in P1.5 PR-1. ⚠️ Audit 2026-05-16: 🔴 **FR-SETTINGS-010** Terms/Privacy are static inline strings, not in-app web views with remote-config URLs + AC3 re-acknowledge (TD-80, BACKLOG P2.18 — EU/IL privacy gap). 🟠 FR-SETTINGS-002 Account section unbuilt; FR-SETTINGS-011 AC1 logout has no confirmation modal; FR-SETTINGS-012 AC1 delete-account modal uses keyword instead of display_name. (✅ 2026-06-09: the un-owned About `support@karma.community` mailto was removed — single operated mailbox `karmacommunity2.0@gmail.com`, `D-59`.) TD-99. See `docs/SSOT/archive/audit/2026-05-16/06_donations_stats_settings.md`. 🟡 **FR-SETTINGS-015..017** (Surveys & feedback hub, server-driven survey runner, free feedback form) — code complete, post-merge QA pending (BACKLOG P2.34); individual FR statuses remain ⏳ Planned until manual QA on dev confirms ACs. ✅ 2026-07-05: **FR-SETTINGS-018** (App language — Hebrew/English UI switch) shipped — opt-in English, machine-translated (TD-176), direction-aware layout (residual long-form RTL polish TD-177; native prod reload TD-178).
 
 
 
@@ -183,11 +183,11 @@ A non-actionable line offering an out-of-app contact for emergencies.
 **Status.** ✅ Implemented (P2.18, migration `0108_legal_documents_and_consent.sql`).
 
 **Description.**
-Two settings rows ("תנאי שימוש", "מדיניות פרטיות") open dedicated screens that render server-driven Markdown content natively (no WebView). Document content is editable from Supabase Studio via the `publish_legal_document` RPC; no app deploy required. Material changes trigger a re-acknowledgement flow per `docs/superpowers/specs/2026-05-24-server-driven-legal-documents-design.md`.
+Two settings rows ("תנאי שימוש", "מדיניות פרטיות") open dedicated screens that render server-driven Markdown content natively (no WebView). Document content is editable from Supabase Studio via the `publish_legal_document` RPC; no app deploy required. Material changes trigger a re-acknowledgement flow per `docs/SSOT/archive/superpowers/specs/2026-05-24-server-driven-legal-documents-design.md`.
 
 **Source.**
 - PRD: `03_Core_Features.md` §3.5.
-- Design: `docs/superpowers/specs/2026-05-24-server-driven-legal-documents-design.md`.
+- Design: `docs/SSOT/archive/superpowers/specs/2026-05-24-server-driven-legal-documents-design.md`.
 
 **Acceptance Criteria.**
 - AC1. Two settings rows ("תנאי שימוש", "מדיניות פרטיות") open dedicated screens rendering server-driven Markdown content natively (no WebView). RTL-correct on iOS, Android, and web.

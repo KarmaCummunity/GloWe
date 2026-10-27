@@ -1,6 +1,6 @@
 # 2.6 Feed, Search & Filters
 
-> **Status:** ✅ Core Complete — Feed, filters, proximity sort, universal search shipped. ⚠️ Audit 2026-05-16: Home Feed `onEndReached` not wired → perpetual spinner past page 1 (TD-120 / POST-09); `SearchFilters` domain type lacks shared post-shape dimensions (TD-107 expansion of TD-136); FR-FEED-016 AC6 / FR-FEED-018 AC1 need clarification that shared dimensions live at the type level. See `docs/SSOT/audit/2026-05-16/03_posts_closure_feed.md`.
+> **Status:** ✅ Core Complete — Feed, filters, proximity sort, universal search shipped. ⚠️ Audit 2026-05-16: Home Feed `onEndReached` not wired → perpetual spinner past page 1 (TD-120 / POST-09); `SearchFilters` domain type lacks shared post-shape dimensions (TD-107 expansion of TD-136); FR-FEED-016 AC6 / FR-FEED-018 AC1 need clarification that shared dimensions live at the type level. See `docs/SSOT/archive/audit/2026-05-16/03_posts_closure_feed.md`.
 
 
 
@@ -77,7 +77,7 @@ Free-text post matching inside the Home Feed filter/sort bottom sheet
 Search tab.
 
 **Source.**
-- Design: `docs/superpowers/specs/2026-05-26-home-feed-filter-search-and-compact-sheet-design.md`.
+- Design: `docs/SSOT/archive/superpowers/specs/2026-05-26-home-feed-filter-search-and-compact-sheet-design.md`.
 
 **Acceptance Criteria.**
 - AC1. A search field at the top of `PostFilterSheet` filters posts by
@@ -105,7 +105,7 @@ of active filters when >0; the old in-feed "X filters active" chip
 (`FR-FEED-013`) is removed.
 
 **Source.**
-- Design spec: `docs/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
+- Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
 - Decisions: P1.2 Q1–Q8 (2026-05-11).
 
 **Acceptance Criteria.**
@@ -172,7 +172,7 @@ replaces the prior string-equality-with-recency approach (which lumped
 all non-viewer-city posts together by date).
 
 **Source.**
-- Design spec: `docs/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
+- Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
 - Decisions: P1.2 Q2, Q4 (2026-05-11) and `EXEC-8` in the C decisions log.
 
 **Acceptance Criteria.**
@@ -368,7 +368,7 @@ deferred to `FR-FEED-017+`; it shipped earlier than planned and now lives
 under this FR ID).
 
 **Source.**
-- Earlier design: `docs/superpowers/specs/2026-05-09-donations-and-search-tabs-design.md`.
+- Earlier design: `docs/SSOT/archive/superpowers/specs/2026-05-09-donations-and-search-tabs-design.md`.
 - Decisions: `D-16`, and P1.2 Q1 (2026-05-11) which retroactively documents
   the shipped engine.
 
@@ -441,7 +441,7 @@ post-shape filter dimensions so users move between the two surfaces with
 predictable controls.
 
 **Source.**
-- Design spec: `docs/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
+- Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
 
 **Acceptance Criteria.**
 - AC1. Shared dimensions: `type`, `categories[]`, `itemConditions[]`,
@@ -466,7 +466,7 @@ Israeli city in `public.cities`, plus a pure-SQL `haversine_km` helper. This
 is the single source of truth for any distance computation in the system.
 
 **Source.**
-- Design spec: `docs/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
+- Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-p1-2-feed-discovery-and-filters-design.md`.
 - Migration: `supabase/migrations/0021_cities_geo.sql`.
 
 **Acceptance Criteria.**

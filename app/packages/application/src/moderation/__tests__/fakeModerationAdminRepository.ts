@@ -17,6 +17,7 @@ export class FakeModerationAdminRepository implements IModerationAdminRepository
   public auditLookupCalls: Array<{ userId: string; limit?: number }> = [];
   public auditLookupResult: readonly AuditEvent[] = [];
   public adminIds: Set<string> = new Set();
+  public removeListingCalls: string[] = [];
   public errorOnNext: Error | null = null;
 
   private maybeThrow() {
@@ -30,6 +31,10 @@ export class FakeModerationAdminRepository implements IModerationAdminRepository
   async restoreTarget(targetType: ModerationTargetType, targetId: string) {
     this.maybeThrow();
     this.restoreCalls.push({ targetType, targetId });
+  }
+  async removeListing(listingId: string) {
+    this.maybeThrow();
+    this.removeListingCalls.push(listingId);
   }
   async dismissReport(reportId: string) {
     this.maybeThrow();

@@ -16,11 +16,12 @@ export function ReportFilters({ value, onChange }: ReportFiltersProps) {
   const styles = useStyles();
   const L = useLocaleBundle();
 
-  const TYPES: ReadonlyArray<{ readonly key: 'all' | 'post' | 'user' | 'chat'; readonly label: string }> = [
+  const TYPES: ReadonlyArray<{ readonly key: 'all' | 'post' | 'user' | 'chat' | 'listing'; readonly label: string }> = [
     { key: 'all',  label: L.admin.reports.filters.all },
     { key: 'post', label: L.admin.reports.filters.posts },
     { key: 'user', label: L.admin.reports.filters.users },
     { key: 'chat', label: L.admin.reports.filters.chats },
+    { key: 'listing', label: L.admin.reports.filters.listings },
   ];
 
   return (

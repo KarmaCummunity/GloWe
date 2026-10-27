@@ -1,6 +1,6 @@
 # 2.3 Following & Follow Requests
 
-> **Status:** ✅ Core Complete — Follow/unfollow, requests, approval/rejection all shipped. ⚠️ Audit 2026-05-16: 🔴 FR-NOTIF-006/008 dedupe keys lack a cycle segment → re-requests after FR-FOLLOW-008 14-day cooldown silently drop the notification (TD-78, BACKLOG P2.13); FR-FOLLOW-002 AC1 unfollow confirm copy missing name interpolation; followers/following pagination cursor disagrees with sort key. TD-95 / TD-112. See `docs/SSOT/audit/2026-05-16/05_following_moderation_admin.md`.
+> **Status:** ✅ Core Complete — Follow/unfollow, requests, approval/rejection all shipped. ⚠️ Audit 2026-05-16: 🔴 FR-NOTIF-006/008 dedupe keys lack a cycle segment → re-requests after FR-FOLLOW-008 14-day cooldown silently drop the notification (TD-78, BACKLOG P2.13); FR-FOLLOW-002 AC1 unfollow confirm copy missing name interpolation; followers/following pagination cursor disagrees with sort key. TD-95 / TD-112. See `docs/SSOT/archive/audit/2026-05-16/05_following_moderation_admin.md`.
 
 
 

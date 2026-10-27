@@ -2,7 +2,7 @@
 
 One-time setup so the agent (Claude Code / Cursor) can branch, commit, push, open PRs, and auto-merge **for you**, professionally and safely.
 
-You do steps 1–5 once on your Mac. After that, the agent follows `.cursor/rules/git-workflow.mdc` automatically on every code change.
+You do steps 1–5 once on your machine. After that, the agent follows `.cursor/rules/git-workflow.mdc` automatically on every code change.
 
 > The repo is `KarmaCummunity/GloWe`. Default branch: `main`. Merge style: **squash**. Auto-merge: **on, after CI passes**.
 
@@ -29,8 +29,8 @@ gh auth setup-git   # makes git use gh's credentials, no PATs needed
 ## 3. Configure git identity (once per machine)
 
 ```bash
-git config --global user.name  "Nave Sarussi"
-git config --global user.email "navesarussi@gmail.com"
+git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"
 
 # Optional but useful:
 git config --global pull.rebase true            # cleaner pulls
@@ -40,7 +40,7 @@ git config --global rebase.autoStash true
 
 ## 4. Configure the repo defaults
 
-Run from `/Users/navesarussi/KC/MVP-2`:
+Run from the root of your local clone of this repo:
 
 ```bash
 # Tell gh which repo this clone points to.
@@ -95,7 +95,7 @@ Stops you from accidentally committing tokens / `.env` files:
 
 ```bash
 brew install gitleaks
-cd /Users/navesarussi/KC/MVP-2
+cd /path/to/your/clone/of/GloWe
 gitleaks protect --staged --redact   # run before each push (CI can run this too later)
 ```
 
@@ -131,13 +131,6 @@ For a true typo (docs/comments only), the agent may push directly to `main`. Any
 
 ---
 
-## Housekeeping noticed during setup
-
-- Stale lock file: `/Users/navesarussi/KC/MVP-2/.git/index.lock` — if `git status` complains, remove it: `rm .git/index.lock` (only when no other git command is running).
-- Stale worktree pointer: `.git/worktrees/frosty-kowalevski-03495d` — if unused, prune with: `git worktree prune`.
-
----
-
 ## Troubleshooting
 
 | Problem | Fix |
@@ -147,5 +140,7 @@ For a true typo (docs/comments only), the agent may push directly to `main`. Any
 | CI red on a PR | Push a fix-up commit on the branch — auto-merge will fire when it goes green. Don't bypass. |
 | Push rejected on `main` after enabling protection | That's working as intended — open a PR via §5 of the workflow rule. |
 | Agent pushed without running gates | Add the gate to a local pre-push hook (`.git/hooks/pre-push`) or trust CI to catch it — CI is the backstop. |
+| `git status` complains about a stale lock file | Remove it: `rm .git/index.lock` (only when no other git command is running). |
+| Stale worktree pointer under `.git/worktrees/` | Prune with `git worktree prune`. |
 
 That's it. Once §1–§5 are done you don't have to touch this again.

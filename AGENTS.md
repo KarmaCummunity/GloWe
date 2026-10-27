@@ -1,36 +1,48 @@
-# AGENTS.md
+# AGENTS.md — start here
 
-This repository follows the `CLAUDE.md` convention for agent rules.
-All process, architecture, and workflow rules live in [`CLAUDE.md`](./CLAUDE.md).
-Read it first.
+KC (Karma Community) is built largely by AI agents. This is the short entry point; full rules are in [`CLAUDE.md`](./CLAUDE.md).
 
-**⚠️ App version:** see the bold **APP VERSION (`app/VERSION`)** banner at the top of `CLAUDE.md` (FR-GLOWE-025 / D-181). **Bump PATCH in every PR to `dev`**; bump MAJOR/MINOR manually when appropriate.
+| Read | For |
+|---|---|
+| [`docs/agents/OPERATING_MODEL.md`](docs/agents/OPERATING_MODEL.md) | Roles, the issue → PR → dev → kc-dev flow, labels, auto-merge |
+| [`docs/agents/MIGRATION_RANGES.md`](docs/agents/MIGRATION_RANGES.md) | **Claim a migration number range before writing SQL** |
+| [`docs/agents/STACK_MAP.md`](docs/agents/STACK_MAP.md) | Open stacked PRs and merge order |
+| [`docs/agents/ARCHITECTURE.md`](docs/agents/ARCHITECTURE.md) | Apps / packages / supabase / workflows map |
+| [`docs/agents/DEPLOY.md`](docs/agents/DEPLOY.md) | **Deploy runbooks**: DB, web, seeding, types drift, E2E, all workflows |
+| [`docs/agents/RELEASE.md`](docs/agents/RELEASE.md) | Versioning, TestFlight / Play internal, rollback |
+| [`CLAUDE.md`](./CLAUDE.md) | Architecture, gates, PR template, prohibitions |
 
-If you landed in [`docs/`](./docs/) first, [`docs/AGENTS.md`](./docs/AGENTS.md) points back here; it does not define extra rules.
+## Product focus
 
-## ⚠️ Active product focus (2026-07-04, standing until explicitly revised)
+- **Mobile / web export:** `app/apps/mobile/**` (Expo, Hebrew RTL)
+- **Backend:** `supabase/**` + `app/packages/infrastructure-supabase/**`
+- GloWe was removed in `0238_drop_glowe_product.sql`. Do not reintroduce it.
 
-**GLOWE is the active MVP. The KC frontend is out of scope.**
+## Branch naming
 
-- **Do not build, QA, wire, or plan anything against the KC app frontend**
-  (`app/apps/mobile/**` UI — the KC feed, post-detail, settings screens,
-  expo-router routes). Treat KC-frontend work as out of scope until a PM message
-  explicitly re-opens it.
-- **Only the GLOWE frontend matters** — `app/apps/glowe-web/**`, the vanilla-JS
-  static site served at `dev.karma-community.pages.dev/glowe/`. All product/UX
-  and feature work targets GLOWE web.
-- **Use the KC backend for the GLOWE frontend.** The KC Supabase backend (Auth,
-  Postgres + RLS, Edge Functions, RPCs) is the single source of truth; GLOWE web
-  calls it. Backend capabilities originally built for KC should be surfaced into
-  the GLOWE frontend (e.g. the FR-TRANSLATE-003 translation engine → GLOWE).
-- GLOWE's own interface i18n (FR-GLOWE-004, chrome-only, `localStorage`) is
-  SEPARATE from user-generated-content translation (FR-TRANSLATE-003).
+`<type>/<issue#>-<area>-<slug>`: `type` ∈ `feat|fix|refactor|chore|docs|test|ci`, `area` ∈ `db|mobile|marketplace|bot|social|infra|docs`. Example: `feat/905-marketplace-map`. Always branch from `origin/dev`.
 
-### Revision (2026-07-05): production root serves KC, not GLOWE
+## Scope rules
 
-The above is a *development-priority* directive, not an instruction to redirect
-KC production traffic away from the KC app. `app/scripts/web-postbuild.mjs`'s
-Cloudflare root-redirect-to-`/glowe` gate is now environment-gated
-(`EXPO_PUBLIC_ENVIRONMENT === 'development'`, `DECISIONS.md` D-169): the `dev`
-deploy still redirects its root to GLOWE; `main`/production serves the real KC
-web app at its root. GLOWE stays reachable at `/glowe` in every environment.
+- One issue per PR. Stay inside the issue's "files likely touched" and "out of scope" lists.
+- Don't edit another role's paths without saying so in the PR (see Roles).
+- Small PRs (≤ ~600 changed lines unless generated). Files ≤ 300 lines (`pnpm lint:arch`).
+- PR base is always `dev`. **Never** `main`, kc-prod, or prod deploy workflows without Nave's explicit approval.
+- No secrets in code, logs, issues or PRs.
+
+## Definition of done
+
+- [ ] Gates green locally (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
+- [ ] New or changed behavior has tests
+- [ ] Migrations, if any: numbered inside your claimed range, apply cleanly on a fresh stack (`./scripts/dev-up.sh`), RLS plus policy tests, no destructive ops (`CI — dev guard`)
+- [ ] DB types regenerated and committed if the API surface changed
+- [ ] `app/VERSION` PATCH bumped (`node scripts/bump-app-version.mjs`)
+- [ ] PR body: `Closes #N` and `Mapped to spec: …`, following the CLAUDE.md §6 template
+- [ ] All required CI checks green, then label `agent-ready` to auto-merge
+- [ ] After merge: verified on kc-dev / dev.karma-community.pages.dev
+
+Store builds (TestFlight / Play internal): see [`app/apps/mobile/README.md`](app/apps/mobile/README.md).
+
+## Migrations rule
+
+Every schema change must be a committed file in `supabase/migrations/NNNN_snake.sql`, applied only via `supabase db push` / the `DB deploy` workflow. **Never** use the Supabase MCP `apply_migration` tool on any KC project (dev or prod). The `CI — migration drift` workflow scans the dev ledger against the **dev** branch's files (pinned with `ref: dev`, since scheduled runs execute from `main`). See `CLAUDE.md` §9 and `docs/SSOT/OPERATOR_RUNBOOK.md` → "Migration application rules".

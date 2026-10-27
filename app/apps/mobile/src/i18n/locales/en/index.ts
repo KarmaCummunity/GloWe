@@ -7,12 +7,14 @@
 // Default export: full English resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
-import { donations, search } from './donations';
+import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { givingHandoff } from './givingHandoff';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
 import { chatEn } from './modules/chat';
 import { notificationsEn } from './modules/notifications';
+import { emptyStatesEn, feedSettingsEn } from './modules/feedSettings';
 import { moderationEn, auditEn, accountBlockedEn } from './modules/moderation';
 import { postEn } from './modules/post';
 import { settingsEn } from './modules/settings';
@@ -32,10 +34,15 @@ import { researchEn } from './modules/research';
 import { adminEn } from './modules/admin';
 import { karmaEn } from './modules/karma';
 import { asideEn } from './modules/aside';
+import { configEn } from './modules/config';
+import { followEn } from './modules/follow';
+import { matchesEn } from './modules/matches';
 
 const en = {
   // App
   appName: 'KC - Karma Community',
+
+  config: configEn,
 
   // Auth (FR-AUTH-001..014) — see modules/auth.ts
   auth: authEn,
@@ -66,6 +73,8 @@ const en = {
 
   // Notifications (FR-NOTIF-001..015) — see modules/notifications.ts
   notifications: notificationsEn,
+  feedSettings: feedSettingsEn,
+  emptyStates: emptyStatesEn,
 
   // Moderation (FR-MOD-007/010 + FR-ADMIN-002..007) — see modules/moderation.ts
   moderation: moderationEn,
@@ -102,8 +111,17 @@ const en = {
   // Donations (D-16, FR-DONATE-001..005) — see donations.ts
   donations,
 
+  marketplace,
+  moneyPayments,
+  timeVolunteer,
+  givingHandoff,
+
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,
+
+  follow: followEn,
+  // Matching v2 — see modules/matches.ts
+  matches: matchesEn,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsEn,

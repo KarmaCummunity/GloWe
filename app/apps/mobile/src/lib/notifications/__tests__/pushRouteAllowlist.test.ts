@@ -137,4 +137,19 @@ describe('resolvePushRoute', () => {
       });
     });
   });
+  describe('matching v2', () => {
+    for (const kind of ['match_suggested', 'match_interest', 'match_accepted'] as const) {
+      it(`routes ${kind} to /matches and ignores data.route/params`, () => {
+        expect(
+          resolvePushRoute({
+            category: 'social',
+            kind,
+            notification_id: `n-${kind}`,
+            route: '/settings/delete-account',
+            params: { id: '../../x' },
+          }),
+        ).toEqual({ pathname: '/matches', params: {} });
+      });
+    }
+  });
 });

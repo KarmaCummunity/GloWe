@@ -59,6 +59,8 @@ export const settingsEn = {
     },
   },
   privateProfileToggle: 'Private profile',
+  activeStatusToggle: 'Show my active status',
+  activeStatusHint: "When off, others won't see when you're online, and you won't see when they are.",
   followRequests: 'Follow requests',
   appearance: 'Appearance',
   appearanceScreen: {
@@ -140,8 +142,6 @@ export const settingsEn = {
   // Report-issue notify-modal title (FR-MOD-002 / FR-CHAT-007 AC3)
   reportIssueErrorTitle: 'Error',
 
-  // GLOWE partnership link
-  glowe: 'GLOWE – professional knowledge',
 
   // FR-TRANSLATE-003 — translation language preference
   translationLanguage: 'Translation language',

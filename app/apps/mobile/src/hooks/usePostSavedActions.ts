@@ -1,4 +1,4 @@
-// FR-POST-022 — save/unsave toggle for PostMenuSheet.
+// FR-POST-022 — save/unsave toggle for PostMenuSheet (#895 optimistic).
 import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -9,14 +9,16 @@ import {
 } from '../services/savedPostsComposition';
 import { useAuthStore } from '../store/authStore';
 import { useFeedSessionStore } from '../store/feedSessionStore';
+import { hapticLightImpact } from '../lib/haptics';
 
 export function usePostSavedActions(postId: string) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.userId ?? null);
+  const savedKey = ['post-saved', postId, userId] as const;
 
   const savedQuery = useQuery({
-    queryKey: ['post-saved', postId, userId],
+    queryKey: savedKey,
     queryFn: () => getIsPostSavedUseCase().execute(postId),
     enabled: Boolean(userId),
   });
@@ -32,22 +34,37 @@ export function usePostSavedActions(postId: string) {
 
   const saveMutation = useMutation({
     mutationFn: () => getSavePostUseCase().execute(postId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: savedKey });
+      const prev = queryClient.getQueryData<boolean>(savedKey);
+      queryClient.setQueryData(savedKey, true);
+      return { prev };
+    },
     onSuccess: () => {
+      hapticLightImpact();
       toast(t('post.saveSuccess'), 'success');
       invalidate();
     },
-    onError: () => {
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev !== undefined) queryClient.setQueryData(savedKey, ctx.prev);
       toast(t('post.saveError'), 'error', 2800);
     },
   });
 
   const unsaveMutation = useMutation({
     mutationFn: () => getUnsavePostUseCase().execute(postId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: savedKey });
+      const prev = queryClient.getQueryData<boolean>(savedKey);
+      queryClient.setQueryData(savedKey, false);
+      return { prev };
+    },
     onSuccess: () => {
       toast(t('post.unsaveSuccess'), 'success');
       invalidate();
     },
-    onError: () => {
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev !== undefined) queryClient.setQueryData(savedKey, ctx.prev);
       toast(t('post.unsaveError'), 'error', 2800);
     },
   });

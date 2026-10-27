@@ -9,7 +9,7 @@ function post(over: Partial<PostWithOwner>): PostWithOwner {
 describe('toTranslatableFields', () => {
   it('emits title + description for a foreign-language post', () => {
     const out = toTranslatableFields(post({}), 'he');
-    expect(out.map((f) => f.field).sort()).toEqual(['description', 'title']);
+    expect(out.map((f) => f.field).sort((a, b) => a.localeCompare(b))).toEqual(['description', 'title']);
     expect(out[0]).toMatchObject({ postId: 'p1', sourceLanguage: 'en' });
   });
   it('emits nothing when source language equals reader language', () => {

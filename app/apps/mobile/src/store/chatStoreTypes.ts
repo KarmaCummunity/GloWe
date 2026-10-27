@@ -1,6 +1,6 @@
 // Shared chat store types — keeps `chatStore.ts` under architecture LOC cap (TD-118).
 import type { Chat, Message, MessageStatus } from '@kc/domain';
-import type { ChatWithPreview, IChatRepository, IChatRealtime, Unsubscribe } from '@kc/application';
+import type { IChatRepository, IChatRealtime, Unsubscribe } from '@kc/application';
 
 export interface OptimisticMessage extends Message {
   clientId: string;
@@ -8,7 +8,6 @@ export interface OptimisticMessage extends Message {
 }
 
 export interface ChatState {
-  inbox: ChatWithPreview[] | null;
   unreadTotal: number;
   /** Bumps when local read clears row unread; stale network snapshots must not overwrite. */
   inboxSnapshotEpoch: number;
@@ -16,7 +15,6 @@ export interface ChatState {
   inboxSub: Unsubscribe | null;
   threadSubs: Record<string, Unsubscribe>;
 
-  setInbox(chats: ChatWithPreview[]): void;
   upsertChatPreview(chat: Chat): void;
   setUnreadTotal(n: number): void;
   markChatLocallyRead(chatId: string): void;

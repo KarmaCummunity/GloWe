@@ -14,7 +14,10 @@ interface Row {
 }
 
 export class SupabaseCityRepository implements ICityRepository {
-  constructor(private readonly client: SupabaseClient) {}
+  constructor(
+    private readonly client: SupabaseClient,
+    private readonly pageOpts: { pageSize?: number; maxPages?: number } = {},
+  ) {}
 
   async listAll(): Promise<City[]> {
     // PostgREST `db-max-rows` is 1000 on this Supabase project, so a single
@@ -24,9 +27,9 @@ export class SupabaseCityRepository implements ICityRepository {
     // Petah Tikva disappear). We page via .range() until a short page
     // (<PAGE_SIZE) is returned. With 1306 rows + PAGE_SIZE=1000 this is two
     // round-trips, gated to <= MAX_PAGES so a misconfigured server cannot
-    // loop forever.
-    const PAGE_SIZE = 1000;
-    const MAX_PAGES = 10;
+    // loop forever. Tests may inject smaller pageOpts to keep the cap fast.
+    const PAGE_SIZE = this.pageOpts.pageSize ?? 1000;
+    const MAX_PAGES = this.pageOpts.maxPages ?? 10;
     const out: Row[] = [];
     for (let page = 0; page < MAX_PAGES; page += 1) {
       const from = page * PAGE_SIZE;

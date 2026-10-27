@@ -2,9 +2,7 @@
 // FR-ADMIN-020 — admin audit log viewer with role-tiered visibility.
 // V2-ADMIN-AUDIT-5 — date-range filter + CSV export (web).
 import { useMemo, useState } from 'react';
-import {
-  FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import type { AdminAuditSearchFilters } from '@kc/application';
 import { makeUseStyles } from '@kc/ui';
@@ -17,6 +15,7 @@ import {
   downloadAuditCsv, isCsvExportSupported,
 } from '../../../src/lib/auditCsvExport';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 const COMMON_ACTIONS = [
   null,
@@ -173,7 +172,7 @@ export default function AuditScreen() {
         ))}
       </ScrollView>
       <Text style={styles.totalLabel}>{L.admin.content.totalCount(result.page.totalCount)}</Text>
-      <FlatList
+      <KcFlashList
         data={[...result.page.rows]}
         keyExtractor={(e) => e.eventId}
         renderItem={({ item }) => <AuditLogRow row={item} />}

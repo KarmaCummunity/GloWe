@@ -142,7 +142,7 @@ Publishing a post confirms or warns based on chosen visibility.
 
 ## FR-POST-007 — Local draft autosave
 
-> **Status:** ✅ Done — implemented under BACKLOG P2.22 (`feat/FR-POST-007-fe-draft-autosave`). Resolves TD-108. Design: [`docs/superpowers/specs/2026-05-17-post-draft-autosave-design.md`](../../superpowers/specs/2026-05-17-post-draft-autosave-design.md).
+> **Status:** ✅ Done — implemented under BACKLOG P2.22 (`feat/FR-POST-007-fe-draft-autosave`). Resolves TD-108. Design: [`docs/SSOT/archive/superpowers/specs/2026-05-17-post-draft-autosave-design.md`](../../archive/superpowers/specs/2026-05-17-post-draft-autosave-design.md).
 
 **Description.**
 The form persists its state to local storage to survive accidental closure.
@@ -437,7 +437,7 @@ Participants control **who may see the post** (audience), not a separate “iden
 The column `identity_visibility` remains in `public.post_actor_identity` for projection compatibility and is **written as `Public` by the app**; migration `0092_post_actor_identity_public_chrome.sql` normalizes legacy non-`Public` values. Advanced identity-chrome rules (`FollowersOnly` / `Hidden` on chrome only) are **out of MVP UI scope** (`D-30`).
 
 **Source.**
-- Design: `docs/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (original) + addendum (2026-05-16) + PM revision (2026-05-16).
+- Design: `docs/SSOT/archive/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (original) + addendum (2026-05-16) + PM revision (2026-05-16).
 - Decisions: `D-26` (superseded in part by `D-39`), `D-28`, `D-30`, `D-31`, `D-39`.
 
 **Acceptance Criteria.**

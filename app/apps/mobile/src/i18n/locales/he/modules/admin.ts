@@ -4,6 +4,7 @@ import { adminTimeHe } from './adminTime';
 import { adminMoneyHe } from './adminMoney';
 import { adminCrmHe } from './adminCrm';
 import { adminOrgApprovalsHe } from './adminOrgApprovals';
+import { adminWhatsAppHe } from './adminWhatsApp';
 import { adminSurveysHe } from './adminSurveys';
 import { adminTasksHe } from './adminTasks';
 import { adminAdminsHe } from './adminAdmins';
@@ -24,6 +25,7 @@ export const adminHe = {
     crm:           'CRM',
     orgApprovals:  'אישור ארגונים',
     audit:         'יומן פעולות',
+    whatsapp:      'וואטסאפ',
   },
   roles: {
     super_admin: 'מנהל-על',
@@ -70,6 +72,7 @@ export const adminHe = {
       posts:      'פוסטים',
       users:      'משתמשים',
       chats:      'צ׳אטים',
+      listings:   'מודעות',
       last7Days:  'שבעה ימים אחרונים',
       last30Days: 'שלושים ימים אחרונים',
       search:     'חיפוש לפי מזהה יעד או שם המדווח',
@@ -110,6 +113,9 @@ export const adminHe = {
       postKind:    'פוסט',
       userKind:    'משתמש',
       chatKind:    'צ׳אט',
+      listingKind: 'מודעה',
+      openListing: 'פתיחת המודעה',
+      openOwner:   'פתיחת פרופיל המפרסם',
       noPreview:   '(אין תצוגה מקדימה)',
       unnamedUser: '(משתמש ללא שם)',
       openPost:    'פתח את הפוסט',
@@ -132,6 +138,7 @@ export const adminHe = {
   content: adminContentHe,
   time: adminTimeHe,
   money: adminMoneyHe,
+  whatsapp: adminWhatsAppHe,
   crm: adminCrmHe,
   orgApprovals: adminOrgApprovalsHe,
   surveys: adminSurveysHe,

@@ -2,7 +2,7 @@
 
 Operator runbook for the static-SPA web build of the Expo Router app, deployed on Railway with a Dockerfile.
 
-> Earlier design considered Cloudflare Pages — kept for context at [`docs/superpowers/specs/2026-05-10-cloudflare-pages-web-deploy-design.md`](./superpowers/specs/2026-05-10-cloudflare-pages-web-deploy-design.md). The actual production deploy uses Railway because the project + custom domain were already provisioned there.
+> Earlier design considered Cloudflare Pages — kept for context at [`docs/SSOT/archive/superpowers/specs/2026-05-10-cloudflare-pages-web-deploy-design.md`](./SSOT/archive/superpowers/specs/2026-05-10-cloudflare-pages-web-deploy-design.md). The actual production deploy uses Railway because the project + custom domain were already provisioned there.
 
 ## What's checked into the repo
 

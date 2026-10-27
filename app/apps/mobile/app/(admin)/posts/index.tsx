@@ -1,9 +1,7 @@
 // app/apps/mobile/app/(admin)/posts/index.tsx
 // FR-ADMIN-019 — admin posts search screen.
 import { useMemo, useState } from 'react';
-import {
-  FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -11,6 +9,7 @@ import { useAdminPostSearch } from '../../../src/hooks/useAdminContentSearch';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
 import { PostSearchRow } from '../../../src/components/admin/content/PostSearchRow';
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 const STATUS_OPTIONS = [
   { value: null,                       key: 'all' as const },
@@ -68,7 +67,7 @@ export default function PostsScreen() {
         ))}
       </ScrollView>
       <Text style={styles.totalLabel}>{L.admin.content.totalCount(result.page.totalCount)}</Text>
-      <FlatList
+      <KcFlashList
         data={[...result.page.rows]}
         keyExtractor={(p) => p.postId}
         renderItem={({ item }) => <PostSearchRow row={item} />}

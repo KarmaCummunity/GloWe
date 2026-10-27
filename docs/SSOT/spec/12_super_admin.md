@@ -1,6 +1,6 @@
 # 2.12 Super Admin (in-chat moderation)
 
-> **Status:** ✅ Done — FR-ADMIN-001..021 shipped. **FR-ADMIN-021 (Survey results & feedback dashboard, A5) added 2026-06-14** — `/admin/surveys` exposes aggregate per-question statistics + per-user answers + the free-text feedback list, gated by the new `surveys.view` permission (super_admin / moderator). See §15 + migration `0194_admin_survey_results.sql`. **P3.A0 + P3.A1 + Pre-A2 Hardening + P3.A2 + P3.A3 + P3.A4 all merged to `dev` as of 2026-05-28** (PRs #384, #385, #387, #394, #426/#428, #439 + this PR). Admin Portal roadmap is complete. TD-93 closed at the UX layer via `admin_search_users` (banned/suspended users now searchable from the portal). The portal infrastructure is production-ready for moderator/support roles: `admin_role_grants` table with PRD V2-wide role enum + partial-unique single-super_admin index (closes TD-95); `has_admin_role` / `admin_assert_role` SQL predicates wired into every moderation RPC (`admin_remove_post`, `admin_dismiss_report`, `admin_confirm_report`, `admin_restore_target`, `admin_delete_message`); `(admin)` route group with `AdminGate` redirect + responsive `AdminNav` + 7 nav entries (Reports live; Tasks/Admins/Users/Posts/Audit as A2..A4 stubs); reports inbox + per-case detail with permission-gated actions consuming the `@kc/domain` `PERMISSION_MATRIX` SSOT; chat-flow coexistence behind `EXPO_PUBLIC_ADMIN_PORTAL_REPORTS` flag; auto-removal protected by 14-day freshness window; 7 legacy `useIsSuperAdmin` callsites migrated to `hasPermission()`. **Closed TDs:** TD-95 (single-super-admin DB invariant), TD-94 #2 / #4 / #5 / #6 (already-moderated error / cascade-dismiss / audit metadata parity / freshness window). **Open TDs in this domain:** TD-93 (admin search visibility — closes in P3.A4); TD-94 #1 now by design per D-41 (tickets ≠ reports); TD-94 #3 (`is_post_visible_to` admin bypass — closes in P3.A4). **Suspect-queue producers (FR-MOD-008)** and **90-day re-registration block (FR-ADMIN-003 AC3)** deferred to TECH_DEBT. **Next:** P3.A2 RBAC management (FR-ADMIN-015..017) — gives super_admin a UI to grant moderator/support roles without raw SQL. See `docs/superpowers/specs/2026-05-25-admin-portal-design.md` for A2..A4 design and `docs/SSOT/audit/2026-05-16/05_following_moderation_admin.md` for the original audit.
+> **Status:** ✅ Done — FR-ADMIN-001..021 shipped. **FR-ADMIN-021 (Survey results & feedback dashboard, A5) added 2026-06-14** — `/admin/surveys` exposes aggregate per-question statistics + per-user answers + the free-text feedback list, gated by the new `surveys.view` permission (super_admin / moderator). See §15 + migration `0194_admin_survey_results.sql`. **P3.A0 + P3.A1 + Pre-A2 Hardening + P3.A2 + P3.A3 + P3.A4 all merged to `dev` as of 2026-05-28** (PRs #384, #385, #387, #394, #426/#428, #439 + this PR). Admin Portal roadmap is complete. TD-93 closed at the UX layer via `admin_search_users` (banned/suspended users now searchable from the portal). The portal infrastructure is production-ready for moderator/support roles: `admin_role_grants` table with PRD V2-wide role enum + partial-unique single-super_admin index (closes TD-95); `has_admin_role` / `admin_assert_role` SQL predicates wired into every moderation RPC (`admin_remove_post`, `admin_dismiss_report`, `admin_confirm_report`, `admin_restore_target`, `admin_delete_message`); `(admin)` route group with `AdminGate` redirect + responsive `AdminNav` + 7 nav entries (Reports live; Tasks/Admins/Users/Posts/Audit as A2..A4 stubs); reports inbox + per-case detail with permission-gated actions consuming the `@kc/domain` `PERMISSION_MATRIX` SSOT; chat-flow coexistence behind `EXPO_PUBLIC_ADMIN_PORTAL_REPORTS` flag; auto-removal protected by 14-day freshness window; 7 legacy `useIsSuperAdmin` callsites migrated to `hasPermission()`. **Closed TDs:** TD-95 (single-super-admin DB invariant), TD-94 #2 / #4 / #5 / #6 (already-moderated error / cascade-dismiss / audit metadata parity / freshness window). **Open TDs in this domain:** TD-93 (admin search visibility — closes in P3.A4); TD-94 #1 now by design per D-41 (tickets ≠ reports); TD-94 #3 (`is_post_visible_to` admin bypass — closes in P3.A4). **Suspect-queue producers (FR-MOD-008)** and **90-day re-registration block (FR-ADMIN-003 AC3)** deferred to TECH_DEBT. **Next:** P3.A2 RBAC management (FR-ADMIN-015..017) — gives super_admin a UI to grant moderator/support roles without raw SQL. See `docs/SSOT/archive/superpowers/specs/2026-05-25-admin-portal-design.md` for A2..A4 design and `docs/SSOT/archive/audit/2026-05-16/05_following_moderation_admin.md` for the original audit.
 
 
 
@@ -164,7 +164,7 @@ The Super Admin retrieves global statistics directly via the database for produc
 While signed in as the Super Admin, the post detail screen exposes an "Remove as admin" action inside the `⋮` overflow menu, separate from the report-channel flow in `FR-ADMIN-005`.
 
 **Source.**
-- This document, §10 of `docs/superpowers/specs/2026-05-10-admin-delete-post-and-post-menu-design.md`.
+- This document, §10 of `docs/SSOT/archive/superpowers/specs/2026-05-10-admin-delete-post-and-post-menu-design.md`.
 
 **Acceptance Criteria.**
 - AC1. The action is hidden for non-admin sessions. Super Admin also sees it on **their own** posts (alongside owner delete), so moderation is never blocked by ownership.
@@ -181,7 +181,7 @@ While signed in as the Super Admin, the post detail screen exposes an "Remove as
 
 A0 is the foundation layer that all other Admin Portal sub-projects (A1..A4) depend on. It introduces the RBAC data model with DB-enforced invariants, the `(admin)` Expo Router group with a permission-gated layout, and stub screens for every future admin function so the nav structure is complete from day one.
 
-Design spec: `docs/superpowers/specs/2026-05-25-admin-portal-design.md`. Implementation plan: `docs/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`. Decision: `D-40` in `DECISIONS.md`.
+Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-25-admin-portal-design.md`. Implementation plan: `docs/SSOT/archive/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`. Decision: `D-40` in `DECISIONS.md`.
 
 ---
 
@@ -191,8 +191,8 @@ Design spec: `docs/superpowers/specs/2026-05-25-admin-portal-design.md`. Impleme
 Ships the extensible RBAC store (`admin_role_grants`) and the canonical SQL predicates (`has_admin_role`, `admin_assert_role`) that future write paths re-check on the server. The role enum is intentionally wide so the PRD V2 role hierarchy (operator, org_admin, …) can be granted without a schema migration. `users.is_super_admin` stays in lockstep with `admin_role_grants` via bi-directional sync triggers so the ~10 existing `useIsSuperAdmin` / `is_admin()` call sites keep working unchanged during A0.
 
 **Source.**
-- Design spec `docs/superpowers/specs/2026-05-25-admin-portal-design.md` §3.4, §3.5.
-- Implementation plan `docs/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`.
+- Design spec `docs/SSOT/archive/superpowers/specs/2026-05-25-admin-portal-design.md` §3.4, §3.5.
+- Implementation plan `docs/SSOT/archive/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`.
 
 **Acceptance Criteria.**
 - AC1. `admin_role_grants` table + indexes + RLS policies (admins read own + all if `super_admin`; writes via RPC only).
@@ -211,8 +211,8 @@ Ships the extensible RBAC store (`admin_role_grants`) and the canonical SQL pred
 A new Expo Router group `(admin)` accessible only to users with an active admin role. The dashboard is a real screen showing role badges + KPI placeholders; every other admin route (reports, tasks, admins, users, posts, audit) ships as a `ComingSoon` stub so the nav structure is locked in from A0. `AdminGate` is screen-level UX (server RPCs re-check the actor). Settings exposes an "Admin Portal" row gated on `useAdminRoles().length > 0` (so moderator + support also see it in A2+).
 
 **Source.**
-- Design spec `docs/superpowers/specs/2026-05-25-admin-portal-design.md` §3.2, §3.3.
-- Implementation plan `docs/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`.
+- Design spec `docs/SSOT/archive/superpowers/specs/2026-05-25-admin-portal-design.md` §3.2, §3.3.
+- Implementation plan `docs/SSOT/archive/superpowers/plans/2026-05-25-admin-portal-a0-foundation.md`.
 
 **Acceptance Criteria.**
 - AC1. Expo Router group `(admin)` exists with `AdminLayout` (drawer on web ≥ md, bottom-tabs on mobile).
@@ -429,7 +429,7 @@ Migration: `0149_admin_content_search.sql`. Mobile routes: `(admin)/users`, `(ad
 
 ## §16 Admin Portal — Management hierarchy redesign (P3.A-Tree)
 
-Rebuilds `(admin)/admins` around a per-user card + admin-detail screen, and (in later phases) an organisation hierarchy tree. Plan: `docs/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. Phase 1 (FR-ADMIN-022/023) is FE-only (no schema change); Phases 2–3 (FR-ADMIN-024..026) add the `organizations` entity, the direct-manager link, the collapsible tree, and the public About tree with field-level privacy — specified when they ship.
+Rebuilds `(admin)/admins` around a per-user card + admin-detail screen, and (in later phases) an organisation hierarchy tree. Plan: `docs/SSOT/archive/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. Phase 1 (FR-ADMIN-022/023) is FE-only (no schema change); Phases 2–3 (FR-ADMIN-024..026) add the `organizations` entity, the direct-manager link, the collapsible tree, and the public About tree with field-level privacy — specified when they ship.
 
 ---
 
@@ -501,5 +501,5 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 | 0.7 | 2026-05-28 | Added §13 Admin Portal — Internal Tasks tracker (A3). FR-ADMIN-018. Migrations `0144_admin_tasks.sql` (tables + RLS + audit-action widen v4 → v5 with `admin_task_create`/`admin_task_update`/`admin_task_delete`) and `0145_admin_task_rpcs.sql` (8 SECURITY DEFINER RPCs for create/update/set_status/assign/add_comment/delete/list/detail). New `notifications.task_assigned*` i18n keys + `task_assigned` NotificationKind + pushRouteAllowlist handler for `(admin)/tasks/[taskId]`. |
 | 0.8 | 2026-05-28 | Added §14 Admin Portal — Content & Users management (A4). FR-ADMIN-019 (user + post search) and FR-ADMIN-020 (RBAC-tiered audit viewer). Migration `0149_admin_content_search.sql` ships `admin_search_users` (closes TD-93 at the UX layer), `admin_search_posts`, and `admin_audit_search` (super_admin sees all; moderator sees own + handled-target; support sees own only). Status header flipped 🟡 → ✅. |
 | 0.9 | 2026-06-14 | Added §15 Admin Portal — Survey results & feedback dashboard (A5). FR-ADMIN-021 (`/admin/surveys`): aggregate per-question stats + per-user answers + free-feedback list, gated by new `surveys.view` permission. Migration `0194_admin_survey_results.sql` ships `admin_survey_overview` / `admin_survey_results` / `admin_user_feedback_list` (all SECURITY DEFINER + `admin_assert_role` super_admin\|moderator). Also redesigned the `(admin)/tasks` filter bar (chips no longer wrap vertically; centered max-width layout). |
-| 0.10 | 2026-06-16 | Added §16 Admin Portal — Management hierarchy redesign (P3.A-Tree). FR-ADMIN-022 (unified per-user card + `(admin)/admins/[userId]` detail + profile cross-links; `AdminPerson` / `groupGrantsByUser` domain fold) and FR-ADMIN-023 (include-revoked toggle + `a1-reports-*` revoked-grant presentation fix). Phase 1 is FE-only — no schema change. FR-ADMIN-024..026 (organizations + direct-manager tree + public About tree) specified when Phases 2–3 ship. Plan: `docs/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. |
+| 0.10 | 2026-06-16 | Added §16 Admin Portal — Management hierarchy redesign (P3.A-Tree). FR-ADMIN-022 (unified per-user card + `(admin)/admins/[userId]` detail + profile cross-links; `AdminPerson` / `groupGrantsByUser` domain fold) and FR-ADMIN-023 (include-revoked toggle + `a1-reports-*` revoked-grant presentation fix). Phase 1 is FE-only — no schema change. FR-ADMIN-024..026 (organizations + direct-manager tree + public About tree) specified when Phases 2–3 ship. Plan: `docs/SSOT/archive/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. |
 | 0.11 | 2026-06-16 | Phase 2 (P3.A-Tree.2) shipped. FR-ADMIN-024 (organisations entity + Karma Community platform org + `scope_org_id` FK) and FR-ADMIN-025 (per-grant `manager_grant_id` link, `is_ancestor`, `admin_set_manager` + `admin_org_tree` RPCs, collapsible tree with level badges, org-scoped visibility, assign-manager picker). Migration `0203_admin_org_hierarchy.sql`; decision `D-60` (per-grant manager edge). FR-ADMIN-026 (public About tree + field-level privacy) ships in Phase 3. |

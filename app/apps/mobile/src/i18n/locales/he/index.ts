@@ -5,12 +5,14 @@
 // Default export: full Hebrew resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
-import { donations, search } from './donations';
+import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { givingHandoff } from './givingHandoff';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
 import { errorsHe } from './modules/errors';
 import { chatHe } from './modules/chat';
 import { notificationsHe } from './modules/notifications';
+import { emptyStatesHe, feedSettingsHe } from './modules/feedSettings';
 import { moderationHe, auditHe, accountBlockedHe } from './modules/moderation';
 import { postHe } from './modules/post';
 import { settingsHe } from './modules/settings';
@@ -30,10 +32,15 @@ import { researchHe } from './modules/research';
 import { adminHe } from './modules/admin';
 import { karmaHe } from './modules/karma';
 import { asideHe } from './modules/aside';
+import { configHe } from './modules/config';
+import { followHe } from './modules/follow';
+import { matchesHe } from './modules/matches';
 
 const he = {
   // App
   appName: 'KC - קהילת קארמה',
+
+  config: configHe,
 
   // Auth (FR-AUTH-001..014) — see modules/auth.ts
   auth: authHe,
@@ -64,6 +71,8 @@ const he = {
 
   // Notifications (FR-NOTIF-001..015) — see modules/notifications.ts
   notifications: notificationsHe,
+  feedSettings: feedSettingsHe,
+  emptyStates: emptyStatesHe,
 
   // Moderation (FR-MOD-007/010 + FR-ADMIN-002..007) — see modules/moderation.ts
   moderation: moderationHe,
@@ -100,8 +109,17 @@ const he = {
   // Donations (D-16, FR-DONATE-001..005) — see donations.ts
   donations,
 
+  marketplace,
+  moneyPayments,
+  timeVolunteer,
+  givingHandoff,
+
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,
+
+  follow: followHe,
+  // Matching v2 — see modules/matches.ts
+  matches: matchesHe,
 
   // Tab labels — see modules/tabs.ts
   tabs: tabsHe,

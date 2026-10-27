@@ -47,7 +47,7 @@ export interface ReportInboxPage {
 }
 
 function isTargetType(v: unknown): v is AdminReportTargetType {
-  return v === 'post' || v === 'user' || v === 'chat';
+  return v === 'post' || v === 'user' || v === 'chat' || v === 'listing';
 }
 
 export function parseReportInboxPage(input: unknown): ReportInboxPage {

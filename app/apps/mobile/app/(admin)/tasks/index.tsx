@@ -2,9 +2,7 @@
 // FR-ADMIN-018 — admin tasks list screen with chip filters.
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import {
-  FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   ADMIN_TASK_CATEGORIES,
   ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
@@ -26,6 +24,7 @@ import {
   TaskDueRangeFilter,
   isValidIsoDate,
 } from '../../../src/components/admin/tasks/TaskDueRangeFilter';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
 
 function parseDueFrom(value: string): Date | undefined {
@@ -156,7 +155,7 @@ export default function TasksScreen() {
         ) : undefined}
       />
 
-      <FlatList
+      <KcFlashList
         data={[...q.tasks]}
         keyExtractor={(t) => t.taskId}
         renderItem={({ item }) => (

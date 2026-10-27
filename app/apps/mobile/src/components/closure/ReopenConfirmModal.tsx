@@ -8,6 +8,7 @@ import { makeUseStyles, useTheme } from '@kc/ui';
 import type { PostType } from '@kc/domain';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
+import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 
 interface Props {
   visible: boolean;
@@ -37,6 +38,8 @@ export function ReopenConfirmModal({
   const markedSideLabel = give ? t('closure.markedSideGive') : t('closure.markedSideRequest');
   const ownerCounter = give ? t('closure.counterDonated') : t('closure.counterReceived');
   const markedCounter = give ? t('closure.counterReceived') : t('closure.counterDonated');
+
+  useModalHardwareBack(visible && !isBusy, onCancel);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>

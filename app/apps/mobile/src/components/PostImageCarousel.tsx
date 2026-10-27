@@ -1,17 +1,16 @@
 // PostImageCarousel — horizontal paged carousel for post detail images.
 // FR-POST-014 AC1: posts with up to 5 images expose every image; viewer pages
-// between them. Uses FlatList with pagingEnabled (no extra deps).
+// between them. Uses KcFlashList with pagingEnabled (no extra deps).
 import React, { useState } from 'react';
-import {
-  Dimensions, FlatList, Image, NativeScrollEvent, NativeSyntheticEvent,
-  Pressable, Text, View,
-} from 'react-native';
+import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
 import type { MediaAsset } from '@kc/domain';
 import { getSupabaseClient } from '@kc/infrastructure-supabase';
 import { PostImageViewerModal } from './PostImageViewerModal';
+import { KCImage } from './ui/KCImage';
+import { KcFlashList } from './lists/KcFlashList';
 
 const STORAGE_BUCKET = 'post-images';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -82,7 +81,7 @@ export function PostImageCarousel({ mediaAssets, fallbackIcon }: Props) {
           accessibilityRole="image"
           accessibilityLabel={t('post.imageZoom')}
         >
-          <Image source={{ uri: urls[0] }} style={styles.image} resizeMode="cover" />
+          <KCImage uri={urls[0]} style={styles.image} contentFit="cover" priority="high" />
         </Pressable>
         <PostImageViewerModal
           visible={viewerOpen}
@@ -102,7 +101,7 @@ export function PostImageCarousel({ mediaAssets, fallbackIcon }: Props) {
   return (
     <>
       <View style={styles.frame}>
-        <FlatList
+        <KcFlashList
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
@@ -114,7 +113,7 @@ export function PostImageCarousel({ mediaAssets, fallbackIcon }: Props) {
               accessibilityRole="image"
               accessibilityLabel={t('post.imageZoomNth', { index: index + 1, total: urls.length })}
             >
-              <Image source={{ uri: item }} style={styles.pageImage} resizeMode="cover" />
+              <KCImage uri={item} style={styles.pageImage} contentFit="cover" recyclingKey={item} />
             </Pressable>
           )}
           onScroll={onScroll}

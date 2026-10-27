@@ -162,7 +162,7 @@ The Super Admin retrieves global statistics directly via the database for produc
 While signed in as the Super Admin, the post detail screen exposes an "Remove as admin" action inside the `⋮` overflow menu, separate from the report-channel flow in `FR-ADMIN-005`.
 
 **Source.**
-- This document, §10 of `docs/superpowers/specs/2026-05-10-admin-delete-post-and-post-menu-design.md`.
+- This document, §10 of `docs/SSOT/archive/superpowers/specs/2026-05-10-admin-delete-post-and-post-menu-design.md`.
 
 **Acceptance Criteria.**
 - AC1. The action is hidden for non-admin sessions and for posts the admin owns (the admin sees their owner-mode menu instead).

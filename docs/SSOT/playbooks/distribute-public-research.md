@@ -1,7 +1,7 @@
 # Playbook — Distribute Public Research (Survey B)
 
 > **Owner:** PM. **Cadence:** per distribution wave (typically once per ~2 weeks while iterating on the product).
-> **Outcome:** populated rows in `public.public_research_responses` keyed by `?src=` attribution, eventually synthesized into the Karma Phrasebook (see `docs/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2).
+> **Outcome:** populated rows in `public.public_research_responses` keyed by `?src=` attribution, eventually synthesized into the Karma Phrasebook (see `docs/SSOT/archive/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2).
 
 ## When to run a wave
 
@@ -59,4 +59,4 @@ The phrasebook is a Google Sheet (linked from `docs/SSOT/spec/16_public_research
 | Pain language (Survey B quote) | Relief language (Survey A quote) | Where it ships |
 |---|---|---|
 
-See `docs/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2 for the philosophy. The PM owns updating this sheet after each wave.
+See `docs/SSOT/archive/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2 for the philosophy. The PM owns updating this sheet after each wave.

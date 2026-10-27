@@ -1,6 +1,6 @@
 # 2.9 Notifications
 
-> **Status:** ✅ Implemented — All in-scope FRs shipped end-to-end. FR-NOTIF-004 (message_undeliverable) and FR-NOTIF-012 (account-deletion email) remain deferred — see TD-62 and TD-118 respectively. FR-NOTIF-016 (quiet hours) is out of MVP per spec. Web Push parity tracked under TD-65. ⚠️ Audit 2026-05-16: 4 🔴 — sign-out leaves device row active (TD-100 / FR-NOTIF-015 AC3); follow_started/approved tap routing broken (TD-73); ~50% of system-message pushes silently dropped (TD-74); FR-NOTIF-003 needs an AC2 foreground-suppression analogue. BACKLOG P2.13. See `docs/SSOT/audit/2026-05-16/04_chat_notifications.md`.
+> **Status:** ✅ Implemented — All in-scope FRs shipped end-to-end. FR-NOTIF-004 (message_undeliverable) and FR-NOTIF-012 (account-deletion email) remain deferred — see TD-62 and TD-118 respectively. FR-NOTIF-016 (quiet hours) is out of MVP per spec. Web Push parity tracked under TD-65. ⚠️ Audit 2026-05-16: 4 🔴 — sign-out leaves device row active (TD-100 / FR-NOTIF-015 AC3); follow_started/approved tap routing broken (TD-73); ~50% of system-message pushes silently dropped (TD-74); FR-NOTIF-003 needs an AC2 foreground-suppression analogue. BACKLOG P2.13. See `docs/SSOT/archive/audit/2026-05-16/04_chat_notifications.md`.
 
 
 

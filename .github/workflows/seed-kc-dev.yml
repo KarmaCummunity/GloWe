@@ -1,0 +1,44 @@
+name: Seed KC dev
+
+# Manual only. Loads (or wipes) Hebrew fake data on the KC dev Supabase project.
+# Never targets prod: environment is fixed to supabase-dev and the project ref is checked.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'seed (wipe + reseed) or wipe'
+        type: choice
+        options: [seed, wipe]
+        default: seed
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-dev
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      KC_DEV_REF: enbqriuxvvuontiwslun
+    steps:
+      - uses: actions/checkout@v6
+      - name: Guard – dev project only
+        run: |
+          set -euo pipefail
+          if [ "$SUPABASE_PROJECT_REF" != "$KC_DEV_REF" ]; then
+            echo "::error::supabase-dev SUPABASE_PROJECT_REF is not kc-dev; refusing."; exit 1
+          fi
+      - name: Run SQL via Management API
+        run: |
+          set -euo pipefail
+          file=supabase/seed/kc-dev/${{ inputs.action }}.sql
+          body=$(python3 -c 'import json,sys;print(json.dumps({"query":"set kc.seed_target=\x27dev\x27;\n"+open(sys.argv[1]).read()}))' "$file")
+          code=$(curl -sS -o out.json -w '%{http_code}' -X POST \
+            "https://api.supabase.com/v1/projects/$KC_DEV_REF/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H 'Content-Type: application/json' \
+            --data-binary "$body")
+          cat out.json; echo
+          [ "$code" -lt 300 ] || { echo "::error::HTTP $code"; exit 1; }

@@ -32,7 +32,7 @@ import {
 } from './mapPostRow';
 import { mapInsertError } from './mapInsertError';
 import { encodeCursor } from './cursor';
-import { buildFeedQuery } from './feedQuery';
+import { runSimpleFeedQuery } from './feedQuery';
 import { fetchRankedFeedPage, needsRankedPath } from './feedQueryRanked';
 import {
   closePost as closePostHelper,
@@ -67,7 +67,8 @@ export class SupabasePostRepository implements IPostRepository {
   //     returns ordered post_ids + distance_km; adapter fetches full rows by
   //     IN(...) and preserves order.
   //   - Simple (newest/oldest, equality filters only): PostgREST select-builder
-  //     with a single-field createdAt cursor.
+  //     with a (created_at, post_id) keyset cursor; signed-in viewers read the
+  //     feed_visible_posts view so hides/mutes apply.
   async getFeed(
     viewerId: string | null,
     filter: PostFeedFilter,
@@ -80,8 +81,7 @@ export class SupabasePostRepository implements IPostRepository {
       return fetchRankedFeedPage(this.client, viewerId, filter, cursor, safeLimit);
     }
 
-    const q = buildFeedQuery(this.client, filter, cursor, safeLimit);
-    const { data, error } = await q;
+    const { data, error } = await runSimpleFeedQuery(this.client, viewerId, filter, cursor, safeLimit);
     if (error) throw new Error(`getFeed: ${error.message}`);
 
     const rows = (data ?? []) as unknown as PostWithOwnerJoinedRow[];
@@ -90,7 +90,7 @@ export class SupabasePostRepository implements IPostRepository {
     const posts = page.map(mapPostWithOwnerRow);
     const projected = await applyPostActorIdentityProjectionBatch(this.client, posts, viewerId);
     const last = projected[projected.length - 1];
-    const nextCursor = hasMore && last ? encodeCursor({ createdAt: last.createdAt }) : null;
+    const nextCursor = hasMore && last ? encodeCursor({ createdAt: last.createdAt, postId: last.postId }) : null;
     return { posts: projected, nextCursor };
   }
 

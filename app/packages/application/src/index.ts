@@ -7,17 +7,17 @@ export * from './ports/IAuthService';
 export * from './ports/ICityRepository';
 export * from './ports/IStreetRepository';
 export type { ITranslationCacheRepository, CachedTranslation, TranslationCacheKey } from './ports/ITranslationCacheRepository';
-export type { ITranslationService } from './ports/ITranslationService';
+export type { BatchTranslationItem, ITranslationService } from './ports/ITranslationService';
 export type { IPostTranslationReader, PostTranslationHit } from './ports/IPostTranslationReader';
+export type * from './ports/IMarketplaceRepository';
 export * from './translations';
 export type { IChatRealtime, InboxStreamCallbacks, SubscribeInboxOptions, ChatStreamCallbacks, Unsubscribe } from './ports/IChatRealtime';
 export type { IReportRepository } from './ports/IReportRepository';
-export type { IFeedRealtime, FeedRealtimeCallbacks } from './ports/IFeedRealtime';
+export type { IFeedRealtime, FeedRealtimeCallbacks, NewPublicPostSignal } from './ports/IFeedRealtime';
 export type { IUserRealtime } from './ports/IUserRealtime';
 export type { IRidesRealtime, RidesRealtimeCallbacks } from './ports/IRidesRealtime';
 export type { CommunityStatsSnapshot, IStatsRepository } from './ports/IStatsRepository';
 export type { IAboutRepository } from './ports/IAboutRepository';
-
 export * from './auth/errors';
 export * from './auth/SignUpWithEmail';
 export { ResendVerificationEmailUseCase, type ResendVerificationEmailInput } from './auth/ResendVerificationEmail';
@@ -41,7 +41,6 @@ export * from './feed/DismissFirstPostNudgeUseCase';
 export * from './stats/GetCommunityStatsSnapshotUseCase';
 export * from './stats/ListMyActivityTimelineUseCase';
 export * from './about/ListAboutTeamMembersUseCase';
-
 export * from './posts/errors';
 export * from './posts/CreatePostUseCase';
 export * from './posts/UpdatePostUseCase';
@@ -83,8 +82,10 @@ export type { ChatErrorCode } from './chat/errors';
 // Report use cases
 export { ReportChatUseCase } from './reports/ReportChatUseCase';
 export type { ReportChatInput } from './reports/ReportChatUseCase';
-export { ReportPostUseCase } from './reports/ReportPostUseCase';
-export type { ReportPostInput } from './reports/ReportPostUseCase';
+export { ReportPostUseCase, type ReportPostInput } from './reports/ReportPostUseCase';
+export * from './blocks';
+export { ReportListingUseCase } from './reports/ReportListingUseCase';
+export type { ReportListingInput } from './reports/ReportListingUseCase';
 export { ReportError } from './reports/errors';
 export type { ReportErrorCode } from './reports/errors';
 
@@ -129,20 +130,17 @@ export * from './ports/IAccountGateRepository';
 export * from './moderation/errors';
 
 // Moderation admin use cases (FR-MOD-007 + FR-ADMIN-002..007)
-export { RestoreTargetUseCase } from './moderation/RestoreTargetUseCase';
-export type { RestoreTargetInput } from './moderation/RestoreTargetUseCase';
-export { DismissReportUseCase } from './moderation/DismissReportUseCase';
-export type { DismissReportInput } from './moderation/DismissReportUseCase';
-export { ConfirmReportUseCase } from './moderation/ConfirmReportUseCase';
-export type { ConfirmReportInput } from './moderation/ConfirmReportUseCase';
-export { BanUserUseCase } from './moderation/BanUserUseCase';
-export type { BanUserInput } from './moderation/BanUserUseCase';
+export { RestoreTargetUseCase, type RestoreTargetInput } from './moderation/RestoreTargetUseCase';
+export { DismissReportUseCase, type DismissReportInput } from './moderation/DismissReportUseCase';
+export { ConfirmReportUseCase, type ConfirmReportInput } from './moderation/ConfirmReportUseCase';
+export { BanUserUseCase, type BanUserInput } from './moderation/BanUserUseCase';
 export { DeleteMessageUseCase } from './moderation/DeleteMessageUseCase';
 export type { DeleteMessageInput } from './moderation/DeleteMessageUseCase';
 export { LookupAuditUseCase } from './moderation/LookupAuditUseCase';
 export type { LookupAuditInput } from './moderation/LookupAuditUseCase';
 export { ReportUserUseCase } from './moderation/ReportUserUseCase';
 export type { ReportUserInput } from './moderation/ReportUserUseCase';
+export { AdminRemoveListingUseCase, type AdminRemoveListingInput } from './moderation/AdminRemoveListingUseCase';
 export { CheckAccountGateUseCase } from './moderation/CheckAccountGateUseCase';
 export type { CheckAccountGateInput } from './moderation/CheckAccountGateUseCase';
 export type { IDeviceRepository } from './notifications/IDeviceRepository';
@@ -293,8 +291,10 @@ export type { ISurveyAdminRepository } from './ports/ISurveyAdminRepository';
 export { GetAdminSurveyOverviewUseCase } from './survey/GetAdminSurveyOverviewUseCase';
 export { GetAdminSurveyResultsUseCase } from './survey/GetAdminSurveyResultsUseCase';
 export { ListUserFeedbackUseCase } from './survey/ListUserFeedbackUseCase';
-
-// Public research use cases (FR-RESEARCH-001..003)
 export type { IPublicResearchRepository } from './ports/IPublicResearchRepository';
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';
+export * from './payments';
+export * from './volunteering';
+export * from './giving';
+export * from './admin/whatsapp';

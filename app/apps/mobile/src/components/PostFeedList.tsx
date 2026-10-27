@@ -1,23 +1,21 @@
 import { useTranslation } from 'react-i18next';
 import React, { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { KcRefreshControl } from './lists/KcRefreshControl';
 import type { ViewToken } from 'react-native';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import type { useTranslatedPosts } from '../hooks/useTranslatedPosts';
-import { HOME_FEED_GRID_COLUMNS } from '../hooks/useShellContentWidth';
+import { HOME_FEED_GRID_COLUMNS, usePostGridCardWidth } from '../hooks/useShellContentWidth';
+import { LIST_END_THRESHOLD } from '../hooks/usePrefetchNextPage';
+import { prefetchImages } from '../lib/imagePrefetch';
+import { getSupabaseFeedImageUrl } from '../lib/imageUrl';
 import { useShellTabBarScrollInset } from '../navigation/useShellTabBarVisibility';
 import { PostCardGrid } from './PostCardGrid';
 import { EmptyState } from './EmptyState';
 import { PostGridSkeleton } from './skeletons/PostGridSkeleton';
 import { finishMark } from '../lib/observability/perfMarks';
+import { KcFlashList, type KcFlashListRef } from './lists/KcFlashList';
 
 interface Props {
   data: PostWithOwner[] | undefined;
@@ -34,8 +32,8 @@ interface Props {
   emptyComponent?: React.ReactNode;
   /** Optional sticky/scrollable banner rendered above the list. */
   ListHeaderComponent?: React.ReactNode;
-  /** Forwarded to the underlying FlatList — used by the feed for scroll-to-top. */
-  listRef?: React.Ref<FlatList<PostWithOwner>>;
+  /** Forwarded to the underlying KcFlashList — used by the feed for scroll-to-top. */
+  listRef?: React.Ref<KcFlashListRef<PostWithOwner>>;
   /** FR-TRANSLATE-003 — viewport tracking for viewport-gated translation. */
   onViewableItemsChanged?: (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => void;
   viewabilityConfig?: { itemVisiblePercentThreshold?: number; minimumViewTime?: number };
@@ -88,6 +86,19 @@ export function PostFeedList({
     if ((data ?? []).length > 0) finishMark('feed.first_render');
   }, [data]);
 
+  // Warm the image cache for the most recently loaded page (usually still
+  // below the fold) so cards render with their photo instead of a placeholder.
+  const cardWidth = usePostGridCardWidth(HOME_FEED_GRID_COLUMNS);
+  React.useEffect(() => {
+    const tail = (data ?? []).slice(-20);
+    prefetchImages(
+      tail.map((p) => {
+        const path = p.mediaAssets[0]?.path;
+        return path ? getSupabaseFeedImageUrl('post-images', path, cardWidth) : null;
+      }),
+    );
+  }, [data, cardWidth]);
+
   if (isLoading && !data) {
     return <PostGridSkeleton columns={HOME_FEED_GRID_COLUMNS} count={HOME_FEED_GRID_COLUMNS * 3} />;
   }
@@ -102,13 +113,13 @@ export function PostFeedList({
     );
   }
   return (
-    <FlatList
+    <KcFlashList
       ref={listRef}
+      estimatedItemSize={280}
       style={styles.list}
       data={data ?? []}
       keyExtractor={keyExtractor}
       numColumns={HOME_FEED_GRID_COLUMNS}
-      columnWrapperStyle={styles.row}
       renderItem={renderItem}
       contentContainerStyle={listContentStyle as unknown as object}
       ListHeaderComponent={ListHeaderComponent as React.ComponentType | null | undefined}
@@ -129,24 +140,13 @@ export function PostFeedList({
         ) : null
       }
       refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
+        <KcRefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
       }
       onViewableItemsChanged={onViewableItemsChanged}
       viewabilityConfig={viewabilityConfig}
       onEndReached={onEndReached}
-      onEndReachedThreshold={0.4}
+      onEndReachedThreshold={LIST_END_THRESHOLD}
       showsVerticalScrollIndicator={false}
-      // Windowing: the default windowSize (21) keeps ~10 screens of
-      // image-bearing post cards mounted each direction on the app's
-      // highest-traffic screen. Cap it so memory and scroll work stay bounded;
-      // counts are per-row (numColumns groups items into rows).
-      initialNumToRender={6}
-      maxToRenderPerBatch={6}
-      windowSize={7}
     />
   );
 }

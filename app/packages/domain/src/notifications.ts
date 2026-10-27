@@ -25,7 +25,11 @@ export type NotificationKind =
   // FR-RIDE-035 — emergency button.
   | 'ride_emergency'
   // FR-RIDE-037 — ratings prompt.
-  | 'ride_rate_prompt';
+  | 'ride_rate_prompt'
+  // Matching v2 (0420–0423) — automatic offer↔request suggestions + responses.
+  | 'match_suggested'
+  | 'match_interest'
+  | 'match_accepted';
 
 /** Payload attached to every Expo push under `data`. The client reads this on tap. */
 export interface PushData {

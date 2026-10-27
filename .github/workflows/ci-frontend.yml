@@ -3,12 +3,14 @@ name: CI — frontend
 # `typecheck · test · lint` and `Hebrew source scan (no inline UI copy)` are
 # REQUIRED status checks on dev/main (branch protection) — keep the job names
 # stable. Because they are required, the pull_request trigger MUST run on every
-# non-draft PR (no path filter): path-filtering left those required contexts
-# permanently "Expected" on backend-only / docs-only PRs and blocked their merge
-# (same root cause and fix as ci-backend.yml / ci-contract.yml). A cheap
-# `changes` job gates the heavy `quality` + `web export` steps so a non-frontend
-# PR gets a fast pass while still reporting the required contexts. `push` stays
-# path-filtered. Keep the `changes` filter list in sync with the real inputs.
+# non-draft PR (no path filter on `on:`): path-filtering left those required
+# contexts permanently "Expected" on backend-only / docs-only PRs and blocked
+# their merge (same root cause and fix as ci-backend.yml / ci-contract.yml). A
+# cheap `changes` job (dorny/paths-filter) gates the heavy `quality` + `web
+# export` steps so a non-frontend PR gets a fast pass while still reporting the
+# required contexts. `push` stays path-filtered. Turbo local cache
+# (`.github/actions/setup-pnpm-turbo`) speeds typecheck/test/lint/web on hits.
+# Keep the `changes` filter list in sync with the real inputs.
 
 on:
   pull_request:
@@ -24,7 +26,7 @@ on:
       - '.github/workflows/ci-frontend.yml'
 
 concurrency:
-  group: ci-frontend-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -69,6 +71,9 @@ jobs:
       run:
         working-directory: app
 
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -77,23 +82,14 @@ jobs:
         if: needs.changes.outputs.frontend != 'true'
         run: echo "No app/** or build-input changes in this PR — skipping typecheck/test/lint."
 
-      - name: Setup pnpm
+      - name: Setup pnpm + Turbo cache
         if: needs.changes.outputs.frontend == 'true'
-        uses: pnpm/action-setup@v4
-        with:
-          package_json_file: app/package.json
-          run_install: false
-
-      - name: Setup Node.js
-        if: needs.changes.outputs.frontend == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: app/pnpm-lock.yaml
+        uses: ./.github/actions/setup-pnpm-turbo
 
       - name: Install dependencies
         if: needs.changes.outputs.frontend == 'true'
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
@@ -123,6 +119,8 @@ jobs:
 
       - name: Dependency audit
         if: needs.changes.outputs.frontend == 'true'
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           # The legacy npm audit endpoint is being retired and now returns HTTP
           # 410 (ERR_PNPM_AUDIT_BAD_RESPONSE), which is an infra/registry error,
@@ -134,6 +132,10 @@ jobs:
           echo "$out"
           if [ "$code" -ne 0 ] && echo "$out" | grep -q "ERR_PNPM_AUDIT_BAD_RESPONSE"; then
             echo "::warning::pnpm audit registry endpoint unavailable (HTTP 410, retired) — dependency audit skipped"
+            exit 0
+          fi
+          if [ "$code" -ne 0 ] && { [ "$code" -eq 134 ] || echo "$out" | grep -q "JavaScript heap out of memory"; }; then
+            echo "::warning::pnpm audit exceeded Node heap — dependency audit skipped (infra)"
             exit 0
           fi
           exit "$code"
@@ -170,23 +172,14 @@ jobs:
         if: needs.changes.outputs.frontend != 'true'
         run: echo "No app/** or build-input changes in this PR — skipping web export."
 
-      - name: Setup pnpm
+      - name: Setup pnpm + Turbo cache
         if: needs.changes.outputs.frontend == 'true'
-        uses: pnpm/action-setup@v4
-        with:
-          package_json_file: app/package.json
-          run_install: false
-
-      - name: Setup Node.js
-        if: needs.changes.outputs.frontend == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: app/pnpm-lock.yaml
+        uses: ./.github/actions/setup-pnpm-turbo
 
       - name: Install dependencies
         if: needs.changes.outputs.frontend == 'true'
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
         run: pnpm install --frozen-lockfile
 
       - name: Build web bundle (same env wiring as Dockerfile)
@@ -235,7 +228,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 

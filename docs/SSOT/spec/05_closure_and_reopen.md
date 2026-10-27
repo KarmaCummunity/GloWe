@@ -1,6 +1,6 @@
 # 2.5 Posts: Closure & Reopen
 
-> **Status:** ✅ Core Complete — Close with/without recipient, reopen, chat fan-out shipped. **Audit 2026-05-29:** closure candidates scoped to `anchor_post_id` (FR-CLOSURE-003 AC1). Counter drift on `rpc_recipient_unmark_self` + `reopen_post_deleted_no_recipient` (TD-71) closed by migration `0149` under P2.16. FR-CLOSURE-007 still silent on whether `closed_delivered → deleted_no_recipient` from unmark should emit a system message in anchored chats (see `docs/SSOT/audit/2026-05-16/03_posts_closure_feed.md` POST-16).
+> **Status:** ✅ Core Complete — Close with/without recipient, reopen, chat fan-out shipped. **Audit 2026-05-29:** closure candidates scoped to `anchor_post_id` (FR-CLOSURE-003 AC1). Counter drift on `rpc_recipient_unmark_self` + `reopen_post_deleted_no_recipient` (TD-71) closed by migration `0149` under P2.16. FR-CLOSURE-007 still silent on whether `closed_delivered → deleted_no_recipient` from unmark should emit a system message in anchored chats (see `docs/SSOT/archive/audit/2026-05-16/03_posts_closure_feed.md` POST-16).
 
 
 
@@ -32,7 +32,7 @@ The owner of an `open` post taps "Mark as Delivered" from Post Detail.
 - AC5. When closure completes successfully from **post detail**, the client shows a short success toast, navigates back (or to the main tabs shell if there is no stack history), and invalidates list caches (including profile closed-posts) so feeds and profile grids are not stale. **Reopen** from the same screen uses the same toast + back pattern (see FR-CLOSURE-005 AC7).
 - AC6. (P1.2.x) Clear anchor on close: after the system-message fan-out in AC4, the same closure trigger sets `chats.anchor_post_id = NULL` for every chat that was anchored to the closed post. The clear runs after the message inserts (so the loop still finds the anchored chats) and applies to both `closed_delivered` and `deleted_no_recipient` transitions. Pairs with FR-CHAT-014 AC6 (re-anchor on next entry from a different post). Implemented in `supabase/migrations/0026_chat_anchor_lifecycle.sql`.
 
-**Related.** Screens: 2.3, 6.4.1 · Spec: `docs/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
+**Related.** Screens: 2.3, 6.4.1 · Spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
 
 ---
 

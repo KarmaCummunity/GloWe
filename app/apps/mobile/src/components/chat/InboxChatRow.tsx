@@ -6,17 +6,17 @@ import { useTranslation } from 'react-i18next';
 import type { ChatWithPreview } from '@kc/application';
 import { makeUseStyles, typography, spacing, useTheme } from '@kc/ui';
 import { AvatarInitials } from '../AvatarInitials';
+import { OnlineDot } from './OnlineDot';
 import { formatRelativeChatTime } from '../../lib/formatRelativeChatTime';
 import { formatInboxPreview } from '../../lib/formatInboxPreview';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
-
 interface Props {
   readonly item: ChatWithPreview;
   readonly onOpen: (chatId: string) => void;
   readonly onRequestHide: (chatId: string, otherUserId: string | null) => void;
 }
 
-// Memoized: the inbox FlatList re-renders on every search keystroke and
+// Memoized: the inbox KcFlashList re-renders on every search keystroke and
 // refresh, but each row only depends on its own `item` and stable parent
 // callbacks — without memo every row re-rendered on each keystroke.
 function InboxChatRowInner({ item, onOpen, onRequestHide }: Props) {
@@ -26,11 +26,14 @@ function InboxChatRowInner({ item, onOpen, onRequestHide }: Props) {
   return (
     <View style={styles.chatRow}>
       <TouchableOpacity style={styles.chatRowMain} onPress={() => onOpen(item.chatId)}>
-        <AvatarInitials
-          name={item.otherParticipant.displayName ?? t('common.deletedUser')}
-          avatarUrl={item.otherParticipant.avatarUrl}
-          size={48}
-        />
+        <View>
+          <AvatarInitials
+            name={item.otherParticipant.displayName ?? t('common.deletedUser')}
+            avatarUrl={item.otherParticipant.avatarUrl}
+            size={48}
+          />
+          <OnlineDot userId={item.otherParticipant.isDeleted ? null : item.otherParticipant.userId} />
+        </View>
         <View style={styles.chatInfo}>
           <View style={styles.chatHeader}>
             <Text style={styles.chatTime}>

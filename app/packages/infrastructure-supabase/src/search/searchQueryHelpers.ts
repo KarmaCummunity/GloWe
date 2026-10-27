@@ -6,12 +6,11 @@ import type { Database } from '../database.types';
 import { POST_SELECT_OWNER, mapPostWithOwnerRow, type PostWithOwnerJoinedRow } from '../posts/mapPostRow';
 import { applyPostActorIdentityProjectionBatch } from '../posts/applyPostActorIdentityProjection';
 import { type LinkRow, type SearchUserRow, mapUserSearchResult, mapLinkSearchResult } from './searchMappers';
-import { toSearchBucket, type SearchBucket } from './searchBucket';
+import { orderByIds, pageFetchSize, toPagedBucket, type SearchBucket } from './searchBucket';
 import { quoteOrValue, findMatchingCategorySlug } from './searchUtils';
 
 type C = SupabaseClient<Database>;
 const U = 'user_id, display_name, share_handle, avatar_url, biography, city, city_name, followers_count, items_given_count';
-const COUNT_EXACT = { count: 'exact' as const };
 
 export async function searchPosts(
   c: C,
@@ -20,20 +19,26 @@ export async function searchPosts(
   limit: number,
   viewerId?: string | null,
 ): Promise<SearchBucket<PostWithOwner>> {
-  const v = quoteOrValue(query);
-  let q = c
-    .from('posts')
-    .select(POST_SELECT_OWNER, COUNT_EXACT)
-    .eq('status', 'open')
-    .or(`title.ilike.${v},description.ilike.${v},category.ilike.${v}`);
-  if (f.postType) q = q.eq('type', f.postType);
-  if (f.category) q = q.eq('category', f.category);
-  if (f.city) q = q.eq('city', f.city);
-  const { data, count, error } = await q.order('created_at', { ascending: false }).limit(limit);
+  // Ids via the paged RPC (trigram candidates, lazy visibility; no count — 0418).
+  const { data: idRows, error } = await c.rpc('search_posts_page', {
+    p_query: query,
+    p_type: f.postType ?? undefined,
+    p_category: f.category ?? undefined,
+    p_city: f.city ?? undefined,
+    p_limit: pageFetchSize(limit),
+  });
   if (error) throw new Error(`searchPosts: ${error.message}`);
-  const raw = ((data ?? []) as unknown as PostWithOwnerJoinedRow[]).map(mapPostWithOwnerRow);
-  const items = await applyPostActorIdentityProjectionBatch(c, raw, viewerId ?? null);
-  return toSearchBucket(items, count);
+  const page = toPagedBucket((idRows ?? []).map((r) => r.post_id), limit);
+  if (page.items.length === 0) return { items: [], total: 0, hasMore: false };
+  // Hydrate through posts RLS (defence in depth) and keep the RPC order.
+  const { data, error: hydrateError } = await c
+    .from('posts')
+    .select(POST_SELECT_OWNER)
+    .in('post_id', [...page.items]);
+  if (hydrateError) throw new Error(`searchPosts: ${hydrateError.message}`);
+  const rows = orderByIds(page.items, (data ?? []) as unknown as PostWithOwnerJoinedRow[], (r) => r.post_id);
+  const items = await applyPostActorIdentityProjectionBatch(c, rows.map(mapPostWithOwnerRow), viewerId ?? null);
+  return { items, total: items.length, hasMore: page.hasMore };
 }
 
 export async function searchUsers(
@@ -43,18 +48,21 @@ export async function searchUsers(
   _v: string | null,
   limit: number,
 ): Promise<SearchBucket<UserSearchResult>> {
-  const v = quoteOrValue(query);
-  let q = c
-    .from('users')
-    .select(U, COUNT_EXACT)
-    .or(`display_name.ilike.${v},biography.ilike.${v},share_handle.ilike.${v}`);
-  if (f.city) q = q.eq('city', f.city);
-  if (f.minFollowers && f.minFollowers > 0) q = q.gte('followers_count', f.minFollowers);
-  const order = f.sortBy === 'newest' ? 'created_at' : 'followers_count';
-  const { data, count, error } = await q.order(order, { ascending: false }).limit(limit);
+  const { data: idRows, error } = await c.rpc('search_users_page', {
+    p_query: query,
+    p_city: f.city ?? undefined,
+    p_min_followers: f.minFollowers && f.minFollowers > 0 ? f.minFollowers : undefined,
+    p_sort: f.sortBy === 'newest' ? 'newest' : 'followers',
+    p_limit: pageFetchSize(limit),
+  });
   if (error) throw new Error(`searchUsers: ${error.message}`);
-  const items = ((data ?? []) as SearchUserRow[]).map(mapUserSearchResult);
-  return toSearchBucket(items, count);
+  const page = toPagedBucket((idRows ?? []).map((r) => r.user_id), limit);
+  if (page.items.length === 0) return { items: [], total: 0, hasMore: false };
+  const { data, error: hydrateError } = await c.from('users').select(U).in('user_id', [...page.items]);
+  if (hydrateError) throw new Error(`searchUsers: ${hydrateError.message}`);
+  const rows = orderByIds(page.items, (data ?? []) as SearchUserRow[], (r) => r.user_id);
+  const items = rows.map(mapUserSearchResult);
+  return { items, total: items.length, hasMore: page.hasMore };
 }
 
 export async function searchLinks(
@@ -65,15 +73,14 @@ export async function searchLinks(
 ): Promise<SearchBucket<DonationLinkSearchResult>> {
   const v = quoteOrValue(query);
   const slug = findMatchingCategorySlug(query.toLowerCase());
-  let q = c.from('donation_links').select('id, category_slug, url, display_name, description, tags', COUNT_EXACT).is('hidden_at', null);
+  let q = c.from('donation_links').select('id, category_slug, url, display_name, description, tags').is('hidden_at', null);
   if (slug && !f.donationCategory) {
     q = q.or(`display_name.ilike.${v},description.ilike.${v},url.ilike.${v},category_slug.eq.${slug}`);
   } else {
     q = q.or(`display_name.ilike.${v},description.ilike.${v},url.ilike.${v}`);
   }
   if (f.donationCategory) q = q.eq('category_slug', f.donationCategory);
-  const { data, count, error } = await q.order('created_at', { ascending: false }).limit(limit);
+  const { data, error } = await q.order('created_at', { ascending: false }).limit(pageFetchSize(limit));
   if (error) throw new Error(`searchLinks: ${error.message}`);
-  const items = ((data ?? []) as unknown as LinkRow[]).map(mapLinkSearchResult);
-  return toSearchBucket(items, count);
+  return toPagedBucket(((data ?? []) as unknown as LinkRow[]).map(mapLinkSearchResult), limit);
 }

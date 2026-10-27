@@ -14,10 +14,16 @@ export class UpdateNotificationPreferencesUseCase {
     userId: string;
     critical?: boolean;
     social?: boolean;
+    quietHours?: NotificationPreferences['quietHours'];
   }): Promise<NotificationPreferences> {
-    const partial: { critical?: boolean; social?: boolean } = {};
+    const partial: {
+      critical?: boolean;
+      social?: boolean;
+      quietHours?: NotificationPreferences['quietHours'];
+    } = {};
     if (input.critical !== undefined) partial.critical = input.critical;
     if (input.social !== undefined) partial.social = input.social;
+    if (input.quietHours !== undefined) partial.quietHours = input.quietHours;
     return this.userRepo.updateNotificationPreferences(input.userId, partial);
   }
 }

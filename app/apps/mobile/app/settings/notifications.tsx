@@ -8,7 +8,6 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
@@ -16,10 +15,9 @@ import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
-import type { NotificationPreferences } from '@kc/domain';
 import { NotificationToggleRow } from '../../src/components/NotificationToggleRow';
-import { useAuthStore } from '../../src/store/authStore';
-import { container } from '../../src/lib/container';
+import { QuietHoursSection } from '../../src/components/settings/QuietHoursSection';
+import { useNotificationPreferences } from '../../src/hooks/useNotificationPreferences';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   scrollContent: { ...webViewRtl },
@@ -57,14 +55,10 @@ const useStyles = makeUseStyles(({ colors }) => ({
 
 type PermStatus = 'granted' | 'denied' | 'undetermined';
 
-const DEFAULT_PREFS: NotificationPreferences = { critical: true, social: true };
-
 export default function NotificationSettingsScreen() {
   const detailStackScreenOptions = useDetailStackScreenOptions();
   const styles = useStyles();
   const { t } = useTranslation();
-  const userId = useAuthStore((s) => s.session?.userId);
-  const qc = useQueryClient();
   const [permStatus, setPermStatus] = useState<PermStatus>('undetermined');
 
   useEffect(() => {
@@ -74,40 +68,7 @@ export default function NotificationSettingsScreen() {
       .catch(() => {});
   }, []);
 
-  const queryKey = ['notification-preferences', userId] as const;
-
-  const prefsQuery = useQuery({
-    queryKey,
-    queryFn: async () => {
-      const user = await container.userRepo.findById(userId!);
-      return user?.notificationPreferences ?? DEFAULT_PREFS;
-    },
-    enabled: !!userId,
-    staleTime: 5 * 60_000, // PERF-3: notification prefs — mutation invalidates explicitly via onSettled
-  });
-
-  const mutation = useMutation({
-    mutationFn: (partial: { critical?: boolean; social?: boolean }) =>
-      container.updateNotificationPreferences.execute({
-        userId: userId!,
-        ...partial,
-      }),
-    onMutate: async (partial) => {
-      await qc.cancelQueries({ queryKey });
-      const previous = qc.getQueryData<NotificationPreferences>(queryKey);
-      qc.setQueryData<NotificationPreferences>(queryKey, (old) => ({
-        ...(old ?? DEFAULT_PREFS),
-        ...partial,
-      }));
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) qc.setQueryData(queryKey, ctx.previous);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey }),
-  });
-
-  const prefs = prefsQuery.data ?? DEFAULT_PREFS;
+  const { prefs, update } = useNotificationPreferences();
 
   return (
     <>
@@ -122,14 +83,16 @@ export default function NotificationSettingsScreen() {
           label={t('notifications.criticalLabel')}
           caption={t('notifications.criticalCaption')}
           value={prefs.critical}
-          onValueChange={(v) => mutation.mutate({ critical: v })}
+          onValueChange={(v) => update({ critical: v })}
         />
         <NotificationToggleRow
           label={t('notifications.socialLabel')}
           caption={t('notifications.socialCaption')}
           value={prefs.social}
-          onValueChange={(v) => mutation.mutate({ social: v })}
+          onValueChange={(v) => update({ social: v })}
         />
+
+        <QuietHoursSection value={prefs.quietHours} onChange={(quietHours) => update({ quietHours })} />
 
         {Platform.OS !== 'web' && (
           <>

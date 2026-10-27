@@ -25,6 +25,8 @@ import { NotifyModal } from '../../src/components/NotifyModal';
 import { AuthBackground } from '../../src/components/auth/AuthBackground';
 import { AnimatedAuthInput } from '../../src/components/auth/AnimatedAuthInput';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { AuthSocialSignInBlock } from '../../src/components/auth/AuthSocialSignInBlock';
+import { track } from '../../src/lib/analytics';
 
 export default function SignUpScreen() {
   const styles = useStyles();
@@ -68,6 +70,7 @@ export default function SignUpScreen() {
       const { session, pendingVerification } = await getSignUpUseCase().execute({
         email, password, emailRedirectTo: AUTH_VERIFY_URL,
       });
+      track('signup', { method: 'email' });
       if (session) { setSession(session); return; }
       if (pendingVerification) setPendingEmail(email.trim().toLowerCase());
     } catch (err) {
@@ -97,6 +100,8 @@ export default function SignUpScreen() {
             <Animated.View style={[styles.card, formStyle]}>
               <Text style={styles.title}>{t('auth.signUp')}</Text>
               <Text style={styles.subtitle}>{t('auth.signUpSubtitle')}</Text>
+
+              {!pendingEmail ? <AuthSocialSignInBlock /> : null}
 
               {pendingEmail ? (
                 <VerificationPendingPanel email={pendingEmail} onChangeEmail={() => setPendingEmail(null)} />

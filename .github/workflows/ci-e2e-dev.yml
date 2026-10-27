@@ -1,7 +1,8 @@
 name: CI — E2E dev
 
-# P0 user journeys against the live Railway dev deployment (D-55).
-# Gates production release PRs (dev → main). Requires DEV_WEB_URL + E2E secrets.
+# P0 user journeys against the live dev deployment (D-55).
+# Gates production release PRs (dev → main). Targets kc-dev with the public seed users
+# (tests/e2e/lib/env.ts); only DEV_WEB_URL is required.
 
 on:
   pull_request:
@@ -50,128 +51,26 @@ jobs:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
         run: node scripts/wait-for-url.mjs "${DEV_WEB_URL%/}/" 12 15000
 
-      # The dev deploy may be GLOWE-only: web-postbuild.mjs then gates the KC web
-      # app behind /glowe and gates the KC root behind a redirect to /glowe/ (see
-      # app/scripts/web-postbuild.mjs, DECISIONS D-61). That redirect ships two
-      # ways: a Cloudflare `_redirects` rule (`/ → /glowe/ 302`) AND a meta-refresh
-      # index.html shim (`url=/glowe/`). In practice Cloudflare applies the 302
-      # before serving the directory index, so the bare root returns an HTTP 302 —
-      # the meta-refresh body is never served. When GLOWE-only, the KC P0 journeys
-      # (which navigate to /, /chat, /create) cannot run — the root serves GloWe,
-      # not the KC feed. Detect BOTH the 302 (follow redirects, inspect the
-      # effective URL) and the legacy meta-refresh body, and skip the KC suite
-      # cleanly instead of failing. Self-healing: when KC web is restored to the
-      # dev root, "/" stops redirecting to /glowe/ and the journeys run again.
-      - name: Detect whether dev serves the KC web app
-        id: detect
-        env:
-          DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-        run: |
-          set -euo pipefail
-          # -L follows the _redirects 302 to /glowe/, so url_effective lands there;
-          # the appended marker also captures a legacy meta-refresh body (url=/glowe/).
-          resp="$(curl -fsSL "${DEV_WEB_URL%/}/" -w '\n__EFFECTIVE__%{url_effective}' 2>/dev/null || true)"
-          if printf '%s' "$resp" | grep -qE 'url=/glowe/|__EFFECTIVE__.*/glowe/'; then
-            echo "kc_web=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Dev is GLOWE-only (root redirects to /glowe/). Skipping KC P0 journeys until KC web returns to the dev root."
-          else
-            echo "kc_web=true" >> "$GITHUB_OUTPUT"
-            echo "KC web is served at the dev root — running P0 journeys."
-          fi
-
-      - uses: actions/setup-node@v4
-        if: steps.detect.outputs.kc_web == 'true'
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
-      - name: Verify E2E credentials (Supabase auth API)
-        if: steps.detect.outputs.kc_web == 'true'
-        env:
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          EXPO_PUBLIC_SUPABASE_URL: https://roeefqpdbftlndzsvhfj.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-        run: node scripts/ensure-e2e-user.mjs
-
       - name: Install Playwright
-        if: steps.detect.outputs.kc_web == 'true'
         working-directory: tests/e2e
         run: |
           npm install
           npx playwright install --with-deps chromium
 
       - name: Run P0 journeys
-        if: steps.detect.outputs.kc_web == 'true'
         working-directory: tests/e2e
         env:
           DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-          EXPO_PUBLIC_SUPABASE_URL: https://roeefqpdbftlndzsvhfj.supabase.co
         run: npm test
-
-      - uses: actions/upload-artifact@v4
-        if: failure() && steps.detect.outputs.kc_web == 'true'
-        with:
-          name: playwright-report
-          path: |
-            tests/e2e/playwright-report/
-            tests/e2e/test-results/
-
-  glowe-journeys:
-    name: GloWe journeys
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Require DEV_WEB_URL
-        env:
-          DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${DEV_WEB_URL}" ]; then
-            echo "::error::Repository variable DEV_WEB_URL is not set."
-            exit 1
-          fi
-          echo "Target: ${DEV_WEB_URL%/}/glowe/"
-
-      - name: Wait for GloWe on dev
-        env:
-          DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-        run: node scripts/wait-for-url.mjs "${DEV_WEB_URL%/}/glowe/" 12 15000
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install Playwright
-        working-directory: tests/e2e
-        run: |
-          npm install
-          npx playwright install --with-deps chromium
-
-      # Signed-in GloWe specs need the seeded personas (workflow: "Seed GloWe
-      # dev data"); when the seed has not run they skip and only the guest
-      # journeys assert. The admin specs use the CI E2E super-admin.
-      - name: Run GloWe journeys
-        working-directory: tests/e2e
-        env:
-          DEV_WEB_URL: ${{ vars.DEV_WEB_URL }}
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY_DEV }}
-          GLOWE_SEED_PASSWORD: ${{ secrets.GLOWE_SEED_PASSWORD }}
-        run: npx playwright test --project=glowe
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report-glowe
+          name: playwright-report
           path: |
             tests/e2e/playwright-report/
             tests/e2e/test-results/

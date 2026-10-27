@@ -1,8 +1,7 @@
 name: Prod smoke
 
-# Post-merge HTTP check after Railway redeploys the web app from `main`, or after
-# DB / Edge Function changes that can break the live site.
-# Set repository variable PROD_WEB_URL (Settings → Actions → Variables).
+# KC production HTTP check after `main` deploy (karma-community-kc.com).
+# GloWe live-site probes live in glowe-prod-smoke.yml (separate product prod).
 
 on:
   push:
@@ -24,38 +23,42 @@ permissions:
   contents: read
 
 jobs:
-  smoke:
-    name: prod URL health check
+  kc-smoke:
+    name: KC prod URL health check
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Require PROD_WEB_URL variable
+      - name: Require KC_PROD_URL (or legacy PROD_WEB_URL)
         env:
+          KC_PROD_URL: ${{ vars.KC_PROD_URL }}
           PROD_WEB_URL: ${{ vars.PROD_WEB_URL }}
         run: |
           set -euo pipefail
-          if [ -z "${PROD_WEB_URL}" ]; then
-            echo "::error::Repository variable PROD_WEB_URL is not set."
-            echo "GitHub → Settings → Secrets and variables → Actions → Variables"
-            echo "Add PROD_WEB_URL = https://<your-prod-service>.up.railway.app"
+          target="${KC_PROD_URL:-${PROD_WEB_URL:-}}"
+          if [ -z "$target" ]; then
+            echo "::error::Set KC_PROD_URL (preferred) or PROD_WEB_URL to the KC production root."
+            echo "Example: KC_PROD_URL = https://karma-community-kc.com"
             exit 1
           fi
-          echo "Target: ${PROD_WEB_URL}"
+          echo "KC prod target: $target"
 
       - name: Wait for deploy window
+        if: github.event_name == 'push'
         run: sleep 90
 
-      - name: Poll prod URL (HTTP 200)
+      - name: Poll KC prod URL (HTTP 200)
         env:
+          KC_PROD_URL: ${{ vars.KC_PROD_URL }}
           PROD_WEB_URL: ${{ vars.PROD_WEB_URL }}
         run: |
           set -euo pipefail
-          url="${PROD_WEB_URL%/}/"
+          url="${KC_PROD_URL:-${PROD_WEB_URL}}"
+          url="${url%/}/"
           for attempt in $(seq 1 20); do
-            code=$(curl -fsSL -o /tmp/prod-smoke-body.html -w "%{http_code}" "$url" || echo "000")
+            code=$(curl -fsSL -o /tmp/kc-prod-smoke-body.html -w "%{http_code}" "$url" || echo "000")
             if [ "$code" = "200" ]; then
-              if grep -q '<html' /tmp/prod-smoke-body.html; then
+              if grep -q '<html' /tmp/kc-prod-smoke-body.html; then
                 echo "OK — HTTP 200 with HTML body (attempt ${attempt})"
                 exit 0
               fi
@@ -65,5 +68,5 @@ jobs:
             fi
             sleep 30
           done
-          echo "::error::Prod URL did not return HTTP 200 within ~11 minutes."
+          echo "::error::KC prod URL did not return HTTP 200 within ~11 minutes."
           exit 1

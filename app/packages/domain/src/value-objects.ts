@@ -69,7 +69,7 @@ export const ALL_CATEGORIES: Category[] = [
 
 // ── Chat ──────────────────────────────────────
 
-export type MessageKind = 'user' | 'system';
+export type MessageKind = 'user' | 'system' | 'media';
 
 export type MessageStatus = 'pending' | 'delivered' | 'read';
 
@@ -81,7 +81,7 @@ export type FollowRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancell
 
 export type ReportReason = 'Spam' | 'Offensive' | 'Misleading' | 'Illegal' | 'Other';
 
-export type ReportTargetType = 'post' | 'user' | 'chat' | 'none';
+export type ReportTargetType = 'post' | 'user' | 'chat' | 'listing' | 'none';
 
 export type ReportStatus = 'open' | 'confirmed_violation' | 'dismissed_no_violation';
 
@@ -89,7 +89,7 @@ export type QueueReason = 'excessive_reopens' | 'forbidden_keyword' | 'manual_fl
 
 // ── Feed (FR-FEED-004, 006) ──────────────────
 
-export type FeedSortOrder = 'newest' | 'oldest' | 'distance';
+export type FeedSortOrder = 'newest' | 'oldest' | 'distance' | 'personalized';
 
 export type FeedStatusFilter = 'open' | 'closed' | 'all';
 
@@ -130,9 +130,17 @@ export const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 // ── Notification preferences ──────────────────
 
+export interface QuietHoursPreferences {
+  enabled: boolean;
+  start: string;
+  end: string;
+  timezone: string;
+}
+
 export interface NotificationPreferences {
   critical: boolean;
   social: boolean;
+  quietHours?: QuietHoursPreferences;
 }
 
 // ── Donations ─────────────────────────────────
@@ -165,7 +173,7 @@ export const DONATION_LINK_URL_PATTERN = /^https?:\/\//i;
 // portable (no JS-only features) so the Postgres-side
 // `biography !~* '...'` enforces identical semantics.
 export const BIOGRAPHY_MAX_LENGTH = 200;
-export const BIOGRAPHY_URL_PATTERN = /(https?:\/\/|www\.|[\w.-]+\.[a-z]{2,})/i;
+export const BIOGRAPHY_URL_PATTERN = /(https?:\/\/|www\.|[\w.-]\.[a-z]{2})/i;
 
 /** FR-PROFILE-014 — true when the text contains an http(s) URL, a `www.`
  *  prefix, or a bare token with a TLD-like suffix. Centralised so the

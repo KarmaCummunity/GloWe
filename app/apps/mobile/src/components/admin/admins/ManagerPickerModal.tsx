@@ -2,13 +2,14 @@
 // FR-ADMIN-025 — pick a direct manager for a grant from the same org (or detach
 // to a tree root). Cycle/scope rules are enforced server-side; this list only
 // excludes the grant itself.
-import { FlatList, Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import type { OrgTreeMember } from '@kc/domain';
 import { makeUseStyles, radius, useTheme } from '@kc/ui';
 import { AvatarInitials } from '../../AvatarInitials';
 import { RoleBadge } from './RoleBadge';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
+import { KcFlashList } from '../../lists/KcFlashList';
 
 export interface ManagerPickerModalProps {
   readonly visible: boolean;
@@ -40,7 +41,7 @@ export function ManagerPickerModal(props: ManagerPickerModalProps) {
             <Text style={styles.detachText}>{L.admin.admins.managerPicker.detach}</Text>
           </Pressable>
 
-          <FlatList
+          <KcFlashList
             data={candidates}
             keyExtractor={(m) => m.grantId}
             style={styles.list}

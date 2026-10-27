@@ -4,13 +4,26 @@
 
 ## ⚠️ APP VERSION (`app/VERSION`) — ALWAYS REMEMBER
 
-**App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`). GloWe footer shows `vX.Y.Z` (FR-GLOWE-025 / D-181).**
+**App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`).**
 
-1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` **and** `app/apps/glowe-web/js/glowe-version.js`, or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
+1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
 2. **When you ship a breaking change → bump MAJOR** (e.g. `1.4.2` → `2.0.0`) in the same PR **before** merge to `dev`.
 3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
-4. **Never hardcode a stale version in HTML/CSS.** Footer reads `GloweAppVersion` from `glowe-version.js` only.
-5. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+
+## Quick Start (read this first)
+
+1. **Product focus.** KC mobile + web export (`app/apps/mobile/**`) and shared Supabase backend — see [`AGENTS.md`](./AGENTS.md).
+2. **Read order.**
+   1. [`docs/SSOT/BACKLOG.md`](./docs/SSOT/BACKLOG.md) — **open items only** (`⏳` / `🟡`)
+   2. Relevant [`docs/SSOT/spec/{domain}.md`](./docs/SSOT/spec/)
+   3. Scan [`docs/SSOT/TECH_DEBT.md`](./docs/SSOT/TECH_DEBT.md) for the area you touch
+   4. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
+3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**`, and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
+4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
+5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+
+Doc map for humans: [`docs/README.md`](./docs/README.md).
 
 ## 1. Required reading (before doing anything)
 
@@ -36,10 +49,14 @@ docs/SSOT/spec/
 ├── 11_settings.md                FR-SETTINGS-*
 ├── 12_super_admin.md             FR-ADMIN-*
 ├── 13_donations.md               FR-DONATE-*
+├── 14_karma.md                   FR-KARMA-*
 ├── 14_responsive_desktop.md      FR-RESP-*
 ├── 15_rides.md                   FR-RIDE-*
-└── 16_public_research.md         FR-RESEARCH-*
+├── 16_public_research.md         FR-RESEARCH-*
+└── 18_translation.md             FR-TRANSLATE-*
 ```
+
+Note: dual `14_*` filenames are intentional legacy numbering — do not renumber.
 
 ## 2. Spec Validation Gate
 
@@ -71,7 +88,7 @@ Use `NA` for pure tooling / docs / infra-only changes.
 
 ### Before you start any feature work
 
-1. Read `docs/SSOT/BACKLOG.md` — confirm the feature isn't already done, and pick the highest-priority ⏳ item if none was assigned.
+1. Read `docs/SSOT/BACKLOG.md` (active open items only — not `archive/`) — confirm the feature isn't already done, and pick the highest-priority ⏳ item if none was assigned.
 2. Read the matching `docs/SSOT/spec/{domain}.md`.
 3. Move the task in `BACKLOG.md` from `⏳ Planned` → `🟡 In progress`.
 
@@ -293,7 +310,7 @@ When two agents are running concurrently:
 
 ## 10. How to pick the next task
 
-If no task was assigned: open `docs/SSOT/BACKLOG.md` and pick the highest-priority `⏳ Planned` item. Move it to `🟡 In progress` before you start coding.
+If no task was assigned: open `docs/SSOT/BACKLOG.md` (active open items only — not `archive/`) and pick the highest-priority `⏳ Planned` item. Move it to `🟡 In progress` before you start coding.
 
 ## 11. Tech stack quick reference
 
@@ -318,8 +335,8 @@ If you don't see a home for something below, **ask the PM** before inventing a n
 | Environment topology      | `docs/SSOT/ENVIRONMENTS.md`            |
 | **Process rules**         | **`CLAUDE.md`** (this file)            |
 | `docs/AGENTS.md`          | Thin pointer to `CLAUDE.md` (browse from `docs/`) |
-| Implementation plans      | `docs/superpowers/plans/`              |
-| Design specs              | `docs/superpowers/specs/`              |
+| Implementation plans      | `docs/SSOT/archive/superpowers/plans/` (historical) + new plans land there until SSOT says otherwise |
+| Design specs              | `docs/SSOT/archive/superpowers/specs/` (historical) |
 | Historical archive        | `docs/SSOT/archive/`                   |
 | `.cursor/rules/*.mdc`     | Thin pointers to `CLAUDE.md` (kept only so Cursor's `alwaysApply: true` resolves) |
 | `AGENTS.md` (root)        | Thin pointer to `CLAUDE.md` for Codex / Copilot CLI conventions |
@@ -345,7 +362,7 @@ When this section is active, the agent operates as a continuous self-driven task
 ### Iteration cycle
 
 1. **Pick next work** in this priority order:
-   1. Highest-priority `⏳ Planned` item in `docs/SSOT/BACKLOG.md` (P0 > P1 > P2 > P3 > INFRA).
+   1. Highest-priority `⏳ Planned` item in `docs/SSOT/BACKLOG.md` (active open items only — not `archive/`; P0 > P1 > P2 > P3 > INFRA).
    2. If no `⏳` remain: highest-impact item from `docs/SSOT/TECH_DEBT.md` Active section.
    3. If both empty: SSOT documentation polish, adjacent dead-code removal, or test-coverage gaps surfaced by `pnpm test` in `app/`.
 2. **Flip status to 🟡 In progress** before any code edit.

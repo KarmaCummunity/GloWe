@@ -29,7 +29,7 @@ The owner of an `open` post taps "Mark as Delivered" from Post Detail.
 - AC4. On successful close (regardless of trigger location — post detail screen or chat anchor card per FR-CHAT-015), the database fans out to every `Chat` with `anchor_post_id = postId` and inserts a `kind='system'` message describing the outcome. See FR-CHAT-015 AC4-AC6 for the bodies and `system_payload` schema.
 - AC5. (P1.2.x) Clear anchor on close: after the system-message fan-out in AC4, the same closure trigger sets `chats.anchor_post_id = NULL` for every chat that was anchored to the closed post. The clear runs after the message inserts (so the loop still finds the anchored chats) and applies to both `closed_delivered` and `deleted_no_recipient` transitions. Pairs with FR-CHAT-014 AC6 (re-anchor on next entry from a different post). Implemented in `supabase/migrations/0026_chat_anchor_lifecycle.sql`.
 
-**Related.** Screens: 2.3, 6.4.1 · Spec: `docs/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
+**Related.** Screens: 2.3, 6.4.1 · Spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
 
 ---
 

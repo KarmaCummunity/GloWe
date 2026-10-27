@@ -39,6 +39,7 @@ Repository security features (verified 2026-07-19 via `gh api` read-back):
 | Private vulnerability reporting | enabled |
 | Dependabot security updates | enabled |
 | Dependabot version updates | enabled (`.github/dependabot.yml` → weekly npm + monthly Actions on `dev`) |
+| Override / ignoreGhsas review | monthly — prune patched GHSA ignores; keep CI `pnpm audit --audit-level=high` (#948) |
 | Secret scanning | enabled (org/repo policy; do not disable) |
 | Secret scanning push protection | enabled (do not disable) |
 | Fork PR workflow approval | `first_time_contributors` |
@@ -67,3 +68,17 @@ After 1–2 weeks of clean baselines:
 1. Remove `continue-on-error: true` from the workflow job (or flip to hard-fail).
 2. Add `Snyk dependency scan` / `GitGuardian secret scan` to branch protection on `dev`/`main`.
 3. Update `docs/SSOT/ENVIRONMENTS.md` "Dev merge gates" table in the same PR.
+
+## Dependency audit exceptions (`app/package.json` → `pnpm.auditConfig.ignoreGhsas`)
+
+The CI gate `pnpm audit --audit-level=high` stays enforced. Transitive advisories with a
+patched version are fixed via `pnpm.overrides`. Advisories added on 2026-10-17 to the ignore
+list, because no compatible fix exists:
+
+| GHSA | Package | Why ignored |
+|---|---|---|
+| GHSA-86w9-cpqp-85rv | node-forge | No patched release (`<=1.4.0`, none fixed). Pulled in by Expo/dev-server tooling only; not shipped in the app bundle. |
+| GHSA-vfj7-8cjw-p6xm | braces | No patched release (`<=3.0.3`). Build-time glob matching (micromatch) on trusted repo paths. |
+| GHSA-5p2g-fcmc-qvqq, GHSA-w3rx-r6r6-pgpr | image-size | Fixed only in 2.x, which drops the default export Metro's `Assets.js` requires (breaks bundling). Build-time only, reads our own committed assets. |
+
+Revisit when upstream (Expo / Metro) ships compatible versions.

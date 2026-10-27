@@ -2,6 +2,7 @@
 // Screens import the use cases from here, not from @kc/application directly.
 // Mapped to SRS: FR-CHAT-001..013, FR-POST-010, FR-POST-014 AC4, FR-POST-015 AC1, FR-MOD-001, FR-MOD-007, FR-ADMIN-009.
 import { Platform } from 'react-native';
+import { createWhatsAppAdminUseCases } from './whatsappAdminContainer';
 import { createAuthSecureStorage } from '../services/authSecureStorage';
 import {
   getSupabaseClient,
@@ -9,8 +10,17 @@ import {
   SupabaseChatRepository,
   SupabaseChatRealtime,
   SupabaseReportRepository,
+  SupabaseBlockRepository,
   SupabaseDonationLinksRepository,
   SupabasePostRepository,
+  SupabasePostEngagementRepository,
+  SupabaseNotificationInboxRepository,
+  SupabaseChatV2Realtime,
+  SupabaseOnlinePresence,
+  SupabaseActiveStatusRepository,
+  SupabaseChatV2Repository,
+  SupabaseSocialFeedRepository,
+  SupabaseFollowSuggestionsRepository,
   SupabaseModerationAdminRepository,
   SupabaseAccountGateRepository,
   SupabaseDeviceRepository,
@@ -40,8 +50,11 @@ import {
   SubmitSupportIssueUseCase,
   ReportChatUseCase,
   ReportPostUseCase,
+  SetUserBlockedUseCase,
+  ReportListingUseCase,
   DeletePostUseCase,
   AdminRemovePostUseCase,
+  AdminRemoveListingUseCase,
   ListDonationLinksUseCase,
   AddDonationLinkUseCase,
   RemoveDonationLinkUseCase,
@@ -123,8 +136,17 @@ const userRepo = new SupabaseUserRepository(supabase);
 const chatRepo = new SupabaseChatRepository(supabase);
 const chatRealtime = new SupabaseChatRealtime(supabase);
 const reportRepo = new SupabaseReportRepository(supabase);
+const blockRepo = new SupabaseBlockRepository(supabase);
 const donationLinksRepo = new SupabaseDonationLinksRepository(supabase);
 const postRepo = new SupabasePostRepository(supabase);
+const postEngagementRepo = new SupabasePostEngagementRepository(supabase);
+const notificationInboxRepo = new SupabaseNotificationInboxRepository(supabase);
+const chatV2Realtime = new SupabaseChatV2Realtime(supabase);
+const onlinePresence = new SupabaseOnlinePresence(supabase);
+const activeStatus = new SupabaseActiveStatusRepository(supabase);
+const chatV2Repo = new SupabaseChatV2Repository(supabase);
+const socialFeedRepo = new SupabaseSocialFeedRepository(supabase);
+const followSuggestionsRepo = new SupabaseFollowSuggestionsRepository(supabase);
 const moderationAdminRepo = new SupabaseModerationAdminRepository(supabase);
 const accountGateRepo = new SupabaseAccountGateRepository(supabase);
 const deviceRepo = new SupabaseDeviceRepository(supabase);
@@ -151,6 +173,14 @@ export const container = {
   userRepo,
   chatRepo,
   chatRealtime,
+  chatV2Realtime,
+  onlinePresence,
+  activeStatus,
+  chatV2Repo,
+  socialFeed: socialFeedRepo,
+  followSuggestions: followSuggestionsRepo,
+  postEngagement: postEngagementRepo,
+  notificationInbox: notificationInboxRepo,
   moderationAdminRepo, // exposed for hooks that need adminRepo.isUserAdmin pre-checks
   deviceRepo,
   adminRoleRepo,
@@ -185,6 +215,7 @@ export const container = {
   deleteTimesheet:  new DeleteTimesheetUseCase(timesheetsRepo),
   // V2-ADMIN-MONEY-9
   listFinanceLedger:   new ListFinanceLedgerUseCase(financeLedgerRepo),
+  ...createWhatsAppAdminUseCases(supabase),
   getFinanceSummary:   new GetFinanceSummaryUseCase(financeLedgerRepo),
   upsertFinanceEntry:  new UpsertFinanceEntryUseCase(financeLedgerRepo),
   deleteFinanceEntry:  new DeleteFinanceEntryUseCase(financeLedgerRepo),
@@ -213,10 +244,14 @@ export const container = {
   // Reports
   reportChat: new ReportChatUseCase(reportRepo),
   reportPost: new ReportPostUseCase(reportRepo),
+  blockRepo,
+  setUserBlocked: new SetUserBlockedUseCase(blockRepo),
+  reportListing: new ReportListingUseCase(reportRepo),
 
   // Post moderation
   deletePost: new DeletePostUseCase(postRepo),
   adminRemovePost: new AdminRemovePostUseCase(postRepo),
+  adminRemoveListing: new AdminRemoveListingUseCase(moderationAdminRepo),
 
   // Moderation admin actions (FR-MOD-007 + FR-ADMIN-002..007)
   restoreTarget: new RestoreTargetUseCase(moderationAdminRepo),

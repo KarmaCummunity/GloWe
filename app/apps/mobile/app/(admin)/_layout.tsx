@@ -1,20 +1,32 @@
 // app/apps/mobile/app/(admin)/_layout.tsx
 // Admin Portal shell (FR-ADMIN-011 AC1): branded sidebar on web ≥ md, and a
-// horizontal pill bar on phone / mobile-web. The variant is chosen by the
-// viewport width (useBreakpoint) rather than Platform.OS, so a narrow browser
-// window no longer renders the desktop rail over squeezed content.
-import type { ReactElement } from 'react';
+// horizontal pill bar on phone / mobile-web. AdminNav is lazy-loaded to shrink
+// initial bundle for non-admin sessions.
+import React, { Suspense, lazy, type ReactElement } from 'react';
 import { Stack } from 'expo-router';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useBreakpoint, useTheme } from '@kc/ui';
 import { AdminGate } from '../../src/components/admin/AdminGate';
-import { AdminNav } from '../../src/components/admin/AdminNav';
 import { rowDirectionStart } from '../../src/lib/rtlLayout';
+import { SimpleRowListSkeleton } from '../../src/components/skeletons/SimpleRowListSkeleton';
+
+const AdminNav = lazy(async () => {
+  const mod = await import('../../src/components/admin/AdminNav');
+  return { default: mod.AdminNav };
+});
+
+function AdminNavFallback() {
+  return (
+    <View style={{ padding: 16, minWidth: 120 }}>
+      <SimpleRowListSkeleton rows={4} rowHeight={40} />
+    </View>
+  );
+}
 
 export default function AdminLayout(): ReactElement {
   const breakpoint = useBreakpoint();
   const { colors } = useTheme();
-  const isWide = breakpoint !== 'mobile'; // ≥ 768px → sidebar rail
+  const isWide = breakpoint !== 'mobile';
   const bg = { backgroundColor: colors.background };
   const stackOptions = { headerShown: false, contentStyle: bg } as const;
 
@@ -26,11 +38,15 @@ export default function AdminLayout(): ReactElement {
             <View style={styles.main}>
               <Stack screenOptions={stackOptions} />
             </View>
-            <AdminNav variant="sidebar" />
+            <Suspense fallback={<AdminNavFallback />}>
+              <AdminNav variant="sidebar" />
+            </Suspense>
           </View>
         ) : (
           <View style={styles.col}>
-            <AdminNav variant="topbar" />
+            <Suspense fallback={<AdminNavFallback />}>
+              <AdminNav variant="topbar" />
+            </Suspense>
             <View style={styles.main}>
               <Stack screenOptions={stackOptions} />
             </View>
@@ -43,7 +59,7 @@ export default function AdminLayout(): ReactElement {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  row:  { flex: 1, flexDirection: rowDirectionStart },
-  col:  { flex: 1, flexDirection: 'column' },
-  main: { flex: 1 },
+  row: { flex: 1, flexDirection: rowDirectionStart },
+  col: { flex: 1 },
+  main: { flex: 1, minWidth: 0 },
 });

@@ -136,6 +136,7 @@ export class FakeChatRepository implements IChatRepository {
       kind: 'user',
       body,
       systemPayload: null,
+      mediaPayload: null,
       status: 'pending',
       createdAt: new Date().toISOString(),
       deliveredAt: null,

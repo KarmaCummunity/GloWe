@@ -19,9 +19,14 @@ class StubSearchRepo implements ISearchRepository {
     posts: [],
     users: [],
     links: [],
+    orgs: [],
+    hashtags: [],
+    suggestedQueries: [],
     postsTotal: 0,
     usersTotal: 0,
     linksTotal: 0,
+    orgsTotal: 0,
+    hashtagsTotal: 0,
   };
 
   async search(
@@ -54,9 +59,14 @@ describe('UniversalSearchUseCase — gating, viewerId, pass-through', () => {
         posts: [],
         users: [],
         links: [],
+        orgs: [],
+        hashtags: [],
+        suggestedQueries: [],
         postsTotal: 0,
         usersTotal: 0,
         linksTotal: 0,
+        orgsTotal: 0,
+        hashtagsTotal: 0,
       });
     });
 
@@ -144,9 +154,14 @@ describe('UniversalSearchUseCase — gating, viewerId, pass-through', () => {
           },
         ],
         links: [],
+        orgs: [],
+        hashtags: [],
+        suggestedQueries: [],
         postsTotal: 0,
         usersTotal: 1,
         linksTotal: 0,
+        orgsTotal: 0,
+        hashtagsTotal: 0,
       };
       repo.toReturn = expected;
       const uc = new UniversalSearchUseCase(repo);

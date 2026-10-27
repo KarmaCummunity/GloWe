@@ -1,14 +1,15 @@
 // app/apps/mobile/app/(admin)/reports/index.tsx
-// FR-ADMIN-012 — admin reports inbox screen. Cursor-paginated FlatList of
+// FR-ADMIN-012 — admin reports inbox screen. Cursor-paginated KcFlashList of
 // open reports with chip filters and reporter-id search.
 import { useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import type { ListOpenReportsFilters } from '@kc/application';
 import { useReportsInbox } from '../../../src/hooks/useReportsInbox';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
 import { ReportFilters } from '../../../src/components/admin/reports/ReportFilters';
 import { ReportRow } from '../../../src/components/admin/reports/ReportRow';
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 export default function ReportsInbox() {
   const L = useLocaleBundle();
@@ -20,7 +21,7 @@ export default function ReportsInbox() {
     <View style={styles.root}>
       <AdminScreenHeader title={L.admin.reports.inboxTitle} />
       <ReportFilters value={filters} onChange={setFilters} />
-      <FlatList
+      <KcFlashList
         data={rows}
         keyExtractor={(r) => `${r.targetType}:${r.targetId}`}
         renderItem={({ item }) => <ReportRow row={item} />}

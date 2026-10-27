@@ -1,6 +1,0 @@
-# Fallow config (workspace root = app/). GloWe is a static multi-page site
-# loaded via <script> tags from HTML, so declare the HTML shells as entries.
-entry = [
-  "apps/glowe-web/index.html",
-  "apps/glowe-web/pages/**/*.html",
-]

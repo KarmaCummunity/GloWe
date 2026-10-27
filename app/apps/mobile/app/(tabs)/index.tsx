@@ -7,7 +7,7 @@
 // counter; tapping the pill refetches + scrolls to top.
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, View, type ViewToken } from 'react-native';
+import { View, type ViewToken } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
@@ -20,9 +20,11 @@ import { FirstPostNudge } from '../../src/components/FirstPostNudge';
 import { SurveyPromptBanner } from '../../src/components/survey/SurveyPromptBanner';
 import { useSurveyBanner } from '../../src/hooks/useSurveyBanner';
 import { FeedEmptyState } from '../../src/components/FeedEmptyState';
+import { MarketplaceForYouSection } from '../../src/components/marketplace/MarketplaceForYouSection';
 import { PostFilterSheet, type PostFilterValue } from '../../src/components/PostFilterSheet';
 import { Screen } from '../../src/components/ui/Screen';
 import { useAuthStore } from '../../src/store/authStore';
+import type { KcFlashListRef } from '../../src/components/lists/KcFlashList';
 import { useFilterStore } from '../../src/store/filterStore';
 import { useFeedSessionStore } from '../../src/store/feedSessionStore';
 import { useFeedRealtime } from '../../src/hooks/useFeedRealtime';
@@ -30,9 +32,11 @@ import { useFirstPostNudge } from '../../src/hooks/useFirstPostNudge';
 import { useReaderLanguage } from '../../src/hooks/useReaderLanguage';
 import { useTranslatedPosts } from '../../src/hooks/useTranslatedPosts';
 import { getFeedUseCase } from '../../src/services/postsComposition';
+import { container } from '../../src/lib/container';
 import { startMark } from '../../src/lib/observability/perfMarks';
 import { useScreenAside } from '../../src/components/aside/useScreenAside';
 import { GivingWorldsAside } from '../../src/components/aside/GivingWorldsAside';
+import { usePrefetchNextPage } from '../../src/hooks/usePrefetchNextPage';
 
 // Feed grid shows only the title, so only translate that field here (post
 // detail translates the description on open). FR-TRANSLATE-003.
@@ -81,7 +85,7 @@ export default function HomeFeedScreen() {
   const resetNewPosts = useFeedSessionStore((s) => s.resetNewPosts);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const listRef = useRef<FlatList<PostWithOwner>>(null);
+  const listRef = useRef<KcFlashListRef<PostWithOwner>>(null);
 
   const feedFilter = useMemo(
     () => ({
@@ -123,6 +127,8 @@ export default function HomeFeedScreen() {
     staleTime: 60_000,
   });
 
+  usePrefetchNextPage(feedQuery);
+
   const feedPosts = useMemo(
     () => feedQuery.data?.pages.flatMap((p) => p.posts) ?? [],
     [feedQuery.data?.pages],
@@ -132,9 +138,16 @@ export default function HomeFeedScreen() {
   // dwell in view (60% for 400ms), then materialize only their fields.
   const readerLanguage = useReaderLanguage();
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
+  const loggedImpressionsRef = useRef(new Set<string>());
   const onViewableItemsChanged = useRef(
     (info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => {
-      setVisibleIds(info.viewableItems.map((v) => String(v.key)));
+      const ids = info.viewableItems.map((v) => String(v.key));
+      setVisibleIds(ids);
+      const fresh = ids.filter((id) => !loggedImpressionsRef.current.has(id));
+      if (fresh.length > 0 && viewerId) {
+        fresh.forEach((id) => loggedImpressionsRef.current.add(id));
+        void container.socialFeed.logImpressions(fresh.slice(0, 25));
+      }
     },
   ).current;
   const viewabilityConfig = useRef({
@@ -209,6 +222,7 @@ export default function HomeFeedScreen() {
         />
       )}
       <NewPostsBanner count={newPostsCount} onPress={refetchAndReset} />
+      <MarketplaceForYouSection />
     </View>
   );
 
@@ -241,6 +255,7 @@ export default function HomeFeedScreen() {
             hasActiveFilters={activeCount > 0}
             onClearFilters={() => filter.clearAll()}
             onShare={() => router.push('/(tabs)/create')}
+            onOpenFeedSettings={() => router.push('/settings/feed' as never)}
           />
         }
       />

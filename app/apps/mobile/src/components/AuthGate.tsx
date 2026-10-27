@@ -27,6 +27,7 @@ import { useRedirectIntentStore } from '../store/redirectIntentStore';
 import { container } from '../lib/container';
 import { useEnforceAccountGate } from '../hooks/useEnforceAccountGate';
 import { isPublicResearchPath } from '../navigation/publicResearchPaths';
+import { isPublicLegalSegment } from '../navigation/publicLegalPaths';
 
 export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) {
   const { colors } = useTheme();
@@ -68,7 +69,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
       };
     }
 
-    (async () => {
+    void (async () => {
       try {
         const { session } = await getRestoreSessionUseCase().execute();
         const devSession = await tryDevAutoSignIn(session);
@@ -89,7 +90,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   }, [setSession]);
 
   useEffect(() => {
-    if (!isLoading) SplashScreen.hideAsync();
+    if (!isLoading) void SplashScreen.hideAsync();
   }, [isLoading]);
 
   // FR-AUTH-007 AC2: read users.onboarding_state once we know the user.
@@ -104,7 +105,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
     }
     let cancelled = false;
     setOnboardingBootstrapError(false);
-    (async () => {
+    void (async () => {
       try {
         const boot = await getOnboardingBootstrap(session.userId);
         if (!cancelled) {
@@ -138,7 +139,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   useEffect(() => {
     if (isDevGhostSessionEnabled()) return;
     if (session?.userId) {
-      useChatStore.getState().startInboxSub(session.userId, container.chatRepo, container.chatRealtime);
+      void useChatStore.getState().startInboxSub(session.userId, container.chatRepo, container.chatRealtime);
     } else {
       useChatStore.getState().resetOnSignOut();
       queryClient.clear();
@@ -153,7 +154,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   useEffect(() => {
     if (!session?.userId || isDevGhostSessionEnabled()) return;
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         await getReconcileAuthProfileMetadataUseCase().execute({ userId: session.userId });
       } catch {
@@ -194,6 +195,8 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
     const isResearchSurface =
       (segments[0] as string | undefined) === 'research' ||
       (typeof pathname === 'string' && isPublicResearchPath(pathname));
+    // Terms / privacy must be readable before sign-up (store review, D-47).
+    const isLegalSurface = isPublicLegalSegment(segments as readonly string[]);
 
     if (!isAuthenticated) {
       if (
@@ -203,7 +206,8 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
         !isEmailVerify &&
         !isAccountBlocked &&
         !isAboutSurface &&
-        !isResearchSurface
+        !isResearchSurface &&
+        !isLegalSurface
       ) {
         // FR-POST-023 AC6 — remember the deep-link target so we can restore
         // it after the user completes sign-in / onboarding.

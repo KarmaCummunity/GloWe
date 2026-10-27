@@ -1,0 +1,39 @@
+name: k6 load (dev, on-demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'k6 script under loadtests/k6/'
+        required: true
+        default: 'feed-scroll.js'
+        type: choice
+        options:
+          - feed-scroll.js
+          - search-burst.js
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Run k6 (requires repo secrets)
+        env:
+          K6_SUPABASE_URL: ${{ secrets.K6_SUPABASE_URL }}
+          K6_SUPABASE_ANON_KEY: ${{ secrets.K6_SUPABASE_ANON_KEY }}
+          K6_TEST_USER_JWT: ${{ secrets.K6_TEST_USER_JWT }}
+        run: |
+          if [ -z "$K6_SUPABASE_URL" ] || [ -z "$K6_SUPABASE_ANON_KEY" ]; then
+            echo "::warning::K6_SUPABASE_URL / K6_SUPABASE_ANON_KEY secrets not set — skipping run."
+            exit 0
+          fi
+          k6 run "loadtests/k6/${{ inputs.script }}"

@@ -2,6 +2,7 @@
 // FR-ADMIN-005 — admins can long-press a user-kind bubble to hard-delete it.
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import type { MessageReactionType } from '@kc/infrastructure-supabase';
 import { Ionicons } from '@expo/vector-icons';
 import type { OptimisticMessage } from '../store/chatStore';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
@@ -13,6 +14,9 @@ import { confirmAndRun, showAdminToast } from './chat/system/adminActions';
 import { formatMessageBubbleTime } from '../lib/chatMessageDisplayTime';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { useTranslation } from 'react-i18next';
+import { KCImage } from './ui/KCImage';
+import { ChatReactionChips } from './chat/ChatReactionChips';
+import type { ReactionSummary } from '../hooks/useChatMessageReactions';
 
 const KNOWN_MOD_KINDS = [
   'report_received',
@@ -24,13 +28,16 @@ const KNOWN_MOD_KINDS = [
 ] as const;
 
 function MessageBubbleInner({
-  m, mine, onRetry, handledByLaterAction,
+  m, mine, onRetry, handledByLaterAction, reactionSummary, myReaction, onReactionPick,
 }: {
   m: OptimisticMessage;
   mine: boolean;
   /** Receives the message identity so the parent can pass a stable callback. */
   onRetry: (clientId: string, body: string) => void;
   handledByLaterAction?: boolean;
+  reactionSummary?: ReactionSummary;
+  myReaction?: MessageReactionType | null;
+  onReactionPick?: (reaction: MessageReactionType) => void;
 }) {
   const [showTime, setShowTime] = useState(false);
   const { t } = useTranslation();
@@ -42,6 +49,30 @@ function MessageBubbleInner({
 
   // System messages (FR-CHAT-007 / FR-MOD-002) — moderation kinds delegate to
   // SystemMessageBubble; unknown/legacy kinds keep the existing neutral pill.
+  if (m.kind === 'media') {
+    const payload = m.mediaPayload as { type?: string; url?: string } | null;
+    const imageUrl = payload?.type === 'image' ? payload.url : undefined;
+    return (
+      <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
+        {imageUrl ? (
+          <KCImage uri={imageUrl} style={styles.mediaImage} contentFit="cover" />
+        ) : null}
+        {m.body.trim().length > 0 && m.body.trim() !== ' ' ? (
+          <Text style={[styles.bubbleText, mine ? styles.bubbleTextMine : styles.bubbleTextOther]}>
+            {m.body}
+          </Text>
+        ) : null}
+        {m.messageId && onReactionPick ? (
+          <ChatReactionChips
+            summary={reactionSummary ?? {}}
+            mine={myReaction ?? null}
+            onPick={onReactionPick}
+          />
+        ) : null}
+      </View>
+    );
+  }
+
   if (m.kind === 'system') {
     const kind = (m.systemPayload as { kind?: string } | null)?.kind;
     if (kind && (KNOWN_MOD_KINDS as readonly string[]).includes(kind)) {
@@ -88,6 +119,13 @@ function MessageBubbleInner({
     >
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
         <Text style={[styles.bubbleText, mine ? styles.bubbleTextMine : styles.bubbleTextOther]}>{m.body}</Text>
+        {m.messageId && onReactionPick ? (
+          <ChatReactionChips
+            summary={reactionSummary ?? {}}
+            mine={myReaction ?? null}
+            onPick={onReactionPick}
+          />
+        ) : null}
         <View style={styles.bubbleMeta}>
           {m.failed && (
             <TouchableOpacity onPress={() => onRetry(m.clientId, m.body)}><Ionicons name="refresh" size={14} color={colors.textInverse} /></TouchableOpacity>
@@ -132,4 +170,5 @@ const useMessageBubbleStyles = makeUseStyles(({ colors }) => ({
     maxWidth: '90%',
   },
   systemText: { ...typography.caption, color: colors.textSecondary, textAlign: 'center' },
+  mediaImage: { width: 220, height: 220, borderRadius: radius.md, backgroundColor: colors.background },
 }));

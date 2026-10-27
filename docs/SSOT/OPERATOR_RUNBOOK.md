@@ -489,11 +489,38 @@ Org project board: [GloWe (#2)](https://github.com/orgs/KarmaCummunity/projects/
 
 ### Project views (maintainer setup)
 
-On project #2, keep these views (create in the GitHub UI if missing):
+**Project:** [GloWe #2](https://github.com/orgs/KarmaCummunity/projects/2)
 
-1. **Contributor board** — Board layout, Status columns Todo → In Progress → Done; filter `label:contributor-facing`.
-2. **Good first issues** — Table/Board filtered to `label:"good first issue"` + open.
-3. **Maintainer / blocked** — filter `label:maintainer-only` (Snyk / CodeRabbit / GitGuardian / large epics).
+| View | Layout | Filter | URL |
+|------|--------|--------|-----|
+| **Contributor board** (default for newcomers) | Board | `label:contributor-facing is:open` | [view/4](https://github.com/orgs/KarmaCummunity/projects/2/views/4) |
+| **Good first issues** | Table | `label:"good first issue" is:open` | [view/5](https://github.com/orgs/KarmaCummunity/projects/2/views/5) |
+| **Maintainer / blocked** | Table | `label:maintainer-only is:open` | [view/6](https://github.com/orgs/KarmaCummunity/projects/2/views/6) |
+
+Legacy unfiltered views (`View 1`, `board`, `RoadMap`) can be removed in the project UI
+(**⋯ → Manage views → Delete**). The REST API does not expose view delete/patch for org
+projects (404 as of 2026-07).
+
+#### Create or recreate views via REST (requires `project` scope)
+
+```bash
+gh auth refresh -h github.com -s project,read:project
+
+gh api -X POST orgs/KarmaCummunity/projectsV2/2/views \
+  -f name='Contributor board' -f layout='board' \
+  -f filter='label:contributor-facing is:open'
+
+gh api -X POST orgs/KarmaCummunity/projectsV2/2/views \
+  -f name='Good first issues' -f layout='table' \
+  -f filter='label:"good first issue" is:open'
+
+gh api -X POST orgs/KarmaCummunity/projectsV2/2/views \
+  -f name='Maintainer / blocked' -f layout='table' \
+  -f filter='label:maintainer-only is:open'
+```
+
+Set **Contributor board** as the project default in the UI: project **⋯ → Settings →
+Default view**.
 
 Custom fields (optional): **Size** (S/M/L), **Area** (glowe-web/docs/a11y/i18n).
 
@@ -519,8 +546,7 @@ for n in 708 709 710 712 713; do
 done
 ```
 
-Create the three views + Size/Area fields in the project UI (Settings → …) if the
-GraphQL/CLI field APIs are unavailable.
+Size/Area custom fields still require the project UI if GraphQL field APIs are unavailable.
 
 ### Scope guard
 

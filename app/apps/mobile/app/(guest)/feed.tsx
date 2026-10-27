@@ -1,14 +1,6 @@
 // Guest preview feed — FR-AUTH-014 (screen 1.7) — wired to live IPostRepository (P0.4-FE).
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Platform,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +15,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { getFeedUseCase } from '../../src/services/postsComposition';
 import { useActivePostsCount } from '../../src/hooks/useActivePostsCount';
 import { useGuestFeedStyles } from './feed.styles';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
 
 export default function GuestPreviewFeedScreen() {
   const styles = useGuestFeedStyles();
@@ -87,7 +80,7 @@ export default function GuestPreviewFeedScreen() {
       );
     }
     return (
-      <FlatList
+      <KcFlashList
         data={posts}
         keyExtractor={(item) => item.postId}
         contentContainerStyle={styles.list}
@@ -155,4 +148,3 @@ export default function GuestPreviewFeedScreen() {
     </SafeAreaView>
   );
 }
-

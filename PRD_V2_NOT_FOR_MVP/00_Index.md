@@ -1,3 +1,5 @@
+> **NOT MVP — historical product vision.** Active requirements live in `docs/SSOT/spec/`. Do not implement from this tree unless PM explicitly reopens scope.
+
 <div dir="rtl" lang="he">
 
 # 📘 מסמך דרישות מוצר וזרימת משתמש (PRD) - Karma Community

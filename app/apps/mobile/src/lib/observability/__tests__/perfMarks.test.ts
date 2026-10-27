@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { startMark, finishMark, _resetForTests } from '../perfMarks';
+import { startMark, finishMark, getLastColdStartMs, _resetForTests } from '../perfMarks';
 
 // Vitest doesn't set EXPO_PUBLIC_SENTRY_DSN, so perfMarks' HAS_DSN gate stays
 // false here. All three tests exercise the noopSpan path. The endSpan() helper
@@ -23,6 +23,12 @@ describe('perfMarks', () => {
     startMark('image.first_paint');
     expect(finishMark('image.first_paint')).toBe(true);
     expect(finishMark('image.first_paint')).toBe(false);
+  });
+
+  it('records cold start duration ms', () => {
+    startMark('app.cold_start');
+    finishMark('app.cold_start');
+    expect(getLastColdStartMs()).toEqual(expect.any(Number));
   });
 
   it('does not throw when no DSN — stays fully no-op', () => {

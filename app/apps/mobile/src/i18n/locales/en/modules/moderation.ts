@@ -67,6 +67,17 @@ export const moderationEn = {
       a11yOpenProfile: 'Open profile of {who}',
     },
   },
+  block: {
+    block: 'Block user',
+    unblock: 'Unblock user',
+    confirmBlockTitle: 'Block this user?',
+    confirmBlockBody: "You won't see each other's posts, listings or profile, you can't message each other, and any follows between you are removed. They are not notified.",
+    confirmUnblockTitle: 'Unblock this user?',
+    confirmUnblockBody: 'You will be able to see each other again. Follows removed by the block are not restored.',
+    blockedToast: 'User blocked.',
+    unblockedToast: 'User unblocked.',
+    failed: 'Something went wrong. Please try again.',
+  },
   actions: {
     restore: '↩ Restore',
     dismiss: '🗑 Dismiss report',

@@ -25,7 +25,7 @@ Non-goals (out of scope):
 The Donations tab opens to a Hub screen showing three vertically stacked tiles for the three donation modalities.
 
 **Source.**
-- Design spec: [`docs/superpowers/specs/2026-05-09-donations-and-search-tabs-design.md`](../../../superpowers/specs/2026-05-09-donations-and-search-tabs-design.md).
+- Design spec: [`docs/SSOT/archive/superpowers/specs/2026-05-09-donations-and-search-tabs-design.md`](../../../superpowers/specs/2026-05-09-donations-and-search-tabs-design.md).
 - Decisions: `D-16`.
 
 **Acceptance Criteria.**
@@ -132,7 +132,7 @@ A future enhancement (`TD-112`) may mirror the Money and Time sub-screens into a
 The Donations Hub is extended with 6 community-driven category tiles below the existing items/time/money tiles, separated by a thin divider.
 
 **Source.**
-- Design spec: [`docs/superpowers/specs/2026-05-10-donation-categories-and-links-design.md`](../../../superpowers/specs/2026-05-10-donation-categories-and-links-design.md).
+- Design spec: [`docs/SSOT/archive/superpowers/specs/2026-05-10-donation-categories-and-links-design.md`](../../../superpowers/specs/2026-05-10-donation-categories-and-links-design.md).
 
 **Acceptance Criteria.**
 - AC1. Tile order (visual top-to-bottom in RTL): existing **חפצים → זמן → כסף** group, then divider, then new group **אוכל → דיור → תחבורה → ידע → חיות → רפואה**.

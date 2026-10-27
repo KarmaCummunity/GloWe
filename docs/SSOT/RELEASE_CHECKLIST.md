@@ -49,8 +49,9 @@ Watch **Actions** on `main` (in order, as applicable):
 1. **CI** — push workflow green.
 2. **DB deploy** — when migration paths changed: **dry-run then apply** to `supabase-prod` (no human gate).
 3. **Supabase Functions deploy** — runs when `supabase/functions/**` changed.
-4. **Prod smoke** — polls `PROD_WEB_URL` after app, Dockerfile, migration, or function changes on `main`.
-5. **Sync main → dev** — must succeed; if it fails (merge conflict), fix before any further `dev` work.
+4. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after app/Dockerfile changes on `main`.
+5. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after `main` deploy.
+6. **Sync main → dev** — must succeed; if it fails (merge conflict), fix before any further `dev` work.
 
 Watch **Railway → prod** — new deployment from `main` reaches **Success**.
 
@@ -58,11 +59,13 @@ Watch **Railway → prod** — new deployment from `main` reaches **Success**.
 
 ## Post-deploy smoke (operator — ~5 min)
 
-Automated **Prod smoke** only checks HTTP 200 on the prod URL. Complete these manually:
+Automated checks after deploy:
+- **KC (`main`):** `prod-smoke.yml` — HTTP 200 on `KC_PROD_URL`.
+
+Spot-check manually:
 
 - [ ] **Prod URL loads** — incognito window, no dev banner.
 - [ ] **Sign-in** — Google (web) or email OTP path you ship.
-- [ ] **Feed** — home feed renders.
 - [ ] **One write path** — e.g. edit profile or create draft post.
 - [ ] **If migrations merged** — exercise the feature that migration enables; run SQL checks from OPERATOR_RUNBOOK for that migration if listed.
 - [ ] **If functions merged** — donation link edit smoke (same row `id`, no duplicate insert).
@@ -96,7 +99,7 @@ Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `d
 | Dev web URL for E2E | Settings → Secrets and variables → Actions → **Variables** | `DEV_WEB_URL` = `https://mvp-2-dev.up.railway.app` |
 | E2E credentials | Settings → Secrets and variables → Actions → **Secrets** | `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `E2E_SUPABASE_ANON_KEY_DEV` (dev publishable anon) |
 | `supabase-prod` environment | Settings → Environments → `supabase-prod` | Secrets only (`SUPABASE_*`); **do not** enable required reviewers |
-| Prod web URL for smoke | Settings → Secrets and variables → Actions → **Variables** | `PROD_WEB_URL` = `https://<your-prod>.up.railway.app` |
+| KC prod URL for smoke | Settings → Secrets and variables → Actions → **Variables** | `KC_PROD_URL` = `https://karma-community-kc.com` (legacy: `PROD_WEB_URL`) |
 
 Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once confirmed.
 

@@ -2,10 +2,7 @@
 // V2-ADMIN-CRM-8 — V2 §13.9 Admin CRM (minimal contacts tracker).
 // List + search + status filter + per-row edit / delete / "mark contacted".
 import { useMemo, useState } from 'react';
-import {
-  Alert, FlatList, Platform, Pressable, RefreshControl, ScrollView,
-  StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CRM_CONTACT_STATUSES, hasPermission, isCrmContactError,
@@ -18,6 +15,7 @@ import { container } from '../../../src/lib/container';
 import { ContactCard } from '../../../src/components/admin/crm/ContactCard';
 import { ContactFormModal } from '../../../src/components/admin/crm/ContactFormModal';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 type StatusFilter = CrmContactStatus | 'all';
 
@@ -108,7 +106,7 @@ export default function CrmScreen() {
       </ScrollView>
       <Text style={styles.totalLabel}>{t.totalCount(list.data?.totalCount ?? 0)}</Text>
 
-      <FlatList
+      <KcFlashList
         data={[...(list.data?.rows ?? [])]}
         keyExtractor={(c) => c.contactId}
         renderItem={({ item }) => (

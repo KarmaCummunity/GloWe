@@ -2,8 +2,8 @@
 
 > **Status:** ✅ Complete (migrations `0097–0100` applied on dev; Phase 0–3 shipped; SSOT updated 2026-06-08)
 > **Domain file:** `docs/SSOT/spec/14_karma.md`
-> **Design doc:** `docs/superpowers/specs/2026-05-29-karma-points-design.md`
-> **Implementation plan:** `docs/superpowers/plans/2026-05-29-karma-points.md`
+> **Design doc:** `docs/SSOT/archive/superpowers/specs/2026-05-29-karma-points-design.md`
+> **Implementation plan:** `docs/SSOT/archive/superpowers/plans/2026-05-29-karma-points.md`
 
 ---
 
@@ -81,7 +81,7 @@
 
 ## Mechanism notes (corrections vs. design doc)
 
-These notes supersede the design doc (`docs/superpowers/specs/2026-05-29-karma-points-design.md`) where they conflict:
+These notes supersede the design doc (`docs/SSOT/archive/superpowers/specs/2026-05-29-karma-points-design.md`) where they conflict:
 
 1. **Closure anchor:** karma is anchored to the `posts.status` transition into/out of `closed_delivered`, not recipients-row existence. A recipient row may precede the status flip or be deleted before it — anchoring to status gives the correct causal signal (mirrors `items_given_count` in `0006`).
 2. **Reversal model:** awards are append-and-sum (not global unique). A partial unique index on `karma_ledger (user_id, event_type, ref_id) WHERE event_type IN (...)` dedupes only never-reversed "once" events (registration, post_created, outreach, backfill). Reversible events (follow, closure) net to zero via a second row with a negative delta and a `*_reverse` event_type — no unique-key race condition that would abort the host transaction.

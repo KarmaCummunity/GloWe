@@ -1,0 +1,126 @@
+# Manual TestFlight upload (ported from KupaPay): macOS runner + `eas build --local`
+# (no EAS cloud build quota). Uploads to TestFlight only; never submits for App Store review.
+# Secrets (names only): EXPO_TOKEN, ASC_API_KEY_ID, ASC_API_KEY_ISSUER_ID, ASC_API_KEY_P8, KC_IOS_TEAM_ID
+# Optional: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_URL. Variables: KC_ASC_APP_ID (numeric App Store Connect app id), KC_EAS_PROJECT_ID,
+# EXPO_PUBLIC_SENTRY_DSN, EXPO_PUBLIC_POSTHOG_KEY. Skips cleanly (green, with a notice) when a required one is unset.
+name: TestFlight iOS
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: testflight-ios
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  BUNDLE_ID: org.karmacommunity.app
+
+jobs:
+  testflight:
+    name: Build & upload to TestFlight
+    runs-on: macos-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app/apps/mobile
+    steps:
+      - name: Preflight secrets (skip cleanly when unset)
+        id: preflight
+        working-directory: .
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          KC_IOS_TEAM_ID: ${{ secrets.KC_IOS_TEAM_ID }}
+          KC_ASC_APP_ID: ${{ vars.KC_ASC_APP_ID }}
+          KC_EAS_PROJECT_ID: ${{ vars.KC_EAS_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for n in EXPO_TOKEN ASC_API_KEY_ID ASC_API_KEY_ISSUER_ID ASC_API_KEY_P8 KC_IOS_TEAM_ID KC_ASC_APP_ID KC_EAS_PROJECT_ID; do
+            [ -n "${!n:-}" ] || missing+=("$n")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping TestFlight — missing secrets/variables: ${missing[*]}"
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "All TestFlight secrets present."
+
+      - uses: actions/checkout@v4
+        if: steps.preflight.outputs.ready == 'true'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          package_json_file: app/package.json
+
+      - uses: actions/setup-node@v7
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        working-directory: app
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Install EAS CLI
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm install -g eas-cli@24.12.1 --ignore-scripts
+
+      - name: Verify bundle identifier
+        if: steps.preflight.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          actual="$(npx --yes expo config --json --type public | jq -r '.ios.bundleIdentifier')"
+          if [ "$actual" != "$BUNDLE_ID" ]; then
+            echo "::error::iOS bundleIdentifier is '$actual', expected '$BUNDLE_ID'"
+            exit 1
+          fi
+
+      - name: Write ASC API key (runner temp, never committed)
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s\n' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc-api-key.p8"
+
+      - name: Build iOS locally & upload to TestFlight
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc-api-key.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.KC_IOS_TEAM_ID }}
+          ASC_APP_ID: ${{ vars.KC_ASC_APP_ID }}
+          EAS_PROJECT_ID: ${{ vars.KC_EAS_PROJECT_ID }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SENTRY_DSN: ${{ vars.EXPO_PUBLIC_SENTRY_DSN }}
+          EXPO_PUBLIC_POSTHOG_KEY: ${{ vars.EXPO_PUBLIC_POSTHOG_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_URL: ${{ vars.SENTRY_URL }}
+        run: |
+          set -euo pipefail
+          [ -n "${SENTRY_AUTH_TOKEN:-}" ] || export SENTRY_DISABLE_AUTO_UPLOAD=true
+          eas build --platform ios --profile production --local --non-interactive --output ./build-kc.ipa
+          # eas.json keeps a placeholder (public repo); inject the real ASC app id on the runner only.
+          tmp="$(mktemp)"; jq --arg id "$ASC_APP_ID" '.submit.production.ios.ascAppId = $id' eas.json > "$tmp" && mv "$tmp" eas.json
+          eas submit --platform ios --profile production --path ./build-kc.ipa --non-interactive
+          echo "EAS remote iOS buildNumber: $(eas build:version:get -p ios 2>/dev/null | grep -oE '[0-9]+$' || echo unknown)"
+
+      - name: Remove key file
+        if: always() && steps.preflight.outputs.ready == 'true'
+        run: rm -f "$RUNNER_TEMP/asc-api-key.p8"

@@ -411,7 +411,7 @@ Closed-delivered posts appear in the "פוסטים סגורים" tab of both the
 
 **Reverses** the respondent-privacy carve-out previously stated in D-7 / FR-POST-017 AC1. Rationale: a public karma trail across both sides of a transaction is more important than the implicit privacy of being a respondent on a public post. Users who want privacy can publish posts as Followers-only or Only-me, and the closed visibility inherits accordingly.
 
-**Spec:** `docs/superpowers/specs/2026-05-13-closed-posts-on-both-profiles-design.md`.
+**Spec:** `docs/SSOT/archive/superpowers/specs/2026-05-13-closed-posts-on-both-profiles-design.md`.
 **Touches:** FR-PROFILE-001 AC4, FR-PROFILE-002 AC2, FR-POST-017 AC1 + AC5.
 **Implementation:** migrations `0059_post_visibility_closed_public.sql` + `0061_profile_closed_posts_rpc.sql`; use case `GetProfileClosedPostsUseCase`; mobile components `ProfileClosedPostsGrid` + `PostCardProfile` (identityRole prop).
 
@@ -450,7 +450,7 @@ Web Push parity is deferred — only the adapter changes, the pipeline is shared
 - The Database Webhook is configured via the Supabase dashboard, not SQL — operator step documented in migration 0058's header.
 - Web Push is deferred to a follow-up TD (TD-65).
 
-**Affected docs.** `docs/SSOT/spec/09_notifications.md`, `docs/SSOT/spec/11_settings.md`, `docs/superpowers/specs/2026-05-13-push-notifications-design.md`, `docs/superpowers/plans/2026-05-13-push-notifications.md`, migrations 0056–0058, 0060, 0062–0066, Edge Function `dispatch-notification`.
+**Affected docs.** `docs/SSOT/spec/09_notifications.md`, `docs/SSOT/spec/11_settings.md`, `docs/SSOT/archive/superpowers/specs/2026-05-13-push-notifications-design.md`, `docs/SSOT/archive/superpowers/plans/2026-05-13-push-notifications.md`, migrations 0056–0058, 0060, 0062–0066, Edge Function `dispatch-notification`.
 
 ---
 
@@ -519,7 +519,7 @@ These weren't bugs to patch — they were symptoms of a privacy model the produc
 - PR5a-d — UI sweep across 28 screens + `ChatNotFoundView` (`#254`, `#250`, `#253`, `#251`). PR5a additionally split the root `locales/he/index.ts` into `modules/auth.ts` + `modules/onboarding.ts` to keep the 200-LOC cap.
 - Close-out — `BACKLOG.md` flipped to ✅, this entry, two new TDs (`TD-153` reconcile templates, `TD-154` Hebrew-literal lint rule).
 
-Spec: `docs/superpowers/specs/2026-05-16-hebrew-to-i18n-design.md` · Plan: `docs/superpowers/plans/2026-05-16-hebrew-to-i18n-migration.md`.
+Spec: `docs/SSOT/archive/superpowers/specs/2026-05-16-hebrew-to-i18n-design.md` · Plan: `docs/SSOT/archive/superpowers/plans/2026-05-16-hebrew-to-i18n-migration.md`.
 
 **Out of scope, retained.** `infrastructure-supabase/src/search/searchConstants.ts` keeps its Hebrew↔slug map (query-parser vocabulary, not display). `value-objects.ts:STREET_NUMBER_PATTERN` keeps `[A-Za-zא-ת]?` in the regex (data validation, not display). Server-emitted Hebrew in `supabase/migrations/0031_post_closure_emit_system_messages.sql` remains open (tracked as `TD-148`). iOS `Info.plist` permission strings are Hebrew literals (deferred to native `InfoPlist.strings` if/when iOS localization is rationalized — out of scope for this migration).
 
@@ -567,7 +567,7 @@ Spec: `docs/superpowers/specs/2026-05-16-hebrew-to-i18n-design.md` · Plan: `doc
 
 **Rationale.** Product requires independent axes: a post can be broadly visible while a participant limits how **third parties** see them on the partner's profile surface (`D-31`), and vice versa. Collapsing both into `visibility` would break `FR-POST-009` invariants and blur UX.
 
-**Affected docs.** `spec/04_posts.md` (`FR-POST-021`), `docs/superpowers/specs/2026-05-16-post-actor-privacy-design.md`, migration `0083_post_actor_identity.sql`.
+**Affected docs.** `spec/04_posts.md` (`FR-POST-021`), `docs/SSOT/archive/superpowers/specs/2026-05-16-post-actor-privacy-design.md`, migration `0083_post_actor_identity.sql`.
 
 ---
 
@@ -599,7 +599,7 @@ Spec: `docs/superpowers/specs/2026-05-16-hebrew-to-i18n-design.md` · Plan: `doc
 
 **Migration semantics (no behavior regression).** New column `surface_visibility text not null default 'Public'`. Existing `exposure` column renamed to `identity_visibility`; values (`Public` / `FollowersOnly` / `Hidden`) and runtime meaning preserved. No row backfill needed for the new column — `Public` default already matches existing behavior. The new RPC/RLS predicates internally use a `SECURITY DEFINER` SQL helper to avoid the policy-recursion deadlock with `post_actor_identity`'s own SELECT policy that previously referenced `is_post_visible_to`.
 
-**Affected docs.** `spec/04_posts.md` (`FR-POST-021` rewrite, `FR-POST-017` AC1 amendment); `spec/02_profile_and_privacy.md` (`FR-PROFILE-001` AC4, `FR-PROFILE-002` AC2); `docs/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (addendum); migration `0085_post_actor_identity_audience_split.sql`.
+**Affected docs.** `spec/04_posts.md` (`FR-POST-021` rewrite, `FR-POST-017` AC1 amendment); `spec/02_profile_and_privacy.md` (`FR-PROFILE-001` AC4, `FR-PROFILE-002` AC2); `docs/SSOT/archive/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (addendum); migration `0085_post_actor_identity_audience_split.sql`.
 
 ---
 
@@ -626,7 +626,7 @@ Spec: `docs/superpowers/specs/2026-05-16-hebrew-to-i18n-design.md` · Plan: `doc
 
 **Supersedes (in part).** MVP UX scope of the `identity_visibility` axis described in `D-28`'s addendum table; server columns and projection hooks remain for future refinement / surface-coupling. **`D-30`'s** prior sentence that described `hide_from_counterparty` as hiding from the counterparty on post chrome is superseded by **`D-31`**.
 
-**Affected docs.** `spec/04_posts.md` (`FR-POST-021`); `docs/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (PM revision note); migration `0092_post_actor_identity_public_chrome.sql`; mobile `PostMenuExposureBlock`, `VisibilityChooser`.
+**Affected docs.** `spec/04_posts.md` (`FR-POST-021`); `docs/SSOT/archive/superpowers/specs/2026-05-16-post-actor-privacy-design.md` (PM revision note); migration `0092_post_actor_identity_public_chrome.sql`; mobile `PostMenuExposureBlock`, `VisibilityChooser`.
 
 ---
 
@@ -754,7 +754,7 @@ The mobile ⋮ exposure block (`PostMenuExposureBlock`) previously routed the "�
 1. `D-26` masked the owner's identity to the counterparty whenever `posts.visibility = OnlyMe`. Under the dual-surface model, OnlyMe is a **per-surface audience control**, not a relationship-level signal — the partner has always-on read access and should see the actor's real chrome.
 2. `D-34` fanned out the closed-post Hide control to both `posts.visibility` and `post_actor_identity.surface_visibility` so the Hidden-screen RPC (`profile_closed_posts`, keyed on `posts.visibility`) routed correctly. This made `posts.visibility` a second, parallel truth for closed-post audience — confusing and fragile.
 
-Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy-design.md`.
+Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy-design.md`.
 
 **Decision.**
 
@@ -782,7 +782,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Affected docs / code.**
 - `spec/04_posts.md` (`FR-POST-021` AC3/AC4, `FR-POST-009` AC5, changelog 0.14).
-- `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy-design.md` (AC-DSP-3 + coupling matrix updated).
+- `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy-design.md` (AC-DSP-3 + coupling matrix updated).
 - `packages/domain/src/postActorIdentity.ts` (removed `ownerOnlyMeCounterpartyMask`, removed `ownerPostVisibilityOnlyMe` from `ProjectActorViewerContext`).
 - `packages/application/src/posts/__tests__/postActorIdentity.test.ts`.
 - `packages/infrastructure-supabase/src/posts/applyPostActorIdentityProjection.ts`.
@@ -920,7 +920,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Rationale.** The chat-flow is a single point of failure (one super-admin), discovery is poor (actions scattered), audit search is RLS-blocked (TD-93), restore cascades incorrectly (TD-94), and the single-admin invariant has no DB enforcement (TD-95). The portal addresses all four and unblocks the broader role hierarchy from PRD V2 (`02_Personas_Roles.md`: Operator, Org Admin, Volunteer Manager, …).
 
-**Decomposition.** A0 (this PR) ships the foundation. A1..A4 follow as separate sub-projects per `docs/superpowers/specs/2026-05-25-admin-portal-design.md`.
+**Decomposition.** A0 (this PR) ships the foundation. A1..A4 follow as separate sub-projects per `docs/SSOT/archive/superpowers/specs/2026-05-25-admin-portal-design.md`.
 
 **Alternatives considered.**
 1. Extend the chat-flow with multi-admin support. Rejected — does not address discoverability, scattered actions, or the deeper TDs.
@@ -958,7 +958,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Rationale.** The product needs to iterate on community questions post-launch without shipping a new app binary. The legal-documents pattern (`legal_document_versions` + `publish_legal_document` RPC, D-40) already proves this model at the infrastructure level. Reusing the same publish pattern keeps operator training simple (one mental model for "push copy changes via Studio") and reuses existing migration and RLS patterns. PII isolation is achieved by placing contact emails in a dedicated `survey_contact_info` table with its own RLS policy, kept separate from the ratings/text answers.
 
-**Affected docs.** `spec/11_settings.md` FR-SETTINGS-015..017; design `docs/superpowers/specs/2026-05-25-surveys-and-feedback-design.md`; migration `0130_surveys_and_feedback.sql`.
+**Affected docs.** `spec/11_settings.md` FR-SETTINGS-015..017; design `docs/SSOT/archive/superpowers/specs/2026-05-25-surveys-and-feedback-design.md`; migration `0130_surveys_and_feedback.sql`.
 
 ---
 
@@ -968,11 +968,11 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Decision.** Survey B (anonymous public market research for the "Karma Phrasebook") lives in its own spec file `docs/SSOT/spec/16_public_research.md` (FR-RESEARCH-001..003) rather than in `11_settings.md`, and its Postgres schema ships in a dedicated migration `0131_public_research_responses.sql` separate from Survey A's `0130`. Contact emails collected at the thank-you page opt-in are stored in a separate table `public_research_contact_requests` (FK to `public_research_responses(id) ON DELETE CASCADE`) rather than in the same row as survey answers; RLS on the contact table denies all access to `anon` and `authenticated` roles — only `service_role` (via a super-admin RPC) can read it. The two tables are therefore independently deletable (a GDPR-required property: erasing a contact request must not cascade to the research data, and vice versa).
 
-**Rationale.** Survey B is not a Settings feature: it is served at a public web URL with no auth shell, targets anonymous users on external platforms (Facebook, WhatsApp, Agora), and has entirely different abuse-mitigation requirements (honeypot, `Origin` allowlist, IP-hash rate limit, global circuit breaker) from any in-app survey. Grouping it under `11_settings.md` would pollute that file's scope and make it harder for future agents to locate the right spec. A dedicated spec file also lets FR-RESEARCH-* IDs track implementation progress independently of FR-SETTINGS-*. The two-table PII isolation pattern mirrors the design already established for legal-documents acceptances (D-42) and is the simplest way to satisfy the independent-deletion requirement without adding nullable columns. A separate migration enforces the security-review separation principle followed throughout this codebase (cf. D-40, D-47). See design spec `docs/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2, §4, §7.
+**Rationale.** Survey B is not a Settings feature: it is served at a public web URL with no auth shell, targets anonymous users on external platforms (Facebook, WhatsApp, Agora), and has entirely different abuse-mitigation requirements (honeypot, `Origin` allowlist, IP-hash rate limit, global circuit breaker) from any in-app survey. Grouping it under `11_settings.md` would pollute that file's scope and make it harder for future agents to locate the right spec. A dedicated spec file also lets FR-RESEARCH-* IDs track implementation progress independently of FR-SETTINGS-*. The two-table PII isolation pattern mirrors the design already established for legal-documents acceptances (D-42) and is the simplest way to satisfy the independent-deletion requirement without adding nullable columns. A separate migration enforces the security-review separation principle followed throughout this codebase (cf. D-40, D-47). See design spec `docs/SSOT/archive/superpowers/specs/2026-05-25-surveys-and-feedback-design.md` §2, §4, §7.
 
 **Alternatives rejected.** Adding Survey B FRs to `11_settings.md` — conflates two unrelated user surfaces. Storing contact email in the same `public_research_responses` row — makes it impossible to delete PII without deleting the research data. Single migration for both surveys — blurs security review scope.
 
-**Affected docs.** `docs/SSOT/spec/16_public_research.md` (new); `docs/SSOT/BACKLOG.md` P1.7; `CLAUDE.md` §1 spec-files table; design `docs/superpowers/specs/2026-05-25-surveys-and-feedback-design.md`; migration `0131_public_research_responses.sql`.
+**Affected docs.** `docs/SSOT/spec/16_public_research.md` (new); `docs/SSOT/BACKLOG.md` P1.7; `CLAUDE.md` §1 spec-files table; design `docs/SSOT/archive/superpowers/specs/2026-05-25-surveys-and-feedback-design.md`; migration `0131_public_research_responses.sql`.
 
 ---
 
@@ -1022,7 +1022,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** 1:1 copy of all `main` branch protection — rejected (redundant + prod-only semantics). Migration safety only on `main` — rejected (too late for shared dev DB).
 
-**Affected docs.** `.github/workflows/ci-dev-guard.yml`, `db-deploy.yml`, `app/package.json`; `docs/SSOT/ENVIRONMENTS.md`, `RELEASE_CHECKLIST.md`, `SETUP_GIT_AGENT.md`; plan `docs/superpowers/plans/2026-05-28-dev-branch-ci-hardening.md`.
+**Affected docs.** `.github/workflows/ci-dev-guard.yml`, `db-deploy.yml`, `app/package.json`; `docs/SSOT/ENVIRONMENTS.md`, `RELEASE_CHECKLIST.md`, `SETUP_GIT_AGENT.md`; plan `docs/SSOT/archive/superpowers/plans/2026-05-28-dev-branch-ci-hardening.md`.
 
 ## D-56 — Rides UI restored + V3.0 scope expansion (supersedes D-51) (2026-05-29)
 
@@ -1046,7 +1046,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Gate every PR to `dev` on E2E — too slow/flaky early. Cypress — no advantage over existing Playwright. Google SSO in CI — brittle. Dev ghost-session / auto-sign-in in E2E bundle — not a human path. Playwright UI `/sign-in` — rejected when the form is unreliable for operators; product login UX remains a separate fix (`TD-104`).
 
-**Affected docs.** `docs/SSOT/TESTING.md`, `RELEASE_CHECKLIST.md`, `ENVIRONMENTS.md`, `.github/workflows/ci-e2e-dev.yml`; plan `docs/superpowers/plans/2026-05-28-comprehensive-quality-automation.md`.
+**Affected docs.** `docs/SSOT/TESTING.md`, `RELEASE_CHECKLIST.md`, `ENVIRONMENTS.md`, `.github/workflows/ci-e2e-dev.yml`; plan `docs/SSOT/archive/superpowers/plans/2026-05-28-comprehensive-quality-automation.md`.
 
 ---
 
@@ -1150,7 +1150,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Eager translate-all (cost + storage blowup); classic NMT API (lower quality on idiomatic short UGC, higher per-char cost); on-device translation (inconsistent quality, large model download, no shared cache).
 
-**Affected docs.** `docs/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`, `docs/SSOT/BACKLOG.md` (TRANSLATE epic).
+**Affected docs.** `docs/SSOT/archive/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`, `docs/SSOT/BACKLOG.md` (TRANSLATE epic).
 
 ---
 
@@ -1164,7 +1164,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Auto-translate chat for everyone (privacy breach + unbounded cost); gate on reader consent (sends the sender's words without their consent); no chat translation at all (fails the full-accessibility goal).
 
-**Affected docs.** `docs/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`.
+**Affected docs.** `docs/SSOT/archive/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`.
 
 ---
 
@@ -1178,7 +1178,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Client-side `TranslateAndCache` (impossible — can't hold the service role or the API key); LibreTranslate self-hosted from day one (privacy-clean but lower quality and ops overhead before it's even wired in); committing to the paid DPA tier immediately (needless cost while the feature is inert).
 
-**Affected docs.** `docs/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`, `docs/SSOT/TECH_DEBT.md`.
+**Affected docs.** `docs/SSOT/archive/superpowers/specs/2026-06-29-ugc-translation-design.md`, `docs/SSOT/spec/18_translation.md`, `docs/SSOT/TECH_DEBT.md`.
 
 ---
 
@@ -1192,7 +1192,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Separate `glowe_events` + `glowe_event_registrations` tables (duplicates the opportunity/application read, RLS, translation, and moderation paths; fights the convergence goal); keeping events a pure client-side validation profile with no schema (cannot express gated approval, capacity, link-reveal timing, or organizer decisions safely).
 
-**Affected docs.** `docs/superpowers/specs/2026-06-29-glowe-event-rsvp-org-portal-design.md`, `docs/superpowers/specs/2026-06-29-glowe-member-experience-and-create-system-design.md`, `docs/SSOT/spec/17_glowe_frontend.md` (FR-GLOWE-007 AC9, FR-GLOWE-012 AC7).
+**Affected docs.** `docs/SSOT/archive/superpowers/specs/2026-06-29-glowe-event-rsvp-org-portal-design.md`, `docs/SSOT/archive/superpowers/specs/2026-06-29-glowe-member-experience-and-create-system-design.md`, `docs/SSOT/spec/17_glowe_frontend.md` (FR-GLOWE-007 AC9, FR-GLOWE-012 AC7).
 
 ---
 
@@ -1292,7 +1292,7 @@ Design spec: `docs/superpowers/specs/2026-05-24-closed-post-dual-surface-privacy
 
 **Alternatives rejected.** Ship Mode B directly — more surface area and per-action input-preservation complexity for an unproven conversion delta. A blocking login wall on entry — rejected earlier in the brainstorm: kills deep-link/SEO discovery for a global NGO-discovery product (web has no entry gate; guest is the default).
 
-**Affected docs.** `docs/SSOT/spec/17_glowe_frontend.md` (FR-GLOWE-023); `docs/superpowers/specs/2026-07-04-glowe-guest-mode-contextual-join-design.md`; `app/apps/glowe-web/js/glowe-guest.js`.
+**Affected docs.** `docs/SSOT/spec/17_glowe_frontend.md` (FR-GLOWE-023); `docs/SSOT/archive/superpowers/specs/2026-07-04-glowe-guest-mode-contextual-join-design.md`; `app/apps/glowe-web/js/glowe-guest.js`.
 
 ---
 
@@ -1374,10 +1374,147 @@ Shipped in the same change-set: a GloWe design-fixes pass addressing nine review
 
 ---
 
+## D-182 — GloWe production synthetics + admin health panel (2026-07-22)
+
+**Decision.** Store automated GloWe live-site probe results in `glowe_health_checks` (migration `0233`) and surface them in the GloWe admin portal. Probes are **read-only Playwright** journeys (`prod-health` project) run from `glowe-prod-smoke.yml` after `dev` deploy and on a 15-minute cron. **GloWe production** (`https://dev.karma-community.pages.dev/glowe`) is a **separate live URL** from **KC production** (`https://karma-community-kc.com`); ingest targets the **dev** Supabase project (GloWe's backend today). KC HTTP smoke stays in `prod-smoke.yml` on `main` only.
+
+**Rationale.** HTTP-200 smoke cannot catch broken feeds, auth wiring, or Supabase client failures. Admins need in-product visibility without opening GitHub Actions. Reuses existing Playwright infra and GloWe admin RBAC (`is_glowe_admin`).
+
+**Alternatives rejected.** Third-party-only monitoring (Checkly) without admin portal integration — rejected for MVP (add later as redundant channel). Write probes in prod — deferred (canary user in a follow-up). Polling-only checks without browser — insufficient for JS/runtime failures.
+
+**Mapped to:** `INFRA-QA-W7`, FR-GLOWE-018 extension.
+
+---
+
+## D-183 — GloWe follow system rides KC `follow_edges` (2026-07-22)
+
+**Decision.** GloWe follow/unfollow uses KC's existing `follow_edges` graph via thin `backend.js` adapters (`kcFollow`, `kcUnfollow`, `kcGetFollowState`, `kcListFollowers`, `kcListFollowing`, `kcPublicCounts`) plus pure helpers in `glowe-follow.js` — the same pattern as the GloWe chat Realtime slice. MVP is public follow/unfollow only; private accounts hide the Follow button and show an approval-required note (no follow-request flow). No shared TypeScript package import from GloWe, no new RPCs, no DB migrations.
+
+**Rationale.** KC already owns the follow domain in `@kc/application` / `infrastructure-supabase`; GloWe is vanilla JS with no bundler. Reusing `follow_edges` + RLS keeps one graph for KC mobile and GloWe without duplicating schema or business rules.
+
+**Alternatives rejected.** *New GloWe-only follow table* — violates D-61 shared identity. *Import `@kc/application` from GloWe* — no bundler, out of scope. *New batch follow-state RPC* — deferred; sequential per-id hydration is acceptable for MVP org directory size.
+
+**Affected.** `app/apps/glowe-web/js/{glowe-follow.js,glowe-follow-ui.js,backend.js,app.js,glowe-guest.js}`; `pages/{profile,organizations,my-applications,connections}.html`; `styles.css`; FR-GLOWE-026; FR-FOLLOW-001/002/011 (MVP subset); design `docs/superpowers/specs/2026-07-22-glowe-follow-system-design.md`.
+
+---
+
+## D-184 — GloWe Home is a unified discovery feed (2026-07-27)
+
+**Decision.** Signed-in Home is feed-only: one unified card chrome for posts, opportunities, events, wishes, volunteer offers, forum groups, and forum threads (org profiles excluded). Ranking is client-side hot(score) = recency + comments + saves, then a diversity pass; progressive paging is 10 then +8. Guests see a 10-item peek + join CTA on the marketing home. A server RPC may replace the client merge later without changing card renderers.
+
+**Rationale.** PM asked for one coherent discovery surface instead of mismatched card layouts and a desktop 6-item "See all" gate. Client merge reuses existing `listAll` loaders for MVP speed (hybrid Phase 1).
+
+**Alternatives rejected.** Keep capped posts+opportunities strip; include org directory cards on Home; dump the full catalog without progressive load.
+
+**Affected.** `app/apps/glowe-web/js/glowe-home-feed*.js`, `app.js`, `index.html`, `styles.css`; FR-GLOWE-016 AC2; design/plan under `docs/SSOT/archive/superpowers/{specs,plans}/2026-07-27-glowe-unified-home-feed*`.
+
+---
+
+## D-185 — GloWe publishing rules and profile privacy are enforced in Postgres (2026-07-27)
+
+**Decision.** The GloWe capability matrix (who may publish which content kind) lives in `public.glowe_can_create()` and is applied by `BEFORE INSERT` triggers on `glowe_posts` and `glowe_opportunities`. The browser keeps a mirror in `canCreate()` (`glowe-create.js`) purely to render the create menu without a round trip; the database is the enforcement point. `glowe_profiles` moves to the migration-0163 pattern used by `public.users`: a row policy that hides unapproved organization applications, column-scoped `SELECT` grants that exclude PII, a `glowe_public_profiles` projection view, and an owner-only `glowe_get_self_private_fields()` RPC. Content creation is rate limited via the existing `enforce_rate_limit()` (30 posts / 15 opportunities / 40 applications per hour), exempting non-client JWT roles.
+
+**Rationale.** Pre-launch review found all three rules existed only as client-side JavaScript: any signed-in user could POST directly at PostgREST to publish as an unapproved organization or create an event as a private individual, and `anon` could read every pending/rejected organization application together with the reviewer's private `org_review_note`, org contact details and the `raw_profile` PII blob.
+
+**Consequence (deliberate).** An organization's contact email is no longer rendered on its public profile page; the page falls back to "Contact through GloWe messages". Applicant emails still reach opportunity owners, which flows through the `SECURITY DEFINER` RPC in migration 0220.
+
+**Alternatives rejected.** Keep the checks client-side and accept the risk; use a `SECURITY DEFINER` view instead of column grants (diverges from the existing `users_public` pattern); enforce the rules in Edge Functions (leaves the direct PostgREST path open).
+
+**Affected.** `supabase/migrations/0236_glowe_publish_guards_and_profile_privacy.sql`, `supabase/tests/0236_glowe_publish_guards.sql`, `app/apps/glowe-web/js/{backend.js,glowe-create.js}`; FR-GLOWE-003, FR-GLOWE-016; supersedes the blanket read policy in migration 0204.
+
+---
+
+## D-186 — GloWe has one registration path for opportunities and events (2026-07-27)
+
+**Decision.** Volunteering opportunities and events share a single apply/RSVP entry point, `public.glowe_apply_to_opportunity()` (migration `0237`), which reads `registration_mode` and `capacity` off the listing and returns the resolved status: `open` → `Accepted`, `open` at capacity → `Waitlisted` with a position, `gated` → `Pending`. Seat allocation lives in one place, `public.glowe_next_waitlist_position()`, shared by the apply RPC and both decision RPCs. `glowe_register_for_event()` survives as a thin event-only wrapper (it still asserts the target is an event) so existing callers and the 0212–0214 regression tests are untouched. The browser never assumes an outcome: it renders whatever status the server returns.
+
+**Rationale.** The two halves of FR-GLOWE-012 had drifted. Events went through an RPC that honoured `registration_mode`; plain opportunities were a direct `INSERT` from `app.js` with a hardcoded `'Pending'`, so an organization literally could not offer an opportunity on "everyone can join" terms even though the column existed. Capacity was worse: only checked when an organizer accepted an event registration by hand, so open-mode events could be filled past their stated capacity and plain opportunities could always be overfilled. The PM requirement — the post owner chooses between approving one by one and letting everyone in — was only half implemented.
+
+**Consequence (deliberate).** Accepting an applicant into a full listing now returns `Waitlisted` instead of overfilling, for both decision RPCs; the owner is told. An applicant already holding a waitlist place keeps that place when such an accept fails, rather than being sent to the back of the queue. `glowe_list_applications_for_opportunity()` gained a `waitlist_position` column (a `DROP`/`CREATE`, since a `RETURNS TABLE` change is not replaceable in place) and orders the waitlist group by it.
+
+**Alternatives rejected.** Give plain opportunities their own capacity RPC (two rules to keep in sync — the exact drift being fixed); enforce capacity only at decision time (leaves open mode overfillable); make the browser compute the outcome and write the status (the client is not a trustworthy enforcement point — see D-185).
+
+**Affected.** `supabase/migrations/0237_glowe_unified_registration.sql`, `supabase/tests/0237_glowe_unified_registration.sql`, `app/apps/glowe-web/js/{app.js,backend.js,glowe-opportunities.js,glowe-organizations.js}`, `pages/opportunity.html`; FR-GLOWE-012 AC5–AC8, FR-GLOWE-007-C.
+
+---
+
+## D-189 — GloWe staging branch + dual URLs + Playwright visual gate (2026-07-27)
+
+**Decision.** GloWe gets two live URLs on Cloudflare Pages branch aliases:
+
+| URL | Branch | Role |
+| --- | --- | --- |
+| `https://dev.karma-community.pages.dev/glowe/` | `dev` | **Production** — stable front door for users (unchanged from D-182) |
+| `https://staging.karma-community.pages.dev/glowe/` | `staging` | **Integration** — ongoing feature work before release |
+
+Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe E2E (dev + staging)` runs Playwright journeys + `toHaveScreenshot()` visual regression on every PR/push to either branch (`GLOWE_STAGING_URL` / `GLOWE_PROD_URL`). KC production (`main` → `karma-community-kc.com/glowe`) remains a separate, slower-moving bundle until a `dev` → `main` release promotes it.
+
+**Rationale.** PM wants automated E2E every dev version and a clear prod vs integration split without renaming the stable `dev` branch that already acts as GloWe's production line. A dedicated `staging` branch + Cloudflare branch alias is simpler than PR-preview URLs (no per-PR secret wiring) and keeps `dev` deploys user-visible only after an explicit promotion.
+
+**Alternatives rejected.** Treat `karma-community-kc.com/glowe` as GloWe prod (currently lags `dev`); run E2E only on `dev` → `main` release PRs (too late in the cycle); Maestro for web (Playwright suite already exists).
+
+**Affected.** `.github/workflows/{ci-e2e-glowe,deploy-web}.yml`, `tests/e2e/journeys/glowe-visual.spec.ts`, `docs/SSOT/{ENVIRONMENTS,TESTING}.md`, GitHub vars `GLOWE_STAGING_URL`.
+
+---
+
+## D-190 — GloWe product removed; KC-only repo (2026-10-16)
+
+**Decision.** Remove the GloWe static frontend (`app/apps/glowe-web`), GloWe CI/deploy/smoke workflows, Edge Functions `glowe-translate` / `glowe-generate-name-en`, and all `glowe_*` database objects via forward migration `0238_drop_glowe_product.sql`. KC mobile/web export and shared Supabase core remain the sole product surface.
+
+**Rationale.** Repository renamed to Karma Community (KC); maintaining a parallel GloWe product fork inside the monorepo duplicated backend schema and confused contributors.
+
+**Alternatives rejected.** Leave schema in place unused (ongoing RLS/types/CI cost); rename-only without drops (misleading `glowe_*` API surface).
+
+**Affected.** Migration `0238`, `AGENTS.md`, `README.md`, `.github/workflows/*`, `app/scripts/web-postbuild.mjs`, archived spec `docs/SSOT/archive/17_glowe_frontend.md`.
+
+**Manual follow-up.** Delete GitHub Actions variables `GLOWE_PROD_URL`, `GLOWE_STAGING_URL`, `GLOWE_SEED_PASSWORD`; disable or remove branch-protection required checks for deleted workflows (`CI — GloWe E2E`, `glowe-prod-smoke`).
+
+---
+
+## D-191 — Port GloWe smart UGC translation to KC `translate` (2026-10-16)
+
+**Decision.** Retire the separate `glowe-translate` function and `glowe_content_translations` table with GloWe sunset, but **keep** the batch-oriented translation engine on KC: shared `kcSource` registry, server-side source reads, cache poison recovery, and `translateMany` fan-out on the existing `translate` Edge Function writing to `content_translations`. Extend the cache schema for `ride_listing` and `user` biography (migration `0239`).
+
+**Rationale.** Naveh: the smart auto-translation mechanism built for GloWe should power KC UGC (posts today; rides/profiles/chats as registered), without reviving GloWe product tables.
+
+**Alternatives rejected.** Reintroduce `glowe_content_translations` alongside KC cache (duplicate pipelines); client-supplied source text for batch (cache-poisoning risk).
+
+**Affected.** `supabase/functions/translate/**`, `supabase/functions/_shared/translation/kcSource.ts`, migration `0239`, `EdgeFnTranslationService`, `MaterializePostTranslationsUseCase`, `docs/SSOT/UGC_TRANSLATION.md`, `docs/SSOT/spec/18_translation.md`.
+
+---
+
+## D-192 — KC mobile store track resumed; EAS + CI (2026-10-16)
+
+**Decision.** Unpause the Expo KC app (`app/apps/mobile`) for App Store / Google Play delivery: document local + EAS workflows and add GitHub Actions for EAS builds with TestFlight / Play **internal** submit (no App Review). Native ids: `org.karmacommunity.app`. Marketing version follows `app/VERSION` via `app.config.ts`; EAS production profile uses remote `autoIncrement` for build numbers.
+
+**Rationale.** Issues #836 / #837; KC mobile shares the Supabase backend and needs store-ready builds after GloWe sunset (D-190).
+
+**Affected.** `app/apps/mobile/{README.md,eas.json,app.config.ts}`, `.github/workflows/kc-mobile-*.yml`, `README.md`, `AGENTS.md`, `CONTRIBUTING.md`.
+
+---
+
+## D-193 — CI speed + single store workflows (2026-10-17)
+
+**Decision.** Keep required CI job display names stable; gate heavy work with `dorny/paths-filter` so DB-only and FE-only PRs still report required contexts but skip unrelated minutes. Use `${{ github.workflow }}-${{ github.ref }}` concurrency with `cancel-in-progress` on PR CI. Share pnpm + local Turbo cache via `.github/actions/setup-pnpm-turbo`. Consolidate mobile store pipelines to one TestFlight (`testflight-ios.yml`) and one Play internal (`play-internal.yml`) workflow; delete the duplicate `kc-mobile-testflight-ios.yml` / `kc-mobile-play-internal.yml`. Store and prod release workflows stay manual / not auto-promoted.
+
+**Why.** Issues #941 / #942 — cut median PR CI time and remove duplicate store entrypoints without breaking branch-protection required checks.
+
+**Affected.** `.github/workflows/ci-*.yml`, `.github/actions/setup-pnpm-turbo`, `app/turbo.json`, `app/apps/mobile/README.md`, `docs/SSOT/ENVIRONMENTS.md`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
+| 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
+| 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
+| 4.19 | 2026-10-16 | Added `D-190` (GloWe sunset; KC-only codebase; migration `0238`). |
+| 4.18 | 2026-07-27 | Added `D-189` (GloWe `staging` branch + dual URLs + Playwright visual gate; INFRA-QA-W1/W2). |
+| 4.17 | 2026-07-27 | Added `D-186` (one registration path for GloWe opportunities and events; capacity + registration_mode enforced server-side; FR-GLOWE-012). |
+| 4.16 | 2026-07-27 | Added `D-185` (GloWe publish guards + profile privacy enforced in Postgres; FR-GLOWE-003 / FR-GLOWE-016). |
+| 4.15 | 2026-07-27 | Added `D-184` (GloWe Home unified discovery feed; FR-GLOWE-016 AC2 rewrite). |
+| 4.14 | 2026-07-22 | Added `D-183` (GloWe follow on KC `follow_edges` via `backend.js` + `glowe-follow.js`; public MVP only; FR-GLOWE-026). |
+| 4.13 | 2026-07-22 | Added `D-182` (GloWe prod synthetics → `glowe_health_checks` + admin health panel; `INFRA-QA-W7`). |
 | 4.12 | 2026-07-19 | Added `D-181` (app-wide semver + auto patch on `dev` push; GloWe footer `vX.Y.Z`; FR-GLOWE-025). |
 | 4.11 | 2026-07-19 | Added `D-180` (GloWe `.tr-slot` toggle convention + consistent org card actions; FR-TRANSLATE-005 comments/tags). |
 | 4.10 | 2026-07-16 | Added `D-178` (Personal Area / bottom-nav "Profile" tab gate replaced hard redirect-home with the FR-GLOWE-023 contextual join modal; header auth button moved inline next to the language toggle on mobile). |

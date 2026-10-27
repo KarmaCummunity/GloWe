@@ -172,15 +172,15 @@ export class SupabaseUserRepository implements IUserRepository {
   getChatCounterpartyContact(chatId: string): Promise<string | null> {
     return getChatCounterpartyContact(this.client, chatId);
   }
-  async create(): Promise<never> {
-    throw NOT_IMPL('create', 'auto-created by handle_new_user trigger');
+  create(): Promise<never> {
+    return Promise.reject(NOT_IMPL('create', 'auto-created by handle_new_user trigger'));
   }
-  async update(): Promise<never> {
-    throw NOT_IMPL('update', 'P2.4');
+  update(): Promise<never> {
+    return Promise.reject(NOT_IMPL('update', 'P2.4'));
   }
-  async delete(_userId: string): Promise<void> {
+  delete(_userId: string): Promise<void> {
     // Deprecated in V1 — see deleteAccountViaEdgeFunction.
-    throw NOT_IMPL('delete', 'reserved for future admin-driven delete');
+    return Promise.reject(NOT_IMPL('delete', 'reserved for future admin-driven delete'));
   }
 
   async deleteAccountViaEdgeFunction(): Promise<void> {
@@ -263,23 +263,28 @@ export class SupabaseUserRepository implements IUserRepository {
 
   async updateNotificationPreferences(
     userId: string,
-    partial: { critical?: boolean; social?: boolean },
-  ): Promise<{ critical: boolean; social: boolean }> {
-    const merge: Record<string, boolean> = {};
+    partial: {
+      critical?: boolean;
+      social?: boolean;
+      quietHours?: { enabled: boolean; start: string; end: string; timezone: string };
+    },
+  ): Promise<{ critical: boolean; social: boolean; quietHours?: typeof partial.quietHours }> {
+    const merge: Record<string, unknown> = {};
     if (partial.critical !== undefined) merge.critical = partial.critical;
     if (partial.social !== undefined) merge.social = partial.social;
+    if (partial.quietHours !== undefined) merge.quietHours = partial.quietHours;
     const { data, error } = await this.client.rpc(
       'users_merge_notification_preferences',
       { p_user_id: userId, p_merge: merge },
     );
     if (error) throw new Error(`updateNotificationPreferences: ${error.message}`);
-    return data as { critical: boolean; social: boolean };
+    return data as { critical: boolean; social: boolean; quietHours?: typeof partial.quietHours };
   }
 
-  async findByAuthIdentity(_provider: string, _subject: string): Promise<never> {
-    throw NOT_IMPL('findByAuthIdentity', 'P0.4');
+  findByAuthIdentity(_provider: string, _subject: string): Promise<never> {
+    return Promise.reject(NOT_IMPL('findByAuthIdentity', 'P0.4'));
   }
-  async createAuthIdentity(): Promise<never> {
-    throw NOT_IMPL('createAuthIdentity', 'auto-created by handle_new_user trigger');
+  createAuthIdentity(): Promise<never> {
+    return Promise.reject(NOT_IMPL('createAuthIdentity', 'auto-created by handle_new_user trigger'));
   }
 }

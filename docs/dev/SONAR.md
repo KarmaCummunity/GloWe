@@ -9,8 +9,8 @@ Organization: `karmacummunity`
 2. Command Palette → **SonarQube: Connect to SonarCloud** (or **New SonarQube Cloud Connection**).
 3. **Generate Token** in SonarCloud → **My Account → Security** → paste into **User Token**.
 4. **Organization**: `karmacummunity`.
-5. **Save Connection**, then bind workspace to project **MVP-2**.
-6. Open repo root `MVP-2/` (not only `app/`).
+5. **Save Connection**, then bind workspace to project **KarmaCummunity_MVP-2**.
+6. Open the repo root (not only `app/`).
 
 ## 2. CI — block PRs with new Sonar issues
 

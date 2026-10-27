@@ -2,8 +2,12 @@
 // Locale file under `locales/he/`; composed into the bundle via `locales/he/index.ts`.
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
 // under the architecture cap.
-
 import { rides } from './donations.rides';
+import { marketplaceErrors } from './donations.marketplaceErrors';
+import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+export { moneyPayments } from './donations.moneyPayments';
+export { timeVolunteer } from './donations.timeVolunteer';
 
 export const donations = {
   tabLabel: 'תרומות',
@@ -58,7 +62,7 @@ export const donations = {
   moneyScreen: {
     title: 'תרומה כספית',
     body:
-      'קטגוריית הכסף תפתח בהמשך. \nועד אז מזמינים אתכם ללתרום לקהילה עצמה, ולעזור לנו לגדול ולהתפתח.\nאבל אם בא לכם לתרום לעמותה קיימת ולקבל החזרי מס, תכנסו לאחד הקישורים פה למטה.',
+      'תרומה לעמותות מאומתות באפליקציה (סandbox — ללא חיוב אמיתי). קישורים חיצוניים נשארים למטה.',
     openLink: 'פתח את jgive.com',
     linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
     linkErrorBody: 'נסו דפדפן אחר או הקלידו את הכתובת ידנית.',
@@ -113,6 +117,9 @@ export const donations = {
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
+  knowledge: {
+    hubBody: 'הציעו חונכות או שיעורים, הזמינו משבצת, השלימו ודרגו. ארגוני למידה מופיעים למטה.',
+  },
   addLinkModal: {
     title: 'הוספת קישור חדש',
     editTitle: 'עריכת קישור',
@@ -139,6 +146,8 @@ export const donations = {
       unknown: 'שגיאה לא צפויה. נסו שוב.',
     },
   },
+  marketplaceHubTitle: 'שוק התרומות',
+  marketplaceHubSubtitle: 'כל עולמות הנתינה במקום אחד',
 } as const;
 
 export const search = {
@@ -151,6 +160,8 @@ export const search = {
   posts: 'פוסטים',
   people: 'אנשים',
   links: 'קישורים',
+  orgs: 'ארגונים',
+  hashtags: 'האשטגים',
 
   // Sort options
   sortBy: 'מיין לפי',
@@ -174,6 +185,9 @@ export const search = {
   sectionPeople: 'אנשים',
   sectionPosts: 'פוסטים',
   sectionLinks: 'קישורים',
+  sectionOrgs: 'ארגונים',
+  sectionHashtags: 'האשטגים',
+  suggested: 'חיפושים מומלצים',
   showAll: 'הצג הכל',
 
   // Result info
@@ -210,8 +224,6 @@ export const search = {
     Other: 'אחר',
   },
 
-  // GLOWE partnership banner
-  gloweSubtitle: 'פלטפורמת ידע מקצועי – הרחב את האפקט שלך',
 
   // Donation categories for filter
   donationCategories: {
@@ -224,4 +236,65 @@ export const search = {
     animals: 'חיות',
     medical: 'רפואה',
   },
+} as const;
+
+export const marketplace = {
+  browseTitle: 'שוק',
+  searchPlaceholder: 'חיפוש מודעות…',
+  allWorlds: 'כל העולמות',
+  openMap: 'תצוגת מפה',
+  createListing: 'פרסום מודעה',
+  loading: 'טוען…',
+  empty: 'אין מודעות לפי הסינון.',
+  mapTitle: 'אשכולות במפה',
+  mapEmpty: 'אין מודעות עם מיקום באזור.',
+  clusterLabel: '{{count}} מודעות',
+  notFound: 'המודעה לא נמצאה.',
+  startChat: 'שליחת הודעה',
+  shareFeed: 'שיתוף בפיד',
+  chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
+  createTitle: 'מודעה חדשה — {{world}}',
+  fieldTitle: 'כותרת',
+  fieldSummary: 'תקציר',
+  publish: 'פרסום',
+  publishing: 'מפרסם…',
+  forYouTitle: 'בשבילך',
+  createHubTitle: 'בחירת עולם נתינה',
+  fieldKind: 'סוג מודעה',
+  fieldDirection: 'מציע / מבקש',
+  fieldCity: 'עיר / אזור',
+  fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
+  fieldPhotos: 'תמונות',
+  fieldPhotosHint: 'מודעות עם תמונה מקבלות יותר תגובות.',
+  validationFailed: 'בדקו את הטופס ({{code}}).',
+  errors: marketplaceErrors,
+  shareLink: 'שיתוף קישור',
+  report: 'דיווח על מודעה',
+  reportTitle: 'דיווח על מודעה זו',
+  similarTitle: 'מודעות דומות',
+  anonymousOwner: 'חבר/ת קהילה',
+  profileListingsTitle: 'מודעות בשוק',
+  profileListingsEmpty: 'אין מודעות ציבוריות עדיין.',
+  statusClosed: 'הושלם',
+  myListingsNav: 'המודעות שלי',
+  myListingsTitle: 'המודעות שלי',
+  myListingsSubtitle: 'עריכה, השהיה, סימון כהושלם או מחיקה. השלמה מעניקה קארמה.',
+  myListingsEmpty: 'אין לך מודעות עדיין.',
+  myListingsEdit: 'עריכה',
+  myListingsPause: 'השהיה',
+  myListingsResume: 'חידוש',
+  myListingsFulfill: 'סימון כהושלם',
+  myListingsFulfillTitle: 'לסמן כהושלם?',
+  myListingsFulfillHint: 'המודעה תיסגר ותקבלו נקודות קארמה על השלמת נתינה/בקשה.',
+  myListingsDelete: 'מחיקה',
+  myListingsDeleteTitle: 'למחוק את המודעה?',
+  myListingsDeleteHint: 'המודעה תימחק לצמיתות.',
+  myListingsSave: 'שמירת שינויים',
+  myListingsUpdated: 'עודכן {{date}}',
+  mapWebFallback: 'מפה אינטראקטיבית זמינה באפליקציה. האשכולות למטה מגיעים מאותו מקור בשרת.',
+  world: marketplaceWorldLabels,
+  orgPicker: marketplaceOrgPicker,
+  field: marketplaceFieldLabels,
+  option: marketplaceOptionLabels,
+  availability: marketplaceAvailabilityLabels,
 } as const;

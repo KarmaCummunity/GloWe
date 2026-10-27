@@ -1,0 +1,276 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type {
+  IMarketplaceRepository,
+  MarketplaceBrowseFilters,
+  MarketplaceSearchCursor,
+  MyListingsCursor,
+} from '@kc/application';
+import type {
+  ListingKindOption,
+  MarketplaceBrowseRow,
+  MarketplaceListingDetail,
+  MarketplaceMapCluster,
+  MarketplaceSimilarListing,
+  MyListingRow,
+  ProfileListingRow,
+} from '@kc/domain';
+import type { Database } from '../database.types';
+import { mapListingDetail } from './mapListingDetail';
+import { searchExternalBodies } from './mapExternalBody';
+import * as handoffs from './givingHandoffs';
+import * as paging from './marketplacePaging';
+
+export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
+  constructor(private readonly client: SupabaseClient<Database>) {}
+
+  async browse(filters: MarketplaceBrowseFilters): Promise<MarketplaceBrowseRow[]> {
+    return (await paging.fetchBrowsePage(this.client, filters)).rows;
+  }
+
+  browsePage(filters: MarketplaceBrowseFilters) {
+    return paging.fetchBrowsePage(this.client, filters);
+  }
+
+  searchPage(query: string, worldSlug: string | null, limit: number, cursor?: MarketplaceSearchCursor | null) {
+    return paging.fetchSearchPage(this.client, query, worldSlug, limit, cursor);
+  }
+
+  getListingCards(listingIds: readonly string[]) {
+    return paging.fetchListingCards(this.client, listingIds);
+  }
+
+  async search(query: string, worldSlug?: string | null, limit = 20): Promise<string[]> {
+    const { data, error } = await this.client.rpc('marketplace_search', {
+      p_query: query,
+      p_world_slug: worldSlug ?? undefined,
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return data.map((r) => r.listing_id);
+  }
+
+  async recommendForYou(limit = 12): Promise<string[]> {
+    const { data, error } = await this.client.rpc('recommend_listings_for_user', { p_limit: limit });
+    if (error || !data) return [];
+    return data.map((r) => r.listing_id);
+  }
+
+  async mapClusters(bounds: {
+    swLat: number;
+    swLng: number;
+    neLat: number;
+    neLng: number;
+    worldSlug?: string | null;
+  }): Promise<MarketplaceMapCluster[]> {
+    const { data, error } = await this.client.rpc('map_listing_clusters', {
+      p_sw_lat: bounds.swLat,
+      p_sw_lng: bounds.swLng,
+      p_ne_lat: bounds.neLat,
+      p_ne_lng: bounds.neLng,
+      p_world_slug: bounds.worldSlug ?? undefined,
+    });
+    if (error || !data) return [];
+    return data.map((c) => ({
+      clusterKey: c.cluster_key,
+      centerLat: c.center_lat,
+      centerLng: c.center_lng,
+      listingCount: c.listing_count,
+      sampleListingId: c.sample_listing_id,
+    }));
+  }
+
+  async getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null> {
+    const { data, error } = await this.client.rpc('get_marketplace_listing_detail', {
+      p_listing_id: listingId,
+    });
+    if (error || data == null) return null;
+    return mapListingDetail(data);
+  }
+
+  async similarListings(listingId: string, limit = 6): Promise<MarketplaceSimilarListing[]> {
+    const { data, error } = await this.client.rpc('similar_listings', {
+      p_listing_id: listingId,
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return data.map((r) => ({
+      listingId: r.listing_id,
+      title: r.title,
+      worldSlug: r.world_slug,
+      kindSlug: r.kind_slug,
+    }));
+  }
+
+  async listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]> {
+    const { data, error } = await this.client
+      .from('listing_kinds')
+      .select('kind_id, slug, label_en, label_he, direction, detail_schema')
+      .eq('world_slug', worldSlug)
+      .eq('is_active', true)
+      .order('sort_order');
+    if (error || !data) return [];
+    return data.map((k) => ({
+      kindId: k.kind_id,
+      slug: k.slug,
+      labelEn: k.label_en,
+      labelHe: k.label_he,
+      direction: k.direction as ListingKindOption['direction'],
+      detailSchema: (k.detail_schema as Record<string, unknown>) ?? {},
+    }));
+  }
+
+  searchExternalBodies = (worldSlug: string, query?: string | null, limit?: number) =>
+    searchExternalBodies(this.client, worldSlug, query, limit);
+
+  async getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null> {
+    const { data, error } = await this.client
+      .from('listings')
+      .select(
+        'listing_id, world_slug, direction, title, summary, urgency_level, availability_status, city_id, kind_id',
+      )
+      .eq('listing_id', listingId)
+      .maybeSingle();
+    if (error || !data) return null;
+    const { data: kindRow } = await this.client
+      .from('listing_kinds')
+      .select('slug')
+      .eq('kind_id', data.kind_id)
+      .maybeSingle();
+    return {
+      listingId: data.listing_id,
+      worldSlug: data.world_slug,
+      kindSlug: kindRow?.slug ?? '',
+      direction: data.direction as 'give' | 'request',
+      title: data.title,
+      summary: data.summary,
+      urgencyLevel: data.urgency_level,
+      availabilityStatus: data.availability_status,
+      cityId: data.city_id,
+      distanceKm: null,
+    };
+  }
+
+  async createListing(
+    input: Parameters<IMarketplaceRepository['createListing']>[0],
+  ): Promise<string> {
+    const { data, error } = await this.client.rpc('create_marketplace_listing', {
+      p_kind_id: input.kindId,
+      p_title: input.title,
+      p_summary: input.summary ?? undefined,
+      p_details: (input.details ?? {}) as Database['public']['Functions']['create_marketplace_listing']['Args']['p_details'],
+      p_direction: input.direction ?? undefined,
+      p_city_id: input.cityId ?? undefined,
+      p_lat: input.lat ?? undefined,
+      p_lng: input.lng ?? undefined,
+      p_max_radius_km: input.maxRadiusKm ?? undefined,
+      p_media_paths: input.mediaPaths ?? undefined,
+      p_external_body_id: input.externalBodyId ?? undefined,
+      p_urgency_level: input.urgencyLevel ?? undefined,
+      p_availability_status: input.availabilityStatus ?? undefined,
+    });
+    if (error || !data) throw error ?? new Error('create_marketplace_listing failed');
+    return data as string;
+  }
+
+  async recordSignal(listingId: string, signal: 'view' | 'save' | 'response'): Promise<void> {
+    await this.client.rpc('record_listing_signal', {
+      p_listing_id: listingId,
+      p_signal_type: signal,
+    });
+  }
+
+  async shareToFeed(listingId: string): Promise<string> {
+    const { data, error } = await this.client.rpc('share_listing_to_feed', { p_listing_id: listingId });
+    if (error || !data) throw error ?? new Error('share_listing_to_feed failed');
+    return data as string;
+  }
+
+  async startChat(listingId: string, openingMessage?: string | null): Promise<string> {
+    const { data, error } = await this.client.rpc('start_listing_chat', {
+      p_listing_id: listingId,
+      p_opening_message: openingMessage ?? undefined,
+    });
+    if (error || !data) throw error ?? new Error('start_listing_chat failed');
+    return data as string;
+  }
+
+  async listMyListings(limit = 50, offset = 0): Promise<MyListingRow[]> {
+    return (await paging.fetchMyListingsPage(this.client, limit, null, offset)).rows;
+  }
+
+  listMyListingsPage(limit: number, cursor?: MyListingsCursor | null) {
+    return paging.fetchMyListingsPage(this.client, limit, cursor);
+  }
+
+  async listProfileListings(ownerId: string, limit = 24): Promise<ProfileListingRow[]> {
+    const { data, error } = await this.client.rpc('list_profile_listings', {
+      p_owner_id: ownerId,
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return data.map((r) => ({
+      listingId: r.listing_id,
+      worldSlug: r.world_slug,
+      kindSlug: r.kind_slug,
+      direction: r.direction as 'give' | 'request',
+      status: r.status,
+      title: r.title,
+      summary: r.summary,
+    }));
+  }
+
+  async updateMyListing(
+    listingId: string,
+    patch: Parameters<IMarketplaceRepository['updateMyListing']>[1],
+  ): Promise<void> {
+    const { error } = await this.client.rpc('update_my_listing', {
+      p_listing_id: listingId,
+      p_title: patch.title,
+      p_summary: patch.summary ?? undefined,
+      p_details: (patch.details ?? undefined) as Database['public']['Functions']['update_my_listing']['Args']['p_details'],
+      p_city_id: patch.cityId ?? undefined,
+      p_max_radius_km: patch.maxRadiusKm ?? undefined,
+      p_urgency_level: patch.urgencyLevel,
+      p_availability_status: patch.availabilityStatus,
+    });
+    if (error) throw error;
+  }
+
+  async pauseMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('pause_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async resumeMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('resume_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async fulfillMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('fulfill_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+  async deleteMyListing(listingId: string): Promise<void> {
+    const { error } = await this.client.rpc('delete_my_listing', { p_listing_id: listingId });
+    if (error) throw error;
+  }
+
+
+  // Items/food handoffs — see givingHandoffs.ts.
+  getListingHandoff = (listingId: string) => handoffs.getListingHandoff(this.client, listingId);
+  listMyGivingHandoffs = (limit?: number) => handoffs.listMyGivingHandoffs(this.client, limit);
+  reserveItemGiving = (
+    listingId: string,
+    pickupMode?: 'pickup' | 'delivery',
+    start?: string | null,
+    end?: string | null,
+  ) => handoffs.reserveItemGiving(this.client, listingId, pickupMode, start, end);
+  confirmItemHandoff = (id: string) => handoffs.confirmItemHandoff(this.client, id);
+  claimFoodGiving = (listingId: string, start?: string | null, end?: string | null) =>
+    handoffs.claimFoodGiving(this.client, listingId, start, end);
+  cancelGivingHandoff = (id: string) => handoffs.cancelGivingHandoff(this.client, id);
+  markGivingHandedOver = (id: string) => handoffs.markGivingHandedOver(this.client, id);
+  rateGivingHandoff = (id: string, rating: number, comment?: string | null) =>
+    handoffs.rateGivingHandoff(this.client, id, rating, comment);
+}

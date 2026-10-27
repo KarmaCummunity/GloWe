@@ -23,6 +23,7 @@ import {
 } from '../lib/createPostFieldValidation';
 import { mapPostErrorToHebrew } from '../services/postMessages';
 import { invalidatePersonalStatsCaches } from '../lib/invalidatePersonalStatsCaches';
+import { hapticSuccess } from '../lib/haptics';
 import { invalidateMyProfilePostQueries } from '../lib/invalidateMyProfilePostQueries';
 import type { UploadedAsset } from '../services/imageUpload';
 import type { PrePromptTrigger } from '../lib/notifications/usePushPermissionGate';
@@ -140,6 +141,7 @@ export function useCreatePostPublish(args: {
       invalidateMyProfilePostQueries(queryClient, ownerId);
       await queryClient.invalidateQueries({ queryKey: ['openPostsCount'] });
       invalidatePersonalStatsCaches(queryClient, ownerId);
+      hapticSuccess();
       useFeedSessionStore.getState().showEphemeralToast(t('post.publishSuccess'), 'success');
       if (!checkedFirstPostRef.current && ownerId) {
         checkedFirstPostRef.current = true;

@@ -4,6 +4,7 @@ import { adminTimeEn } from './adminTime';
 import { adminMoneyEn } from './adminMoney';
 import { adminCrmEn } from './adminCrm';
 import { adminOrgApprovalsEn } from './adminOrgApprovals';
+import { adminWhatsAppEn } from './adminWhatsApp';
 import { adminSurveysEn } from './adminSurveys';
 import { adminTasksEn } from './adminTasks';
 import { adminAdminsEn } from './adminAdmins';
@@ -24,6 +25,7 @@ export const adminEn = {
     crm:           'CRM',
     orgApprovals:  'Org Approvals',
     audit:         'Audit Log',
+    whatsapp:      'WhatsApp',
   },
   roles: {
     super_admin: 'Super Admin',
@@ -70,6 +72,7 @@ export const adminEn = {
       posts:      'Posts',
       users:      'Users',
       chats:      'Chats',
+      listings:   'Listings',
       last7Days:  'Last 7 days',
       last30Days: 'Last 30 days',
       search:     'Search by target ID or reporter name',
@@ -110,6 +113,9 @@ export const adminEn = {
       postKind:    'Post',
       userKind:    'User',
       chatKind:    'Chat',
+      listingKind: 'Listing',
+      openListing: 'Open listing',
+      openOwner:   'Open owner profile',
       noPreview:   '(No preview)',
       unnamedUser: '(Unnamed user)',
       openPost:    'Open the post',
@@ -132,6 +138,7 @@ export const adminEn = {
   content: adminContentEn,
   time: adminTimeEn,
   money: adminMoneyEn,
+  whatsapp: adminWhatsAppEn,
   crm: adminCrmEn,
   orgApprovals: adminOrgApprovalsEn,
   surveys: adminSurveysEn,

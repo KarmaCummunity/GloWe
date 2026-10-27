@@ -39,14 +39,14 @@ describe('ArriveRideUseCase', () => {
   });
 
   it('forwards an explicit breakdown reason to the repo', async () => {
-    const arrive = vi.fn().mockResolvedValue({} as RideListingRow);
+    const arrive = vi.fn().mockResolvedValue({});
     const repo = { arrive } as unknown as IRideListingRepository;
     await new ArriveRideUseCase(repo).execute({ rideId: 'r1', reason: 'breakdown' });
     expect(arrive).toHaveBeenCalledWith('r1', 'breakdown');
   });
 
   it('passes the default reason argument to the repo explicitly', async () => {
-    const arrive = vi.fn().mockResolvedValue({} as RideListingRow);
+    const arrive = vi.fn().mockResolvedValue({});
     const repo = { arrive } as unknown as IRideListingRepository;
     await new ArriveRideUseCase(repo).execute({ rideId: 'r2' });
     expect(arrive).toHaveBeenCalledWith('r2', 'arrived');

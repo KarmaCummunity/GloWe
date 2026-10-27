@@ -1,7 +1,9 @@
 // FR-POST-014 AC4 + FR-POST-015 AC1 + FR-ADMIN-006 + FR-ADMIN-009.
 // Bottom-sheet menu opened from PostMenuButton on PostDetail.
 import { useState, type ComponentProps } from 'react';
-import { Modal, Text, Pressable, ScrollView, View, StyleSheet } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { container } from '../../lib/container';
+import { Modal, Text, Pressable, ScrollView, View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
@@ -15,6 +17,8 @@ import { usePostShare } from '../../hooks/usePostShare';
 import { shouldShowPostExposureControls } from '../../hooks/usePostActorPrivacyModel';
 import { PostMenuExposureBlock } from './PostMenuExposureBlock';
 import { runAfterBottomSheetDismiss } from '../../lib/runAfterBottomSheetDismiss';
+import { hapticLightTap } from '../../lib/haptics';
+import { useFeedSessionStore } from '../../store/feedSessionStore';
 
 interface Props {
   visible: boolean;
@@ -48,6 +52,8 @@ export function PostMenuSheet({
   onEdit,
 }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const showToast = useFeedSessionStore((st) => st.showEphemeralToast);
   const { colors } = useTheme();
   const styles = usePostMenuSheetStyles();
   const [active, setActive] = useState<ActiveModal>(null);
@@ -73,7 +79,13 @@ export function PostMenuSheet({
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Modal
+        visible={visible}
+        animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+        presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : undefined}
+        transparent={Platform.OS !== 'ios'}
+        onRequestClose={onClose}
+      >
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.handle} accessibilityElementsHidden importantForAccessibility="no" />
@@ -88,6 +100,32 @@ export function PostMenuSheet({
                       if (shareBusy) return;
                       onClose();
                       runAfterBottomSheetDismiss(() => share());
+                    }}
+                  />
+                ) : null}
+                {!isOwner ? (
+                  <MenuItem
+                    icon="eye-off-outline"
+                    label={t('post.menuHideFromFeed')}
+                    onPress={() => {
+                      onClose();
+                      void container.socialFeed.hidePost(post.postId).then(() => {
+                        void queryClient.invalidateQueries({ queryKey: ['feed'] });
+                      });
+                    }}
+                  />
+                ) : null}
+                {!isOwner && viewerId ? (
+                  <MenuItem
+                    icon="volume-mute-outline"
+                    label={t('feedSettings.menuMuteUser')}
+                    onPress={() => {
+                      onClose();
+                      hapticLightTap();
+                      void container.socialFeed.addMuteFilter('user', post.ownerId).then(() => {
+                        showToast(t('feedSettings.mutedUserToast'), 'success', 2200);
+                        for (const key of ['feed', 'feed-mute-filters']) void queryClient.invalidateQueries({ queryKey: [key] });
+                      });
                     }}
                   />
                 ) : null}

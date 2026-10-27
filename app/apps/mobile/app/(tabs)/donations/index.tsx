@@ -10,7 +10,7 @@
 // with the rest of the redesigned main-screen idiom (welcome-style cream
 // backdrop, soft shadow, orange-tinted icon tiles, staggered spring entries).
 import React from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,11 +21,11 @@ import { Screen } from '../../../src/components/ui/Screen';
 import { Card } from '../../../src/components/ui/Card';
 import { IconTile } from '../../../src/components/ui/IconTile';
 import { MotionEntry, ENTRY_DELAY } from '../../../src/components/ui/MotionEntry';
-import { areGloweLinksEnabled } from '../../../src/config/environment';
 import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';
 import { useScreenAside } from '../../../src/components/aside/useScreenAside';
 import { CommunityStatsAside } from '../../../src/components/aside/CommunityStatsAside';
 import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
+import { MatchesForYouCard } from '../../../src/components/matching/MatchesForYouCard';
 
 interface CategoryTile {
   key: string;
@@ -49,10 +49,10 @@ const FEATURED: CategoryTile = {
 const TILES: CategoryTile[] = [
   { key: 'time',      icon: 'time-outline',       titleKey: 'donations.time.title',                 subtitleKey: 'donations.time.subtitle',                  href: '/(tabs)/donations/time',               testID: 'donation-tile-time' },
   { key: 'money',     icon: 'cash-outline',       titleKey: 'donations.money.title',                subtitleKey: 'donations.money.subtitle',                 href: '/(tabs)/donations/money',              testID: 'donation-tile-money' },
-  { key: 'food',      icon: 'restaurant-outline', titleKey: 'donations.categories.food.title',      subtitleKey: 'donations.categories.food.subtitle',       href: '/(tabs)/donations/category/food',      testID: 'donation-tile-food' },
+  { key: 'food',      icon: 'restaurant-outline', titleKey: 'donations.categories.food.title',      subtitleKey: 'donations.categories.food.subtitle',       href: '/(tabs)/donations/food',               testID: 'donation-tile-food' },
   { key: 'housing',   icon: 'home-outline',       titleKey: 'donations.categories.housing.title',   subtitleKey: 'donations.categories.housing.subtitle',    href: '/(tabs)/donations/category/housing',   testID: 'donation-tile-housing' },
   { key: 'transport', icon: 'car-outline',        titleKey: 'donations.rides.hubTitle', subtitleKey: 'donations.rides.hubSubtitle',  href: '/(tabs)/donations/rides', testID: 'donation-tile-rides' },
-  { key: 'knowledge', icon: 'school-outline',     titleKey: 'donations.categories.knowledge.title', subtitleKey: 'donations.categories.knowledge.subtitle',  href: '/(tabs)/donations/category/knowledge', testID: 'donation-tile-knowledge' },
+  { key: 'knowledge', icon: 'school-outline',     titleKey: 'donations.categories.knowledge.title', subtitleKey: 'donations.categories.knowledge.subtitle',  href: '/(tabs)/donations/knowledge', testID: 'donation-tile-knowledge' },
   { key: 'animals',   icon: 'paw-outline',        titleKey: 'donations.categories.animals.title',   subtitleKey: 'donations.categories.animals.subtitle',    href: '/(tabs)/donations/category/animals',   testID: 'donation-tile-animals' },
   { key: 'medical',   icon: 'medical-outline',    titleKey: 'donations.categories.medical.title',   subtitleKey: 'donations.categories.medical.subtitle',    href: '/(tabs)/donations/category/medical',   testID: 'donation-tile-medical' },
 ];
@@ -205,7 +205,7 @@ export default function DonationsHubScreen() {
           <Text style={styles.heroTitle}>{t('donations.hubHeroTitle')}</Text>
           <Text style={styles.heroSubtitle}>{t('donations.hubHeroSubtitle')}</Text>
         </MotionEntry>
-
+        <MatchesForYouCard />
         {/* ── Featured: items ──────────────── */}
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
           <PressableScale
@@ -229,28 +229,27 @@ export default function DonationsHubScreen() {
           </PressableScale>
         </MotionEntry>
 
-        {/* ── GLOWE partnership banner (dev-only; hidden in production) ─────── */}
-        {areGloweLinksEnabled() ? (
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40} style={styles.blockStretch}>
           <PressableScale
-            onPress={() => Linking.openURL('https://dev.karma-community.pages.dev/glowe')}
+            onPress={() => router.push('/(tabs)/donations/marketplace')}
             accessibilityRole="button"
-            accessibilityLabel={t('donations.gloweSubtitle')}
+            accessibilityLabel={t('donations.marketplaceHubTitle')}
             style={styles.blockStretch}
           >
-            <Card padding="base" style={styles.featuredCard}>
-              <IconTile icon="school-outline" size="lg" />
+            <Card padding="base" style={styles.featuredCard} testID="donation-tile-marketplace">
+              <IconTile icon="storefront-outline" size="lg" />
               <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle} numberOfLines={1}>GLOWE</Text>
+                <Text style={styles.featuredTitle} numberOfLines={1}>
+                  {t('donations.marketplaceHubTitle')}
+                </Text>
                 <Text style={styles.featuredSubtitle} numberOfLines={2}>
-                  {t('donations.gloweSubtitle')}
+                  {t('donations.marketplaceHubSubtitle')}
                 </Text>
               </View>
-              <Ionicons name="open-outline" size={20} color={colors.primary} />
+              <Ionicons name="chevron-back" size={22} color={colors.primary} />
             </Card>
           </PressableScale>
         </MotionEntry>
-        ) : null}
 
         {/* ── Category grid ────────────────── */}
         <View style={styles.categoriesSection}>

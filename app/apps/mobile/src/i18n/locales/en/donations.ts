@@ -2,8 +2,12 @@
 // Locale file under `locales/en/`; composed into the bundle via `locales/en/index.ts`.
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
 // under the architecture cap.
-
 import { rides } from './donations.rides';
+import { marketplaceErrors } from './donations.marketplaceErrors';
+import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+export { moneyPayments } from './donations.moneyPayments';
+export { timeVolunteer } from './donations.timeVolunteer';
 
 export const donations = {
   tabLabel: 'Donations',
@@ -58,7 +62,7 @@ export const donations = {
   moneyScreen: {
     title: 'Monetary donation',
     body:
-      'The money category is coming soon. \nUntil then, we invite you to donate to the community itself and help us grow and develop.\nBut if you would like to donate to an existing nonprofit and get tax deductions, visit one of the links below.',
+      'Donate to verified nonprofits in-app (sandbox — no real charges). External links remain below for legacy flows.',
     openLink: 'Open jgive.com',
     linkErrorTitle: 'We couldn’t open the link',
     linkErrorBody: 'Try a different browser or enter the address manually.',
@@ -113,6 +117,9 @@ export const donations = {
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
+  knowledge: {
+    hubBody: 'Offer mentoring or lessons, book a slot, then complete and rate. Learning organisations are listed below.',
+  },
   addLinkModal: {
     title: 'Add a new link',
     editTitle: 'Edit link',
@@ -139,6 +146,8 @@ export const donations = {
       unknown: 'Unexpected error. Try again.',
     },
   },
+  marketplaceHubTitle: 'Unified marketplace',
+  marketplaceHubSubtitle: 'Browse all giving worlds in one place',
 } as const;
 
 export const search = {
@@ -151,6 +160,8 @@ export const search = {
   posts: 'Posts',
   people: 'People',
   links: 'Links',
+  orgs: 'Organizations',
+  hashtags: 'Hashtags',
 
   // Sort options
   sortBy: 'Sort by',
@@ -174,6 +185,9 @@ export const search = {
   sectionPeople: 'People',
   sectionPosts: 'Posts',
   sectionLinks: 'Links',
+  sectionOrgs: 'Organizations',
+  sectionHashtags: 'Hashtags',
+  suggested: 'Suggested searches',
   showAll: 'Show all',
 
   // Result info
@@ -210,8 +224,6 @@ export const search = {
     Other: 'Other',
   },
 
-  // GLOWE partnership banner
-  gloweSubtitle: 'Professional knowledge platform – expand your impact',
 
   // Donation categories for filter
   donationCategories: {
@@ -224,4 +236,65 @@ export const search = {
     animals: 'Animals',
     medical: 'Medical',
   },
+} as const;
+
+export const marketplace = {
+  browseTitle: 'Marketplace',
+  searchPlaceholder: 'Search listings…',
+  allWorlds: 'All worlds',
+  openMap: 'Map view',
+  createListing: 'Create listing',
+  loading: 'Loading…',
+  empty: 'No listings match your filters.',
+  mapTitle: 'Map clusters',
+  mapEmpty: 'No geo-tagged listings in this area.',
+  clusterLabel: '{{count}} listings',
+  notFound: 'Listing not found.',
+  startChat: 'Message publisher',
+  shareFeed: 'Share to feed',
+  chatOpener: 'Hi — I saw your listing on the marketplace.',
+  createTitle: 'New {{world}} listing',
+  fieldTitle: 'Title',
+  fieldSummary: 'Summary',
+  publish: 'Publish',
+  publishing: 'Publishing…',
+  forYouTitle: 'For you',
+  createHubTitle: 'Choose a giving world',
+  fieldKind: 'Listing type',
+  fieldDirection: 'Give or request',
+  fieldCity: 'City / area',
+  fieldRadius: 'Search radius: {{km}} km',
+  fieldPhotos: 'Photos',
+  fieldPhotosHint: 'Listings with a photo get more responses.',
+  validationFailed: 'Please check the form ({{code}}).',
+  errors: marketplaceErrors,
+  shareLink: 'Share link',
+  report: 'Report listing',
+  reportTitle: 'Report this listing',
+  similarTitle: 'Similar listings',
+  anonymousOwner: 'Community member',
+  profileListingsTitle: 'Marketplace listings',
+  profileListingsEmpty: 'No public listings yet.',
+  statusClosed: 'Fulfilled',
+  myListingsNav: 'My listings',
+  myListingsTitle: 'My listings',
+  myListingsSubtitle: 'Edit, pause, mark fulfilled, or delete your marketplace posts. Fulfilling earns karma.',
+  myListingsEmpty: 'You have no listings yet.',
+  myListingsEdit: 'Edit',
+  myListingsPause: 'Pause',
+  myListingsResume: 'Resume',
+  myListingsFulfill: 'Mark fulfilled',
+  myListingsFulfillTitle: 'Mark as fulfilled?',
+  myListingsFulfillHint: 'This closes the listing and awards karma for completing a give/request.',
+  myListingsDelete: 'Delete',
+  myListingsDeleteTitle: 'Delete listing?',
+  myListingsDeleteHint: 'This permanently removes the listing.',
+  myListingsSave: 'Save changes',
+  myListingsUpdated: 'Updated {{date}}',
+  mapWebFallback: 'Interactive map is available in the iOS/Android app. Clusters below use the same server data.',
+  world: marketplaceWorldLabels,
+  orgPicker: marketplaceOrgPicker,
+  field: marketplaceFieldLabels,
+  option: marketplaceOptionLabels,
+  availability: marketplaceAvailabilityLabels,
 } as const;

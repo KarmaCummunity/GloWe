@@ -1,6 +1,6 @@
 // FR-ADMIN-007 — admin-only audit lookup. Hidden from non-admins via Redirect.
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, Redirect } from 'expo-router';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
@@ -13,6 +13,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { useTranslation } from 'react-i18next';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
 
 interface UserHit { userId: string; displayName: string; }
 
@@ -95,7 +96,7 @@ export default function AuditScreen() {
       ) : null}
       {pickedUserName ? <Text style={styles.subjectLabel}>{pickedUserName}</Text> : null}
       {loadingEvents ? <ActivityIndicator style={{ margin: spacing.sm }} /> : null}
-      <FlatList
+      <KcFlashList
         data={events}
         keyExtractor={(e) => e.eventId}
         ListEmptyComponent={

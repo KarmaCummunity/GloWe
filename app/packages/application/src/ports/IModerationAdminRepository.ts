@@ -1,6 +1,6 @@
 import type { AdminRole, AuditEvent } from '@kc/domain';
 
-export type ModerationTargetType = 'post' | 'user' | 'chat';
+export type ModerationTargetType = 'post' | 'user' | 'chat' | 'listing';
 export type BanReason = 'spam' | 'harassment' | 'policy_violation' | 'other';
 
 export interface IModerationAdminRepository {
@@ -8,6 +8,7 @@ export interface IModerationAdminRepository {
    *  checks against the @kc/domain PERMISSION_MATRIX (FR-ADMIN-006). */
   getMyRoles(): Promise<readonly AdminRole[]>;
   restoreTarget(targetType: ModerationTargetType, targetId: string): Promise<void>;
+  removeListing(listingId: string): Promise<void>;
   dismissReport(reportId: string): Promise<void>;
   confirmReport(reportId: string): Promise<void>;
   banUser(userId: string, reason: BanReason, note: string): Promise<void>;

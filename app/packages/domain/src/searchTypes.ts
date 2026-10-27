@@ -7,7 +7,7 @@ import type { Category, DonationCategorySlug, PostType } from './value-objects';
 
 // ── Result types ──────────────────────────────
 
-export type SearchResultType = 'post' | 'user' | 'link';
+export type SearchResultType = 'post' | 'user' | 'link' | 'org' | 'hashtag';
 
 // ── Sort options ──────────────────────────────
 
@@ -56,6 +56,17 @@ export interface UserSearchResult {
 }
 
 // ── Donation link search result ───────────────
+
+export interface OrgSearchResult {
+  readonly orgId: string;
+  readonly name: string;
+  readonly slug: string;
+}
+
+export interface HashtagSearchResult {
+  readonly tag: string;
+  readonly useCount: number;
+}
 
 export interface DonationLinkSearchResult {
   readonly id: string;

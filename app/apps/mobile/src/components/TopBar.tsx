@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, useTheme } from '@kc/ui';
 import { useChatStore } from '../store/chatStore';
+import { useAuthStore } from '../store/authStore';
+import { useNotificationInboxBadge } from '../hooks/useNotificationInboxBadge';
 import { isLayoutRtl } from '../lib/rtlLayout';
 
 /**
@@ -34,22 +36,37 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
   const { t } = useTranslation();
   const styles = useTopBarStyles();
   const { colors } = useTheme();
-  const total = useChatStore((s) => s.unreadTotal);
-  const display = total > 9 ? '9+' : String(total);
+  const userId = useAuthStore((s) => s.session?.userId);
+  const chatUnread = useChatStore((s) => s.unreadTotal);
+  const notifUnread = useNotificationInboxBadge(userId);
+  const chatDisplay = chatUnread > 9 ? '9+' : String(chatUnread);
+  const notifDisplay = notifUnread > 9 ? '9+' : String(notifUnread);
 
   return (
     <View style={styles.topBar}>
       <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/chat/')} accessibilityLabel={t('chat.title')}>
         <Ionicons name="chatbubbles-outline" size={24} color={colors.textPrimary} />
-        {total > 0 && (
+        {chatUnread > 0 && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{display}</Text>
+            <Text style={styles.badgeText}>{chatDisplay}</Text>
           </View>
         )}
       </TouchableOpacity>
       <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
       <View style={styles.rightGroup}>
         {extraIcon}
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push('/notifications/inbox')}
+          accessibilityLabel={t('notifications.inboxTitle')}
+        >
+          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+          {notifUnread > 0 ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{notifDisplay}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel={t('settings.title')}>
           <Ionicons name="settings-outline" size={24} color={colors.textPrimary} />
         </TouchableOpacity>

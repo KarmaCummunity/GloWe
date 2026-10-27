@@ -1,28 +1,80 @@
 process.env.EXPO_PUBLIC_SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://example.supabase.co';
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'test-anon-key';
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
+  buildSupabaseImageTransformUrl,
   deriveThumbPath,
   deriveThumbUrl,
+  getSupabaseFeedImageUrl,
   getSupabaseImageThumbUrl,
   getSupabasePublicImageUrl,
 } from '../imageUrl';
 
 describe('getSupabasePublicImageUrl', () => {
-  it('routes through /object/public/ by default (transforms gated off)', () => {
+  afterEach(() => {
+    delete process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM;
+  });
+
+  it('uses CDN render URL when width/quality are provided (#897)', () => {
+    const url = getSupabasePublicImageUrl({ bucket: 'post-images', path: 'a/b.jpg', width: 400, quality: 80 });
+    expect(url).toContain('/storage/v1/render/image/public/post-images/a/b.jpg');
+    expect(url).toContain('width=400');
+    expect(url).toContain('format=webp');
+  });
+
+  it('falls back to /object/public/ when EXPO_PUBLIC_USE_STORAGE_TRANSFORM=0', () => {
+    process.env.EXPO_PUBLIC_USE_STORAGE_TRANSFORM = '0';
     const url = getSupabasePublicImageUrl({ bucket: 'post-images', path: 'a/b.jpg', width: 400, quality: 80 });
     expect(url).toContain('/storage/v1/object/public/post-images/a/b.jpg');
-    expect(url).not.toContain('?width');
     expect(url).not.toContain('/render/image/');
   });
+
   it('omits transform params via /object/public/ when none given', () => {
     const url = getSupabasePublicImageUrl({ bucket: 'avatars', path: 'x/y.jpg' });
     expect(url).toContain('/storage/v1/object/public/avatars/x/y.jpg');
     expect(url).not.toContain('?width');
   });
+
   it('returns empty string for empty path', () => {
     expect(getSupabasePublicImageUrl({ bucket: 'post-images', path: '' })).toBe('');
+  });
+
+});
+
+describe('getSupabasePublicImageUrl without env', () => {
+  const savedUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const savedKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  afterEach(() => {
+    if (savedUrl === undefined) delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    else process.env.EXPO_PUBLIC_SUPABASE_URL = savedUrl;
+    if (savedKey === undefined) delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    else process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = savedKey;
+  });
+
+  it('returns empty string when Supabase env is missing', () => {
+    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    expect(getSupabasePublicImageUrl({ bucket: 'post-images', path: 'a.jpg' })).toBe('');
+  });
+});
+
+describe('buildSupabaseImageTransformUrl', () => {
+  it('builds render URL with format and quality defaults', () => {
+    const url = buildSupabaseImageTransformUrl({ bucket: 'post-images', path: 'a.jpg', width: 200 });
+    expect(url).toBe(
+      'https://example.supabase.co/storage/v1/render/image/public/post-images/a.jpg?width=200&quality=80&format=webp',
+    );
+  });
+});
+
+describe('getSupabaseFeedImageUrl', () => {
+  it('scales display width to 2x for retina', () => {
+    const url = getSupabaseFeedImageUrl('post-images', 'p.jpg', 100);
+    expect(url).toContain('width=200');
   });
 });
 
@@ -51,7 +103,7 @@ describe('deriveThumbPath', () => {
 });
 
 describe('getSupabaseImageThumbUrl', () => {
-  it('returns the public URL of the sibling -thumb object', () => {
+  it('returns the public URL of the sibling -thumb object when no transform width', () => {
     const url = getSupabaseImageThumbUrl({ bucket: 'post-images', path: 'u/b/0.jpg' });
     expect(url).toBe('https://example.supabase.co/storage/v1/object/public/post-images/u/b/0-thumb.jpg');
   });

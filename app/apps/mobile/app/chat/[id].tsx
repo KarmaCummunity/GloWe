@@ -1,9 +1,7 @@
 // Chat conversation screen — FR-CHAT-002, 003, 004, 005, 010, 011, 013, 016.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View, Text, FlatList, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, type ListRenderItem,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import type { ListRenderItem } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,10 +24,16 @@ import { useChatInit } from '../../src/components/useChatInit';
 import { useChatSend } from '../../src/hooks/useChatSend';
 import { useChatConversationStyles } from './chatScreenStyles';
 import { usePushPermissionGate, registerCurrentDeviceIfPermitted } from '../../src/lib/notifications';
+import { KcFlashList } from '../../src/components/lists/KcFlashList';
 import { EnablePushModal } from '../../src/components/EnablePushModal';
 import { ChatNotFoundView } from '../../src/components/chat/ChatNotFoundView';
 import { NotifyModal } from '../../src/components/NotifyModal';
 import { ChatConversationHeader } from '../../src/components/chat/ChatConversationHeader';
+import { useChatTypingIndicator } from '../../src/hooks/useChatTypingIndicator';
+import { useChatMessageReactions } from '../../src/hooks/useChatMessageReactions';
+import { pickChatImage, uploadChatImageAndSend } from '../../src/services/chatMediaUpload';
+import type { MessageReactionType } from '@kc/infrastructure-supabase';
+import { webEnterToSend } from '../../src/components/chat/webEnterToSend';
 
 const EMPTY_MESSAGES: OptimisticMessage[] = [];
 
@@ -70,6 +74,8 @@ export default function ChatScreen() {
   const [hideBusy, setHideBusy] = useState(false);
   const { modalState, presentPrePrompt, handleAccept, handleDecline } = usePushPermissionGate();
   const send = useChatSend({ chatId, userId, input, setInput, presentPrePrompt, setNotify });
+  const { peerTyping, notifyComposerChanged, notifyMessageSent } = useChatTypingIndicator(chatId, userId);
+
   // `send` is recreated each render (it closes over `input`); keep a stable
   // retry callback via a ref so memoized MessageBubbles don't re-render on every
   // composer keystroke.
@@ -105,7 +111,39 @@ export default function ChatScreen() {
   const handledIds = useMemo(() => computeHandledIds(reversedMessages), [reversedMessages]);
   const listRows = useMemo(() => buildChatThreadRowsNewestFirst(reversedMessages), [reversedMessages]);
 
-  // Stable renderItem so the thread FlatList doesn't re-render every bubble on
+  const reactionMessageIds = useMemo(
+    () => messages.map((m) => m.messageId).filter((id): id is string => Boolean(id)),
+    [messages],
+  );
+  const { byMessage, mine: myReactions, toggle: toggleReaction } = useChatMessageReactions(
+    chatId,
+    reactionMessageIds,
+  );
+
+  const handleReactionPick = useCallback(
+    (messageId: string, reaction: MessageReactionType) => {
+      void toggleReaction(messageId, reaction);
+    },
+    [toggleReaction],
+  );
+
+  const handleAttachImage = useCallback(async () => {
+    const picked = await pickChatImage();
+    if (!picked) return;
+    try {
+      await uploadChatImageAndSend(chatId, userId, picked.uri, async (payload) => {
+        const server = await container.chatV2Repo.sendMediaMessage(chatId, payload);
+        useChatStore.getState().appendOptimistic(chatId, {
+          ...server,
+          clientId: server.messageId,
+        });
+      });
+    } catch {
+      setNotify({ title: t('chat.errorTitle'), message: t('chat.mediaUploadFailed') });
+    }
+  }, [chatId, userId, t]);
+
+  // Stable renderItem so the thread KcFlashList doesn't re-render every bubble on
   // each composer keystroke — deps change only on real data changes.
   const renderItem = useCallback<ListRenderItem<ChatThreadListRow>>(
     ({ item }) =>
@@ -117,9 +155,20 @@ export default function ChatScreen() {
           mine={item.message.senderId === userId}
           onRetry={handleRetry}
           handledByLaterAction={handledIds.has(item.message.messageId)}
+          reactionSummary={
+            item.message.messageId ? byMessage[item.message.messageId] : undefined
+          }
+          myReaction={
+            item.message.messageId ? myReactions[item.message.messageId] ?? null : null
+          }
+          onReactionPick={
+            item.message.messageId
+              ? (r) => handleReactionPick(item.message.messageId!, r)
+              : undefined
+          }
         />
       ),
-    [userId, handleRetry, handledIds],
+    [userId, handleRetry, handledIds, byMessage, myReactions, handleReactionPick],
   );
 
   const confirmHideFromInbox = async () => {
@@ -151,6 +200,7 @@ export default function ChatScreen() {
         canOpenProfile={!counterpart.isDeleted && Boolean(counterpart.shareHandle)}
         shareHandle={counterpart.shareHandle ?? undefined}
         onOpenMenu={() => setMenuOpen(true)}
+        peerUserId={counterpart.isDeleted ? null : counterpart.userId}
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -167,7 +217,7 @@ export default function ChatScreen() {
             counterpartId={chat.participantIds[0] === userId ? chat.participantIds[1] : chat.participantIds[0]}
           />
         ) : null}
-        <FlatList
+        <KcFlashList
           data={listRows}
           inverted
           keyExtractor={(row) => (row.rowType === 'message' ? row.message.clientId : row.rowKey)}
@@ -175,20 +225,35 @@ export default function ChatScreen() {
           renderItem={renderItem}
         />
 
+        {peerTyping ? (
+          <Text style={styles.typingHint}>{t('chat.typingIndicator')}</Text>
+        ) : null}
         <View style={styles.inputBar}>
-          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => send()} disabled={sendDisabled}>
+          <TouchableOpacity
+            style={styles.attachBtn}
+            onPress={() => void handleAttachImage()}
+            accessibilityLabel={t('chat.attachImage')}
+          >
+            <Ionicons name="image-outline" size={22} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => { notifyMessageSent(); void send(); }} disabled={sendDisabled}
+            accessibilityRole="button" accessibilityLabel={t('chat.send')} testID="chat-send">
             <Ionicons name="send" size={20} color={colors.textInverse} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <TextInput
               style={styles.input}
               value={input}
-              onChangeText={setInput}
+              onChangeText={(text) => {
+                setInput(text);
+                notifyComposerChanged();
+              }}
               placeholder={t('chat.inputPlaceholder')}
               placeholderTextColor={colors.textDisabled}
               textAlign="right"
               multiline
               maxLength={MESSAGE_MAX_CHARS}
+              onKeyPress={webEnterToSend(send, sendDisabled)}
             />
             {showCounter && <Text style={styles.counter}>{counter}/{MESSAGE_MAX_CHARS}</Text>}
           </View>

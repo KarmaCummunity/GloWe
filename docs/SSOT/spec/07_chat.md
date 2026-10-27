@@ -1,6 +1,6 @@
 # 2.7 Direct Messaging
 
-> **Status:** ✅ Core Complete — 1-on-1 chat, realtime, anchor card, close-from-chat, **personal inbox hide (FR-CHAT-016)** shipped. `users_select_chat_counterpart` RLS tightened in migration `0031` (active / pending_verification only). ⚠️ Audit 2026-05-16: `messages_insert_user` regression (lost `removed_at` guard + missing `has_blocked` — TD-67 / TD-75, BACKLOG P2.12); FR-CHAT-013 AC1 silent on deleted-counterpart dedupe; FR-CHAT-016 AC4 silent on tie-break. See `docs/SSOT/audit/2026-05-16/04_chat_notifications.md`.
+> **Status:** ✅ Core Complete — 1-on-1 chat, realtime, anchor card, close-from-chat, **personal inbox hide (FR-CHAT-016)** shipped. `users_select_chat_counterpart` RLS tightened in migration `0031` (active / pending_verification only). ⚠️ Audit 2026-05-16: `messages_insert_user` regression (lost `removed_at` guard + missing `has_blocked` — TD-67 / TD-75, BACKLOG P2.12); FR-CHAT-013 AC1 silent on deleted-counterpart dedupe; FR-CHAT-016 AC4 silent on tie-break. See `docs/SSOT/archive/audit/2026-05-16/04_chat_notifications.md`.
 
 
 
@@ -284,7 +284,7 @@ A sticky card at the top of the conversation surfaces the anchored post for both
 
 **Source.**
 - PRD: `03_Core_Features.md` §3.4.4.
-- Spec: `docs/superpowers/specs/2026-05-11-close-post-from-chat-design.md`.
+- Spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-close-post-from-chat-design.md`.
 
 **Acceptance Criteria.**
 - AC1. When `Chat.anchor_post_id` is set and the referenced `Post` is in status `open`, a sticky card is shown beneath the chat header with: a square preview of the first post image (public Storage URL) when `media_assets` is non-empty, otherwise a type icon placeholder (Give / Request); post-type tag; single-line title; an optional `tel:` quick-call link (AC7); and a right-aligned action area. The card uses elevated surface styling (rounded corners, light shadow, inset horizontal margin) so it reads as a compact preview strip rather than a full-width divider bar.
@@ -295,7 +295,7 @@ A sticky card at the top of the conversation surfaces the anchored post for both
 - AC6. (P1.2.x) Re-anchor on entry from a different post: when a user opens an existing chat through "💬 שלח הודעה למפרסם" from a post `Y` whose ID differs from the chat's current `anchor_post_id`, `chats.anchor_post_id` is updated to `Y` and the card reflects `Y` on the next render. When the call carries no anchor (inbox/profile flow), the existing `anchor_post_id` is left unchanged. When the anchored post is closed, `chats.anchor_post_id` is cleared by the closure trigger (see FR-CLOSURE-001 AC-NEW) so the next entry from a different post re-anchors cleanly. Realtime propagates the new row to both participants — the card swaps without a screen reload.
 - AC7. **Counterpart contact-phone quick-call (FR-AUTH-010 AC2.c / FR-PROFILE-007 AC1):** When the chat counterpart (the participant who is NOT the current viewer) has a non-null `users.contact_phone`, the card renders a small tappable phone row that opens `tel:<contact_phone>` via `Linking.openURL`. Hidden when the counterpart is null (deleted account), the field is null, or the chat is the Super Admin support thread. No verification, no E.164 normalization — the value goes through to the OS dialer verbatim. Tapping does not navigate inside the app.
 
-**Related.** Screens: 4.2 · Domain: `Chat`, `Post` · Spec: `docs/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
+**Related.** Screens: 4.2 · Domain: `Chat`, `Post` · Spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-chat-post-anchor-lifecycle-design.md`.
 
 ---
 
@@ -306,7 +306,7 @@ The post owner can mark the anchored post as delivered (or close without a recip
 
 **Source.**
 - PRD: `03_Core_Features.md` §3.4.4.
-- Spec: `docs/superpowers/specs/2026-05-11-close-post-from-chat-design.md`.
+- Spec: `docs/SSOT/archive/superpowers/specs/2026-05-11-close-post-from-chat-design.md`.
 
 **Acceptance Criteria.**
 - AC1. Tapping the CTA on the anchored-post card (FR-CHAT-014 AC2) opens the existing closure sheet (`ClosureSheet`) directly on step 2 (recipient picker) with the chat counterpart pre-selected.
@@ -331,8 +331,8 @@ The post owner can mark the anchored post as delivered (or close without a recip
 The user can remove a conversation from **their own** inbox without deleting it for the counterpart. Not available for the Super Admin support thread (`FR-CHAT-007`).
 
 **Source.**
-- Design: `docs/superpowers/specs/2026-05-11-chat-personal-delete-design.md`
-- Plan: `docs/superpowers/plans/2026-05-11-chat-personal-delete.md`
+- Design: `docs/SSOT/archive/superpowers/specs/2026-05-11-chat-personal-delete-design.md`
+- Plan: `docs/SSOT/archive/superpowers/plans/2026-05-11-chat-personal-delete.md`
 
 **Acceptance Criteria.**
 - AC1. Entry points: inbox row overflow and conversation `⋮` menu (support thread excluded).

@@ -17,9 +17,11 @@
 
 | Event | Fast checks | E2E |
 | --- | --- | --- |
-| PR → `dev` | unit, lint, migrations, bundle smoke | not required (Wave 2+ optional advisory) |
-| PR → `main` | same + release guard | **P0 required** (`CI — E2E dev`) |
-| push → `dev` | deploy + optional advisory E2E | recommended, non-blocking |
+| PR → `staging` | unit, lint, migrations, bundle smoke | **GloWe journeys + visual** (`CI — GloWe E2E`) against `GLOWE_STAGING_URL` |
+| PR → `dev` | same | **GloWe journeys + visual** against `GLOWE_PROD_URL` |
+| PR → `main` | same + release guard | **P0 required** (`CI — E2E dev`) + GloWe |
+| push → `dev` / `staging` | deploy + GloWe E2E | blocking on path-filtered GloWe changes |
+| push → `dev` | deploy + `glowe-prod-smoke` | prod-health synthetics every 15 min |
 
 ## E2E test user (dev only)
 
@@ -135,10 +137,11 @@ Maps to `RELEASE_CHECKLIST.md` dev smoke:
 
 The GloWe static frontend has its own Playwright projects (`glowe-setup` + `glowe`), separate from the KC P0 journeys — the dev deployment is currently GloWe-only, so this suite is the effective E2E gate.
 
-- **Specs:** `tests/e2e/journeys/glowe-*.spec.ts` — `glowe-public` (guest browsing, join gates, HE/RTL toggle), `glowe-member` (adaptive home, create menu, saved toggles, messaging, reporting), `glowe-org` (org create menu, event publish + cleanup, applicant inbox), `glowe-admin` (org approval + report queue; needs `E2E_TEST_EMAIL/PASSWORD`), `glowe-full-flow` (volunteer offers help on a need → KC chat visible to both personas; duplicate-application guard).
+- **Specs:** `tests/e2e/journeys/glowe-*.spec.ts` — `glowe-public` (guest browsing, join gates, HE/RTL toggle), `glowe-member` (adaptive home, create menu, saved toggles, messaging, reporting), `glowe-org` (org create menu, event publish + cleanup, applicant inbox), `glowe-admin` (org approval + report queue; needs `E2E_TEST_EMAIL/PASSWORD`), `glowe-full-flow` (volunteer offers help on a need → KC chat visible to both personas; duplicate-application guard), `glowe-visual` (screenshot regression on stable chrome).
 - **Target URL:** `DEV_WEB_URL + /glowe` in CI; locally `GLOWE_WEB_URL=http://127.0.0.1:4321` after `npx serve app/apps/glowe-web -l 4321`. The Supabase URL + publishable key are parsed from `backend-config.js`.
 - **Personas:** seeded by `scripts/seed-glowe-dev.mjs` (run via the manual **Seed GloWe dev data** workflow; dev-only, idempotent, prod-ref-guarded). Signed-in specs mint sessions by password grant in `glowe-auth.setup.ts` and inject them as `glowe-auth-v1` + `gloweUser` localStorage. When the seed hasn't run, member/org/full-flow specs **skip** (guest specs still assert), so the job stays meaningful pre-seed.
-- **CI:** the `GloWe journeys` job in `CI — E2E dev` runs `npx playwright test --project=glowe` on every PR to `main` and via dispatch. The seeded pending org (יד תומכת) is reset to `pending` on each seed run so the approval flow always has a live case.
+- **CI:** `CI — GloWe E2E (dev + staging)` (`ci-e2e-glowe.yml`) runs `glowe` + `glowe-visual` on every PR/push to `staging` and `dev`. The legacy `GloWe journeys` job in `CI — E2E dev` still gates `dev` → `main` release PRs.
+- **Visual regression:** `glowe-visual.spec.ts` (`glowe-visual` project) — `toHaveScreenshot()` on stable chrome (hero, forums, filters, RTL header). Update baselines: `GLOWE_WEB_URL=… npx playwright test --project=glowe-visual --update-snapshots`.
 - **Local browser pin:** set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` when the environment ships its own Chromium instead of the Playwright download.
 
 ## Flake protocol (agents)
@@ -155,4 +158,24 @@ The GloWe static frontend has its own Playwright projects (`glowe-setup` + `glow
 
 ## Human PM check (5 min, prod only)
 
-After merge to `main`: incognito prod URL, sign-in, feed, one write path, chat inbox. See `RELEASE_CHECKLIST.md` post-deploy section.
+After merge to `main`: incognito prod URL, sign-in, one write path, chat inbox. See `RELEASE_CHECKLIST.md` post-deploy section.
+
+## Production synthetics (GloWe, `INFRA-QA-W7`)
+
+Read-only Playwright probes against **`GLOWE_PROD_URL`** — GloWe's live site (`https://dev.karma-community.pages.dev/glowe`). **Not** `karma-community-kc.com/glowe`.
+
+- **Spec:** `tests/e2e/journeys/prod-health.spec.ts` (`prod-health` project).
+- **CI:** `.github/workflows/glowe-prod-smoke.yml` — post-merge on `dev`, `workflow_dispatch`, every 15 minutes.
+- **KC smoke (separate):** `.github/workflows/prod-smoke.yml` — HTTP 200 on `KC_PROD_URL` after `main` merge.
+- **Ingest:** `scripts/record-prod-health.mjs` → `glowe_health_checks` on **dev** Supabase via `supabase-dev` environment.
+- **Admin UI:** `admin.html` → System health panel.
+
+Local run:
+
+```bash
+export GLOWE_PROD_URL=https://dev.karma-community.pages.dev/glowe
+cd tests/e2e && npm install && npx playwright install chromium
+npx playwright test --project=prod-health
+```
+
+## Flake protocol (agents)

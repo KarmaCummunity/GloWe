@@ -1,29 +1,37 @@
-# Web E2E (Playwright)
+# E2E (Playwright)
 
-P0 user journeys against the **live dev deployment** (`DEV_WEB_URL`). See `docs/SSOT/TESTING.md`.
+User journeys against the deployed dev web app (`DEV_WEB_URL`, default
+`https://dev.karma-community.pages.dev`) and the kc-dev Supabase project.
 
-## Auth (session injection)
+- **Users:** the public kc-dev seed users (`user1@seed.kc.test`, `user2@seed.kc.test`,
+  from `supabase/seed/kc-dev/seed.sql`). Override with `E2E_USER_A_EMAIL` / `E2E_USER_A_PASSWORD`
+  and `E2E_USER_B_*`.
+- **Anon key:** read from the deployed bundle (it is the public publishable key), or set
+  `E2E_SUPABASE_ANON_KEY`.
+- **Guard:** `lib/env.ts` refuses to run against the prod project or prod domain.
+- Rows the suite creates are titled `[e2e <timestamp>] …`.
 
-Tests do **not** use the `/sign-in` screen. Setup calls Supabase Auth API, writes `sb-<project-ref>-auth-token` to `localStorage`, then runs feed / create / chat journeys.
+## Suites
 
-Create the user in Supabase dev Dashboard (**Add user** + **Auto Confirm**), even if the login form fails for you personally.
-
-## Local run
-
-```bash
-export DEV_WEB_URL=https://mvp-2-dev.up.railway.app
-export E2E_TEST_EMAIL=your-dev-test-user@example.com
-export E2E_TEST_PASSWORD=…
-export E2E_SUPABASE_ANON_KEY=your-dev-publishable-anon-key
-node scripts/ensure-e2e-user.mjs   # optional preflight
-cd tests/e2e
-npm install
-npm run install:browsers
-npm test
-```
+| File | Covers |
+|---|---|
+| `journeys/qa/auth.spec.ts` | email login with the seeded user, wrong password, sign-up form |
+| `journeys/qa/feed.spec.ts` | feed renders without failed API calls, create a post, like, comment |
+| `journeys/qa/marketplace.spec.ts` | browse, search, listing detail, create item with/without photo, reserve by a second user |
+| `journeys/qa/social.spec.ts` | chat between two users, notifications inbox, donations hub, money world, he/en + RTL |
+| `journeys/qa/block-user.spec.ts` | block then unblock `user3@seed.kc.test` from the profile ⋮ menu (Apple 1.2) |
+| `journeys/qa/account-deletion.spec.ts` | **opt-in, destructive**: delete account from Settings (set `E2E_DELETE_ACCOUNT_EMAIL` to a spare seed user) |
+| `journeys/*.spec.ts` | original P0 smoke journeys |
 
 ## CI
 
-Workflow: `.github/workflows/ci-e2e-dev.yml` — runs on PRs to `main` (from `dev`).
+- `.github/workflows/e2e-nightly-dev.yml`: nightly at 01:00 UTC and on demand; uploads the HTML report.
+- `.github/workflows/ci-e2e-dev.yml`: gates dev → main release PRs.
 
-Required GitHub configuration is documented in `docs/SSOT/ENVIRONMENTS.md` § E2E automation.
+## Local
+
+```bash
+cd tests/e2e
+npm ci && npx playwright install chromium
+npx playwright test            # or: PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/google-chrome npx playwright test
+```

@@ -41,6 +41,7 @@ export const filtersEn = {
   sortNewest: '🆕 Newest first',
   sortOldest: '🕓 Oldest first',
   sortDistance: '📍 By location',
+  sortPersonalized: '✨ For you',
   sortDistanceCenterHint: 'Sort center (default: your city)',
 
   // Location

@@ -1,6 +1,6 @@
 # 2.8 Reports & Moderation
 
-> **Status:** ✅ Done (P1.3 slice) — FR-MOD-001/002/005/007/010/011/012 shipped end-to-end. FR-MOD-008 (suspect-queue producers) deferred to TECH_DEBT. Block/unblock deferred per EXEC-9. ⚠️ Audit 2026-05-16: 🔴 FR-MOD-005 AC5 user-target auto-removal enqueues no `auto_removed` notification (TD-76, BACKLOG P2.13); 🔴 FR-MOD-005 AC2 auto-removed chats vanish silently with no per-party banner/system message (TD-77, BACKLOG P2.13); FR-MOD-002 support-issue writes no `reports` row despite spec Related="Report (target_type=none)"; `is_post_visible_to` has no admin bypass. TD-94. See `docs/SSOT/audit/2026-05-16/05_following_moderation_admin.md`.
+> **Status:** ✅ Done (P1.3 slice) — FR-MOD-001/002/005/007/010/011/012 shipped end-to-end. FR-MOD-008 (suspect-queue producers) deferred to TECH_DEBT. Block/unblock deferred per EXEC-9. ⚠️ Audit 2026-05-16: 🔴 FR-MOD-005 AC5 user-target auto-removal enqueues no `auto_removed` notification (TD-76, BACKLOG P2.13); 🔴 FR-MOD-005 AC2 auto-removed chats vanish silently with no per-party banner/system message (TD-77, BACKLOG P2.13); FR-MOD-002 support-issue writes no `reports` row despite spec Related="Report (target_type=none)"; `is_post_visible_to` has no admin bypass. TD-94. See `docs/SSOT/archive/audit/2026-05-16/05_following_moderation_admin.md`.
 
 
 

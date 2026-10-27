@@ -13,8 +13,8 @@ npm install -g expo-cli@latest
 ## First-time setup
 
 ```bash
-# From the repo root (KC/MVP-2/app/)
-cd /Users/navesarussi/KC/MVP-2/app
+# From the repo root
+cd app
 
 # Install all dependencies
 pnpm install
@@ -52,8 +52,8 @@ cd apps/mobile && npx expo start --web
 
 ## Environment variables
 
-The `.env` file is already created at `apps/mobile/.env` with your Supabase credentials.
-Do NOT commit this file to git (it's in `.gitignore`).
+Copy `.env.example` to `apps/mobile/.env` and fill in your own Supabase project credentials
+(URL + anon key). Do NOT commit this file to git (it's in `.gitignore`).
 
 ## Project structure
 
