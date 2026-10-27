@@ -1,6 +1,6 @@
 import { initSentry } from '../src/lib/observability/sentry';
 import { initPosthog } from '../src/lib/observability/posthog';
-initSentry();
+void initSentry();
 void initPosthog();
 import { startMark, finishMark } from '../src/lib/observability/perfMarks';
 startMark('app.cold_start');
@@ -42,7 +42,7 @@ import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 
 function MeRealtimeMount() { useMeRealtime(); useOnlinePresenceLifecycle(); return null; }
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync();
 
 
 // Inner wiring lives after AppThemeProvider so screen options that depend on
