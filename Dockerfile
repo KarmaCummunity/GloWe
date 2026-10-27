@@ -50,6 +50,10 @@ COPY --from=builder /repo/app/apps/mobile/web-server/server.mjs ./server.mjs
 COPY --from=builder /repo/app/apps/mobile/web-server/i18n ./i18n
 COPY --from=builder /repo/app/apps/mobile/dist ./dist
 
+# Run as the image's built-in unprivileged user (node:alpine ships `node`).
+RUN chown -R node:node /srv
+USER node
+
 ENV PORT=3000
 ENV WEB_DIST_DIR=/srv/dist
 EXPOSE 3000
