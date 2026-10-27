@@ -75,7 +75,7 @@ export function LegalConsentGate({ children }: LegalConsentGateProps) {
 
   // Trigger: mount + auth change
   useEffect(() => {
-    runCheck();
+    void runCheck();
   }, [runCheck]);
 
   // Trigger: AppState 'active' transition (debounced)
