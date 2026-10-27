@@ -3,12 +3,12 @@
 begin;
 
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data, raw_app_meta_data, aud, role)
-values ('00000000-0000-0000-0000-000000433001', 'gate_user@test.local', now(),
+values ('a4330001-0000-4000-8000-000000000001', 'gate_user@test.local', now(),
         '{"full_name":"Gate User"}', '{"provider":"email"}', 'authenticated', 'authenticated');
 
 insert into public.whatsapp_identities (wa_id) values ('972500433001');
 insert into public.whatsapp_identities (wa_id, user_id)
-values ('972500433002', '00000000-0000-0000-0000-000000433001');
+values ('972500433002', 'a4330001-0000-4000-8000-000000000001');
 
 do $$
 declare r jsonb;
@@ -27,7 +27,7 @@ begin
     raise exception 'linked free user must be not_pro with upsell: %', r;
   end if;
 
-  perform public.api_set_pro_entitlement('00000000-0000-0000-0000-000000433001', true, null, 'admin');
+  perform public.api_set_pro_entitlement('a4330001-0000-4000-8000-000000000001', true, null, 'admin');
   r := public.api_whatsapp_bot_access('972500433002');
   if r ->> 'access' <> 'pro' or (r ->> 'upsell')::boolean then
     raise exception 'pro user must get access without upsell: %', r;
