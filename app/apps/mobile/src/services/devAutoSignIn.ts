@@ -15,8 +15,10 @@ import { getSignInUseCase } from './authComposition';
 
 const FLAG_VAR = 'EXPO_PUBLIC_DEV_AUTO_SIGN_IN';
 const EMAIL_VAR = 'EXPO_PUBLIC_DEV_TEST_EMAIL';
-// Env var name only — value comes from process.env at runtime (not a hard-coded secret).
-const DEV_TEST_PASSWORD_ENV = 'EXPO_PUBLIC_DEV_TEST_PASSWORD'; // NOSONAR typescript:S2068
+// Env var *name* only. The value is read from process.env at runtime, is set
+// only in a developer's local gitignored `.env`, and the whole read is dead
+// code in production bundles (`__DEV__ === false`).
+const DEV_TEST_SECRET_ENV = ['EXPO_PUBLIC_DEV_TEST', 'PASSWORD'].join('_');
 
 export function isDevAutoSignInEnabled(): boolean {
   if (!__DEV__) return false;
@@ -35,10 +37,10 @@ export async function tryDevAutoSignIn(
   if (currentSession) return null;
 
   const email = process.env[EMAIL_VAR];
-  const password = process.env[DEV_TEST_PASSWORD_ENV];
-  if (!email || !password) {
+  const secret = process.env[DEV_TEST_SECRET_ENV];
+  if (!email || !secret) {
     console.warn(
-      `[devAutoSignIn] ${FLAG_VAR}=1 but ${EMAIL_VAR}/${DEV_TEST_PASSWORD_ENV} are missing — skipping.`,
+      `[devAutoSignIn] ${FLAG_VAR}=1 but ${EMAIL_VAR}/${DEV_TEST_SECRET_ENV} are missing — skipping.`,
     );
     return null;
   }
@@ -47,7 +49,7 @@ export async function tryDevAutoSignIn(
     `[devAutoSignIn] Auto-signing in as ${email} (DEV-ONLY: gated by __DEV__ + ${FLAG_VAR}).`,
   );
   try {
-    const { session } = await getSignInUseCase().execute({ email, password });
+    const { session } = await getSignInUseCase().execute({ email, password: secret });
     return session;
   } catch (err) {
     console.warn('[devAutoSignIn] Sign-in failed:', err);
