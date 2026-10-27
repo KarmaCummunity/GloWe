@@ -278,6 +278,11 @@
       "typedRoutes": true
     },
     "scheme": "karmacommunity",
-    "owner": "karmacommunity"
+    "owner": "saussilberg",
+    "extra": {
+      "eas": {
+        "projectId": "ffee282e-dca6-428c-a681-d5de2ed366ff"
+      }
+    }
   }
 }
