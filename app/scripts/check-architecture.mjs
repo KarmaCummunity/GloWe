@@ -99,10 +99,10 @@ function walk(dir, files = []) {
   return files;
 }
 
-const IMPORT_REGEX = /(?:^|\n)(?:\s*(?:import|export)\b[^'"\n]*from\s+|\s*import\s*\(\s*)['"]([^'"]+)['"]/g;
+const IMPORT_REGEX = /(?:^|\n)(?:\s*(?:import|export)\b[^'"\n]*from\s+|\s*import\s*\(\s*)['"]([^'"]+)['"]/g; // NOSONAR S8786 — dev-only lint script over repo-owned source files, line-bounded
 
 function checkFile(absPath, violations) {
-  const rel = relative(ROOT, absPath).replace(/\\/g, '/');
+  const rel = relative(ROOT, absPath).replaceAll('\\', '/');
   const content = readFileSync(absPath, 'utf8');
   const lines = content.split('\n');
   // Match `wc -l` semantics: count newlines, not segments. A file ending in '\n'
