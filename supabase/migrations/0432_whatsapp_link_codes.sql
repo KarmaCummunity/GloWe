@@ -22,6 +22,9 @@ create table if not exists public.whatsapp_link_failures (
 create index if not exists whatsapp_link_failures_wa_idx on public.whatsapp_link_failures (wa_id, failed_at);
 
 alter table public.whatsapp_link_codes enable row level security;
+drop policy if exists whatsapp_link_codes_service_all on public.whatsapp_link_codes;
+create policy whatsapp_link_codes_service_all on public.whatsapp_link_codes
+  for all to service_role using (true) with check (true);
 alter table public.whatsapp_link_failures enable row level security;
 revoke all on public.whatsapp_link_codes from anon, authenticated;
 revoke all on public.whatsapp_link_failures from anon, authenticated;
