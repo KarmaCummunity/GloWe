@@ -48,7 +48,7 @@ describe('LoadSurveyBundleUseCase', () => {
 
   it('throws SurveyError not_found when repo returns null', async () => {
     const repo = makeFakeRepo({
-      getBundle: vi.fn().mockResolvedValue(null as unknown),
+      getBundle: vi.fn().mockResolvedValue(null),
     });
     const uc = new LoadSurveyBundleUseCase(repo);
 

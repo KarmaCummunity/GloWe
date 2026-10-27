@@ -25,7 +25,7 @@ function makeRepo(): ITimesheetsRepository & {
     approve: vi.fn(async () => undefined),
     reject:  vi.fn(async () => undefined),
     delete:  vi.fn(async () => undefined),
-  } as never;
+  };
 }
 
 describe('Timesheet use cases — pass-throughs', () => {
@@ -70,7 +70,7 @@ describe('UpsertTimesheetUseCase', () => {
   it('rejects creation without workDate', async () => {
     const repo = makeRepo();
     await expect(
-      new UpsertTimesheetUseCase(repo).execute({ hoursX100: 100 } as never),
+      new UpsertTimesheetUseCase(repo).execute({ hoursX100: 100 }),
     ).rejects.toBeInstanceOf(TimesheetError);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
@@ -78,34 +78,34 @@ describe('UpsertTimesheetUseCase', () => {
   it('rejects creation without hoursX100', async () => {
     const repo = makeRepo();
     await expect(
-      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01' } as never),
+      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01' }),
     ).rejects.toBeInstanceOf(TimesheetError);
   });
 
   it('rejects negative hours', async () => {
     const repo = makeRepo();
     await expect(
-      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: -1 } as never),
+      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: -1 }),
     ).rejects.toBeInstanceOf(TimesheetError);
   });
 
   it('rejects hours above 24h (>2400)', async () => {
     const repo = makeRepo();
     await expect(
-      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 2500 } as never),
+      new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 2500 }),
     ).rejects.toBeInstanceOf(TimesheetError);
   });
 
   it('accepts boundary values 0 and 2400', async () => {
     const repo = makeRepo();
-    await new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 0 } as never);
-    await new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 2400 } as never);
+    await new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 0 });
+    await new UpsertTimesheetUseCase(repo).execute({ workDate: '2026-01-01', hoursX100: 2400 });
     expect(repo.upsert).toHaveBeenCalledTimes(2);
   });
 
   it('updates skip the create-only checks', async () => {
     const repo = makeRepo();
-    await new UpsertTimesheetUseCase(repo).execute({ entryId: 't1', description: 'note' } as never);
+    await new UpsertTimesheetUseCase(repo).execute({ entryId: 't1', description: 'note' });
     expect(repo.upsert).toHaveBeenCalled();
   });
 });
