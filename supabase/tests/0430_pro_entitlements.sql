@@ -14,8 +14,8 @@ end $$;
 
 do $$
 declare
-  v_a uuid := '00000000-0000-0000-0000-000000430001';
-  v_b uuid := '00000000-0000-0000-0000-000000430002';
+  v_a uuid := 'a4300001-0000-4000-8000-000000000001';
+  v_b uuid := 'a4300002-0000-4000-8000-000000000002';
 begin
   perform pg_temp.mk_user(v_a, 'pro_a');
   perform pg_temp.mk_user(v_b, 'pro_b');
@@ -51,7 +51,7 @@ end $$;
 
 -- RLS: user B sees only their own row, and their own status.
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-000000430002","role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub":"a4300002-0000-4000-8000-000000000002","role":"authenticated"}', true);
 
 do $$
 begin
