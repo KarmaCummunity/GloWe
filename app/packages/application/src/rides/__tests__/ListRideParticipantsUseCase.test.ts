@@ -30,7 +30,7 @@ describe('ListRideParticipantsUseCase', () => {
     const out = await uc.execute({ rideId: 'r1' });
 
     expect(out).toHaveLength(2);
-    expect(out.map((r) => r.userId).sort()).toEqual(['u_a', 'u_b']);
+    expect(out.map((r) => r.userId).sort((a, b) => a.localeCompare(b))).toEqual(['u_a', 'u_b']);
   });
 
   it('returns an empty list when nothing matches', async () => {

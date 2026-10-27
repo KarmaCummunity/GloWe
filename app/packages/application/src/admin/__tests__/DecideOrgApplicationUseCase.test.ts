@@ -12,7 +12,7 @@ function makeRepo(): IOrgApplicationsRepository & {
     approve: vi.fn(async () => undefined),
     reject:  vi.fn(async () => undefined),
     list:    vi.fn(async () => ({ rows: [], totalCount: 0 })),
-  } as never;
+  };
 }
 
 describe('DecideOrgApplicationUseCase', () => {

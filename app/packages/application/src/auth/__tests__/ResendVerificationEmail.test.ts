@@ -24,4 +24,20 @@ describe('ResendVerificationEmailUseCase', () => {
     } satisfies Partial<AuthError>);
     expect(auth.resendCalls).toHaveLength(0);
   });
+
+  it('rejects over-long input before running validation', async () => {
+    const auth = new FakeAuthService();
+    const uc = new ResendVerificationEmailUseCase(auth);
+    const email = `${'a'.repeat(250)}@b.co`;
+
+    await expect(uc.execute({ email })).rejects.toMatchObject({ code: 'invalid_email' });
+    expect(auth.resendCalls).toHaveLength(0);
+  });
+
+  it.each(['a@b', '@b.co', 'a@@b.co', 'a@b.', 'a b@c.co', 'a@.co'])('rejects %s', async (email) => {
+    const auth = new FakeAuthService();
+    await expect(new ResendVerificationEmailUseCase(auth).execute({ email })).rejects.toMatchObject({
+      code: 'invalid_email',
+    });
+  });
 });
