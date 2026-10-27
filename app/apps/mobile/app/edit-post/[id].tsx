@@ -2,10 +2,7 @@
 // FR-POST-005 — images: same picker + upload pipeline as create.
 // Closes TD-130.
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Text, TouchableOpacity, View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,12 +17,14 @@ import { useIsSuperAdmin } from '../../src/hooks/useIsSuperAdmin';
 import {
   getListPostActorIdentityUseCase,
   getPostByIdUseCase,
-  getRepublishPostUseCase,
   getUpdatePostUseCase,
 } from '../../src/services/postsComposition';
 import { ExpiredRepublishView } from '../../src/components/post/ExpiredRepublishView';
 import {
-  newUploadBatchId, pickPostImages, resizeAndUploadImage, type UploadedAsset,
+  newUploadBatchId,
+  pickPostImages,
+  resizeAndUploadImage,
+  type UploadedAsset,
 } from '../../src/services/imageUpload';
 import { useAddressStateWithCityReset } from '../../src/hooks/useAddressStateWithCityReset';
 import { EmptyState } from '../../src/components/EmptyState';

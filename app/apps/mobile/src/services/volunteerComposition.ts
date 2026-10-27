@@ -24,8 +24,7 @@ import {
 
 function pickStorage(): SupabaseAuthStorage | undefined {
   if (Platform.OS === 'web') {
-    if (typeof window === 'undefined' || !window.localStorage) return undefined;
-    return window.localStorage;
+    return globalThis.window?.localStorage;
   }
   return AsyncStorage;
 }
@@ -33,7 +32,7 @@ function pickStorage(): SupabaseAuthStorage | undefined {
 let _repo: SupabaseVolunteerRepository | null = null;
 
 function repo() {
-  if (!_repo) _repo = new SupabaseVolunteerRepository(getSupabaseClient({ storage: pickStorage() }));
+  _repo ??= new SupabaseVolunteerRepository(getSupabaseClient({ storage: pickStorage() }));
   return _repo;
 }
 

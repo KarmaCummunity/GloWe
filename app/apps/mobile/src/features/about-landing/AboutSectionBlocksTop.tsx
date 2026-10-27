@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, Text, LayoutChangeEvent } from 'react-native';
 import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
 import { aboutRtlText } from './aboutWebRtlStyle';
 import { useTranslation } from 'react-i18next';

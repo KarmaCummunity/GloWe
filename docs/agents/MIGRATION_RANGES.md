@@ -47,11 +47,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0420–0423 | matching engine v2: `match_candidates` + scorer across worlds (PostGIS/time/trust/mutes/blocks), pg_cron sweep + on-write trigger, in-app/WhatsApp delivery (consent, quiet hours, daily cap), accept/decline feedback, LLM re-rank hooks (flag off) — see `docs/SSOT/MATCHING_V2.md` | merged (#1004) |
 | 0424–0427 | matching v2 quality: Hebrew-aware head-noun/keyword text score + notify text floor, rides route corridor/direction/window/seats + re-score, kc-dev demo ride requests (guarded), kc-dev daily e2e listing cleanup (guarded) | merged (#1006) |
 | 0428–0429 | matching engine v2 follow-ups (reserved) | claimed (matching v2) |
-| 0430+ | — | free |
+| 0430–0439 | Pro entitlement + WhatsApp Pro bot (#1083, #1089, #1090, #1086, #1091) | in progress |
+| 0440+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0430+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0440+`.
 
 ## How to claim
 
