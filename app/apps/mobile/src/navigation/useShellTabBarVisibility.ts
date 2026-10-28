@@ -9,7 +9,7 @@ import { isAboutMarketingPath } from './aboutMarketingPaths';
 // (pill 64 + one 12 floating-offset). Consumers that position screen-local
 // elements like FABs already add `insets.bottom` themselves, so the inset
 // itself is not folded into this constant.
-const TAB_BAR_HEIGHT = 80; // pill 60 + up to 12 gap + 8 breathing room
+const TAB_BAR_HEIGHT = 76;
 
 /** Whether the global shell should render the bottom tab bar + reserve padding. */
 export function useShellTabBarVisibility(): boolean {

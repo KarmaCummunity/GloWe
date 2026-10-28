@@ -34,7 +34,7 @@ const DEVICES: readonly DeviceProfile[] = [
   { name: 'Android compact (3-button nav)', width: 360, height: 800, topInset: 24, bottomInset: 48 },
 ];
 
-const TAB_BAR_PILL_PX = 80; // matches navigation/useShellTabBarVisibility#TAB_BAR_HEIGHT
+const TAB_BAR_PILL_PX = 76; // matches navigation/useShellTabBarVisibility#TAB_BAR_HEIGHT
 
 const capturedContentStyles: unknown[] = [];
 
