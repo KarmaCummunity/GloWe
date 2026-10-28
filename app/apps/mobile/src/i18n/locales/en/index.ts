@@ -33,6 +33,7 @@ import { surveyEn } from './modules/survey';
 import { researchEn } from './modules/research';
 import { adminEn } from './modules/admin';
 import { karmaEn } from './modules/karma';
+import { cardsEn } from './modules/cards';
 import { asideEn } from './modules/aside';
 import { configEn } from './modules/config';
 import { followEn } from './modules/follow';
@@ -55,6 +56,7 @@ const en = {
 
   // Karma points (FR-KARMA-004/007) — see modules/karma.ts
   karma: karmaEn,
+  cards: cardsEn,
 
   // Post — see modules/post.ts
   post: postEn,

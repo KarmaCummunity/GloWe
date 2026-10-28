@@ -17,6 +17,7 @@ import { useReaderLanguage } from '../../src/hooks/useReaderLanguage';
 import { useTranslatedPosts } from '../../src/hooks/useTranslatedPosts';
 import { usePostDetailStyles } from './postDetailScreen.styles';
 import { PostEngagementSection } from '../../src/components/post-detail/PostEngagementSection';
+import { cleanDisplayTitle } from '../../src/lib/displayTitle';
 
 export type PostDetailScrollContentProps = Readonly<{
   post: PostWithOwner;
@@ -92,7 +93,7 @@ export function PostDetailScrollContent({
                 <Text style={styles.categoryChipText}>{t(`post.category.${post.category}`)}</Text>
               </View>
               <TranslatableText
-                source={post.title}
+                source={cleanDisplayTitle(post.title)}
                 translated={fields.title}
                 status={showOriginal ? 'source' : titleStatus}
                 style={styles.title}

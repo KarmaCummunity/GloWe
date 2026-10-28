@@ -1,12 +1,13 @@
-// Unified card for marketplace listings (items, food, rides, knowledge, ...).
-// Visual language matches PostCardGrid: icon area, type badge, title, meta row.
+// Marketplace listing (items, food, rides, knowledge, ...) rendered with the shared KcCard.
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import type { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
+import { he as dateFnsHe } from 'date-fns/locale';
 import type { MarketplaceBrowseRow } from '@kc/domain';
-import { makeUseStyles, radius, shadow, spacing, typography, useTheme } from '@kc/ui';
 import { cleanDisplayTitle } from '../../lib/displayTitle';
+import { usePostGridCardWidth } from '../../hooks/useShellContentWidth';
+import { KcCard } from './KcCard';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -23,93 +24,71 @@ export function listingWorldIcon(worldSlug: string): IconName {
   return WORLD_ICON[worldSlug] ?? 'pricetag-outline';
 }
 
+export function formatRideTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return format(d, 'EEEE d/M · HH:mm', { locale: dateFnsHe });
+}
+
 interface Props {
   item: MarketplaceBrowseRow;
   onPress: () => void;
-  /** 'row' = full-width list card; 'tile' = fixed-width card for horizontal carousels. */
-  variant?: 'row' | 'tile';
+  /** 'grid' = 2-column grid cell width; 'tile' = fixed width for carousels. */
+  variant?: 'grid' | 'tile';
   /** Optional secondary line (defaults to summary). */
   meta?: string | null;
 }
 
-function ListingCardInner({ item, onPress, variant = 'row', meta }: Props) {
+const TILE_WIDTH = 200;
+
+function listingBadgeLabel(t: (k: string) => string, isRide: boolean, isRequest: boolean): string {
+  if (isRide) return t(isRequest ? 'cards.rideRequest' : 'cards.rideOffer');
+  return t(isRequest ? 'feed.requestTypeShort' : 'feed.giveTypeShort');
+}
+
+function ListingCardInner({ item, onPress, variant = 'grid', meta }: Readonly<Props>) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const styles = useStyles();
+  const gridWidth = usePostGridCardWidth(2);
   const isRequest = item.direction === 'request';
-  const accent = isRequest ? colors.secondary : colors.primary;
+  const isRide = item.worldSlug === 'rides';
   const title = cleanDisplayTitle(item.title);
+  const ride = isRide ? item.ride ?? null : null;
+
+  const details: Array<{ icon: IconName; text: string }> = [];
+  if (ride) {
+    const when = formatRideTime(ride.departsAt);
+    if (when) details.push({ icon: 'time-outline', text: when });
+    if (ride.seats != null) {
+      details.push({
+        icon: 'people-outline',
+        text: t(isRequest ? 'cards.passengers' : 'cards.seats', { count: ride.seats }),
+      });
+    }
+  }
+  const route = ride && (ride.originLabel || ride.destLabel)
+    ? { from: ride.originLabel ?? t('cards.unknownPlace'), to: ride.destLabel ?? t('cards.unknownPlace') }
+    : null;
   const secondary = meta === undefined ? item.summary : meta;
-  const worldLabel = t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug });
-  const badge = isRequest ? t('feed.requestTypeShort') : t('feed.giveTypeShort');
-  const isTile = variant === 'tile';
+  if (details.length === 0 && secondary) details.push({ icon: 'information-circle-outline', text: cleanDisplayTitle(secondary) });
+  const badgeLabel = listingBadgeLabel(t, isRide, isRequest);
+  const distance = item.distanceKm != null ? t('matches.distanceKm', { km: item.distanceKm.toFixed(1) }) : null;
 
   return (
-    <Pressable
+    <KcCard
+      width={variant === 'tile' ? TILE_WIDTH : gridWidth}
       onPress={onPress}
-      accessibilityRole="button"
       accessibilityLabel={title}
-      style={({ pressed }) => [styles.card, isTile ? styles.tile : styles.row, pressed && styles.pressed]}
-    >
-      <View style={[styles.iconArea, isTile && styles.iconAreaTile, { backgroundColor: `${accent}1A` }]}>
-        <Ionicons name={listingWorldIcon(item.worldSlug)} size={isTile ? 30 : 26} color={accent} />
-      </View>
-      <View style={styles.body}>
-        <View style={styles.badgeRow}>
-          <View style={[styles.badge, { backgroundColor: accent }]}>
-            <Text style={styles.badgeText}>{badge}</Text>
-          </View>
-          <Text style={styles.world} numberOfLines={1}>{worldLabel}</Text>
-        </View>
-        <Text style={styles.title} numberOfLines={2}>{title}</Text>
-        {secondary ? <Text style={styles.meta} numberOfLines={isTile ? 1 : 2}>{cleanDisplayTitle(secondary)}</Text> : null}
-        {item.distanceKm != null ? (
-          <View style={styles.metaRow}>
-            <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
-            <Text style={styles.metaSmall}>{t('matches.distanceKm', { km: item.distanceKm.toFixed(1) })}</Text>
-          </View>
-        ) : null}
-      </View>
-      {!isTile ? <Ionicons name="chevron-back" size={18} color={colors.textDisabled} /> : null}
-    </Pressable>
+      placeholderIcon={listingWorldIcon(item.worldSlug)}
+      tone={isRequest ? 'request' : 'give'}
+      badgeLabel={badgeLabel}
+      title={title}
+      chip={isRide ? null : t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })}
+      route={route}
+      details={details}
+      location={distance}
+    />
   );
 }
 
 export const ListingCard = React.memo(ListingCardInner);
-
-const useStyles = makeUseStyles(({ colors }) => ({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.card,
-  },
-  row: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: spacing.md,
-    padding: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  tile: { width: 220, padding: spacing.md, gap: spacing.sm },
-  pressed: { opacity: 0.85 },
-  iconArea: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-  },
-  iconAreaTile: { width: '100%' as const, height: 72 },
-  body: { flex: 1, minWidth: 0, gap: 4 },
-  badgeRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: spacing.xs },
-  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
-  badgeText: { ...typography.label, fontSize: 10, fontWeight: '700' as const, color: colors.textInverse },
-  world: { ...typography.caption, color: colors.textSecondary, flexShrink: 1 },
-  title: { ...typography.body, fontWeight: '700' as const, color: colors.textPrimary, textAlign: 'right' as const },
-  meta: { ...typography.caption, color: colors.textSecondary, textAlign: 'right' as const },
-  metaRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 3 },
-  metaSmall: { ...typography.caption, fontSize: 11, color: colors.textSecondary },
-}));

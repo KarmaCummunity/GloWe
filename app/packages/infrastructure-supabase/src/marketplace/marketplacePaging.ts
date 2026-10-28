@@ -10,7 +10,7 @@ import type {
   MarketplaceSearchCursor,
   MyListingsCursor,
 } from '@kc/application';
-import type { MarketplaceBrowseRow, MyListingRow } from '@kc/domain';
+import type { MarketplaceBrowseRow, MyListingRow, RideCardSummary } from '@kc/domain';
 import type { Database } from '../database.types';
 
 type Client = SupabaseClient<Database>;
@@ -81,7 +81,8 @@ export async function fetchBrowsePage(
     p_cursor_id: c?.listingId,
   });
   if (error || !data) return { rows: [], nextCursor: null };
-  return { rows: data.map(mapBrowseRow), nextCursor: browseCursorFrom(data, limit) };
+  const rows = await attachRideSummaries(client, data.map(mapBrowseRow));
+  return { rows, nextCursor: browseCursorFrom(data, limit) };
 }
 
 export async function fetchSearchPage(
@@ -114,7 +115,7 @@ export async function fetchListingCards(
   const { data, error } = await client
     .from('listings')
     .select(
-      'listing_id, world_slug, direction, title, summary, urgency_level, availability_status, city_id, kind:listing_kinds(slug)',
+      'listing_id, world_slug, direction, title, summary, urgency_level, availability_status, city_id, details, kind:listing_kinds(slug)',
     )
     .in('listing_id', [...ids]);
   if (error || !data) return [];
@@ -127,6 +128,7 @@ export async function fetchListingCards(
     urgency_level: number;
     availability_status: string;
     city_id: string | null;
+    details?: unknown;
     kind: { slug: string } | Array<{ slug: string }> | null;
   };
   const byId = new Map<string, MarketplaceBrowseRow>();
@@ -143,6 +145,7 @@ export async function fetchListingCards(
       availabilityStatus: r.availability_status,
       cityId: r.city_id,
       distanceKm: null,
+      ride: r.world_slug === 'rides' ? rideSummaryFromDetails(r.details as RideDetails | null) : null,
     });
   }
   return ids.map((id) => byId.get(id)).filter((r): r is MarketplaceBrowseRow => r !== undefined);
@@ -167,4 +170,46 @@ export async function fetchMyListingsPage(
     rows,
     nextCursor: last && rows.length >= limit ? { updatedAt: last.updatedAt, listingId: last.listingId } : null,
   };
+}
+
+type RideDetails = {
+  origin_label?: string; dest_label?: string; departs_at?: string;
+  seats_available?: number; passengers?: number;
+};
+
+/** Pure mapper from listing `details` jsonb to the card summary. */
+export function rideSummaryFromDetails(d: RideDetails | null | undefined): RideCardSummary | null {
+  if (!d) return null;
+  let seats: number | null = null;
+  if (typeof d.seats_available === 'number') seats = d.seats_available;
+  else if (typeof d.passengers === 'number') seats = d.passengers;
+  return {
+    originLabel: d.origin_label?.trim() || null,
+    destLabel: d.dest_label?.trim() || null,
+    departsAt: d.departs_at || null,
+    seats,
+  };
+}
+
+/** Attach route/time/seats to rides rows (one extra batched read, RLS-scoped). */
+export async function attachRideSummaries(
+  client: Client,
+  rows: MarketplaceBrowseRow[],
+): Promise<MarketplaceBrowseRow[]> {
+  const ids = rows.filter((r) => r.worldSlug === 'rides').map((r) => r.listingId);
+  if (ids.length === 0) return rows;
+  let data: unknown[] | null = null;
+  try {
+    const res = await client.from('listings').select('listing_id, details').in('listing_id', ids);
+    if (res.error) return rows;
+    data = res.data;
+  } catch {
+    return rows;
+  }
+  if (!data) return rows;
+  const byId = new Map<string, RideDetails | null>();
+  for (const r of data as Array<{ listing_id: string; details: unknown }>) {
+    byId.set(r.listing_id, (r.details ?? null) as RideDetails | null);
+  }
+  return rows.map((r) => (byId.has(r.listingId) ? { ...r, ride: rideSummaryFromDetails(byId.get(r.listingId)) } : r));
 }
