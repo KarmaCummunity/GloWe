@@ -38,7 +38,7 @@ as $$
   select
     l.listing_id,
     l.world_slug,
-    l.kind_slug,
+    lk.slug,
     l.direction,
     l.title,
     l.summary,
@@ -61,6 +61,7 @@ as $$
         case when jsonb_typeof(l.details->'passengers') = 'number' then (l.details->>'passengers')::int end
       ) end
   from public.listings l
+  join public.listing_kinds lk on lk.kind_id = l.kind_id
   where l.status = 'open'
     and l.moderation_status = 'published'
     and l.geo is not null
