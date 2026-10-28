@@ -13,6 +13,8 @@ export const karmaHe = {
   estimatedValueHint: 'משפיע על הנקודות שתקבל בסגירה',
   estimatedValueMax: '1000+',
   estimatedValueAmount: '{{value}} ₪',
+  proTitle: 'KC Pro',
+  proComingSoon: 'בקרוב',
   historyTitle: 'היסטוריית קארמה',
   historyEmpty: 'עדיין אין שינויים בנקודות',
   historyError: 'לא הצלחנו לטעון את ההיסטוריה',
