@@ -69,6 +69,7 @@ export function PostFeedList({
 
   const renderItem = useCallback(
     ({ item }: { item: PostWithOwner }) => (
+      <View style={styles.cell}>
       <PostCardGrid
         post={item}
         onCardPress={onCardPress}
@@ -76,8 +77,9 @@ export function PostFeedList({
         titleStatus={translations?.getStatus(item.postId, 'title')}
         descriptionStatus={translations?.getStatus(item.postId, 'description')}
       />
+      </View>
     ),
-    [onCardPress, translations],
+    [onCardPress, translations, styles.cell],
   );
 
   const keyExtractor = useCallback((p: PostWithOwner) => p.postId, []);
@@ -170,5 +172,7 @@ const usePostFeedListStyles = makeUseStyles(({ colors }) => ({
   retryText: { ...typography.button, color: colors.textInverse },
   row: { paddingHorizontal: spacing.base, gap: spacing.sm, marginBottom: spacing.sm },
   listContent: { paddingTop: spacing.base },
+  /** Even grid: each column cell takes an equal share and centres its card. */
+  cell: { width: `${100 / HOME_FEED_GRID_COLUMNS}%` as const, alignItems: 'center' as const, marginBottom: spacing.md },
   footer: { paddingVertical: spacing.base, alignItems: 'center' as const },
 }));

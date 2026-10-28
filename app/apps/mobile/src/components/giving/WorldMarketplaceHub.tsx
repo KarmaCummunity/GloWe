@@ -14,6 +14,7 @@ import { IconTile } from '../ui/IconTile';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibility';
 import { DonationLinksList } from '../DonationLinksList';
+import { ListingCard } from '../cards/ListingCard';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   ...worldHubBaseStyles(colors),
@@ -81,20 +82,15 @@ export function WorldMarketplaceHub({
       <KcFlashList
         data={listings.data ?? []}
         keyExtractor={(item) => item.listingId}
-        contentContainerStyle={{ paddingBottom: inset }}
+        contentContainerStyle={{ paddingBottom: inset, paddingTop: spacing.sm }}
         ListHeaderComponent={header}
-        renderItem={({ item }) => {
-          const meta = rowMeta ? rowMeta(item) : item.summary;
-          return (
-            <Pressable
-              style={styles.row}
-              onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
-            >
-              <Text style={styles.rowTitle}>{item.title}</Text>
-              {meta ? <Text style={styles.rowMeta}>{meta}</Text> : null}
-            </Pressable>
-          );
-        }}
+        renderItem={({ item }) => (
+          <ListingCard
+            item={item}
+            meta={rowMeta ? rowMeta(item) : undefined}
+            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
+          />
+        )}
         ListEmptyComponent={
           listings.isLoading ? null : <Text style={styles.empty}>{t('marketplace.empty')}</Text>
         }
