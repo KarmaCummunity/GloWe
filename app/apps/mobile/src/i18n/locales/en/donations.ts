@@ -1,3 +1,4 @@
+import { marketplaceMap } from './marketplaceMap';
 // English — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/en/`; composed into the bundle via `locales/en/index.ts`.
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
@@ -239,6 +240,7 @@ export const search = {
 } as const;
 
 export const marketplace = {
+  ...marketplaceMap,
   browseTitle: 'Marketplace',
   searchPlaceholder: 'Search listings…',
   allWorlds: 'All worlds',
@@ -246,8 +248,6 @@ export const marketplace = {
   createListing: 'Create listing',
   loading: 'Loading…',
   empty: 'No listings match your filters.',
-  mapTitle: 'Map clusters',
-  mapEmpty: 'No geo-tagged listings in this area.',
   clusterLabel: '{{count}} listings',
   notFound: 'Listing not found.',
   startChat: 'Message publisher',
@@ -291,7 +291,6 @@ export const marketplace = {
   myListingsDeleteHint: 'This permanently removes the listing.',
   myListingsSave: 'Save changes',
   myListingsUpdated: 'Updated {{date}}',
-  mapWebFallback: 'Interactive map is available in the iOS/Android app. Clusters below use the same server data.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,

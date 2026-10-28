@@ -10,6 +10,8 @@ import type {
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
   MarketplaceMapCluster,
+  MarketplaceMapPin,
+  MapBounds,
   MarketplaceSimilarListing,
   MyListingRow,
   ProfileListingRow,
@@ -19,6 +21,7 @@ import { mapListingDetail } from './mapListingDetail';
 import { searchExternalBodies } from './mapExternalBody';
 import * as handoffs from './givingHandoffs';
 import * as paging from './marketplacePaging';
+import { mapPinRow } from './mapPinRow';
 
 export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
   constructor(private readonly client: SupabaseClient<Database>) {}
@@ -77,6 +80,19 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
       listingCount: c.listing_count,
       sampleListingId: c.sample_listing_id,
     }));
+  }
+
+  async mapPins(bounds: MapBounds & { worldSlug?: string | null; limit?: number }): Promise<MarketplaceMapPin[]> {
+    const { data, error } = await this.client.rpc('map_listing_pins', {
+      p_sw_lat: bounds.swLat,
+      p_sw_lng: bounds.swLng,
+      p_ne_lat: bounds.neLat,
+      p_ne_lng: bounds.neLng,
+      p_world_slug: bounds.worldSlug ?? undefined,
+      p_limit: bounds.limit ?? undefined,
+    });
+    if (error || !data) return [];
+    return data.map(mapPinRow);
   }
 
   async getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null> {
