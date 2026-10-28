@@ -16,6 +16,7 @@ import { karmaReasonKey, useKarmaHistory, type KarmaHistoryRow } from '../src/ho
 import { karmaEventIcon } from '../src/components/profile/karmaHistoryIcon';
 import { rowDirectionStart } from '../src/lib/rtlLayout';
 import { rtlTextAlignStart } from '../src/lib/rtlTextAlignStart';
+import { useShellTabBarScrollInset } from '../src/navigation/useShellTabBarVisibility';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -29,9 +30,11 @@ export default function KarmaHistoryScreen() {
     queryKey: ['user-profile', userId],
     queryFn: () => getUserRepo().findById(userId!),
     enabled: Boolean(userId),
-    staleTime: 60_000,
+    // Always re-read the owner RPC total on open (persisted cache may be stale).
+    refetchOnMount: 'always',
   });
   const history = useKarmaHistory(userId);
+  const bottomPad = useShellTabBarScrollInset();
 
   const renderItem = ({ item }: { item: KarmaHistoryRow }) => {
     const positive = item.delta >= 0;
@@ -64,7 +67,7 @@ export default function KarmaHistoryScreen() {
         keyExtractor={(r) => String(r.id)}
         renderItem={renderItem}
         estimatedItemSize={72}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ ...styles.list, paddingBottom: bottomPad }}
         ListHeaderComponent={
           <View style={styles.hero}>
             <Ionicons name="sparkles" size={28} color={colors.primary} />
