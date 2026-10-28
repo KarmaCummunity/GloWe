@@ -1,4 +1,4 @@
--- 0428: tighten EXECUTE grants on SECURITY DEFINER functions in public.
+-- 0436: tighten EXECUTE grants on SECURITY DEFINER functions in public.
 -- Does not touch any schema other than public.
 --  * service-only (bot / queue / ledger / cron / trigger helpers): service_role only
 --  * everything else: authenticated + service_role
@@ -25,6 +25,8 @@ declare
     'rpc_search_suggested_queries','active_posts_count_for_viewer'
   ];
   is_service_only boolean;
+  auth_before boolean;
+  anon_before boolean;
 begin
   for r in
     select p.oid, p.proname, p.prorettype = 'trigger'::regtype as is_trigger
@@ -48,12 +50,17 @@ begin
         'volunteer_enqueue_signup_notifications','post_stats_bump','suspension_expiry_lift',
         'posts_expiry_transition','notifications_backlog_check','social_rpc_capture_explain');
 
+    -- only ever narrow access: remember what each role had before
+    auth_before := has_function_privilege('authenticated', r.oid, 'execute');
+    anon_before := has_function_privilege('anon', r.oid, 'execute');
     execute format('revoke execute on function %s from public, anon', sig);
     if is_service_only then
       execute format('revoke execute on function %s from authenticated', sig);
     else
-      execute format('grant execute on function %s to authenticated', sig);
-      if r.proname = any(anon_allow) then
+      if auth_before then
+        execute format('grant execute on function %s to authenticated', sig);
+      end if;
+      if anon_before and r.proname = any(anon_allow) then
         execute format('grant execute on function %s to anon', sig);
       end if;
     end if;
