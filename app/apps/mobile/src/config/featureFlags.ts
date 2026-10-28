@@ -4,6 +4,8 @@
 export const FEATURE_FLAG_DEFAULTS = {
   /** iOS only: false → donation flows open in Safari (App Store 3.2.2(iv)). One-line switch. */
   ios_in_app_donations: false,
+  /** Pro paywall screen (/pro). Off until App Store products + price exist. */
+  pro_paywall: false,
 } as const satisfies Record<string, boolean>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAG_DEFAULTS;

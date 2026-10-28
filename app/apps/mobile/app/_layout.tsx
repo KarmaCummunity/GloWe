@@ -8,6 +8,7 @@ startMark('app.cold_start');
 import '../src/i18n';
 import i18n from '../src/i18n';
 import React, { useEffect } from 'react';
+import { RevenueCatSync } from '../src/services/purchases/RevenueCatSync';
 import { Stack } from 'expo-router';
 import { I18nManager, Platform } from 'react-native';
 import {
@@ -160,6 +161,7 @@ function RootLayoutContent() {
         <ErrorBoundary>
           <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
             <MeRealtimeMount />
+            <RevenueCatSync />
             <AppThemeProvider>
               <ThemedRootShell />
             </AppThemeProvider>
