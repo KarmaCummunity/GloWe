@@ -259,6 +259,7 @@ export const marketplace = {
   publish: 'Publish',
   publishing: 'Publishing…',
   forYouTitle: 'For you',
+  distanceKm: '{{km}} km away',
   createHubTitle: 'Choose a giving world',
   fieldKind: 'Listing type',
   fieldDirection: 'Give or request',

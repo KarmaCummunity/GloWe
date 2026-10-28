@@ -259,6 +259,7 @@ export const marketplace = {
   publish: 'פרסום',
   publishing: 'מפרסם…',
   forYouTitle: 'בשבילך',
+  distanceKm: 'במרחק {{km}} ק"מ',
   createHubTitle: 'בחירת עולם נתינה',
   fieldKind: 'סוג מודעה',
   fieldDirection: 'מציע / מבקש',
