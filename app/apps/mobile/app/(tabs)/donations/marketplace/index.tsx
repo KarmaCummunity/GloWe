@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { ListingCard } from '../../../../src/components/cards/ListingCard';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -148,16 +149,10 @@ export default function MarketplaceBrowseScreen() {
           )
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.row}
+          <ListingCard
+            item={item}
             onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
-          >
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.meta}>
-              {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} ·{' '}
-              {item.direction === 'request' ? t('search.request') : t('search.give')}
-            </Text>
-          </Pressable>
+          />
         )}
       />
     </Screen>

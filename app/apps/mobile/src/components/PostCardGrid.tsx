@@ -18,6 +18,20 @@ import { PostMenuButton } from './post/PostMenuButton';
 import { KCImage } from './ui/KCImage';
 import { usePostCardGridStyles } from './PostCardGrid.styles';
 import { finishMark } from '../lib/observability/perfMarks';
+import { cleanDisplayTitle } from '../lib/displayTitle';
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+const CATEGORY_ICON: Record<string, IoniconName> = {
+  Furniture: 'bed-outline',
+  Clothing: 'shirt-outline',
+  Books: 'book-outline',
+  Toys: 'game-controller-outline',
+  BabyGear: 'happy-outline',
+  Kitchen: 'restaurant-outline',
+  Sports: 'football-outline',
+  Electronics: 'phone-portrait-outline',
+  Tools: 'construct-outline',
+}
 
 const OWNER_AVATAR_SIZE = 24;
 const OVERLAY_ICON = '#FFFFFF';
@@ -125,7 +139,7 @@ function PostCardGridInner({
         ) : (
           <View style={styles.placeholderTint}>
             <Ionicons
-              name={isGive ? 'gift-outline' : 'search-outline'}
+              name={CATEGORY_ICON[post.category] ?? (isGive ? 'gift-outline' : 'hand-left-outline')}
               size={isProfileGrid ? 28 : 40}
               color={isGive ? colors.giveTag : colors.secondary}
             />
@@ -180,7 +194,7 @@ function PostCardGridInner({
         <View style={styles.titleRow}>
           <View style={styles.titleCol}>
             <TranslatableText
-              source={post.title}
+              source={cleanDisplayTitle(post.title)}
               translated={translatedFields?.title}
               status={titleStatus ?? 'source'}
               numberOfLines={2}
