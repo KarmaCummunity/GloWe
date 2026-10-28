@@ -2,6 +2,7 @@
 export const notificationsHe = {
   inboxTitle: 'מרכז התראות',
   inboxMarkAll: 'סמן הכל כנקרא',
+  inboxError: 'לא הצלחנו לטעון התראות. לחצו לנסות שוב',
   inboxEmpty: 'אין התראות כרגע',
   inboxGrouped: '{{count}} משתתפים',
   postReactionTitle: 'תגובה לפוסט',

@@ -34,25 +34,32 @@ export default function NotificationInboxScreen() {
     enabled: Boolean(userId),
   });
 
+  const refreshAll = useCallback(async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['notification-inbox', userId] }),
+      qc.invalidateQueries({ queryKey: ['notification-inbox-unread', userId] }),
+    ]);
+  }, [qc, userId]);
+
   const onMarkAll = useCallback(async () => {
     await container.notificationInbox.markAllRead();
-    await qc.invalidateQueries({ queryKey: ['notification-inbox', userId] });
-  }, [qc, userId]);
+    await refreshAll();
+  }, [refreshAll]);
 
   const onOpen = useCallback(
     async (inboxId: string, data: Record<string, unknown>, readAt: string | null) => {
       if (!readAt) {
         await container.notificationInbox.markRead(inboxId);
-        await qc.invalidateQueries({ queryKey: ['notification-inbox', userId] });
+        await refreshAll();
       }
       const link = resolveDeepLink(data);
       if (link) router.push(link as never);
     },
-    [qc, router, userId],
+    [refreshAll, router],
   );
 
   return (
-    <>
+    <View style={styles.container} testID="notification-inbox-screen">
       <Stack.Screen
         options={{
           ...detailOptions,
@@ -60,12 +67,20 @@ export default function NotificationInboxScreen() {
           ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
         }}
       />
-      <View style={styles.toolbar}>
-        <TouchableOpacity onPress={() => void onMarkAll()} accessibilityRole="button">
-          <Text style={styles.markAll}>{t('notifications.inboxMarkAll')}</Text>
-        </TouchableOpacity>
-      </View>
       <KcFlashList
+        style={styles.flex}
+        contentInsetAdjustmentBehavior="automatic"
+        refreshing={query.isRefetching}
+        onRefresh={() => void refreshAll()}
+        ListHeaderComponent={
+          (query.data?.length ?? 0) > 0 ? (
+            <View style={styles.toolbar}>
+              <TouchableOpacity onPress={() => void onMarkAll()} accessibilityRole="button">
+                <Text style={styles.markAll}>{t('notifications.inboxMarkAll')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
         data={query.data ?? []}
         keyExtractor={(item) => item.inboxId}
         contentContainerStyle={styles.list}
@@ -91,16 +106,22 @@ export default function NotificationInboxScreen() {
         ListEmptyComponent={
           query.isLoading && !query.data ? (
             <SimpleRowListSkeleton rows={8} rowHeight={72} />
+          ) : query.isError ? (
+            <Pressable onPress={() => void query.refetch()} accessibilityRole="button">
+              <Text style={styles.empty}>{t('notifications.inboxError')}</Text>
+            </Pressable>
           ) : (
             <Text style={styles.empty}>{t('notifications.inboxEmpty')}</Text>
           )
         }
       />
-    </>
+    </View>
   );
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
+  container: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
   toolbar: {
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.sm,
