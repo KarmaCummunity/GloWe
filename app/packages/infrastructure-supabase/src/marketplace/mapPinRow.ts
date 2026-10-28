@@ -1,7 +1,10 @@
 import type { MarketplaceMapPin } from '@kc/domain';
 import type { Database } from '../database.types';
 
-type PinRow = Database['public']['Functions']['map_listing_pins']['Returns'][number];
+type GenRow = Database['public']['Functions']['map_listing_pins']['Returns'][number];
+type Nullable<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] | null };
+/** Generated types mark RETURNS TABLE columns non-null; these can be null at runtime. */
+type PinRow = Nullable<GenRow, 'departs_at' | 'dest_label' | 'dest_lat' | 'dest_lng' | 'origin_label' | 'origin_lat' | 'origin_lng' | 'seats' | 'summary'>;
 
 /** Pure mapper: map_listing_pins row -> domain pin (rides get route + summary). */
 export function mapPinRow(r: PinRow): MarketplaceMapPin {

@@ -10235,20 +10235,20 @@ export type Database = {
           p_world_slug?: string
         }
         Returns: {
-          departs_at: string | null
-          dest_label: string | null
-          dest_lat: number | null
-          dest_lng: number | null
+          departs_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
           direction: string
           kind_slug: string
           lat: number
           listing_id: string
           lng: number
-          origin_label: string | null
-          origin_lat: number | null
-          origin_lng: number | null
-          seats: number | null
-          summary: string | null
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          seats: number
+          summary: string
           title: string
           world_slug: string
         }[]
