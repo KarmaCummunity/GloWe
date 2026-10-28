@@ -3,6 +3,11 @@
 -- publishes a survey whose slug does not exist yet.
 do $$
 begin
+  -- Fresh databases (CI, local) have no super admin to publish as; skip.
+  if not exists (select 1 from public.users where is_super_admin = true) then
+    return;
+  end if;
+
   if not exists (select 1 from public.surveys where slug = 'ux-experience') then
     perform public.publish_survey_version(
       'ux-experience',
