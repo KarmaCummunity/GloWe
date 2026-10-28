@@ -2,6 +2,7 @@
 export const notificationsEn = {
   inboxTitle: 'Notifications',
   inboxMarkAll: 'Mark all read',
+  inboxError: 'Could not load notifications. Tap to retry',
   inboxEmpty: 'No notifications yet',
   inboxGrouped: '{{count}} people',
   postReactionTitle: 'Post reaction',
