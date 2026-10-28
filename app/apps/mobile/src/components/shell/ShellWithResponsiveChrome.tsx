@@ -12,7 +12,9 @@ import { useShellTabBarVisibility } from '../../navigation/useShellTabBarVisibil
 // bar; touches the viewport bottom on web where there's no inset). Screen
 // content fills the full viewport — the translucent pill floats over it so
 // the user sees real content through the bar, not a reserved blank strip.
-const HORIZONTAL_INSET = 16;
+const HORIZONTAL_INSET = 18;
+// Gap between the pill and the safe-area edge (more when there is no inset, e.g. web/Android 3-button nav).
+const bottomGap = (inset: number) => (inset > 0 ? 6 : 12);
 
 /**
  * Root-level chrome chooser (FR-RESP-002).
@@ -65,7 +67,7 @@ function ShellWithMobileChrome({
           pointerEvents="box-none"
           style={{
             position: 'absolute',
-            bottom: insets.bottom,
+            bottom: insets.bottom + bottomGap(insets.bottom),
             left: HORIZONTAL_INSET,
             right: HORIZONTAL_INSET,
           }}
