@@ -3,6 +3,7 @@
 // V2-ADMIN-AUDIT-5 — date-range filter + CSV export (web).
 import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import type { AdminAuditSearchFilters } from '@kc/application';
 import { makeUseStyles } from '@kc/ui';
@@ -156,7 +157,7 @@ export default function AuditScreen() {
         <Text style={styles.exportError}>{exportError}</Text>
       )}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {COMMON_ACTIONS.map((a) => (
           <Pressable
             key={a ?? '_all'}

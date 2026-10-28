@@ -3,6 +3,7 @@
 // Visible only when the caller has admins.view permission (super_admin/moderator).
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { adminChipScroll } from '../adminChipScroll';
 import type { AdminGrant } from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { container } from '../../../lib/container';
@@ -31,7 +32,7 @@ export function AssigneePicker({ value, onChange }: AssigneePickerProps) {
 
   return (
     <View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.row, adminChipScroll.content]}>
         <ChipButton
           label={L.admin.tasks.form.unassigned}
           active={value === null}

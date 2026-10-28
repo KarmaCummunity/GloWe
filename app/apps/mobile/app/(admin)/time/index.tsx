@@ -2,6 +2,7 @@
 // V2-ADMIN-TIME-10 — V2 §13.10 Admin Time (timesheets).
 import { useMemo, useState } from 'react';
 import { Alert, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission,
@@ -80,7 +81,7 @@ export default function TimeScreen() {
     <View style={styles.root}>
       <AdminScreenHeader title={t.title} newLabel={t.newBtn} onNew={() => setCreating(true)} />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {(['mine', 'pending', 'all'] as readonly Tab[]).map((value) => (
           <AdminFilterChip
             key={value}
