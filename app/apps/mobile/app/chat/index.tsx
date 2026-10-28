@@ -50,7 +50,7 @@ export default function ChatListScreen() {
     if (!inbox) return [];
     const needle = q.trim().toLowerCase();
     const list = needle
-      ? inbox.filter((c) => (c.otherParticipant.displayName ?? '').toLowerCase().startsWith(needle))
+      ? inbox.filter((c) => (c.otherParticipant?.displayName ?? '').toLowerCase().startsWith(needle))
       : inbox;
     return list.slice(0, visible);
   }, [inbox, q, visible]);

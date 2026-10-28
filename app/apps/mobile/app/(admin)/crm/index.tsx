@@ -3,6 +3,7 @@
 // List + search + status filter + per-row edit / delete / "mark contacted".
 import { useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CRM_CONTACT_STATUSES, hasPermission, isCrmContactError,
@@ -91,7 +92,7 @@ export default function CrmScreen() {
         autoCorrect={false}
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {(['all', ...CRM_CONTACT_STATUSES] as readonly StatusFilter[]).map((s) => (
           <Pressable
             key={s}

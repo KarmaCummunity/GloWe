@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import {
   ADMIN_TASK_CATEGORIES,
   ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
@@ -84,7 +85,7 @@ export default function TasksScreen() {
     <View style={styles.filterCard}>
       <Text style={styles.filterTitle}>{L.admin.tasks.filtersTitle}</Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         <FilterChip
           label={L.admin.tasks.filters.all}
           active={statusFilter === null && !overdueOnly}
@@ -110,7 +111,7 @@ export default function TasksScreen() {
         />
       </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         <FilterChip
           label={L.admin.tasks.categoryFilters.all}
           active={categoryFilter === null}

@@ -9,6 +9,7 @@ import {
   chatInboxQueryKey,
   readChatInboxSnapshot,
   upsertChatPreviewInSnapshot,
+  isChatInSnapshot,
   markChatReadInSnapshot,
   writeChatInboxSnapshot,
 } from '../lib/chatInboxQuery';
@@ -41,7 +42,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
       void queryClient.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
       return;
     }
+    const isNew = !isChatInSnapshot(snap, chat.chatId);
     writeChatInboxSnapshot(queryClient, userId, upsertChatPreviewInSnapshot(snap, chat));
+    if (isNew) void queryClient.invalidateQueries({ queryKey: chatInboxQueryKey(userId) });
   },
 
   setUnreadTotal: (n) => set({ unreadTotal: n }),

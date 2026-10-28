@@ -6,6 +6,7 @@
 // only sees the surfaces they can actually open.
 import type { ComponentProps, ReactElement } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { adminChipScroll } from './adminChipScroll';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
@@ -100,6 +101,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
   return (
     <View style={styles.topbarWrap}>
       <ScrollView
+        style={adminChipScroll.scroll}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.topbar}
