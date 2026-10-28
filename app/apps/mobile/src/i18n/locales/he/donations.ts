@@ -1,3 +1,4 @@
+import { marketplaceMap } from './marketplaceMap';
 // Hebrew — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/he/`; composed into the bundle via `locales/he/index.ts`.
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
@@ -239,6 +240,7 @@ export const search = {
 } as const;
 
 export const marketplace = {
+  ...marketplaceMap,
   browseTitle: 'שוק',
   searchPlaceholder: 'חיפוש מודעות…',
   allWorlds: 'כל העולמות',
@@ -246,8 +248,6 @@ export const marketplace = {
   createListing: 'פרסום מודעה',
   loading: 'טוען…',
   empty: 'אין מודעות לפי הסינון.',
-  mapTitle: 'אשכולות במפה',
-  mapEmpty: 'אין מודעות עם מיקום באזור.',
   clusterLabel: '{{count}} מודעות',
   notFound: 'המודעה לא נמצאה.',
   startChat: 'שליחת הודעה',
@@ -291,7 +291,6 @@ export const marketplace = {
   myListingsDeleteHint: 'המודעה תימחק לצמיתות.',
   myListingsSave: 'שמירת שינויים',
   myListingsUpdated: 'עודכן {{date}}',
-  mapWebFallback: 'מפה אינטראקטיבית זמינה באפליקציה. האשכולות למטה מגיעים מאותו מקור בשרת.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,

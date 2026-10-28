@@ -5,6 +5,8 @@ import type {
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
   MarketplaceMapCluster,
+  MarketplaceMapPin,
+  MapBounds,
   MarketplaceSimilarListing,
   MyGivingHandoffRow,
   MyListingRow,
@@ -72,6 +74,8 @@ export interface IMarketplaceRepository {
     neLng: number;
     worldSlug?: string | null;
   }): Promise<MarketplaceMapCluster[]>;
+  /** Individual approximate pins in a viewport (client clusters them). */
+  mapPins(bounds: MapBounds & { worldSlug?: string | null; limit?: number }): Promise<MarketplaceMapPin[]>;
   getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null>;
   getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null>;
   similarListings(listingId: string, limit?: number): Promise<MarketplaceSimilarListing[]>;

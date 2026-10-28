@@ -42,5 +42,6 @@ export * from './marketplace/MarketplaceTypes';
 export * from './marketplace/validateListingDetails';
 export * from './marketplace/marketplaceWorldRules';
 export * from './marketplace/externalBodies';
+export * from './marketplace/mapPins';
 export * from './payments/PaymentTypes';
 export * from './volunteering';

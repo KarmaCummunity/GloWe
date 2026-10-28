@@ -10225,6 +10225,34 @@ export type Database = {
           sample_listing_id: string
         }[]
       }
+      map_listing_pins: {
+        Args: {
+          p_limit?: number
+          p_ne_lat: number
+          p_ne_lng: number
+          p_sw_lat: number
+          p_sw_lng: number
+          p_world_slug?: string
+        }
+        Returns: {
+          departs_at: string | null
+          dest_label: string | null
+          dest_lat: number | null
+          dest_lng: number | null
+          direction: string
+          kind_slug: string
+          lat: number
+          listing_id: string
+          lng: number
+          origin_label: string | null
+          origin_lat: number | null
+          origin_lng: number | null
+          seats: number | null
+          summary: string | null
+          title: string
+          world_slug: string
+        }[]
+      }
       mark_giving_handed_over: {
         Args: { p_handoff_id: string }
         Returns: {
