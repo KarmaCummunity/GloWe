@@ -9069,6 +9069,10 @@ export type Database = {
         Returns: boolean
       }
       api_my_pro_status: { Args: never; Returns: Json }
+      api_revenuecat_set_pro: {
+        Args: { p_active: boolean; p_expires_at: string; p_user_id: string }
+        Returns: Json
+      }
       api_set_pro_entitlement: {
         Args: {
           p_active: boolean
