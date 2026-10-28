@@ -66,7 +66,7 @@ function ListingCardInner({ item, onPress, variant = 'row', meta }: Props) {
         {item.distanceKm != null ? (
           <View style={styles.metaRow}>
             <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
-            <Text style={styles.metaSmall}>{t('marketplace.distanceKm', { km: item.distanceKm.toFixed(1) })}</Text>
+            <Text style={styles.metaSmall}>{t('matches.distanceKm', { km: item.distanceKm.toFixed(1) })}</Text>
           </View>
         ) : null}
       </View>
