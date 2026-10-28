@@ -1,6 +1,7 @@
 // FR-KARMA-007 — karma history: every point change, newest first.
 import React from 'react';
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { KcFlashList } from '../src/components/lists/KcFlashList';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -58,10 +59,11 @@ export default function KarmaHistoryScreen() {
         <Text style={styles.title}>{t('karma.historyTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
-      <FlatList
+      <KcFlashList
         data={history.data ?? []}
         keyExtractor={(r) => String(r.id)}
         renderItem={renderItem}
+        estimatedItemSize={72}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.hero}>
@@ -93,7 +95,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   },
   title: { ...typography.h3, flex: 1, textAlign: 'center' as const, color: colors.textPrimary },
   headerSpacer: { width: 24 },
-  list: { padding: spacing.base, paddingBottom: spacing['3xl'], gap: spacing.sm },
+  list: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   hero: {
     alignItems: 'center' as const,
     gap: 4,
@@ -116,6 +118,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: spacing.sm,
     ...shadow.card,
   },
   iconWrap: { width: 40, height: 40, borderRadius: radius.full, alignItems: 'center' as const, justifyContent: 'center' as const },
