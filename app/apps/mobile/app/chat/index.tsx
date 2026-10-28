@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, TextInput, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import type { ListRenderItem } from '@shopify/flash-list';
+import type { ListRenderItem } from 'react-native';
 import { ChatError, type ChatWithPreview } from '@kc/application';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
 import { useAuthStore } from '../../src/store/authStore';
