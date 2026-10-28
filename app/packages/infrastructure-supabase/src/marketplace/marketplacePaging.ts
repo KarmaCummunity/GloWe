@@ -180,8 +180,9 @@ type RideDetails = {
 /** Pure mapper from listing `details` jsonb to the card summary. */
 export function rideSummaryFromDetails(d: RideDetails | null | undefined): RideCardSummary | null {
   if (!d) return null;
-  const seats = typeof d.seats_available === 'number' ? d.seats_available
-    : typeof d.passengers === 'number' ? d.passengers : null;
+  let seats: number | null = null;
+  if (typeof d.seats_available === 'number') seats = d.seats_available;
+  else if (typeof d.passengers === 'number') seats = d.passengers;
   return {
     originLabel: d.origin_label?.trim() || null,
     destLabel: d.dest_label?.trim() || null,

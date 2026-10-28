@@ -16,7 +16,7 @@ interface Props {
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
-export function RideRouteCard({ details, direction }: Props) {
+export function RideRouteCard({ details, direction }: Readonly<Props>) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useStyles();

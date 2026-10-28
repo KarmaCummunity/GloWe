@@ -37,7 +37,7 @@ export interface KcCardProps {
 
 const OWNER_AVATAR_SIZE = 24;
 
-function KcCardInner(p: KcCardProps) {
+function KcCardInner(p: Readonly<KcCardProps>) {
   const { colors } = useTheme();
   const styles = usePostCardGridStyles();
   const extra = useKcCardExtraStyles();

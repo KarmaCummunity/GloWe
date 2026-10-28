@@ -122,6 +122,9 @@ function PostCardGridInner({
     router.push(`/post/${post.postId}${q}` as never);
   }, [onCardPress, onPressOverride, post, closedPostsProfileUserId, router]);
 
+  let roleBadgeLabel: string | null = null;
+  if (economicRole) roleBadgeLabel = economicRole === 'giver' ? t('feed.giverBadge') : t('feed.receiverBadge');
+
   return (
     <KcCard
       width={cardWidth}
@@ -134,7 +137,7 @@ function PostCardGridInner({
       placeholderIcon={CATEGORY_ICON[post.category] ?? (isGive ? 'gift-outline' : 'hand-left-outline')}
       tone={isGive ? 'give' : 'request'}
       badgeLabel={isGive ? t('feed.giveTypeShort') : t('feed.requestTypeShort')}
-      roleBadgeLabel={economicRole ? (economicRole === 'giver' ? t('feed.giverBadge') : t('feed.receiverBadge')) : null}
+      roleBadgeLabel={roleBadgeLabel}
       menu={<PostMenuButton post={post} iconColor={OVERLAY_ICON} overlaySize={isProfileGrid ? 'compact' : 'default'} />}
       author={{ name: ownerLabel, avatarUrl: post.ownerAvatarUrl }}
       title={

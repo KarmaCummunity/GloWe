@@ -42,7 +42,12 @@ interface Props {
 
 const TILE_WIDTH = 200;
 
-function ListingCardInner({ item, onPress, variant = 'grid', meta }: Props) {
+function listingBadgeLabel(t: (k: string) => string, isRide: boolean, isRequest: boolean): string {
+  if (isRide) return t(isRequest ? 'cards.rideRequest' : 'cards.rideOffer');
+  return t(isRequest ? 'feed.requestTypeShort' : 'feed.giveTypeShort');
+}
+
+function ListingCardInner({ item, onPress, variant = 'grid', meta }: Readonly<Props>) {
   const { t } = useTranslation();
   const gridWidth = usePostGridCardWidth(2);
   const isRequest = item.direction === 'request';
@@ -65,6 +70,8 @@ function ListingCardInner({ item, onPress, variant = 'grid', meta }: Props) {
     ? { from: ride.originLabel ?? t('cards.unknownPlace'), to: ride.destLabel ?? t('cards.unknownPlace') }
     : null;
   const secondary = meta === undefined ? item.summary : meta;
+  if (details.length === 0 && secondary) details.push({ icon: 'information-circle-outline', text: cleanDisplayTitle(secondary) });
+  const badgeLabel = listingBadgeLabel(t, isRide, isRequest);
   const distance = item.distanceKm != null ? t('matches.distanceKm', { km: item.distanceKm.toFixed(1) }) : null;
 
   return (
@@ -74,13 +81,11 @@ function ListingCardInner({ item, onPress, variant = 'grid', meta }: Props) {
       accessibilityLabel={title}
       placeholderIcon={listingWorldIcon(item.worldSlug)}
       tone={isRequest ? 'request' : 'give'}
-      badgeLabel={isRide
-        ? t(isRequest ? 'cards.rideRequest' : 'cards.rideOffer')
-        : isRequest ? t('feed.requestTypeShort') : t('feed.giveTypeShort')}
+      badgeLabel={badgeLabel}
       title={title}
       chip={isRide ? null : t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })}
       route={route}
-      details={details.length > 0 ? details : (secondary ? [{ icon: 'information-circle-outline', text: cleanDisplayTitle(secondary) }] : [])}
+      details={details}
       location={distance}
     />
   );
