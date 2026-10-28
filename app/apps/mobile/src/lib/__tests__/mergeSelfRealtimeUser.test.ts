@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { mergeSelfRealtimeUser } from '../mergeSelfRealtimeUser';
 import type { User } from '@kc/domain';
 
