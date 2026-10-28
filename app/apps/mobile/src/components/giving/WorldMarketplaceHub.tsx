@@ -15,6 +15,7 @@ import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibility';
 import { DonationLinksList } from '../DonationLinksList';
 import { ListingCard } from '../cards/ListingCard';
+import { kcGridCell } from '../cards/KcCard.styles';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   ...worldHubBaseStyles(colors),
@@ -84,12 +85,15 @@ export function WorldMarketplaceHub({
         keyExtractor={(item) => item.listingId}
         contentContainerStyle={{ paddingBottom: inset, paddingTop: spacing.sm }}
         ListHeaderComponent={header}
+        numColumns={2}
         renderItem={({ item }) => (
+          <View style={kcGridCell}>
           <ListingCard
             item={item}
             meta={rowMeta ? rowMeta(item) : undefined}
             onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
           />
+          </View>
         )}
         ListEmptyComponent={
           listings.isLoading ? null : <Text style={styles.empty}>{t('marketplace.empty')}</Text>

@@ -28,6 +28,15 @@ export interface MarketplaceBrowseRow {
   readonly availabilityStatus: string;
   readonly cityId: string | null;
   readonly distanceKm: number | null;
+  /** Rides world only — route/time/seats from listing details (filled client-side). */
+  readonly ride?: RideCardSummary | null;
+}
+
+export interface RideCardSummary {
+  readonly originLabel: string | null;
+  readonly destLabel: string | null;
+  readonly departsAt: string | null;
+  readonly seats: number | null;
 }
 
 export interface MarketplaceMapCluster {

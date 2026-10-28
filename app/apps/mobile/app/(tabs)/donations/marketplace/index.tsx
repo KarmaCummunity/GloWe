@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { ListingCard } from '../../../../src/components/cards/ListingCard';
+import { kcGridCell } from '../../../../src/components/cards/KcCard.styles';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -148,11 +149,14 @@ export default function MarketplaceBrowseScreen() {
             />
           )
         }
+        numColumns={2}
         renderItem={({ item }) => (
+          <View style={kcGridCell}>
           <ListingCard
             item={item}
             onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
           />
+          </View>
         )}
       />
     </Screen>

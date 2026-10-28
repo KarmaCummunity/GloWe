@@ -16,11 +16,14 @@ import { marketplaceRepository } from '../../services/marketplaceComposition';
 import { useSimilarListings } from '../../hooks/useMarketplaceListingDetail';
 import { ReportListingModal } from './ReportListingModal';
 import { GivingHandoffActions } from './GivingHandoffActions';
+import { RideRouteCard } from './RideRouteCard';
+import { cleanDisplayTitle } from '../../lib/displayTitle';
+import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
-  title: { ...typography.h2, color: colors.textPrimary },
-  summary: { ...typography.body, color: colors.textSecondary },
+  title: { ...typography.h2, color: colors.textPrimary, textAlign: rtlTextAlignStart },
+  summary: { ...typography.body, color: colors.textSecondary, textAlign: rtlTextAlignStart },
   ownerCard: {
     flexDirection: 'row' as const,
     gap: spacing.md,
@@ -29,14 +32,16 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surfaceRaised,
     alignItems: 'center' as const,
   },
+  ownerName: { ...typography.bodyLarge, color: colors.textPrimary },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.border },
   actions: { gap: spacing.sm },
-  btn: { padding: spacing.md, borderRadius: 12, backgroundColor: colors.surfaceRaised },
-  btnPrimary: { backgroundColor: colors.primary },
+  btn: { padding: spacing.md, borderRadius: 999, backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border },
+  btnPrimary: { backgroundColor: colors.primary, borderColor: colors.primary },
   btnText: { ...typography.body, color: colors.textPrimary, textAlign: 'center' as const },
   btnTextInverse: { color: colors.textInverse },
   section: { ...typography.h3, color: colors.textPrimary, marginTop: spacing.md },
   similar: { padding: spacing.md, borderRadius: 12, backgroundColor: colors.surfaceRaised, marginRight: spacing.sm, width: 160 },
+  similarTitle: { ...typography.body, fontWeight: '600' as const, color: colors.textPrimary, textAlign: rtlTextAlignStart },
   galleryImg: { width: 280, height: 180, borderRadius: 12, marginRight: spacing.sm },
 }));
 
@@ -74,7 +79,8 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
             ))}
           </ScrollView>
         ) : null}
-        <Text style={styles.title}>{detail.title}</Text>
+        <Text style={styles.title}>{cleanDisplayTitle(detail.title)}</Text>
+        {detail.worldSlug === 'rides' ? <RideRouteCard details={detail.details} direction={detail.direction} /> : null}
         {detail.summary ? <Text style={styles.summary}>{detail.summary}</Text> : null}
         <Text style={styles.summary}>
           {worldLabel} · {kindLabel} · {detail.direction === 'request' ? t('search.request') : t('search.give')}
@@ -94,7 +100,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
               <View style={styles.avatar} />
             )}
             <View>
-              <Text style={typography.bodyLarge}>{detail.owner.displayName ?? t('marketplace.anonymousOwner')}</Text>
+              <Text style={styles.ownerName}>{detail.owner.displayName ?? t('marketplace.anonymousOwner')}</Text>
               {detail.owner.shareHandle ? (
                 <Text style={styles.summary}>@{detail.owner.shareHandle}</Text>
               ) : null}
@@ -138,7 +144,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
                   style={styles.similar}
                   onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
                 >
-                  <Text numberOfLines={2}>{item.title}</Text>
+                  <Text numberOfLines={2} style={styles.similarTitle}>{cleanDisplayTitle(item.title)}</Text>
                   <Text style={styles.summary}>
                     {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })}
                   </Text>
