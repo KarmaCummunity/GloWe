@@ -11,7 +11,7 @@ declare
   sig text;
   anon_allow text[] := array[
     -- RLS / view predicate helpers (evaluated for anon reads)
-    'is_admin','has_admin_role','is_blocked','is_chat_visible_to','is_listing_operator',
+    'is_admin','is_blocked','is_chat_visible_to','is_listing_operator',
     'is_listing_visible_to','is_post_engagement_visible','is_post_visible_to',
     'is_following','is_active_member','shows_active_status','participant_closed_surface_visible',
     -- public read RPCs
