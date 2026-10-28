@@ -13,6 +13,8 @@ export const karmaEn = {
   estimatedValueHint: 'Affects the points you earn on closing',
   estimatedValueMax: '1000+',
   estimatedValueAmount: '₪{{value}}',
+  proTitle: 'KC Pro',
+  proComingSoon: 'Coming soon',
   historyTitle: 'Karma history',
   historyEmpty: 'No point changes yet',
   historyError: 'Couldn\'t load history',
