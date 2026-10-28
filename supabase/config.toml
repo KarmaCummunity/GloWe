@@ -51,3 +51,6 @@ verify_jwt = false
 # Meta calls the webhook without a Supabase JWT; the handler verifies X-Hub-Signature-256 and fails closed.
 [functions.whatsapp-webhook]
 verify_jwt = false
+
+[functions.revenuecat-webhook]
+verify_jwt = false
