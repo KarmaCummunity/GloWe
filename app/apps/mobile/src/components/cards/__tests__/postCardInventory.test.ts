@@ -27,18 +27,13 @@ const files = SCAN_DIRS.flatMap((d) => walk(join(ROOT, d))).map((f) => ({
 const RAW_POST_TITLE = /<Text[^>]*>\s*\{\s*(?:cleanDisplayTitle\()?(?:post|item|listing|match|m|p|detail)\.(?:title|otherListingTitle)\b/;
 
 /**
- * Non-post rows that legitimately print an entity's own title (volunteer shifts,
- * owner-only management lists, ride-search rows, admin sections, roadmap) — not post cards.
+ * Non-post rows that legitimately print an entity's own title (admin sections, roadmap,
+ * the donations-hub matches summary link) — not post cards.
  * Adding to this list needs a reason in the PR.
  */
 const ALLOWED = new Set([
   'src/components/cards/KcCard.tsx',
-  'app/(tabs)/donations/time/my-shifts.tsx',
-  'app/(tabs)/donations/time/index.tsx',
-  'app/(tabs)/donations/time/organizer/index.tsx',
-  'app/(tabs)/donations/marketplace/my-listings.tsx',
-  'src/components/giving/MyWorldHandoffsList.tsx',
-  'src/components/giving/RideMatchSearch.tsx',
+  'src/components/cards/KcRowCard.tsx',
   'src/components/admin/admins/AdminsListView.tsx',
   'src/features/about-landing/AboutRoadmapTimeline.tsx',
   // Donations-hub summary link (one-line text list → /matches), not a post card.
@@ -67,6 +62,14 @@ describe('post card inventory', () => {
     ['src/components/marketplace/MarketplaceListingDetailView.tsx', 'SimilarListingCard'],
     ['src/components/marketplace/MarketplaceListingDetailView.tsx', 'PostDetailHeader'],
     ['app/(guest)/feed.tsx', 'PostCardGrid'],
+    ['app/(tabs)/donations/time/my-shifts.tsx', 'KcRowCard'],
+    ['app/(tabs)/donations/time/index.tsx', 'KcRowCard'],
+    ['app/(tabs)/donations/time/organizer/index.tsx', 'KcRowCard'],
+    ['app/(tabs)/donations/marketplace/my-listings.tsx', 'KcRowCard'],
+    ['src/components/giving/MyWorldHandoffsList.tsx', 'KcRowCard'],
+    ['src/components/giving/RideMatchSearch.tsx', 'KcRowCard'],
+    ['src/components/chat/AnchoredPostCard.tsx', 'KcRowCard'],
+    ['src/components/chat/AnchoredRideCard.tsx', 'KcRowCard'],
   ])('%s renders through %s', (rel, base) => {
     const f = files.find((x) => x.rel === rel);
     expect(f, rel).toBeDefined();
@@ -76,5 +79,23 @@ describe('post card inventory', () => {
   it('similar-listings carousel filters automated-test listings', () => {
     const f = files.find((x) => x.rel === 'src/components/marketplace/MarketplaceListingDetailView.tsx');
     expect(f!.src).toMatch(/isTestListingTitle/);
+  });
+
+  describe.each([
+    ['src/components/chat/AnchoredPostCard.tsx', "pathname: '/post/[id]'"],
+    ['src/components/chat/AnchoredRideCard.tsx', '/(tabs)/donations/rides/'],
+  ])('chat preview %s', (rel, fullPageRoute) => {
+    const src = () => files.find((x) => x.rel === rel)!.src;
+    it('uses the compact row card with an "open full post" link', () => {
+      expect(src()).toMatch(/<KcRowCard\b/);
+      expect(src()).toMatch(/openLinkLabel=\{t\('cards\.openFullPost'\)\}/);
+    });
+    it('taps through to the full post page', () => {
+      expect(src()).toContain(fullPageRoute);
+    });
+    it('never renders the full post body inline', () => {
+      expect(src()).not.toMatch(/\.(description|body|summary)\b/);
+      expect(src()).not.toMatch(/<KcCard\b|<PostCardGrid\b/);
+    });
   });
 });

@@ -5,6 +5,9 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { MyListingRow } from '@kc/domain';
+import { KcRowCard } from '../../../../src/components/cards/KcRowCard';
+import { listingWorldIcon } from '../../../../src/components/cards/ListingCard';
+import { cleanDisplayTitle } from '../../../../src/lib/displayTitle';
 import { Screen } from '../../../../src/components/ui/Screen';
 import {
   useInvalidateMyListings,
@@ -18,14 +21,13 @@ const useStyles = makeUseStyles(({ colors }) => ({
   header: { padding: spacing.md, gap: spacing.xs },
   title: { ...typography.h2, color: colors.textPrimary },
   hint: { ...typography.caption, color: colors.textSecondary },
-  row: { padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border, gap: spacing.sm },
-  rowTitle: { ...typography.bodyLarge, color: colors.textPrimary },
-  meta: { ...typography.caption, color: colors.textSecondary },
   actions: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
   btn: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 8, backgroundColor: colors.surfaceRaised },
   btnDanger: { backgroundColor: colors.errorLight },
   btnText: { ...typography.caption, color: colors.textPrimary, fontWeight: '600' as const },
 }));
+
+const ROW = { marginHorizontal: spacing.md };
 
 function confirmAsync(title: string, message: string): Promise<boolean> {
   if (Platform.OS === 'web') {
@@ -151,17 +153,24 @@ export default function MyListingsScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Pressable onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}>
-              <Text style={styles.rowTitle}>{item.title}</Text>
-              <Text style={styles.meta}>
-                {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} · {item.status} · {t('marketplace.myListingsUpdated', {
-                  date: new Date(item.updatedAt).toLocaleDateString(),
-                })}
-              </Text>
-            </Pressable>
-            {renderActions(item)}
-          </View>
+          <KcRowCard
+            testID={`my-listing-row-${item.listingId}`}
+            containerStyle={ROW}
+            tone={item.direction === 'request' ? 'request' : 'give'}
+            badgeLabel={t(item.direction === 'request' ? 'feed.requestTypeShort' : 'feed.giveTypeShort')}
+            placeholderIcon={listingWorldIcon(item.worldSlug)}
+            title={cleanDisplayTitle(item.title)}
+            meta={[
+              `${t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} · ${t('marketplace.myListingsUpdated', {
+                date: new Date(item.updatedAt).toLocaleDateString(),
+              })}`,
+            ]}
+            statusLabel={item.status}
+            closed={item.status === 'closed'}
+            closedLabel={t('cards.closed')}
+            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
+            footer={renderActions(item)}
+          />
         )}
       />
     </Screen>

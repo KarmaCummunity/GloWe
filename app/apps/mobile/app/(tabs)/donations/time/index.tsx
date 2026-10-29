@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
+import { KcRowCard } from '../../../../src/components/cards/KcRowCard';
 import { IconTile } from '../../../../src/components/ui/IconTile';
 import { DonationLinksList } from '../../../../src/components/DonationLinksList';
 import { volunteerUseCases } from '../../../../src/services/volunteerComposition';
@@ -17,17 +18,10 @@ const useStyles = makeUseStyles(({ colors }) => ({
   body: { ...typography.body, color: colors.textSecondary, textAlign: 'center' as const },
   links: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.md, paddingHorizontal: spacing.lg },
   link: { ...typography.body, color: colors.primary, fontWeight: '600' as const },
-  row: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceRaised,
-  },
-  rowTitle: { ...typography.bodyLarge, color: colors.textPrimary },
-  rowMeta: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
   section: { ...typography.h3, color: colors.textPrimary, paddingHorizontal: spacing.lg, marginTop: spacing.lg },
 }));
+
+const ROW = { marginHorizontal: spacing.lg };
 
 function formatWhen(iso: string | null, locale: string) {
   if (!iso) return '';
@@ -84,24 +78,26 @@ function TimeVolunteerHubScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.row}
+          <KcRowCard
+            testID={`opportunity-row-${item.opportunityId}`}
+            containerStyle={ROW}
+            tone="give"
+            badgeLabel={t('marketplace.world.time', { defaultValue: 'time' })}
+            placeholderIcon="time-outline"
+            title={item.title}
+            meta={[
+              item.locationLabel,
+              `${t('timeVolunteer.slotsOpen', { count: item.openSlots })}${
+                item.nextShiftAt ? ` · ${t('timeVolunteer.nextShift', { date: formatWhen(item.nextShiftAt, i18n.language) })}` : ''
+              }`,
+            ]}
             onPress={() =>
               router.push({
                 pathname: '/(tabs)/donations/time/opportunity/[opportunityId]',
                 params: { opportunityId: item.opportunityId },
               })
             }
-          >
-            <Text style={styles.rowTitle}>{item.title}</Text>
-            {item.locationLabel ? <Text style={styles.rowMeta}>{item.locationLabel}</Text> : null}
-            <Text style={styles.rowMeta}>
-              {t('timeVolunteer.slotsOpen', { count: item.openSlots })}
-              {item.nextShiftAt
-                ? ` · ${t('timeVolunteer.nextShift', { date: formatWhen(item.nextShiftAt, i18n.language) })}`
-                : ''}
-            </Text>
-          </Pressable>
+          />
         )}
         ListFooterComponent={
           <View style={{ marginTop: spacing.lg }}>
