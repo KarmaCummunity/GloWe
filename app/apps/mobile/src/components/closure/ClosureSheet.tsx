@@ -7,6 +7,7 @@ import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import type { PostType } from '@kc/domain';
+import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 import { useClosureStore } from '../../store/closureStore';
 import { useAuthStore } from '../../store/authStore';
 import { ClosureStep2 } from './ClosureStep2';
@@ -30,6 +31,7 @@ export function ClosureSheet() {
   // step='error' is shown so the user sees feedback instead of a faded button
   // with nothing happening (the original bug report).
   const visible = step === 'confirm' || step === 'pick' || step === 'error';
+  useModalHardwareBack(visible, reset);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={reset}>

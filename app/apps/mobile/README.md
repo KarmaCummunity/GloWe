@@ -1,7 +1,9 @@
 # KC mobile (Expo / React Native)
 
 Native KC app (`@kc/mobile`) — resumed for App Store / Google Play (issues #836, #837).
-Uses the shared Supabase backend in `supabase/` (same as GLOWE web).
+Uses the shared Supabase backend in `supabase/` (same project as the KC web export).
+
+If `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` are missing at runtime, the app shows a configuration error screen instead of crashing on launch (#857).
 
 ## Prerequisites
 

@@ -8,6 +8,7 @@ import { ALL_CATEGORIES, DONATION_CATEGORY_SLUGS, RADIUS_OPTIONS_KM } from '@kc/
 import type { Category, DonationCategorySlug, PostType, SearchSortBy } from '@kc/domain';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { useSearchStore } from '../store/searchStore';
 import { CityPicker } from './CityPicker';
 import { SearchChip } from './search/SearchChip';
@@ -89,6 +90,8 @@ export function SearchFilterSheet({ visible, onClose }: Props) {
     newest: t('search.sortNewest'),
     followers: t('search.sortFollowers'),
   };
+
+  useModalHardwareBack(visible, onClose);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
