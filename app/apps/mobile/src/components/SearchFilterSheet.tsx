@@ -22,6 +22,7 @@ interface Props {
 }
 
 export function SearchFilterSheet({ visible, onClose }: Props) {
+  useModalHardwareBack(visible, onClose);
   const styles = useSearchFilterSheetStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -90,8 +91,6 @@ export function SearchFilterSheet({ visible, onClose }: Props) {
     newest: t('search.sortNewest'),
     followers: t('search.sortFollowers'),
   };
-
-  useModalHardwareBack(visible, onClose);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
