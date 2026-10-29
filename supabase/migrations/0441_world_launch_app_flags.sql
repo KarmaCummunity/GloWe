@@ -1,4 +1,4 @@
--- 0440: remote launch wedge flags per marketplace world (#1041).
+-- 0441: remote launch wedge flags per marketplace world (#1041).
 -- Flip without release: update public.app_flags set enabled = true where key = 'world_rides_enabled';
 
 insert into public.app_flags (key, enabled, description)
