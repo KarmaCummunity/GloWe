@@ -12,11 +12,17 @@ export type SurveyAnalyticsEvent =
   | 'feedback_submitted'
   | 'research_share_initiated';
 
-/** Key product funnels (#946). */
+/** Key product funnels (#946) + core loop (#1055). */
 export type FunnelAnalyticsEvent =
   | 'signup'
+  | 'activation'
   | 'listing_created'
+  | 'match_shown'
+  | 'match_feedback'
   | 'match_made'
+  | 'chat_started'
+  | 'handover_completed'
+  | 'return_visit'
   | 'donation';
 
 export type AnalyticsEvent = SurveyAnalyticsEvent | FunnelAnalyticsEvent;

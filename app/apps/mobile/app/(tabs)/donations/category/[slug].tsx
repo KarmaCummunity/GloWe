@@ -3,6 +3,9 @@
 import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Redirect, useLocalSearchParams } from 'expo-router';
+import { isCategorySlugLaunchEnabled } from '@kc/domain';
+import { useRemoteAppFlags } from '../../../../src/hooks/useLaunchWorldFlags';
+import { WorldComingSoonScreen } from '../../../../src/components/worlds/WorldComingSoonScreen';
 import { useTranslation } from 'react-i18next';
 import {
   DONATION_CATEGORY_SLUGS,
@@ -84,9 +87,14 @@ export default function DonationCategoryScreen() {
   const { t } = useTranslation();
   const styles = useStyles();
   const tabBarPad = useShellTabBarScrollInset();
+  const remoteFlags = useRemoteAppFlags();
 
   if (!isCategorySlug(slug) || slug === 'time' || slug === 'money') {
     return <Redirect href="/(tabs)/donations" />;
+  }
+
+  if (!isCategorySlugLaunchEnabled(slug, remoteFlags)) {
+    return <WorldComingSoonScreen />;
   }
 
   const titleKey = I18N_KEY_BY_SLUG[slug];

@@ -9,6 +9,7 @@ import { Screen } from '../../../../src/components/ui/Screen';
 import { IconTile } from '../../../../src/components/ui/IconTile';
 import { paymentsUseCases } from '../../../../src/services/paymentsComposition';
 import { useShellTabBarScrollInset } from '../../../../src/navigation/useShellTabBarVisibility';
+import { WorldLaunchGateByFlag } from '../../../../src/components/worlds/WorldLaunchGate';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   hero: { alignItems: 'center' as const, gap: spacing.md, padding: spacing.lg },
@@ -34,7 +35,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   sandboxText: { ...typography.caption, color: colors.textSecondary, textAlign: 'center' as const },
 }));
 
-export default function MoneyHubScreen() {
+function MoneyHubScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const styles = useStyles();
@@ -90,5 +91,13 @@ export default function MoneyHubScreen() {
         }}
       />
     </Screen>
+  );
+}
+
+export default function MoneyHubRoute() {
+  return (
+    <WorldLaunchGateByFlag flagKey="world_money_enabled">
+      <MoneyHubScreen />
+    </WorldLaunchGateByFlag>
   );
 }

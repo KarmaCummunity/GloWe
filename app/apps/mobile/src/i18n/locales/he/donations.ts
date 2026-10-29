@@ -1,12 +1,12 @@
 import { marketplaceMap } from './marketplaceMap';
 // Hebrew — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/he/`; composed into the bundle via `locales/he/index.ts`.
-// Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
-// under the architecture cap.
+// Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -18,6 +18,7 @@ export const donations = {
   hubItemsFeaturedTitle: 'חפצים',
   hubItemsFeaturedSubtitle: 'תרומה ובקשת חפצים — הפעולה המרכזית באפליקציה',
   hubCategoriesSectionTitle: 'תחומי תרומה נוספים',
+  worldLaunch,
   items: { title: 'חפצים', subtitle: 'תרומה ובקשת חפצים' },
   time: { title: 'זמן', subtitle: 'התנדבות וזמן פנוי' },
   money: { title: 'כסף', subtitle: 'תרומה כספית' },

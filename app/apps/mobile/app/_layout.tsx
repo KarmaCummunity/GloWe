@@ -41,8 +41,14 @@ import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
+import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
 
-function MeRealtimeMount() { useMeRealtime(); useOnlinePresenceLifecycle(); return null; }
+function MeRealtimeMount() {
+  useMeRealtime();
+  useOnlinePresenceLifecycle();
+  useCoreLoopReturnVisit();
+  return null;
+}
 
 void SplashScreen.preventAutoHideAsync();
 

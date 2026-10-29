@@ -26,7 +26,7 @@ import { AuthBackground } from '../../src/components/auth/AuthBackground';
 import { AnimatedAuthInput } from '../../src/components/auth/AnimatedAuthInput';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { AuthSocialSignInBlock } from '../../src/components/auth/AuthSocialSignInBlock';
-import { track } from '../../src/lib/analytics';
+import { trackCoreLoop } from '../../src/lib/analyticsCoreLoop';
 
 export default function SignUpScreen() {
   const styles = useStyles();
@@ -70,7 +70,7 @@ export default function SignUpScreen() {
       const { session, pendingVerification } = await getSignUpUseCase().execute({
         email, password, emailRedirectTo: AUTH_VERIFY_URL,
       });
-      track('signup', { method: 'email' });
+      trackCoreLoop('signup', { method: 'email' });
       if (session) { setSession(session); return; }
       if (pendingVerification) setPendingEmail(email.trim().toLowerCase());
     } catch (err) {
