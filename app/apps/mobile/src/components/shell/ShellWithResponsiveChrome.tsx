@@ -6,15 +6,13 @@ import { AppShell } from './AppShell';
 import { TabBar } from '../TabBar';
 import { EphemeralToast } from '../EphemeralToast';
 import { useShellTabBarVisibility } from '../../navigation/useShellTabBarVisibility';
+import { tabBarBottomOffset, tabBarBottomPadding } from './tabBarGeometry';
 
 // TabBar geometry. The floating pill is flush with the platform safe area on
 // every platform (sits directly above the iOS home indicator / Android gesture
 // bar; touches the viewport bottom on web where there's no inset). Screen
 // content fills the full viewport — the translucent pill floats over it so
 // the user sees real content through the bar, not a reserved blank strip.
-const HORIZONTAL_INSET = 18;
-/** Bottom offset of the pill from the viewport edge (safe-area inset when present). */
-const tabBarBottomOffset = (inset: number) => (inset > 0 ? inset : 8);
 
 /**
  * Root-level chrome chooser (FR-RESP-002).
@@ -67,12 +65,12 @@ function ShellWithMobileChrome({
           pointerEvents="box-none"
           style={{
             position: 'absolute',
-            bottom: tabBarBottomOffset(insets.bottom),
-            left: HORIZONTAL_INSET,
-            right: HORIZONTAL_INSET,
+            bottom: tabBarBottomOffset(),
+            left: 0,
+            right: 0,
           }}
         >
-          <TabBar />
+          <TabBar bottomInset={tabBarBottomPadding(insets.bottom)} />
         </View>
       )}
     </View>
