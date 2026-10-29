@@ -24,6 +24,7 @@ import type {
   PostType,
 } from '@kc/domain';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 import { SortSection } from './SortSection';
 import { FiltersSection } from './FiltersSection';
 import { LocationFilterSection } from './LocationFilterSection';
@@ -70,6 +71,8 @@ export function PostFilterSheet({
     onClear();
     onClose();
   };
+
+  useModalHardwareBack(visible, onClose);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>

@@ -16,6 +16,8 @@ import { ClosureSheet } from '../closure/ClosureSheet';
 import { ClosureExplainerSheet } from '../closure/ClosureExplainerSheet';
 import { invalidatePersonalStatsCaches } from '../../lib/invalidatePersonalStatsCaches';
 import { invalidateMyProfilePostQueries } from '../../lib/invalidateMyProfilePostQueries';
+import { trackSocialHandoverCompleted } from '../../lib/trackSocialHandoverCompleted';
+import { hapticSuccess } from '../../lib/haptics';
 import { AnchoredPostCardPreview } from './AnchoredPostCardPreview';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
@@ -84,20 +86,25 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
     }
   }, [sawPostClosedSysMsg, closureStep, anchorPostId, viewerId, queryClient]);
 
+  const post = query.data?.post ?? null;
+
   // When closure was initiated from this chat card, handle the done state here.
   // OwnerActionsBar (post-detail context) guards its own handler so it won't
   // fire for chat-initiated closures.
   useEffect(() => {
     if (closureStep === 'done' && closureInitiator === 'chat') {
+      if (post) {
+        hapticSuccess();
+        trackSocialHandoverCompleted(post);
+      }
       resetClosure();
       void queryClient.invalidateQueries({ queryKey: ['feed'] });
       invalidateMyProfilePostQueries(queryClient, viewerId);
       void queryClient.invalidateQueries({ queryKey: ['post', anchorPostId] });
       invalidatePersonalStatsCaches(queryClient, viewerId);
     }
-  }, [closureStep, closureInitiator, resetClosure, queryClient, anchorPostId, viewerId]);
+  }, [closureStep, closureInitiator, resetClosure, queryClient, anchorPostId, viewerId, post]);
 
-  const post = query.data?.post ?? null;
   const isOwner = post ? post.ownerId === viewerId : false;
 
   // FR-CHAT-014 AC3/AC4: hide card when there is no open post. Keep the

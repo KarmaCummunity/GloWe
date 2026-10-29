@@ -8,6 +8,7 @@ import { ALL_CATEGORIES, DONATION_CATEGORY_SLUGS, RADIUS_OPTIONS_KM } from '@kc/
 import type { Category, DonationCategorySlug, PostType, SearchSortBy } from '@kc/domain';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { useSearchStore } from '../store/searchStore';
 import { CityPicker } from './CityPicker';
 import { SearchChip } from './search/SearchChip';
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function SearchFilterSheet({ visible, onClose }: Props) {
+  useModalHardwareBack(visible, onClose);
   const styles = useSearchFilterSheetStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();

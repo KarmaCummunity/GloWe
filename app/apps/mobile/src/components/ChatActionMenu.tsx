@@ -6,6 +6,7 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 
 interface Props {
   readonly visible: boolean;
@@ -25,6 +26,7 @@ export function ChatActionMenu({
   const styles = useStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  useModalHardwareBack(visible, onClose);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>

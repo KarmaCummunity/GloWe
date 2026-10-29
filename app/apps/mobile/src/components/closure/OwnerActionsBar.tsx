@@ -21,6 +21,7 @@ import { ClosureSheet } from './ClosureSheet';
 import { ClosureExplainerSheet } from './ClosureExplainerSheet';
 import { ReopenConfirmModal } from './ReopenConfirmModal';
 import { hapticSuccess } from '../../lib/haptics';
+import { trackSocialHandoverCompleted } from '../../lib/trackSocialHandoverCompleted';
 
 interface Props {
   post: Post;
@@ -61,6 +62,7 @@ export function OwnerActionsBar(props: Readonly<Props>) {
   useEffect(() => {
     if (closureStep !== 'done' || closureInitiator === 'chat') return;
     hapticSuccess();
+    trackSocialHandoverCompleted(post);
     const closedPostId = post.postId;
     resetClosure();
     void (async () => {

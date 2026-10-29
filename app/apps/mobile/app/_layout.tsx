@@ -42,6 +42,7 @@ import { ModalStackProvider } from '../src/components/legal/useActiveModalStack'
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
+import { NavigationBar } from 'expo-navigation-bar';
 
 function MeRealtimeMount() {
   useMeRealtime();
@@ -72,6 +73,7 @@ function ThemedRootShell() {
 
   return (
     <>
+      <NavigationBar style={isDark ? 'dark' : 'light'} />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <DevBanner />
       <NotificationsBridge />

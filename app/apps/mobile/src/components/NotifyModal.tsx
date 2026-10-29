@@ -7,6 +7,7 @@
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles } from '@kc/ui';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 
 interface Props {
@@ -21,6 +22,7 @@ export function NotifyModal({ visible, title, message, ctaLabel, onDismiss }: Pr
   const { t } = useTranslation();
   const styles = useNotifyModalStyles();
   const label = ctaLabel ?? t('general.gotIt');
+  useModalHardwareBack(visible, onDismiss);
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onDismiss}>
       <View style={styles.backdrop}>
