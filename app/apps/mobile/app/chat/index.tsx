@@ -79,7 +79,7 @@ export default function ChatListScreen() {
         options={{
           ...detailOptions,
           headerTitle: t('chat.title'),
-          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+          headerLargeTitle: false,
         }}
       />
 
@@ -103,6 +103,7 @@ export default function ChatListScreen() {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.6}
           estimatedItemSize={76}
+          contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
           refreshControl={
             <KcRefreshControl refreshing={inboxQuery.isRefetching} onRefresh={onRefresh} />
           }

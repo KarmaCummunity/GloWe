@@ -57,9 +57,14 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
   warnMissingSupabaseEnv(process.env.EAS_BUILD_PROFILE);
 
   const googleServicesFile = resolveGoogleServicesFile();
+  const googleMapsApiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
   const android = {
     ...config.android,
     ...(googleServicesFile ? { googleServicesFile } : {}),
+    config: {
+      ...config.android?.config,
+      ...(googleMapsApiKey ? { googleMaps: { apiKey: googleMapsApiKey } } : {}),
+    },
   };
 
   return {
