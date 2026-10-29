@@ -17,6 +17,7 @@ import {
   mapWorldColor,
   regionForPoints,
   regionToBounds,
+  validMapPins,
   type MapBounds,
   type MapPinCluster,
   type MapRegion,
@@ -69,6 +70,13 @@ export function MapExplorer({ initialWorld = null }: Readonly<{ initialWorld?: s
   const [selection, setSelection] = useState<readonly MarketplaceMapPin[] | null>(null);
   const [focus, setFocus] = useState<KcMapFocus | null>(null);
   const reqId = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const load = useCallback(async (r: MapRegion, w: string | null) => {
     const id = ++reqId.current;
@@ -76,11 +84,13 @@ export function MapExplorer({ initialWorld = null }: Readonly<{ initialWorld?: s
     setLoading(true);
     try {
       const rows = await marketplaceRepository().mapPins({ ...bounds, worldSlug: w, limit: 400 });
-      if (id !== reqId.current) return;
-      setPins(rows);
+      if (!mounted.current || id !== reqId.current) return;
+      setPins(validMapPins(rows));
       setLoaded(bounds);
+    } catch {
+      // A failed fetch keeps the current pins; the "search this area" pill lets the user retry.
     } finally {
-      if (id === reqId.current) setLoading(false);
+      if (mounted.current && id === reqId.current) setLoading(false);
     }
   }, []);
 
