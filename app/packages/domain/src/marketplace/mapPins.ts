@@ -90,10 +90,12 @@ export function regionForPoints(points: ReadonlyArray<{ lat: number; lng: number
  * ~`cells` columns; pins in the same cell merge. Zooming in splits clusters.
  */
 export function clusterPins(pins: readonly MarketplaceMapPin[], region: MapRegion, cells = 7): MapPinCluster[] {
-  const cellLat = Math.max(region.latitudeDelta / cells, 1e-6);
-  const cellLng = Math.max(region.longitudeDelta / cells, 1e-6);
+  const safe = sanitizeRegion(region) ?? LOD_REGION;
+  const cellLat = Math.max(safe.latitudeDelta / cells, 1e-6);
+  const cellLng = Math.max(safe.longitudeDelta / cells, 1e-6);
   const groups = new Map<string, MarketplaceMapPin[]>();
   for (const p of pins) {
+    if (!isValidLatLng(p.lat, p.lng)) continue;
     const key = `${Math.floor(p.lat / cellLat)}:${Math.floor(p.lng / cellLng)}`;
     const g = groups.get(key);
     if (g) g.push(p);
@@ -142,4 +144,53 @@ export function pinDistanceKm(a: { lat: number; lng: number }, b: { lat: number;
 /** Expand bounds around their center (prefetch a margin so small pans need no reload). */
 export function expandRegion(r: MapRegion, factor = 1.6): MapRegion {
   return { ...r, latitudeDelta: r.latitudeDelta * factor, longitudeDelta: r.longitudeDelta * factor };
+}
+
+/** Finite latitude/longitude inside the valid globe range (native maps crash on NaN/out-of-range). */
+export function isValidLatLng(lat: unknown, lng: unknown): boolean {
+  return (
+    typeof lat === 'number' && typeof lng === 'number' &&
+    Number.isFinite(lat) && Number.isFinite(lng) &&
+    lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
+  );
+}
+
+const MIN_DELTA = 1e-5;
+const MAX_LAT_DELTA = 180;
+const MAX_LNG_DELTA = 360;
+
+/** Returns a region safe to hand to a native map (finite, in range, positive deltas) or null. */
+export function sanitizeRegion(r: Partial<MapRegion> | null | undefined): MapRegion | null {
+  if (!r || !isValidLatLng(r.latitude, r.longitude)) return null;
+  const { latitudeDelta: dLat, longitudeDelta: dLng } = r;
+  if (typeof dLat !== 'number' || typeof dLng !== 'number' || !Number.isFinite(dLat) || !Number.isFinite(dLng)) return null;
+  return {
+    latitude: r.latitude as number,
+    longitude: r.longitude as number,
+    latitudeDelta: Math.min(Math.max(Math.abs(dLat), MIN_DELTA), MAX_LAT_DELTA),
+    longitudeDelta: Math.min(Math.max(Math.abs(dLng), MIN_DELTA), MAX_LNG_DELTA),
+  };
+}
+
+/** True when two regions differ by less than a tiny fraction of the viewport (skip redundant state updates). */
+export function regionsNearlyEqual(a: MapRegion, b: MapRegion, tolerance = 0.01): boolean {
+  const eps = (d: number) => Math.max(d * tolerance, 1e-7);
+  return (
+    Math.abs(a.latitude - b.latitude) < eps(a.latitudeDelta) &&
+    Math.abs(a.longitude - b.longitude) < eps(a.longitudeDelta) &&
+    Math.abs(a.latitudeDelta - b.latitudeDelta) < eps(a.latitudeDelta) &&
+    Math.abs(a.longitudeDelta - b.longitudeDelta) < eps(a.longitudeDelta)
+  );
+}
+
+/** Route with all four endpoints valid, else null (a broken route must not reach the native map). */
+export function sanitizeRoute(route: MarketplaceMapPin['route']): MarketplaceMapPin['route'] {
+  if (!route) return null;
+  if (!isValidLatLng(route.originLat, route.originLng) || !isValidLatLng(route.destLat, route.destLng)) return null;
+  return route;
+}
+
+/** Drop pins whose coordinates are missing/NaN/out of range (defensive: RPC rows can carry nulls). */
+export function validMapPins(pins: readonly MarketplaceMapPin[]): MarketplaceMapPin[] {
+  return pins.filter((p) => isValidLatLng(p.lat, p.lng));
 }
