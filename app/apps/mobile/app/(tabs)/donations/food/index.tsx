@@ -10,7 +10,6 @@ export default function FoodWorldScreen() {
         icon="restaurant-outline"
         introKey="givingHandoff.foodHubIntro"
         handoffsPath="/(tabs)/donations/food/handoffs"
-        createPath="/(tabs)/donations/marketplace/create/food"
       />
     </WorldLaunchGateBySlug>
   );

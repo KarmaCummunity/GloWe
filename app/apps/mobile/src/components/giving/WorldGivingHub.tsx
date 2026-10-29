@@ -8,10 +8,9 @@ type Props = {
   icon: 'gift-outline' | 'restaurant-outline';
   introKey: 'givingHandoff.itemsHubIntro' | 'givingHandoff.foodHubIntro';
   handoffsPath: string;
-  createPath: string;
 };
 
-export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath, createPath }: Props) {
+export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath }: Props) {
   const { t } = useTranslation();
   return (
     <WorldMarketplaceHub
@@ -19,7 +18,6 @@ export function WorldGivingHub({ worldSlug, icon, introKey, handoffsPath, create
       icon={icon}
       introKey={introKey}
       handoffsPath={handoffsPath}
-      createPath={createPath}
       createLabelKey="givingHandoff.createListing"
       rowMeta={(item) =>
         `${worldSlug === 'food' && item.urgencyLevel >= 4 ? `${t('givingHandoff.urgencyHigh')} · ` : ''}${t(

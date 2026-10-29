@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   ActivityIndicator, ScrollView,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@kc/ui';
 import { ALL_CATEGORIES, ITEM_CONDITIONS } from '@kc/domain';
-import type { Category, ItemCondition, LocationDisplayLevel, PostType, PostVisibility } from '@kc/domain';
+import type { Category, ItemCondition, LocationDisplayLevel, PostVisibility } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { StreetPicker } from '../StreetPicker';
 import { CreatePostExposureSection } from './CreatePostExposureSection';
@@ -19,8 +18,8 @@ import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibi
 import type { CreatePostCitySelection } from '../../hooks/useCreatePostPublish';
 
 export interface CreatePostFormScrollContentProps {
-  readonly type: PostType;
-  readonly onTypeChange: (next: PostType) => void;
+  /** Unified create header (category picker + give/request toggle). */
+  readonly header: ReactNode;
   readonly title: string;
   readonly onTitleChange: (next: string) => void;
   readonly city: CreatePostCitySelection;
@@ -60,8 +59,7 @@ export interface CreatePostFormScrollContentProps {
 }
 
 export function CreatePostFormScrollContent({
-  type,
-  onTypeChange,
+  header,
   title,
   onTitleChange,
   city,
@@ -108,38 +106,7 @@ export function CreatePostFormScrollContent({
       style={styles.scroll}
       contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarPad }]}
     >
-      <View style={styles.typeToggle}>
-        <TouchableOpacity
-          style={[styles.typeBtn, type === 'Request' && styles.typeBtnActive]}
-          onPress={() => onTypeChange('Request')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: type === 'Request' }}
-        >
-          <Ionicons
-            name="search-outline"
-            size={18}
-            color={type === 'Request' ? colors.textInverse : colors.textPrimary}
-          />
-          <Text style={[styles.typeBtnText, type === 'Request' && styles.typeBtnTextActive]}>
-            {t('post.request')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.typeBtn, type === 'Give' && styles.typeBtnActiveGive]}
-          onPress={() => onTypeChange('Give')}
-          accessibilityRole="button"
-          accessibilityState={{ selected: type === 'Give' }}
-        >
-          <Ionicons
-            name="gift-outline"
-            size={18}
-            color={type === 'Give' ? colors.textInverse : colors.textPrimary}
-          />
-          <Text style={[styles.typeBtnText, type === 'Give' && styles.typeBtnTextActive]}>
-            {t('post.give')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {header}
 
       <PhotoPicker
         uploads={uploads}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -12,7 +12,13 @@ import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
-import { RIDE_ROUTE_DETAIL_KEYS, ROUTED_WORLDS, validateListingDetails } from '@kc/domain';
+import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
+import {
+  findCreateCategory,
+  hasCreateField,
+  type CreateDirection,
+} from '../../lib/unifiedCreate/createCategories';
+import { buildListingCreatePayload } from '../../lib/unifiedCreate/unifiedCreatePayload';
 import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
 import { RideRouteFields } from '../giving/RideRouteFields';
@@ -62,22 +68,37 @@ const useStyles = makeUseStyles(({ colors }) => ({
 interface Props {
   worldSlug: string;
   onPublished: (listingId: string) => void;
+  /** Unified create header (category picker + give/request toggle). */
+  header: ReactNode;
+  direction: CreateDirection;
+  title: string;
+  onTitleChange: (v: string) => void;
+  summary: string;
+  onSummaryChange: (v: string) => void;
 }
 
-export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
+export function MarketplaceCreateForm({
+  worldSlug,
+  onPublished,
+  header,
+  direction,
+  title,
+  onTitleChange: setTitle,
+  summary,
+  onSummaryChange: setSummary,
+}: Props) {
   const { t, i18n } = useTranslation();
   const styles = useStyles();
   const userId = useAuthStore((s) => s.session?.userId ?? null);
   const [kinds, setKinds] = useState<ListingKindOption[]>([]);
   const [kindId, setKindId] = useState<string | null>(null);
-  const [direction, setDirection] = useState<'give' | 'request'>('give');
-  const [title, setTitle] = useState('');
-  const [summary, setSummary] = useState('');
   const [details, setDetails] = useState<Record<string, unknown>>({});
   const [city, setCity] = useState<{ id: string; name: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
   const [org, setOrg] = useState<{ id: string; name: string } | null>(null);
-  const routedWorld = (ROUTED_WORLDS as readonly string[]).includes(worldSlug);
+  const config = findCreateCategory(worldSlug);
+  const routedWorld = hasCreateField(config, direction, 'externalBody');
+  const showRideRoute = hasCreateField(config, direction, 'rideRoute');
   const [picked, setPicked] = useState<PickedImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -86,41 +107,45 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   useEffect(() => {
     void marketplaceRepository()
       .listKindsForWorld(worldSlug)
-      .then((rows) => {
-        setKinds(rows);
-        setKindId(rows[0]?.kindId ?? null);
-        const d = rows[0]?.direction;
-        if (d === 'request' || d === 'give') setDirection(d);
-      });
+      .then(setKinds);
   }, [worldSlug]);
 
-  const activeKind = useMemo(() => kinds.find((k) => k.kindId === kindId) ?? null, [kinds, kindId]);
+  const directionKinds = useMemo(
+    () => kinds.filter((k) => k.direction === 'either' || k.direction === direction),
+    [kinds, direction],
+  );
+  const activeKind = useMemo(
+    () => directionKinds.find((k) => k.kindId === kindId) ?? directionKinds[0] ?? null,
+    [directionKinds, kindId],
+  );
 
   useEffect(() => {
     setDetails({});
     setRuleError(null);
-    if (activeKind?.direction === 'give' || activeKind?.direction === 'request') {
-      setDirection(activeKind.direction);
-    }
   }, [activeKind?.kindId]);
 
-  if (!activeKind || !kindId) {
-    return <ActivityIndicator style={{ marginTop: spacing.xl }} />;
+  if (!activeKind) {
+    return (
+      <ScrollView contentContainerStyle={styles.body}>
+        {header}
+        {kinds.length === 0 ? <ActivityIndicator style={{ marginTop: spacing.xl }} /> : null}
+      </ScrollView>
+    );
   }
 
   const kindLabel = i18n.language.startsWith('he') ? activeKind.labelHe : activeKind.labelEn;
 
   return (
     <ScrollView contentContainerStyle={styles.body}>
-      <Text style={typography.h2}>{t('marketplace.createTitle', { world: t(`marketplace.world.${worldSlug}`, { defaultValue: worldSlug }) })}</Text>
+      {header}
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
       <View style={styles.chipRow}>
-        {kinds.map((k) => {
+        {directionKinds.map((k) => {
           const label = i18n.language.startsWith('he') ? k.labelHe : k.labelEn;
           return (
             <Pressable
               key={k.kindId}
-              style={[styles.chip, kindId === k.kindId && styles.chipOn]}
+              style={[styles.chip, activeKind.kindId === k.kindId && styles.chipOn]}
               onPress={() => setKindId(k.kindId)}
             >
               <Text style={styles.chipText}>{label}</Text>
@@ -128,28 +153,12 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
           );
         })}
       </View>
-      {activeKind.direction === 'either' ? (
-        <>
-          <Text style={styles.label}>{t('marketplace.fieldDirection')}</Text>
-          <View style={styles.chipRow}>
-            {(['give', 'request'] as const).map((d) => (
-              <Pressable
-                key={d}
-                style={[styles.chip, direction === d && styles.chipOn]}
-                onPress={() => setDirection(d)}
-              >
-                <Text style={styles.chipText}>{d}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </>
-      ) : null}
       <Text style={styles.label}>{t('marketplace.fieldTitle')}</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} />
       <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
       <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
-      {worldSlug === 'rides' ? (
+      {showRideRoute ? (
         <RideRouteFields
           key={activeKind.kindId}
           details={details}
@@ -162,7 +171,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
         schema={activeKind.detailSchema}
         values={details}
         onChange={setDetails}
-        hiddenKeys={worldSlug === 'rides' ? RIDE_ROUTE_DETAIL_KEYS : undefined}
+        hiddenKeys={showRideRoute ? RIDE_ROUTE_DETAIL_KEYS : undefined}
       />
       {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       {routedWorld ? (
@@ -241,19 +250,23 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               }
             }
             const mediaPaths = picked.length > 0 ? await uploadListingImages(userId, picked) : [];
-            const id = await marketplaceRepository().createListing({
-              kindId,
-              title: title.trim(),
-              summary: summary.trim() || null,
-              details,
-              direction: activeKind.direction === 'either' ? direction : null,
-              cityId: city?.id ?? null,
-              lat,
-              lng,
-              maxRadiusKm: radiusKm,
-              mediaPaths,
-              externalBodyId: routedWorld ? (org?.id ?? null) : null,
-            });
+            const id = await marketplaceRepository().createListing(
+              buildListingCreatePayload({
+                kindId: activeKind.kindId,
+                kindDirection: activeKind.direction,
+                direction,
+                title,
+                summary,
+                details,
+                cityId: city?.id ?? null,
+                lat,
+                lng,
+                radiusKm,
+                mediaPaths,
+                routedWorld,
+                externalBodyId: org?.id ?? null,
+              }),
+            );
             trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
             void trackActivationIfFirst({ world: worldSlug, cityId: city?.id ?? null });
             onPublished(id);
