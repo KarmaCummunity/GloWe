@@ -48,7 +48,8 @@ Last applied on kc-dev when this was written: `0239`.
 | 0424–0427 | matching v2 quality: Hebrew-aware head-noun/keyword text score + notify text floor, rides route corridor/direction/window/seats + re-score, kc-dev demo ride requests (guarded), kc-dev daily e2e listing cleanup (guarded) | merged (#1006) |
 | 0428–0429 | matching engine v2 follow-ups (reserved) | claimed (matching v2) |
 | 0430–0439 | Pro entitlement + WhatsApp Pro bot (#1083, #1089, #1090, #1086, #1091) | in progress |
-| 0440+ | — | free |
+| 0440 | #1041 world launch wedge `app_flags` | in progress |
+| 0441+ | — | free |
 
 ## Next free ranges
 

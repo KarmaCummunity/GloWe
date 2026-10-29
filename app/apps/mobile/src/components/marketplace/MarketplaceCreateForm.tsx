@@ -29,7 +29,7 @@ import {
   marketplaceServerErrorKey,
   type MarketplaceRuleFieldError,
 } from '../../lib/marketplaceCreateErrors';
-import { track } from '../../lib/analytics';
+import { trackActivationIfFirst, trackCoreLoop } from '../../lib/analyticsCoreLoop';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
@@ -254,7 +254,8 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               mediaPaths,
               externalBodyId: routedWorld ? (org?.id ?? null) : null,
             });
-            track('listing_created', { world: worldSlug });
+            trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
+            void trackActivationIfFirst({ world: worldSlug, cityId: city?.id ?? null });
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

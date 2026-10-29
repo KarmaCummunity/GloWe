@@ -18,6 +18,7 @@ import { ReportListingModal } from './ReportListingModal';
 import { GivingHandoffActions } from './GivingHandoffActions';
 import { RideRouteCard } from './RideRouteCard';
 import { cleanDisplayTitle } from '../../lib/displayTitle';
+import { trackCoreLoop } from '../../lib/analyticsCoreLoop';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 const useStyles = makeUseStyles(({ colors }) => ({
@@ -113,6 +114,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
             style={[styles.btn, styles.btnPrimary]}
             onPress={async () => {
               const chatId = await marketplaceRepository().startChat(detail.listingId, t('marketplace.chatOpener'));
+              trackCoreLoop('chat_started', { world: detail.worldSlug, cityId: detail.cityId });
               router.push(`/chat/${chatId}`);
             }}
           >

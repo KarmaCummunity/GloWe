@@ -1,12 +1,12 @@
 import { marketplaceMap } from './marketplaceMap';
 // English — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/en/`; composed into the bundle via `locales/en/index.ts`.
-// Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
-// under the architecture cap.
+// Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -18,6 +18,7 @@ export const donations = {
   hubItemsFeaturedTitle: 'Items',
   hubItemsFeaturedSubtitle: 'Donate and request items — the core action in the app',
   hubCategoriesSectionTitle: 'More donation categories',
+  worldLaunch,
   items: { title: 'Items', subtitle: 'Donate and request items' },
   time: { title: 'Time', subtitle: 'Volunteering and free time' },
   money: { title: 'Money', subtitle: 'Monetary donation' },

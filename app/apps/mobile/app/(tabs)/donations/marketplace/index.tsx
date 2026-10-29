@@ -6,7 +6,8 @@ import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
-import { MARKETPLACE_WORLD_SLUGS } from '@kc/domain';
+import { MARKETPLACE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
+import { useRemoteAppFlags } from '../../../../src/hooks/useLaunchWorldFlags';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { EmptyState, EmptyStateActions } from '../../../../src/components/EmptyState';
 import { KcRefreshControl } from '../../../../src/components/lists/KcRefreshControl';
@@ -49,6 +50,10 @@ export default function MarketplaceBrowseScreen() {
   const router = useRouter();
   const styles = useStyles();
   const inset = useShellTabBarScrollInset();
+  const remoteFlags = useRemoteAppFlags();
+  const launchWorldSlugs = MARKETPLACE_WORLD_SLUGS.filter((slug) =>
+    isMarketplaceWorldLaunchEnabled(slug, remoteFlags),
+  );
   const [world, setWorld] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const filters = useMemo(() => ({ worldSlug: world }), [world]);
@@ -86,7 +91,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable style={[styles.chip, world === null && styles.chipActive]} onPress={() => setWorld(null)}>
           <Text style={styles.chipText}>{t('marketplace.allWorlds')}</Text>
         </Pressable>
-        {MARKETPLACE_WORLD_SLUGS.map((slug) => (
+        {launchWorldSlugs.map((slug) => (
           <Pressable
             key={slug}
             style={[styles.chip, world === slug && styles.chipActive]}

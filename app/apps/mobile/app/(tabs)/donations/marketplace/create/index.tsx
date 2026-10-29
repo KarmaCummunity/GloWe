@@ -2,7 +2,8 @@ import React from 'react';
 import { Pressable, ScrollView, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MARKETPLACE_CREATE_WORLD_SLUGS } from '@kc/domain';
+import { MARKETPLACE_CREATE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
+import { useRemoteAppFlags } from '../../../../../src/hooks/useLaunchWorldFlags';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { Screen } from '../../../../../src/components/ui/Screen';
 
@@ -22,12 +23,16 @@ export default function MarketplaceCreateHubScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const styles = useStyles();
+  const remoteFlags = useRemoteAppFlags();
+  const createWorlds = MARKETPLACE_CREATE_WORLD_SLUGS.filter((slug) =>
+    isMarketplaceWorldLaunchEnabled(slug, remoteFlags),
+  );
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={typography.h2}>{t('marketplace.createHubTitle')}</Text>
-        {MARKETPLACE_CREATE_WORLD_SLUGS.map((slug) => (
+        {createWorlds.map((slug) => (
           <Pressable
             key={slug}
             style={styles.row}

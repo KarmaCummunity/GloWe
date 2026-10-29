@@ -10,6 +10,7 @@ import { IconTile } from '../../../../src/components/ui/IconTile';
 import { DonationLinksList } from '../../../../src/components/DonationLinksList';
 import { volunteerUseCases } from '../../../../src/services/volunteerComposition';
 import { useShellTabBarScrollInset } from '../../../../src/navigation/useShellTabBarVisibility';
+import { WorldLaunchGateByFlag } from '../../../../src/components/worlds/WorldLaunchGate';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   hero: { alignItems: 'center' as const, gap: spacing.md, padding: spacing.lg },
@@ -40,7 +41,7 @@ function formatWhen(iso: string | null, locale: string) {
   }
 }
 
-export default function TimeVolunteerHubScreen() {
+function TimeVolunteerHubScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const styles = useStyles();
@@ -109,5 +110,13 @@ export default function TimeVolunteerHubScreen() {
         }
       />
     </Screen>
+  );
+}
+
+export default function TimeVolunteerHubRoute() {
+  return (
+    <WorldLaunchGateByFlag flagKey="world_time_enabled">
+      <TimeVolunteerHubScreen />
+    </WorldLaunchGateByFlag>
   );
 }
