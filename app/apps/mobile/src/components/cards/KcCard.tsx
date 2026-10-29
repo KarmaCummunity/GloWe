@@ -33,6 +33,16 @@ export interface KcCardProps {
   details?: ReadonlyArray<{ icon: IoniconName; text: string }>;
   location?: string | null;
   timeAgo?: string | null;
+  /** Height of the image area relative to width (default 0.72; wide rows use less). */
+  imageRatio?: number;
+  /** Extra status chip under the image (e.g. match % / "waiting for other side"). */
+  statusLabel?: string | null;
+  /** Closed / delivered post — dims the card and shows the closed chip. */
+  closed?: boolean;
+  closedLabel?: string;
+  /** Slot rendered below the footer (e.g. accept / decline actions). */
+  footer?: React.ReactNode;
+  testID?: string;
 }
 
 const OWNER_AVATAR_SIZE = 24;
@@ -46,13 +56,14 @@ function KcCardInner(p: Readonly<KcCardProps>) {
 
   return (
     <TouchableOpacity
-      style={[styles.card, { width: p.width }]}
+      testID={p.testID ?? 'kc-post-card'}
+      style={[styles.card, { width: p.width }, p.closed && extra.closed]}
       activeOpacity={0.86}
       onPress={p.onPress}
       accessibilityRole="button"
       accessibilityLabel={p.accessibilityLabel}
     >
-      <View style={[styles.imageArea, { height: p.width * 0.72, backgroundColor: placeholderBg }]}>
+      <View style={[styles.imageArea, { height: p.width * (p.imageRatio ?? 0.72), backgroundColor: placeholderBg }]}>
         {p.imageUri ? (
           <KCImage uri={p.imageUri} fallbackUri={p.fallbackUri ?? undefined} style={styles.image} contentFit="cover" onLoad={p.onImageLoad} />
         ) : (
@@ -82,6 +93,20 @@ function KcCardInner(p: Readonly<KcCardProps>) {
       </View>
 
       <View style={styles.content}>
+        {p.statusLabel || p.closed ? (
+          <View style={extra.statusRow}>
+            {p.closed ? (
+              <View style={[extra.statusChip, extra.closedChip]} testID="kc-card-closed">
+                <Text style={extra.closedChipText}>{p.closedLabel ?? ''}</Text>
+              </View>
+            ) : null}
+            {p.statusLabel ? (
+              <View style={extra.statusChip} testID="kc-card-status">
+                <Text style={extra.statusChipText} numberOfLines={1}>{p.statusLabel}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
         {p.author && !p.dense ? (
           <View style={styles.authorRow} accessibilityLabel={p.author.name}>
             <AvatarInitials name={p.author.name} avatarUrl={p.author.avatarUrl ?? null} size={OWNER_AVATAR_SIZE} />
@@ -130,6 +155,7 @@ function KcCardInner(p: Readonly<KcCardProps>) {
             {p.timeAgo ? <Text style={styles.timeAgo} numberOfLines={1}>{p.timeAgo}</Text> : null}
           </View>
         ) : null}
+        {p.footer ? <View style={extra.footer}>{p.footer}</View> : null}
       </View>
     </TouchableOpacity>
   );

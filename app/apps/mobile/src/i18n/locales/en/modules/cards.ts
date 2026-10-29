@@ -12,5 +12,6 @@ export const cardsEn = {
   unknownPlace: 'Not specified',
   costShare: 'Cost share: ₪{{amount}}',
   free: 'Free',
+  closed: 'Closed',
   routeTitle: 'Route',
 } as const;

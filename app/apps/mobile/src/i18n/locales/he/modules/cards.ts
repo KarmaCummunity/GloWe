@@ -13,4 +13,5 @@ export const cardsHe = {
   costShare: 'השתתפות בהוצאות: {{amount}} ₪',
   free: 'בחינם',
   routeTitle: 'מסלול',
+  closed: 'סגור',
 } as const;
