@@ -14,4 +14,5 @@ export const cardsHe = {
   free: 'בחינם',
   routeTitle: 'מסלול',
   closed: 'סגור',
+  openFullPost: 'לפוסט המלא',
 } as const;

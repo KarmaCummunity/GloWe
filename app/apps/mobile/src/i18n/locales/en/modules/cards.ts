@@ -13,5 +13,6 @@ export const cardsEn = {
   costShare: 'Cost share: ₪{{amount}}',
   free: 'Free',
   closed: 'Closed',
+  openFullPost: 'Open full post',
   routeTitle: 'Route',
 } as const;
