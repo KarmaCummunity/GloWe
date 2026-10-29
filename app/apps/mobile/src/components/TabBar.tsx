@@ -77,7 +77,7 @@ function PlusBtn({ active, onPress, label }: PlusBtnProps) {
   );
 }
 
-export function TabBar() {
+export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> = {}) {
   const router = useRouter();
   const { t } = useTranslation();
   const segments = useSegments() as string[];
@@ -85,7 +85,10 @@ export function TabBar() {
   const styles = useTabBarStyles();
 
   return (
-    <View style={styles.tabBar}>
+    <View
+      testID="shell-tab-bar"
+      style={[styles.tabBar, { height: TAB_BAR_HEIGHT + bottomInset, paddingBottom: bottomInset }]}
+    >
       {/* RTL reading order: Profile (right) | Search | Plus (center) | Donations | Home (left).
           With dir=rtl on web and I18nManager.isRTL on native, default `row` lays them out
           right-to-left. `row-reverse` would double-flip on web → LTR visual.
@@ -116,12 +119,13 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   tabBar: {
     flexDirection: 'row' as const,
     height: TAB_BAR_HEIGHT,
-    borderRadius: 28,
+    // Docked flush with the screen bottom (#1213): only top corners rounded.
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     paddingHorizontal: 6,
     backgroundColor: colors.tabBarGlass,
     alignItems: 'center' as const,
     width: '100%' as const,
-    maxWidth: 480,
     alignSelf: 'center' as const,
     overflow: 'hidden' as const,
     shadowColor: '#000',
