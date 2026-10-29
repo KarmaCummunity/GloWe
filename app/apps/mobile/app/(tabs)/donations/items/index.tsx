@@ -10,7 +10,6 @@ export default function ItemsWorldScreen() {
         icon="gift-outline"
         introKey="givingHandoff.itemsHubIntro"
         handoffsPath="/(tabs)/donations/items/handoffs"
-        createPath="/(tabs)/donations/marketplace/create/items"
       />
     </WorldLaunchGateBySlug>
   );

@@ -9,7 +9,6 @@ export function RidesHubScreen() {
       worldSlug="rides"
       icon="car-outline"
       introKey="donations.rides.hubBody"
-      createPath="/(tabs)/donations/marketplace/create/rides"
       linksCategory="transport"
       handoffsPath="/(tabs)/donations/rides/handoffs"
       headerExtra={<RideMatchSearch />}

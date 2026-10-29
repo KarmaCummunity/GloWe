@@ -25,6 +25,7 @@ import { mapPostErrorToHebrew } from '../services/postMessages';
 import { invalidatePersonalStatsCaches } from '../lib/invalidatePersonalStatsCaches';
 import { hapticSuccess } from '../lib/haptics';
 import { invalidateMyProfilePostQueries } from '../lib/invalidateMyProfilePostQueries';
+import { buildPostCreatePayload } from '../lib/unifiedCreate/unifiedCreatePayload';
 import type { UploadedAsset } from '../services/imageUpload';
 import type { PrePromptTrigger } from '../lib/notifications/usePushPermissionGate';
 
@@ -100,30 +101,14 @@ export function useCreatePostPublish(args: {
           // Non-critical — skip push gate on error.
         }
       }
-      return getCreatePostUseCase().execute({
-        ownerId,
-        type: args.type,
-        visibility: args.visibilityRef.current,
-        title: args.title,
-        description: args.description.trim() ? args.description : null,
-        category: args.category,
-        address: {
-          city: args.city.id,
-          cityName: args.city.name,
-          street: args.street,
-          streetNumber: args.streetNumber,
-        },
-        locationDisplayLevel: args.locationDisplayLevel,
-        itemCondition: args.isGive ? args.condition : null,
-        urgency: !args.isGive && args.urgency.trim() ? args.urgency : null,
-        estimatedValue: args.isGive ? args.estimatedValue : null,
-        mediaAssets: args.uploads.map((u) => ({
-          path: u.path,
-          mimeType: u.mimeType,
-          sizeBytes: u.sizeBytes,
-        })),
-        hideFromCounterparty: args.hideFromCounterparty,
-      });
+      return getCreatePostUseCase().execute(
+        buildPostCreatePayload({
+          ...args,
+          ownerId,
+          city: args.city,
+          visibility: args.visibilityRef.current,
+        }),
+      );
     },
     onSuccess: async () => {
       const { ownerId, city, street, streetNumber } = args;

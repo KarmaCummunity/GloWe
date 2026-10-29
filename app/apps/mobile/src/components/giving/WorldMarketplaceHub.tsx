@@ -1,5 +1,6 @@
 // Shared world hub: intro, quick links, optional extra header, and open "give" listings
 // for one marketplace world (items, food, rides, knowledge).
+import { createRouteFor } from '../../lib/unifiedCreate/createCategories';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { KcFlashList } from '../lists/KcFlashList';
@@ -29,7 +30,6 @@ export type WorldMarketplaceHubProps = {
   worldSlug: HubWorldSlug;
   icon: 'car-outline' | 'school-outline' | 'gift-outline' | 'restaurant-outline';
   introKey: string;
-  createPath: string;
   /** i18n key for the create link (default `marketplace.createListing`). */
   createLabelKey?: string;
   linksCategory?: 'transport' | 'knowledge';
@@ -41,7 +41,7 @@ export type WorldMarketplaceHubProps = {
 };
 
 export function WorldMarketplaceHub({
-  worldSlug, icon, introKey, createPath, createLabelKey, linksCategory, handoffsPath, headerExtra, rowMeta,
+  worldSlug, icon, introKey, createLabelKey, linksCategory, handoffsPath, headerExtra, rowMeta,
 }: WorldMarketplaceHubProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -65,7 +65,7 @@ export function WorldMarketplaceHub({
             <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
           </Pressable>
         ) : null}
-        <Pressable onPress={() => router.push(createPath as never)}>
+        <Pressable onPress={() => router.push(createRouteFor(worldSlug) as never)}>
           <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
         </Pressable>
       </View>

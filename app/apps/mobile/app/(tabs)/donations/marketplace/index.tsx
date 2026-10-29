@@ -4,6 +4,7 @@ import { ListingCard } from '../../../../src/components/cards/ListingCard';
 import { kcGridCell } from '../../../../src/components/cards/KcCard.styles';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
+import { createRouteFor } from '../../../../src/lib/unifiedCreate/createCategories';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { MARKETPLACE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
@@ -105,7 +106,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/map')}>
           <Text style={styles.link}>{t('marketplace.openMap')}</Text>
         </Pressable>
-        <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/create')}>
+        <Pressable onPress={() => router.push(createRouteFor(world) as never)}>
           <Text style={styles.link}>{t('marketplace.createListing')}</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/my-listings')}>
@@ -141,7 +142,7 @@ export default function MarketplaceBrowseScreen() {
                 <EmptyStateActions
                   primary={{
                     label: t('emptyStates.marketplaceCreate'),
-                    onPress: () => router.push('/(tabs)/donations/marketplace/create'),
+                    onPress: () => router.push(createRouteFor(world) as never),
                     testID: 'marketplace-empty-create',
                   }}
                   secondary={
