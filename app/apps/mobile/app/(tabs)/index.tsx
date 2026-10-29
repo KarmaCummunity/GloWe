@@ -237,7 +237,7 @@ export default function HomeFeedScreen() {
         extraIcon={
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/donations/marketplace/map')}
+              onPress={() => router.navigate('/(tabs)/donations/marketplace/map')}
               accessibilityRole="button"
               accessibilityLabel={t('feed.openMapA11y')}
               testID="feed-open-map"
