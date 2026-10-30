@@ -19,7 +19,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LANE_JOBS } from './ci-changes.mjs';
+import { LANE_JOBS, OPTIONAL_LANES } from './ci-changes.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO_ROOT = join(__dirname, '..');
@@ -142,7 +142,8 @@ export function checkGateWiring(content) {
   if (!/^ {4}if:[ \t]*(\$\{\{\s*)?always\(\)(\s*\}\})?[ \t]*$/m.test(gate.text)) {
     errors.push(`${GATE.file}: "${GATE.job}" must use \`if: always()\` so failed lanes still fail the gate`);
   }
-  const known = new Set(['changes', gate.id, ...LANE_JOBS]);
+  // Optional lanes may exist (and then must be in needs:) but are not required.
+  const known = new Set(['changes', gate.id, ...LANE_JOBS, ...OPTIONAL_LANES]);
   const ids = new Set(jobs.map((j) => j.id));
   for (const { id } of jobs) {
     if (!known.has(id)) {

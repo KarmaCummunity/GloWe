@@ -70,7 +70,7 @@ test('parseRequiredTable errors when heading missing', () => {
 
 // Minimal valid ci.yml: `changes`, every planned lane, and a gate that depends
 // on all of them and runs always().
-const LANES = ['hygiene', 'static', 'release', 'frontend', 'backend', 'edge'];
+const LANES = ['hygiene', 'static', 'frontend', 'backend', 'edge'];
 const CI_WF = [
   'name: CI',
   'jobs:',
@@ -219,7 +219,7 @@ test('checkGateWiring accepts inline and block needs lists', () => {
 });
 
 test('checkGateWiring flags a lane missing from the gate needs', () => {
-  const missing = CI_WF.replace(`    needs: [changes, ${LANES.join(', ')}]`, '    needs: [changes, hygiene, static, release, frontend, backend]');
+  const missing = CI_WF.replace(`    needs: [changes, ${LANES.join(', ')}]`, '    needs: [changes, hygiene, static, frontend, backend]');
   assert.deepEqual(checkGateWiring(missing), [
     '.github/workflows/ci.yml: job "edge" is missing from the "CI gate" needs: list — its failure would not block merges',
   ]);
@@ -229,6 +229,16 @@ test('checkGateWiring flags a job the change detector does not plan', () => {
   const extra = CI_WF.replace('  gate:', '  e2e:\n    name: e2e\n  gate:');
   const errors = checkGateWiring(extra);
   assert.ok(errors.some((e) => /job "e2e" is not a lane the change detector plans/.test(e)), errors.join('\n'));
+});
+
+test('checkGateWiring accepts an optional release lane wired into the gate', () => {
+  const withRelease = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:').replace(
+    `    needs: [changes, ${LANES.join(', ')}]`,
+    `    needs: [changes, ${LANES.join(', ')}, release]`,
+  );
+  assert.deepEqual(checkGateWiring(withRelease), []);
+  const unwired = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:');
+  assert.match(checkGateWiring(unwired)[0], /job "release" is missing from the "CI gate" needs: list/);
 });
 
 test('checkGateWiring flags a planned lane with no job', () => {

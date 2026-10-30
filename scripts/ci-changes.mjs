@@ -19,10 +19,11 @@
 //
 // Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_REF (PR / merge-group
 // target branch), BASE_SHA, HEAD_SHA.
-// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job (whether
-// it runs in this workflow run), sonar, and plan — a JSON object mapping every
-// lane job id to whether the change needs it. scripts/ci-gate.mjs requires the
-// plan to name every lane explicitly.
+// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job and per
+// optional lane (whether it runs in this workflow run), sonar, and plan — a
+// JSON object mapping every lane job id to whether the change needs it.
+// scripts/ci-gate.mjs requires the plan to name every lane explicitly; an
+// optional lane is named only when it is needed.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -58,13 +59,18 @@ export const INERT = [
 
 const LANES = Object.keys(LANE_RULES);
 
+/** Every lane job id in ci.yml; the gate and the drift guard key on this list. */
+export const LANE_JOBS = ['hygiene', 'static', ...LANES];
+
 /**
- * Every lane job id in ci.yml; the gate and the drift guard key on this list.
- * `release` is the dev → main lane (source branch, strict migration scan,
- * VERSION bump, dev E2E on the release head): needed for every change whose
- * base is main, whatever it touches.
+ * Lanes that appear in the plan only when needed: `release`, the dev → main
+ * lane (source branch, strict migration scan, VERSION bump, dev E2E), needed
+ * for every PR or merge group whose base is main, whatever it touches. Never
+ * planned as `false`, so a ci.yml without the job (and the gate copy that
+ * predates it) keeps passing; scripts/ci-gate.mjs accepts the job as skipped
+ * when the plan omits it. Keep in sync with OPTIONAL_LANES there.
  */
-export const LANE_JOBS = ['hygiene', 'static', 'release', ...LANES];
+export const OPTIONAL_LANES = ['release'];
 
 /** Map changed paths to the heavy lanes they need. */
 export function classify(files) {
@@ -103,18 +109,19 @@ export function plan({ event, draft, actor, ref, baseRef, files }) {
     const none = Object.fromEntries(LANE_JOBS.map((j) => [j, false]));
     return { draft: true, sonar: false, plan: none, run: none };
   }
-  // A PR into main or a merge-queue group for main. The lane itself fails a
-  // merge group (no head branch to check), so main cannot use a merge queue
-  // to bypass the release checks.
+  // A merge group for main is planned too; the release lane fails it (no
+  // head branch to check), so main cannot use a merge queue to skip release
+  // checks.
   const release = DIFF_EVENTS.has(event) && baseRef?.replace(/^refs\/heads\//, '') === 'main';
   const allLanes = files === null || !DIFF_EVENTS.has(event);
   const lanes = allLanes ? Object.fromEntries(LANES.map((l) => [l, true])) : classify(files);
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
   // runs get no secrets, so the scan cannot run for them.
   const sonarTarget = (isPr && actor !== 'dependabot[bot]') || (!isPr && event !== 'merge_group' && ref === 'refs/heads/main');
-  const needed = { hygiene: isPr, static: true, release, ...lanes };
+  const needed = { hygiene: isPr, static: true, ...lanes, ...(release ? { release: true } : {}) };
   if (event === 'pull_request_review') {
-    const run = Object.fromEntries(LANE_JOBS.map((j) => [j, needed[j] && REVIEW_LANES.includes(j)]));
+    const jobs = [...LANE_JOBS, ...OPTIONAL_LANES];
+    const run = Object.fromEntries(jobs.map((j) => [j, needed[j] === true && REVIEW_LANES.includes(j)]));
     return { draft: false, sonar: false, plan: needed, run };
   }
   return { draft: false, sonar: lanes.frontend && sonarTarget, plan: needed, run: needed };
@@ -158,6 +165,7 @@ function main() {
     `draft=${result.draft}`,
     `sonar=${result.sonar}`,
     ...LANE_JOBS.map((job) => `${job}=${result.run[job]}`),
+    ...OPTIONAL_LANES.map((job) => `${job}=${result.run[job] === true}`),
     `plan=${JSON.stringify(result.plan)}`,
   ];
   console.log(`changed files: ${files === null ? 'not diffed (all lanes)' : files.length}`);

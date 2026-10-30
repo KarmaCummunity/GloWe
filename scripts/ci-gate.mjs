@@ -40,13 +40,18 @@
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { LANE_JOBS, REVIEW_LANES } from './ci-changes.mjs';
+import { LANE_JOBS, OPTIONAL_LANES as OPTIONAL_LANE_IDS, REVIEW_LANES } from './ci-changes.mjs';
 import { findOwnerOverride } from './ci-github.mjs';
 import { PROTECTED, reusedLaneResults } from './ci-run-binding.mjs';
 import { workflowDrift } from './ci-workflow-diff.mjs';
 
 const DISPATCH_REFS = new Set(['refs/heads/dev', 'refs/heads/main']);
 const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
+
+// Lanes the change detector names only when needed (scripts/ci-changes.mjs,
+// loaded from the same base commit). Absent from the plan, such a lane is
+// "not needed" and may only have been skipped.
+const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS);
 
 /** Return the list of reasons the gate must fail (empty = pass). */
 export function evaluateGate({ needs, plan, draft, event, ref }) {
@@ -64,7 +69,7 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
   const errors = [];
   for (const [job, { result }] of Object.entries(needs)) {
     if (result === 'failure' || result === 'cancelled') errors.push(`job "${job}" ${result}`);
-    else if (job !== 'changes' && typeof plan[job] !== 'boolean') {
+    else if (job !== 'changes' && typeof plan[job] !== 'boolean' && !(OPTIONAL_LANES.has(job) && result === 'skipped')) {
       errors.push(`job "${job}" is not in the change detector's plan`);
     }
   }
@@ -84,12 +89,14 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
 /**
  * The needs a review-event run is judged on: its own result for `changes` and
  * REVIEW_LANES, and the earlier `pull_request` run's result for every other
- * lane (`missing` when that run has none, which fails a needed lane).
+ * lane (`missing` when that run has none, which fails a needed lane). An
+ * optional lane is replaced only when this ci.yml has the job.
  */
 export function mergeReused(needs, reused) {
   const merged = { ...needs };
-  for (const lane of LANE_JOBS) {
-    if (!REVIEW_LANES.includes(lane)) merged[lane] = { result: reused[lane] ?? 'missing' };
+  for (const lane of [...LANE_JOBS, ...OPTIONAL_LANE_IDS]) {
+    if (REVIEW_LANES.includes(lane) || (OPTIONAL_LANES.has(lane) && !(lane in needs))) continue;
+    merged[lane] = { result: reused[lane] ?? 'missing' };
   }
   return merged;
 }
@@ -124,7 +131,7 @@ async function judge(env, needs, plan) {
   let judged = needs;
   if (env.EVENT_NAME === 'pull_request_review' && !draft) {
     try {
-      const { run, results } = await reusedLaneResults(env, LANE_JOBS);
+      const { run, results } = await reusedLaneResults(env, [...LANE_JOBS, ...OPTIONAL_LANE_IDS]);
       console.log(`Review event: reusing lane results of ${run.html_url}`);
       judged = mergeReused(needs, results);
     } catch (err) {
