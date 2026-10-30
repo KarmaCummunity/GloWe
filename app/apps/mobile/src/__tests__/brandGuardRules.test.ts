@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { countLiterals } from './brandGuardRules';
 
-// Pins each brand-guard rule (spec 17 §4/§6, D67, D80): what it counts, the
+// Pins each brand-guard rule (spec 17 §4/§6, D67, D87): what it counts, the
 // boundary it leaves alone, and the `brand-guard-allow:` escape hatch.
 
 describe('countLiterals — colour, type, radius, spacing, sides', () => {

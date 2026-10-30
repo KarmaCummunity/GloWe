@@ -82,7 +82,7 @@ describe('theme/shadow', () => {
     expect(shadow.modal.elevation).toBeGreaterThan(shadow.card.elevation);
   });
 
-  it('exposes a brand-coloured glow for primary calls to action (D80)', () => {
+  it('exposes a brand-coloured glow for primary calls to action (D87)', () => {
     expect(shadow.glow.shadowColor).toBe(colors.primary);
     expect(shadow.glow.shadowOffset).toEqual({ width: 0, height: 4 });
     expect(shadow.glow.shadowOpacity).toBe(0.3);
@@ -92,7 +92,7 @@ describe('theme/shadow', () => {
 });
 
 describe('theme/iconSize', () => {
-  it('exposes the six-step Ionicons scale (D80)', () => {
+  it('exposes the six-step Ionicons scale (D87)', () => {
     expect(iconSize).toEqual({ xs: 14, sm: 16, md: 18, lg: 20, xl: 22, '2xl': 24 });
   });
 
@@ -106,7 +106,7 @@ describe('theme/iconSize', () => {
 });
 
 describe('theme/zIndex', () => {
-  it('names the stacking layers the app uses (D80)', () => {
+  it('names the stacking layers the app uses (D87)', () => {
     expect(zIndex).toEqual({ base: 0, raised: 1, overlay: 2, floating: 20, toast: 9999 });
   });
 
