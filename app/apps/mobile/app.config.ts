@@ -52,7 +52,7 @@ function resolveGoogleServicesFile(): string | undefined {
 }
 
 export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
-  const easProjectId = process.env.EAS_PROJECT_ID?.trim() || undefined;
+  const easProjectId = process.env.EAS_PROJECT_ID?.trim() || config.extra?.eas?.projectId;
   applySentryBuildDefaults();
   warnMissingSupabaseEnv(process.env.EAS_BUILD_PROFILE);
 
@@ -71,6 +71,8 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
     ...config,
     android,
     version: readAppVersion(),
+    // OTA (expo-updates): the EAS Update channels in eas.json serve this project.
+    updates: { ...config.updates, url: `https://u.expo.dev/${easProjectId}` },
     extra: {
       ...config.extra,
       gitCommitSha: resolveGitCommitSha(),
@@ -81,7 +83,7 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
       sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || undefined,
       posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY?.trim() || undefined,
       // EAS project id is injected from the KC_EAS_PROJECT_ID repo variable (CI) or local env.
-      eas: { ...config.extra?.eas, projectId: easProjectId ?? config.extra?.eas?.projectId },
+      eas: { ...config.extra?.eas, projectId: easProjectId },
     },
   } as ExpoConfig;
 }
