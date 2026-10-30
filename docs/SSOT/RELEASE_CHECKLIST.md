@@ -115,7 +115,7 @@ Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once c
 
 > **Scope:** the Expo / EAS mobile app at `app/apps/mobile` (bundle id / package `org.karmacommunity.app`; marketing version from `app/VERSION` via `app.config.ts`; iOS build number / Android versionCode from EAS remote `autoIncrement`).
 > This is separate from the web release flow above.
-> **Internal tracks are automatic (`D-195` tier 2):** **Mobile nightly** (`.github/workflows/mobile-nightly.yml`) ships the newest green `dev` commit to TestFlight and Play internal every night — see [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) § Production release. App Store review and Play promotion beyond `internal` stay manual and PM-gated.
+> **Internal tracks are automatic (`D-195` tier 2):** **Mobile nightly** (`.github/workflows/mobile-nightly.yml`) ships the newest green `dev` commit to TestFlight and Play internal every night, built against the kc-dev backend (eas.json `nightly` profile) — see [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) § Production release. Production store builds (prod backend, App Store review, Play promotion beyond `internal`) are not automated and stay PM-gated.
 
 ## A. One-time account + project setup (needs owner credentials — cannot be automated)
 
@@ -167,4 +167,4 @@ eas submit --platform android --profile production --latest
 - [x] Real `extra.eas.projectId` committed (`TD-121`, closed).
 - [ ] Supabase Apple provider configured (`FR-AUTH-004`; closes the go-live half of `TD-24`).
 - [ ] Deep-link fingerprints filled (`TD-66`).
-- [ ] Remaining app bugs resolved (PM-tracked) — first build is gated on this.
+- [ ] Remaining app bugs resolved (PM-tracked) — the first production store submission is gated on this (nightly tester builds are not).

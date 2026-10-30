@@ -34,7 +34,7 @@ git log --oneline origin/dev --since='2 weeks ago' --grep=''
 
 ## Pipelines (dev → stores)
 
-**Mobile nightly** ([`mobile-nightly.yml`](../../.github/workflows/mobile-nightly.yml), 23:43 UTC) ships the newest green `dev` commit to TestFlight + Play internal after the P0 E2E journeys pass (`D-195`). The store workflows can also be dispatched by hand on `dev`/`main`, for a commit with a green `CI` push run. Missing secrets fail the job. Backend: GitHub Environment `mobile-store` (`MOBILE_SUPABASE_TARGET`, `MOBILE_SUPABASE_ANON_KEY`) — see [`ENVIRONMENTS.md`](../SSOT/ENVIRONMENTS.md).
+**Mobile nightly** ([`mobile-nightly.yml`](../../.github/workflows/mobile-nightly.yml), 23:43 UTC) ships the newest green `dev` commit to TestFlight + Play internal after the P0 E2E journeys pass (`D-195`). The store workflows can also be dispatched by hand on `dev`, for a commit with a green `CI` push run. Missing secrets fail the job. Tester builds use the kc-dev backend (eas.json `nightly` profile, key in GitHub Environment `mobile-store`), and a build whose bundle points anywhere else is not uploaded — see [`ENVIRONMENTS.md`](../SSOT/ENVIRONMENTS.md).
 
 | Stage | Workflow | What it does | Secrets (names only) |
 |---|---|---|---|

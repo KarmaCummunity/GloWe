@@ -84,10 +84,10 @@ Set Supabase and Sentry values as [EAS secrets](https://docs.expo.dev/build-refe
 | -------- | ------- |
 | [`kc-mobile-eas-preview.yml`](../../../.github/workflows/kc-mobile-eas-preview.yml) | Manual EAS preview builds (no store submit) |
 | [`mobile-nightly.yml`](../../../.github/workflows/mobile-nightly.yml) | Nightly: newest green `dev` commit → P0 E2E → TestFlight + Play internal |
-| [`testflight-ios.yml`](../../../.github/workflows/testflight-ios.yml) | TestFlight upload (macOS local EAS build); nightly or manual on `dev`/`main` |
-| [`play-internal.yml`](../../../.github/workflows/play-internal.yml) | Play internal-track upload; nightly or manual on `dev`/`main` |
+| [`testflight-ios.yml`](../../../.github/workflows/testflight-ios.yml) | TestFlight upload (macOS local EAS build); nightly or manual on `dev` |
+| [`play-internal.yml`](../../../.github/workflows/play-internal.yml) | Play internal-track upload; nightly or manual on `dev` |
 
-Store builds only build commits with a green `CI` push run and fail fast when required secrets are missing. Their Supabase backend comes from the GitHub Environment `mobile-store`, not from EAS env ([`ENVIRONMENTS.md`](../../../docs/SSOT/ENVIRONMENTS.md)).
+Store builds only build commits with a green `CI` push run and fail fast when required secrets are missing. They use the eas.json `nightly` profile and the kc-dev Supabase backend (key in the GitHub Environment `mobile-store`), and refuse to upload a build whose bundle points elsewhere ([`ENVIRONMENTS.md`](../../../docs/SSOT/ENVIRONMENTS.md)).
 
 ## OTA updates
 

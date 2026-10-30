@@ -51,7 +51,7 @@ Playwright QA suite against `https://dev.karma-community.pages.dev` + kc-dev: [`
 | `e2e-nightly-dev.yml` | nightly + manual | QA suite against dev |
 | `ci-e2e-dev.yml` | dev → main PRs | Release gate |
 | `k6-load-dev.yml` | manual | Load test against dev |
-| `mobile-nightly.yml` → `testflight-ios.yml`, `play-internal.yml` | nightly + manual (dev/main) | Store builds of the newest green dev commit, see [RELEASE.md](./RELEASE.md) |
+| `mobile-nightly.yml` → `testflight-ios.yml`, `play-internal.yml` | nightly + manual (dev) | Store builds of the newest green dev commit, see [RELEASE.md](./RELEASE.md) |
 | `kc-mobile-eas-preview.yml` | manual | EAS preview build, no store submit |
 | `prod-smoke.yml`, `sync-main-to-dev.yml`, `ci-main-guard.yml` | main / release | Prod side. Do not trigger without Nave |
 | `auto-merge-agent-ready.yml`, `labeler.yml`, `bump-app-version.yml`, `stale-stack-report.yml` | PR / schedule | Housekeeping |
