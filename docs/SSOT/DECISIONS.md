@@ -1507,7 +1507,7 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Why.** PM request (2026-10-30) for an advanced visual of the full hierarchy, from the hidden layer of all users up to the visible layers of role-holders, volunteers and managers in every org. Keeping identities on a single RBAC path (`admin_org_tree`) avoids a second visibility predicate to keep in sync; counts-only for the base honours the privacy floor (no identity exposure for users without a role); treating memberships as aggregates prevents self-declared affiliations from reading as granted authority.
 
-**Affected.** `supabase/migrations/0453_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
+**Affected.** `supabase/migrations/0461_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
 
 ## Change Log
 
