@@ -1,6 +1,6 @@
 export const worldLaunch = {
-  comingSoonTitle: 'Coming soon',
-  comingSoonBody:
-    'This part of Karma Community is not open yet. Items and food are available now — more worlds will follow.',
+  portalTitle: 'Coming to the app soon',
+  portalBody: 'This world is open as a portal: links, knowledge and active organizations. Full in-app giving opens later.',
+  portalTileSubtitle: 'Links and knowledge',
   backToHub: 'Back to donations',
 };
