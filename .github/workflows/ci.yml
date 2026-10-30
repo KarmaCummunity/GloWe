@@ -20,7 +20,8 @@ on:
   merge_group:
     types: [checks_requested]
   # Post-merge signal on the integration branches (and the main SonarCloud
-  # analysis); lanes are still chosen from the pushed diff.
+  # analysis). Pushes run every lane, so a green push run certifies the whole
+  # tree at that SHA (the nightly mobile builds and deploys rely on it).
   push:
     branches: [dev, main]
   workflow_dispatch:

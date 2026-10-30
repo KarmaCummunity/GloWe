@@ -6,6 +6,12 @@
 // a path that no lane claims and that is not provably inert turns every heavy
 // lane on instead of slipping through untested.
 //
+// Only PRs and merge-queue groups are planned from their diff. A push to
+// dev/main and a manual dispatch run every lane, so a green push run certifies
+// the whole tree at that SHA: the nightly mobile builds and the deploys trust
+// it, and a docs-only push after a red (or never-run) push would otherwise
+// come out green without the code having passed.
+//
 // Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_SHA, HEAD_SHA.
 // Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job, sonar,
 // and plan — a JSON object mapping every lane job id to whether it is needed.
@@ -61,16 +67,19 @@ export function classify(files) {
   return lanes;
 }
 
+/** Events planned from their diff; every other event runs every lane. */
+export const DIFF_EVENTS = new Set(['pull_request', 'merge_group']);
+
 /**
  * Build the CI plan. `files` is null when the diff could not be computed;
- * that (like a manual dispatch) runs every lane.
+ * that (like a push or a manual dispatch) runs every lane.
  */
 export function plan({ event, draft, actor, ref, files }) {
   const isPr = event === 'pull_request';
   if (isPr && draft) {
     return { draft: true, sonar: false, plan: Object.fromEntries(LANE_JOBS.map((j) => [j, false])) };
   }
-  const allLanes = files === null || !['pull_request', 'merge_group', 'push'].includes(event);
+  const allLanes = files === null || !DIFF_EVENTS.has(event);
   const lanes = allLanes ? Object.fromEntries(LANES.map((l) => [l, true])) : classify(files);
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
   // runs get no secrets, so the scan cannot run for them.
@@ -107,7 +116,7 @@ export function changedFiles(base, head, cwd = process.cwd()) {
 
 function main() {
   const env = process.env;
-  const files = changedFiles(env.BASE_SHA, env.HEAD_SHA);
+  const files = DIFF_EVENTS.has(env.EVENT_NAME) ? changedFiles(env.BASE_SHA, env.HEAD_SHA) : null;
   const result = plan({
     event: env.EVENT_NAME,
     draft: env.DRAFT === 'true',
@@ -121,7 +130,7 @@ function main() {
     ...LANE_JOBS.map((job) => `${job}=${result.plan[job]}`),
     `plan=${JSON.stringify(result.plan)}`,
   ];
-  console.log(`changed files: ${files === null ? 'unknown (all lanes)' : files.length}`);
+  console.log(`changed files: ${files === null ? 'not diffed (all lanes)' : files.length}`);
   console.log(lines.join('\n'));
   if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `${lines.join('\n')}\n`);
 }
