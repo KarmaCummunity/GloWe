@@ -82,3 +82,7 @@ jobs:
       - name: Required-check docs and CI gate wiring
         if: ${{ !cancelled() }}
         run: node scripts/check-required-checks-drift.mjs
+
+      - name: Deploys only through deploy.yml
+        if: ${{ !cancelled() }}
+        run: node scripts/check-deploy-isolation.mjs

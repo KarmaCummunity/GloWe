@@ -1,0 +1,293 @@
+name: Deploy
+
+# The only workflow that deploys KC (D-195, INFRA-CI-3). Nothing deploys on
+# push: a dev/main push runs CI, and when that CI run succeeds this workflow
+# deploys exactly the commit CI tested.
+#
+#   dev  → supabase-dev + cloudflare-dev, automatic.
+#   main → one approval click by the owner on the `production` environment,
+#          then supabase-prod + cloudflare-prod.
+#
+# Order: resolve → preflight (supabase + web) → approve (prod) → DB (backup on
+# prod, dry-run, apply) → Edge Functions → web baseline (prod) → web → smoke →
+# tag (prod). On prod, a failed functions/web/smoke stage rolls web back to
+# the recorded Cloudflare deployment and functions to the previous release
+# tag, then re-runs the smoke (deploy-rollback.yml). The DB is forward-fix
+# only. Each stage is a reusable deploy-*.yml workflow with no trigger of its
+# own (scripts/check-deploy-isolation.mjs enforces that).
+#
+# Environments: `production` holds only the required reviewer (the owner) and
+# no secrets; one job uses it, so a release costs exactly one click. The
+# secrets live on supabase-{dev,prod} and cloudflare-{dev,prod}, which must
+# have NO reviewers (each would add a click). Restrict the prod environments
+# and `production` to the `main` branch: `workflow_run` jobs run on the default
+# branch, and that restriction stops a dispatch from any other ref using them.
+#
+# `workflow_run` always runs this file as it is on the default branch (main),
+# so deploy-pipeline changes take effect only after a release. Dispatch runs
+# use the dispatched ref's copy and are limited to dev and main.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [dev, main]
+  workflow_dispatch:
+
+# One deploy per environment at a time; a running deploy is never cancelled.
+# CI runs that cannot deploy (PR events, failures) get a unique group so they
+# never displace a queued real deploy.
+concurrency:
+  group: >-
+    deploy-${{ (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'))
+    && (github.event.workflow_run.head_branch || github.ref_name) || format('noop-{0}', github.run_id) }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  # Which commit, which target, and proof that CI gated it (scripts/deploy-target.mjs).
+  # On prod it also refuses a release whose app/VERSION tag already exists on
+  # another commit, and finds the previous release for rollback.
+  resolve:
+    name: resolve target
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      deploy: ${{ steps.target.outputs.deploy }}
+      target: ${{ steps.target.outputs.target }}
+      sha: ${{ steps.target.outputs.sha }}
+      previous_sha: ${{ steps.release.outputs.previous_sha }}
+    steps:
+      # Tags and history for the release check; the scripts come from the commit being deployed.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Resolve and verify the CI gate
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          WORKFLOW_RUN: ${{ toJSON(github.event.workflow_run) }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/deploy-target.mjs
+      - name: Release tag check (prod)
+        id: release
+        if: steps.target.outputs.deploy == 'true' && steps.target.outputs.target == 'prod'
+        env:
+          SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          node scripts/release-version.mjs tag-plan "$SHA"
+          {
+            echo "### Release $(cat app/VERSION) — \`$SHA\`"
+            echo "Approve the \`production\` environment to deploy it."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Every Supabase secret present and pointing at the target's project; the
+  # project is ACTIVE_HEALTHY. Fails before anything is touched.
+  preflight-supabase:
+    name: preflight · supabase
+    needs: resolve
+    if: needs.resolve.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: supabase-${{ needs.resolve.outputs.target }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Check Supabase secrets
+        env:
+          TARGET: ${{ needs.resolve.outputs.target }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+        run: node scripts/deploy-preflight.mjs supabase "$TARGET"
+
+  # Cloudflare + web build settings; on prod also that `main` is the Pages
+  # production branch (else the deploy would only create a preview).
+  preflight-web:
+    name: preflight · web
+    needs: resolve
+    if: needs.resolve.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: cloudflare-${{ needs.resolve.outputs.target }}
+    permissions:
+      contents: read
+    env:
+      TARGET: ${{ needs.resolve.outputs.target }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT: karma-community
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+      - name: Check web secrets and URL
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_ENVIRONMENT: ${{ secrets.EXPO_PUBLIC_ENVIRONMENT }}
+          WEB_URL: ${{ needs.resolve.outputs.target == 'prod' && vars.KC_PROD_URL || vars.DEV_WEB_URL }}
+        run: node scripts/deploy-preflight.mjs web "$TARGET"
+      - name: Check the Pages production branch (prod)
+        if: env.TARGET == 'prod'
+        run: node scripts/cloudflare-pages.mjs current main
+
+  # The owner's one click. Fails closed if `production` has no required
+  # reviewer: the run's approvals must include one for this environment.
+  approve:
+    name: approve release
+    needs: [resolve, preflight-supabase, preflight-web]
+    if: needs.resolve.outputs.target == 'prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: production
+      url: ${{ vars.KC_PROD_URL }}
+    permissions:
+      actions: read
+    steps:
+      - name: Confirm a reviewer approved this run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          approvers=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/approvals" \
+            --jq '[.[] | select(.state == "approved" and any(.environments[]; .name == "production")) | .user.login] | join(",")')
+          if [ -z "$approvers" ]; then
+            echo "::error::The production environment let this run through without an approval. Add the owner as its required reviewer (Settings → Environments → production)."
+            exit 1
+          fi
+          echo "Release approved by $approvers."
+
+  db:
+    name: database
+    needs: [resolve, preflight-supabase, preflight-web, approve]
+    # Explicit: on prod `approve` must succeed; on dev it is skipped.
+    if: >-
+      !cancelled() && needs.preflight-supabase.result == 'success' && needs.preflight-web.result == 'success'
+      && (needs.approve.result == 'success' || (needs.approve.result == 'skipped' && needs.resolve.outputs.target == 'dev'))
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-db.yml
+    with:
+      target: ${{ needs.resolve.outputs.target }}
+      sha: ${{ needs.resolve.outputs.sha }}
+    secrets: inherit
+
+  functions:
+    name: edge functions
+    needs: [resolve, db]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-functions.yml
+    with:
+      target: ${{ needs.resolve.outputs.target }}
+      sha: ${{ needs.resolve.outputs.sha }}
+    secrets: inherit
+
+  # Records the Cloudflare deployment serving prod right before the web
+  # deploy replaces it; rollback-web returns to it.
+  web-baseline:
+    name: web baseline (prod)
+    needs: [resolve, functions]
+    if: needs.resolve.outputs.target == 'prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: cloudflare-prod
+    permissions:
+      contents: read
+    outputs:
+      previous_id: ${{ steps.current.outputs.previous_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          sparse-checkout: scripts
+          persist-credentials: false
+      - name: Record the live production deployment
+        id: current
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PAGES_PROJECT: karma-community
+        run: node scripts/cloudflare-pages.mjs current main
+
+  web:
+    name: web
+    needs: [resolve, functions, web-baseline]
+    if: >-
+      !cancelled() && needs.functions.result == 'success'
+      && (needs.web-baseline.result == 'success' || (needs.web-baseline.result == 'skipped' && needs.resolve.outputs.target == 'dev'))
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-web.yml
+    with:
+      target: ${{ needs.resolve.outputs.target }}
+      sha: ${{ needs.resolve.outputs.sha }}
+    secrets: inherit
+
+  smoke:
+    name: smoke
+    needs: [resolve, web]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-smoke.yml
+    with:
+      target: ${{ needs.resolve.outputs.target }}
+      sha: ${{ needs.resolve.outputs.sha }}
+    secrets: inherit
+
+  # vX.Y.Z tag + GitHub Release on the released commit (deploy-tag.yml).
+  tag:
+    name: tag release
+    needs: [resolve, smoke]
+    if: needs.resolve.outputs.target == 'prod'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy-tag.yml
+    with:
+      sha: ${{ needs.resolve.outputs.sha }}
+
+  # Prod only, when functions, web or smoke failed after the approval: web
+  # back to the deployment web-baseline recorded (empty when the web stage
+  # never started), functions back to the previous release tag.
+  rollback:
+    name: rollback (prod)
+    needs: [resolve, functions, web-baseline, web, smoke]
+    if: >-
+      always() && needs.resolve.outputs.target == 'prod'
+      && (needs.functions.result == 'failure' || needs.web.result == 'failure' || needs.smoke.result == 'failure')
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-rollback.yml
+    with:
+      sha: ${{ needs.resolve.outputs.sha }}
+      previous_sha: ${{ needs.resolve.outputs.previous_sha }}
+      previous_web_id: ${{ needs.web-baseline.outputs.previous_id }}
+    secrets: inherit
+

@@ -1,0 +1,79 @@
+name: Edge Functions deploy
+
+# Edge Functions stage of the deploy pipeline (D-195, INFRA-CI-3). Called only
+# by deploy.yml: after the DB stage, and again on a failed prod release to
+# redeploy the previous release tag's functions (rollback). No push or manual
+# trigger; to redeploy dev, dispatch the Deploy workflow on `dev`.
+#
+# Deploys every function scripts/edge-functions.mjs lists (all of
+# supabase/functions except shared code and local-only mock-login) to the
+# target project, so the remote cannot drift behind the branch (TD-53). The
+# deploy smoke probes the same list.
+#
+# Environment supabase-<target> (no reviewers): SUPABASE_ACCESS_TOKEN,
+# SUPABASE_DB_PASSWORD, SUPABASE_PROJECT_REF; optional variable
+# PUBLIC_RESEARCH_ALLOWED_ORIGINS (Survey B CORS allowlist, synced as a
+# function secret).
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: dev or prod
+        type: string
+        required: true
+      sha:
+        description: Exact commit whose functions to deploy
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: functions · ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: supabase-${{ inputs.target }}
+    env:
+      TARGET: ${{ inputs.target }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+
+      # Pins the project ref per target, so functions never land on the wrong project.
+      - name: Preflight (secrets present, project ref matches the target)
+        run: node scripts/deploy-preflight.mjs supabase "$TARGET"
+
+      - uses: ./.github/actions/setup-supabase-cli
+
+      # Before the deploy, so new function instances start with the current
+      # value. Passed through env: a variable is data, never script text.
+      - name: Sync public-research CORS origins
+        if: vars.PUBLIC_RESEARCH_ALLOWED_ORIGINS != ''
+        env:
+          ORIGINS: ${{ vars.PUBLIC_RESEARCH_ALLOWED_ORIGINS }}
+        run: supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "PUBLIC_RESEARCH_ALLOWED_ORIGINS=$ORIGINS"
+
+      # --use-api bundles server-side (no Docker); verify_jwt per function
+      # comes from supabase/config.toml.
+      - name: Deploy every function
+        run: |
+          set -euo pipefail
+          names=$(node scripts/edge-functions.mjs)
+          for name in $names; do
+            echo "::group::$name"
+            supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --use-api
+            echo "::endgroup::"
+          done

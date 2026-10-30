@@ -1,0 +1,106 @@
+name: Deploy rollback
+
+# Prod rollback, called only by deploy.yml when the Edge Functions, web or
+# smoke stage of an approved release failed (D-195, INFRA-CI-3):
+#
+#   web        Cloudflare Pages production → the deployment deploy.yml
+#              recorded right before its web deploy (skipped when the web
+#              stage never started).
+#   functions  redeploy the previous release tag's Edge Functions (skipped
+#              when there is no earlier tag; the report says so).
+#   smoke      re-check prod; the SHA match only when a previous tag exists.
+#   report     what was and was not rolled back. Always fails, so the run
+#              stays red and the release is not tagged.
+#
+# The database is never rolled back: migrations must be backward compatible,
+# and a bad one is forward-fixed. The encrypted pre-migration backup on the
+# deploy run is for a manual restore only.
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: The failed release commit
+        type: string
+        required: true
+      previous_sha:
+        description: Commit of the previous release tag (empty if none)
+        type: string
+        required: true
+      previous_web_id:
+        description: Cloudflare deployment id that served prod before the web stage (empty if the web stage never started)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: rollback web
+    if: inputs.previous_web_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: cloudflare-prod
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.sha }}
+          sparse-checkout: scripts
+          persist-credentials: false
+      - name: Point production back at the recorded deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PAGES_PROJECT: karma-community
+          PREVIOUS_ID: ${{ inputs.previous_web_id }}
+        run: node scripts/cloudflare-pages.mjs rollback "$PREVIOUS_ID"
+
+  functions:
+    name: rollback functions
+    if: inputs.previous_sha != ''
+    uses: ./.github/workflows/deploy-functions.yml
+    with:
+      target: prod
+      sha: ${{ inputs.previous_sha }}
+    secrets: inherit
+
+  smoke:
+    name: smoke after rollback
+    needs: [web, functions]
+    if: always() && (needs.web.result == 'success' || needs.functions.result == 'success')
+    uses: ./.github/workflows/deploy-smoke.yml
+    with:
+      target: prod
+      sha: ${{ inputs.previous_sha }}
+      checks: ${{ inputs.previous_sha != '' && 'version,web,supabase,functions' || 'web,supabase,functions' }}
+    secrets: inherit
+
+  report:
+    name: rollback report
+    needs: [web, functions, smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Summarise the rollback
+        env:
+          SHA: ${{ inputs.sha }}
+          PREVIOUS_SHA: ${{ inputs.previous_sha }}
+          WEB: ${{ needs.web.result }}
+          FUNCTIONS: ${{ needs.functions.result }}
+          SMOKE: ${{ needs.smoke.result }}
+        run: |
+          {
+            echo "### Prod release $SHA failed after approval"
+            echo "- Web rollback: $WEB"
+            if [ -n "$PREVIOUS_SHA" ]; then
+              echo "- Edge Functions redeployed from $PREVIOUS_SHA: $FUNCTIONS"
+            else
+              echo "- Edge Functions: no earlier release tag, so they stay at $SHA (redeploy by hand if needed)"
+            fi
+            echo "- Smoke after rollback: $SMOKE"
+            echo "- Database: forward-fix only; migrations stay applied (encrypted backup artifact on this run if migrations changed)"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "::error::Prod release $SHA failed; see the rollback summary."
+          exit 1
