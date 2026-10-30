@@ -6,6 +6,7 @@ import { brand, lightColors } from '@kc/ui';
 import en from '../i18n/locales/en';
 // eslint-disable-next-line no-restricted-imports -- test asserts both bundles' appName match the brand constants
 import he from '../i18n/locales/he';
+import { countLiterals, RULE_NAMES, type RuleName } from './brandGuardRules';
 import {
   MOBILE_ROOT,
   compareToBaseline,
@@ -14,14 +15,15 @@ import {
   touchedFiles,
   writeBaseline as writeBaselineFile,
   type Baseline as RatchetBaseline,
-  type FileCounts as RatchetCounts,
 } from './guardKit/ratchet';
 
-// Brand guard — spec 17 §4/§6 (D65, D67), debt TD-199.
+// Brand guard — spec 17 §4/§6 (D65, D67, D87), debt TD-199.
 //
-// App code must take colours, type (size, weight, family), corner radii and
-// spacing from @kc/ui tokens, and use logical sides (start/end) so layouts
-// mirror between Hebrew (RTL) and English (LTR).
+// App code must take colours, type (size, weight, family), corner radii,
+// spacing, icon sizes, layers and shadows from @kc/ui tokens, use logical sides
+// (start/end) so layouts mirror between Hebrew (RTL) and English (LTR), and
+// build forms and dialogs from the shared kit. The rules live in
+// `brandGuardRules.ts`.
 // Existing literals are frozen per file in `brand-guard.baseline.json`; counts
 // may only go down. After a cleanup, tighten the baseline with:
 //   KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard
@@ -31,29 +33,8 @@ import {
 
 const SCANNED_DIRS = ['src', 'app'] as const;
 const BASELINE_PATH = path.join(MOBILE_ROOT, 'brand-guard.baseline.json');
-const ALLOW_MARKER = 'brand-guard-allow:';
 
-const RULES = {
-  // `colors.*` from useTheme() / makeUseStyles().
-  colorLiteral: /['"`](?:#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})['"`]|rgba?\()/g,
-  // `typography.<preset>` for size, `typography.<modifier>` (medium…extraBold) for weight.
-  fontSizeLiteral: /\bfontSize:\s*\d/g,
-  fontWeightLiteral: /\bfontWeight:\s*['"`\d]/g,
-  fontFamilyLiteral: /\bfontFamily:\s*['"`]/g,
-  // `radius.*` — zero (square corner) is not a literal to replace.
-  radiusLiteral: /\bborder(?:Top|Bottom)?(?:Start|End|Left|Right)?Radius:\s*[1-9]/g,
-  // `spacing.*` for margin / padding / gap — zero is allowed.
-  spacingLiteral:
-    /\b(?:margin|padding)(?:Top|Bottom|Start|End|Left|Right|Horizontal|Vertical)?:\s*-?[1-9]|\b(?:gap|rowGap|columnGap):\s*[1-9]/g,
-  // Physical sides break the RTL/LTR mirror: use start/end or the rtlLayout helpers.
-  physicalSide:
-    /\btextAlign:\s*['"`](?:left|right)['"`]|\b(?:margin|padding|border)(?:Left|Right)\w*:|\bborder(?:Top|Bottom)(?:Left|Right)Radius:/g,
-} as const;
-
-type RuleName = keyof typeof RULES;
-type FileCounts = RatchetCounts<RuleName>;
 type Baseline = RatchetBaseline<RuleName>;
-const RULE_NAMES = Object.keys(RULES) as RuleName[];
 
 function isScannedSource(fileName: string): boolean {
   return /\.tsx?$/.test(fileName) && !/\.(test|d)\.tsx?$/.test(fileName);
@@ -67,20 +48,10 @@ function listSources(relativeDir: string): string[] {
   });
 }
 
-function countLiterals(source: string): FileCounts {
-  const lines = source.split('\n').filter((line) => !line.includes(ALLOW_MARKER));
-  const counts: FileCounts = {};
-  for (const rule of RULE_NAMES) {
-    const found = lines.reduce((sum, line) => sum + (line.match(RULES[rule])?.length ?? 0), 0);
-    if (found > 0) counts[rule] = found;
-  }
-  return counts;
-}
-
 function scanApp(): Baseline {
   const result: Baseline = {};
   for (const file of SCANNED_DIRS.flatMap(listSources).sort()) {
-    const counts = countLiterals(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'));
+    const counts = countLiterals(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'), file);
     if (Object.keys(counts).length > 0) result[file] = counts;
   }
   return result;
@@ -93,7 +64,7 @@ function readBaseline(): Baseline {
 function writeBaseline(files: Baseline): void {
   writeBaselineFile(
     BASELINE_PATH,
-    'Frozen hard-coded style literals per file (spec 17 §6, TD-199). Counts may only go down.',
+    'Frozen brand-guard findings per file (spec 17 §6, TD-199). Counts may only go down.',
     files,
   );
 }
@@ -109,42 +80,6 @@ function touchedSources(baseRef: string): string[] | null {
   );
 }
 
-describe('countLiterals', () => {
-  it('counts quoted hex and rgb() colours, raw font sizes and font families', () => {
-    const source = [
-      "const a = { color: '#F97316', backgroundColor: \"#fff\" };",
-      "const b = { borderColor: 'rgba(0, 0, 0, 0.5)', fontSize: 13, fontFamily: 'Courier' };",
-    ].join('\n');
-    expect(countLiterals(source)).toEqual({ colorLiteral: 3, fontSizeLiteral: 1, fontFamilyLiteral: 1 });
-  });
-
-  it('counts raw font weights, corner radii and spacing, but not zero', () => {
-    const source = [
-      "const a = { fontWeight: '800', borderRadius: 8, borderTopStartRadius: 12, borderRadius: 0 };",
-      'const b = { padding: 10, marginHorizontal: -4, gap: 6, margin: 0, paddingTop: insets.top };',
-    ].join('\n');
-    expect(countLiterals(source)).toEqual({ fontWeightLiteral: 1, radiusLiteral: 2, spacingLiteral: 3 });
-  });
-
-  it('counts physical sides that do not mirror between RTL and LTR', () => {
-    const source = [
-      "const a = { textAlign: 'right', borderLeftWidth: 1, borderTopRightRadius: radius.md };",
-      "const b = { textAlign: 'center', borderStartWidth: 1, paddingEnd: spacing.sm };",
-    ].join('\n');
-    expect(countLiterals(source)).toEqual({ physicalSide: 3 });
-  });
-
-  it('ignores tokens, hashtags, issue numbers and allowed lines', () => {
-    const source = [
-      'const a = { color: colors.primary, fontSize: typography.body.fontSize };',
-      'const b = { ...typography.bold, borderRadius: radius.lg, padding: spacing.md, gap: spacing.xs };',
-      "const tag = '#giving'; // see #123",
-      "const google = '#4285F4'; // brand-guard-allow: Google sign-in mark",
-    ].join('\n');
-    expect(countLiterals(source)).toEqual({});
-  });
-});
-
 describe('brand guard', () => {
   const current = scanApp();
 
@@ -159,7 +94,10 @@ describe('brand guard', () => {
   const { grew, shrank } = compareToBaseline(RULE_NAMES, current, readBaseline());
 
   it('adds no hard-coded style literal or physical side beyond the frozen baseline', () => {
-    expect(grew, 'use @kc/ui tokens (useTheme / typography / radius / spacing) and start/end sides').toEqual([]);
+    expect(
+      grew,
+      'use @kc/ui tokens (useTheme / typography / radius / spacing / iconSize / zIndex / shadow), start/end sides and the kit components',
+    ).toEqual([]);
   });
 
   it('keeps the baseline tight after cleanups (rerun with KC_BRAND_BASELINE=update)', () => {
@@ -182,7 +120,7 @@ describe('touched-file rule (spec 17 §6, D67)', () => {
 
   it(`leaves every file changed since ${baseRef} with zero findings`, () => {
     const dirty = touched.flatMap((file) => {
-      const counts = countLiterals(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'));
+      const counts = countLiterals(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'), file);
       return Object.keys(counts).length > 0 ? [`${file}: ${JSON.stringify(counts)}`] : [];
     });
     expect(dirty, 'a file you change must be fully on tokens — fix the whole file, not only your lines').toEqual([]);

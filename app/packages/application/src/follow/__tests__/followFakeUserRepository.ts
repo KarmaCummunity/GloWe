@@ -4,10 +4,8 @@
 // stubbed to throw.
 
 import type {
-  AuthIdentity,
   FollowEdge,
   FollowRequest,
-  OnboardingState,
   PrivacyMode,
   User,
 } from '@kc/domain';

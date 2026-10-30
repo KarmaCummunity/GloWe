@@ -25,8 +25,15 @@
 | אתגר | Challenge | Personal, group or community (D43) |
 | פוסט מיובא / תביעה | Imported post / claim | From WhatsApp; ownership confirmed by phone verification (D38, S21) |
 | גשר קבוצה | Group bridge | Parallel community + summaries during migration (S23) |
+| מקום רשמי | Official place | A city, street, or named junction/interchange from an official catalog; the only kind of place a ride may use (D71) |
+| נקודת איסוף | Meeting point | An official place along a ride where passengers board; up to 3 per ride (D71) |
+| מסלול שמור | Saved route | A followed from → to route that notifies on new rides along it (D74) |
+| הזמנת מקום | Seat booking | A passenger's request for seats on a ride offer; approved or declined by the driver (D73) |
 | חוקת ברזל | Iron constitution | Rules core not changeable by vote (D40) |
 | listings | listings (code term) | Legacy table to become `posts` (D19); **not** a product term |
+| סעיף 46א | Section 46(a) | Income Tax Ordinance approval that lets donors claim a tax credit; KC records an org's approval and receipts, never decides eligibility or issues receipts (D77) |
+| גזבר ארגון / רו"ח ארגון | Org treasurer / org accountant | Org-scoped finance roles: treasurer writes the books, accountant reads and exports (D76) |
+| תמונת שקיפות | Transparency snapshot | Frozen yearly financial summary an org publishes on its profile; never live books, never donor names (D81) |
 
 ## Naming rules
 1. Always the precise name: "giving world", "item subcategory", "post type" — **never a bare "categories"**.

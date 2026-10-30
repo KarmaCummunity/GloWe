@@ -3,7 +3,6 @@
  * Split from SupabaseSurveyRepository.test.ts to stay within the 300-line file cap.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { SurveyError } from '@kc/domain';
 import { SupabaseSurveyRepository } from '../SupabaseSurveyRepository';
 
 // ---------------------------------------------------------------------------

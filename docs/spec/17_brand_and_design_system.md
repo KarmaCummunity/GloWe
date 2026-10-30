@@ -1,6 +1,6 @@
 # 17 — Brand and design system
 
-> Decisions **D65, D66, D67, D81** (2026-10-30). This file is the brand book for agents and designers — visual (§1–§6) and verbal (§7). The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
+> Decisions **D65, D66, D67, D87, D88** (2026-10-30). This file is the brand book for agents and designers — visual (§1–§6) and verbal (§7). The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
 
 ## 1. Brand identity (D65)
 
@@ -14,7 +14,7 @@
 
 **KC, the platform vs. KC, the organization (D67).** "KC" names the platform. KC is also an organization that operates *inside* the platform almost like any other organization (D37). Platform chrome (app name, splash, store listing, navigation) speaks as the platform; content published by the KC organization (posts, org page, donations to KC) is styled like any other organization's content, with no extra visual privilege.
 
-**Hidden meaning (D67, refined by D81).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an easter egg: it never appears in product surfaces — UI copy, store listings, marketing visuals or the logo — **except the About screen and its FAQ**, where it may appear subtly (PM 2026-10-30).
+**Hidden meaning (D67, refined by D88).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an easter egg: it never appears in product surfaces — UI copy, store listings, marketing visuals or the logo — **except the About screen and its FAQ**, where it may appear subtly (PM 2026-10-30).
 
 Rules:
 - Never introduce another product name in KC surfaces. GloWe (`app/apps/glowe-web`, `glowe-*` packages) is a separate product and is out of scope for this brand book.
@@ -52,7 +52,9 @@ packages/ui/tokens/kc.tokens.json   ← generated, W3C design-tokens format
 | Font | `theme/fonts.ts` | Brand font **Rubik** (Hebrew + Latin, rounded and warm like the logo; SIL OFL) in weights 400/500/600/700/800 (D66). Loaded by `apps/mobile/src/lib/useBrandFonts.ts` before the splash hides; falls back to the system font if loading fails. |
 | Typography | `theme/typography.ts` | Scale h1–h4, bodyLarge/body/bodySmall, button, label, caption. Hebrew RTL first. |
 | Spacing | `theme/spacing.ts` | 4-based scale `xs…4xl`; shell layout sizes in `shellDimensions`. |
-| Radius / elevation | `theme/spacing.ts` | `radius` xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67 — matches the values screens already used most); `shadow.card`, `shadow.modal`. |
+| Radius / elevation | `theme/spacing.ts` | `radius` xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67 — matches the values screens already used most); `shadow.card`, `shadow.modal` (neutral) and `shadow.glow` — the brand-coloured lift under primary calls to action (offset 0/4, opacity 0.3, blur 8, elevation 4; spread it and set `shadowColor: colors.primary`) (D87). |
+| Icon size | `theme/iconSize.ts` | `iconSize` xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24 (D87 — the six sizes screens already used most, ~85% of literal Ionicons sizes). |
+| Layers | `theme/zIndex.ts` | `zIndex` base 0 · raised 1 · overlay 2 · floating 20 · toast 9999 (D87 — the values already in use, so stacking does not change). |
 | Weight | `theme/typography.ts` | Weight modifiers `typography.medium / semiBold / bold / extraBold` (500–800), one per loaded Rubik face, spread over a size preset. |
 | Decoration orange | `theme/colors.ts` | `primaryVivid` `#F97316` — the same in both palettes; decoration only (no text, no meaning). Config files that cannot import tokens (`app.json` web `themeColor`, notification `color`, `app/+html.tsx`) are pinned to it by `brandGuard.test.ts`. |
 | Avatar colours | `theme/colors.ts` | `avatarPalette` — 8 theme-independent backgrounds with white initials, each ≥ 4.5:1. |
@@ -66,7 +68,11 @@ Usage rules for app code (`app/apps/mobile/**`):
 5. Corner radii come from `radius.*` — no raw `borderRadius: <number>` (`0` is allowed).
 6. Margin, padding and gap come from `spacing.*` (`0` is allowed). Layout sizes (widths, heights, rail and content widths) are not spacing; shell sizes live in `shellDimensions`.
 7. Use logical sides so layouts mirror between Hebrew (RTL) and English (LTR): `Start` / `End` properties and the `lib/rtlLayout.ts` helpers — never `textAlign: 'left' | 'right'`, `marginLeft`, `paddingRight`, `borderLeft*` or `borderTopLeftRadius`.
-8. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
+8. Icon sizes come from `iconSize.*` — no numeric `size={N}` on `Ionicons` (§4.2).
+9. Stacking order comes from `zIndex.*` — no raw `zIndex: <number>` (`0` is allowed).
+10. Shadows come from the `shadow.*` presets — no raw `shadowOpacity`, `shadowRadius`, `shadowOffset` or `elevation` numbers (`0`, which switches a shadow off, is allowed).
+11. Form fields use the kit `TextField` (`apps/mobile/src/components/ui/TextField.tsx`) instead of a raw `<TextInput`; a non-form input (chat composer, search bar) carries the allow-marker with its reason. Dialogs: a raw React Native `<Modal` is frozen at its current count until the shared modal exists (GitHub #1284). The UI kit folder (`apps/mobile/src/components/ui/`) is where these wrappers live, so these two rules do not apply there.
+12. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
 
 ### 4.1 Components
 
@@ -74,7 +80,8 @@ Screens are composed from shared components, not restyled per screen. Use these 
 
 | Need | Component | Where |
 |---|---|---|
-| Text / text input | `Text`, `TextInput` | `@kc/ui` |
+| Text / text input (primitives) | `Text`, `TextInput` | `@kc/ui` |
+| Form field (label, helper, error, icon, multiline) | `TextField` | `apps/mobile/src/components/ui/TextField.tsx` |
 | Toggle | `PlatformSwitch` | `@kc/ui` |
 | Loading placeholder | `Skeleton` | `@kc/ui` |
 | Desktop side column | `AsidePanel`, `useAside` | `@kc/ui` |
@@ -84,11 +91,12 @@ Screens are composed from shared components, not restyled per screen. Use these 
 | Section title, field label, icon tile, image, date/time field | `SectionHeading`, `FormFieldLabel`, `IconTile`, `KCImage`, `DateTimeField` | `apps/mobile/src/components/ui/` |
 | Avatar | `AvatarInitials` | `apps/mobile/src/components/` |
 
-Not built yet (GitHub epic #1061 / #1021): a shared text field, modal, bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+Not built yet (GitHub epic #1061 / #1021): a shared modal (#1284), bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
 
 ### 4.2 Icons
 
-- One icon set: **Ionicons** from `@expo/vector-icons`. Do not add another icon library or inline SVG icons without a decision.
+- One icon set: **Ionicons** from `@expo/vector-icons`. Do not add another icon library or inline SVG icons without a decision. ESLint `no-restricted-imports` blocks the other `@expo/vector-icons` families (named or deep imports) and other icon libraries (lucide, react-native-vector-icons, Feather, Phosphor, Heroicons, Tabler, Font Awesome) (D87).
+- Sizes come from `iconSize` (xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24). A larger hero / empty-state glyph (28+) stays off the scale with an end-of-line `brand-guard-allow: <reason>` on its `size=` line.
 - Directional icons (arrows, chevrons, "back") must mirror between RTL and LTR; non-directional icons never mirror.
 - Icon colours come from tokens (`colors.primary` for brand glyphs, `textSecondary` for neutral ones).
 
@@ -118,16 +126,17 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Brand identity | `packages/ui/src/__tests__/brandTokens.test.ts` + `apps/mobile/src/__tests__/brandGuard.test.ts` | the brand name / nickname, the locale `appName`s, or the store name in `app.json` drift |
 | Contrast floor | `packages/ui/src/__tests__/brandContrast.test.ts` | a required pair drops below AA, or a listed exception starts passing (stale) |
 | Brand font | `packages/ui/src/__tests__/brandFont.test.tsx` + ESLint `no-restricted-imports` | a weight stops mapping to its face, or app code imports `Text` / `TextInput` from `react-native` |
-| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file gains a colour, `fontSize`, `fontWeight`, `fontFamily`, `borderRadius` or spacing literal, or a physical (left/right) side, beyond its frozen baseline, or a new file has any |
+| Icon set | ESLint `no-restricted-imports` (`app/eslint.config.mjs`) | app code imports an icon family other than `Ionicons`, or another icon library (D87) |
+| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` (rules in `brandGuardRules.ts`, pinned by `brandGuardRules.test.ts`) | a file gains a finding beyond its frozen baseline, or a new file has any. Rules: `colorLiteral`, `fontSizeLiteral`, `fontWeightLiteral`, `fontFamilyLiteral`, `radiusLiteral`, `spacingLiteral`, `physicalSide`; since D87 also `iconSizeLiteral` (numeric Ionicons `size`), `zIndexLiteral`, `shadowLiteral`, `rawTextInput` (use `TextField`) and `rawModal` (count frozen until #1284) |
 | Touched-file rule | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file changed since the PR base still has any finding (D67) |
 | Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
-| Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D81) |
+| Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D88) |
 
 **Touched-file rule (D67).** A PR that changes a file in `apps/mobile/{src,app}` must leave that file with **zero** findings — every rule, the whole file, not only the changed lines. Files nobody touches keep their frozen counts until someone works in them. The guard diffs against the merge-base with the PR base (`GITHUB_BASE_REF`, else `origin/dev`; override with `KC_BRAND_BASE_REF`), including uncommitted changes. In CI an unresolvable base fails the test (the frontend job checks out full history); a local clone without the ref skips the rule.
 
 The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. After removing literals, refresh it with `KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard`; a PR that *raises* a count must explain why in its body.
 
-## 7. Voice and tone (D81)
+## 7. Voice and tone (D88)
 
 Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpowers/specs/2026-05-26-karma-community-master-narrative.md` §7.4, §15, §16) and FR-RESP-006 AC19/AC20 ([legacy spec](../SSOT/spec/17_responsive_desktop.md)). Nothing here is new brand content; where the narrative and a later decision differ, the decision wins (noted inline).
 
@@ -137,7 +146,7 @@ Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpower
 - **Register:** UX / dugri-friendly Israeli — short sentences, direct, no bureaucratic Hebrew, no padded softeners. Buttons, errors, toasts and form labels are UX-direct; settings rows, FAQ and the About narrative may use the fuller business register (AC19).
 - **Reading test:** "יהודי בן 60 מהפריפריה יבין בקריאה ראשונה."
 - **Honesty:** the early stage is a feature ("בונים יחד"), not hidden. Doctrine (§16.10): "לא משקרים. כותבים מה יש היום, מה השאיפות, ואיך הולכים משם לשם."
-- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is limited by D67 / D81 (§1): it may appear subtly on the About screen and in its FAQ only, never elsewhere, in any language. Everywhere else the public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
+- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is limited by D67 / D88 (§1): it may appear subtly on the About screen and in its FAQ only, never elsewhere, in any language. Everywhere else the public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
 - **Brand name:** "קהילת קארמה" or "KC" in Hebrew (§1); first mention "קהילת קארמה (KC)", then KC. Never a Hebrew transliteration of "Karma Community".
 
 ### 7.2 Gender-neutral copy (AC20)
@@ -179,7 +188,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 
 ### 7.5 Enforcement (automated)
 
-`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (288, mostly singular imperatives on buttons) are tracked as TD-201.
+`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (288, mostly singular imperatives on buttons) are tracked as TD-229.
 
 | Rule | Locale | Fails when |
 |---|---|---|
@@ -190,7 +199,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 | `ktivHaser` | he | a listed haser spelling (תכנה, שרות, תאור, בטול, …) |
 | `buttonLength` | he | a key named `cta` or ending in `Cta` / `Btn` / `Button` has more than 4 words |
 | `brandWording` | he, en | a variant of the key slogan; "קומיוניטי"; "Karma Community" with other casing |
-| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D81) |
+| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D88) |
 
 Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` on the line the string ends, reviewed in the PR.
 
@@ -203,7 +212,7 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 3. After merge to `dev`, refresh Figma variables and the Claude Design project from `kc.tokens.json`.
 4. Exploratory design (new screens, components) may start in Figma or Claude Design; implementation must consume existing tokens or add new ones through step 1.
 
-## 9. Brand decisions log (D65, D66, D67, D81)
+## 9. Brand decisions log (D65, D66, D67, D87, D88)
 
 | Question | Decision |
 |---|---|
@@ -212,10 +221,12 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 | Brand font | Rubik, app-wide via `@kc/ui` `Text` / `TextInput` (D66) |
 | Secondary colour | Logo navy `#203050` (light) / `#A5B8DC` (dark) (D66) |
 | Logo master | Current `assets/logo.png` (D66) |
-| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces except, subtly, the About screen and its FAQ (D67, refined by D81) |
+| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces except, subtly, the About screen and its FAQ (D67, refined by D88) |
 | Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
 | Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
 | Admin surfaces | Same tokens and components, denser layout (D67) |
-| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; hidden meaning allowed only on About / FAQ; automated copy-voice guard with ratchet + touched-file rule (D81) |
+| Icon, layer and shadow tokens | `iconSize` xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24; `zIndex` base 0 · raised 1 · overlay 2 · floating 20 · toast 9999; `shadow.glow` added beside `card` / `modal` — each matches the values screens already used most (D87) |
+| Components and icons in the guard | Ratchet adds icon size, z-index, shadow, raw `TextInput` and raw `Modal`; ESLint allows only Ionicons (D87) |
+| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; hidden meaning allowed only on About / FAQ; automated copy-voice guard with ratchet + touched-file rule (D88) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.

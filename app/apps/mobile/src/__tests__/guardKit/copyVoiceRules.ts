@@ -1,4 +1,4 @@
-// Copy-voice rules — spec 17 §7 "Voice and tone" (D81), FR-RESP-006 AC19/AC20.
+// Copy-voice rules — spec 17 §7 "Voice and tone" (D88), FR-RESP-006 AC19/AC20.
 // Pure functions over one locale string; the guard test counts their findings per file.
 // Word lists favour precision over recall: a word is listed only when, in that
 // position, it cannot reasonably be read as a noun or an adjective.
@@ -75,7 +75,7 @@ const SLOGAN_VARIANT = /לתת\s*[-–—]?\s*זה גם לקבל/g;
 const HE_BRAND_TRANSLITERATION = /קומיוניטי/g;
 const EN_BRAND_VARIANT = /\bkarma community\b/gi;
 // "קיבוץ קפיטליסטי" is a subtle easter egg: never in UI copy except the About screen and
-// its FAQ (spec 17 §1, D67 refined by D81, PM 2026-10-30).
+// its FAQ (spec 17 §1, D67 refined by D88, PM 2026-10-30).
 const HE_HIDDEN_MEANING = /קיבוץ\s+(?:ה)?קפיטליסטי/g;
 const EN_HIDDEN_MEANING = /\bcapitalist kibbutz/gi;
 
@@ -157,7 +157,7 @@ export function isAllowed(entry: LocaleString, lines: readonly string[]): boolea
 // The only locale modules where `hiddenMeaning` is exempt: the About screen bundle
 // (`aboutContent` = aboutContentBundle and the modules it merges) and its FAQ
 // (aboutContentNavFaq), in both locales. Explicit paths on purpose: a new module
-// is not exempt until it is listed here and reviewed (D81 refines D67).
+// is not exempt until it is listed here and reviewed (D88 refines D67).
 const ABOUT_AND_FAQ_MODULES = [
   'aboutContentBundle',
   'aboutContentCopyA',
