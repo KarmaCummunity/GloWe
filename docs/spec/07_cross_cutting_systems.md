@@ -97,7 +97,7 @@ Types: match & saved filter (D10), ride booking & saved route (D73, D74), expiry
 Tech: · `09_notifications`, MATCHING_V2, PRD_V2 merged · `inbox.tsx` · per-type opt-out `kinds` (FR-NOTIF-017, `0460`; first type: match suggestions) · G17
 
 ## 7.12 Profile
-Avatar, name, city, bio, counters; posts in "Open" / "Closed" tabs (D2, D14) — no "marketplace listings" tab. Verification level and reliability data shown (D23); rating not (D24). Karma, active challenges and volunteering log — owner only (D29). Exportable volunteer CV later. **Organization profile**: same shape adapted to organizations (logo, cover, type, fields, links, badges, team opt-in, activity, impact, transparency), always public, reached at `/org/{slug}` (D87–D91).
+Avatar, name, city, bio, counters; posts in "Open" / "Closed" tabs (D2, D14) — no "marketplace listings" tab. Verification level and reliability data shown (D23); rating not (D24). Karma, active challenges and volunteering log — owner only (D29). Exportable volunteer CV later. **Organization profile**: same shape adapted to organizations (logo, cover, type, fields, links, badges, team opt-in, activity, impact, transparency), always public, reached at `/org/{slug}` (D88–D92).
 Tech: · FR-PROFILE-001–006 · FR-ORG-003 (`20_organizations`) · `ProfileMarketplaceListings` adds a "marketplace" tab · G6
 
 ## 7.13 Anonymity, privacy, location

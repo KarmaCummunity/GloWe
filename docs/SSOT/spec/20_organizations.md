@@ -2,7 +2,7 @@
 
 > **Status:** ⏳ Planned — spec v0.1 (2026-10-30, PM-approved scope). No `FR-ORG-*` code shipped yet. **Phase 1** `FR-ORG-001..010` (one organization entity, registration + approval, public profile, edit, follow, act-as-organization, posts in the organization's name, share link, money page folded in). **Phase 2** `FR-ORG-011..016` (team tab, activity tabs, impact metrics, organizations filter in Search + hub directories, organization inbox, notifications). **Phase 3** `FR-ORG-017..020` (claiming catalog organizations, Registrar enrichment, verification-level badges, transparency tab hand-off to `spec/19_org_finance.md`).
 
-Prefix: `FR-ORG-*` · Migration range claimed: `0490–0509` (see `docs/agents/MIGRATION_RANGES.md`) · Product decisions: `D87–D91` + fills `S50`/`S51` (`docs/spec/90_decisions_log.md`, `91_kc_fills_pending.md`) · Engineering decision: `D-199` (`docs/SSOT/DECISIONS.md`).
+Prefix: `FR-ORG-*` · Migration range claimed: `0490–0509` (see `docs/agents/MIGRATION_RANGES.md`) · Product decisions: `D88–D92` + fills `S50`/`S51` (`docs/spec/90_decisions_log.md`, `91_kc_fills_pending.md`) · Engineering decision: `D-199` (`docs/SSOT/DECISIONS.md`).
 
 ---
 
@@ -23,23 +23,23 @@ This spec covers the organization as a **community actor**: registration, the pu
 | `external_bodies` catalog (medical / animals / environment bodies for post forms) | migrations `0241`, `0353` | Folded into `organizations` as **unclaimed** organizations (FR-ORG-001, FR-ORG-017). Closes gap G5 ("two org entities"). |
 | Public nonprofit page `/(tabs)/donations/money/nonprofit/[slug]` + `get_nonprofit_public_page` + `list_verified_nonprofits` | money world `0360–0369` | Becomes the **"תרומות"** tab of the organization profile; the old route redirects (FR-ORG-010). |
 | Universal Search + shared filter vocabulary | `spec/06_feed_and_search.md` FR-FEED-017/018, `(tabs)/search.tsx` | Gains the "ארגונים" parent filter with sub-filters (FR-ORG-014). |
-| Product book: org = separate entity with roles (S15), every org verified (D53), levels 1–5 (D53), Registrar open data (S35), private person as org (D57), free for orgs (D55), per-hub org directory (D36) | `docs/spec/08_organizations.md` | Honoured; refined by D87–D91. |
+| Product book: org = separate entity with roles (S15), every org verified (D53), levels 1–5 (D53), Registrar open data (S35), private person as org (D57), free for orgs (D55), per-hub org directory (D36) | `docs/spec/08_organizations.md` | Honoured; refined by D88–D92. |
 
 ### Glossary
 
-- **Organization profile** — the public page of an organization at `/org/{slug}`. Always public (D89).
+- **Organization profile** — the public page of an organization at `/org/{slug}`. Always public (D90).
 - **Organization account** — a sign-in identity (`users.account_type = 'organization'`) created at registration with the organization's email. It is bound 1:1 to the organization and has no personal profile of its own; signing in with it means acting as the organization.
-- **Member** — a person (`users.account_type = 'individual'`) holding an org-scoped role grant for the organization. Members may **act as the organization** from their own account (D87).
+- **Member** — a person (`users.account_type = 'individual'`) holding an org-scoped role grant for the organization. Members may **act as the organization** from their own account (D88).
 - **Acting as** — the active profile context of a signed-in session: the person themself, or one of the organizations they may act for. Chosen in the profile switcher (FR-ORG-006).
 - **Unclaimed organization** — a catalog entry (imported body or Registrar record) with no account yet. It has a read-only profile and can be **claimed** by its real organization (FR-ORG-017).
 - **Verification level** — D53: 1 basic (registration approved) → 2 proper management → 3 Midot rated → 4 transparency → 5 effectiveness. This spec renders levels; criteria stay in `08_organizations.md` (S40/S41).
 
 ### Non-goals (explicit, PM 2026-10-30)
 
-- Custom page layouts, drag-and-drop blocks, paid customization (PRD V2 §3.1.5). Omitted; one uniform template (D91).
-- Private / followers-only organization profiles. An organization is always public (D89).
+- Custom page layouts, drag-and-drop blocks, paid customization (PRD V2 §3.1.5). Omitted; one uniform template (D92).
+- Private / followers-only organization profiles. An organization is always public (D90).
 - Organization karma, leaderboards or ratings of organizations. Karma stays per person (D29); impact metrics (FR-ORG-013) are not karma.
-- Requiring an Israeli registration number. Any non-profit organization may register; the number is optional (D88).
+- Requiring an Israeli registration number. Any non-profit organization may register; the number is optional (D89).
 - Paid subscriptions for organizations (D55: free for now).
 - Bilingual profile fields. Hebrew only in MVP (`R-MVP-Core-4`); the existing `*_en` columns stay unused.
 
@@ -49,17 +49,17 @@ This spec covers the organization as a **community actor**: registration, the pu
 
 | # | Question (2026-10-30) | Decision | Log |
 | - | --------------------- | -------- | --- |
-| 1 | Identity | An organization has its own sign-in identity **and** members with roles act in its name from their own accounts. | D87 |
-| 2 | Registration | Self-service multi-step registration + KC admin approval that creates the profile. **No registration number required**: any non-profit organization may register; the applicant declares non-profit status and accepts the terms. Registrar lookup is optional when a number is given. | D88 |
-| 3 | Private person as organization | Allowed (D57). The person's own account is linked to the new organization as its first admin and switches between the personal and the organization profile. | D87 |
+| 1 | Identity | An organization has its own sign-in identity **and** members with roles act in its name from their own accounts. | D88 |
+| 2 | Registration | Self-service multi-step registration + KC admin approval that creates the profile. **No registration number required**: any non-profit organization may register; the applicant declares non-profit status and accepts the terms. Registrar lookup is optional when a number is given. | D89 |
+| 3 | Private person as organization | Allowed (D57). The person's own account is linked to the new organization as its first admin and switches between the personal and the organization profile. | D88 |
 | 4 | Profile fields | PM leans to transparency → the full field list is public by default; only contact phone and the team list are opt-in (S50). | S50 |
-| 5 | Tabs | Phase 1 posts + info; Phase 2 team, activities, campaigns; Phase 3 transparency + documents. | D87 |
-| 6 | Posting | Organizations publish in every world like a person, with no post cap (S15). A member publishing from their own account can post **in the organization's name**; the card shows the organization, the detail shows the member when they opted in. | D90 |
-| 7 | Following & privacy | Always public; organizations can follow people and organizations; being followed never needs approval. | D89 |
-| 8 | Actions on the profile | Donate (verified nonprofit with payments), Volunteer (open opportunities), Message (organization inbox), Share, Report. | D87 |
+| 5 | Tabs | Phase 1 posts + info; Phase 2 team, activities, campaigns; Phase 3 transparency + documents. | D88 |
+| 6 | Posting | Organizations publish in every world like a person, with no post cap (S15). A member publishing from their own account can post **in the organization's name**; the card shows the organization, the detail shows the member when they opted in. | D91 |
+| 7 | Following & privacy | Always public; organizations can follow people and organizations; being followed never needs approval. | D90 |
+| 8 | Actions on the profile | Donate (verified nonprofit with payments), Volunteer (open opportunities), Message (organization inbox), Share, Report. | D88 |
 | 9 | One entity | External bodies and organization applications fold into `organizations`; catalog entries become unclaimed organizations that the real organization can claim. Closes G5. | D-199 |
-| 10 | Directory | No separate directory screen. Search gets an "ארגונים" parent filter; its sub-filters (field, city, verification level, organization type) appear only while the parent filter is on. Hub directories reuse it with the hub's field pre-applied. | D90, S51 |
-| 11 | Custom design | Omitted for now; stays long-horizon vision. | D91 |
+| 10 | Directory | No separate directory screen. Search gets an "ארגונים" parent filter; its sub-filters (field, city, verification level, organization type) appear only while the parent filter is on. Hub directories reuse it with the hub's field pre-applied. | D91, S51 |
+| 11 | Custom design | Omitted for now; stays long-horizon vision. | D92 |
 | 12 | Web address | Each organization gets a stable link `karma.community/org/{slug}`, separate from person links `karma.community/u/{handle}` (`FR-PROFILE-008`). The slug is derived from the name at registration and editable once by an org admin. | D-199 |
 
 ---
@@ -93,7 +93,7 @@ Exact DDL lands with each phase inside the claimed range. All tables keep RLS; w
 | `users` (extend) | 1 | `+ account_type text check in ('individual','organization') default 'individual'`, `+ org_id uuid null references organizations(org_id)` (set only for organization accounts; unique where not null). An organization account's `display_name` / `avatar_url` mirror the organization's name / logo via trigger so every existing "author" projection keeps working. |
 | `org_memberships` (extend) | 1 / 2 | `+ can_post boolean default false` (volunteers), `+ show_in_team boolean default false`, `+ title text` (≤60, e.g. "רכזת מתנדבים"), `+ joined_at`. |
 | `org_registrations` (new; replaces `org_applications`) | 1 | `registration_id`, `org_id` (the pending organization row), `applicant_user_id`, `step_state jsonb` (saved draft of the multi-step form), `documents jsonb` (storage paths in bucket `org-documents`, kind: `registration_certificate`, `proper_management`, `other`), `declared_nonprofit boolean not null`, `submitted_at`, `decided_at`, `decided_by`, `decision text check in ('approved','rejected')`, `decision_note`. Backfill: every `org_applications` row becomes an `organizations(status='pending')` + `org_registrations` pair; `org_applications` is then dropped (`migration-safety: allow`, justification in the PR). |
-| `external_bodies` → `organizations` | 1 | Backfill each active body as `organizations(status='unclaimed', is_claimed=false, source='external_bodies_import', source_ref=body id, fields=[world])`. `listings.external_body_id` is re-pointed to the new `org_id` (`+ listings.external_org_id`), and `external_bodies` remains as a **compatibility view** over `organizations where source='external_bodies_import'` until TD-209 removes it. |
+| `external_bodies` → `organizations` | 1 | Backfill each active body as `organizations(status='unclaimed', is_claimed=false, source='external_bodies_import', source_ref=body id, fields=[world])`. `listings.external_body_id` is re-pointed to the new `org_id` (`+ listings.external_org_id`), and `external_bodies` remains as a **compatibility view** over `organizations where source='external_bodies_import'` until TD-229 removes it. |
 | `follows` (extend) | 1 | `+ actor_org_id uuid null`, `+ target_org_id uuid null`; CHECK exactly one of (`follower_user_id`, `actor_org_id`) and exactly one of (`followed_user_id`, `target_org_id`). Existing rows untouched. Partial unique indexes per pair. Counters on `organizations` maintained by trigger (same pattern as `users.followers_count`). |
 | `listings` (extend) | 1 | `+ author_org_id uuid null references organizations(org_id)`, `+ posted_by_user_id uuid null` (the acting person; `owner_id` stays the account that created the row). Feed/card projections read `author_org_id` first. |
 | `chats` (extend) | 2 | `+ org_id uuid null` — a support-style **organization inbox** thread between a person and the organization; members with `org.inbox` see it; replies are attributed to the organization. |
@@ -131,9 +131,9 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
 
 **Acceptance Criteria.**
 - AC1. Migration extends `organizations` per § Data model and backfills: existing rows → `status='active'`, `is_claimed=true`, `source='admin'`; `org_applications` → pending organizations + `org_registrations`; active `external_bodies` → `status='unclaimed'`. Row counts before/after are asserted in the migration (`raise exception` on mismatch).
-- AC2. `listings.external_body_id` consumers (`search_external_bodies`, `create_marketplace_listing`, medical / animals / environment forms) read from the compatibility view with identical columns; no client change in this PR. TD-209 tracks the follow-up cut-over to `external_org_id`.
+- AC2. `listings.external_body_id` consumers (`search_external_bodies`, `create_marketplace_listing`, medical / animals / environment forms) read from the compatibility view with identical columns; no client change in this PR. TD-229 tracks the follow-up cut-over to `external_org_id`.
 - AC3. RLS: `organizations_public_read` returns rows where `status in ('active','unclaimed')` to anon/authenticated; `pending` / `rejected` / `suspended` rows are visible only to their applicant, members, and KC admins (`has_admin_role`).
-- AC4. `get_nonprofit_public_page(slug)` and `list_verified_nonprofits` keep their signatures and now read from the unified row; TD-210 tracks their removal once `get_org_public_profile` ships (FR-ORG-003).
+- AC4. `get_nonprofit_public_page(slug)` and `list_verified_nonprofits` keep their signatures and now read from the unified row; TD-230 tracks their removal once `get_org_public_profile` ships (FR-ORG-003).
 - AC5. `slug` generation: Hebrew/Latin name → transliterated kebab-case ≤ 60 chars, unique with a numeric suffix on collision; the platform organization keeps its existing slug.
 
 ---
@@ -149,7 +149,7 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
   3. **מה אנחנו עושים** — short description (≤160, required), about (≤4000, optional), fields of activity (1–5 from the domain + world vocabulary), city (required, `public.cities`), service area (cities or "ארצי").
   4. **קשר וקישורים** — organization email (required; becomes the organization account's sign-in email), contact phone (optional, default hidden), website (optional, `https://` enforced), social links (optional).
   5. **לוגו וקאבר** — logo (required, square crop), cover (optional).
-  6. **מסמכים** — optional uploads (registration certificate, proper-management certificate, other). Shown as *"מומלץ"*; never required (D88).
+  6. **מסמכים** — optional uploads (registration certificate, proper-management certificate, other). Shown as *"מומלץ"*; never required (D89).
   7. **הצהרה ותנאים** — mandatory checkbox *"הארגון פועל ללא מטרות רווח"* (`declared_nonprofit`), mandatory terms + privacy acceptance; `private_venture` adds the D57 marker and the declared social goal (≤280).
 - AC3. Submit (`rpc_org_register`) creates `organizations(status='pending')` + `org_registrations`, validates every field server-side, rejects duplicate `registration_number` (`org_registration_number_taken`) and warns on a near-duplicate name (`org_name_similar`, non-blocking, surfaces existing profile + "זה הארגון שלכם? תבעו אותו" when the match is unclaimed → FR-ORG-017). The applicant sees a *"ממתין לאישור"* card in Settings with the submitted summary.
 - AC4. Admin review in `(admin)/org-approvals`: each pending row shows every submitted field, documents (signed URLs), near-duplicate hints, and **Approve / Reject (+ note)**. Approve = `admin_org_approve(org_id, note)`; Reject = `admin_org_reject(org_id, note)` (applicant may edit and resubmit once per 7 days).
@@ -210,7 +210,7 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
 **Acceptance Criteria.**
 - AC1. `create_marketplace_listing` (and every world's create RPC) accepts `p_as_org_id`; on success `listings.author_org_id = org`, `posted_by_user_id = auth.uid()`, `owner_id` = the acting account. Edit/close/republish permissions: any member with `org.act_as` for that organization (not only the original poster).
 - AC2. Cards and detail: author block shows the organization's logo + name + verification badge and routes to `/org/[slug]`. Detail adds *"פורסם על ידי {first name} בשם הארגון"* **only** when the acting member has `show_in_team = true`; otherwise just the organization.
-- AC3. Organization profile tabs: **פתוחים** lists `author_org_id = org` with status `open`; **סגורים** lists closed where the organization is publisher or respondent, same union rule as `FR-PROFILE-001 AC4`. Visibility `OnlyMe` / `FollowersOnly` are not offered when posting as an organization (always `Public`, D89).
+- AC3. Organization profile tabs: **פתוחים** lists `author_org_id = org` with status `open`; **סגורים** lists closed where the organization is publisher or respondent, same union rule as `FR-PROFILE-001 AC4`. Visibility `OnlyMe` / `FollowersOnly` are not offered when posting as an organization (always `Public`, D90).
 - AC4. No post cap for organizations (S15). Expiry/relevance reminders (D59) go to the organization inbox members (FR-ORG-015) and, until Phase 2, to the organization account.
 - AC5. Handoffs: the counterpart sees the organization and the acting member's first name at handoff time (same rule as D16 counterpart masking lifts); chat for the handoff is the organization inbox thread (Phase 2) or the organization account's chat (Phase 1).
 
@@ -219,7 +219,7 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
 ## FR-ORG-008 — Following organizations and organizations following others
 
 **Acceptance Criteria.**
-- AC1. Follow an organization: immediate (no request, D89), `follows(follower_user_id → target_org_id)` or, when acting as an organization, `follows(actor_org_id → target_org_id)`. Unfollow symmetrical. Button states reuse `FR-FOLLOW-011` minus the "request" states.
+- AC1. Follow an organization: immediate (no request, D90), `follows(follower_user_id → target_org_id)` or, when acting as an organization, `follows(actor_org_id → target_org_id)`. Unfollow symmetrical. Button states reuse `FR-FOLLOW-011` minus the "request" states.
 - AC2. An organization following a **person**: public person → immediate; private person → follow request per `FR-FOLLOW-003`, shown to the person as *"{org} מבקש לעקוב"* with logo. The person's approval rules are unchanged.
 - AC3. Followers/following lists on `/org/[slug]/followers|following` mix people and organizations (logo vs avatar, type chip); person lists (`FR-PROFILE-009/010`) gain organization rows too.
 - AC4. Blocking: a person can block an organization (hides its posts and prevents the inbox thread); an organization cannot block people (moderation via report).
@@ -319,7 +319,7 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
 
 **Acceptance Criteria.**
 - AC1. When a registration number is entered (registration or edit), `rpc_registrar_lookup(p_number)` queries a server-side mirror of the Registrar of Nonprofits open data (data.gov.il, synced nightly by an Edge Function; source attribution stored) and offers to prefill legal name, founded year, city, and shows whether a **proper-management certificate** is current (→ `verification_level ≥ 2` badge candidate; admin confirms).
-- AC2. Lookup failures are silent (the number stays optional, D88); a *"מקור: רשם העמותות, עודכן ב-…"* line appears under prefilled fields.
+- AC2. Lookup failures are silent (the number stays optional, D89); a *"מקור: רשם העמותות, עודכן ב-…"* line appears under prefilled fields.
 - AC3. We never scrape GuideStar (S35).
 
 ---
@@ -366,4 +366,4 @@ Web link: `https://karma.community/org/{slug}` (same Universal Link / App Link s
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 0.1 | 2026-10-30 | Initial end-to-end spec from PM Q&A. Defines `FR-ORG-001..020` in three phases: one organization entity (folds `org_applications` + `external_bodies`, closes G5), registration without mandatory registration number (D88), public profile at `/org/{slug}`, edit, profile switcher / act-as (D87), posts in the organization's name (D90), always-public + organizations may follow (D89), Search "ארגונים" filter with sub-filters instead of a directory screen (D90/S51), no custom layouts (D91), team opt-in (S50), inbox, impact, claiming, Registrar enrichment, badges, transparency hand-off. Claims migrations `0490–0509`. Engineering decision `D-199`. |
+| 0.1 | 2026-10-30 | Initial end-to-end spec from PM Q&A. Defines `FR-ORG-001..020` in three phases: one organization entity (folds `org_applications` + `external_bodies`, closes G5), registration without mandatory registration number (D89), public profile at `/org/{slug}`, edit, profile switcher / act-as (D88), posts in the organization's name (D91), always-public + organizations may follow (D90), Search "ארגונים" filter with sub-filters instead of a directory screen (D91/S51), no custom layouts (D92), team opt-in (S50), inbox, impact, claiming, Registrar enrichment, badges, transparency hand-off. Claims migrations `0490–0509`. Engineering decision `D-199`. |
