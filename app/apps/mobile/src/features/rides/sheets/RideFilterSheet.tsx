@@ -1,11 +1,11 @@
 // FR-RIDE-002 — ride hub filter bottom sheet (mirrors SearchFilterSheet).
 import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { endOfDay, startOfDay } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import type { RideMode } from '@kc/domain';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { CityPicker } from '../../../components/CityPicker';
 import { SearchChip } from '../../../components/search/SearchChip';
 import { useSearchFilterSheetStyles } from '../../../components/search/searchFilterSheet.styles';

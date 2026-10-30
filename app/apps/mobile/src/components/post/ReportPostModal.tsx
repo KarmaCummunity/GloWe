@@ -1,11 +1,11 @@
 // FR-MOD-001 — Report modal opened from post-detail ⋮ menu. Mirror of ReportChatModal.
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ReportReason } from '@kc/domain';
 import { container } from '../../lib/container';
 import { useAuthStore } from '../../store/authStore';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text, TextInput } from '@kc/ui';
 import { NotifyModal } from '../NotifyModal';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

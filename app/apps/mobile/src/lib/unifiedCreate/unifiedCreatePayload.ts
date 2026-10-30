@@ -65,6 +65,8 @@ export interface ListingPayloadArgs {
   mediaPaths: string[];
   routedWorld: boolean;
   externalBodyId: string | null;
+  /** The picked world subcategory (items / food), null when none (KC#1296). */
+  worldSubcategoryId: string | null;
 }
 
 export function buildListingCreatePayload(a: ListingPayloadArgs) {
@@ -80,5 +82,6 @@ export function buildListingCreatePayload(a: ListingPayloadArgs) {
     maxRadiusKm: a.radiusKm,
     mediaPaths: a.mediaPaths,
     externalBodyId: a.routedWorld ? a.externalBodyId : null,
+    categoryId: a.worldSubcategoryId,
   };
 }

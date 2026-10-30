@@ -1,4 +1,4 @@
-# 93 — Implementation gaps G1–G37
+# 93 — Implementation gaps G1–G49
 
 Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
 
@@ -37,7 +37,19 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G31 | Org verification levels, tags & filters (D53) | 08 |
 | G32 | 🟡 2026-10-30 — Items and requests no longer expire; owners get relevance reminders (D59, S3; migration `0450`). Remaining: ride offer +30 min instead of 3 h after departure; event/ticket at their date; the reminder's "bump" action (G11) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
-| G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
+| G34 | 🟡 2026-10-30 — Listing handoffs now award the §7.6 values per world from one config (`karma_handoff_points`, migration `0453`, D63). Remaining: one closing system (posts closure vs listing handoffs, with G1) and the item bonus on handoffs (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
+| G38 | 🟡 2026-10-30 — Shared DB test harness (`supabase/tests/_harness`, `scripts/run-db-tests.sh`) + rides lifecycle flow. Open: items, food, knowledge flows on the harness | architecture §5.1 |
+| G39 | Port contract tests: one suite per port, run against a fake and the Supabase adapter | architecture §5.1 |
+| G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
+| G41 | Edge Functions report errors to Sentry through one shared wrapper | architecture §5.2 |
+| G42 | Health registry (`ops`), hourly monitor on dev + prod, alert router (GitHub issue / email / WhatsApp) (D68, D69) | architecture §5.2 |
+| G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
+| G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |
+| G45 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D71, S47) | 05.3 |
+| G46 | Ride route on the map + "navigate" links (D72) | 05.3 |
+| G47 | Driver sees every booking (today `get_listing_handoff` returns one row) + approve/decline + booking push notifications (none sent today) (D73, S45) | 05.3, 07.11 |
+| G48 | Saved routes + rides urgency rule (D74, S44) | 05.3, 07.11 |
+| G49 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D75, S46) | 05.3 |

@@ -1,9 +1,9 @@
 // WhatsApp bot ops dashboard (#939) — consent, outbound, rate hits, matches, kill switch.
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { hasPermission, isWhatsAppAdminError, type AdminPermission, type AdminRole } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { AdminFilterChip } from '../../../src/components/admin/AdminFilterChip';

@@ -1,11 +1,11 @@
 // KC#869 — in-app notification center (read/unread, deep links).
 
 import React, { useCallback } from 'react';
-import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
