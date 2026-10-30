@@ -49,11 +49,15 @@ Last applied on kc-dev when this was written: `0239`.
 | 0428–0429 | matching engine v2 follow-ups (reserved) | claimed (matching v2) |
 | 0430–0439 | Pro entitlement + WhatsApp Pro bot (#1083, #1089, #1090, #1086, #1091) | in progress |
 | 0440 | #1041 world launch wedge `app_flags` | in progress |
-| 0441+ | — | free |
+| 0440 (file) | Note 2026-10-30: the file actually numbered `0440` is `chat_media_storage_rls_user_first` (#1216); the world launch flags shipped as `0441_world_launch_app_flags.sql` | merged |
+| 0442 | #1228 admin hierarchy position permissions | in review |
+| 0443–0444 | — | free |
+| 0445–0449 | `claude/launch-readiness` (storage media access scope + launch fixes) | in progress |
+| 0450+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0440+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0450+`.
 
 ## How to claim
 
