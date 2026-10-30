@@ -29,11 +29,44 @@
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
 | PERF-5 | **DB consolidation — per-chat unread count RPC** | agent-fullstack | 🟡 In progress | Migration `0133` |
 
+## INFRA — CI/CD hardening (`D-195`)
+
+Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-203`). | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-3 | **Gated prod release pipeline.** One owner approval (GitHub Environment) before `main` deploys (Railway, `supabase-prod` DB deploy, Edge Functions); fold the main release guard + dev E2E into the release flow. | infra | ⏳ Planned | `D-195`, `RELEASE_CHECKLIST.md` |
+| INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed. | infra | ⏳ Planned | `D-195`, `D-192` |
+| INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-6 | **Agent bot identity.** Move agent pushes, PRs and merges off the owner's personal GitHub account to a bot / GitHub App identity (also closes `TD-197`). | infra | ⏳ Planned | `D-195` |
+
 ## DONATE — Money hub
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | DONATE-G8b | **Donation-to-KC confirmation + karma.** Grow webhook Edge Function (verify with Grow API, idempotent via `provider_webhook_events`), record the donation, award karma (1 per ₪10, 10/month standing order, cap 100 — §7.6). [blocked: Grow merchant account + API credentials — launch plan A11] | agent-be | ⏳ Planned | `spec/13_donations.md` FR-DONATE-011 AC8 · `docs/spec/93` G8 |
+
+## OPS — Testing & observability infrastructure (D68, D69)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| OPS-G38 | **Shared DB test harness + per-world lifecycle flows.** Harness + runner + rides flow shipped; port items, food, knowledge flows onto it. | agent-be | 🟡 In progress | `docs/architecture/target.md` §5.1 · G38 |
+| OPS-G42 | **Health registry + monitor + alert router.** `ops.health_checks`, hourly dev + prod run, GitHub issue / email now, WhatsApp later. | agent-fullstack | ⏳ Planned | §5.2 · G42 |
+| OPS-G41 | **Edge Function error reporting** through one shared wrapper. | agent-be | ⏳ Planned | §5.2 · G41 |
+| OPS-G39 | **Port contract tests** (fake + Supabase adapter, same suite). | agent-fullstack | ⏳ Planned | §5.1 · G39 |
+| OPS-G40 | **Two-user E2E journey per active world** on relevant PRs. | agent-fe | ⏳ Planned | §5.1 · G40 |
+| OPS-G43 | **Per-world flow funnel** from handoff timestamps. | agent-be | ⏳ Planned | §5.2 · G43 |
+## RIDES — Replace a WhatsApp ride group (D70–D75)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled; unapproved bookings expire (S45). | agent-fullstack | ⏳ Planned | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
+| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (S47); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. | agent-fullstack | ⏳ Planned | §5.3 · G45 |
+| RIDES-G46 | **Map + navigate.** Ride route on the map; "navigate" to Waze / Google Maps / Apple Maps for every ride place. | agent-fe | ⏳ Planned | §5.3 · G46 |
+| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (S46); feed of offers + requests by departure, departed hidden. | agent-fullstack | ⏳ Planned | §5.3 · G49 |
+| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (S44). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
+| RIDES-G44 | **One rides flow.** Retire legacy `ride_listings` screens; move emergency button + cost caps onto the one flow. | agent-fullstack | ⏳ Planned | §5.3 · G44 |
 
 ## Deferred (post-MVP, still tracked)
 

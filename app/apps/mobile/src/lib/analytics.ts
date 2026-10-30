@@ -35,7 +35,6 @@ type EventProperties = Record<string, unknown>;
  */
 export function track(event: AnalyticsEvent, properties?: EventProperties): void {
   if (__DEV__) {
-    // eslint-disable-next-line no-console
     console.log('[analytics]', event, properties ?? {});
   }
   capturePosthog(event, properties);
