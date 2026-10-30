@@ -8,7 +8,7 @@
 
 **Tech Stack:** Plain browser JS (UMD modules, no bundler) for `app/apps/glowe-web`; vitest for JS unit tests; Deno + `@supabase/supabase-js` for Edge Functions; Supabase (`glowe_content_translations`, existing).
 
-**Spec:** [`docs/superpowers/specs/2026-07-19-glowe-web-translation-performance-design.md`](../specs/2026-07-19-glowe-web-translation-performance-design.md) → new `FR-TRANSLATE-006`.
+**Spec:** [`docs/SSOT/archive/superpowers/specs/2026-07-19-glowe-web-translation-performance-design.md`](../specs/2026-07-19-glowe-web-translation-performance-design.md) → new `FR-TRANSLATE-006`.
 
 ## Global Constraints
 

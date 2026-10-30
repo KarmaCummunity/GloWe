@@ -1,10 +1,10 @@
 // FR-DONATE-007/009 — single row in the community NGO link list.
 import React, { useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { DonationLink } from '@kc/domain';
-import { makeUseStyles, radius, shadow, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, typography, useTheme, Text } from '@kc/ui';
 import { openExternalUrl } from '../utils/openExternalUrl';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { rowDirectionStart } from '../lib/rtlLayout';

@@ -125,7 +125,7 @@ GLOWE's user-generated content (posts, opportunities/events, wishes, projects, o
 
 ## FR-TRANSLATE-006 — GLOWE web translation performance (✅ Done)
 
-> **Status:** ✅ Done. Efficiency-first cold path + viewport prefetch + a rare localized loading indicator over the FR-TRANSLATE-005 substrate. Design: `docs/superpowers/specs/2026-07-19-glowe-web-translation-performance-design.md`; plan: `docs/superpowers/plans/2026-07-19-glowe-web-translation-performance.md`. Reuses `glowe_content_translations` (no migration, no new table). The KC path (`translate`, `content_translations`, `get_post_translations`) is untouched.
+> **Status:** ✅ Done. Efficiency-first cold path + viewport prefetch + a rare localized loading indicator over the FR-TRANSLATE-005 substrate. Design: `docs/SSOT/archive/superpowers/specs/2026-07-19-glowe-web-translation-performance-design.md`; plan: `docs/SSOT/archive/superpowers/plans/2026-07-19-glowe-web-translation-performance.md`. Reuses `glowe_content_translations` (no migration, no new table). The KC path (`translate`, `content_translations`, `get_post_translations`) is untouched.
 
 A per-field decision ladder in `js/glowe-translate.js` — (1) same-language short-circuit → (2) sessionStorage cache → (3) batched DB cache read → (4) one batched `glowe-translate` call for the genuine misses — triggered by an IntersectionObserver lookahead with a scroll/resize sweep and a `setTimeout` flush fallback (so it fires in background tabs / embedded webviews where `requestAnimationFrame` is paused). A discreet, interface-language "Translating…" indicator appears only for cold misses still unresolved after 400ms.
 

@@ -62,3 +62,14 @@ Index only — the binding wording lives in the linked spec files. All decided b
 | D56 | Verified official/state body declares emergency within its permissions | 09 | Approved |
 | D57 | Social venture = org; any registered org (incl. private person) may post jobs | 08 | Approved |
 | D58 | Standing goals: spec maintenance, store release + updates, modular scalable code | 00 | Approved |
+| D59 | Items and all requests never expire; instead the owner gets relevance reminders (S3: 14 days after publish, then every 30 days) — answers P5 | 07.1 | Approved (PM 2026-10-30) |
+| D60 | Every world is shown in full. Two kinds: **active** worlds (full in-app flow, e.g. items, rides) and **portal** worlds (links + knowledge + org blocks). Launch flags choose active vs portal; they never hide a world — refines D3, answers Q-1 | 04, 14 | Approved (PM 2026-10-30) |
+| D61 | Moderation: 3 distinct reports on a post → `hidden_pending_review` + admin notification; 5 distinct reporters on a user in 30 days → suspended from actions, can still chat with support — confirms D33/S11, answers Q-2 | 07.15 | Approved (PM 2026-10-30) |
+| D62 | Code follows the spec list: 8 giving worlds + 11 domains (D45). Legacy code worlds map to it (`app_design` removed per D18; `medical`, `animals`, `environment`, `creative`→`culture` become domains). Every world and every domain gets its own screen tree under the Donations tab — answers Q-3 | 04, 05, 06 | Approved (PM 2026-10-30) |
+| D63 | Listing handoffs award the §7.6 karma values (one closing/karma model, G34); applies from the change on, not retroactively — answers Q-5 | 07.5, 07.6 | Approved (PM 2026-10-30) |
+| D64 | Bit / PayBox links to KC are interim transfer links, not clearing: withdrawn automatically once a licensed one-time clearing page exists | 05.5, 08 | Approved |
+| D65 | Brand = "Karma Community" (HE "קהילת קארמה"), nickname "KC"; design tokens in code are the source of truth, mirrored to Figma and Claude Design; automated brand guardrails in `pnpm test` | 17 | Approved |
+| D66 | Brand font Rubik app-wide (via `@kc/ui` Text/TextInput); AA-compliant light `primary` `#C2410C` (vivid orange for decoration); secondary = logo navy; current `logo.png` is the master | 17 | Approved |
+| D67 | Brand system v2: KC = the platform, the KC org is styled like any org, "קיבוץ קפיטליסטי" never shown; radius scale 4/8/12/16/24; tokens for decoration orange, weights and avatars; guard covers colour, type, radius, spacing and RTL sides, and every file a PR touches must be fully clean; admin = same tokens, denser layout; native follows the OS colour scheme | 17 | Approved (PM 2026-10-30) |
+| D68 | Operational alerts reach the PM as a GitHub issue (assigned → email) and by email now, and by WhatsApp once the WhatsApp channel is live | architecture §5.2 | Approved (PM 2026-10-30) |
+| D69 | Monitoring covers both dev and production; production checks are read-only | architecture §5.2 | Approved (PM 2026-10-30) |

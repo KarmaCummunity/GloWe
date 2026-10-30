@@ -1,11 +1,13 @@
 import type { Ionicons } from '@expo/vector-icons';
+import type { Href } from 'expo-router';
+import { hubTileLaunchMode, type RemoteAppFlags, type WorldLaunchMode } from '@kc/domain';
 
 export interface DonationHubTile {
   key: string;
   icon: keyof typeof Ionicons.glyphMap;
   titleKey: string;
   subtitleKey: string;
-  href: string;
+  href: Extract<Href, string>;
   testID: string;
 }
 
@@ -28,3 +30,8 @@ export const DONATIONS_HUB_TILES: DonationHubTile[] = [
   { key: 'animals', icon: 'paw-outline', titleKey: 'donations.categories.animals.title', subtitleKey: 'donations.categories.animals.subtitle', href: '/(tabs)/donations/category/animals', testID: 'donation-tile-animals' },
   { key: 'medical', icon: 'medical-outline', titleKey: 'donations.categories.medical.title', subtitleKey: 'donations.categories.medical.subtitle', href: '/(tabs)/donations/category/medical', testID: 'donation-tile-medical' },
 ];
+
+/** D60 — the Donations hub always shows every world; flags only set active vs portal. */
+export function donationsHubTiles(remote: RemoteAppFlags | undefined): Array<{ tile: DonationHubTile; mode: WorldLaunchMode }> {
+  return DONATIONS_HUB_TILES.map((tile) => ({ tile, mode: hubTileLaunchMode(tile.key, remote) }));
+}

@@ -3,13 +3,17 @@
 // Defence-in-depth: self-ban / admin-ban are also rejected by the use case + DB.
 import React, { useEffect, useState } from 'react';
 import {
-  Modal, View, Text, TextInput, Pressable,
-  KeyboardAvoidingView, Platform, ScrollView,
+  Modal,
+  View,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { container } from '../../lib/container';
 import { useAuthStore } from '../../store/authStore';
 import { confirmAndRun, showAdminToast } from '../chat/system/adminActions';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text, TextInput } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

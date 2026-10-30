@@ -18,7 +18,7 @@ GitHub/org integrations on every PR.
 | - | ---- | ------ | ------------- | ----- |
 | 1 | **SonarCloud** (SonarQube SaaS) | ✅ Active | **Yes** (`SonarCloud quality gate`) | Workflow: `.github/workflows/ci-sonar.yml`. Setup: `docs/dev/SONAR.md`. |
 | 2 | **Snyk** | ✅ Active (`SNYK_TOKEN` set) | No (promote later) | Workflow: `.github/workflows/ci-snyk.yml`. |
-| 3 | **CodeRabbit** | ✅ Active (org App installed) | No (review comments only) | `.coderabbit.yaml` focuses on `app/apps/glowe-web/**`. |
+| 3 | **CodeRabbit** | ✅ Active (org App installed) | No (review comments only) | `.coderabbit.yaml` reviews `app/**`, `supabase/**`, `scripts/**` and `docs/spec/**`. |
 | 4 | **GitHub Dependabot** | ✅ Active | N/A (opens fix PRs) | Config: `.github/dependabot.yml`. Security updates: **enabled**. |
 | 5 | **GitGuardian** (ggshield) | ✅ Active (`GITGUARDIAN_API_KEY` set) | No (promote later) | Workflow: `.github/workflows/ci-gitguardian.yml`. |
 | 6 | **Secret Scanning** | ✅ Active | Push-time block | Enabled + push protection on the public repo. |
@@ -57,7 +57,7 @@ Add these under **GitHub → Settings → Secrets and variables → Actions** (r
 
 ### CodeRabbit (GitHub App — no secret in repo)
 
-1. Org admin installs [CodeRabbit](https://github.com/apps/coderabbitai) on `KarmaCummunity/GloWe`.
+1. Org admin installs [CodeRabbit](https://github.com/apps/coderabbitai) on `KarmaCummunity/KC`.
 2. `.coderabbit.yaml` is already committed — reviews focus on `app/apps/glowe-web/**`.
 3. Open a test PR; verify CodeRabbit posts review comments (non-merging).
 

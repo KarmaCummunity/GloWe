@@ -21,11 +21,11 @@
 // edge (right in RTL) on both native and web.
 
 import React from 'react';
-import { Text, View, type TextStyle, type ViewStyle } from 'react-native';
+import { View, type TextStyle, type ViewStyle } from 'react-native';
 import { openExternalUrl } from '../../utils/openExternalUrl';
 import type { ASTNode, RenderRules } from 'react-native-markdown-display';
 import type { ColorPalette } from '@kc/ui';
-import { typography, spacing } from '@kc/ui';
+import { typography, spacing, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

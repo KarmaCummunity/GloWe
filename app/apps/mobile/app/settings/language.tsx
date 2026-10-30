@@ -4,10 +4,10 @@
 // applied by reloading the app so the layout direction (RTL/LTR) re-resolves.
 // Distinct from FR-TRANSLATE-003 (translation language for user-generated content).
 import React from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import i18n from '../../src/i18n';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';

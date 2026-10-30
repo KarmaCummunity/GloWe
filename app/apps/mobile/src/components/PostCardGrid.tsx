@@ -119,7 +119,7 @@ function PostCardGridInner({
       closedPostsProfileUserId != null
         ? `?fromProfile=${encodeURIComponent(closedPostsProfileUserId)}`
         : '';
-    router.push(`/post/${post.postId}${q}` as never);
+    router.push(`/post/${post.postId}${q}`);
   }, [onCardPress, onPressOverride, post, closedPostsProfileUserId, router]);
 
   let roleBadgeLabel: string | null = null;

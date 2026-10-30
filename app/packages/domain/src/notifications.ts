@@ -1,3 +1,5 @@
+import type { NotificationPreferences } from './value-objects';
+
 export type NotificationCategory = 'critical' | 'social';
 
 export type NotificationKind =
@@ -48,4 +50,16 @@ export interface DeviceRegistration {
   readonly userId: string;
   readonly pushToken: string;
   readonly platform: 'ios' | 'android' | 'web';
+}
+
+/**
+ * Whether the user still wants notifications of `kind` (spec §7.11, FR-NOTIF-017).
+ * Opt-out model: only an explicit `false` under `prefs.kinds` disables a kind, so
+ * rows written before per-kind preferences existed keep receiving everything.
+ */
+export function isNotificationKindEnabled(
+  prefs: Pick<NotificationPreferences, 'kinds'> | null | undefined,
+  kind: NotificationKind,
+): boolean {
+  return prefs?.kinds?.[kind] !== false;
 }

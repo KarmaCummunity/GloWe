@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { makeUseStyles, typography, spacing } from '@kc/ui';
+import { makeUseStyles, typography, spacing, Text } from '@kc/ui';
 import { aboutRtlText, aboutRtlRow } from './aboutWebRtlStyle';
 import { MOTION } from '../../lib/animations/motion';
 import { useReducedMotion } from '../../hooks/useReducedMotion';

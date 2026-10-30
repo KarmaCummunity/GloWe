@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { ListingCard } from '../../../../src/components/cards/ListingCard';
 import { kcGridCell } from '../../../../src/components/cards/KcCard.styles';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { createRouteFor } from '../../../../src/lib/unifiedCreate/createCategories';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 import { MARKETPLACE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
 import { useRemoteAppFlags } from '../../../../src/hooks/useLaunchWorldFlags';
 import { Screen } from '../../../../src/components/ui/Screen';
@@ -106,7 +106,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/map')}>
           <Text style={styles.link}>{t('marketplace.openMap')}</Text>
         </Pressable>
-        <Pressable onPress={() => router.push(createRouteFor(world) as never)}>
+        <Pressable onPress={() => router.push(createRouteFor(world))}>
           <Text style={styles.link}>{t('marketplace.createListing')}</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/my-listings')}>
@@ -142,7 +142,7 @@ export default function MarketplaceBrowseScreen() {
                 <EmptyStateActions
                   primary={{
                     label: t('emptyStates.marketplaceCreate'),
-                    onPress: () => router.push(createRouteFor(world) as never),
+                    onPress: () => router.push(createRouteFor(world)),
                     testID: 'marketplace-empty-create',
                   }}
                   secondary={

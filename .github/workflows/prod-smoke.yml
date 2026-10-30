@@ -1,7 +1,6 @@
 name: Prod smoke
 
 # KC production HTTP check after `main` deploy (karma-community-kc.com).
-# GloWe live-site probes live in glowe-prod-smoke.yml (separate product prod).
 
 on:
   push:

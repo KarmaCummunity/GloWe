@@ -1,5 +1,5 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { StyleSheet, View } from 'react-native';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 
 export interface AdminFormFieldProps {
   readonly label: string;

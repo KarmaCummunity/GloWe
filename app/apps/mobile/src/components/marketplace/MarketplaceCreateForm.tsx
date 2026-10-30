@@ -4,13 +4,11 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
 import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
 import {
@@ -268,7 +266,11 @@ export function MarketplaceCreateForm({
               }),
             );
             trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
-            void trackActivationIfFirst({ world: worldSlug, cityId: city?.id ?? null });
+            void trackActivationIfFirst({
+              world: worldSlug,
+              cityId: city?.id ?? null,
+              accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt,
+            });
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

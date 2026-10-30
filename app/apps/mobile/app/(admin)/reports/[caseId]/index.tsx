@@ -4,10 +4,10 @@
 // is the routing contract for deep-links (e.g. from chat ReportReceivedBubble
 // or future notification taps).
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AdminReportTargetType } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useReportCaseDetail } from '../../../../src/hooks/useReportCaseDetail';
 import { CaseReporterList } from '../../../../src/components/admin/reports/CaseReporterList';
 import { CaseAuditTimeline } from '../../../../src/components/admin/reports/CaseAuditTimeline';

@@ -6,11 +6,11 @@
 // `extraIcon` slot: the feed renders the filter/sort icon there so it's visible
 // only on the feed and disappears when navigating to another tab (FR-FEED-004).
 import React from 'react';
-import { Image, Platform, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { Image, Platform, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, useTheme, Text } from '@kc/ui';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationInboxBadge } from '../hooks/useNotificationInboxBadge';

@@ -10,10 +10,10 @@
 //   - moderator:   read-only list.
 //   - support:     no access (denial card; AdminGate may also block earlier).
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles, useBreakpoint } from '@kc/ui';
+import { makeUseStyles, useBreakpoint, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { rowDirectionStart } from '../../../src/lib/rtlLayout';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -50,7 +50,7 @@ export default function AdminsScreen() {
 
   const canGrant = can('admins.grant_role');
   const openDetail = (userId: string) =>
-    router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId } } as never);
+    router.push({ pathname: '/(admin)/admins/[userId]', params: { userId } });
 
   return (
     <View style={styles.root}>

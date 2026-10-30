@@ -6,7 +6,7 @@
 // Mapped to SRS: FR-PROFILE-002, 003, 004; FR-FOLLOW-001..006, 011, 012.
 
 import React from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useProfileClosedPosts } from '../../../src/hooks/useProfileClosedPosts';
 import { useProfileTabCounts } from '../../../src/hooks/useProfileTabCounts';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { ProfileHeader } from '../../../src/components/profile/ProfileHeader';
 import { ProfileStatsRow } from '../../../src/components/profile/ProfileStatsRow';
 import { ProfileTabs, type ProfilePostsTab } from '../../../src/components/profile/ProfileTabs';
@@ -185,14 +185,14 @@ export default function OtherProfileScreen() {
             followingCount={u.followingCount}
             postsCount={tabCounts.totalCount ?? 0}
             enabled
-            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers' as never, params: { handle } } as never)}
-            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
+            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers', params: { handle } })}
+            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following', params: { handle } })}
           />
 
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
-              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId: u.userId } } as never)}
+              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]', params: { userId: u.userId } })}
             >
               <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
               <Text style={styles.adminLinkText}>{t('admin.admins.profileLink')}</Text>

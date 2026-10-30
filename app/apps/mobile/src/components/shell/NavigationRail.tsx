@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useBreakpoint, useTheme, spacing, shellDimensions } from '@kc/ui';
+import { makeUseStyles, useBreakpoint, useTheme, spacing, shellDimensions, Text } from '@kc/ui';
 import { TABS, isTabActive, type TabDefinition } from './tabs.config';
 
 type NavigationRailProps = {
@@ -45,7 +45,7 @@ function NavigationRailItem({ tab, expanded }: { tab: TabDefinition; expanded: b
 
   return (
     <Pressable
-      onPress={() => router.push(tab.route as never)}
+      onPress={() => router.push(tab.route)}
       style={[
         styles.item,
         expanded ? styles.itemExpanded : styles.itemCollapsed,

@@ -5,11 +5,11 @@
 // selection writes users.preferred_language and invalidates the translation
 // caches so the feed + open posts re-render in the new language.
 import React from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';

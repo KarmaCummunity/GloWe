@@ -2813,6 +2813,30 @@ export type Database = {
         }
         Relationships: []
       }
+      kc_support_channels: {
+        Row: {
+          channel: string
+          is_active: boolean
+          provider_label: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          channel: string
+          is_active?: boolean
+          provider_label: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          channel?: string
+          is_active?: boolean
+          provider_label?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       legal_document_versions: {
         Row: {
           body_md: string
@@ -9361,6 +9385,7 @@ export type Database = {
           world_slug: string
         }[]
       }
+      can_contact_support: { Args: { uid: string }; Returns: boolean }
       can_grant_role: {
         Args: { granter_uid: string; target_role: string; target_scope: string }
         Returns: boolean
@@ -10036,6 +10061,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      karma_award_handoff: {
+        Args: {
+          p_giver: string
+          p_handoff_id: string
+          p_receiver: string
+          p_world: string
+        }
+        Returns: undefined
+      }
       karma_grant_once: {
         Args: {
           p_delta: number
@@ -10045,6 +10079,10 @@ export type Database = {
           p_user: string
         }
         Returns: undefined
+      }
+      karma_handoff_points: {
+        Args: { p_role: string; p_world: string }
+        Returns: number
       }
       karma_recompute_nightly: {
         Args: never
@@ -10425,6 +10463,10 @@ export type Database = {
       notification_inbox_world_for_kind: {
         Args: { p_kind: string }
         Returns: string
+      }
+      notification_kind_enabled: {
+        Args: { p_kind: string; p_prefs: Json }
+        Returns: boolean
       }
       notifications_backlog_check: { Args: never; Returns: undefined }
       notifications_bump_attempt: {

@@ -56,6 +56,7 @@ jobs:
             backend:
               - 'supabase/**'
               - 'scripts/check-migration-chain.mjs'
+              - 'scripts/run-db-tests.sh'
               - 'app/packages/infrastructure-supabase/src/database.types.ts'
               - 'app/packages/infrastructure-supabase/src/rpc/__tests__/sqlProbes.integration.test.ts'
               - 'supabase/functions/**'
@@ -95,7 +96,7 @@ jobs:
       # with a `*.test.ts` must be listed here, or its tests never run in CI.
       - name: Deno test Edge Function handlers (mocked, no secrets)
         working-directory: supabase/functions
-        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank delete-account revenuecat-webhook --allow-read
+        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank delete-account revenuecat-webhook validate-donation-link --allow-read
 
   db-validate:
     # REQUIRED status check — always runs so the context reports on every PR.
@@ -154,19 +155,11 @@ jobs:
           done
           exit 1
 
-      - name: Run all DB tests (supabase/tests/*.sql)
+      - name: Run all DB tests (harness + supabase/tests + flows)
         if: needs.changes.outputs.backend == 'true'
-        env:
-          PGPASSWORD: postgres
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          for f in supabase/tests/*.sql; do
-            echo "── Running $f ──"
-            psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
-              -v ON_ERROR_STOP=1 \
-              -f "$f"
-          done
+        # Same runner agents use locally: installs supabase/tests/_harness, then runs the
+        # per-migration tests and the per-world lifecycle flows (G44).
+        run: scripts/run-db-tests.sh
 
       - name: Check database.types.ts drift
         if: needs.changes.outputs.backend == 'true'
