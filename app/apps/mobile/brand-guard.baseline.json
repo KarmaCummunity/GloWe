@@ -544,24 +544,11 @@
     "src/components/admin/admins/AdminsTreeView.tsx": {
       "spacingLiteral": 1
     },
-    "src/components/admin/admins/GrantManagerSection.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 11
-    },
     "src/components/admin/admins/LevelBadge.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
       "spacingLiteral": 2
-    },
-    "src/components/admin/admins/ManagerPickerModal.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 1,
-      "spacingLiteral": 10
     },
     "src/components/admin/admins/ManagerSummary.tsx": {
       "colorLiteral": 1,

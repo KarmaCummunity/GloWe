@@ -13,8 +13,9 @@
 --      a single transaction: the old grant is revoked, a new grant with the same
 --      user, scope and direct manager is inserted, and every active report of
 --      the old grant is re-pointed to the new one, so the person keeps their
---      place in the reporting chain. The caller needs authority over both the
---      old and the new role in that scope (`can_grant_role`, FR-ADMIN-016).
+--      place in the reporting chain. The caller needs the revoke authority over
+--      the grant (`can_manage_grant`, FR-ADMIN-027) and may grant both the old
+--      and the new role in that scope (`can_grant_role`).
 --
 -- Mapped to spec: FR-ADMIN-030 (docs/SSOT/spec/12_super_admin.md §18).
 -- Decisions: D-197; project book D85, D86.
@@ -173,9 +174,13 @@ begin
     raise exception 'invalid_scope' using errcode = '22023';
   end if;
 
-  -- Authority over both sides: removing the old role and granting the new one.
-  -- super_admin is never grantable, so it can never be changed here either.
-  if not public.can_grant_role(v_actor, v_old_role, v_scope)
+  -- Authority as for a revoke plus a grant (FR-ADMIN-027, migration 0442): the
+  -- caller manages the grant by position (an ancestor holding a more senior
+  -- role; super_admin always), and may grant both the old and the new role in
+  -- this scope (role matrix + strictly lower rank). super_admin is never
+  -- grantable, so the super_admin grant can never be changed here.
+  if not public.can_manage_grant(v_actor, p_grant_id)
+     or not public.can_grant_role(v_actor, v_old_role, v_scope)
      or not public.can_grant_role(v_actor, p_new_role, v_scope) then
     raise exception 'forbidden_grant' using errcode = '42501';
   end if;

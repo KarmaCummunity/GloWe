@@ -29,7 +29,7 @@ export function GrantRoleModal({ visible, onClose, presetUser }: GrantRoleModalP
   const L = useLocaleBundle();
   const copy = L.admin.admins.grantModal;
   const team = L.admin.admins.team;
-  const { viewer, scopes } = useGrantAuthority();
+  const { authority, scopes } = useGrantAuthority();
   const grant = useGrantAdminRole();
   const [user, setUser] = useState<PickedUser | null>(presetUser ?? null);
   // `undefined` = no scope picked yet; `null` = the platform.
@@ -50,8 +50,8 @@ export function GrantRoleModal({ visible, onClose, presetUser }: GrantRoleModalP
   const onlyScope = scopes.length === 1 ? scopes[0]?.scopeOrgId : undefined;
   const activeScope = scope !== undefined ? scope : onlyScope;
   const roles = useMemo(
-    () => (activeScope === undefined ? [] : grantableRolesIn(viewer, activeScope)),
-    [viewer, activeScope],
+    () => (activeScope === undefined ? [] : grantableRolesIn(authority.grants, activeScope)),
+    [authority.grants, activeScope],
   );
   const scopeOptions = scopes.map((s) => ({
     key: s.scopeOrgId,

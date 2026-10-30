@@ -1,11 +1,12 @@
 // app/apps/mobile/src/components/admin/admins/PersonRolesSection.tsx
 // FR-ADMIN-030 — the roles block of the admin person screen: every grant with
 // its org, plus add / change / revoke for the grants the viewer has authority
-// over (GrantAuthority mirrors the server's `can_grant_role`).
+// over (GrantAuthority mirrors the server's `can_grant_role` and
+// `can_manage_grant`, FR-ADMIN-027).
 import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { canManageGrant, isAdminRoleError, type AdminGrant } from '@kc/domain';
+import { canRevokeGrant, isAdminRoleError, type AdminGrant } from '@kc/domain';
 import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { useRevokeAdminRole } from '../../../hooks/useAdminRoleMutations';
 import { useGrantAuthority } from '../../../hooks/useGrantAuthority';
@@ -35,7 +36,7 @@ export function PersonRolesSection({ userId, personName, grants }: PersonRolesSe
   const { colors } = useTheme();
   const L = useLocaleBundle();
   const team = L.admin.admins.team;
-  const { viewer, scopes } = useGrantAuthority();
+  const { authority, scopes } = useGrantAuthority();
   const { pyramid } = useHierarchyPyramid(null);
   const revoke = useRevokeAdminRole();
   const [adding, setAdding] = useState(false);
@@ -80,7 +81,7 @@ export function PersonRolesSection({ userId, personName, grants }: PersonRolesSe
               grant={g}
               orgName={orgNameOf(g.scopeOrgId)}
               personName={personName}
-              canManage={canManageGrant(viewer, g)}
+              canManage={canRevokeGrant(authority, g)}
               busy={revoke.isPending}
               onChange={setChanging}
               onRevoke={(id) => { void onRevoke(id); }}
@@ -97,7 +98,7 @@ export function PersonRolesSection({ userId, personName, grants }: PersonRolesSe
       <ChangeRoleModal
         grant={changing}
         orgName={changing ? orgNameOf(changing.scopeOrgId) : ''}
-        viewer={viewer}
+        authority={authority}
         onClose={() => setChanging(null)}
       />
     </View>

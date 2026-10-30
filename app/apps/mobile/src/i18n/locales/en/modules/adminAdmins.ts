@@ -62,6 +62,7 @@ export const adminAdminsEn = {
     manager_revoked:       'The selected manager\'s assignment has been revoked.',
     manager_other_org:     'The manager must be from the same organization.',
     manager_cycle:         'This assignment would create a cycle in the hierarchy.',
+    manager_rank:          'The new manager must hold a more senior role.',
     grant_not_found:       'Assignment not found.',
     grant_already_revoked: 'The assignment has been revoked.',
     invalid_input:         'Invalid input.',

@@ -8,8 +8,9 @@
 --   3. admin_change_role replaces the role in place: the old grant is revoked, the
 --      new one keeps user, scope and manager, reports follow it, and the change
 --      is audited as a revoke + grant pair;
---   4. it rejects a caller without authority, a scope-crossing role, a role the
---      person already holds (rolling back the revoke), and the super_admin grant.
+--   4. it rejects a caller outside the grant's subtree (FR-ADMIN-027) or org, a
+--      scope-crossing role, a role the person already holds (rolling back the
+--      revoke), and the super_admin grant.
 -- Runs in a rolled-back transaction so it leaves no rows behind.
 
 begin;
@@ -52,12 +53,20 @@ end $$;
 -- Asserts that `p_sql` raises an exception whose message is `p_expected`.
 create or replace function pg_temp.expect_error(p_sql text, p_expected text, p_label text)
 returns void language plpgsql as $$
+declare
+  v_raised text;
 begin
-  execute p_sql;
-  raise exception 'ASSERT FAILED: % did not raise %', p_label, p_expected;
-exception when others then
-  if sqlerrm <> p_expected then
-    raise exception 'ASSERT FAILED: % raised "%" instead of %', p_label, sqlerrm, p_expected;
+  -- Only the statement under test sits in the protected block, so the
+  -- "did not raise" assertion below is never swallowed by its own handler.
+  begin
+    execute p_sql;
+  exception when others then
+    v_raised := sqlerrm;
+  end;
+  if v_raised is null then
+    raise exception 'ASSERT FAILED: % did not raise %', p_label, p_expected;
+  elsif v_raised <> p_expected then
+    raise exception 'ASSERT FAILED: % raised "%" instead of %', p_label, v_raised, p_expected;
   end if;
 end $$;
 
@@ -201,6 +210,16 @@ begin
     raise exception 'ASSERT FAILED: change must be audited as a revoke + grant pair';
   end if;
 end $$;
+
+-- 4a'. Position rule (FR-ADMIN-027): even in their own org, an org admin may not
+-- re-role a grant outside their subtree (dual_a reports to nobody). The target
+-- role is one dual_a does not hold, so only the position check can refuse it.
+select pg_temp.act_as((select admin_a_id from fx));
+set local role authenticated;
+select pg_temp.expect_error(
+  format('select public.admin_change_role(%L, %L)', (select dual_vol_grant from ids), 'operator'),
+  'forbidden_grant', 'change outside the subtree');
+reset role;
 
 -- 4a. Org admin of B has no authority in org A.
 select pg_temp.act_as((select admin_b_id from fx));

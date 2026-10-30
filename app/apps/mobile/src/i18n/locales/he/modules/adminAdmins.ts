@@ -62,6 +62,7 @@ export const adminAdminsHe = {
     manager_revoked:       'המינוי של המנהל שנבחר בוטל.',
     manager_other_org:     'המנהל חייב להיות מאותו ארגון.',
     manager_cycle:         'השיוך יוצר מעגל בהיררכיה.',
+    manager_rank:          'המנהל החדש חייב להיות בתפקיד בכיר יותר.',
     grant_not_found:       'המינוי לא נמצא.',
     grant_already_revoked: 'המינוי בוטל.',
     invalid_input:         'קלט לא תקין.',

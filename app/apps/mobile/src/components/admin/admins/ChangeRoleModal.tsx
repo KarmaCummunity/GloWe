@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import {
-  changeTargetsFor, isAdminRoleError, type AdminGrant, type AuthorityGrant, type GrantableAdminRole,
+  changeTargetsFor, isAdminRoleError, type AdminGrant, type GrantableAdminRole, type ViewerAuthority,
 } from '@kc/domain';
 import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useChangeAdminRole } from '../../../hooks/useAdminRoleMutations';
@@ -19,11 +19,11 @@ export interface ChangeRoleModalProps {
   readonly grant: AdminGrant | null;
   /** Display name of the grant's org (or the platform). */
   readonly orgName: string;
-  readonly viewer: readonly AuthorityGrant[];
+  readonly authority: ViewerAuthority;
   readonly onClose: () => void;
 }
 
-export function ChangeRoleModal({ grant, orgName, viewer, onClose }: ChangeRoleModalProps) {
+export function ChangeRoleModal({ grant, orgName, authority, onClose }: ChangeRoleModalProps) {
   const styles = useStyles();
   const L = useLocaleBundle();
   const copy = L.admin.admins.team.changeModal;
@@ -37,7 +37,7 @@ export function ChangeRoleModal({ grant, orgName, viewer, onClose }: ChangeRoleM
     setErrorCode(null);
   }, [grant?.grantId]);
 
-  const targets = useMemo(() => (grant ? changeTargetsFor(viewer, grant) : []), [viewer, grant]);
+  const targets = useMemo(() => (grant ? changeTargetsFor(authority, grant) : []), [authority, grant]);
   const canSubmit = grant !== null && role !== null && !change.isPending;
 
   async function submit() {

@@ -34,6 +34,7 @@ const KNOWN_ERROR_MESSAGES: ReadonlySet<OrgHierarchyErrorCode> = new Set([
   'manager_revoked',
   'manager_other_org',
   'manager_cycle',
+  'manager_rank',
 ]);
 
 function mapRpcError(err: { message?: string; code?: string } | null): OrgHierarchyError {
