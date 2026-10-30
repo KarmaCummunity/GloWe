@@ -65,7 +65,7 @@ export default function AccountBlockedScreen() {
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: {
     flex: 1,
     padding: spacing.xl,
