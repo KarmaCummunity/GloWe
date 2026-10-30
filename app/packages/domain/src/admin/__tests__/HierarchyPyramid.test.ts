@@ -1,10 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  HIERARCHY_TIERS,
   buildHierarchyPyramid,
-  hierarchyTierOf,
+  roleBaseLevel,
   type HierarchyCensus,
-  type HierarchyTier,
+  type HierarchyPyramid,
 } from '../HierarchyPyramid';
 import type { OrgTreeMember } from '../OrgTree';
 
@@ -40,114 +39,150 @@ const CENSUS: HierarchyCensus = {
   ],
 };
 
-function layer(pyramid: ReturnType<typeof buildHierarchyPyramid>, tier: HierarchyTier) {
-  const found = pyramid.layers.find((l) => l.tier === tier);
-  expect(found).toBeDefined();
-  return found!;
+function build(members: readonly OrgTreeMember[], focus: string | null = null): HierarchyPyramid {
+  return buildHierarchyPyramid({ members, census: CENSUS }, focus);
 }
 
-describe('hierarchyTierOf', () => {
-  it('maps fixed roles to their stratum', () => {
-    expect(hierarchyTierOf('super_admin', true)).toBe('leadership');
-    expect(hierarchyTierOf('moderator', true)).toBe('platform_staff');
-    expect(hierarchyTierOf('org_admin', false)).toBe('org_leadership');
-    expect(hierarchyTierOf('volunteer_manager', false)).toBe('org_team');
-    expect(hierarchyTierOf('org_volunteer', false)).toBe('volunteers');
+/** Level → display names, for compact assertions. */
+function namesByLevel(pyramid: HierarchyPyramid): Record<number, string[]> {
+  const out: Record<number, string[]> = {};
+  for (const layer of pyramid.layers) {
+    out[layer.level] = layer.groups.flatMap((g) => g.people.map((p) => p.displayName ?? ''));
+  }
+  return out;
+}
+
+describe('roleBaseLevel', () => {
+  it('places unlinked grants at their role’s natural level', () => {
+    expect(roleBaseLevel('super_admin', true)).toBe(0);
+    expect(roleBaseLevel('moderator', true)).toBe(1);
+    expect(roleBaseLevel('org_admin', false)).toBe(1);
+    expect(roleBaseLevel('org_manager', false)).toBe(2);
+    expect(roleBaseLevel('volunteer_manager', false)).toBe(3);
+    expect(roleBaseLevel('org_volunteer', false)).toBe(4);
   });
 
   it('places operations roles by scope', () => {
-    expect(hierarchyTierOf('operator', true)).toBe('platform_staff');
-    expect(hierarchyTierOf('operators_manager', false)).toBe('org_team');
+    expect(roleBaseLevel('operators_manager', true)).toBe(1);
+    expect(roleBaseLevel('operator', true)).toBe(2);
+    expect(roleBaseLevel('operators_manager', false)).toBe(3);
+    expect(roleBaseLevel('operator', false)).toBe(4);
   });
 });
 
-describe('buildHierarchyPyramid', () => {
-  it('always returns every stratum in authority order, even when empty', () => {
-    const pyramid = buildHierarchyPyramid({ members: [], census: CENSUS });
-    expect(pyramid.layers.map((l) => l.tier)).toEqual([...HIERARCHY_TIERS]);
-    expect(pyramid.layers.every((l) => l.headcount === 0)).toBe(true);
+describe('buildHierarchyPyramid — levels', () => {
+  it('returns no layers and the community base when nobody holds a role', () => {
+    const pyramid = build([]);
+    expect(pyramid.layers).toEqual([]);
     expect(pyramid.visiblePeople).toBe(0);
+    expect(pyramid.base).toEqual({ maskedCount: 94, affiliatedCount: 5, communityTotal: 100 });
   });
 
-  it('computes the masked base from the census, never below zero', () => {
-    const pyramid = buildHierarchyPyramid({ members: [], census: CENSUS });
-    expect(pyramid.base).toEqual({ maskedCount: 94, affiliatedCount: 5, communityTotal: 100 });
-
-    const inverted = buildHierarchyPyramid({
+  it('floors the masked count at zero', () => {
+    const pyramid = buildHierarchyPyramid({
       members: [],
       census: { ...CENSUS, communityTotal: 2, roleHolderTotal: 5 },
     });
-    expect(inverted.base.maskedCount).toBe(0);
+    expect(pyramid.base.maskedCount).toBe(0);
   });
 
-  it('groups people by org inside a stratum, platform org first', () => {
-    const pyramid = buildHierarchyPyramid({
-      members: [
-        member({ grantId: 'b1', role: 'org_admin', orgId: 'org-b', scopeOrgId: 'org-b', orgName: 'Beta' }),
-        member({ grantId: 'a1', role: 'org_manager' }),
-        platformMember({ grantId: 'p1', role: 'super_admin' }),
-      ],
-      census: CENSUS,
-    });
-    expect(layer(pyramid, 'leadership').groups.map((g) => g.orgId)).toEqual([PLATFORM]);
-    expect(layer(pyramid, 'org_leadership').groups.map((g) => g.orgName)).toEqual(['Alpha', 'Beta']);
+  it('adds one level per link, with no depth limit', () => {
+    // super_admin → org_admin → manager → manager → manager → manager → volunteer manager → volunteer
+    const pyramid = build([
+      platformMember({ grantId: 'root', role: 'super_admin' }),
+      member({ grantId: 'admin', role: 'org_admin', managerGrantId: 'root' }),
+      member({ grantId: 'm1', role: 'org_manager', managerGrantId: 'admin' }),
+      member({ grantId: 'm2', role: 'org_manager', managerGrantId: 'm1' }),
+      member({ grantId: 'm3', role: 'org_manager', managerGrantId: 'm2' }),
+      member({ grantId: 'm4', role: 'org_manager', managerGrantId: 'm3' }),
+      member({ grantId: 'vm', role: 'volunteer_manager', managerGrantId: 'm4' }),
+      member({ grantId: 'vol', role: 'org_volunteer', managerGrantId: 'vm' }),
+    ]);
+    expect(pyramid.layers.map((l) => l.level)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect(namesByLevel(pyramid)[7]).toEqual(['vol']);
   });
 
-  it('merges a multi-role person into one entry per stratum, highest role first', () => {
-    const pyramid = buildHierarchyPyramid({
-      members: [
-        platformMember({ grantId: 's1', userId: 'u-x', role: 'support' }),
-        platformMember({ grantId: 'm1', userId: 'u-x', role: 'moderator' }),
-      ],
-      census: CENSUS,
-    });
-    const staff = layer(pyramid, 'platform_staff');
-    expect(staff.headcount).toBe(1);
-    expect(staff.groups[0]?.people[0]?.roles).toEqual(['moderator', 'support']);
+  it('places a report one level below its manager, whatever its role', () => {
+    const pyramid = build([
+      member({ grantId: 'admin', role: 'org_admin' }),
+      member({ grantId: 'vol', role: 'org_volunteer', managerGrantId: 'admin' }),
+    ]);
+    expect(namesByLevel(pyramid)).toEqual({ 1: ['admin'], 2: ['vol'] });
+  });
+
+  it('falls back to the natural level when the manager is not visible', () => {
+    const pyramid = build([member({ grantId: 'vm', role: 'volunteer_manager', managerGrantId: 'out-of-scope' })]);
+    expect(namesByLevel(pyramid)).toEqual({ 3: ['vm'] });
+  });
+
+  it('lists the roles present at each level, highest first', () => {
+    const pyramid = build([
+      member({ grantId: 'emp', role: 'org_employee' }),
+      member({ grantId: 'vm', role: 'volunteer_manager' }),
+    ]);
+    expect(pyramid.layers[0]?.roles).toEqual(['volunteer_manager', 'org_employee']);
+  });
+});
+
+describe('buildHierarchyPyramid — grouping', () => {
+  it('groups people by org inside a level, platform org first', () => {
+    const pyramid = build([
+      member({ grantId: 'b1', role: 'org_admin', orgId: 'org-b', scopeOrgId: 'org-b', orgName: 'Beta' }),
+      member({ grantId: 'a1', role: 'org_admin' }),
+      platformMember({ grantId: 'p1', role: 'moderator' }),
+    ]);
+    expect(pyramid.layers[0]?.groups.map((g) => g.orgName)).toEqual(['Karma Community', 'Alpha', 'Beta']);
+  });
+
+  it('merges a person’s grants at the same level and org into one entry', () => {
+    const pyramid = build([
+      platformMember({ grantId: 's1', userId: 'u-x', role: 'support' }),
+      platformMember({ grantId: 'm1', userId: 'u-x', role: 'moderator' }),
+    ]);
+    expect(pyramid.layers[0]?.headcount).toBe(1);
+    expect(pyramid.layers[0]?.groups[0]?.people[0]?.roles).toEqual(['moderator', 'support']);
     expect(pyramid.visiblePeople).toBe(1);
   });
 
-  it('keeps one person in two strata when their roles span them', () => {
-    const pyramid = buildHierarchyPyramid({
-      members: [
-        member({ grantId: 'g1', userId: 'u-y', role: 'org_admin' }),
-        member({ grantId: 'g2', userId: 'u-y', role: 'org_volunteer' }),
-      ],
-      census: CENSUS,
-    });
-    expect(layer(pyramid, 'org_leadership').headcount).toBe(1);
-    expect(layer(pyramid, 'volunteers').headcount).toBe(1);
+  it('shows a person at each level their grants occupy', () => {
+    const pyramid = build([
+      member({ grantId: 'g1', userId: 'u-y', role: 'org_admin' }),
+      member({ grantId: 'g2', userId: 'u-y', role: 'org_volunteer' }),
+    ]);
+    expect(pyramid.layers.map((l) => [l.level, l.headcount])).toEqual([[1, 1], [4, 1]]);
     expect(pyramid.visiblePeople).toBe(1);
   });
 
   it('sorts people by role rank, then by name', () => {
-    const pyramid = buildHierarchyPyramid({
-      members: [
-        member({ grantId: 'zed', role: 'org_employee' }),
-        member({ grantId: 'amy', role: 'org_employee' }),
-        member({ grantId: 'vm', role: 'volunteer_manager' }),
-      ],
-      census: CENSUS,
-    });
-    const names = layer(pyramid, 'org_team').groups[0]?.people.map((p) => p.displayName);
-    expect(names).toEqual(['vm', 'amy', 'zed']);
+    const pyramid = build([
+      member({ grantId: 'zed', role: 'org_employee' }),
+      member({ grantId: 'amy', role: 'org_employee' }),
+      member({ grantId: 'vm', role: 'volunteer_manager' }),
+    ]);
+    expect(namesByLevel(pyramid)[3]).toEqual(['vm', 'amy', 'zed']);
+  });
+});
+
+describe('buildHierarchyPyramid — focus', () => {
+  const snapshotMembers = [
+    platformMember({ grantId: 'mod', role: 'moderator' }),
+    member({ grantId: 'admin', role: 'org_admin', managerGrantId: 'mod' }),
+    member({ grantId: 'bob', role: 'org_admin', orgId: 'org-b', scopeOrgId: 'org-b', orgName: 'Beta' }),
+  ];
+
+  it('keeps levels computed on the whole snapshot', () => {
+    // `admin` reports to a platform moderator, so it stays at level 2 under focus.
+    expect(namesByLevel(build(snapshotMembers))).toEqual({ 1: ['mod', 'bob'], 2: ['admin'] });
+    expect(namesByLevel(build(snapshotMembers, 'org-a'))).toEqual({ 2: ['admin'] });
   });
 
-  it('narrows strata and affiliates to the focused org but keeps the community base', () => {
-    const snapshot = {
-      members: [
-        platformMember({ grantId: 'p1', role: 'super_admin' }),
-        member({ grantId: 'a1', role: 'org_admin' }),
-      ],
-      census: CENSUS,
-    };
-    const focused = buildHierarchyPyramid(snapshot, 'org-a');
-    expect(layer(focused, 'leadership').headcount).toBe(0);
-    expect(layer(focused, 'org_leadership').headcount).toBe(1);
+  it('narrows affiliates to the focused org but keeps the community base', () => {
+    const focused = build(snapshotMembers, 'org-a');
     expect(focused.base).toEqual({ maskedCount: 94, affiliatedCount: 4, communityTotal: 100 });
+    expect(focused.visiblePeople).toBe(1);
     // The org summary always describes every visible org, regardless of focus.
     expect(focused.orgs.map((o) => [o.orgId, o.memberCount])).toEqual([
-      [PLATFORM, 1], ['org-a', 1], ['org-b', 0],
+      [PLATFORM, 1], ['org-a', 1], ['org-b', 1],
     ]);
   });
 
@@ -155,18 +190,13 @@ describe('buildHierarchyPyramid', () => {
   // unresolved org only occurs if no platform org row exists. Such members
   // stay visible in the unfocused view but belong to no census org.
   it('keeps platform members without a resolved org in their own bucket', () => {
-    const snapshot = {
-      members: [platformMember({ grantId: 'p1', role: 'moderator', orgId: null, orgName: null })],
-      census: CENSUS,
-    };
-    const pyramid = buildHierarchyPyramid(snapshot);
-    const group = layer(pyramid, 'platform_staff').groups[0];
+    const members = [platformMember({ grantId: 'p1', role: 'moderator', orgId: null, orgName: null })];
+    const pyramid = build(members);
+    const group = pyramid.layers[0]?.groups[0];
     expect(group?.orgId).toBe('platform');
     expect(group?.isPlatform).toBe(true);
-    expect(group?.people).toHaveLength(1);
     expect(pyramid.visiblePeople).toBe(1);
-    // Not credited to any census org, and dropped when a census org is focused.
     expect(pyramid.orgs.every((o) => o.memberCount === 0)).toBe(true);
-    expect(layer(buildHierarchyPyramid(snapshot, PLATFORM), 'platform_staff').headcount).toBe(0);
+    expect(build(members, PLATFORM).layers).toEqual([]);
   });
 });
