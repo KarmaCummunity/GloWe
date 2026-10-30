@@ -8677,6 +8677,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_hierarchy_census: { Args: never; Returns: Json }
       admin_list_admins: {
         Args: { p_include_revoked?: boolean }
         Returns: {

@@ -101,3 +101,45 @@ describe('SupabaseOrgHierarchyRepository — setManager', () => {
     await expect(repo.setManager('g1', 'm1')).rejects.toMatchObject({ code: 'unknown' });
   });
 });
+
+describe('SupabaseOrgHierarchyRepository — getHierarchyCensus', () => {
+  it('maps the census payload and calls the RPC without args', async () => {
+    const rpc = vi.fn(() => ({
+      data: {
+        community_total: 120,
+        role_holder_total: 7,
+        orgs: [
+          { org_id: 'p', name: 'Karma Community', is_platform: true, is_verified: true, affiliated_count: 0 },
+          { org_id: 'o1', name: 'Alpha', is_platform: false, is_verified: false, affiliated_count: 3 },
+        ],
+      },
+      error: null,
+    }));
+    const repo = new SupabaseOrgHierarchyRepository({ rpc } as unknown as SupabaseClient);
+    const census = await repo.getHierarchyCensus();
+    expect(rpc).toHaveBeenCalledWith('admin_hierarchy_census');
+    expect(census).toEqual({
+      communityTotal: 120,
+      roleHolderTotal: 7,
+      orgs: [
+        { orgId: 'p', name: 'Karma Community', isPlatform: true, isVerified: true, affiliatedCount: 0 },
+        { orgId: 'o1', name: 'Alpha', isPlatform: false, isVerified: false, affiliatedCount: 3 },
+      ],
+    });
+  });
+
+  it('tolerates a malformed payload: drops bad orgs and zeroes bad counts', async () => {
+    const repo = new SupabaseOrgHierarchyRepository(mockClient(() => ({
+      data: { community_total: -4, role_holder_total: 'x', orgs: [{ name: 'no id' }, null] },
+      error: null,
+    })));
+    expect(await repo.getHierarchyCensus()).toEqual({ communityTotal: 0, roleHolderTotal: 0, orgs: [] });
+  });
+
+  it('maps a 42501 rejection to forbidden', async () => {
+    const repo = new SupabaseOrgHierarchyRepository(
+      mockClient(() => ({ data: null, error: { message: 'forbidden', code: '42501' } })),
+    );
+    await expect(repo.getHierarchyCensus()).rejects.toMatchObject({ code: 'forbidden' });
+  });
+});
