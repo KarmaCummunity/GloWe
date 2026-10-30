@@ -45,6 +45,16 @@
 | OPS-G39 | **Port contract tests** (fake + Supabase adapter, same suite). | agent-fullstack | ⏳ Planned | §5.1 · G39 |
 | OPS-G40 | **Two-user E2E journey per active world** on relevant PRs. | agent-fe | ⏳ Planned | §5.1 · G40 |
 | OPS-G43 | **Per-world flow funnel** from handoff timestamps. | agent-be | ⏳ Planned | §5.2 · G43 |
+## RIDES — Replace a WhatsApp ride group (D70–D75)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled; unapproved bookings expire (S45). | agent-fullstack | ⏳ Planned | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
+| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (S47); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. | agent-fullstack | ⏳ Planned | §5.3 · G45 |
+| RIDES-G46 | **Map + navigate.** Ride route on the map; "navigate" to Waze / Google Maps / Apple Maps for every ride place. | agent-fe | ⏳ Planned | §5.3 · G46 |
+| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (S46); feed of offers + requests by departure, departed hidden. | agent-fullstack | ⏳ Planned | §5.3 · G49 |
+| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (S44). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
+| RIDES-G44 | **One rides flow.** Retire legacy `ride_listings` screens; move emergency button + cost caps onto the one flow. | agent-fullstack | ⏳ Planned | §5.3 · G44 |
 
 ## Deferred (post-MVP, still tracked)
 
