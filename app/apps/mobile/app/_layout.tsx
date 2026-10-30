@@ -42,7 +42,7 @@ import { ModalStackProvider } from '../src/components/legal/useActiveModalStack'
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
-import { NavigationBar } from 'expo-navigation-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 
 function MeRealtimeMount() {
   useMeRealtime();
@@ -63,6 +63,11 @@ function ThemedRootShell() {
   const detailStackScreenOptions = useDetailStackScreenOptions();
 
   React.useEffect(() => {
+    // expo-navigation-bar on SDK 54 is imperative and Android-only (KC#1276).
+    if (Platform.OS === 'android') NavigationBar.setStyle(isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  React.useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       // Paint html/body with the active surface so the area outside the app
       // root (and any iOS overscroll bounce on mobile-web) matches the theme.
@@ -73,7 +78,6 @@ function ThemedRootShell() {
 
   return (
     <>
-      <NavigationBar style={isDark ? 'dark' : 'light'} />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <DevBanner />
       <NotificationsBridge />
