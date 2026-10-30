@@ -247,6 +247,7 @@ export const marketplace = {
   notFound: 'המודעה לא נמצאה.',
   startChat: 'שליחת הודעה',
   shareFeed: 'שיתוף בפיד',
+  actionFailed: 'הפעולה לא הושלמה. נסו שוב.',
   chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
   createTitle: 'מודעה חדשה — {{world}}',
   fieldTitle: 'כותרת',
