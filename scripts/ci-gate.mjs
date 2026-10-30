@@ -24,6 +24,11 @@ import { fileURLToPath } from 'node:url';
 
 const DISPATCH_REFS = new Set(['refs/heads/dev', 'refs/heads/main']);
 
+// Lanes the change detector names only when needed (scripts/ci-changes.mjs
+// OPTIONAL_LANES; this file runs standalone, so the list is repeated). Absent
+// from the plan, such a lane is "not needed" and may only have been skipped.
+const OPTIONAL_LANES = new Set(['release']);
+
 /** Return the list of reasons the gate must fail (empty = pass). */
 export function evaluateGate({ needs, plan, draft, event, ref }) {
   if (draft) {
@@ -40,7 +45,7 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
   const errors = [];
   for (const [job, { result }] of Object.entries(needs)) {
     if (result === 'failure' || result === 'cancelled') errors.push(`job "${job}" ${result}`);
-    else if (job !== 'changes' && typeof plan[job] !== 'boolean') {
+    else if (job !== 'changes' && typeof plan[job] !== 'boolean' && !(OPTIONAL_LANES.has(job) && result === 'skipped')) {
       errors.push(`job "${job}" is not in the change detector's plan`);
     }
   }
