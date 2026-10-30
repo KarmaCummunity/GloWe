@@ -11,6 +11,7 @@ import {
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import type { Ionicons } from '@expo/vector-icons';
 import { DonationLinksList } from '../../../../src/components/DonationLinksList';
+import { MedicalBodiesSection } from '../../../../src/components/MedicalBodiesSection';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { IconTile } from '../../../../src/components/ui/IconTile';
 import { MotionEntry, ENTRY_DELAY } from '../../../../src/components/ui/MotionEntry';
@@ -112,6 +113,13 @@ export default function DonationCategoryScreen() {
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section}>
           <Text style={styles.body}>{body}</Text>
         </MotionEntry>
+
+        {/* FR-DONATE-011 — curated life-saving directory precedes the community list. */}
+        {slug === 'medical' && (
+          <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40}>
+            <MedicalBodiesSection />
+          </MotionEntry>
+        )}
 
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 80}>
           <DonationLinksList categorySlug={slug} />

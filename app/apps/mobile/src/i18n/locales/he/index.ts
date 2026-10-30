@@ -5,6 +5,7 @@
 // Default export: full Hebrew resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
+import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
 import { givingHandoff } from './givingHandoff';
 import { authHe } from './modules/auth';
@@ -112,6 +113,7 @@ const he = {
   marketplace,
   moneyPayments,
   timeVolunteer,
+  medicalBodies,
   givingHandoff,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
