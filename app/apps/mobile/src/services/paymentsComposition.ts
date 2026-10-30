@@ -1,10 +1,7 @@
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   SandboxPaymentProvider,
   SupabasePaymentsRepository,
   getSupabaseClient,
-  type SupabaseAuthStorage,
 } from '@kc/infrastructure-supabase';
 import {
   CancelStandingOrderUseCase,
@@ -20,19 +17,13 @@ import {
   ResumeStandingOrderUseCase,
 } from '@kc/application';
 import * as Crypto from 'expo-crypto';
-
-function pickStorage(): SupabaseAuthStorage | undefined {
-  if (Platform.OS === 'web') {
-    return globalThis.window?.localStorage;
-  }
-  return AsyncStorage;
-}
+import { pickAuthStorage } from './authSecureStorage';
 
 let _repo: SupabasePaymentsRepository | null = null;
 let _provider: SandboxPaymentProvider | null = null;
 
 function repo() {
-  _repo ??= new SupabasePaymentsRepository(getSupabaseClient({ storage: pickStorage() }));
+  _repo ??= new SupabasePaymentsRepository(getSupabaseClient({ storage: pickAuthStorage() }));
   return _repo;
 }
 
