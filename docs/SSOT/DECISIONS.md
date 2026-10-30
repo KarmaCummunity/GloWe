@@ -1501,7 +1501,15 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `.github/workflows/ci-*.yml`, `.github/actions/setup-pnpm-turbo`, `app/turbo.json`, `app/apps/mobile/README.md`, `docs/SSOT/ENVIRONMENTS.md`.
 
-## D-194 — Layered hierarchy view: reporting-chain levels on a masked, count-only base (2026-10-30)
+## D-194 — Data-layer contract: RPCs, tables, repositories, types (2026-10-30)
+
+**Decision.** Adopt [ADR-002](../architecture/adr/ADR-002-data-layer.md) as the data-access contract: adapters in `infrastructure-supabase` are the only callers of `.rpc()` / `.from()`; direct table access only for RLS-expressible reads and single owner-scoped writes; everything rule-bearing goes through SECURITY DEFINER `rpc_*` / `admin_*` (role-gated) / `api_*` (service role) functions with explicit `revoke … from public, anon` + one grant; RLS on every table; SQL raises stable codes that adapters map to typed errors; `database.types.ts` is generated and drift-checked; migration numbers are claimed in `MIGRATION_RANGES.md`. The ADR's checklist is the definition of done for a new RPC.
+
+**Why.** KC#1016. About 124 client-facing functions and 200 adapter RPC calls had no written rule, which led to type drift, `anon`-callable functions and raw `Error`s reaching the UI.
+
+**Affected.** `docs/architecture/adr/ADR-002-data-layer.md`, `supabase/migrations/**`, `app/packages/infrastructure-supabase/**`, `app/packages/application/src/ports/**`.
+
+## D-195 — Layered hierarchy view: reporting-chain levels on a masked, count-only base (2026-10-30)
 
 **Decision.** The admin portal's overview of the management structure is a stack of layers across every visible org, one layer per level of the reporting chain (`manager_grant_id`). Depth is unbounded: a grant sits one level below its visible manager; a grant without a visible manager falls back to its role's natural level (`roleBaseLevel`), so legacy grants created before automatic manager links still stack sensibly. Levels are computed over every visible grant before an org focus is applied, so focusing never re-levels anyone. The stack stands on a base layer that represents the whole community **by count only**. Named people come exclusively from `admin_org_tree` (active grants, RBAC-scoped); the `admin_hierarchy_census` RPC returns aggregates only (community size, distinct role-holders, per-org self-declared volunteer affiliates). Community membership includes suspended users (project book D66). Self-declared `org_memberships` rows are counted as affiliates and never rendered as named role-holders. The layers view is the default view of `(admin)/admins`; list and tree remain one tap away.
 

@@ -26,7 +26,7 @@
 -- (platform-scoped grants resolve to the platform org).
 --
 -- Mapped to spec: FR-ADMIN-028 (docs/SSOT/spec/12_super_admin.md §17).
--- Decisions: D-194; project book D65, D66.
+-- Decisions: D-195; project book D65, D66.
 
 create or replace function public.admin_hierarchy_census()
 returns json
