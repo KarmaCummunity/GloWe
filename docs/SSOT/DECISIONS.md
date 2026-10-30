@@ -1544,6 +1544,14 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0470–0489`, `app/packages/domain/src/finance/**`, `app/packages/domain/src/admin/AdminPermission.ts`, `app/packages/application/src/finance/**`, `app/packages/infrastructure-supabase/src/finance/**`, `app/apps/mobile/app/(admin)/finance/**`, `supabase/functions/finance-export/**`.
 
+## D-198 — Layered hierarchy view: reporting-chain levels on a masked, count-only base (2026-10-30)
+
+**Decision.** The admin portal's overview of the management structure is a stack of layers across every visible org, one layer per level of the reporting chain (`manager_grant_id`). Depth is unbounded: a grant sits one level below its visible manager; a grant without a visible manager falls back to its role's natural level (`roleBaseLevel`), so legacy grants created before automatic manager links still stack sensibly. Levels are computed over every visible grant before an org focus is applied, so focusing never re-levels anyone. The stack stands on a base layer that represents the whole community **by count only**. Named people come exclusively from `admin_org_tree` (active grants, RBAC-scoped); the `admin_hierarchy_census` RPC returns aggregates only (community size, distinct role-holders, per-org self-declared volunteer affiliates). Community membership includes suspended users (project book D84). Self-declared `org_memberships` rows are counted as affiliates and never rendered as named role-holders. The layers view is the default view of `(admin)/admins`; list and tree remain one tap away.
+
+**Why.** PM request (2026-10-30) for an advanced visual of the full hierarchy, from the hidden layer of all users up to the visible layers of role-holders, volunteers and managers in every org; the PM then ruled that depth is not fixed (manager → manager → … → volunteer manager → volunteer) and that a suspended user stays a regular member until an admin decides. Deriving levels from the chain rather than from role categories makes the view match the real organisation. Keeping identities on a single RBAC path (`admin_org_tree`) avoids a second visibility predicate to keep in sync; counts-only for the base honours the privacy floor; treating memberships as aggregates prevents self-declared affiliations from reading as granted authority.
+
+**Affected.** `supabase/migrations/0461_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
+
 ## Change Log
 
 | Version | Date | Summary |

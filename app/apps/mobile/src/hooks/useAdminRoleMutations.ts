@@ -20,6 +20,8 @@ export function useGrantAdminRole() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['admin.admins.list'] });
       void qc.invalidateQueries({ queryKey: ['admin.roles'] });
+      // Tree + layered hierarchy views (FR-ADMIN-025/028) read the same grants.
+      void qc.invalidateQueries({ queryKey: ['admin.org.tree'] });
     },
   });
 }
@@ -32,6 +34,8 @@ export function useRevokeAdminRole() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['admin.admins.list'] });
       void qc.invalidateQueries({ queryKey: ['admin.roles'] });
+      // Tree + layered hierarchy views (FR-ADMIN-025/028) read the same grants.
+      void qc.invalidateQueries({ queryKey: ['admin.org.tree'] });
     },
   });
 }
