@@ -28,11 +28,14 @@ export interface AdminsLayersViewProps {
   readonly onSelect: (userId: string) => void;
 }
 
-/** Band width: a tapering pyramid on wide screens, a gentle inset on phones. */
-function bandWidthStyle(index: number, total: number, isWide: boolean) {
-  return isWide
-    ? { width: `${layerWidePct(index, total)}%` as const }
-    : { alignSelf: 'stretch' as const, marginHorizontal: layerPhoneInset(index, total) };
+/** Wide screens: bands taper into a pyramid. */
+function wideBandStyle(index: number, total: number) {
+  return { width: `${layerWidePct(index, total)}%` as const };
+}
+
+/** Phones: full-width bands with a gentle, capped inset toward the top. */
+function phoneBandStyle(index: number, total: number) {
+  return { alignSelf: 'stretch' as const, marginHorizontal: layerPhoneInset(index, total) };
 }
 
 interface PyramidBodyProps {
@@ -74,7 +77,7 @@ function PyramidBody({ pyramid, focusOrgId, onFocus, isWide, onSelect }: Pyramid
           <MotionEntry
             key={layer.level}
             delay={i * BAND_STAGGER_MS}
-            style={[styles.bandSlot, bandWidthStyle(i, total, isWide)]}
+            style={[styles.bandSlot, isWide ? wideBandStyle(i, total) : phoneBandStyle(i, total)]}
           >
             <HierarchyLayerBand
               layer={layer}
