@@ -164,6 +164,11 @@ export const useWelcomeScreenStyles = makeUseStyles(({ colors, isDark }) => ({
     ...typography.body,
     color: colors.textSecondary,
   },
+  emailEntryText: {
+    ...typography.body,
+    color: colors.primary,
+    textDecorationLine: 'underline' as const,
+  },
 
   oauthDividerRow: {
     flexDirection: 'row' as const,
