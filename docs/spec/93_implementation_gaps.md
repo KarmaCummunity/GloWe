@@ -1,4 +1,4 @@
-# 93 — Implementation gaps G1–G31
+# 93 — Implementation gaps G1–G37
 
 Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
 
@@ -35,3 +35,9 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G29 | Polls & votes (D40) | 11 |
 | G30 | Registrar data import & proper-management badge (S35) | 12 |
 | G31 | Org verification levels, tags & filters (D53) | 08 |
+| G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
+| G33 | `hidden_pending_review` status; auto-moderation hides instead of removing (D33) | 07.15 |
+| G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
+| G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
+| G36 | "Forgot password" action on sign-in (legacy FR-AUTH-008) | auth |
+| G37 | Launch flags hide worlds instead of "not active yet" (D3) | 04 |

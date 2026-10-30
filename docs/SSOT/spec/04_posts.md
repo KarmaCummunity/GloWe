@@ -251,6 +251,8 @@ A user cannot have more than 20 posts in `open` status simultaneously, including
 
 ## FR-POST-012 — Post lifecycle states
 
+> ⚠️ **Superseded by the project book** — D21 (expiry per post type) and S1 (state machine incl. `hidden_pending_review`). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.1. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 **Description.**
 A post moves through a finite state machine.
 
@@ -275,6 +277,8 @@ A post moves through a finite state machine.
 ---
 
 ## FR-POST-013 — Post expiry (300 days)
+
+> ⚠️ **Superseded by the project book** — D21 — expiry per post type; items and all requests never expire (gap G32). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.1. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
 
 **Description.**
 A post that has remained `open` for 300 days transitions to `expired` automatically.

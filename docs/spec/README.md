@@ -36,7 +36,8 @@
 | 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D58 |
 | 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S42 |
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
-| 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G31 |
+| 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G37 |
+| 95 | [95_reconciliation.md](./95_reconciliation.md) | Book × legacy spec × code verification (2026-10-30), superseded FRs, PM questions Q-1…Q-7 |
 | 94 | [94_glossary_and_naming.md](./94_glossary_and_naming.md) | Glossary + naming conventions |
 
 ## Update procedure

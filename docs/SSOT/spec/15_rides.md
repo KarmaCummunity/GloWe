@@ -310,6 +310,8 @@ Prefix: `FR-RIDE-*`
 ---
 
 ## FR-RIDE-038 — Rating aggregation + display
+
+> ⚠️ **Superseded by the project book** — D24 — users never see ratings, not even their own (gap G4). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.7. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
 - AC1. New view `user_ride_rating_summary`: `user_id`, `ratings_count`, `avg_stars` (rounded to 1 decimal), `last_rated_at`.
 - AC2. Profile screen renders the avg + count (`⭐ 4.8 · 27 דירוגי נסיעות`) only when `ratings_count >= 3` (privacy threshold; below 3, show "**עדיין מעט דירוגים**").
 - AC3. Ride detail screen renders the owner's avg under their name.
