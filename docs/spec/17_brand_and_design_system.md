@@ -80,7 +80,8 @@ Screens are composed from shared components, not restyled per screen. Use these 
 
 | Need | Component | Where |
 |---|---|---|
-| Text / text input | `Text`, `TextInput` | `@kc/ui` |
+| Text / text input (primitives) | `Text`, `TextInput` | `@kc/ui` |
+| Form field (label, helper, error, icon, multiline) | `TextField` | `apps/mobile/src/components/ui/TextField.tsx` |
 | Toggle | `PlatformSwitch` | `@kc/ui` |
 | Loading placeholder | `Skeleton` | `@kc/ui` |
 | Desktop side column | `AsidePanel`, `useAside` | `@kc/ui` |
@@ -90,7 +91,7 @@ Screens are composed from shared components, not restyled per screen. Use these 
 | Section title, field label, icon tile, image, date/time field | `SectionHeading`, `FormFieldLabel`, `IconTile`, `KCImage`, `DateTimeField` | `apps/mobile/src/components/ui/` |
 | Avatar | `AvatarInitials` | `apps/mobile/src/components/` |
 
-Not built yet (GitHub epic #1061 / #1021): a shared text field (`TextField`, being added to the kit), modal (#1284), bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+Not built yet (GitHub epic #1061 / #1021): a shared modal (#1284), bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
 
 ### 4.2 Icons
 
