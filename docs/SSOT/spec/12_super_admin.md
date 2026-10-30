@@ -490,6 +490,24 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 
 ---
 
+## FR-ADMIN-027 — Hierarchy-based permissions (position in the tree)
+
+**Description.**
+Management authority follows the actor's position in the org tree (FR-ADMIN-025), per PRD V2 `02_Personas_Roles.md` §2.1 and the owner's decisions of 2026-10-29. The platform hosts many organisations; Karma Community is one of them (the platform org). The platform `super_admin` may do everything.
+
+**Acceptance Criteria.**
+- AC1. `role_rank(role)` defines a total seniority order: super_admin > admin > org_admin > org_manager > moderator / operators_manager / volunteer_manager > support > org_employee / operator > org_volunteer > volunteer.
+- AC2. An actor may grant only roles strictly lower than its own most senior applicable grant (`actor_scope_rank`), in addition to the FR-ADMIN-016 role matrix. A new grant reports to the granting actor's grant.
+- AC3. `can_manage_grant(actor, grant)`: true for `super_admin`; otherwise only when an active grant of the actor is an ancestor of the target and strictly more senior. Peers, managers above and the actor's own grant are never manageable.
+- AC4. `admin_revoke_role` requires AC3; the revoked grant's direct reports move, as a group, under the revoked grant's manager. The re-parent is recorded in the `admin_role_revoke` audit event.
+- AC5. `admin_set_manager` requires AC3 on the target; the new manager must be the actor or inside the actor's subtree and strictly more senior than the target; detaching to a root is `super_admin`-only. Cycle and same-org rules (FR-ADMIN-025) apply to everyone.
+- AC6. The PRD V2 `admin` role is accepted again by the role allow-list.
+- AC7. Regression tests: `supabase/tests/0442_admin_hierarchy_position_permissions.sql`.
+
+**Related.** Migration `0442_admin_hierarchy_position_permissions.sql`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-05 | Initial draft from PRD §2.2 and Flow 9. |
@@ -503,3 +521,4 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 | 0.9 | 2026-06-14 | Added §15 Admin Portal — Survey results & feedback dashboard (A5). FR-ADMIN-021 (`/admin/surveys`): aggregate per-question stats + per-user answers + free-feedback list, gated by new `surveys.view` permission. Migration `0194_admin_survey_results.sql` ships `admin_survey_overview` / `admin_survey_results` / `admin_user_feedback_list` (all SECURITY DEFINER + `admin_assert_role` super_admin\|moderator). Also redesigned the `(admin)/tasks` filter bar (chips no longer wrap vertically; centered max-width layout). |
 | 0.10 | 2026-06-16 | Added §16 Admin Portal — Management hierarchy redesign (P3.A-Tree). FR-ADMIN-022 (unified per-user card + `(admin)/admins/[userId]` detail + profile cross-links; `AdminPerson` / `groupGrantsByUser` domain fold) and FR-ADMIN-023 (include-revoked toggle + `a1-reports-*` revoked-grant presentation fix). Phase 1 is FE-only — no schema change. FR-ADMIN-024..026 (organizations + direct-manager tree + public About tree) specified when Phases 2–3 ship. Plan: `docs/SSOT/archive/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. |
 | 0.11 | 2026-06-16 | Phase 2 (P3.A-Tree.2) shipped. FR-ADMIN-024 (organisations entity + Karma Community platform org + `scope_org_id` FK) and FR-ADMIN-025 (per-grant `manager_grant_id` link, `is_ancestor`, `admin_set_manager` + `admin_org_tree` RPCs, collapsible tree with level badges, org-scoped visibility, assign-manager picker). Migration `0203_admin_org_hierarchy.sql`; decision `D-60` (per-grant manager edge). FR-ADMIN-026 (public About tree + field-level privacy) ships in Phase 3. |
+| 0.12 | 2026-10-29 | Added FR-ADMIN-027 — hierarchy-based permissions (`role_rank`, `actor_scope_rank`, `can_manage_grant`; strict-lower grants; subtree-only moves; group re-parent on removal; `admin` role restored). Migration `0442`. |
