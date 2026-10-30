@@ -1,4 +1,4 @@
--- supabase/tests/0461_admin_match_quality.sql | 0461: admin match-quality metrics (KC#1122):
+-- supabase/tests/0454_admin_match_quality.sql | 0454: admin match-quality metrics (KC#1122):
 -- access control, window clamp, and per-world precision / chat / completion math, measured as
 -- deltas over a baseline so seed data cannot skew the assertions.
 
@@ -67,21 +67,21 @@ create temp table baseline on commit drop as select * from public.match_candidat
 
 do $$
 begin
-  perform pg_temp.mk_user('00000000-0000-0000-0000-0000046100a1', 'mq_giver');
-  perform pg_temp.mk_user('00000000-0000-0000-0000-0000046100b2', 'mq_taker');
-  perform pg_temp.mk_user('00000000-0000-0000-0000-0000046100c3', 'mq_quiet_giver');
-  perform pg_temp.mk_user('00000000-0000-0000-0000-0000046100d4', 'mq_quiet_taker');
-  perform pg_temp.mk_user('00000000-0000-0000-0000-0000046100e5', 'mq_admin');
-  insert into public.admin_role_grants (user_id, role) values ('00000000-0000-0000-0000-0000046100e5', 'moderator');
+  perform pg_temp.mk_user('00000000-0000-0000-0000-0000045400a1', 'mq_giver');
+  perform pg_temp.mk_user('00000000-0000-0000-0000-0000045400b2', 'mq_taker');
+  perform pg_temp.mk_user('00000000-0000-0000-0000-0000045400c3', 'mq_quiet_giver');
+  perform pg_temp.mk_user('00000000-0000-0000-0000-0000045400d4', 'mq_quiet_taker');
+  perform pg_temp.mk_user('00000000-0000-0000-0000-0000045400e5', 'mq_admin');
+  insert into public.admin_role_grants (user_id, role) values ('00000000-0000-0000-0000-0000045400e5', 'moderator');
   -- Both owners of the second pair opted out of match alerts (0460): never "notified".
   update public.users
      set notification_preferences = notification_preferences || '{"kinds":{"match_suggested":false}}'::jsonb
-   where user_id in ('00000000-0000-0000-0000-0000046100c3', '00000000-0000-0000-0000-0000046100d4');
+   where user_id in ('00000000-0000-0000-0000-0000045400c3', '00000000-0000-0000-0000-0000045400d4');
 end $$;
 
 do $$
 begin
-  perform pg_temp.as_user('00000000-0000-0000-0000-0000046100b2');
+  perform pg_temp.as_user('00000000-0000-0000-0000-0000045400b2');
   begin
     perform * from public.admin_match_quality(30);
     raise exception 'ASSERT FAILED: a non-admin must be refused';
@@ -95,7 +95,7 @@ end $$;
 create temp table before_q on commit drop as select * from public.admin_match_quality(30) where false;
 do $$
 begin
-  perform pg_temp.as_user('00000000-0000-0000-0000-0000046100e5');
+  perform pg_temp.as_user('00000000-0000-0000-0000-0000045400e5');
   insert into before_q select * from public.admin_match_quality(30);
   perform pg_temp.as_system();
 end $$;
@@ -103,15 +103,15 @@ end $$;
 -- ── fixtures: alerted pair (accept + chat + handoff) and a fully opted-out pair ──
 do $$
 declare
-  v_a uuid := '00000000-0000-0000-0000-0000046100a1';
-  v_b uuid := '00000000-0000-0000-0000-0000046100b2';
+  v_a uuid := '00000000-0000-0000-0000-0000045400a1';
+  v_b uuid := '00000000-0000-0000-0000-0000045400b2';
   v_chat uuid;
   m public.match_candidates;
 begin
   insert into t values ('req', pg_temp.mk_item(v_b, 'request', 'Looking for a sofa'));
   insert into t values ('offer', pg_temp.mk_item(v_a, 'give', 'Grey three seat sofa'));
-  insert into t values ('q_req', pg_temp.mk_item('00000000-0000-0000-0000-0000046100d4', 'request', 'Need a bookshelf'));
-  insert into t values ('q_offer', pg_temp.mk_item('00000000-0000-0000-0000-0000046100c3', 'give', 'Wooden bookshelf'));
+  insert into t values ('q_req', pg_temp.mk_item('00000000-0000-0000-0000-0000045400d4', 'request', 'Need a bookshelf'));
+  insert into t values ('q_offer', pg_temp.mk_item('00000000-0000-0000-0000-0000045400c3', 'give', 'Wooden bookshelf'));
 
   select * into m from public.match_candidates
    where offer_listing_id = (select id from t where k = 'offer')
@@ -150,7 +150,7 @@ declare
   b record;
   a record;
 begin
-  perform pg_temp.as_user('00000000-0000-0000-0000-0000046100e5');
+  perform pg_temp.as_user('00000000-0000-0000-0000-0000045400e5');
   select coalesce(sum(notified_pairs), 0) n, coalesce(sum(responses), 0) r, coalesce(sum(accepted), 0) acc,
          coalesce(sum(chat_pairs), 0) c, coalesce(sum(completed_pairs), 0) d
     into b from before_q where world_slug = 'items';
@@ -185,4 +185,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0461_admin_match_quality.sql passed'
+\echo '✓ 0454_admin_match_quality.sql passed'
