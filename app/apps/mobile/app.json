@@ -267,8 +267,8 @@
       [
         "@sentry/react-native/expo",
         {
-          "url": "https://us.sentry.io/",
-          "organization": "kc-z0",
+          "url": "https://de.sentry.io/",
+          "organization": "karma-community",
           "project": "kc-mobile"
         }
       ]
