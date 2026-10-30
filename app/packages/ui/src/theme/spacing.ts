@@ -2,6 +2,8 @@
 // Spacing & Radius Tokens
 // ─────────────────────────────────────────────
 
+import { lightColors } from './colors';
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -43,6 +45,13 @@ export const radius = {
   full: 9999,
 } as const;
 
+/**
+ * Elevation presets (spec 17 §4). `card` and `modal` are neutral (black)
+ * shadows; `glow` is the brand-coloured lift under primary calls to action
+ * (D87 — the offset, opacity, blur and elevation those buttons already used
+ * most). `glow` carries the light-mode primary; theme-aware screens spread it
+ * and override `shadowColor` with `colors.primary` from `useTheme()`.
+ */
 export const shadow = {
   card: {
     shadowColor: '#000',
@@ -57,5 +66,12 @@ export const shadow = {
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
+  },
+  glow: {
+    shadowColor: lightColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
 } as const;
