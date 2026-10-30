@@ -91,9 +91,11 @@ jobs:
       - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2
         with:
           deno-version: v2.x
-      - name: Deno test WhatsApp handlers (mocked Meta, no secrets)
+      # Job name is a required check; only the step list grows. Every Edge Function
+      # with a `*.test.ts` must be listed here, or its tests never run in CI.
+      - name: Deno test Edge Function handlers (mocked, no secrets)
         working-directory: supabase/functions
-        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank --allow-read
+        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank delete-account revenuecat-webhook --allow-read
 
   db-validate:
     # REQUIRED status check — always runs so the context reports on every PR.

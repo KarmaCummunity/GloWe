@@ -2,7 +2,8 @@
 // Edge Function for FR-SETTINGS-012 V1 — orchestrates the destructive flow:
 //   1. verify JWT
 //   2. call delete_account_data() RPC (DB cleanup, idempotent)
-//   3. delete storage objects (post media + avatar)
+//   3. delete storage objects (post media + avatar from the RPC; every object
+//      under the user's folder in the userId-first buckets USER_FOLDER_BUCKETS)
 //   4. auth.admin.deleteUser() — frees email / Google identity
 //
 // Order matters: DB → storage → auth. If DB fails nothing changes. If storage
@@ -15,14 +16,35 @@
 //                → 500 { ok: false, error: 'db_failed' | 'auth_delete_failed', counts? }
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { CORS_HEADERS, jsonResponse } from './cors.ts';
 import { getAuthedUser } from './auth.ts';
 import { type Handler, withTiming } from '../_shared/withTiming.ts';
+import { chunkPaths, collectObjectPaths, type StorageListEntry } from './storageCleanup.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+/**
+ * Buckets whose objects live under `<user_id>/…` and are not tracked by the
+ * delete RPC (chat images since 0440, listing images since 0333).
+ */
+const USER_FOLDER_BUCKETS = ['chat-media', 'listing-images'] as const;
+
+/** Removes every object under `<userId>/` in `bucket`. Errors are logged, not thrown. */
+async function purgeUserFolder(admin: SupabaseClient, bucket: string, userId: string): Promise<void> {
+  const listPage = async (prefix: string, offset: number, limit: number): Promise<StorageListEntry[]> => {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit, offset });
+    if (error) throw error;
+    return (data ?? []) as StorageListEntry[];
+  };
+  const paths = await collectObjectPaths(listPage, userId);
+  for (const chunk of chunkPaths(paths)) {
+    const { error } = await admin.storage.from(bucket).remove(chunk);
+    if (error) console.error(`[delete-account] ${bucket} cleanup failed`, error);
+  }
+}
 
 interface RpcResult {
   media_paths: string[];
@@ -64,6 +86,9 @@ const handler: Handler = async (req) => {
     if (rpc.avatar_path) {
       const { error: avErr } = await adminClient.storage.from('avatars').remove([rpc.avatar_path]);
       if (avErr) console.error('[delete-account] avatar cleanup failed', avErr);
+    }
+    for (const bucket of USER_FOLDER_BUCKETS) {
+      await purgeUserFolder(adminClient, bucket, user.id);
     }
   } catch (e) {
     console.error('[delete-account] storage cleanup threw', e);
