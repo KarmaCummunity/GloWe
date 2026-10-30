@@ -8646,6 +8646,10 @@ export type Database = {
         Args: { p_note: string; p_reason: string; p_target_user_id: string }
         Returns: undefined
       }
+      admin_change_role: {
+        Args: { p_grant_id: string; p_new_role: string }
+        Returns: string
+      }
       admin_confirm_report: {
         Args: { p_report_id: string }
         Returns: undefined

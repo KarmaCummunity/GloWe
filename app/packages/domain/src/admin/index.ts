@@ -1,6 +1,7 @@
 export * from './AdminRole';
 export * from './AdminPermission';
 export * from './AdminGrant';
+export * from './GrantAuthority';
 export * from './AdminPerson';
 export * from './AdminRoleError';
 export * from './OrgTree';
