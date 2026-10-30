@@ -5,7 +5,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | # | Gap | Section |
 |---|---|---|
 | G1 | Unify listings → posts, ride_post_details, post_handoffs (D19) | 07.1 |
-| G2 | One world list in code (D1) | 04 |
+| G2 | 🟡 2026-10-30 — One world list in code: `GIVING_WORLD_SLUGS` (8) + `DOMAIN_SLUGS` (11) in `@kc/domain` (`worlds/givingWorlds.ts`). Remaining: `MARKETPLACE_WORLD_SLUGS` and the DB `world_slug` values still hold legacy slugs (G35) (D1) | 04 |
 | G3 | Anonymity 'only-stricter' trigger vs both-ways change (D16) | 07.13 |
 | G4 | ✅ 2026-10-30 — Ratings readable only by their rater and super admins (migration `0446`, probe in `supabase/tests/`) (D24) | 07.7 |
 | G5 | Org links without approval; two org entities (D9) | 08 |
@@ -27,7 +27,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G21 | Housing world (D30) | 05.6 |
 | G22 | Wire the medical directory into the hub (D30) | 06 |
 | G23 | World hub infra + WorldHubConfig (D36) | 04 |
-| G24 | 8 world slugs (incl. experiences), domain_slug field + 11 domains, remove challenges as world (D45) | 04 |
+| G24 | 🟡 2026-10-30 — 8 world slugs incl. `experiences` and the 11 domains exist in code; the Donations tab has a tile and a screen for every world and every domain (D62). Remaining: `domain_slug` on posts, challenges not a world (D45) | 04 |
 | G25 | Emergency mode (D42) | 09 |
 | G26 | Challenges layer (D43) | 10 |
 | G27 | WhatsApp import & bridge (D38) | 13 |
@@ -38,6 +38,6 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
 | G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
-| G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
+| G35 | 🟡 2026-10-30 — The Donations hub no longer shows domains (`medical`, `animals`) as worlds (D62). Remaining: remove `app_design` and move the domain-type slugs out of `MARKETPLACE_WORLD_SLUGS` / DB `world_slug` with a data migration (D18, D45, D62) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
