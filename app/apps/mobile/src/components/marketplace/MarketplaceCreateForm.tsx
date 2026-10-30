@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
 import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
 import {
@@ -21,6 +21,7 @@ import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
 import { RideRouteFields } from '../giving/RideRouteFields';
 import { ExternalBodyPicker } from './ExternalBodyPicker';
+import { WorldSubcategoryPicker } from './WorldSubcategoryPicker';
 import {
   pickListingImages,
   uploadListingImages,
@@ -40,7 +41,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
     color: colors.textPrimary,
   },
@@ -50,17 +51,17 @@ const useStyles = makeUseStyles(({ colors }) => ({
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 999,
+    borderRadius: radius.full,
     backgroundColor: colors.surfaceRaised,
     borderWidth: 1,
     borderColor: colors.border,
   },
   chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
   chipText: { ...typography.caption, color: colors.textPrimary },
-  btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: 12, backgroundColor: colors.primary },
+  btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.primary },
   btnText: { ...typography.body, color: colors.textInverse, textAlign: 'center' as const },
   err: { ...typography.caption, color: colors.error },
-  thumb: { width: 72, height: 72, borderRadius: 8 },
+  thumb: { width: 72, height: 72, borderRadius: radius.sm },
 }));
 
 interface Props {
@@ -96,6 +97,8 @@ export function MarketplaceCreateForm({
   const [org, setOrg] = useState<{ id: string; name: string } | null>(null);
   const config = findCreateCategory(worldSlug);
   const routedWorld = hasCreateField(config, direction, 'externalBody');
+  const showWorldSubcategory = hasCreateField(config, direction, 'worldSubcategory');
+  const [worldSubcategoryId, setWorldSubcategoryId] = useState<string | null>(null);
   const showRideRoute = hasCreateField(config, direction, 'rideRoute');
   const [picked, setPicked] = useState<PickedImage[]>([]);
   const [busy, setBusy] = useState(false);
@@ -151,6 +154,14 @@ export function MarketplaceCreateForm({
           );
         })}
       </View>
+      {showWorldSubcategory ? (
+        <WorldSubcategoryPicker
+          worldSlug={worldSlug}
+          value={worldSubcategoryId}
+          onChange={setWorldSubcategoryId}
+          disabled={busy}
+        />
+      ) : null}
       <Text style={styles.label}>{t('marketplace.fieldTitle')}</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} />
       <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
@@ -263,6 +274,7 @@ export function MarketplaceCreateForm({
                 mediaPaths,
                 routedWorld,
                 externalBodyId: org?.id ?? null,
+                worldSubcategoryId: showWorldSubcategory ? worldSubcategoryId : null,
               }),
             );
             trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
