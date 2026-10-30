@@ -35,7 +35,7 @@ Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-histor
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-202`). | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-203`). | infra | ⏳ Planned | `D-195` |
 | INFRA-CI-3 | **Gated prod release pipeline.** One owner approval (GitHub Environment) before `main` deploys (Railway, `supabase-prod` DB deploy, Edge Functions); fold the main release guard + dev E2E into the release flow. | infra | ⏳ Planned | `D-195`, `RELEASE_CHECKLIST.md` |
 | INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed. | infra | ⏳ Planned | `D-195`, `D-192` |
 | INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
