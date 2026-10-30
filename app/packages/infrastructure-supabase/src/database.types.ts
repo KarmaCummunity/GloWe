@@ -10053,6 +10053,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      karma_award_handoff: {
+        Args: {
+          p_giver: string
+          p_handoff_id: string
+          p_receiver: string
+          p_world: string
+        }
+        Returns: undefined
+      }
       karma_grant_once: {
         Args: {
           p_delta: number
@@ -10062,6 +10071,10 @@ export type Database = {
           p_user: string
         }
         Returns: undefined
+      }
+      karma_handoff_points: {
+        Args: { p_role: string; p_world: string }
+        Returns: number
       }
       karma_recompute_nightly: {
         Args: never
