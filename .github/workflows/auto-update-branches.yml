@@ -1,0 +1,47 @@
+name: Auto-update PR branches
+
+# After every push to `dev`, brings each open auto-merge PR into `dev` up to date.
+# Branch protection requires PRs to be current with `dev`, so without this every
+# merge leaves all other PRs "behind" and they never merge on their own.
+# Needs AGENT_MERGE_TOKEN: an update pushed with GITHUB_TOKEN triggers no CI, so
+# the required checks would never run on the new head and the PR would stay stuck.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+# One run at a time, queued runs collapse into the latest: only the newest dev head matters.
+concurrency:
+  group: auto-update-branches
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: update behind PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Update branches of auto-merge PRs
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_MERGE_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::AGENT_MERGE_TOKEN is not set; see TD-197"
+            exit 1
+          fi
+          # Only ready PRs with auto-merge armed and a branch inside this repo (forks can't be updated).
+          prs=$(gh pr list --repo "$REPO" --base dev --state open --limit 100 \
+            --json number,autoMergeRequest,isCrossRepository,isDraft \
+            --jq '.[] | select(.autoMergeRequest != null and (.isCrossRepository | not) and (.isDraft | not)) | .number')
+          for pr in $prs; do
+            # "behind" is not exposed by `gh pr list`; the update call is a no-op when already current.
+            gh api -X PUT "repos/$REPO/pulls/$pr/update-branch" --silent \
+              && echo "updated #$pr" \
+              || echo "skipped #$pr (conflict or already current)"
+          done
