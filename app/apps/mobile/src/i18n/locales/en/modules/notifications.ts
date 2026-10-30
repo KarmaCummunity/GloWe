@@ -18,6 +18,8 @@ export const notificationsEn = {
   criticalCaption: 'Chat messages, being marked as recipient, system alerts, a post about to expire, content removal',
   socialLabel: 'Social',
   socialCaption: 'New followers, follow requests, approved requests',
+  matchSuggestionsLabel: 'Match suggestions',
+  matchSuggestionsCaption: 'When an offer or request matches yours (WhatsApp too)',
   quietHoursSection: 'Quiet hours',
   quietHoursCaption: 'Pause social notifications overnight (critical alerts still arrive)',
   quietHoursEnabled: 'Enable quiet hours',

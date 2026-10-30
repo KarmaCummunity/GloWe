@@ -2,9 +2,9 @@
 // Mapped to: FR-POST-001 publish feedback (R-MVP-Core-4 Hebrew copy via i18n in callers).
 
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useFeedSessionStore } from '../store/feedSessionStore';
 
 export function EphemeralToast() {

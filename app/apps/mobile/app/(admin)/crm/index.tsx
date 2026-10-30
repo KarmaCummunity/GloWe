@@ -2,7 +2,7 @@
 // V2-ADMIN-CRM-8 — V2 §13.9 Admin CRM (minimal contacts tracker).
 // List + search + status filter + per-row edit / delete / "mark contacted".
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -10,7 +10,7 @@ import {
   type AdminPermission, type AdminRole,
   type CrmContact, type CrmContactStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { ContactCard } from '../../../src/components/admin/crm/ContactCard';

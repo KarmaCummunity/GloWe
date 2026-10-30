@@ -3,9 +3,9 @@
 // P1.2: primary CTA / soft session-dismiss / permanent dismiss link).
 
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { Card } from './ui/Card';
 import { IconTile } from './ui/IconTile';
 import { rowDirectionStart } from '../lib/rtlLayout';

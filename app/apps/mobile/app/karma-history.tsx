@@ -1,6 +1,6 @@
 // FR-KARMA-007 — karma history: every point change, newest first.
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { KcFlashList } from '../src/components/lists/KcFlashList';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
-import { makeUseStyles, radius, shadow, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useAuthStore } from '../src/store/authStore';
 import { getUserRepo } from '../src/services/userComposition';
 import { karmaReasonKey, useKarmaHistory, type KarmaHistoryRow } from '../src/hooks/useKarmaHistory';

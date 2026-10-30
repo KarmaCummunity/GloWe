@@ -2,12 +2,12 @@
 // screen (see app/chat/[id].tsx) so iOS never wraps controls in UIBarButtonItem glass.
 // FR-CHAT-002 / FR-CHAT-016.
 import React from 'react';
-import { View, Text, Pressable, TouchableOpacity, I18nManager } from 'react-native';
+import { View, Pressable, TouchableOpacity, I18nManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { useChatConversationHeaderStyles } from './chatConversationHeader.styles';
 import { OnlineDot } from './OnlineDot';
 

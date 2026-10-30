@@ -1,0 +1,83 @@
+# ADR-002 — Data layer: RPCs, tables, repositories, types
+
+- **Status:** Accepted (2026-10-30) · records the contract the code already follows
+- **Issue:** KC#1016 · **Decision log:** `D-194` in [`../../SSOT/DECISIONS.md`](../../SSOT/DECISIONS.md)
+- **Related:** [`MIGRATION_RANGES.md`](../../agents/MIGRATION_RANGES.md), [`OPERATOR_RUNBOOK.md`](../../SSOT/OPERATOR_RUNBOOK.md) "Migration application rules", CLAUDE.md §5 / §9
+
+## Context
+
+All persistence goes through Supabase (Postgres + RLS). Around 124 client-facing functions exist (`rpc_*` 36, `admin_*` 39, `api_*` 49) beside direct table access, and `infrastructure-supabase` makes about 200 `.rpc()` calls. Without a written rule, each feature picked its own mix of table writes, RPCs, error strings and grants. That cost us `database.types.ts` drift, functions callable by `anon`, and adapters that throw raw `Error`.
+
+## Decision
+
+### 1. Where code lives
+
+```
+apps/mobile (composition root) → application (use case + I*Repository port) → domain (types, errors)
+                                   ↑ implemented by
+                    infrastructure-supabase (Supabase*Repository adapters)
+```
+
+- A port (`I*Repository`) in `@kc/application` names the operation in domain terms; an adapter in `@kc/infrastructure-supabase` is the **only** code that calls `.rpc()` / `.from()`. `domain` and `application` never import Supabase.
+- Adapters map snake_case rows to readonly domain objects in a pure, exported `map*Row` function that has its own unit test.
+- Accepted shortcut: a read-only feature with no business rules may expose an infra repository directly through a composition module (e.g. `matchingComposition` → `SupabaseMatchRepository`). Anything with rules gets a use case.
+
+### 2. RPC or direct table access
+
+| Use | When | Examples |
+|---|---|---|
+| **Direct `select`** | Reads fully expressed by RLS (visibility = policy), simple filters, keyset pagination on an index | feed views, own profile |
+| **Direct `insert`/`update`/`delete`** | A single row the caller owns, no cross-row invariant, columns limited by column grants (`0196`) | own user fields, own media rows |
+| **`rpc_*` (SECURITY DEFINER)** | Anything multi-row, multi-table or rule-bearing: state transitions, counters, karma, notifications, rate limits, cross-user effects | `rpc_my_matches`, `rpc_match_respond` |
+| **`admin_*`** | Admin portal operations; first statement is `admin_assert_role(auth.uid(), array[...])` mirroring `PERMISSION_MATRIX` | `admin_match_quality`, `admin_search_users` |
+| **`api_*`** | Service-role entry points for Edge Functions, the WhatsApp bot and MCP tools (#835); never granted to `authenticated` | `api_whatsapp_queue_outbound` |
+| **Internal helpers** | Called only from other SQL (triggers, crons, engines) | `match_deliver_pending`, `enqueue_notification` |
+
+Rules for every function:
+
+- `security definer` + `set search_path = public` (+ `pg_temp` when it creates temp objects). Derive the actor from `auth.uid()`; never trust a caller-supplied user id for authorization (the id parameter is only checked against `auth.uid()`).
+- Grants are explicit in the same migration: `revoke all … from public, anon;` then `grant execute … to authenticated` (client RPC) **or** `to service_role` (internal / `api_*`). Lockdowns are guarded by `supabase/tests/0161_*`, `0198_*` and `0436_tighten_function_grants.sql`.
+- Clamp every caller-controlled limit or window (e.g. `least(greatest(p_limit, 1), 50)`).
+- `create or replace` keeps grants. Changing the return type needs `drop function` first, which is destructive: avoid it, or follow the migration-safety rule.
+
+### 3. RLS expectations
+
+- Every new table: `enable row level security` in the creating migration, with an explicit policy for each access path. No table is readable "by default".
+- Policies use `(select auth.uid())` so it is evaluated once per statement (advisor `auth_rls_initplan`, `0354`).
+- Writes that bypass RLS happen only inside SECURITY DEFINER functions that check the actor themselves.
+- New storage buckets need object policies scoped by the path's owner prefix (see `0440`, `0445`).
+
+### 4. Errors
+
+- SQL raises a stable machine code, never prose for the UI: `42501` forbidden, `22023` invalid argument, `P0002` not found, project codes `P00xx` (e.g. `P0017 target_not_found`, `P0020 target_already_moderated`) with a short `detail`.
+- The adapter maps `{ code, message }` to a **typed error**, a domain error class (`WhatsAppAdminError`, `AdminTaskError`, …) or an application error (`PostError`, `AuthError`), via a small `toError()`; the UI maps the domain error to localized text (`map*ErrorToHebrew` / i18n keys). Stack traces and raw Postgres messages never reach the UI.
+- Some older adapters still throw `new Error(\`op: ${message}\`)`. New adapters must use a domain error; convert old ones when you touch them.
+
+### 5. Generated types and contract checks
+
+- `app/packages/infrastructure-supabase/src/database.types.ts` is generated, never hand-edited: `supabase gen types typescript --local > …` after applying your migration locally. CI fails on drift ("apply migrations · rls · types · sql probes").
+- `scripts/check-rpc-contract.mjs` (CI "rpc · table contract") fails when the adapter calls an RPC or table that no migration defines.
+- Adapters type rows from `Database['public']['Functions'][name]['Returns']` / `Tables[name]['Row']`, not hand-written shapes.
+
+### 6. Migrations
+
+- Sequential files `supabase/migrations/NNNN_snake_case.sql`. Claim the number in [`MIGRATION_RANGES.md`](../../agents/MIGRATION_RANGES.md) in the same PR, and check open PRs for the same number before pushing.
+- Applied to kc-dev only by the `DB deploy` workflow / `supabase db push`. **Never** with the MCP `apply_migration` tool (it records a timestamp version and breaks the next deploy).
+- Wrap in `begin; … commit;`; additive and backward compatible. Destructive statements need `migration-safety: allow` with a justification (`scripts/check-migration-safety.mjs`, run by `ci-dev-guard` and `ci-main-guard`).
+
+## Checklist — adding an RPC
+
+1. Port method in `@kc/application` (or a composition-only read, §1), named in domain terms.
+2. Migration (claimed number): `security definer`, `search_path`, actor from `auth.uid()`, role gate for `admin_*`, clamped inputs, `revoke … from public, anon` + the single correct `grant`, `comment on function`.
+3. New table? RLS on, a policy for each access path, `(select auth.uid())`.
+4. SQL test in `supabase/tests/NNNN_*.sql`: happy path, refusal (`42501` / not callable by `anon`), at least one boundary, all inside `begin; … rollback;`.
+5. Regenerate `database.types.ts` from the local DB; no other diff should appear.
+6. Adapter: typed from `database.types.ts`, pure `map*Row` + unit test, `{code}` → domain error.
+7. Use case + unit tests (happy + error) in `application/__tests__`.
+8. Docs: the domain spec FR, plus `MATCHING_V2.md` / runbooks when the area has one; `app/VERSION` PATCH.
+
+## Consequences
+
+- Business rules live in one place (SQL functions) and stay enforceable for every client: app, web, bot, MCP.
+- More migrations and SQL tests per feature; the local Supabase stack (`supabase db start`) is part of the dev loop.
+- Existing raw-`Error` adapters and table writes outside these rules stay until touched (opportunistic, CLAUDE.md "Propose and Proceed").

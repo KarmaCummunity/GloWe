@@ -3,8 +3,8 @@
 // fields formatted YYYY-MM-DD. The list screen owns parsing; this component
 // just renders + validates the format.
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface TaskDueRangeFilterProps {

@@ -4,9 +4,9 @@
 // `searchablePickerLogic.ts` (unit tested); the component is the JSX shell.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import {
   filterItems,
   freeTextSelection,

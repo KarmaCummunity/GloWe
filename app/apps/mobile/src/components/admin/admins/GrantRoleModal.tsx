@@ -4,11 +4,14 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal, Pressable, StyleSheet, Text, TextInput, View,
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 import type { GrantableAdminRole } from '@kc/domain';
 import { GRANTABLE_ADMIN_ROLES, isAdminRoleError } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { supabase } from '../../../lib/container';
 import { useGrantAdminRole } from '../../../hooks/useAdminRoleMutations';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';

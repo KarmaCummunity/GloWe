@@ -16,7 +16,7 @@
 - **Status (2026-10-30):** store release is **paused**. Focus: precise spec, architecture, and go-to-market. Development continues in Claude Code against this repo.
 - **Product source of truth:** the PM's Hebrew project book ("KC – ספר הפרויקט (מקור אמת)", product decision D35). Its English, agent-oriented derivation is [`docs/spec/`](./docs/spec/README.md) — start at its README. Where `docs/spec/` and a legacy `docs/SSOT/spec/*` FR conflict, **`docs/spec/` wins**; reconcile the legacy file in the same PR.
 - **Architecture:** [`docs/architecture/`](./docs/architecture/README.md) — current (from code) and target.
-- **ID namespaces:** product decisions are `D1…D58` (in `docs/spec/90_decisions_log.md`); engineering decisions are `D-*` / `EXEC-*` (in `docs/SSOT/DECISIONS.md`). KC fills pending approval are `S#`; implementation gaps are `G#`.
+- **ID namespaces:** product decisions are `D1…D66` (in `docs/spec/90_decisions_log.md`); engineering decisions are `D-*` / `EXEC-*` (in `docs/SSOT/DECISIONS.md`). KC fills pending approval are `S#`; implementation gaps are `G#`.
 
 ### Working rules (PM-mandated)
 1. **Spec is the source of truth.** Spec first, then task, then code.
@@ -49,7 +49,7 @@ Doc map for humans: [`docs/README.md`](./docs/README.md).
 
 ## 1. Required reading (before doing anything)
 
-0. **`docs/spec/`** — product project book (vision → worlds/domains → cross-cutting systems → governance/GTM/roadmap), D1–D58. Wins over legacy FR files.
+0. **`docs/spec/`** — product project book (vision → worlds/domains → cross-cutting systems → governance/GTM/roadmap), D1–D66. Wins over legacy FR files.
 1. **`docs/SSOT/spec/{domain}.md`** — legacy per-domain FR spec (FR-IDs, ACs). Each file is the full spec (FR-IDs, ACs, business rules) plus a status header (✅/🟡/⏳). Read only the file relevant to your task.
 2. **`docs/SSOT/BACKLOG.md`** — priority-ordered task queue (what's next, who owns it).
 3. **`docs/SSOT/TECH_DEBT.md`** — active technical debt grouped by area. Scan items in the area you're touching before opening a PR; close adjacent debt opportunistically when scope is small.

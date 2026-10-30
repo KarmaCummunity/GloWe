@@ -2,9 +2,8 @@
 // Base post card variants: tone (give/request) × status (open/closed) × size (full/compact) + slots.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import { Text } from 'react-native';
 import { cleanup, render } from '@testing-library/react';
-import { ThemeProvider } from '@kc/ui';
+import { ThemeProvider, Text } from '@kc/ui';
 
 vi.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 vi.mock('../../ui/KCImage', () => ({ KCImage: () => null }));

@@ -1,11 +1,11 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import { KcRowCard } from '../../../../src/components/cards/KcRowCard';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { volunteerUseCases } from '../../../../src/services/volunteerComposition';
 import { useShellTabBarScrollInset } from '../../../../src/navigation/useShellTabBarVisibility';

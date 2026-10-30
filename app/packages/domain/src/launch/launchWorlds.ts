@@ -1,5 +1,7 @@
-// Launch wedge: which donation/marketplace worlds are visible (#1041).
-// Remote keys live in public.app_flags as `world_<slug>_enabled`.
+import type { DonationCategorySlug } from '../value-objects';
+// Launch wedge (#1041). Remote keys live in public.app_flags as `world_<slug>_enabled`.
+// D60 (docs/spec/04_product_structure.md): every world is always shown; the flag
+// only picks its mode — `active` (full in-app flow) or `portal` (links + knowledge).
 
 export const LOD_CITY_ID = '7000';
 
@@ -20,7 +22,7 @@ export const LAUNCH_WORLD_FLAG_KEYS = [
 
 export type LaunchWorldFlagKey = (typeof LAUNCH_WORLD_FLAG_KEYS)[number];
 
-/** Compiled defaults when no remote row exists (launch wedge: items + food only). */
+/** Compiled defaults when no remote row exists (launch wedge: items + food active). */
 export const LAUNCH_WORLD_FLAG_DEFAULTS: Record<LaunchWorldFlagKey, boolean> = {
   world_items_enabled: true,
   world_food_enabled: true,
@@ -51,6 +53,25 @@ export function resolveLaunchWorldEnabled(
   return typeof value === 'boolean' ? value : LAUNCH_WORLD_FLAG_DEFAULTS[flagKey];
 }
 
+export type WorldLaunchMode = 'active' | 'portal';
+
+/** D60 — a world whose flag is off is a portal, never hidden. */
+export function launchWorldMode(flagKey: LaunchWorldFlagKey, remote: RemoteAppFlags | undefined): WorldLaunchMode {
+  return resolveLaunchWorldEnabled(flagKey, remote) ? 'active' : 'portal';
+}
+
+/** Links/knowledge list a portal world shows (FR-DONATE-006 category slugs); items has none yet. */
+export const PORTAL_CATEGORY_BY_FLAG: Partial<Record<LaunchWorldFlagKey, DonationCategorySlug>> = {
+  world_food_enabled: 'food',
+  world_money_enabled: 'money',
+  world_time_enabled: 'time',
+  world_rides_enabled: 'transport',
+  world_knowledge_enabled: 'knowledge',
+  world_housing_enabled: 'housing',
+  world_medical_enabled: 'medical',
+  world_animals_enabled: 'animals',
+};
+
 export function isMarketplaceWorldLaunchEnabled(
   worldSlug: string,
   remote: RemoteAppFlags | undefined,
@@ -72,28 +93,13 @@ export const HUB_TILE_LAUNCH_FLAG: Record<string, LaunchWorldFlagKey> = {
   medical: 'world_medical_enabled',
 };
 
-export function isHubTileLaunchEnabled(tileKey: string, remote: RemoteAppFlags | undefined): boolean {
+export function hubTileLaunchMode(tileKey: string, remote: RemoteAppFlags | undefined): WorldLaunchMode {
   const flag = HUB_TILE_LAUNCH_FLAG[tileKey];
-  return flag ? resolveLaunchWorldEnabled(flag, remote) : true;
+  return flag ? launchWorldMode(flag, remote) : 'active';
 }
 
-/** Donation category screens (FR-DONATE-006) → launch flag. */
-export const CATEGORY_SLUG_LAUNCH_FLAG: Record<string, LaunchWorldFlagKey> = {
-  food: 'world_food_enabled',
-  housing: 'world_housing_enabled',
-  transport: 'world_rides_enabled',
-  knowledge: 'world_knowledge_enabled',
-  animals: 'world_animals_enabled',
-  medical: 'world_medical_enabled',
-};
-
-export function categorySlugLaunchFlag(slug: string): LaunchWorldFlagKey | null {
-  return CATEGORY_SLUG_LAUNCH_FLAG[slug] ?? null;
-}
-
-export function isCategorySlugLaunchEnabled(slug: string, remote: RemoteAppFlags | undefined): boolean {
-  const flag = categorySlugLaunchFlag(slug);
-  return flag ? resolveLaunchWorldEnabled(flag, remote) : true;
+export function isHubTileLaunchEnabled(tileKey: string, remote: RemoteAppFlags | undefined): boolean {
+  return hubTileLaunchMode(tileKey, remote) === 'active';
 }
 
 export function analyticsCitySegment(cityId: string | null | undefined): 'lod' | 'other' {

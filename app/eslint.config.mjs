@@ -86,6 +86,14 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
+          // Spec 17 §4 (D66) — text renders in the brand font only through @kc/ui.
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['Text', 'TextInput'],
+              message: 'Import Text / TextInput from @kc/ui so text uses the brand font (spec 17 §4).',
+            },
+          ],
           patterns: [
             {
               group: [
@@ -101,6 +109,11 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  // The brand Text / TextInput wrap the react-native primitives.
+  {
+    files: ['packages/ui/src/components/BrandText.tsx'],
+    rules: { 'no-restricted-imports': 'off' },
   },
   // i18n internals legitimately compose/select the raw locale bundles.
   {

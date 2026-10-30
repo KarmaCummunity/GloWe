@@ -4,10 +4,10 @@
 // AuthGate in `app/_layout.tsx` whitelists this route so unauth users can reach it.
 // docs/SSOT/spec/01_auth_and_onboarding.md
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { exchangeOAuthCode } from '../../src/services/authComposition';
 import { useAuthStore } from '../../src/store/authStore';
