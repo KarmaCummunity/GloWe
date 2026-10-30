@@ -44,15 +44,39 @@ describe('isKcSupportChannelKind', () => {
 });
 
 describe('buildKcSupportOptions', () => {
-  it('orders one-time channels bit → paybox → card and separates the standing order', () => {
+  it('orders interim transfer links bit → paybox and separates the standing order', () => {
     const options = buildKcSupportOptions([
       channel({ kind: 'card_standing_order', url: 'https://pay.grow.link/monthly', providerLabel: 'Grow' }),
-      channel({ kind: 'card_one_time', url: 'https://pay.grow.link/once', providerLabel: 'Grow' }),
       channel({ kind: 'paybox', url: 'https://links.payboxapp.com/x', providerLabel: 'PayBox' }),
       channel(),
     ]);
-    expect(options.oneTime.map((c) => c.kind)).toEqual(['bit', 'paybox', 'card_one_time']);
+    expect(options.oneTime.map((c) => c.kind)).toEqual(['bit', 'paybox']);
     expect(options.standingOrder?.url).toBe('https://pay.grow.link/monthly');
+  });
+
+  it('withdraws Bit / PayBox once a one-time clearing page exists (D59)', () => {
+    const options = buildKcSupportOptions([
+      channel(),
+      channel({ kind: 'paybox', url: 'https://links.payboxapp.com/x', providerLabel: 'PayBox' }),
+      channel({ kind: 'card_one_time', url: 'https://pay.grow.link/once', providerLabel: 'Grow' }),
+    ]);
+    expect(options.oneTime.map((c) => c.kind)).toEqual(['card_one_time']);
+  });
+
+  it('keeps Bit / PayBox when only a standing-order page exists', () => {
+    const options = buildKcSupportOptions([
+      channel(),
+      channel({ kind: 'card_standing_order', url: 'https://pay.grow.link/monthly', providerLabel: 'Grow' }),
+    ]);
+    expect(options.oneTime.map((c) => c.kind)).toEqual(['bit']);
+  });
+
+  it('ignores an insecure clearing row when deciding to withdraw Bit / PayBox', () => {
+    const options = buildKcSupportOptions([
+      channel(),
+      channel({ kind: 'card_one_time', url: 'http://insecure.example/once' }),
+    ]);
+    expect(options.oneTime.map((c) => c.kind)).toEqual(['bit']);
   });
 
   it('drops channels with insecure URLs and keeps the first row per kind', () => {

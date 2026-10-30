@@ -110,12 +110,6 @@ export const donations = {
     title: 'Giving with love? Give to the community too',
     tagline:
       'Karma is a free community that runs on your love and generosity. Every donation helps us keep building a place of giving for everyone.',
-    ctaBit: 'Donate via Bit',
-    ctaPaybox: 'Donate via PayBox',
-    ctaBitA11y: 'Open the Bit app to donate to Karma Community',
-    ctaPayboxA11y: 'Open the PayBox app to donate to Karma Community',
-    linkErrorTitle: 'We couldn’t open the link',
-    linkErrorBody: 'Try updating the app or opening the link in a browser.',
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,

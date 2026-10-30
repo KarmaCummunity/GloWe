@@ -30,6 +30,13 @@ export interface KcSupportOptions {
 const ONE_TIME_ORDER: readonly KcSupportChannelKind[] = ['bit', 'paybox', 'card_one_time'];
 
 /**
+ * Bit / PayBox are plain transfer links to KC's wallet, not merchant clearing
+ * (no receipt, no refund flow). They are an interim channel only: once a
+ * licensed one-time clearing page exists they are withdrawn (D59).
+ */
+const INTERIM_TRANSFER_KINDS: ReadonlySet<KcSupportChannelKind> = new Set(['bit', 'paybox']);
+
+/**
  * HTTPS host with optional port, path, query or fragment — and nothing else.
  * Rejects `http:`, `javascript:`, embedded credentials (`user:pass@host`) and
  * whitespace. Mirrors the CHECK constraint in migration 0447 so a bad row can
@@ -47,7 +54,8 @@ export function isSecureSupportUrl(url: string): boolean {
 
 /**
  * Builds the donor-facing options from raw channels: drops insecure URLs,
- * keeps the first channel per kind, and orders one-time channels.
+ * keeps the first channel per kind, withdraws the interim Bit / PayBox links
+ * once a one-time clearing page exists (D59), and orders one-time channels.
  */
 export function buildKcSupportOptions(channels: readonly KcSupportChannel[]): KcSupportOptions {
   const byKind = new Map<KcSupportChannelKind, KcSupportChannel>();
@@ -55,9 +63,11 @@ export function buildKcSupportOptions(channels: readonly KcSupportChannel[]): Kc
     if (!isSecureSupportUrl(channel.url) || byKind.has(channel.kind)) continue;
     byKind.set(channel.kind, channel);
   }
+  const hasClearing = byKind.has('card_one_time');
   const oneTime = ONE_TIME_ORDER.flatMap((kind) => {
     const channel = byKind.get(kind);
-    return channel ? [channel] : [];
+    if (!channel || (hasClearing && INTERIM_TRANSFER_KINDS.has(kind))) return [];
+    return [channel];
   });
   return { oneTime, standingOrder: byKind.get('card_standing_order') ?? null };
 }

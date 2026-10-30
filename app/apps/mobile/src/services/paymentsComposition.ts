@@ -20,7 +20,6 @@ import {
 } from '@kc/application';
 import * as Crypto from 'expo-crypto';
 import { pickAuthStorage } from './authSecureStorage';
-import { KC_SUPPORT_FALLBACK_CHANNELS } from '../config/kcSupportChannels';
 
 let _repo: SupabasePaymentsRepository | null = null;
 let _provider: SandboxPaymentProvider | null = null;
@@ -51,12 +50,8 @@ export const paymentsUseCases = {
   resumeStandingOrder: () => new ResumeStandingOrderUseCase(repo()),
   listHistory: () => new ListDonationHistoryUseCase(repo()),
   getReceipt: () => new GetDonationReceiptUseCase(repo()),
-  /** FR-DONATE-011 — direct support for KC; compiled channels cover offline / outage. */
-  kcSupportOptions: () =>
-    new GetKcSupportOptionsUseCase(
-      new SupabaseKcSupportChannelsRepository(client()),
-      KC_SUPPORT_FALLBACK_CHANNELS,
-    ),
+  /** FR-DONATE-011 — direct support for KC; channels are server config only (D20, D59). */
+  kcSupportOptions: () => new GetKcSupportOptionsUseCase(new SupabaseKcSupportChannelsRepository(client())),
 };
 
 export function newIdempotencyKey(prefix: string): string {

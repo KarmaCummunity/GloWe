@@ -62,3 +62,4 @@ Index only — the binding wording lives in the linked spec files. All decided b
 | D56 | Verified official/state body declares emergency within its permissions | 09 | Approved |
 | D57 | Social venture = org; any registered org (incl. private person) may post jobs | 08 | Approved |
 | D58 | Standing goals: spec maintenance, store release + updates, modular scalable code | 00 | Approved |
+| D59 | Bit / PayBox links to KC are interim transfer links, not clearing: withdrawn automatically once a licensed one-time clearing page exists | 05.5, 08 | Approved |

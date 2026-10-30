@@ -1,24 +1,19 @@
-import { buildKcSupportOptions, type KcSupportChannel, type KcSupportOptions } from '@kc/domain';
+import { buildKcSupportOptions, type KcSupportOptions } from '@kc/domain';
 import type { IKcSupportChannelsRepository } from '../ports/IKcSupportChannelsRepository';
 
 /**
  * FR-DONATE-011 — resolves how a donor can support KC directly.
  *
- * Server-configured channels win (D20: provider swappable without a release).
- * When they cannot be loaded (offline, outage), the compiled `fallback`
- * channels are used so the donor is never left without a way to give.
+ * The server-configured channels are the single source of truth (D20: the
+ * provider is swappable without a release; D59: interim links are withdrawn
+ * once clearing exists), so there is deliberately no compiled fallback — a
+ * load failure propagates as `KcSupportChannelsError` and the UI shows the
+ * "unavailable" state instead of possibly stale payment links.
  */
 export class GetKcSupportOptionsUseCase {
-  constructor(
-    private readonly repo: IKcSupportChannelsRepository,
-    private readonly fallback: readonly KcSupportChannel[],
-  ) {}
+  constructor(private readonly repo: IKcSupportChannelsRepository) {}
 
   async execute(): Promise<KcSupportOptions> {
-    try {
-      return buildKcSupportOptions(await this.repo.listActiveChannels());
-    } catch {
-      return buildKcSupportOptions(this.fallback);
-    }
+    return buildKcSupportOptions(await this.repo.listActiveChannels());
   }
 }

@@ -208,28 +208,25 @@ Each row's overflow (`…`) menu opens an action sheet with: *"פתח"*, *"דו�
 ## FR-DONATE-010 — Platform-support donation card
 
 **Description.**
-A reusable presentational card prompting the viewer (guest or signed-in — see AC5) to back the platform itself by tapping through to **Bit** or **Paybox**. The destination URLs are stable, app-wide constants — not a community-curated list. Embedded in the About screen (twice — directly after the hero, and after the Vision section) and at the very top of the Settings screen.
+A warm card prompting the viewer (guest or signed-in — see AC5) to back the platform itself. Embedded in the About screen (twice — directly after the hero, and after the Vision section) and at the very top of the Settings screen. Since 2026-10-30 it is a thin wrapper over the `FR-DONATE-011` card: same server-configured channels, same legal notice; only the heading and tagline differ.
 
 **Source.**
-- Product request 2026-05-18 (PM).
+- Product request 2026-05-18 (PM); 2026-10-30 alignment with `FR-DONATE-011` and `D59`.
 
 **Acceptance Criteria.**
-- AC1. Component `DonationSupportCard` renders a single warm-tinted card (background = `colors.primarySurface`, border = `colors.primaryLight`) with: a centered heart icon badge, an h3 title, a body tagline, and two side-by-side CTA buttons.
-- AC2. Buttons map to:
-  - Primary (filled, `colors.primary`): label `donations.supportUs.ctaBit` → opens `https://www.bitpay.co.il/app/share-info?i=192485429007_19nlt4Un`.
-  - Secondary (white + 1.5 px primary border): label `donations.supportUs.ctaPaybox` → opens `https://links.payboxapp.com/XR2JbQRxMUb`.
-  - Each button shows an `open-outline` Ionicon as a trailing affordance.
-- AC3. Tapping a button invokes `Linking.canOpenURL` → `Linking.openURL`. On failure, an `Alert` shows `donations.supportUs.linkError{Title,Body}`.
-- AC4. All visible strings come from `donations.supportUs.*` (Hebrew bundle); no inline strings in component.
-- AC5. Card is auth-agnostic — it renders identically for guest and signed-in users (Settings is auth-required today; About is reachable by guests through the existing route).
+- AC1. `DonationSupportCard` renders `SupportKcCard` with `titleKey = donations.supportUs.title` and `taglineKey = donations.supportUs.tagline` (warm surface, heart icon badge, h3 title, body tagline).
+- AC2. Buttons, their order and their destinations come from `FR-DONATE-011 AC1–AC3` (`kc_support_channels`). No payment URL is compiled into the app. While only the interim Bit / PayBox rows are active they are what the card shows; once a `card_one_time` clearing page is configured they are withdrawn (`D59`).
+- AC3. Opening and link-failure behavior follow `FR-DONATE-011 AC4`.
+- AC4. All visible strings come from `donations.supportUs.{title,tagline}` and `supportKc.*`; no inline strings in components.
+- AC5. Card is auth-agnostic — it renders for guest and signed-in users (`kc_support_channels` is readable by `anon`). The standing-order cancellation link is shown to signed-in users only (`FR-DONATE-011 AC6`).
 - AC6. Placement:
   - `AboutLandingScreen` — between `AboutHero` and `AboutSectionBlocksTop`, wrapped in `<AnimatedEntry delay={240}>` so it appears after the hero stagger completes.
   - `AboutSectionBlocksTop` — between the Vision section card and the Problems section card, wrapped in the same `AnimatedEntry` stagger as adjacent sections.
   - `settings.tsx` — first element inside the outer `ScrollView`, padded with `spacing.base` on both axes (`supportCardWrap`).
-- AC7. Touch targets ≥ 44 × 44 px. Accessibility labels distinguish Bit vs Paybox (`ctaBitA11y`, `ctaPayboxA11y`).
-- AC8. No network or storage side-effects — the component is fully presentational + `Linking`.
+- AC7. Touch targets ≥ 44 × 44 px; each button's accessibility label names the channel and provider (`supportKc.channelA11y`).
+- AC8. The only network read is the channel list; when it cannot load, the card shows `supportKc.unavailable` and no payment link.
 
-**Related.** None — independent of `FR-DONATE-001..009` (which target community-curated NGO links). The two systems coexist without coupling.
+**Related.** `FR-DONATE-011` (shared card, channels and legal notice). Independent of the community-curated NGO links (`FR-DONATE-007..009`).
 
 ---
 
@@ -239,11 +236,11 @@ A reusable presentational card prompting the viewer (guest or signed-in — see 
 A *Support KC directly* card at the top of the Money hub lets a donor give to Karma Community itself — once (Bit, PayBox, or a credit-card hosted page) or as a monthly credit-card standing order. Per `D20` the app **only redirects**: every option is a licensed provider's hosted page opened outside the app, so card and bank details never pass through KC (no PCI-DSS scope) and App Store 3.2.2(iv) / Google Play donation rules are respected. Destination URLs are server configuration so the provider can be swapped without a release (`D20`).
 
 **Source.**
-- PM request 2026-10-30; project book `D4`, `D20` (`docs/spec/05_giving_worlds.md` §5.5, `docs/spec/08_organizations.md`), gap `G8`.
+- PM request 2026-10-30; project book `D4`, `D20`, `D59` (`docs/spec/05_giving_worlds.md` §5.5, `docs/spec/08_organizations.md`), gap `G8`.
 
 **Acceptance Criteria.**
 - AC1. **Configuration.** Channels live in `public.kc_support_channels` (migration `0447`): `channel ∈ {bit, paybox, card_one_time, card_standing_order}` (PK), `url`, `provider_label`, `is_active`. A CHECK accepts only `https://` URLs without credentials or whitespace. RLS: `anon` + `authenticated` read active rows; only `has_admin_role(auth.uid(),'super_admin')` may write. `bit` and `paybox` are seeded with the `FR-DONATE-010` URLs; card rows are added by the operator once the Grow merchant account exists (launch plan A11, `docs/SSOT/OPERATOR_RUNBOOK.md` → *KC support channels*).
-- AC2. **Resolution.** `GetKcSupportOptionsUseCase` returns `{ oneTime, standingOrder }`: insecure URLs are dropped (domain `isSecureSupportUrl`, mirrors the CHECK), the first row per kind wins, one-time order is `bit → paybox → card_one_time`. When the table cannot be read (offline / outage) the compiled Bit + PayBox channels (`src/config/kcSupportChannels.ts`) are used; an empty server list is respected (operator disabled all).
+- AC2. **Resolution.** `GetKcSupportOptionsUseCase` returns `{ oneTime, standingOrder }`: insecure URLs are dropped (domain `isSecureSupportUrl`, mirrors the CHECK), the first row per kind wins, one-time order is `bit → paybox → card_one_time`. **`D59`:** Bit / PayBox are interim transfer links, not clearing — when an active, secure `card_one_time` row exists they are omitted. The server list is the single source: there is no compiled fallback; a load failure surfaces as the *unavailable* state (AC3), and an empty list is respected (operator disabled all).
 - AC3. **Buttons.** One-time heading + one full-width button per one-time channel (first = primary style, rest = secondary); standing-order heading, body naming the provider (`supportKc.standingOrderBody`), and a *Set up a standing order* button — each section only when it has a channel. Every button carries an `open-outline` icon and an accessibility label naming the provider and that it opens outside the app. While loading, a spinner; with no channels, `supportKc.unavailable`.
 - AC4. **Opening.** A tap opens the exact configured URL in the external browser / provider app (`Linking.openURL`; `window.open` on web). Never an in-app WebView. Failure → `supportKc.linkError`.
 - AC5. **Legal notice** (`SupportKcDisclosure`, always shown): payment is processed off-app by a licensed provider and card/account details are neither seen nor stored by KC; the money goes to KC and funds building and running the platform; KC is not yet a registered nonprofit, so **no section-46 tax credit**, and the provider sends the payment confirmation; the donation is voluntary and grants no in-app benefit, service or priority.
@@ -251,7 +248,7 @@ A *Support KC directly* card at the top of the Money hub lets a donor give to Ka
 - AC7. All strings live in `supportKc.*` (he + en); the disclosure wording changes only with PM approval.
 - AC8. Out of scope (open, `G8`): provider confirmation webhook, recording donations to KC, and the karma award for donations / standing orders (`docs/spec/07_cross_cutting_systems.md` §7.6) — they require the Grow API credentials.
 
-**Related.** `FR-DONATE-003` (host screen), `FR-DONATE-010` (same Bit/PayBox URLs on About + Settings, now read from `src/config/kcSupportChannels.ts`), `FR-CHAT-007`.
+**Related.** `FR-DONATE-003` (host screen), `FR-DONATE-010` (same card on About + Settings), `FR-CHAT-007`.
 
 ---
 
@@ -265,3 +262,4 @@ A *Support KC directly* card at the top of the Money hub lets a donor give to Ka
 | 0.8 | 2026-05-12 | `FR-DONATE-007 AC7` — silent server refetch after add/edit/remove so the list re-renders without manual reload. |
 | 0.9 | 2026-05-18 | Adds `FR-DONATE-010` — platform-support card (Bit + Paybox) embedded on About + Settings. |
 | 1.0 | 2026-10-30 | Adds `FR-DONATE-011` — direct support for KC (one-time + monthly standing order, legal notice, server-configured channels). `FR-DONATE-003` rewritten to the current Money hub; jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. |
+| 1.1 | 2026-10-30 | `D59` — Bit / PayBox are withdrawn once a one-time clearing page exists; no compiled payment URLs or offline fallback; `FR-DONATE-010` card now wraps the `FR-DONATE-011` card (same channels + legal notice). |

@@ -7,6 +7,7 @@ import { ThemeProvider } from '@kc/ui';
 import type { KcSupportOptions } from '@kc/domain';
 
 const cancelState = { canRequest: true, busy: false, failed: false, request: vi.fn(async () => {}) };
+const optionsQuery: { data: KcSupportOptions | undefined; isLoading: boolean } = { data: undefined, isLoading: false };
 
 vi.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 vi.mock('react-i18next', () => ({
@@ -27,14 +28,17 @@ vi.mock('../../ui/Buttons', () => {
 vi.mock('../../../hooks/useKcStandingOrderCancelRequest', () => ({
   useKcStandingOrderCancelRequest: () => cancelState,
 }));
+vi.mock('../../../hooks/useKcSupportOptions', () => ({ useKcSupportOptions: () => optionsQuery }));
 
 import { SupportKcOptions } from '../SupportKcOptions';
 import { SupportKcDisclosure } from '../SupportKcDisclosure';
+import { DonationSupportCard } from '../../DonationSupportCard';
 
 afterEach(() => {
   cleanup();
   cancelState.canRequest = true;
   cancelState.failed = false;
+  optionsQuery.data = undefined;
 });
 
 const withTheme = (ui: React.ReactElement) =>
@@ -117,5 +121,22 @@ describe('SupportKcDisclosure', () => {
     cancelState.failed = true;
     const failed = withTheme(<SupportKcDisclosure hasStandingOrder />);
     expect(failed.getByText('supportKc.cancelError')).toBeTruthy();
+  });
+});
+
+describe('DonationSupportCard (About + Settings, FR-DONATE-010)', () => {
+  it('uses the warm wording with the same server channels and legal notice', () => {
+    optionsQuery.data = full;
+    const { getByText, getByTestId } = withTheme(<DonationSupportCard />);
+    expect(getByTestId('donation-support-card')).toBeTruthy();
+    expect(getByText('donations.supportUs.title')).toBeTruthy();
+    expect(getByTestId('support-kc-card_standing_order')).toBeTruthy();
+    expect(getByTestId('support-kc-disclosure')).toBeTruthy();
+  });
+
+  it('shows the unavailable notice instead of payment links when channels cannot load', () => {
+    const { getByText, queryAllByRole } = withTheme(<DonationSupportCard />);
+    expect(getByText('supportKc.unavailable')).toBeTruthy();
+    expect(queryAllByRole('button')).toHaveLength(0);
   });
 });

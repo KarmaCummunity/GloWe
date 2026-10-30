@@ -1,8 +1,9 @@
-// FR-DONATE-011 — "Support KC directly" card at the top of the Money hub (D20).
+// FR-DONATE-011 — "Support KC directly" card (D20). Hosted on the Money hub and,
+// through `DonationSupportCard`, on About + Settings (FR-DONATE-010).
 // Every option opens a licensed provider's hosted page outside the app, so no
 // payment data is handled here and store rules on donations are respected.
 import React, { useCallback } from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, useTheme } from '@kc/ui';
@@ -12,12 +13,26 @@ import { useKcSupportOptions } from '../../hooks/useKcSupportOptions';
 import { SupportKcOptions } from './SupportKcOptions';
 import { SupportKcDisclosure } from './SupportKcDisclosure';
 
+export interface SupportKcCardProps {
+  /** i18n key of the heading; defaults to the Money-hub wording. */
+  readonly titleKey?: string;
+  /** i18n key of the tagline under the heading. */
+  readonly taglineKey?: string;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly testID?: string;
+}
+
 const useStyles = makeUseStyles((theme) => {
   const base = warmPromptCardBase(theme);
   return { card: base.card, iconBadge: base.iconBadge, title: base.title, tagline: base.bodyLine };
 });
 
-export function SupportKcCard() {
+export function SupportKcCard({
+  titleKey = 'supportKc.title',
+  taglineKey = 'supportKc.tagline',
+  style,
+  testID = 'support-kc-card',
+}: SupportKcCardProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useStyles();
@@ -29,12 +44,12 @@ export function SupportKcCard() {
   );
 
   return (
-    <View style={styles.card} testID="support-kc-card">
+    <View style={[styles.card, style]} testID={testID}>
       <View style={styles.iconBadge}>
         <Ionicons name="heart" size={26} color={colors.textInverse} />
       </View>
-      <Text style={styles.title} accessibilityRole="header">{t('supportKc.title')}</Text>
-      <Text style={styles.tagline}>{t('supportKc.tagline')}</Text>
+      <Text style={styles.title} accessibilityRole="header">{t(titleKey)}</Text>
+      <Text style={styles.tagline}>{t(taglineKey)}</Text>
       <SupportKcOptions options={data} loading={isLoading} onOpen={openChannel} />
       <SupportKcDisclosure hasStandingOrder={Boolean(data?.standingOrder)} />
     </View>

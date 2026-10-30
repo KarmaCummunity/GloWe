@@ -5,11 +5,7 @@ import { KcSupportChannelsError } from '../KcSupportChannelsError';
 import type { IKcSupportChannelsRepository } from '../../ports/IKcSupportChannelsRepository';
 
 const bit: KcSupportChannel = { kind: 'bit', url: 'https://bit.example/pay', providerLabel: 'Bit' };
-const standing: KcSupportChannel = {
-  kind: 'card_standing_order',
-  url: 'https://pay.grow.link/monthly',
-  providerLabel: 'Grow',
-};
+const once: KcSupportChannel = { kind: 'card_one_time', url: 'https://pay.grow.link/once', providerLabel: 'Grow' };
 
 function repoReturning(result: KcSupportChannel[] | Error): IKcSupportChannelsRepository {
   return {
@@ -21,19 +17,20 @@ function repoReturning(result: KcSupportChannel[] | Error): IKcSupportChannelsRe
 }
 
 describe('GetKcSupportOptionsUseCase', () => {
-  it('uses server-configured channels when they load', async () => {
-    const useCase = new GetKcSupportOptionsUseCase(repoReturning([standing]), [bit]);
-    expect(await useCase.execute()).toEqual({ oneTime: [], standingOrder: standing });
+  it('builds donor options from the server-configured channels', async () => {
+    const useCase = new GetKcSupportOptionsUseCase(repoReturning([bit, once]));
+    expect(await useCase.execute()).toEqual({ oneTime: [once], standingOrder: null });
   });
 
-  it('falls back to compiled channels when the repository fails', async () => {
+  it('propagates a load failure instead of inventing payment links', async () => {
     const failing = repoReturning(new KcSupportChannelsError('network', 'offline'));
-    const useCase = new GetKcSupportOptionsUseCase(failing, [bit]);
-    expect(await useCase.execute()).toEqual({ oneTime: [bit], standingOrder: null });
+    await expect(new GetKcSupportOptionsUseCase(failing).execute()).rejects.toBeInstanceOf(
+      KcSupportChannelsError,
+    );
   });
 
-  it('does not fall back when the server returns an empty list (operator disabled all)', async () => {
-    const useCase = new GetKcSupportOptionsUseCase(repoReturning([]), [bit]);
+  it('returns empty options when the operator disabled every channel', async () => {
+    const useCase = new GetKcSupportOptionsUseCase(repoReturning([]));
     expect(await useCase.execute()).toEqual({ oneTime: [], standingOrder: null });
   });
 });
