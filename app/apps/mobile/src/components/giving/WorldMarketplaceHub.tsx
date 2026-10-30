@@ -2,12 +2,12 @@
 // for one marketplace world (items, food, rides, knowledge).
 import { createRouteFor } from '../../lib/unifiedCreate/createCategories';
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { KcFlashList } from '../lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing } from '@kc/ui';
+import { makeUseStyles, spacing, Text } from '@kc/ui';
 import type { MarketplaceBrowseRow } from '@kc/domain';
 import { Screen } from '../ui/Screen';
 import { worldHubBaseStyles } from './worldHubStyles';

@@ -2,9 +2,9 @@
 // FR-ADMIN-022 — the "list" tab of the admins screen: one card per user with an
 // include-revoked toggle. Split out of the screen to keep each unit small.
 import { useMemo, useState } from 'react';
-import { RefreshControl, Switch, Text, View } from 'react-native';
+import { RefreshControl, Switch, View } from 'react-native';
 import { type AdminPerson, groupGrantsByUser } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAdminsList } from '../../../hooks/useAdminsList';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { AdminPersonCard } from './AdminPersonCard';

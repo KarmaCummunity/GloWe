@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   Linking,
   Pressable,
@@ -12,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { isNotificationKindEnabled } from '@kc/domain';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';

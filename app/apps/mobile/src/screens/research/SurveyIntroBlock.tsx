@@ -2,10 +2,10 @@
 // and FR-RESEARCH-004 placement 2 (small share button + inline status line).
 // Extracted from [slug].web.tsx to keep that route file under the size cap.
 import React, { useCallback, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import {

@@ -1,13 +1,13 @@
 // Guest preview feed — FR-AUTH-014 (screen 1.7) — wired to live IPostRepository (P0.4-FE).
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { selectGuestPreviewPosts } from '@kc/application';
-import { spacing, useTheme } from '@kc/ui';
+import { spacing, useTheme, Text } from '@kc/ui';
 import { kcGridCell } from '../../src/components/cards/KcCard.styles';
 import { PostCardGrid } from '../../src/components/PostCardGrid';
 import { GuestJoinModal } from '../../src/components/GuestJoinModal';

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { Text, type ViewStyle } from 'react-native';
+import { type ViewStyle } from 'react-native';
+import { Text } from '@kc/ui';
 import { render } from '@testing-library/react';
 import { Screen } from '../Screen';
 

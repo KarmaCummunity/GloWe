@@ -3,13 +3,13 @@
 // team member with all their role grants, per-role revoke, a link to their
 // public profile, and the live direct-manager / subordinates sections.
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
   type AdminPermission, type AdminRole, hasPermission, isAdminRoleError,
 } from '@kc/domain';
-import { makeUseStyles, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, useTheme, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPerson } from '../../../src/hooks/useAdminPerson';
 import { useRevokeAdminRole } from '../../../src/hooks/useAdminRoleMutations';

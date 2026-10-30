@@ -25,7 +25,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient, persistOptions } from '../src/lib/queryPersist';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useTheme } from '@kc/ui';
+import { BrandFontProvider, useTheme } from '@kc/ui';
 import { ShellWithResponsiveChrome } from '../src/components/shell/ShellWithResponsiveChrome';
 import { AppThemeProvider } from '../src/components/AppThemeProvider';
 import { NotificationsBridge } from '../src/components/NotificationsBridge';
@@ -40,6 +40,7 @@ import { DevBanner } from '../src/components/DevBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
+import { useBrandFonts } from '../src/lib/useBrandFonts';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -185,14 +186,20 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
-  if (!isSupabaseConfigured()) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <ConfigErrorScreen />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    );
-  }
-  return <RootLayoutContent />;
+  // Splash stays up (preventAutoHideAsync) until the brand font settles.
+  const brandFontStatus = useBrandFonts();
+  if (brandFontStatus === 'loading') return null;
+  return (
+    <BrandFontProvider available={brandFontStatus === 'loaded'}>
+      {isSupabaseConfigured() ? (
+        <RootLayoutContent />
+      ) : (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <ConfigErrorScreen />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      )}
+    </BrandFontProvider>
+  );
 }

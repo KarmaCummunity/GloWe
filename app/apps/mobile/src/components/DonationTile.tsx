@@ -9,9 +9,9 @@
 // shadow, orange-tinted IconTile, RTL-aware row layout, and a haptic
 // scale-press handled by the Card / PressableScale primitives.
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { PressableScale } from './animations/PressableScale';
 import { Card } from './ui/Card';
 import { IconTile } from './ui/IconTile';

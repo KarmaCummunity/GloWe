@@ -1,10 +1,10 @@
 // Single inbox row — FR-CHAT-001, FR-CHAT-016.
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { ChatWithPreview } from '@kc/application';
-import { makeUseStyles, typography, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
 import { AvatarInitials } from '../AvatarInitials';
 import { OnlineDot } from './OnlineDot';
 import { formatRelativeChatTime } from '../../lib/formatRelativeChatTime';

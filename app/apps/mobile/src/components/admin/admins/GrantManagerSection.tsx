@@ -3,9 +3,9 @@
 // assign/change/clear affordance gated by `admins.set_manager`. The read-only
 // display lives in ManagerSummary; this owns the mutation + picker.
 import { useMemo, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { isOrgHierarchyError, type OrgTreeMember } from '@kc/domain';
-import { makeUseStyles, radius } from '@kc/ui';
+import { makeUseStyles, radius, Text } from '@kc/ui';
 import { RoleBadge } from './RoleBadge';
 import { ManagerSummary } from './ManagerSummary';
 import { ManagerPickerModal } from './ManagerPickerModal';
