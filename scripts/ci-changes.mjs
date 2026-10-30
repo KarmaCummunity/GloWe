@@ -6,17 +6,23 @@
 // a path that no lane claims and that is not provably inert turns every heavy
 // lane on instead of slipping through untested.
 //
-// Only PRs and merge-queue groups are planned from their diff. A push to
-// dev/main and a manual dispatch run every lane, so a green push run certifies
+// Only PRs, PR reviews and merge-queue groups are planned from their diff. A
+// push to dev/main and a manual dispatch run every lane, so a green push run certifies
 // the whole tree at that SHA: the nightly mobile builds and the deploys trust
 // it, and a docs-only push after a red (or never-run) push would otherwise
 // come out green without the code having passed.
 //
+// A review event (`pull_request_review`, so the gate re-judges owner
+// overrides) plans the same lanes a `pull_request` run would, but runs only
+// REVIEW_LANES; scripts/ci-gate.mjs takes every other lane's result from the
+// PR's latest completed `pull_request` run for the same head SHA.
+//
 // Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_REF (PR / merge-group
 // target branch), BASE_SHA, HEAD_SHA.
-// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job, sonar,
-// and plan — a JSON object mapping every lane job id to whether it is needed.
-// scripts/ci-gate.mjs requires the plan to name every lane explicitly.
+// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job (whether
+// it runs in this workflow run), sonar, and plan — a JSON object mapping every
+// lane job id to whether the change needs it. scripts/ci-gate.mjs requires the
+// plan to name every lane explicitly.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -74,16 +80,28 @@ export function classify(files) {
 }
 
 /** Events planned from their diff; every other event runs every lane. */
-export const DIFF_EVENTS = new Set(['pull_request', 'merge_group']);
+export const DIFF_EVENTS = new Set(['pull_request', 'pull_request_review', 'merge_group']);
+
+/** Events that belong to one PR (they get the hygiene lane and Sonar). */
+const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
+
+/**
+ * Lanes a review event runs itself: the static lane holds the test-integrity
+ * guard, whose verdict depends on owner approvals. Everything else is reused.
+ */
+export const REVIEW_LANES = ['static'];
 
 /**
  * Build the CI plan. `files` is null when the diff could not be computed;
- * that (like a push or a manual dispatch) runs every lane.
+ * that (like a push or a manual dispatch) runs every lane. `plan` is what the
+ * change needs; `run` is what this workflow run executes (they differ only on
+ * review events, which run REVIEW_LANES and reuse the rest).
  */
 export function plan({ event, draft, actor, ref, baseRef, files }) {
-  const isPr = event === 'pull_request';
+  const isPr = PR_EVENTS.has(event);
   if (isPr && draft) {
-    return { draft: true, sonar: false, plan: Object.fromEntries(LANE_JOBS.map((j) => [j, false])) };
+    const none = Object.fromEntries(LANE_JOBS.map((j) => [j, false]));
+    return { draft: true, sonar: false, plan: none, run: none };
   }
   // A PR into main or a merge-queue group for main. The lane itself fails a
   // merge group (no head branch to check), so main cannot use a merge queue
@@ -94,11 +112,12 @@ export function plan({ event, draft, actor, ref, baseRef, files }) {
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
   // runs get no secrets, so the scan cannot run for them.
   const sonarTarget = (isPr && actor !== 'dependabot[bot]') || (!isPr && event !== 'merge_group' && ref === 'refs/heads/main');
-  return {
-    draft: false,
-    sonar: lanes.frontend && sonarTarget,
-    plan: { hygiene: isPr, static: true, release, ...lanes },
-  };
+  const needed = { hygiene: isPr, static: true, release, ...lanes };
+  if (event === 'pull_request_review') {
+    const run = Object.fromEntries(LANE_JOBS.map((j) => [j, needed[j] && REVIEW_LANES.includes(j)]));
+    return { draft: false, sonar: false, plan: needed, run };
+  }
+  return { draft: false, sonar: lanes.frontend && sonarTarget, plan: needed, run: needed };
 }
 
 const ZERO_SHA = /^0+$/;
@@ -138,7 +157,7 @@ function main() {
   const lines = [
     `draft=${result.draft}`,
     `sonar=${result.sonar}`,
-    ...LANE_JOBS.map((job) => `${job}=${result.plan[job]}`),
+    ...LANE_JOBS.map((job) => `${job}=${result.run[job]}`),
     `plan=${JSON.stringify(result.plan)}`,
   ];
   console.log(`changed files: ${files === null ? 'not diffed (all lanes)' : files.length}`);

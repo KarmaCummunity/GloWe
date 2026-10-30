@@ -1,7 +1,7 @@
 // Unit tests for scripts/ci-gate.mjs. Run: node --test scripts/ci-gate.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateGate } from './ci-gate.mjs';
+import { evaluateGate, mergeReused } from './ci-gate.mjs';
 
 const ok = { result: 'success' };
 const skipped = { result: 'skipped' };
@@ -68,4 +68,26 @@ test('a release into main cannot pass with the release lane skipped', () => {
     'job "release" is needed for this change but was skipped',
   ]);
   assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: ok }, plan }), []);
+});
+
+// Review events re-run only the static lane and reuse the rest.
+const REVIEW_PLAN = { hygiene: true, static: true, release: false, frontend: true, backend: false, edge: false };
+const REVIEW_OWN = { changes: ok, hygiene: skipped, static: ok, release: skipped, frontend: skipped, backend: skipped, edge: skipped };
+const REVIEW = { ...PR, event: 'pull_request_review' };
+
+test('a review event judges reused lane results but keeps its own static result', () => {
+  const reused = { hygiene: 'success', static: 'failure', release: 'skipped', frontend: 'success', backend: 'skipped', edge: 'skipped' };
+  const merged = mergeReused(REVIEW_OWN, reused);
+  assert.deepEqual(merged.static, ok);
+  assert.deepEqual(merged.frontend, ok);
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: merged, plan: REVIEW_PLAN }), []);
+});
+
+test('a review event fails when the reused run lacks or failed a needed lane', () => {
+  const missing = mergeReused(REVIEW_OWN, { hygiene: 'success', release: 'skipped', backend: 'skipped', edge: 'skipped' });
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: missing, plan: REVIEW_PLAN }), [
+    'job "frontend" is needed for this change but ended missing',
+  ]);
+  const failed = mergeReused(REVIEW_OWN, { hygiene: 'success', release: 'skipped', frontend: 'failure', backend: 'skipped', edge: 'skipped' });
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: failed, plan: REVIEW_PLAN }), ['job "frontend" failure']);
 });

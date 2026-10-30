@@ -20,6 +20,15 @@ on:
     # `edited` re-runs the gate when the title, body or base branch change, so
     # PR hygiene and the lane plan always match the current PR.
     types: [opened, synchronize, reopened, ready_for_review, edited]
+  # An owner approval (or its dismissal) re-judges the gate: the test-integrity
+  # guard and the ci.yml check accept a gate-weakening change only with an
+  # owner approval on the head SHA (INFRA-CI-2). A review run re-runs only the
+  # static lane and reuses the other lanes' results from the PR's latest
+  # completed `pull_request` run for the same head SHA (scripts/ci-gate.mjs).
+  # This event has no branch filter, so a review on a PR into any other branch
+  # finds no such run and its gate fails closed.
+  pull_request_review:
+    types: [submitted, dismissed]
   merge_group:
     types: [checks_requested]
   # Post-merge signal on the integration branches (and the main SonarCloud
@@ -30,19 +39,23 @@ on:
   workflow_dispatch:
 
 # A PR shares one group, so a new push or edit cancels the superseded run.
-# Every other event is grouped by commit, so each dev/main push keeps its own
-# result (a shared branch group would drop queued runs).
+# Review runs join the PR's group without cancelling: they wait for a running
+# `pull_request` run, whose lane results they reuse, and a later push cancels
+# them. Every other event is grouped by commit, so each dev/main push keeps its
+# own result (a shared branch group would drop queued runs).
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions: {}
 
-# The change detector and the gate verdict run from JUDGE_REF's copy of their
-# scripts, never the PR's: a PR could otherwise weaken its own judge. For
-# pull_request and merge_group that is the base branch tip; pushes and
-# dispatches already run dev/main code. ci.yml itself is still read from the
-# PR (TD-202 / INFRA-CI-2).
+# The change detector, the gate verdict and the test-integrity guard run from
+# JUDGE_REF's copy of their scripts, never the PR's: a PR could otherwise
+# weaken its own judge. For PRs, reviews and merge groups that is the base
+# branch tip; pushes and dispatches already run dev/main code. ci.yml itself is
+# read from the PR, so the gate compares its jobs with the base copy and fails
+# on any change no owner approved (TD-202); the native backstop is the
+# code-owner rule on .github/** (.github/CODEOWNERS).
 env:
   JUDGE_REF: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.sha }}
 
@@ -79,7 +92,8 @@ jobs:
           DRAFT: ${{ github.event.pull_request.draft }}
           ACTOR: ${{ github.actor }}
           REF: ${{ github.ref }}
-          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref }}
+          # github.base_ref is empty on review events; the payload has the base.
+          BASE_REF: ${{ github.base_ref || github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
         run: |
@@ -99,13 +113,16 @@ jobs:
       pull-requests: read
     uses: ./.github/workflows/ci-pr.yml
 
-  # Cheap repo-wide guards (no install); run on every non-draft change.
+  # Cheap repo-wide guards (no install) and the test-integrity guard; run on
+  # every non-draft change and on review events. `pull-requests: read` lets
+  # the integrity guard read owner approvals.
   static:
     name: static
     needs: changes
     if: needs.changes.outputs.static == 'true'
     permissions:
       contents: read
+      pull-requests: read
     uses: ./.github/workflows/ci-static-guards.yml
 
   # dev → main releases only: source branch, strict migration scan, VERSION
@@ -151,7 +168,9 @@ jobs:
   # The only required status check. `always()` makes it report even when a
   # lane fails or is cancelled; scripts/ci-gate.mjs turns that into a verdict.
   # Every other job in this file must be a known lane listed in `needs:`
-  # (enforced by scripts/check-required-checks-drift.mjs).
+  # (enforced by scripts/check-required-checks-drift.mjs). Read access to PRs
+  # and Actions lets the judge read owner approvals and, on review events, the
+  # lane results of the PR's latest `pull_request` run.
   gate:
     name: CI gate
     needs: [changes, hygiene, static, release, frontend, backend, edge]
@@ -160,13 +179,21 @@ jobs:
     timeout-minutes: 3
     permissions:
       contents: read
+      pull-requests: read
+      actions: read
     steps:
-      # History without blobs, so the judge script can be read at JUDGE_REF.
+      # History without blobs: the judge modules and ci.yml are read at
+      # JUDGE_REF, and the PR's own ci.yml change is diffed from the merge-base.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           filter: blob:none
-          sparse-checkout: scripts/ci-gate.mjs
+          sparse-checkout: |
+            scripts/ci-gate.mjs
+            scripts/ci-changes.mjs
+            scripts/ci-github.mjs
+            scripts/ci-workflow-diff.mjs
+            scripts/check-required-checks-drift.mjs
           sparse-checkout-cone-mode: false
       - name: Evaluate lane results
         env:
@@ -175,10 +202,21 @@ jobs:
           DRAFT: ${{ needs.changes.outputs.draft }}
           EVENT_NAME: ${{ github.event_name }}
           REF: ${{ github.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          # The fallback covers only a base that predates the script (bootstrap).
-          if ! git show "$JUDGE_REF:scripts/ci-gate.mjs" > "$RUNNER_TEMP/ci-gate.mjs"; then
-            echo "::warning::$JUDGE_REF has no scripts/ci-gate.mjs; using this commit's copy"
-            cp scripts/ci-gate.mjs "$RUNNER_TEMP/ci-gate.mjs"
-          fi
-          node "$RUNNER_TEMP/ci-gate.mjs"
+          # Every judge module comes from the base commit, so a PR cannot edit
+          # what judges it. The fallback covers only a base that predates a
+          # module (bootstrap).
+          judge="$RUNNER_TEMP/judge"
+          mkdir -p "$judge"
+          for f in ci-gate.mjs ci-changes.mjs ci-github.mjs ci-workflow-diff.mjs check-required-checks-drift.mjs; do
+            if ! git show "$JUDGE_REF:scripts/$f" > "$judge/$f"; then
+              echo "::warning::$JUDGE_REF has no scripts/$f; using this commit's copy"
+              cp "scripts/$f" "$judge/$f"
+            fi
+          done
+          node "$judge/ci-gate.mjs"

@@ -13,14 +13,30 @@
 //   • any needed job failed or was cancelled;
 //   • a lane job is not in the plan, or a planned lane is missing from the
 //     gate's `needs:`;
-//   • a lane the plan marks as needed did not succeed (e.g. it was skipped).
+//   • a lane the plan marks as needed did not succeed (e.g. it was skipped);
+//   • the PR changed ci.yml's jobs or header (scripts/ci-workflow-diff.mjs)
+//     and no owner approved its head SHA (TD-202);
+//   • on a review event, the PR's latest `pull_request` run for the head SHA
+//     is missing or unfinished, so there are no lane results to reuse.
 // A lane may be skipped only when the plan explicitly marks it not needed.
 //
+// Review events (`pull_request_review`) exist so an owner approval can flip a
+// gate the test-integrity guard or the ci.yml check turned red. They re-run
+// only REVIEW_LANES; every other lane's result comes from the latest completed
+// `pull_request` run of this PR for the same head SHA, read via the API.
+//
+// ci.yml runs this file, and every module it imports, from the base commit.
+//
 // Inputs (env): NEEDS (toJSON(needs)), PLAN (JSON object lane → needed, from
-// scripts/ci-changes.mjs), DRAFT ('true' | 'false'), EVENT_NAME, REF.
+// scripts/ci-changes.mjs), DRAFT ('true' | 'false'), EVENT_NAME, REF,
+// JUDGE_REF (base commit), BASE_SHA, HEAD_SHA, PR_NUMBER, PR_AUTHOR,
+// GITHUB_REPOSITORY, GITHUB_TOKEN.
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { LANE_JOBS, REVIEW_LANES } from './ci-changes.mjs';
+import { findOwnerOverride, reusedLaneResults } from './ci-github.mjs';
+import { workflowDrift } from './ci-workflow-diff.mjs';
 
 const DISPATCH_REFS = new Set(['refs/heads/dev', 'refs/heads/main']);
 
@@ -57,6 +73,64 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
   return errors;
 }
 
+/**
+ * The needs a review-event run is judged on: its own result for `changes` and
+ * REVIEW_LANES, and the earlier `pull_request` run's result for every other
+ * lane (`missing` when that run has none, which fails a needed lane).
+ */
+export function mergeReused(needs, reused) {
+  const merged = { ...needs };
+  for (const lane of LANE_JOBS) {
+    if (!REVIEW_LANES.includes(lane)) merged[lane] = { result: reused[lane] ?? 'missing' };
+  }
+  return merged;
+}
+
+/**
+ * Errors from the ci.yml comparison: none when the PR leaves ci.yml alone or
+ * an owner approved the head SHA. Pushes and dispatches run dev/main's own
+ * ci.yml, so only PR-like events are compared.
+ */
+async function ciWorkflowErrors(env) {
+  if (!['pull_request', 'pull_request_review', 'merge_group'].includes(env.EVENT_NAME)) return [];
+  const drift = workflowDrift({ judgeRef: env.JUDGE_REF, runningRef: 'HEAD', baseSha: env.BASE_SHA, headSha: env.HEAD_SHA });
+  if (drift.length === 0) return [];
+  const override = await findOwnerOverride(env, env.JUDGE_REF);
+  if (override.login) {
+    for (const d of drift) console.log(`::notice::${d} — accepted: @${override.login} approved head ${env.HEAD_SHA}`);
+    return [];
+  }
+  return [
+    ...drift,
+    `ci.yml must keep the base branch's lanes and jobs unless an owner approves this head SHA: ${override.why}.`,
+  ];
+}
+
+/** Collect every gate error; any exception becomes an error (fail closed). */
+async function judge(env, needs, plan) {
+  const draft = env.DRAFT === 'true';
+  const errors = [];
+  let judged = needs;
+  if (env.EVENT_NAME === 'pull_request_review' && !draft) {
+    try {
+      const { run, results } = await reusedLaneResults(env, LANE_JOBS);
+      console.log(`Review event: reusing lane results of ${run.html_url}`);
+      judged = mergeReused(needs, results);
+    } catch (err) {
+      errors.push(`review re-evaluation has no lane results to reuse: ${err.message}`);
+    }
+  }
+  errors.push(...evaluateGate({ needs: judged, plan, draft, event: env.EVENT_NAME, ref: env.REF }));
+  if (!draft) {
+    try {
+      errors.push(...(await ciWorkflowErrors(env)));
+    } catch (err) {
+      errors.push(`could not compare ci.yml with the base commit: ${err.message}`);
+    }
+  }
+  return { judged, errors };
+}
+
 function parseJson(name, raw) {
   if (!raw) return null;
   try {
@@ -66,12 +140,11 @@ function parseJson(name, raw) {
   }
 }
 
-function main() {
+async function main() {
   const env = process.env;
-  const needs = parseJson('NEEDS', env.NEEDS) ?? {};
   const plan = parseJson('PLAN', env.PLAN);
-  const errors = evaluateGate({ needs, plan, draft: env.DRAFT === 'true', event: env.EVENT_NAME, ref: env.REF });
-  const rows = Object.entries(needs).map(
+  const { judged, errors } = await judge(env, parseJson('NEEDS', env.NEEDS) ?? {}, plan);
+  const rows = Object.entries(judged).map(
     ([job, { result }]) => `| ${job} | ${result} | ${job === 'changes' ? '-' : String(plan?.[job] ?? 'unplanned')} |`,
   );
   const summary = ['| Job | Result | Needed |', '| --- | --- | --- |', ...rows].join('\n');
@@ -85,5 +158,5 @@ function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main();
+  await main();
 }
