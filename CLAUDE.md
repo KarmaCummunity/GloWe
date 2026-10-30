@@ -182,7 +182,7 @@ When you spot tech debt outside the immediate scope:
 
 ## 6. Git & PR workflow
 
-> Repo: `KarmaCummunity/GloWe` · Default branch: `main` · Merge strategy: **squash** · Auto-merge: **on, after CI passes**.
+> Repo: `KarmaCummunity/KC` · Default branch: `main` · Merge strategy: **squash** · Auto-merge: **on, after CI passes**.
 > **Working branch: `dev`.** All PRs target `dev`. `main` is updated by squash-merging `dev` → `main`. Full topology in [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md).
 
 ### Pre-flight (once per session)
@@ -192,7 +192,7 @@ gh --version              # GitHub CLI installed
 gh auth status            # Logged in to github.com
 git config user.name      # non-empty
 git config user.email     # non-empty
-gh repo view --json nameWithOwner -q .nameWithOwner   # KarmaCummunity/GloWe
+gh repo view --json nameWithOwner -q .nameWithOwner   # KarmaCummunity/KC
 ```
 
 If any check fails, stop and point the user to `SETUP_GIT_AGENT.md`. Do not improvise.
@@ -256,19 +256,19 @@ All three must be green before `git push`. Never push red code.
 
 ```bash
 git fetch origin
-git switch main
-git pull --ff-only origin main
+git switch dev
+git pull --ff-only origin dev
 git switch -c feat/FR-AUTH-001-otp-login
 # … atomic commits …
 ( cd app && pnpm typecheck && pnpm test && pnpm lint )
 git push -u origin HEAD
-gh pr create --base main --head "$(git branch --show-current)" \
+gh pr create --base dev --head "$(git branch --show-current)" \
   --title "feat(auth): add OTP verification screen" \
   --body-file .github/.pr-body.md \
   --label "FR-AUTH" --assignee "@me"
 gh pr merge --auto --squash --delete-branch
 gh pr checks --watch
-git switch main && git pull --ff-only origin main
+git switch dev && git pull --ff-only origin dev
 git branch -D feat/FR-AUTH-001-otp-login
 ```
 
@@ -355,7 +355,7 @@ If you don't see a home for something below, **ask the PM** before inventing a n
 
 | Concern                   | File / directory                       |
 | ------------------------- | -------------------------------------- |
-| **App semver (`x.x.x`)**  | **`app/VERSION`** (+ `glowe-version.js`; see banner § above) |
+| **App semver (`x.x.x`)**  | **`app/VERSION`** (see banner § above) |
 | Priority queue            | `docs/SSOT/BACKLOG.md`                 |
 | **Product project book**  | **`docs/spec/`** (English; Hebrew page is the human source of truth) |
 | Architecture (current/target) | `docs/architecture/`               |
@@ -411,7 +411,7 @@ When this section is active, the agent operates as a continuous self-driven task
 
 - **Product decisions**: when a task forks on UX/product, decide based on user-visible coherence + simplicity. Record the call in `docs/SSOT/DECISIONS.md` as a new `D-*` entry with a one-paragraph rationale. Do not block on PM input.
 - **CI / tooling repairs**: if `.github/workflows/*`, root configs, or monorepo tooling appear broken, fix as part of the loop — CI is in-scope.
-- **Dev Supabase database**: full read/write/migration authority on project `roeefqpdbftlndzsvhfj` via Supabase MCP tools and the local CLI. Migrations live in `supabase/migrations/` and ship in the same PR as their consumers. Secrets needed by the CLI are in `~/.kc-dev-secrets.env` (outside the repo).
+- **Dev Supabase database**: full read/write/migration authority on project `enbqriuxvvuontiwslun` (kc-dev; verified 2026-10-30 against the deployed dev web bundle, matches `docs/SSOT/ENVIRONMENTS.md`) via Supabase MCP tools and the local CLI. `roeefqpdbftlndzsvhfj` ("MVP-2") and `slxijdfvinbjmrsfgbzx` ("MVP-PROD") are older, paused projects — never target them. Migrations live in `supabase/migrations/` and ship in the same PR as their consumers. Secrets needed by the CLI are in `~/.kc-dev-secrets.env` (outside the repo).
 
 ### Still prohibited (§7 holds regardless of loop mode)
 
