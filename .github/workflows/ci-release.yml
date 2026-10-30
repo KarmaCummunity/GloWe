@@ -25,16 +25,20 @@ jobs:
         env:
           # Branch names are attacker-controlled on fork PRs; never inline them.
           HEAD_REF: ${{ github.head_ref }}
+          # A fork's branch can also be named dev; it must be this repo's dev.
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
-          if [ "$HEAD_REF" != dev ]; then
-            echo "::error::Production releases must be a PR from \`dev\` into \`main\` (head: \`${HEAD_REF:-none}\`)."
+          if [ "$HEAD_REF" != dev ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Production releases must be a PR from this repository's \`dev\` into \`main\` (head: \`${HEAD_REPO:-none}:${HEAD_REF:-none}\`)."
             exit 1
           fi
-          echo "Release source branch is dev."
+          echo "Release source branch is $GITHUB_REPOSITORY:dev."
 
-  # Stricter than the static lane's scan: on main a `migration-safety: allow`
-  # marker in a migration this release adds or changes also needs a
-  # "Migration safety: <file> — <reason>" line in the PR body.
+  # Stricter than the static lane's scan, for migrations this release adds or
+  # changes: a destructive line needs its `migration-safety: allow` marker AND
+  # a "Migration safety: <file> — <reason>" line in the PR body; a change that
+  # can break the previous code (rename, type change, SET NOT NULL, dropped
+  # function/policy, policy change, RLS off) needs that body line.
   migrations:
     name: release migration scan (strict)
     runs-on: ubuntu-latest

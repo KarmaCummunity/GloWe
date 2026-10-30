@@ -7,6 +7,7 @@ import {
   checkMigrationSafety,
   checkReleaseMigrations,
   justifiedFiles,
+  scanCompatibility,
   scanMigrationSql,
 } from './check-migration-safety.mjs';
 
@@ -91,4 +92,31 @@ test('a justification never excuses an unmarked destructive line', () => {
 test('justifiedFiles needs a file name and a real reason', () => {
   const body = ['Migration safety: 0450_a.sql — ok', 'migration safety: 0451_b.sql: rebuilt from 0449 snapshot', 'Migration safety: — no file'].join('\n');
   assert.deepEqual([...justifiedFiles(body)], ['0451_b.sql']);
+});
+
+test('release mode flags every change that can break the previous release', () => {
+  const sql = [
+    'alter table posts rename column body to text;',
+    'alter table posts alter column n type bigint;',
+    'alter table posts alter column n set data type bigint;',
+    'alter table posts alter column city set not null;',
+    'drop function if exists public.f(int);',
+    'drop policy if exists p on posts;',
+    'alter policy p on posts using (true);',
+    'alter table posts disable row level security;',
+    '-- drop policy in a comment does not count',
+    'create policy p on posts using (true);',
+  ].join('\n');
+  const hits = scanCompatibility(sql, '0460_x.sql');
+  assert.deepEqual(hits.map((h) => h.match(/rule ([a-z-]+)/)[1]), [
+    'rename', 'alter-column-type', 'alter-column-type', 'set-not-null', 'drop-function', 'drop-policy', 'alter-policy', 'disable-rls',
+  ]);
+  const file = { name: '0460_x.sql', content: sql };
+  assert.equal(checkReleaseMigrations([file], '').length, 8);
+  assert.deepEqual(checkReleaseMigrations([file], 'Migration safety: 0460_x.sql — new column shipped in v1.5.0, code switched in v1.5.3\n'), []);
+});
+
+test('an allow marker alone does not excuse a compatibility-breaking line on main', () => {
+  const file = { name: '0461_y.sql', content: 'drop function f(); -- migration-safety: allow\n' };
+  assert.match(checkReleaseMigrations([file], '')[0], /DROP FUNCTION .* add `Migration safety: 0461_y\.sql/);
 });

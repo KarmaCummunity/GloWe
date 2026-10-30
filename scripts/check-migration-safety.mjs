@@ -99,10 +99,41 @@ export function justifiedFiles(prBody) {
 }
 
 /**
- * Release (dev → main) mode. On `main` the per-line `migration-safety: allow`
- * marker alone is not enough: every destructive line in a migration this
- * release adds or changes needs the marker AND a justification line for its
- * file in the PR body, so the one human approving the release sees why.
+ * Changes that keep the data but can break the code of the PREVIOUS release,
+ * which keeps running until the new web and functions are live (and again
+ * after a rollback). Expand/contract: add the new shape first, switch the
+ * code, remove the old shape in a later release.
+ */
+export const COMPAT_RULES = [
+  { id: 'rename', re: /\bRENAME\b/i, hint: 'RENAME' },
+  { id: 'alter-column-type', re: /\bALTER\s+COLUMN\s+\S+\s+(SET\s+DATA\s+)?TYPE\b/i, hint: 'ALTER COLUMN … TYPE' },
+  { id: 'set-not-null', re: /\bSET\s+NOT\s+NULL\b/i, hint: 'SET NOT NULL' },
+  { id: 'drop-function', re: /\bDROP\s+FUNCTION\b/i, hint: 'DROP FUNCTION' },
+  { id: 'drop-policy', re: /\bDROP\s+POLICY\b/i, hint: 'DROP POLICY' },
+  { id: 'alter-policy', re: /\bALTER\s+POLICY\b/i, hint: 'ALTER POLICY' },
+  { id: 'disable-rls', re: /\bDISABLE\s+ROW\s+LEVEL\s+SECURITY\b/i, hint: 'DISABLE ROW LEVEL SECURITY' },
+];
+
+/** COMPAT_RULES hits in `content`, comments ignored. */
+export function scanCompatibility(content, filename) {
+  const hits = [];
+  content.split('\n').forEach((line, i) => {
+    const sql = line.replace(/--.*$/, '');
+    for (const rule of COMPAT_RULES) {
+      if (rule.re.test(sql)) hits.push(`${filename}:${i + 1}: ${rule.hint} (rule ${rule.id}, breaks the previous release unless expand/contract)`);
+    }
+  });
+  return hits;
+}
+
+/**
+ * Release (dev → main) mode, for the migrations a release adds or changes.
+ * The one human approving the release must see why each risky change is
+ * safe, so:
+ *   • a destructive line (DESTRUCTIVE_RULES) needs its `migration-safety:
+ *     allow` marker AND a justification line for its file in the PR body;
+ *   • a compatibility-breaking line (COMPAT_RULES) needs the justification
+ *     line for its file (the marker alone does not count).
  * @param {{ name: string, content: string }[]} files changed migration files
  * @param {string} prBody
  */
@@ -110,9 +141,10 @@ export function checkReleaseMigrations(files, prBody) {
   const justified = justifiedFiles(prBody);
   const errors = [];
   for (const { name, content } of files) {
-    const honorAllow = justified.has(name);
-    for (const err of scanMigrationSql(content, name, { honorAllow })) {
-      errors.push(`${err}${honorAllow ? '' : ` — add \`Migration safety: ${name} — <reason>\` to the release PR body`}`);
+    const ok = justified.has(name);
+    const hits = [...scanMigrationSql(content, name, { honorAllow: ok }), ...(ok ? [] : scanCompatibility(content, name))];
+    for (const hit of hits) {
+      errors.push(`${hit}${ok ? '' : ` — add \`Migration safety: ${name} — <reason>\` to the release PR body`}`);
     }
   }
   return errors;
