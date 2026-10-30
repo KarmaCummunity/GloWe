@@ -58,6 +58,38 @@ The key pair is created once by the owner: `age-keygen -o key.txt` prints the pu
 
 ---
 
+## Owner setup for D-195 CI/CD {#owner-setup-ci}
+
+Repository settings only the owner (admin) can apply. Tracked as `INFRA-CI-OWNER` in [`BACKLOG.md`](./BACKLOG.md); background in [`DECISIONS.md`](./DECISIONS.md) `D-195`, layout in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md). Do the steps **in this order**: each merge assumes the settings before it.
+
+1. **Single required check, then merge #1292.** Settings → Branches (or the ruleset of step 5, if you apply it now) → `dev` and `main`: replace the legacy required checks with exactly **`CI gate`**, source **GitHub Actions** (list in [`ENVIRONMENTS.md` § Dev merge gates](./ENVIRONMENTS.md#dev-merge-gates-branch-protection)). Then merge PR #1292 (unified PR gate).
+2. **Bot identity (`INFRA-CI-6`).**
+   1. **Agent GitHub App** — Settings (your account or the org) → Developer settings → GitHub Apps → New GitHub App. Name e.g. `kc-agent`; webhook off; **Repository permissions:** Contents **Read and write**, Pull requests **Read and write**, Actions **Read-only**, Checks **Read-only**, Metadata **Read-only** (mandatory); everything else **No access** — never Administration. "Where can this app be installed?" → Only on this account. Create it, note the **App ID**, generate a **private key** (`.pem`).
+   2. Install the App → **Only select repositories** → `KC` (no other repository).
+   3. Repository → Settings → Secrets and variables → Actions → repository secrets: `AGENT_APP_ID` = the App ID, `AGENT_APP_PRIVATE_KEY` = the full `.pem` contents. Delete the local `.pem` afterwards. `auto-merge-agent-ready.yml` now merges as the App, so merges trigger **CI** → **Deploy** (`TD-197`); with neither these nor `AGENT_MERGE_TOKEN` it fails visibly.
+   4. **Agent machine user** — create a separate GitHub account for Claude / agent sessions (its own e-mail, 2FA on; GitHub's terms allow one machine account per person). Invite it to `KC` with role **Write** — not Maintain, not Admin. Add its login nowhere in `.github/owners.json` or `.github/CODEOWNERS`.
+   5. In Claude Code (claude.ai → Settings → Connectors → GitHub, and any local `gh auth login`), disconnect your personal account and connect **the machine user** instead. From then on agent PRs are authored by the machine user, so **you can approve them** (GitHub never counts an author's own approval) and agents can no longer use your admin rights to bypass rules.
+   6. Optional fallback: a fine-grained PAT of the machine user (this repository only; Contents + Pull requests read/write) as secret `AGENT_MERGE_TOKEN`.
+3. **Prod environments, then merge #1308** (gated prod release, `INFRA-CI-3`). Settings → Environments:
+   - `production` — required reviewer: **you** only; deployment branches: `main` only; no secrets.
+   - `supabase-prod`, `cloudflare-prod` — deployment branches `main` only; no reviewers. `supabase-dev`, `cloudflare-dev` — deployment branches `dev` and `main`; no reviewers.
+   - Variables: `BACKUP_AGE_RECIPIENT` on `supabase-prod` (see [§ Restore a pre-migration backup](#restore-backup) for the key pair); repository variables `KC_PROD_URL` and `DEV_WEB_URL` ([`ENVIRONMENTS.md`](./ENVIRONMENTS.md) table). Delete the legacy `PROD_WEB_URL`.
+   - `EXPO_PUBLIC_ENVIRONMENT` per environment: `production` on `cloudflare-prod`, `development` on `cloudflare-dev`.
+   - The Cloudflare API token in `cloudflare-*` needs **Cloudflare Pages: Edit**.
+   - Then merge PR #1308.
+4. **Mobile store, then merge #1304** (nightly mobile, `INFRA-CI-4`).
+   - Environment `mobile-store` (deployment branches `dev` + `main`) with secret `MOBILE_SUPABASE_ANON_KEY` = the **kc-dev** publishable key.
+   - EAS → project → Environment variables → `preview`: the Sentry values and the `GOOGLE_SERVICES_JSON` file variable.
+   - Verify the iOS signing secrets are present (`KC_IOS_*`, `ASC_*`).
+   - Allow `mobile/*` tags (if a tag ruleset restricts tag creation, add `mobile/*` to the allowed patterns).
+   - Then merge PR #1304.
+5. **Import the ruleset (`INFRA-CI-2`).** Settings → Rules → Rulesets → New ruleset → **Import a ruleset** → upload [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json) → review → Create. It targets `dev` + `main`: pull request with **0** approvals + **Require review from Code Owners** + dismiss stale approvals + approval of the most recent push; required check `CI gate` from GitHub Actions (`integration_id` 15368); no force pushes, no deletions; **no bypass actors**. Then remove the classic branch-protection rules on `dev`/`main` (the ruleset replaces them).
+   - **Verify right after import** with two throwaway PRs into `dev`: (a) a docs-only change must merge on a green `CI gate` with no review; (b) a one-line comment change in `.github/CODEOWNERS` must ask for your review. GitHub does not document how "approval of the most recent push" behaves with 0 required approvals; if PR (a) also waits for an approval, edit the ruleset and turn that one option off (code-owner review + stale-approval dismissal still cover owned files).
+   - Owner overrides: when `CI gate` fails with a "Test integrity" or "ci.yml must keep the base branch's lanes and jobs" error, read the listed reasons; if the change is intended, **approve the PR** — the review re-runs CI and the gate turns green for that head SHA. A new push needs a new approval.
+6. **Cleanup.** Delete the `tmp-probe-*` workflows (and any runs you no longer need) and the stale branch `chore/ci-nightly-mobile` (superseded by `chore/ci-nightly-mobile-2`).
+
+---
+
 ## 0001 — Foundation & Identity {#0001}
 
 Verify: sign in with Google → confirm row appears in `public.users` with Google name + avatar → re-sign-in must not create a duplicate row.

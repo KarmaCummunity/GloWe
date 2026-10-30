@@ -31,14 +31,13 @@
 
 ## INFRA — CI/CD hardening (`D-195`)
 
-Stage 1 (`INFRA-CI-1`, unified PR gate) and stage 3 (`INFRA-CI-3`, gated prod release) are done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
+Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity, `INFRA-CI-3` gated prod release, `INFRA-CI-6` agent bot identity) are done in code — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md); their repository settings are `INFRA-CI-OWNER`. Rows that change CI files need owner approval (`D-195`).
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-202`). | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-OWNER | **Owner settings for the D-195 pipeline (owner action).** Ordered checklist: required check `CI gate` → merge #1292; agent GitHub App + Write-role machine user, Claude Code reconnected to it; prod environments, variables, Cloudflare token → merge #1308; `mobile-store` + EAS `preview` + iOS signing + `mobile/*` tags → merge #1304; import `.github/rulesets/dev-main.json` and verify; delete `tmp-probe-*` workflows and branch `chore/ci-nightly-mobile`. | owner | ⏳ Planned | [`OPERATOR_RUNBOOK.md` § Owner setup for D-195 CI/CD](./OPERATOR_RUNBOOK.md#owner-setup-ci) |
 | INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed. | infra | ⏳ Planned | `D-195`, `D-192` |
 | INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
-| INFRA-CI-6 | **Agent bot identity.** Move agent pushes, PRs and merges off the owner's personal GitHub account to a bot / GitHub App identity (also closes `TD-197`). | infra | ⏳ Planned | `D-195` |
 
 ## DONATE — Money hub
 
