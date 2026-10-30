@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
@@ -11,15 +11,15 @@ import { track } from '../../lib/analytics';
 import { trackCoreLoop } from '../../lib/analyticsCoreLoop';
 import { hapticSuccess } from '../../lib/haptics';
 import { handoffErrorKey } from '../../lib/marketplaceCreateErrors';
+import { HandoffRatingForm } from './HandoffRatingForm';
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  box: { gap: spacing.sm, padding: spacing.md, borderRadius: 12, backgroundColor: colors.surfaceRaised },
+  box: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceRaised },
   status: { ...typography.caption, color: colors.textSecondary },
-  btn: { padding: spacing.md, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center' as const },
+  btn: { padding: spacing.md, borderRadius: radius.sm, backgroundColor: colors.primary, alignItems: 'center' as const },
   btnSecondary: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   btnText: { ...typography.button, color: colors.textInverse },
   btnTextSecondary: { color: colors.primary },
-  stars: { flexDirection: 'row' as const, gap: spacing.sm },
 }));
 
 interface Props {
@@ -80,7 +80,11 @@ export function GivingHandoffActions({ detail }: Props) {
   return (
     <View style={styles.box}>
       <Text style={typography.h3}>{t('givingHandoff.sectionTitle')}</Text>
-      {h ? <Text style={styles.status}>{t('givingHandoff.status', { status: h.status })}</Text> : null}
+      {h ? (
+        <Text style={styles.status}>
+          {t('givingHandoff.status', { status: t(`givingHandoff.statusLabel.${h.status}`, { defaultValue: h.status }) })}
+        </Text>
+      ) : null}
 
       {!h && detail.worldSlug === 'items' && !isOwner ? (
         <>
@@ -185,22 +189,15 @@ export function GivingHandoffActions({ detail }: Props) {
       ) : null}
 
       {h?.status === 'handed_over' && (isOwner || isRecipient) ? (
-        <View style={styles.stars}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Pressable
-              key={star}
-              disabled={busy}
-              onPress={() =>
-                run(async () => {
-                  await givingHandoffUseCases.rate().execute(h.handoffId, star);
-                  alert(t('givingHandoff.ratingThanks'));
-                })
-              }
-            >
-              <Text style={typography.h2}>★</Text>
-            </Pressable>
-          ))}
-        </View>
+        <HandoffRatingForm
+          busy={busy}
+          onSubmit={(rating, note) =>
+            run(async () => {
+              await givingHandoffUseCases.rate().execute(h.handoffId, rating, note);
+              alert(t('givingHandoff.ratingThanks'));
+            })
+          }
+        />
       ) : null}
     </View>
   );
