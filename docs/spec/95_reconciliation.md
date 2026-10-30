@@ -66,6 +66,7 @@ Also added to [93](./93_implementation_gaps.md).
 | Q-5 | **Karma for listing handoffs:** apply the §7.6 values (food 20/10, ride 25/10) to the listing handoffs too (currently 5/3)? Retroactively? | Changes users' karma totals |
 | Q-6 | **TestFlight database (D8 / G7):** which Supabase project do the repository-level secrets used by `testflight-ios.yml` point to? Recommendation: move them into a dedicated GitHub Environment (`supabase-prod-clean`) so the target is explicit. | Cannot be read from the repo |
 | Q-7 | **Supabase project refs:** `ENVIRONMENTS.md` and `CLAUDE.md` / `.mcp.json` name **different** projects as dev. Which is canonical? | Agents hold write authority on "dev" |
+|  | ✅ **Q-7 answered by evidence (2026-10-30):** the deployed dev web bundle calls `enbqriuxvvuontiwslun`, matching `ENVIRONMENTS.md` (prod `kdqtbdbzwvlugkhonexg`). `roeefqpdbftlndzsvhfj` (MVP-2) and `slxijdfvinbjmrsfgbzx` (MVP-PROD) are **paused** projects in the older "KC" Supabase org. `DEPLOY_WEB.md` is corrected; `CLAUDE.md` §13 and `.mcp.json` / `app/.mcp.json` still name `roeefqpdbftlndzsvhfj` and need a PM-approved edit (agent-configuration files). | |
 | Q-8 | **Account deletion and shared chats:** deleting an account now removes the user's chat images. The counterpart keeps the (anonymized) chat, so those images disappear for them too. Confirm that right-to-be-forgotten wins over the counterpart's copy (current behavior), or keep them until the counterpart deletes the chat. | Privacy vs. counterpart experience |
 
 ## 5. SSOT hygiene notes

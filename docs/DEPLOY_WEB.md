@@ -25,7 +25,7 @@ Add these under **Variables** (all three available at both build time and runtim
 
 | Name | Value | Source |
 | ---- | ----- | ------ |
-| `EXPO_PUBLIC_SUPABASE_URL` | `https://roeefqpdbftlndzsvhfj.supabase.co` | matches `app/apps/mobile/.env` |
+| `EXPO_PUBLIC_SUPABASE_URL` | `https://enbqriuxvvuontiwslun.supabase.co` | matches `app/apps/mobile/.env` |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_…` | matches `app/apps/mobile/.env` (publishable key — safe to inline in client bundle) |
 | `PORT` | (leave unset; Railway injects it automatically) | — |
 
@@ -49,7 +49,7 @@ dig CNAME dev3.karma-community-kc.com +short
 
 ### 4. Supabase Auth → URL Configuration
 
-Required so Google SSO and other OAuth flows accept the deployed origin. Once, in the Supabase dashboard for project `roeefqpdbftlndzsvhfj` → Authentication → URL Configuration → **Redirect URLs**, add:
+Required so Google SSO and other OAuth flows accept the deployed origin. Once, in the Supabase dashboard for project `enbqriuxvvuontiwslun` → Authentication → URL Configuration → **Redirect URLs**, add:
 
 ```
 https://dev3.karma-community-kc.com/**
