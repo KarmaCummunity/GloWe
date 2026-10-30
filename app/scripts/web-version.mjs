@@ -4,10 +4,11 @@
 // this file to prove which commit a host is serving, so the SHA must be the
 // commit that was built, never a guess. The deploy pipeline passes it
 // explicitly in EXPO_PUBLIC_GIT_COMMIT_SHA (in a `workflow_run` deploy,
-// GITHUB_SHA is the default branch tip, not the deployed commit); local and
-// PR builds fall back to the checked-out HEAD.
+// GITHUB_SHA is the default branch tip, not the deployed commit); other CI
+// builds fall back to GITHUB_SHA. No git process is spawned: a build must not
+// depend on whatever `git` the PATH resolves to (Sonar S4036), and a local
+// build without either variable is stamped 'unknown', which no deploy accepts.
 
-import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const FULL_SHA = /^[0-9a-f]{40}$/;
@@ -22,22 +23,13 @@ export function readAppVersion(versionPath) {
   return version;
 }
 
-/** HEAD of the git checkout at `cwd`, or null outside a git checkout (e.g. the Docker build context). */
-export function gitHead(cwd) {
-  try {
-    return execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-  } catch {
-    return null;
-  }
-}
-
 /**
  * The full commit SHA to stamp. An explicit EXPO_PUBLIC_GIT_COMMIT_SHA wins and
  * must be a full 40-hex SHA (a short or malformed value would never match the
- * smoke's expected SHA, so fail the build instead). Without it, use `head`;
- * 'unknown' only when neither exists.
+ * smoke's expected SHA, so fail the build instead). Without it, use
+ * GITHUB_SHA when it is a full SHA; 'unknown' otherwise.
  */
-export function resolveBuildSha({ env, head }) {
+export function resolveBuildSha(env) {
   const explicit = env.EXPO_PUBLIC_GIT_COMMIT_SHA?.trim();
   if (explicit) {
     if (!FULL_SHA.test(explicit)) {
@@ -45,7 +37,8 @@ export function resolveBuildSha({ env, head }) {
     }
     return explicit;
   }
-  return head && FULL_SHA.test(head) ? head : 'unknown';
+  const ci = env.GITHUB_SHA?.trim();
+  return ci && FULL_SHA.test(ci) ? ci : 'unknown';
 }
 
 /** Body of `/version.json`. */
