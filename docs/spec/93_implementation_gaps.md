@@ -7,11 +7,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G1 | Unify listings → posts, ride_post_details, post_handoffs (D19) | 07.1 |
 | G2 | One world list in code (D1) | 04 |
 | G3 | Anonymity 'only-stricter' trigger vs both-ways change (D16) | 07.13 |
-<<<<<<< HEAD
 | G4 | ✅ 2026-10-30 — Ratings readable only by their rater and super admins (migration `0446`, probe in `supabase/tests/`) (D24) | 07.7 |
-=======
-| G4 | Ratings readable via RLS; must be admin-only (D24) | 07.7 |
->>>>>>> origin/dev
 | G5 | Org links without approval; two org entities (D9) | 08 |
 | G6 | 'Marketplace listings' profile tab (D14) | 07.12 |
 | G7 | Which DB TestFlight connects to (D8) | architecture |

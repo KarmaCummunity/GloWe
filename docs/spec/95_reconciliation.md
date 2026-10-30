@@ -20,11 +20,7 @@ Security findings are deliberately **not** listed here (README rule: never descr
 | Items and all requests have no expiry | 7.1 / D21 | `0153_post_expiry_cron.sql:35-39`: every `open` post expires after **300 days** (legacy FR-POST-012/013) | ❌ new gap **G32** |
 | Karma values (§7.6 table) | 7.6 / D12 / S20 | `0189_karma_triggers.sql`: registration 1, post 5, removed −5, closure giver 20 + bonus, receiver 15, follower 1, first contact 1 — ✅. But `0384` / `0394` (items/food/rides handoffs on `listings`): giver **5**, receiver **3**; book: food 20/10, ride 25/10 | ❌ two closing systems with different values → refines **G16** + **G1** |
 | Karma visible to owner only | 7.6 / D29 | `app/user/[handle]/index.tsx` rendered another user's karma (always empty: `karma_points` is not a public column, `userPublicColumns.ts:5`) | ✅ **fixed in this PR** (regression test `otherProfileKarmaHidden.test.ts`) |
-<<<<<<< HEAD
 | Ratings visible to admins only | 7.7 / D24 | `0193:69` `ride_ratings_select`, `0354:150` `giving_handoff_ratings_participant_read`: participants can read | ✅ **fixed** by migration `0446` (rater + super admin only; the summary view follows via `security_invoker`) — **G4** |
-=======
-| Ratings visible to admins only | 7.7 / D24 | `0193:69` `ride_ratings_select`, `0354:150` `giving_handoff_ratings_participant_read`: participants can read | ❌ confirms **G4** |
->>>>>>> origin/dev
 | 8 giving worlds incl. `experiences`; no "app design" world (D18) | 04 / D45 / D18 | `packages/domain/src/marketplace/MarketplaceTypes.ts:3-16`: 12 slugs — `money, items, food, medical, housing, rides, knowledge, time, animals, environment, creative, app_design`; no `experiences` | ❌ refines **G24**: `app_design` contradicts D18; `medical`, `animals`, `environment` are domains (D45); `creative` maps to the `culture` domain? (Q-3) |
 | All worlds always shown; inactive = "not active yet" | 04 / D3 | `0441_world_launch_app_flags.sql`: per-world flags **hide** worlds from navigation; defaults: items, food on; **money, time, rides, knowledge, housing … off** | ❌ contradicts D3, and the phase table says `time` is "MVP, live" → question **Q-1** |
 | Profile has no "marketplace" tab | 7.12 / D14 | `src/components/profile/ProfileMarketplaceListings.tsx` exists | ❌ confirms **G6** |
@@ -70,10 +66,7 @@ Also added to [93](./93_implementation_gaps.md).
 | Q-5 | **Karma for listing handoffs:** apply the §7.6 values (food 20/10, ride 25/10) to the listing handoffs too (currently 5/3)? Retroactively? | Changes users' karma totals |
 | Q-6 | **TestFlight database (D8 / G7):** which Supabase project do the repository-level secrets used by `testflight-ios.yml` point to? Recommendation: move them into a dedicated GitHub Environment (`supabase-prod-clean`) so the target is explicit. | Cannot be read from the repo |
 | Q-7 | **Supabase project refs:** `ENVIRONMENTS.md` and `CLAUDE.md` / `.mcp.json` name **different** projects as dev. Which is canonical? | Agents hold write authority on "dev" |
-<<<<<<< HEAD
 |  | ✅ **Q-7 answered by evidence (2026-10-30):** the deployed dev web bundle calls `enbqriuxvvuontiwslun`, matching `ENVIRONMENTS.md` (prod `kdqtbdbzwvlugkhonexg`). `roeefqpdbftlndzsvhfj` (MVP-2) and `slxijdfvinbjmrsfgbzx` (MVP-PROD) are **paused** projects in the older "KC" Supabase org. `DEPLOY_WEB.md` is corrected; `CLAUDE.md` §13 and `.mcp.json` / `app/.mcp.json` now point at kc-dev (PM-approved 2026-10-30). | |
-=======
->>>>>>> origin/dev
 | Q-8 | **Account deletion and shared chats:** deleting an account now removes the user's chat images. The counterpart keeps the (anonymized) chat, so those images disappear for them too. Confirm that right-to-be-forgotten wins over the counterpart's copy (current behavior), or keep them until the counterpart deletes the chat. | Privacy vs. counterpart experience |
 
 ## 5. SSOT hygiene notes
