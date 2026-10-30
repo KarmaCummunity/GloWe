@@ -9,14 +9,12 @@ import {
   Modal,
   Platform,
   Pressable,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { DeleteAccountError } from '@kc/application';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import { useDeleteAccountConfirmModalStyles } from './DeleteAccountConfirmModal.styles';
 
 export type AccountStatusForDelete =

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
-  Text,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,7 @@ import {
   hasPermission,
   type AdminRole,
 } from '@kc/domain';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { useAuthStore } from '../store/authStore';
 import { AddDonationLinkModal } from './AddDonationLinkModal';
 import { useDonationLinksListStyles } from './DonationLinksList.styles';

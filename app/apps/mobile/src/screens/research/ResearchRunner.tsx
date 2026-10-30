@@ -4,11 +4,10 @@ import {
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { PublicResearchError } from '@kc/domain';
 import type { PublicResearchBundle } from '@kc/domain';
 import { SurveyQuestionMap } from '../../components/survey/SurveyQuestionMap';

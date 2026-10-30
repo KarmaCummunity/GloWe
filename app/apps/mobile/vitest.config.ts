@@ -64,6 +64,8 @@ export default defineConfig({
         // pure routing logic lives in tapRouting.ts and IS unit-tested.
         'src/lib/notifications/tapHandler.ts',
         'src/lib/permissionGate.ts',
+        // Brand font loader: expo-font wiring around @kc/ui brandFont (unit-tested there).
+        'src/lib/useBrandFonts.ts',
       ],
       thresholds: {
         lines: 60,

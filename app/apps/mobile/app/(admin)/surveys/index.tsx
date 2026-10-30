@@ -3,9 +3,9 @@
 // Two tabs: "Surveys" (overview → per-survey stats + per-user answers) and
 // "Feedback" (free-text entries). RBAC-gated by surveys.view.
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import {
   useAdminSurveyOverview,

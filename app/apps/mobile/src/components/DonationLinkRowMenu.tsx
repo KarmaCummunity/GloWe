@@ -1,9 +1,9 @@
 // Web row menu for donation links — RN-Web Alert.alert drops multi-button arrays (see ChatActionMenu).
 import React from 'react';
-import { Modal, View, Text, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DonationLink } from '@kc/domain';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import {
   confirmRemoveDonationLink,
   openDonationLinkUrl,

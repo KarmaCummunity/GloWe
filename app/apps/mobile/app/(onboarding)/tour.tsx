@@ -1,11 +1,11 @@
 // Onboarding step 4 — FR-AUTH-012
 import React, { useMemo, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { OnboardingStepHeader } from '../../src/components/OnboardingStepHeader';
 import { TourSlidePager, type TourSlide } from '../../src/components/animations/TourSlidePager';
 import { PressableScale } from '../../src/components/animations/PressableScale';

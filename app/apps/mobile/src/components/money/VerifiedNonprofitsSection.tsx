@@ -2,11 +2,11 @@
 // sandbox provider only, so the Money hub renders it solely when the
 // `money_in_app_org_payments` flag is on (FR-DONATE-011 AC8).
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { VerifiedNonprofitRow } from '@kc/domain';
 import { paymentsUseCases } from '../../services/paymentsComposition';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

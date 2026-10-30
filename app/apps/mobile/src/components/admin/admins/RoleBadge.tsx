@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/admins/RoleBadge.tsx
 // FR-ADMIN-022 — compact role pill used on the unified admin card and detail.
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { AdminRole } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 // Semantic accent per role tier. Platform-wide roles lean on the brand primary;

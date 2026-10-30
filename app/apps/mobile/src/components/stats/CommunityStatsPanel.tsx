@@ -1,8 +1,8 @@
 // Community stats panel — FR-STATS-004 AC1 (flat numbers, no charts).
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 type Props = {

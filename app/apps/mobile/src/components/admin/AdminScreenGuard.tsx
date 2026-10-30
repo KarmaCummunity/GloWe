@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Text, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 
 export interface AdminScreenGuardProps {
   readonly isLoading:      boolean;

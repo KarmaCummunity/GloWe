@@ -1,10 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, Platform, ScrollView, TouchableOpacity, type ViewStyle } from 'react-native';
+import { View, Platform, ScrollView, TouchableOpacity, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, usePathname } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
 import { isLayoutRtl } from '../../lib/rtlLayout';
 
 /**

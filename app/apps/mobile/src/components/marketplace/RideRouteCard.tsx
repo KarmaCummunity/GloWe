@@ -1,9 +1,9 @@
 // Ride detail hero: origin → destination timeline, departure, seats, cost.
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, shadow, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { formatRideTime } from '../cards/ListingCard';
