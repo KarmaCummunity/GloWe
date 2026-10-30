@@ -2,15 +2,17 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { brand } from '@kc/ui';
+import { brand, lightColors } from '@kc/ui';
 // eslint-disable-next-line no-restricted-imports -- test asserts both bundles' appName match the brand constants
 import en from '../i18n/locales/en';
 // eslint-disable-next-line no-restricted-imports -- test asserts both bundles' appName match the brand constants
 import he from '../i18n/locales/he';
 
-// Brand guard — spec 17 §4/§6 (D65), debt TD-199.
+// Brand guard — spec 17 §4/§6 (D65, D67), debt TD-199.
 //
-// App code must take colours, font sizes and font families from @kc/ui tokens.
+// App code must take colours, type (size, weight, family), corner radii and
+// spacing from @kc/ui tokens, and use logical sides (start/end) so layouts
+// mirror between Hebrew (RTL) and English (LTR).
 // Existing literals are frozen per file in `brand-guard.baseline.json`; counts
 // may only go down. After a cleanup, tighten the baseline with:
 //   KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard
@@ -22,9 +24,20 @@ const BASELINE_PATH = path.join(MOBILE_ROOT, 'brand-guard.baseline.json');
 const ALLOW_MARKER = 'brand-guard-allow:';
 
 const RULES = {
+  // `colors.*` from useTheme() / makeUseStyles().
   colorLiteral: /['"`](?:#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})['"`]|rgba?\()/g,
+  // `typography.<preset>` for size, `typography.<modifier>` (medium…extraBold) for weight.
   fontSizeLiteral: /\bfontSize:\s*\d/g,
+  fontWeightLiteral: /\bfontWeight:\s*['"`\d]/g,
   fontFamilyLiteral: /\bfontFamily:\s*['"`]/g,
+  // `radius.*` — zero (square corner) is not a literal to replace.
+  radiusLiteral: /\bborder(?:Top|Bottom)?(?:Start|End|Left|Right)?Radius:\s*[1-9]/g,
+  // `spacing.*` for margin / padding / gap — zero is allowed.
+  spacingLiteral:
+    /\b(?:margin|padding)(?:Top|Bottom|Start|End|Left|Right|Horizontal|Vertical)?:\s*-?[1-9]|\b(?:gap|rowGap|columnGap):\s*[1-9]/g,
+  // Physical sides break the RTL/LTR mirror: use start/end or the rtlLayout helpers.
+  physicalSide:
+    /\btextAlign:\s*['"`](?:left|right)['"`]|\b(?:margin|padding|border)(?:Left|Right)\w*:|\bborder(?:Top|Bottom)(?:Left|Right)Radius:/g,
 } as const;
 
 type RuleName = keyof typeof RULES;
@@ -98,9 +111,26 @@ describe('countLiterals', () => {
     expect(countLiterals(source)).toEqual({ colorLiteral: 3, fontSizeLiteral: 1, fontFamilyLiteral: 1 });
   });
 
+  it('counts raw font weights, corner radii and spacing, but not zero', () => {
+    const source = [
+      "const a = { fontWeight: '800', borderRadius: 8, borderTopStartRadius: 12, borderRadius: 0 };",
+      'const b = { padding: 10, marginHorizontal: -4, gap: 6, margin: 0, paddingTop: insets.top };',
+    ].join('\n');
+    expect(countLiterals(source)).toEqual({ fontWeightLiteral: 1, radiusLiteral: 2, spacingLiteral: 3 });
+  });
+
+  it('counts physical sides that do not mirror between RTL and LTR', () => {
+    const source = [
+      "const a = { textAlign: 'right', borderLeftWidth: 1, borderTopRightRadius: radius.md };",
+      "const b = { textAlign: 'center', borderStartWidth: 1, paddingEnd: spacing.sm };",
+    ].join('\n');
+    expect(countLiterals(source)).toEqual({ physicalSide: 3 });
+  });
+
   it('ignores tokens, hashtags, issue numbers and allowed lines', () => {
     const source = [
       'const a = { color: colors.primary, fontSize: typography.body.fontSize };',
+      'const b = { ...typography.bold, borderRadius: radius.lg, padding: spacing.md, gap: spacing.xs };',
       "const tag = '#giving'; // see #123",
       "const google = '#4285F4'; // brand-guard-allow: Google sign-in mark",
     ].join('\n');
@@ -121,8 +151,8 @@ describe('brand guard', () => {
 
   const { grew, shrank } = compare(current, readBaseline());
 
-  it('adds no hard-coded colour / fontSize / fontFamily beyond the frozen baseline', () => {
-    expect(grew, 'use @kc/ui tokens (useTheme / typography) instead of literals').toEqual([]);
+  it('adds no hard-coded style literal or physical side beyond the frozen baseline', () => {
+    expect(grew, 'use @kc/ui tokens (useTheme / typography / radius / spacing) and start/end sides').toEqual([]);
   });
 
   it('keeps the baseline tight after cleanups (rerun with KC_BRAND_BASELINE=update)', () => {
@@ -132,7 +162,7 @@ describe('brand guard', () => {
 
 describe('brand identity in the shipped app', () => {
   const appJson = JSON.parse(readFileSync(path.join(MOBILE_ROOT, 'app.json'), 'utf8')) as {
-    expo: { name: string };
+    expo: { name: string; userInterfaceStyle: string; web: { themeColor: string }; plugins: unknown[] };
   };
 
   it('uses the English brand name in the English bundle', () => {
@@ -142,5 +172,27 @@ describe('brand identity in the shipped app', () => {
   it('ships the store name from the Hebrew bundle, prefixed with the nickname', () => {
     expect(he.appName.startsWith(`${brand.shortName} - `)).toBe(true);
     expect(appJson.expo.name).toBe(he.appName);
+  });
+
+  // Config files cannot import tokens, so these copies of the decoration orange are pinned here.
+  it('keeps browser chrome and notification colours on the primaryVivid token', () => {
+    const notificationPlugin = appJson.expo.plugins.find(
+      (plugin): plugin is [string, { color: string }] => Array.isArray(plugin) && plugin[0] === 'expo-notifications',
+    );
+    const htmlHead = readFileSync(path.join(MOBILE_ROOT, 'app/+html.tsx'), 'utf8');
+    expect(appJson.expo.web.themeColor).toBe(lightColors.primaryVivid);
+    expect(notificationPlugin?.[1].color).toBe(lightColors.primaryVivid);
+    expect(htmlHead).toContain(`name="theme-color" content="${lightColors.primaryVivid}"`);
+  });
+
+  // FR-SETTINGS-014: a forced "light" style made the OS report light forever, so
+  // the "system" appearance never resolved to dark on native.
+  it('lets the OS colour scheme through so the "system" appearance can turn dark', () => {
+    const packageJson = JSON.parse(readFileSync(path.join(MOBILE_ROOT, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(appJson.expo.userInterfaceStyle).toBe('automatic');
+    // Android applies `automatic` only through expo-system-ui.
+    expect(packageJson.dependencies).toHaveProperty('expo-system-ui');
   });
 });

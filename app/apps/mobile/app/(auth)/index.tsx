@@ -28,7 +28,7 @@ import {
 } from '../../src/services/authComposition';
 import { mapAuthErrorToHebrew } from '../../src/services/authMessages';
 import { NotifyModal } from '../../src/components/NotifyModal';
-import { AuthBackground } from '../../src/components/auth/AuthBackground';
+import { AmbientBlobs } from '../../src/components/ui/AmbientBlobs';
 import { AuthMiniAboutTeaser } from '../../src/components/auth/AuthMiniAboutTeaser';
 import { useWelcomeScreenStyles } from '../../src/components/auth/welcomeScreen.styles';
 
@@ -164,7 +164,7 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AuthBackground />
+      <AmbientBlobs density="auth" />
       <ScrollView contentContainerStyle={styles.scroll} bounces={false}>
 
         {/* Hero */}

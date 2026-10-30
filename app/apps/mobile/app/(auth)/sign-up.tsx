@@ -26,7 +26,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { mapAuthErrorToHebrew } from '../../src/services/authMessages';
 import { VerificationPendingPanel } from '../../src/components/auth/VerificationPendingPanel';
 import { NotifyModal } from '../../src/components/NotifyModal';
-import { AuthBackground } from '../../src/components/auth/AuthBackground';
+import { AmbientBlobs } from '../../src/components/ui/AmbientBlobs';
 import { AnimatedAuthInput } from '../../src/components/auth/AnimatedAuthInput';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { AuthSocialSignInBlock } from '../../src/components/auth/AuthSocialSignInBlock';
@@ -87,7 +87,7 @@ export default function SignUpScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AuthBackground />
+      <AmbientBlobs density="auth" />
       <Animated.View style={[{ flex: 1 }, screenStyle]}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={styles.content}>
@@ -95,7 +95,7 @@ export default function SignUpScreen() {
             {/* Header */}
             <Animated.View style={[styles.header, headerStyle]}>
               <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                <Ionicons name="arrow-forward" size={22} color="#F97316" />
+                <Ionicons name="arrow-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
               <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
             </Animated.View>

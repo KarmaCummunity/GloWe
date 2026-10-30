@@ -13,6 +13,9 @@ export interface ColorPalette {
   primaryDark: string;
   primaryLight: string;
   primarySurface: string;
+  // Vivid brand orange for decoration only (ambient blobs, illustrations,
+  // browser chrome) — it fails AA, so never put text or meaning on it (D66).
+  primaryVivid: string;
 
   // Secondary — navy from the logo (K and globe ring), D66
   secondary: string;
@@ -74,6 +77,7 @@ export const lightColors: ColorPalette = {
   primaryDark: '#9A3412',  // pressed state
   primaryLight: '#FED7AA',
   primarySurface: '#FFF7ED',
+  primaryVivid: '#F97316',
 
   secondary: '#203050',  // logo navy (D66)
   secondaryLight: '#E3E8F2',
@@ -127,6 +131,7 @@ export const darkColors: ColorPalette = {
   primaryDark: '#F97316',
   primaryLight: '#7C2D12',     // used for soft-brand tints on dark surfaces
   primarySurface: '#2A1810',   // deep warm brown for brand-chip backgrounds
+  primaryVivid: '#F97316',     // same decoration orange in both palettes
 
   secondary: '#A5B8DC',  // logo navy, lifted for dark surfaces
   secondaryLight: '#1F2E4E',
@@ -177,6 +182,16 @@ export const darkColors: ColorPalette = {
 };
 
 export type ColorToken = keyof ColorPalette;
+
+/**
+ * Initials-avatar colours (theme-independent). Each background is picked from
+ * a name hash and carries white initials at AA 4.5:1 in both themes; the
+ * first two are the brand primary and the logo navy.
+ */
+export const avatarPalette = {
+  foreground: '#FFFFFF',
+  backgrounds: ['#C2410C', '#203050', '#15803D', '#BE185D', '#0F766E', '#B45309', '#6D28D9', '#1D4ED8'],
+} as const;
 
 // Legacy export — files that haven't migrated to `useTheme()` keep importing
 // `colors` and silently render in light. Tracked under TD-199 (FE).

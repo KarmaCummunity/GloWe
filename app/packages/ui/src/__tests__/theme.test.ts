@@ -59,10 +59,11 @@ describe('theme/spacing', () => {
 
 describe('theme/radius', () => {
   it('exposes the standard radius scale plus `full`', () => {
-    expect(radius.sm).toBe(6);
-    expect(radius.md).toBe(10);
-    expect(radius.lg).toBe(14);
-    expect(radius.xl).toBe(20);
+    expect(radius.xs).toBe(4);
+    expect(radius.sm).toBe(8);
+    expect(radius.md).toBe(12);
+    expect(radius.lg).toBe(16);
+    expect(radius.xl).toBe(24);
     expect(radius.full).toBeGreaterThan(1000);
   });
 });

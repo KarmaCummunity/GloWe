@@ -1,6 +1,6 @@
 # 17 — Brand and design system
 
-> Decisions **D65, D66** (2026-10-30). This file is the brand book for agents and designers. The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
+> Decisions **D65, D66, D67** (2026-10-30). This file is the brand book for agents and designers. The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
 
 ## 1. Brand identity (D65)
 
@@ -10,6 +10,11 @@
 | Full name (HE) | **קהילת קארמה** |
 | Short name / nickname | **KC** — used in UI chrome, store listing prefix (`KC - קהילת קארמה`), and internal docs |
 | Code constant | `brand` in `app/packages/ui/src/theme/brand.ts` |
+| Bundle id / package | `org.karmacommunity.app` (`app/apps/mobile/app.json`) |
+
+**KC, the platform vs. KC, the organization (D67).** "KC" names the platform. KC is also an organization that operates *inside* the platform almost like any other organization (D37). Platform chrome (app name, splash, store listing, navigation) speaks as the platform; content published by the KC organization (posts, org page, donations to KC) is styled like any other organization's content, with no extra visual privilege.
+
+**Hidden meaning (D67).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an internal easter egg only: it never appears in UI copy, store listings, marketing visuals or the logo.
 
 Rules:
 - Never introduce another product name in KC surfaces. GloWe (`app/apps/glowe-web`, `glowe-*` packages) is a separate product and is out of scope for this brand book.
@@ -47,20 +52,59 @@ packages/ui/tokens/kc.tokens.json   ← generated, W3C design-tokens format
 | Font | `theme/fonts.ts` | Brand font **Rubik** (Hebrew + Latin, rounded and warm like the logo; SIL OFL) in weights 400/500/600/700/800 (D66). Loaded by `apps/mobile/src/lib/useBrandFonts.ts` before the splash hides; falls back to the system font if loading fails. |
 | Typography | `theme/typography.ts` | Scale h1–h4, bodyLarge/body/bodySmall, button, label, caption. Hebrew RTL first. |
 | Spacing | `theme/spacing.ts` | 4-based scale `xs…4xl`; shell layout sizes in `shellDimensions`. |
-| Radius / elevation | `theme/spacing.ts` | `radius.sm…full`; `shadow.card`, `shadow.modal`. |
+| Radius / elevation | `theme/spacing.ts` | `radius` xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67 — matches the values screens already used most); `shadow.card`, `shadow.modal`. |
+| Weight | `theme/typography.ts` | Weight modifiers `typography.medium / semiBold / bold / extraBold` (500–800), one per loaded Rubik face, spread over a size preset. |
+| Decoration orange | `theme/colors.ts` | `primaryVivid` `#F97316` — the same in both palettes; decoration only (no text, no meaning). Config files that cannot import tokens (`app.json` web `themeColor`, notification `color`, `app/+html.tsx`) are pinned to it by `brandGuard.test.ts`. |
+| Avatar colours | `theme/colors.ts` | `avatarPalette` — 8 theme-independent backgrounds with white initials, each ≥ 4.5:1. |
 | Breakpoints | `theme/breakpoints.ts` | Responsive shell (mobile → desktop web). |
 
 Usage rules for app code (`app/apps/mobile/**`):
 1. Colours come from `useTheme()` / `makeUseStyles()` only — no hex or `rgb()` literals.
 2. Font sizes come from `typography.*` presets — no raw `fontSize: <number>`.
-3. No `fontFamily` literals outside `packages/ui`. Text renders through `Text` / `TextInput` from `@kc/ui` (ESLint blocks importing them from `react-native`); they pick the brand face from `fontWeight`, so **changing the brand font is a change to `theme/fonts.ts` + the loader map only**.
-4. A justified exception (e.g. a third-party brand mark that must keep its own colour) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
+3. Font weights come from the `typography` presets and weight modifiers — no raw `fontWeight`.
+4. No `fontFamily` literals outside `packages/ui`. Text renders through `Text` / `TextInput` from `@kc/ui` (ESLint blocks importing them from `react-native`); they pick the brand face from `fontWeight`, so **changing the brand font is a change to `theme/fonts.ts` + the loader map only**. If the faces fail to load, `BrandFontProvider` falls back to the system font with its real weights.
+5. Corner radii come from `radius.*` — no raw `borderRadius: <number>` (`0` is allowed).
+6. Margin, padding and gap come from `spacing.*` (`0` is allowed). Layout sizes (widths, heights, rail and content widths) are not spacing; shell sizes live in `shellDimensions`.
+7. Use logical sides so layouts mirror between Hebrew (RTL) and English (LTR): `Start` / `End` properties and the `lib/rtlLayout.ts` helpers — never `textAlign: 'left' | 'right'`, `marginLeft`, `paddingRight`, `borderLeft*` or `borderTopLeftRadius`.
+8. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
+
+### 4.1 Components
+
+Screens are composed from shared components, not restyled per screen. Use these before writing new styles:
+
+| Need | Component | Where |
+|---|---|---|
+| Text / text input | `Text`, `TextInput` | `@kc/ui` |
+| Toggle | `PlatformSwitch` | `@kc/ui` |
+| Loading placeholder | `Skeleton` | `@kc/ui` |
+| Desktop side column | `AsidePanel`, `useAside` | `@kc/ui` |
+| Screen frame | `Screen` | `apps/mobile/src/components/ui/` |
+| Buttons | `PrimaryButton`, `SecondaryButton`, `GhostButton` | `apps/mobile/src/components/ui/Buttons.tsx` |
+| Card | `Card` | `apps/mobile/src/components/ui/` |
+| Section title, field label, icon tile, image, date/time field | `SectionHeading`, `FormFieldLabel`, `IconTile`, `KCImage`, `DateTimeField` | `apps/mobile/src/components/ui/` |
+| Avatar | `AvatarInitials` | `apps/mobile/src/components/` |
+
+Not built yet (GitHub epic #1061 / #1021): a shared text field, modal, bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+
+### 4.2 Icons
+
+- One icon set: **Ionicons** from `@expo/vector-icons`. Do not add another icon library or inline SVG icons without a decision.
+- Directional icons (arrows, chevrons, "back") must mirror between RTL and LTR; non-directional icons never mirror.
+- Icon colours come from tokens (`colors.primary` for brand glyphs, `textSecondary` for neutral ones).
+
+### 4.3 Admin surfaces (D67)
+
+Admin and team-only screens use the **same** colours, type, radius, components and rules as the rest of the app. They may be denser: one spacing step tighter, smaller type presets (`bodySmall`, `label`) and tables instead of cards. They never introduce their own colours (role badges included).
+
+### 4.4 Appearance
+
+Light, dark and system appearance (FR-SETTINGS-014). The native app passes the OS colour scheme through (`app.json` `userInterfaceStyle: "automatic"`, `expo-system-ui` on Android) so "system" can resolve to dark; signed-out surfaces stay light.
 
 ## 5. Accessibility floor
 
 KC targets **WCAG 2.x AA** (Israeli standard IS 5568): normal text ≥ 4.5:1, large text and UI glyphs ≥ 3:1, in **both** palettes. The required pairs are encoded in `packages/ui/src/__tests__/brandContrast.test.ts`. Known failures are listed there with a TD reference and must be removed when fixed.
 
-Since D66 every required pair passes in both palettes (e.g. white on `primary` 5.2:1, give/request tags 4.9:1, `error` on white 4.8:1); the exception list in the test is empty. The vivid orange may be used only where it carries no text or meaning (decoration).
+Since D66 every required pair passes in both palettes (e.g. white on `primary` 5.2:1, give/request tags 4.9:1, `error` on white 4.8:1); the exception list in the test is empty. The vivid orange (`primaryVivid`) may be used only where it carries no text or meaning (decoration). Avatar initials (`avatarPalette`) are checked in the same test.
 
 ## 6. Guardrails (automated)
 
@@ -74,7 +118,10 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Brand identity | `packages/ui/src/__tests__/brandTokens.test.ts` + `apps/mobile/src/__tests__/brandGuard.test.ts` | the brand name / nickname, the locale `appName`s, or the store name in `app.json` drift |
 | Contrast floor | `packages/ui/src/__tests__/brandContrast.test.ts` | a required pair drops below AA, or a listed exception starts passing (stale) |
 | Brand font | `packages/ui/src/__tests__/brandFont.test.tsx` + ESLint `no-restricted-imports` | a weight stops mapping to its face, or app code imports `Text` / `TextInput` from `react-native` |
-| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file gains a colour / `fontSize` / `fontFamily` literal beyond its frozen baseline, or a new file has any |
+| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file gains a colour, `fontSize`, `fontWeight`, `fontFamily`, `borderRadius` or spacing literal, or a physical (left/right) side, beyond its frozen baseline, or a new file has any |
+| Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
+
+**Touched-file rule (D67).** A PR that changes a file in `apps/mobile/{src,app}` must leave that file with **zero** findings — every rule, the whole file, not only the changed lines. Files nobody touches keep their frozen counts until someone works in them. Enforcement lands in CI as a follow-up to the ratchet (tracked under epic #1061).
 
 The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. After removing literals, refresh it with `KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard`; a PR that *raises* a count must explain why in its body.
 
@@ -94,5 +141,9 @@ The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. A
 | Brand font | Rubik, app-wide via `@kc/ui` `Text` / `TextInput` (D66) |
 | Secondary colour | Logo navy `#203050` (light) / `#A5B8DC` (dark) (D66) |
 | Logo master | Current `assets/logo.png` (D66) |
+| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces (D67) |
+| Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
+| Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
+| Admin surfaces | Same tokens and components, denser layout (D67) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.

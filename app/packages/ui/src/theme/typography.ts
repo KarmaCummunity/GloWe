@@ -22,9 +22,12 @@ export const typography = {
   body: { fontSize: 14, fontWeight: '400' as const, lineHeight: 22 },
   bodySmall: { fontSize: 12, fontWeight: '400' as const, lineHeight: 18 },
 
-  // Emphasis
+  // Emphasis — weight modifiers spread over a size preset, one per loaded
+  // brand face (see `fonts.ts`), so app code never writes a raw `fontWeight`.
+  medium: { fontWeight: '500' as const },
   semiBold: { fontWeight: '600' as const },
   bold: { fontWeight: '700' as const },
+  extraBold: { fontWeight: '800' as const },
 
   // UI
   button: { fontSize: 15, fontWeight: '600' as const, lineHeight: 22 },

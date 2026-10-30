@@ -18,8 +18,11 @@ const BRAND_FONT_ASSETS = {
   [brandFont.faces[800]]: Rubik_800ExtraBold,
 };
 
-/** True once the faces are ready — or failed, in which case text falls back to the system font. */
-export function useBrandFonts(): boolean {
+/** `loading` until the faces settle; `failed` makes text fall back to the system font. */
+export type BrandFontStatus = 'loading' | 'loaded' | 'failed';
+
+export function useBrandFonts(): BrandFontStatus {
   const [loaded, error] = useFonts(BRAND_FONT_ASSETS);
-  return loaded || error !== null;
+  if (error !== null) return 'failed';
+  return loaded ? 'loaded' : 'loading';
 }

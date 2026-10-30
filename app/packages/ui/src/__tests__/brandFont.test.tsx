@@ -60,6 +60,10 @@ describe('brandFontStyle', () => {
   it('still resolves nested text that sets its own weight', () => {
     expect(resolved({ fontWeight: '600' }, true)).toMatchObject({ fontFamily: brandFont.faces[600] });
   });
+
+  it('leaves the style untouched when the brand faces failed to load, keeping the real weight', () => {
+    expect(resolved({ fontSize: 14, fontWeight: '700' }, false, false)).toEqual({ fontSize: 14, fontWeight: '700' });
+  });
 });
 
 describe('Text / TextInput components', () => {

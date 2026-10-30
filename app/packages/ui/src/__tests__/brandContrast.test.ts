@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { contrastRatio, darkColors, lightColors, relativeLuminance } from '../index';
+import { avatarPalette, contrastRatio, darkColors, lightColors, relativeLuminance } from '../index';
 import type { ColorPalette, ColorToken } from '../index';
 
 // Brand contrast floor — spec 17 §5 (D65), WCAG 2.x AA / IS 5568.
@@ -81,4 +81,12 @@ describe('brand contrast floor (WCAG AA)', () => {
     );
     expect(Object.keys(KNOWN_EXCEPTIONS).filter((key) => !checked.has(key))).toEqual([]);
   });
+});
+
+describe('initials-avatar palette', () => {
+  for (const background of avatarPalette.backgrounds) {
+    it(`${avatarPalette.foreground} initials on ${background} meet ${AA_TEXT}:1`, () => {
+      expect(contrastRatio(avatarPalette.foreground, background)).toBeGreaterThanOrEqual(AA_TEXT);
+    });
+  }
 });
