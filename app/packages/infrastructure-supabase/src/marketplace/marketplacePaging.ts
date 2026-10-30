@@ -198,7 +198,7 @@ export async function attachRideSummaries(
 ): Promise<MarketplaceBrowseRow[]> {
   const ids = rows.filter((r) => r.worldSlug === 'rides').map((r) => r.listingId);
   if (ids.length === 0) return rows;
-  let data: unknown[] | null = null;
+  let data: unknown[] | null;
   try {
     const res = await client.from('listings').select('listing_id, details').in('listing_id', ids);
     if (res.error) return rows;
