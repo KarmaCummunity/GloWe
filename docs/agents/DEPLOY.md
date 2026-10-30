@@ -43,8 +43,7 @@ Playwright QA suite against `https://dev.karma-community.pages.dev` + kc-dev: [`
 | Workflow | Trigger | Notes |
 |---|---|---|
 | `ci.yml` (+ `ci-*.yml` lanes) | PRs, dev/main pushes | One required check, `CI gate` (`D-195`); PRs into `main` add the release lane (`ci-release.yml`) |
-| `deploy.yml` (+ `deploy-*.yml` stages) | after a green dev/main push CI run / manual on dev or main | Only deploy path. dev automatic; prod waits for Nave's one approval on `production` |
-| `deploy-db.yml` | manual (dev ref only) | kc-dev migrations, dry-run unless `apply` |
+| `deploy.yml` (+ `deploy-*.yml` stages) | after a green dev/main push CI run / manual on dev or main | Only deploy path. dev automatic; prod waits for Nave's one approval on `production`. After a failure use **Re-run all jobs**, never **Re-run failed jobs** (the deploy guard refuses it on prod) |
 | `deploy-smoke.yml` | manual | Read-only smoke against dev or prod |
 | `seed-kc-dev.yml` | manual | Destructive dev reseed / wipe |
 | `e2e-nightly-dev.yml` | nightly + manual | QA suite against dev |

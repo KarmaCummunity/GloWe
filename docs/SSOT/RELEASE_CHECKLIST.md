@@ -11,7 +11,7 @@ A release is a PR from `dev` into `main`. CI judges it (`CI gate`, including the
 
 - [ ] **`dev` is deployed** — the latest `dev` push passed **CI** and the **Deploy** run for that commit is green (dev web serves it at `https://dev.karma-community.pages.dev/version.json`).
 - [ ] **`app/VERSION` is above the latest `v*` tag** — the release lane checks it; bump PATCH/MINOR/MAJOR on `dev` first if needed.
-- [ ] **Migration review** — read each new migration since the last tag; confirm it is backward compatible (web and functions may be rolled back, the DB is not). A destructive line needs the `migration-safety: allow` marker **and** a line `Migration safety: <file>.sql — <reason>` in the release PR body.
+- [ ] **Migration review (expand/contract)** — read each new migration since the last tag. The previous release's web and Edge Functions keep running against the new schema until the deploy finishes, so every migration must be **backward compatible**: *expand* first (add tables, nullable columns, new functions/policies alongside the old), switch the code in that or a later release, and *contract* (drop, rename, retype, `SET NOT NULL`, remove a policy) only in a later release once no deployed code uses the old shape. The release lane enforces it: a destructive line needs the `migration-safety: allow` marker **and** a line `Migration safety: <file>.sql — <reason>` in the release PR body; a `RENAME`, `ALTER COLUMN … TYPE`, `SET NOT NULL`, `DROP FUNCTION`, `DROP POLICY`, `ALTER POLICY` or `DISABLE ROW LEVEL SECURITY` needs that body line too (say why the previous code still works).
 - [ ] **Release PR** — **`dev` → `main`**, Conventional Commits title, body with **Mapped to spec** and migration/rollout notes.
 
 ---
@@ -30,8 +30,8 @@ Required on the release PR (GitHub branch protection on `main`):
 
 | Release-lane job | Fails when |
 | --- | --- |
-| `release source is dev` | the head branch is not `dev` (a merge group always fails: releases go through a PR) |
-| `release migration scan (strict)` | a migration added or changed by the release has a destructive line without the marker, or with the marker but no `Migration safety:` justification line for its file in the PR body |
+| `release source is dev` | the head is not this repository's `dev` branch (a fork's `dev` fails; a merge group always fails: releases go through a PR) |
+| `release migration scan (strict)` | a migration added or changed by the release has a destructive line without the marker, or a destructive or compatibility-breaking line (see *Migration review*) without a `Migration safety:` justification line for its file in the PR body |
 | `release version bump` | `app/VERSION` on the release head is not greater than the latest `v*` tag |
 | `dev E2E on the release head` | dev does not serve the release head SHA (`/version.json`) within 30 minutes, or a P0 Playwright journey fails |
 
@@ -41,13 +41,13 @@ Required on the release PR (GitHub branch protection on `main`):
 
 The `main` push runs **CI**; when it succeeds, **Deploy** (`deploy.yml`) starts for exactly that commit:
 
-1. **resolve target** — confirms the commit is the `main` tip, that a push-event CI run gave it a green `CI gate`, and that tag `v<app/VERSION>` does not already exist on another commit.
+1. **resolve target** — runs from the workflow's own commit and confirms the commit is the `main` tip, that a push-event CI run of this repository gave it a green `CI gate`, that it is the merge commit of a merged `dev` → `main` PR of this repository, that `app/VERSION` is above the latest `v*` tag and that `v<app/VERSION>` does not already exist on another commit.
 2. **preflight · supabase / preflight · web** — every secret present, project refs pinned (`kdqtbdbzwvlugkhonexg`), Supabase project `ACTIVE_HEALTHY`, Pages production branch is `main`, `BACKUP_AGE_RECIPIENT` set. Fails before anything changes.
-3. **approve release** — the run waits on the `production` environment. **Owner: review the run summary (version, SHA) and approve.** This is the only click. The job fails if the environment let the run through without a recorded approval.
-4. **database** — encrypted backup (only when `supabase/migrations` changed since the last tag) → `db push --dry-run` → `db push`. No `--include-all`: a remote that is ahead or an out-of-order migration fails here.
-5. **edge functions** — CORS variable synced, then every function deployed.
+3. **approve release** — the run waits on the `production` environment. **Owner: review the run summary (version, SHA) and approve.** This is the only click. The job fails if the environment let the run through without a recorded approval. Every later stage that changes prod starts with the **deploy guard**: it fails unless `deploy.yml` on `main` is the caller, the approval is from this run attempt, and the commit is still the `main` tip with no newer release tag. If a stage fails, use **Re-run all jobs** (new approval), never **Re-run failed jobs**.
+4. **database** — encrypted backup of roles, schema and data (only when `supabase/migrations` changed since the last tag; Storage objects are not included) → count of pending migrations → `db push --dry-run` → `db push`. No `--include-all`: a remote that is ahead or an out-of-order migration fails here.
+5. **edge functions** — CORS variable synced, every function deployed, then each one checked `ACTIVE` on the project.
 6. **web baseline → web** — the Cloudflare deployment serving prod is recorded, then the new build (stamped with the SHA) is uploaded.
-7. **smoke** — `/version.json` reports the SHA, page + JS bundle load, Supabase Auth health, every function answers.
+7. **smoke** — `/version.json` reports the SHA, page + JS bundle load, Supabase Auth health, and each function with a side-effect-free probe answers one `OPTIONS` with exactly the status its handler's first check returns (`scripts/edge-functions.mjs`).
 8. **tag release** — annotated `vX.Y.Z` on the commit + a GitHub Release with generated notes.
 
 **Sync main → dev** still runs after the merge and still fails with `GH006` (`TD-182`); leave it alone.
@@ -64,9 +64,10 @@ The `main` push runs **CI**; when it succeeds, **Deploy** (`deploy.yml`) starts 
 
 | Layer | What happens |
 | --- | --- |
-| **Web (Cloudflare Pages)** | Automatic when the functions, web or smoke stage fails after approval: production is pointed back at the deployment recorded in **web baseline** (Cloudflare Pages rollback API), then the smoke re-runs. By hand: Cloudflare dashboard → Pages → `karma-community` → Deployments → previous production deployment → *Rollback*. |
-| **Edge Functions** | Automatic in the same case: the previous release tag's functions are redeployed. With no earlier tag the rollback report says so and functions stay on the failed release. |
-| **DB** | **Never rolled back.** Forward-fix with a new migration. The deploy run holds an encrypted `prod-db-backup-<sha>-<attempt>` artifact (14 days) for a manual restore — OPERATOR_RUNBOOK § "Restore a pre-migration backup". |
+| **Release applied migrations** | **No automatic code rollback** — the previous web and functions may not work against the new schema. The run fails with *FORWARD-FIX REQUIRED*: fix on `dev`, bump `app/VERSION`, release again. |
+| **Web (Cloudflare Pages)** | Automatic when the functions, web or smoke stage fails after approval and the release applied no migrations: production is pointed back at the deployment recorded in **web baseline** (Cloudflare Pages rollback API), then the smoke re-runs. By hand: Cloudflare dashboard → Pages → `karma-community` → Deployments → previous production deployment → *Rollback*. |
+| **Edge Functions** | Automatic in the same case (no migrations applied): the previous release tag's functions are redeployed. With no earlier tag the rollback report says so and functions stay on the failed release. |
+| **DB** | **Never rolled back.** Forward-fix with a new migration. The deploy run holds an encrypted `prod-db-backup-<sha>-<attempt>` artifact (roles, schema, data; no Storage objects; 14 days) for a manual restore — OPERATOR_RUNBOOK § "Restore a pre-migration backup". |
 | **Git** | Do **not** force-push `main`. Forward-fix on `dev`, bump `app/VERSION`, release again. |
 
 A failed release is never tagged, so the next release's notes and rollback target stay correct.

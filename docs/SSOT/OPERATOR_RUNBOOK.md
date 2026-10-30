@@ -12,7 +12,7 @@ supabase gen types typescript --project-id <ref> \
   > app/packages/infrastructure-supabase/src/database.types.ts
 ```
 
-**GitHub Actions — DB deploy:** migrations reach kc-dev and prod only through the **Deploy** workflow ([`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml), database stage [`deploy-db.yml`](../../.github/workflows/deploy-db.yml); see `ENVIRONMENTS.md` § Deploy pipeline): after a `dev` push passes CI it applies them to kc-dev, and after a `main` push passes CI and the owner approves the release it backs up prod (encrypted) and applies them there without `--include-all`. `deploy-db.yml` can also be dispatched by hand from the `dev` ref against kc-dev only (dry-run unless **apply** is ticked). Each GitHub Environment (`supabase-dev`, `supabase-prod`) defines `SUPABASE_ACCESS_TOKEN` (an **account** token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens), `sbp_…`, not a project key), `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`; `scripts/deploy-preflight.mjs` refuses a ref that does not match the target.
+**GitHub Actions — DB deploy:** migrations reach kc-dev and prod only through the **Deploy** workflow ([`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml), database stage [`deploy-db.yml`](../../.github/workflows/deploy-db.yml); see `ENVIRONMENTS.md` § Deploy pipeline): after a `dev` push passes CI it applies them to kc-dev, and after a `main` push passes CI and the owner approves the release it backs up prod (encrypted) and applies them there without `--include-all`. To re-apply kc-dev migrations by hand, dispatch **Deploy** on `dev` (CI-gated; there is no separate DB dispatch). Each GitHub Environment (`supabase-dev`, `supabase-prod`) defines `SUPABASE_ACCESS_TOKEN` (an **account** token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens), `sbp_…`, not a project key), `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`; `scripts/deploy-preflight.mjs` refuses a ref that does not match the target.
 
 ---
 
@@ -44,15 +44,15 @@ supabase db push --dry-run --include-all --linked --yes   # → "Remote database
 
 ## Restore a pre-migration backup (prod) {#restore-backup}
 
-Before a prod release applies migrations, the database stage of **Deploy** (`deploy-db.yml`, job `backup (prod)`) dumps prod when `supabase/migrations` changed since the last `v*` tag. The dump streams straight into [`age`](https://age-encryption.org), encrypted to the public key in the `supabase-prod` variable `BACKUP_AGE_RECIPIENT`; plaintext never touches the runner disk or the log. The run keeps artifact `prod-db-backup-<sha>-<attempt>` (`schema.sql.age`, `data.sql.age`) for **14 days**. It holds user PII: only the owner holds the private key, and decrypted files must never be committed, uploaded or kept after the restore.
+Before a prod release applies migrations, the database stage of **Deploy** (`deploy-db.yml`, job `backup (prod)`) dumps prod when `supabase/migrations` changed since the last `v*` tag. Each dump streams straight into [`age`](https://age-encryption.org), encrypted to the public key in the `supabase-prod` variable `BACKUP_AGE_RECIPIENT`; plaintext never touches the runner disk or the log. The run keeps artifact `prod-db-backup-<sha>-<attempt>` (`roles.sql.age`, `schema.sql.age`, `data.sql.age`) for **14 days**. **Storage objects (avatars, post images) are not included** — only the database; Supabase Storage keeps them, and a restore does not touch them. It holds user PII: only the owner holds the private key, and decrypted files must never be committed, uploaded or kept after the restore.
 
 Policy (`D-195`): the database is **forward-fix only**. Restore only when a forward-fix migration cannot repair the damage (e.g. data destroyed), and only with the PM's typed confirmation (CLAUDE.md §7).
 
 1. Download the artifact from the Deploy run (Actions → run → Artifacts) to a private machine.
-2. Decrypt with the owner's private key: `age -d -i key.txt -o schema.sql schema.sql.age` and the same for `data.sql.age`.
+2. Decrypt with the owner's private key: `age -d -i key.txt -o schema.sql schema.sql.age` and the same for `roles.sql.age` and `data.sql.age`.
 3. Prefer restoring into a **new** Supabase project (or a branch) and copying the lost rows back; replaying a full dump over live prod also drops everything written since the backup.
-4. Restore: `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f schema.sql` then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -c 'SET session_replication_role = replica' -f data.sql` (triggers off while the data loads).
-5. Delete the decrypted files (`shred -u schema.sql data.sql`).
+4. Restore: `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f roles.sql` (custom roles; skip on a Supabase project where they exist), then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f schema.sql`, then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -c 'SET session_replication_role = replica' -f data.sql` (triggers off while the data loads).
+5. Delete the decrypted files (`shred -u roles.sql schema.sql data.sql`).
 
 The key pair is created once by the owner: `age-keygen -o key.txt` prints the public key (`age1…`) to put in `BACKUP_AGE_RECIPIENT`; `key.txt` stays offline. Without the variable, the prod preflight fails and nothing deploys.
 
@@ -332,7 +332,7 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
 
-**After merge:** open Actions → the **Deploy** run for the commit → confirm the `edge functions` and `smoke` stages succeeded. If a stage failed: fix secrets/permissions and re-run the failed jobs (on prod a failed release has already been rolled back to the previous tag).
+**After merge:** open Actions → the **Deploy** run for the commit → confirm the `edge functions` and `smoke` stages succeeded. If a stage failed: fix secrets/permissions, then use **Re-run all jobs** — never **Re-run failed jobs**. Every stage that changes an environment starts with the deploy guard, which refuses an attempt whose release approval or rollback baseline came from an earlier attempt, so a partial re-run fails on prod; **Re-run all jobs** re-resolves the commit (it must still be the `main` tip) and asks the owner to approve again. On prod a failed release has already been rolled back to the previous tag (unless it applied migrations — then it demands a forward-fix).
 
 **One-time catch-up (if prod was behind `main`):** from a machine with the CLI logged in, at repo root:
 
