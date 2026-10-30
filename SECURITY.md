@@ -80,5 +80,6 @@ list, because no compatible fix exists:
 | GHSA-86w9-cpqp-85rv | node-forge | No patched release (`<=1.4.0`, none fixed). Pulled in by Expo/dev-server tooling only; not shipped in the app bundle. |
 | GHSA-vfj7-8cjw-p6xm | braces | No patched release (`<=3.0.3`). Build-time glob matching (micromatch) on trusted repo paths. |
 | GHSA-5p2g-fcmc-qvqq, GHSA-w3rx-r6r6-pgpr | image-size | Fixed only in 2.x, which drops the default export Metro's `Assets.js` requires (breaks bundling). Build-time only, reads our own committed assets. |
+| GHSA-qr28-fpjm-wq7f (added 2026-10-30) | decode-uri-component | `query-string@7` (via `@expo/metro-runtime` / `expo-router`) pins `^0.2.0`; the fix (`>=0.5.1`) is ESM-only and cannot be `require()`d by `query-string@7`, so an override breaks bundling. Client-side URL parsing of the app's own routes only — no server exposure. |
 
 Revisit when upstream (Expo / Metro) ships compatible versions.
