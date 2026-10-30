@@ -151,13 +151,22 @@ describe('buildHierarchyPyramid', () => {
     ]);
   });
 
-  it('buckets platform members without a resolved org together', () => {
-    const pyramid = buildHierarchyPyramid({
+  // `admin_org_tree` resolves platform grants to the platform org, so an
+  // unresolved org only occurs if no platform org row exists. Such members
+  // stay visible in the unfocused view but belong to no census org.
+  it('keeps platform members without a resolved org in their own bucket', () => {
+    const snapshot = {
       members: [platformMember({ grantId: 'p1', role: 'moderator', orgId: null, orgName: null })],
       census: CENSUS,
-    });
+    };
+    const pyramid = buildHierarchyPyramid(snapshot);
     const group = layer(pyramid, 'platform_staff').groups[0];
+    expect(group?.orgId).toBe('platform');
     expect(group?.isPlatform).toBe(true);
     expect(group?.people).toHaveLength(1);
+    expect(pyramid.visiblePeople).toBe(1);
+    // Not credited to any census org, and dropped when a census org is focused.
+    expect(pyramid.orgs.every((o) => o.memberCount === 0)).toBe(true);
+    expect(layer(buildHierarchyPyramid(snapshot, PLATFORM), 'platform_staff').headcount).toBe(0);
   });
 });

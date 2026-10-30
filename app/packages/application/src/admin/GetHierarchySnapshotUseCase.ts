@@ -5,9 +5,12 @@ import type { IOrgHierarchyRepository } from './IOrgHierarchyRepository';
  * FR-ADMIN-028 — loads the raw inputs of the layered hierarchy view.
  *
  * Fetches the named role-holders (all visible orgs) and the aggregate census
- * concurrently so both halves describe the same moment. Folding into strata
- * stays in the domain (`buildHierarchyPyramid`) so the UI can re-focus on an
- * org without another round trip.
+ * in parallel. The two reads are separate RPCs, not one transaction; a grant
+ * landing between them only skews the masked count until the next refresh,
+ * which the domain fold tolerates.
+ *
+ * Folding into strata stays in the domain (`buildHierarchyPyramid`) so the UI
+ * can re-focus on an org without another round trip.
  */
 export class GetHierarchySnapshotUseCase {
   constructor(private readonly repo: IOrgHierarchyRepository) {}

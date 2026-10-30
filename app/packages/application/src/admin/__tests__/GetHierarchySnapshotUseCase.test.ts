@@ -23,9 +23,21 @@ const MEMBER: OrgTreeMember = {
   lastSeenAt: null,
 };
 
+const OTHER_ORG_MEMBER: OrgTreeMember = {
+  ...MEMBER,
+  grantId: 'g2',
+  userId: 'u2',
+  displayName: 'Org admin',
+  role: 'org_admin',
+  scopeOrgId: 'o1',
+  orgId: 'o1',
+  orgName: 'Alpha',
+  isPlatform: false,
+};
+
 function repo(overrides: Partial<IOrgHierarchyRepository> = {}): IOrgHierarchyRepository {
   return {
-    getOrgTree: vi.fn(async () => [MEMBER]),
+    getOrgTree: vi.fn(async () => [MEMBER, OTHER_ORG_MEMBER]),
     setManager: vi.fn(),
     getHierarchyCensus: vi.fn(async () => CENSUS),
     ...overrides,
@@ -37,12 +49,18 @@ describe('GetHierarchySnapshotUseCase', () => {
     const r = repo();
     const snapshot = await new GetHierarchySnapshotUseCase(r).execute();
     expect(r.getOrgTree).toHaveBeenCalledWith(null);
-    expect(snapshot).toEqual({ members: [MEMBER], census: CENSUS });
+    expect(snapshot).toEqual({ members: [MEMBER, OTHER_ORG_MEMBER], census: CENSUS });
   });
 
-  it('propagates a repository failure instead of returning a partial snapshot', async () => {
+  it('propagates a census failure instead of returning a partial snapshot', async () => {
     const failure = new Error('forbidden');
     const r = repo({ getHierarchyCensus: vi.fn(async () => { throw failure; }) });
+    await expect(new GetHierarchySnapshotUseCase(r).execute()).rejects.toBe(failure);
+  });
+
+  it('propagates a member-tree failure instead of returning an empty hierarchy', async () => {
+    const failure = new Error('forbidden');
+    const r = repo({ getOrgTree: vi.fn(async () => { throw failure; }) });
     await expect(new GetHierarchySnapshotUseCase(r).execute()).rejects.toBe(failure);
   });
 });

@@ -45,7 +45,11 @@ export interface HierarchyCensus {
   readonly orgs: readonly HierarchyOrgCensus[];
 }
 
-/** Raw inputs of the pyramid, fetched together so they describe one moment. */
+/**
+ * Raw inputs of the pyramid. They come from two read-only RPCs issued in
+ * parallel, not one transaction, so a grant committed in between can skew the
+ * masked count by one for a single refresh; `maskedCount` is floored at 0.
+ */
 export interface HierarchySnapshot {
   readonly members: readonly OrgTreeMember[];
   readonly census: HierarchyCensus;
