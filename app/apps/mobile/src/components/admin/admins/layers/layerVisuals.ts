@@ -1,33 +1,57 @@
 // app/apps/mobile/src/components/admin/admins/layers/layerVisuals.ts
 // FR-ADMIN-028 — visual language of the layered hierarchy view.
 //
-// Each stratum gets an icon, an accent and a relative width. Widths grow from
-// the top stratum to the base so the stack reads as a pyramid on wide screens;
-// on phones every band is full-width and the taper is carried by the indent.
+// The number of levels follows the reporting chain, so every visual is derived
+// from a level's position rather than looked up per fixed stratum: bands widen
+// from the top level to the base (a pyramid on wide screens, a gentle inset on
+// phones), accents walk a ramp by depth, and the icon names the top role.
 import type { ComponentProps } from 'react';
 import type { Ionicons } from '@expo/vector-icons';
-import type { HierarchyTier } from '@kc/domain';
+import type { AdminRole } from '@kc/domain';
 
 export type LayerIconName = ComponentProps<typeof Ionicons>['name'];
 
-export interface TierVisual {
-  readonly icon: LayerIconName;
-  readonly accent: string;
-  /** Band width on wide screens, as a percentage of the column. */
-  readonly widePct: number;
-}
-
-/** Accents follow `RoleBadge` hues so a band and its role pills agree. */
-export const TIER_VISUALS: Readonly<Record<HierarchyTier, TierVisual>> = {
-  leadership:     { icon: 'shield-checkmark', accent: '#7c3aed', widePct: 56 },
-  platform_staff: { icon: 'construct',        accent: '#2563eb', widePct: 67 },
-  org_leadership: { icon: 'business',         accent: '#ca8a04', widePct: 78 },
-  org_team:       { icon: 'briefcase',        accent: '#0d9488', widePct: 89 },
-  volunteers:     { icon: 'heart',            accent: '#dc2626', widePct: 100 },
+/** Icon per role; a band shows the icon of its highest role. Exhaustive by type. */
+export const ROLE_ICON: Readonly<Record<AdminRole, LayerIconName>> = {
+  super_admin:       'shield-checkmark',
+  moderator:         'construct',
+  support:           'chatbubbles',
+  operators_manager: 'headset',
+  operator:          'call',
+  org_admin:         'business',
+  org_manager:       'people',
+  volunteer_manager: 'hand-left',
+  org_employee:      'briefcase',
+  org_volunteer:     'heart',
 };
 
-/** Phone indent per step down from the base, in px (top band is most inset). */
-export const PHONE_TAPER_STEP = 6;
+/** Accent ramp by depth; levels deeper than the ramp reuse it from the start. */
+const LEVEL_ACCENTS: readonly string[] = [
+  '#7c3aed', '#2563eb', '#ca8a04', '#d97706', '#0d9488', '#dc2626', '#db2777', '#65a30d',
+];
+
+export function layerAccent(level: number): string {
+  return LEVEL_ACCENTS[level % LEVEL_ACCENTS.length] ?? '#475569';
+}
+
+/** Narrowest band width on wide screens, as a percentage of the column. */
+const TOP_BAND_PCT = 50;
+
+/** Wide-screen width of the band at `index` of `total`, growing linearly to 100%. */
+export function layerWidePct(index: number, total: number): number {
+  if (total <= 0) return 100;
+  return Math.round(TOP_BAND_PCT + ((100 - TOP_BAND_PCT) * (index + 1)) / total);
+}
+
+/** Phone indent per step up from the base, in px. */
+const PHONE_TAPER_STEP = 6;
+/** Indent cap, so a deep chain never squeezes the top bands on a phone. */
+const PHONE_TAPER_MAX_STEPS = 5;
+
+/** Phone horizontal inset of the band at `index` of `total` (top band most inset). */
+export function layerPhoneInset(index: number, total: number): number {
+  return Math.min(total - index, PHONE_TAPER_MAX_STEPS) * PHONE_TAPER_STEP;
+}
 
 /** Distinct, theme-neutral hues for non-platform orgs, assigned in list order. */
 const ORG_PALETTE: readonly string[] = [

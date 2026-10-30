@@ -1,11 +1,11 @@
 // app/apps/mobile/src/components/admin/admins/layers/AdminsLayersView.tsx
 // FR-ADMIN-028 — the "layers" tab of the admins screen.
 //
-// Renders the whole management structure as a pyramid of strata: platform
-// leadership on top, then platform staff, org leadership, org teams and
-// volunteers, standing on the masked community base. Every organisation has a
-// colour that follows its people through every stratum; the org chips focus
-// the pyramid on one org without refetching (the fold is in-memory).
+// Renders the whole management structure as levels of the reporting chain —
+// as many as the data holds — standing on the masked community base. Every
+// organisation has a colour that follows its people through every level; the
+// org chips focus the view on one org without refetching (the fold is
+// in-memory).
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import type { HierarchyPyramid } from '@kc/domain';
@@ -17,7 +17,7 @@ import { OrgSwitcher } from '../OrgSwitcher';
 import { HierarchyStatsStrip } from './HierarchyStatsStrip';
 import { HierarchyLayerBand } from './HierarchyLayerBand';
 import { MaskedCommunityBand } from './MaskedCommunityBand';
-import { PHONE_TAPER_STEP, TIER_VISUALS, buildOrgAccents } from './layerVisuals';
+import { buildOrgAccents, layerPhoneInset, layerWidePct } from './layerVisuals';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
 
 /** Stagger between consecutive bands of the entry animation, in ms. */
@@ -29,10 +29,10 @@ export interface AdminsLayersViewProps {
 }
 
 /** Band width: a tapering pyramid on wide screens, a gentle inset on phones. */
-function bandWidthStyle(widePct: number, index: number, total: number, isWide: boolean) {
+function bandWidthStyle(index: number, total: number, isWide: boolean) {
   return isWide
-    ? { width: `${widePct}%` as const }
-    : { alignSelf: 'stretch' as const, marginHorizontal: (total - index) * PHONE_TAPER_STEP };
+    ? { width: `${layerWidePct(index, total)}%` as const }
+    : { alignSelf: 'stretch' as const, marginHorizontal: layerPhoneInset(index, total) };
 }
 
 interface PyramidBodyProps {
@@ -46,6 +46,7 @@ interface PyramidBodyProps {
 function PyramidBody({ pyramid, focusOrgId, onFocus, isWide, onSelect }: PyramidBodyProps) {
   const styles = useStyles();
   const { colors } = useTheme();
+  const L = useLocaleBundle();
   // `pyramid.orgs` always lists every visible org (independent of focus), so
   // accents and chip options stay stable while the user switches focus.
   const orgAccents = useMemo(() => buildOrgAccents(pyramid.orgs, colors.primary), [pyramid.orgs, colors.primary]);
@@ -68,11 +69,12 @@ function PyramidBody({ pyramid, focusOrgId, onFocus, isWide, onSelect }: Pyramid
         <OrgSwitcher orgs={orgOptions} selected={focusOrgId} onSelect={onFocus} accents={orgAccents} />
       )}
       <View style={styles.stack}>
+        {total === 0 && <Text style={styles.emptyText}>{L.admin.admins.layers.empty}</Text>}
         {pyramid.layers.map((layer, i) => (
           <MotionEntry
-            key={layer.tier}
+            key={layer.level}
             delay={i * BAND_STAGGER_MS}
-            style={[styles.bandSlot, bandWidthStyle(TIER_VISUALS[layer.tier].widePct, i, total, isWide)]}
+            style={[styles.bandSlot, bandWidthStyle(i, total, isWide)]}
           >
             <HierarchyLayerBand
               layer={layer}
@@ -153,6 +155,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   connector:   { width: 2, height: 14, backgroundColor: colors.border, borderRadius: 1 },
   center:      { alignItems: 'center', gap: 12, paddingVertical: 32 },
   errorText:   { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  emptyText:   { fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingVertical: 16 },
   retryBtn:    { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.primary },
   retryText:   { color: colors.textInverse, fontWeight: '700', fontSize: 13 },
 }));

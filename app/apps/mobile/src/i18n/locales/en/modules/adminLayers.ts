@@ -1,16 +1,12 @@
 // app/apps/mobile/src/i18n/locales/en/modules/adminLayers.ts
 // English strings for the layered hierarchy view of the admin team (FR-ADMIN-028).
 export const adminLayersEn = {
-  tiers: {
-    leadership:     { title: 'Platform Leadership', hint: 'The Karma Community super admin' },
-    platform_staff: { title: 'Platform Staff',      hint: 'Moderators, support and platform operators' },
-    org_leadership: { title: 'Org Leadership',      hint: 'Organization admins and managers' },
-    org_team:       { title: 'Org Teams',           hint: 'Employees, volunteer managers and org operators' },
-    volunteers:     { title: 'Volunteers',          hint: 'Volunteers holding a defined role in an organization' },
-  },
+  apexTitle:   'Platform apex',
+  levelTitle:  (n: number) => `Level ${n}`,
+  empty:       'No role holders to show yet.',
   community: {
     title:      'Community',
-    hint:       'Every active user without a role. Identities are masked — only the count is shown.',
+    hint:       'Every community member without a role, including suspended users until an admin decides. Identities are masked — only the count is shown.',
     masked:     (n: number) => `${n} community members`,
     affiliated: (n: number) => `${n} affiliated volunteers (self-declared)`,
   },
@@ -20,7 +16,6 @@ export const adminLayersEn = {
     orgs:        'Organizations',
     affiliated:  'Affiliated volunteers',
   },
-  emptyTier:   'No role holders in this layer.',
   showMore:    (n: number) => `+${n} more`,
   showLess:    'Show less',
   verified:    'Verified organization',

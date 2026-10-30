@@ -1,16 +1,12 @@
 // app/apps/mobile/src/i18n/locales/he/modules/adminLayers.ts
 // Hebrew strings for the layered hierarchy view of the admin team (FR-ADMIN-028).
 export const adminLayersHe = {
-  tiers: {
-    leadership:     { title: 'הנהלת הפלטפורמה', hint: 'מנהל-העל של קארמה קומיוניטי' },
-    platform_staff: { title: 'צוות הפלטפורמה',  hint: 'מנחים, תמיכה ומוקדנים ארציים' },
-    org_leadership: { title: 'הנהלות ארגונים',  hint: 'מנהלי ארגונים ומנהלים בארגון' },
-    org_team:       { title: 'צוותי ארגונים',   hint: 'עובדים, מנהלי מתנדבים ומוקדנים בארגון' },
-    volunteers:     { title: 'מתנדבים',          hint: 'מתנדבים בעלי תפקיד מוגדר בארגון' },
-  },
+  apexTitle:   'צמרת הפלטפורמה',
+  levelTitle:  (n: number) => `רמה ${n}`,
+  empty:       'עדיין אין בעלי תפקידים להצגה.',
   community: {
     title:      'הקהילה',
-    hint:       'כל המשתמשים הפעילים ללא תפקיד. הזהויות מוסתרות — מוצגת ספירה בלבד.',
+    hint:       'כל חברי הקהילה ללא תפקיד, כולל משתמשים מושהים עד החלטת מנהל. הזהויות מוסתרות — מוצגת ספירה בלבד.',
     masked:     (n: number) => `${n} חברי קהילה`,
     affiliated: (n: number) => `${n} מתנדבים משויכים (בהצהרה עצמית)`,
   },
@@ -20,7 +16,6 @@ export const adminLayersHe = {
     orgs:        'ארגונים',
     affiliated:  'מתנדבים משויכים',
   },
-  emptyTier:   'אין בעלי תפקידים בשכבה זו.',
   showMore:    (n: number) => `+${n} נוספים`,
   showLess:    'הצג פחות',
   verified:    'ארגון מאומת',

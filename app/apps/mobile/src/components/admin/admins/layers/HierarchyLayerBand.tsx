@@ -1,16 +1,17 @@
 // app/apps/mobile/src/components/admin/admins/layers/HierarchyLayerBand.tsx
-// FR-ADMIN-028 — one stratum of the layered hierarchy.
+// FR-ADMIN-028 — one level of the layered hierarchy.
 //
-// A card with an accent rail, a header (tier icon, title, hint, headcount) and
-// one cluster per organisation. Large clusters are capped and expand on demand
-// so a stratum with hundreds of volunteers stays scannable.
+// A card with an accent rail, a header (top-role icon, level title, the roles
+// present, headcount) and one cluster per organisation. Large clusters are
+// capped and expand on demand so a level with hundreds of volunteers stays
+// scannable.
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { HierarchyLayer, LayerOrgGroup } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { LayerPersonChip } from './LayerPersonChip';
-import { TIER_VISUALS } from './layerVisuals';
+import { ROLE_ICON, layerAccent } from './layerVisuals';
 import { rowDirectionStart, textAlignStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
 
@@ -79,41 +80,41 @@ export function HierarchyLayerBand({ layer, orgAccents, verifiedOrgIds, onSelect
   const styles = useStyles();
   const { colors } = useTheme();
   const L = useLocaleBundle();
-  const visual = TIER_VISUALS[layer.tier];
-  const copy = L.admin.admins.layers.tiers[layer.tier];
+  const copy = L.admin.admins.layers;
+  const accent = layerAccent(layer.level);
+  const [topRole] = layer.roles;
+  const title = layer.level === 0 ? copy.apexTitle : copy.levelTitle(layer.level);
+  // The hint names the roles present, so a deep chain stays self-explanatory.
+  const hint = layer.roles.map((role) => L.admin.roles[role]).join(' · ');
 
   return (
-    <View style={[styles.band, { borderTopColor: visual.accent }]}>
+    <View style={[styles.band, { borderTopColor: accent }]}>
       <View style={styles.header}>
-        <View style={[styles.iconBubble, { backgroundColor: `${visual.accent}1F` }]}>
-          <Ionicons name={visual.icon} size={18} color={visual.accent} />
+        <View style={[styles.iconBubble, { backgroundColor: `${accent}1F` }]}>
+          {topRole && <Ionicons name={ROLE_ICON[topRole]} size={18} color={accent} />}
         </View>
         <View style={styles.headerTexts}>
-          <Text style={styles.title}>{copy.title}</Text>
-          <Text style={styles.hint} numberOfLines={2}>{copy.hint}</Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.hint} numberOfLines={2}>{hint}</Text>
         </View>
         <View
           accessible
           accessibilityLabel={L.admin.admins.layers.headcountA11y(layer.headcount)}
-          style={[styles.count, { backgroundColor: visual.accent }]}
+          style={[styles.count, { backgroundColor: accent }]}
         >
           <Text style={styles.countText}>{layer.headcount}</Text>
         </View>
       </View>
 
-      {layer.groups.length === 0 ? (
-        <Text style={styles.empty}>{L.admin.admins.layers.emptyTier}</Text>
-      ) : (
-        layer.groups.map((group) => (
-          <OrgCluster
-            key={group.orgId}
-            group={group}
-            accent={orgAccents.get(group.orgId) ?? colors.primary}
-            isVerified={verifiedOrgIds.has(group.orgId)}
-            onSelect={onSelect}
-          />
-        ))
-      )}
+      {layer.groups.map((group) => (
+        <OrgCluster
+          key={group.orgId}
+          group={group}
+          accent={orgAccents.get(group.orgId) ?? colors.primary}
+          isVerified={verifiedOrgIds.has(group.orgId)}
+          onSelect={onSelect}
+        />
+      ))}
     </View>
   );
 }
@@ -136,7 +137,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
     alignItems: 'center', justifyContent: 'center',
   },
   countText:   { fontSize: 13, fontWeight: '800', color: colors.textInverse },
-  empty:       { fontSize: 12, color: colors.textDisabled, textAlign: 'center', paddingVertical: 6 },
   cluster: {
     borderRadius: 14, backgroundColor: colors.background, padding: 8, gap: 4,
   },

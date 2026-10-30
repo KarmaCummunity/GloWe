@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// FR-ADMIN-028 — layered hierarchy view: data/error states, org focus, a11y.
+// FR-ADMIN-028 — layered hierarchy view: data/error states, depth, org focus, a11y.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -105,13 +105,32 @@ describe('AdminsLayersView', () => {
     expect(screen.getByRole('button', { name: L.admin.admins.layers.retry })).toBeTruthy();
   });
 
-  it('focusing an org chip narrows the strata to that org', () => {
+  it('focusing an org chip narrows the levels to that org', () => {
     state.snapshot = SNAPSHOT;
     renderView();
     expect(screen.getByText('alice')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Beta' }));
     expect(screen.getByText('bob')).toBeTruthy();
     expect(screen.queryByText('alice')).toBeNull();
+  });
+
+  it('renders one band per reporting level, deeper than any fixed tier set', () => {
+    // super_admin → org_admin → six chained managers → volunteer manager → volunteer.
+    const chain = ['admin', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'vm', 'vol'];
+    const roles = ['org_admin', 'org_manager', 'org_manager', 'org_manager', 'org_manager',
+      'org_manager', 'org_manager', 'volunteer_manager', 'org_volunteer'] as const;
+    state.snapshot = {
+      ...SNAPSHOT,
+      members: [
+        member({ grantId: 'root', role: 'super_admin', scopeOrgId: null, orgId: PLATFORM, orgName: 'Karma', isPlatform: true }),
+        ...chain.map((grantId, i) =>
+          member({ grantId, role: roles[i], managerGrantId: i === 0 ? 'root' : chain[i - 1] })),
+      ],
+    };
+    renderView();
+    expect(screen.getByText(L.admin.admins.layers.apexTitle)).toBeTruthy();
+    expect(screen.getByText(L.admin.admins.layers.levelTitle(9))).toBeTruthy();
+    expect(screen.getByText('vol')).toBeTruthy();
   });
 
   it('announces extra roles in the person chip accessibility label', () => {
