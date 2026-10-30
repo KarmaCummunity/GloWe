@@ -3,8 +3,8 @@
 // near-black slate) so any redesigned main screen can lead with the same
 // presence.
 import React from 'react';
-import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 interface SectionHeadingProps {

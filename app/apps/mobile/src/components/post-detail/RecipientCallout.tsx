@@ -2,11 +2,11 @@
 // post. Label depends on post.type:
 //   • Give    → "delivered to X" (owner gave; marked user is the receiver)
 //   • Request → "given by X"     (owner asked for help; marked user is the giver)
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PostType } from '@kc/domain';
 import { AvatarInitials } from '../AvatarInitials';
 import { textAlignStart } from '../../lib/rtlLayout';

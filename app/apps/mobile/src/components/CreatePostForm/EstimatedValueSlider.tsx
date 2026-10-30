@@ -1,10 +1,10 @@
 // FR-KARMA-004 — centered title + 0..1000 (step 50) slider, "1000+" top label.
 // Give posts only (mounted under the isGive block in CreatePostFormScrollContent).
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 const MAX = 1000;
 const STEP = 50;

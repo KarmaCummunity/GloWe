@@ -3,9 +3,9 @@
 // focused on form orchestration. The parent receives the new URL (or null)
 // via `onChange` and is responsible for persisting on Save.
 import React, { useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { AvatarInitials } from './AvatarInitials';
 import { NotifyModal } from './NotifyModal';
 import { PhotoSourceSheet } from './PhotoSourceSheet';

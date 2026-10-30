@@ -1,10 +1,10 @@
 // Web-only thank-you page — shown after the finish popup is dismissed (FR-RESEARCH-001 AC5).
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { RESEARCH_SHARE_SRC_THANKS } from '../../src/lib/shareResearchSurvey';

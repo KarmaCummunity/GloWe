@@ -1,11 +1,11 @@
 // FR-MOD-007 — Report modal opened from a user profile's overflow menu.
 // Mirrors ReportPostModal but submits to container.reportUser (target_type='user').
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import type { ReportReason } from '@kc/domain';
 import { container } from '../../lib/container';
 import { useAuthStore } from '../../store/authStore';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text, TextInput } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

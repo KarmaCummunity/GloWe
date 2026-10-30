@@ -3,7 +3,7 @@
 // FR-AUTH-014 (guest preview entry point).
 // docs/SSOT/spec/01_auth_and_onboarding.md
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +17,7 @@ import Animated, {
   withRepeat,
   withSequence,
 } from 'react-native-reanimated';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { useAuthStore } from '../../src/store/authStore';
 import {

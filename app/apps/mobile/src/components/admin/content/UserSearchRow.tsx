@@ -5,14 +5,14 @@
 // profile screen first.
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import {
   type AdminPermission,
   type AdminRole,
   hasPermission,
   type AdminUserSearchResult,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { BanUserModal } from '../../profile/BanUserModal';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';

@@ -1,8 +1,12 @@
 // Sign-in with email/password — FR-AUTH-007 (email path)
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Image,
+  View,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +19,7 @@ import Animated, {
   withSpring,
   withDelay,
 } from 'react-native-reanimated';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { mapAuthErrorToHebrew } from '../../src/services/authMessages';
 import { getSignInUseCase } from '../../src/services/authComposition';

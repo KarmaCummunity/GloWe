@@ -1,6 +1,6 @@
-import { Linking, Modal, View, Text, Pressable } from 'react-native';
+import { Linking, Modal, View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import type { PrePromptTrigger } from '../lib/notifications/usePushPermissionGate';
 import { useModalHardwareBack } from '../hooks/useModalHardwareBack';

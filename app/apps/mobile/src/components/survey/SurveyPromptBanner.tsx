@@ -1,10 +1,10 @@
 // SurveyPromptBanner — slim card shown above the feed when the user is eligible.
 // Mapped to: FR-SETTINGS-016 AC6. Hebrew RTL. Non-sticky (scrolls with content).
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { Card } from '../ui/Card';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

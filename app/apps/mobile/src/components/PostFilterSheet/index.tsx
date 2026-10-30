@@ -10,7 +10,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,7 +22,7 @@ import type {
   LocationFilter,
   PostType,
 } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 import { SortSection } from './SortSection';
 import { FiltersSection } from './FiltersSection';

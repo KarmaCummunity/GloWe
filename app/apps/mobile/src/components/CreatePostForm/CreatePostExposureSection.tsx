@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { CounterpartyIdentityCard } from '../post/CounterpartyIdentityCard';
 import type { LocationDisplayLevel, PostVisibility } from '@kc/domain';
 import { useFeedSessionStore } from '../../store/feedSessionStore';

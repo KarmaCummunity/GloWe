@@ -3,10 +3,10 @@
 // voluntary (no in-app benefit), and — when a standing order is offered — how to
 // cancel it (written request through the support chat).
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { useKcStandingOrderCancelRequest } from '../../hooks/useKcStandingOrderCancelRequest';
 

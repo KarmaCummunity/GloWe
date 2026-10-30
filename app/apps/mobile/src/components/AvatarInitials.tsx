@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import {
   getSupabasePublicImageUrl,
   getSupabaseImageThumbUrl,

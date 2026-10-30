@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { KcRowCard } from '../../../../src/components/cards/KcRowCard';
 import { IconTile } from '../../../../src/components/ui/IconTile';
