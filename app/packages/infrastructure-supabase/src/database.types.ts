@@ -10241,6 +10241,7 @@ export type Database = {
           title: string
         }[]
       }
+      listing_details_expires_at: { Args: { p_details: Json }; Returns: string }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
       listing_upsert_from_post: {
         Args: { p_post: Database["public"]["Tables"]["posts"]["Row"] }
