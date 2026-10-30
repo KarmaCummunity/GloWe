@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: {
     flex: 1,
     backgroundColor: colors.surface,
