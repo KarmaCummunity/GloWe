@@ -9,7 +9,7 @@ import globals from 'globals';
 // Policy: smell rules are `error` once the codebase is clean of them. Rules
 // still at `warn` (no-explicit-any, react-hooks/exhaustive-deps, and in mobile
 // the unused-code rules below) are held by a per-package `--max-warnings`
-// ratchet in each package's `lint` script (TD-200): the count may only go down.
+// ratchet in each package's `lint` script (TD-201): the count may only go down.
 export default tseslint.config(
   { linterOptions: { reportUnusedDisableDirectives: 'error' } },
   {
@@ -120,7 +120,7 @@ export default tseslint.config(
   // Mobile still has unused-code findings in files that are not yet on design
   // tokens; changing such a file means migrating all of it (brand guard,
   // spec 17 §6), so these findings burn down with that work. Until then they
-  // stay warnings under the mobile `--max-warnings` ratchet (TD-200).
+  // stay warnings under the mobile `--max-warnings` ratchet (TD-201).
   {
     files: ['apps/mobile/**/*.{ts,tsx}'],
     linterOptions: { reportUnusedDisableDirectives: 'warn' },
