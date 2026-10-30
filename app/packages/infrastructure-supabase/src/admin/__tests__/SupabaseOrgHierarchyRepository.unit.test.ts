@@ -87,6 +87,14 @@ describe('SupabaseOrgHierarchyRepository — setManager', () => {
     expect((err as OrgHierarchyError).code).toBe('manager_cycle');
   });
 
+  it('maps manager_rank by message (FR-ADMIN-027 rank rule)', async () => {
+    const repo = new SupabaseOrgHierarchyRepository(
+      mockClient(() => ({ data: null, error: { message: 'manager_rank', code: '22023' } })),
+    );
+    const err = await repo.setManager('g1', 'm1').catch((e) => e);
+    expect((err as OrgHierarchyError).code).toBe('manager_rank');
+  });
+
   it('maps manager_other_org by message', async () => {
     const repo = new SupabaseOrgHierarchyRepository(
       mockClient(() => ({ data: null, error: { message: 'manager_other_org', code: '22023' } })),

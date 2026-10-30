@@ -2,12 +2,14 @@
 // Hebrew strings for the Admin Portal "צוות ניהול" (RBAC) surface.
 // Split out of `admin.ts` to respect the 300-line file cap (FR-ADMIN-015/016/021).
 import { adminLayersHe } from './adminLayers';
+import { adminTeamHe } from './adminTeam';
+import { adminPermissionsHe } from './adminPermissions';
 
 export const adminAdminsHe = {
   title:                'צוות ניהול',
   loading:              'טוען...',
   forbiddenTitle:       'אין לך הרשאה לצפות במסך זה',
-  forbiddenHint:        'מסך ניהול הצוות זמין רק לתפקידי super_admin ו-moderator.',
+  forbiddenHint:        'מסך ניהול הצוות זמין למנהל-העל, למודרטורים ולמנהלי ארגונים (בארגון שלהם).',
   includeRevokedLabel:  'כולל מבוטלים',
   grantBtn:             '+ הוסף לתפקיד',
   emptyTitle:           'אין חברי צוות פעילים',
@@ -23,6 +25,8 @@ export const adminAdminsHe = {
     rolesMore:    (n: number) => `+${n}`,
   },
   layers: adminLayersHe,
+  team: adminTeamHe,
+  permissions: adminPermissionsHe,
   tree: {
     levelBadge:   (n: number) => `רמה ${n}`,
     empty:        'אין נתוני היררכיה להצגה.',
@@ -58,6 +62,7 @@ export const adminAdminsHe = {
     manager_revoked:       'המינוי של המנהל שנבחר בוטל.',
     manager_other_org:     'המנהל חייב להיות מאותו ארגון.',
     manager_cycle:         'השיוך יוצר מעגל בהיררכיה.',
+    manager_rank:          'המנהל החדש חייב להיות בתפקיד בכיר יותר.',
     grant_not_found:       'המינוי לא נמצא.',
     grant_already_revoked: 'המינוי בוטל.',
     invalid_input:         'קלט לא תקין.',
@@ -80,6 +85,7 @@ export const adminAdminsHe = {
   },
   revokeErrors: {
     forbidden:                       'אין לך הרשאה לבטל תפקיד.',
+    forbidden_revoke:                'אין לך הרשאה לבטל תפקיד זה.',
     grant_not_found:                 'המינוי לא נמצא — ייתכן שכבר בוטל.',
     grant_already_revoked:           'המינוי כבר בוטל.',
     cannot_revoke_last_super_admin:  'אסור לבטל את ה-super_admin היחיד הפעיל.',
@@ -97,8 +103,12 @@ export const adminAdminsHe = {
     submit:            'הענק תפקיד',
     errors: {
       forbidden:           'אין לך הרשאה להעניק תפקיד.',
+      forbidden_grant:     'אין לך הרשאה להעניק תפקיד זה בארגון הזה.',
+      invalid_scope:       'התפקיד לא מתאים למקום שנבחר.',
+      grant_not_found:     'המינוי לא נמצא — ייתכן שכבר בוטל.',
+      grant_already_revoked: 'המינוי כבר בוטל.',
       invalid_input:       'יש לבחור משתמש.',
-      invalid_role:        'יש לבחור תפקיד (moderator או support).',
+      invalid_role:        'יש לבחור תפקיד.',
       target_not_found:    'המשתמש לא נמצא.',
       target_not_active:   'אפשר להעניק תפקיד רק למשתמש פעיל.',
       role_already_active: 'למשתמש כבר יש מינוי פעיל בתפקיד זה.',
