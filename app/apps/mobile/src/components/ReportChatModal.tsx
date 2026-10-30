@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 // FR-CHAT-010 — Report modal opened from chat ⋮ menu.
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import type { ReportReason } from '@kc/domain';
 import { container } from '../lib/container';
 import { useAuthStore } from '../store/authStore';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text, TextInput } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { NotifyModal } from './NotifyModal';
 import { useReportForm, postNamespaceReportMessages } from './report/useReportForm';

@@ -2,10 +2,10 @@
 // FR-ADMIN-018 — pick an assignee from active admins (uses admin_list_admins RPC).
 // Visible only when the caller has admins.view permission (super_admin/moderator).
 import { useQuery } from '@tanstack/react-query';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { adminChipScroll } from '../adminChipScroll';
 import type { AdminGrant } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

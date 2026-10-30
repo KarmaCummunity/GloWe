@@ -2,9 +2,9 @@
 // FR-ADMIN-025 — direct-manager + subordinates blocks on the admin-detail
 // screen, one per org membership. Owns the org-tree read so the screen stays
 // thin.
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, useTheme, Text } from '@kc/ui';
 import { useOrgTree } from '../../../hooks/useOrgTree';
 import { GrantManagerSection } from './GrantManagerSection';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';

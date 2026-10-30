@@ -1,10 +1,10 @@
 // KC#867 — reactions + comments on post detail (native-feeling tap targets).
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { hapticLightTap, hapticSuccess } from '../../lib/haptics';
-import { makeUseStyles, spacing, typography, radius } from '@kc/ui';
+import { makeUseStyles, spacing, typography, radius, Text, TextInput } from '@kc/ui';
 import type { PostReactionType } from '@kc/infrastructure-supabase';
 import { container } from '../../lib/container';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

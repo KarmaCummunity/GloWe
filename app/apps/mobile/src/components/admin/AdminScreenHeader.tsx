@@ -7,8 +7,8 @@
 //   1. `right` — arbitrary node (e.g. a custom button or toggle).
 //   2. `newLabel` + `onNew` — renders the default primary "new" button.
 import type { ReactElement, ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { makeUseStyles, typography } from '@kc/ui';
+import { Pressable, View } from 'react-native';
+import { makeUseStyles, typography, Text } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../lib/rtlLayout';
 
 export interface AdminScreenHeaderProps {

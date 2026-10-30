@@ -3,10 +3,10 @@
 // Mapped to: FR-PROFILE-001 AC4 (revised), FR-PROFILE-002 AC2 (revised).
 
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, useTheme, Text } from '@kc/ui';
 import { PROFILE_GRID_COLUMNS } from '../../hooks/useShellContentWidth';
 import type { ProfileClosedPostsItem } from '@kc/domain';
 import { chunkArray } from '../../lib/chunkArray';

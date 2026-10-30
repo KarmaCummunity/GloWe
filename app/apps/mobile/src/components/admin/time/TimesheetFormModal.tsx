@@ -1,9 +1,9 @@
 // V2-ADMIN-TIME-10 — modal for create/edit own timesheet draft.
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { isTimesheetError, type TimesheetEntry } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

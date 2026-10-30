@@ -3,9 +3,9 @@
 // partner nonprofits (jgive) → community NGO links (FR-DONATE-007..009) →
 // in-app verified-nonprofit flow, only while `money_in_app_org_payments` is on.
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { IconTile } from '../../../../src/components/ui/IconTile';
 import { MotionEntry, ENTRY_DELAY } from '../../../../src/components/ui/MotionEntry';

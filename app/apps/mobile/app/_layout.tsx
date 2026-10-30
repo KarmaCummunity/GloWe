@@ -25,7 +25,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient, persistOptions } from '../src/lib/queryPersist';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { useTheme } from '@kc/ui';
+import { BrandFontProvider, useTheme } from '@kc/ui';
 import { ShellWithResponsiveChrome } from '../src/components/shell/ShellWithResponsiveChrome';
 import { AppThemeProvider } from '../src/components/AppThemeProvider';
 import { NotificationsBridge } from '../src/components/NotificationsBridge';
@@ -40,9 +40,10 @@ import { DevBanner } from '../src/components/DevBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
+import { useBrandFonts } from '../src/lib/useBrandFonts';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
-import { NavigationBar } from 'expo-navigation-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 
 function MeRealtimeMount() {
   useMeRealtime();
@@ -63,6 +64,11 @@ function ThemedRootShell() {
   const detailStackScreenOptions = useDetailStackScreenOptions();
 
   React.useEffect(() => {
+    // expo-navigation-bar on SDK 54 is imperative and Android-only (KC#1276).
+    if (Platform.OS === 'android') NavigationBar.setStyle(isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  React.useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       // Paint html/body with the active surface so the area outside the app
       // root (and any iOS overscroll bounce on mobile-web) matches the theme.
@@ -73,7 +79,6 @@ function ThemedRootShell() {
 
   return (
     <>
-      <NavigationBar style={isDark ? 'dark' : 'light'} />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <DevBanner />
       <NotificationsBridge />
@@ -181,14 +186,20 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
-  if (!isSupabaseConfigured()) {
-    return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <ConfigErrorScreen />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    );
-  }
-  return <RootLayoutContent />;
+  // Splash stays up (preventAutoHideAsync) until the brand font settles.
+  const brandFontStatus = useBrandFonts();
+  if (brandFontStatus === 'loading') return null;
+  return (
+    <BrandFontProvider available={brandFontStatus === 'loaded'}>
+      {isSupabaseConfigured() ? (
+        <RootLayoutContent />
+      ) : (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <ConfigErrorScreen />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      )}
+    </BrandFontProvider>
+  );
 }

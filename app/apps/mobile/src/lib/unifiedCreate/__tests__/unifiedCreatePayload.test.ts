@@ -43,18 +43,20 @@ describe('unified create — listing payload per category', () => {
     const p = buildListingCreatePayload({
       kindId: `k-${c.id}`, kindDirection: 'either', direction: 'request', title: ' כותרת ', summary: ' ',
       details: { a: 1 }, cityId: 'c1', lat: 1, lng: 2, radiusKm: 25, mediaPaths: ['m'],
-      routedWorld: routed, externalBodyId: 'org1',
+      routedWorld: routed, externalBodyId: 'org1', worldSubcategoryId: 'cat-1',
     });
     expect(p).toEqual({
       kindId: `k-${c.id}`, title: 'כותרת', summary: null, details: { a: 1 }, direction: 'request',
       cityId: 'c1', lat: 1, lng: 2, maxRadiusKm: 25, mediaPaths: ['m'], externalBodyId: routed ? 'org1' : null,
+      categoryId: 'cat-1',
     });
   });
   it('fixed-direction kinds send null direction', () => {
     const p = buildListingCreatePayload({
       kindId: 'k', kindDirection: 'give', direction: 'give', title: 't', summary: 's', details: {},
       cityId: null, lat: null, lng: null, radiusKm: 5, mediaPaths: [], routedWorld: false, externalBodyId: 'x',
+      worldSubcategoryId: null,
     });
-    expect(p).toMatchObject({ direction: null, summary: 's', externalBodyId: null });
+    expect(p).toMatchObject({ direction: null, summary: 's', externalBodyId: null, categoryId: null });
   });
 });

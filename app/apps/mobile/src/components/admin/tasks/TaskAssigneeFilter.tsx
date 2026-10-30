@@ -4,10 +4,10 @@
 //   value = 'unassigned'       → only tasks with no assignee
 //   value = '<userId>'         → only tasks assigned to that admin
 import { useQuery } from '@tanstack/react-query';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { adminChipScroll } from '../adminChipScroll';
 import type { AdminGrant } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

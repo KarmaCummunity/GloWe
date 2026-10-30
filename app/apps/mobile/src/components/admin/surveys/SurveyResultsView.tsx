@@ -1,10 +1,10 @@
 // app/apps/mobile/src/components/admin/surveys/SurveyResultsView.tsx
 // FR-ADMIN-021 — survey detail: per-question stats + per-user answers.
 import type { ReactElement } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyResults } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { AdminListEmpty } from '../AdminListEmpty';
 import { QuestionStatCard } from './QuestionStatCard';

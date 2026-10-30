@@ -4,11 +4,11 @@
 // over a KcFlashList; only the data source, row component, and copy differ. Extracted
 // here to keep the two screens DRY.
 import React from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 import { TopBar } from '../../../components/TopBar';
 import { Screen } from '../../../components/ui/Screen';

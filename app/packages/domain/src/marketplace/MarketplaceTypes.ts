@@ -100,6 +100,18 @@ export interface ListingKindOption {
   readonly detailSchema: Record<string, unknown>;
 }
 
+/**
+ * A giving world's subcategory (`public.categories` child row), e.g. items → books, food →
+ * bakery. Glossary: "world subcategory" / "item subcategory" (docs/spec/94). KC#1296.
+ */
+export interface WorldSubcategory {
+  readonly categoryId: string;
+  readonly slug: string;
+  readonly labelHe: string;
+  /** Some seeded rows have no English label; callers fall back to `labelHe`. */
+  readonly labelEn: string | null;
+}
+
 /** Primary donation worlds exposed in the create hub (PRD + medical for blood/organs). */
 export const MARKETPLACE_CREATE_WORLD_SLUGS = [
   'money',

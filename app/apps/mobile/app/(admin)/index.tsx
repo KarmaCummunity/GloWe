@@ -3,13 +3,13 @@
 // responsive grid of stat / quick-link cards, RBAC-filtered per session.
 // Users/posts KPIs show community-wide counts (FR-STATS-004 / community_stats).
 import type { ComponentProps, ReactElement } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import type { AdminRole } from '@kc/domain';
 import { hasPermission } from '@kc/domain';
-import { makeUseStyles, shadow, useTheme } from '@kc/ui';
+import { makeUseStyles, shadow, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../src/lib/rtlLayout';
 import { useAdminRoles } from '../../src/hooks/useAdminRoles';
 import { useAdminsList } from '../../src/hooks/useAdminsList';

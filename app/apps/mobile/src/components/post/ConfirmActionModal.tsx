@@ -1,8 +1,8 @@
 // Generic two-button confirmation modal used by post-detail ⋮ menu actions
 // (delete-owner, admin-remove, block).
-import { Modal, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { Modal, View, Pressable, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';

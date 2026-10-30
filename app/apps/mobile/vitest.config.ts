@@ -45,7 +45,6 @@ export default defineConfig({
         'src/services/devAutoSignIn.ts',
         'src/services/avatarUpload.ts',
         'src/services/imageUpload.ts',
-        'src/services/mediaEncoding.ts',
         'src/services/postMessages.ts',
         'src/services/authMessages.ts',
         'src/services/postFormConfirm.ts',
@@ -64,6 +63,8 @@ export default defineConfig({
         // pure routing logic lives in tapRouting.ts and IS unit-tested.
         'src/lib/notifications/tapHandler.ts',
         'src/lib/permissionGate.ts',
+        // Brand font loader: expo-font wiring around @kc/ui brandFont (unit-tested there).
+        'src/lib/useBrandFonts.ts',
       ],
       thresholds: {
         lines: 60,

@@ -1,11 +1,11 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TextInput, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { ListRenderItem } from 'react-native';
 import { ChatError, type ChatWithPreview } from '@kc/application';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, TextInput } from '@kc/ui';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { markNeedFreshThreadWith } from '../../src/lib/chatNavigationPrefs';

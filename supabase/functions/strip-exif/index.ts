@@ -18,7 +18,7 @@
 // APP1 = marker 0xE1. An EXIF APP1 starts with the ASCII literal "Exif\0\0".
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -95,7 +95,7 @@ function stripExif(original: Uint8Array): Uint8Array | null {
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
 
-type AdminClient = ReturnType<typeof createClient>;
+type AdminClient = SupabaseClient;
 
 async function listRecentPaths(
   admin: AdminClient,

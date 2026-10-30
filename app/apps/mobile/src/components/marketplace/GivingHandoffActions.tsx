@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';

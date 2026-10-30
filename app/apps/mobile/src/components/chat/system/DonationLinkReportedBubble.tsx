@@ -2,9 +2,9 @@
 // Renders a tappable card that opens the reported URL in the external
 // browser. Admin-gated (consistent with ReportReceivedBubble).
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { openExternalUrl } from '../../../utils/openExternalUrl';

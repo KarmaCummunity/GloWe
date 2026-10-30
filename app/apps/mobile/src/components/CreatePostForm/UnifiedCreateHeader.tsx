@@ -1,10 +1,10 @@
 // Top of the unified create form: category chips + request/offer toggle.
 // Mapped to spec: FR-POST-001 (single create form for every domain).
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import type { CreateCategoryConfig, CreateDirection } from '../../lib/unifiedCreate/createCategories';
 
