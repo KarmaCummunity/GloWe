@@ -107,6 +107,22 @@ test('pushes and dispatches never run the release lane', () => {
   }
 });
 
+test('push to dev runs every lane even for a docs-only diff', () => {
+  const r = plan({ event: 'push', draft: false, actor: 'x', ref: 'refs/heads/dev', files: ['docs/a.md'] });
+  assert.deepEqual(r.plan, { ...ALL, hygiene: false });
+});
+
+test('push to main runs every lane and sonar', () => {
+  const r = plan({ event: 'push', draft: false, actor: 'x', ref: 'refs/heads/main', files: [] });
+  assert.deepEqual(r.plan, { ...ALL, hygiene: false });
+  assert.equal(r.sonar, true);
+});
+
+test('the same docs-only diff on a PR stays diff-based', () => {
+  const r = plan({ ...PR, files: ['docs/a.md'] });
+  assert.deepEqual(r.plan, { hygiene: true, static: true, release: false, frontend: false, backend: false, edge: false });
+});
+
 test('manual dispatch runs every heavy lane', () => {
   const r = plan({ event: 'workflow_dispatch', draft: false, actor: 'x', ref: 'refs/heads/dev', files: [] });
   assert.deepEqual(r.plan, { ...ALL, hygiene: false });
