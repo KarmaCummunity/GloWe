@@ -6,7 +6,7 @@
 // volunteers, standing on the masked community base. Every organisation has a
 // colour that follows its people through every stratum; the org chips focus
 // the pyramid on one org without refetching (the fold is in-memory).
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import type { HierarchyPyramid } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
@@ -96,6 +96,14 @@ export function AdminsLayersView({ isWide, onSelect }: AdminsLayersViewProps) {
   const L = useLocaleBundle();
   const [focusOrgId, setFocusOrgId] = useState<string | null>(null);
   const { pyramid, isRefetching, refetch, error } = useHierarchyPyramid(focusOrgId);
+
+  // A refetch can drop the focused org (e.g. its last grant was revoked);
+  // fall back to "all orgs" instead of rendering empty strata with no chip.
+  useEffect(() => {
+    if (focusOrgId !== null && pyramid !== null && !pyramid.orgs.some((o) => o.orgId === focusOrgId)) {
+      setFocusOrgId(null);
+    }
+  }, [focusOrgId, pyramid]);
 
   // Branch on data, not on `isLoading`: while the persisted cache restores, a
   // query is pending without fetching, so "not loading" does not mean "failed".
