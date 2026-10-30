@@ -153,10 +153,6 @@
       "radiusLiteral": 2,
       "spacingLiteral": 1
     },
-    "app/(tabs)/donations/marketplace/my-listings.tsx": {
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1
-    },
     "app/(tabs)/donations/marketplace/my-listings/edit/[listingId].tsx": {
       "fontWeightLiteral": 1,
       "radiusLiteral": 2,
@@ -868,9 +864,6 @@
     },
     "src/components/chat/system/ModActionTakenBubble.tsx": {
       "spacingLiteral": 1
-    },
-    "src/components/chat/system/OwnerAutoRemovedBubble.tsx": {
-      "spacingLiteral": 2
     },
     "src/components/chat/system/ReportReceivedBubble.tsx": {
       "fontSizeLiteral": 5,

@@ -50,6 +50,7 @@ export const moderationEn = {
     },
     ownerAutoRemoved: {
       body: 'Your post was automatically removed following repeated reports. If this is a mistake, you can appeal via the support address.',
+      hiddenForReview: 'Your post is hidden from others after repeated reports until the team reviews it. If it is fine, it will reappear.',
     },
     donationLinkReported: {
       title: 'Donation link reported',

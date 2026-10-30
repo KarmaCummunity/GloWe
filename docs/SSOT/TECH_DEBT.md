@@ -53,6 +53,7 @@
 | TD-52 | 🟡 | **Two-person approval workflow for `publish_legal_document`.** A second `super_admin` must approve before `effective_date` arrives. Reduces the blast radius of a single admin pushing bad legal copy. Audit-readiness hardening on top of FR-SETTINGS-010. | Pre-launch hardening |
 | TD-54 | 🟡 | **Periodic check + alert when the ILITA database-registration threshold (תיקון 13 §17B) is approached.** Counts active users + sensitive-data fields; pages when within X% of the trigger. Avoids the "we crossed the line and didn't know" failure mode. | Pre-launch hardening |
 | TD-57 | 🟢 | **Multi-language support for legal documents.** Schema already carries `legal_document_versions.language` (default `'he'`); `LoadLegalDocumentUseCase` would need locale-aware variant selection. Deferred per `R-MVP-Core-4` (Hebrew-only MVP). | Post-MVP |
+| TD-205 | 🟢 | **Legacy post→listing sync maps a post hidden for review to a `closed` listing.** `listing_upsert_from_post` (`0243` family) has no branch for `hidden_pending_review` (`0452`), so the mirrored listing reads `closed` while the post is under review; since `0463` listings have their own `hidden_pending_review`. Visibility is unaffected (legacy listings defer to `is_post_visible_to`), but listing-level admin views and counts show the wrong state. Map it 1:1 when the function is next touched. | Legacy listings sync |
 
 ### Mobile & UI (apps/mobile · packages/ui)
 

@@ -5,7 +5,7 @@ import { marketplaceMap } from './marketplaceMap';
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
-import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
@@ -286,9 +286,11 @@ export const marketplace = {
   myListingsDeleteHint: 'This permanently removes the listing.',
   myListingsSave: 'Save changes',
   myListingsUpdated: 'Updated {{date}}',
+  myListingsHiddenHint: 'Hidden from others until the team reviews the reports',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,
   availability: marketplaceAvailabilityLabels,
+  listingStatus: marketplaceListingStatusLabels,
 } as const;
