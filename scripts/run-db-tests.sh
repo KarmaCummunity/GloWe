@@ -6,27 +6,34 @@
 #   3. per-world lifecycle flow tests (supabase/tests/flows/*.sql)
 #
 # Usage: scripts/run-db-tests.sh [file.sql ...]   (no args = the full suite)
-# Env:   PGHOST (default 127.0.0.1), PGPORT (default 54322), PGPASSWORD (default postgres)
+# Env:   DB_URL — connection URI; when unset it is read from `supabase status`, so no
+#        credential ever lives in this repository.
 set -euo pipefail
 shopt -s nullglob
 
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly TESTS_DIR="$ROOT/supabase/tests"
-export PGHOST="${PGHOST:-127.0.0.1}"
-export PGPORT="${PGPORT:-54322}"
-export PGPASSWORD="${PGPASSWORD:-postgres}"
+
+if [[ -z "${DB_URL:-}" ]]; then
+  DB_URL="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+fi
+if [[ -z "$DB_URL" ]]; then
+  echo "run-db-tests: no DB_URL and no running local stack (run 'supabase start')" >&2
+  exit 2
+fi
 
 # The harness creates a schema and the tests write rows: refuse anything but a local stack.
-case "$PGHOST" in
-  127.0.0.1 | localhost | ::1) ;;
+db_host="$(sed -E 's#^[a-z]+://([^@/]*@)?(\[[^]]*\]|[^:/?]+).*#\2#' <<<"$DB_URL")"
+case "$db_host" in
+  127.0.0.1 | localhost | "[::1]") ;;
   *)
-    echo "run-db-tests: refusing to run against non-local host '$PGHOST'" >&2
+    echo "run-db-tests: refusing to run against non-local host '$db_host'" >&2
     exit 2
     ;;
 esac
 
 run_sql() {
-  psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f "$1"
+  psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f "$1"
 }
 
 echo "── Installing test harness ──"

@@ -10,7 +10,7 @@ scripts/run-db-tests.sh                          # harness + every test
 scripts/run-db-tests.sh supabase/tests/flows/rides_lifecycle.sql   # selected files
 ```
 
-The runner refuses any host but `127.0.0.1` / `localhost`.
+The connection comes from `supabase status` (or a `DB_URL` override), so no credential lives in the repo. The runner refuses any host but `127.0.0.1` / `localhost` / `[::1]`.
 
 ## Files
 
