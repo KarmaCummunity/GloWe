@@ -33,7 +33,7 @@ describe('AdminPermission matrix', () => {
     expect(hasPermission([], perm)).toBe(false);
   });
 
-  it('match quality is visible to super_admin and moderator only (FR-ADMIN-028)', () => {
+  it('match quality is visible to super_admin and moderator only (FR-ADMIN-029)', () => {
     expect(hasPermission(['super_admin'], 'matching.view_quality')).toBe(true);
     expect(hasPermission(['moderator'], 'matching.view_quality')).toBe(true);
     expect(hasPermission(['support'], 'matching.view_quality')).toBe(false);

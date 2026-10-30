@@ -1,4 +1,4 @@
--- 0461_admin_match_quality | KC#1122, FR-ADMIN-028, spec §7.3 / MATCHING_V2 "Quality".
+-- 0461_admin_match_quality | KC#1122, FR-ADMIN-029, spec §7.3 / MATCHING_V2 "Quality".
 -- Per-world match quality for the team (super admin + moderator), over the last p_days:
 --   notified_pairs   pairs where at least one side was really alerted (opted-out sides, 0460,
 --                    do not count) and whose first alert falls in the window

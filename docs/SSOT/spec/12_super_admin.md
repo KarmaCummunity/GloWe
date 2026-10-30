@@ -490,9 +490,9 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 
 ---
 
-## §17 Admin Portal — Match quality dashboard (KC#1122)
+## §18 Admin Portal — Match quality dashboard (KC#1122)
 
-## FR-ADMIN-028 — Match quality per world
+## FR-ADMIN-029 — Match quality per world
 
 > **Status (2026-10-30):** ✅ Implemented — migration `0461`, screen `(admin)/matching`, permission `matching.view_quality`.
 
@@ -522,4 +522,4 @@ The team sees how well matching v2 works per world, to tune `matching_settings` 
 | 0.9 | 2026-06-14 | Added §15 Admin Portal — Survey results & feedback dashboard (A5). FR-ADMIN-021 (`/admin/surveys`): aggregate per-question stats + per-user answers + free-feedback list, gated by new `surveys.view` permission. Migration `0194_admin_survey_results.sql` ships `admin_survey_overview` / `admin_survey_results` / `admin_user_feedback_list` (all SECURITY DEFINER + `admin_assert_role` super_admin\|moderator). Also redesigned the `(admin)/tasks` filter bar (chips no longer wrap vertically; centered max-width layout). |
 | 0.10 | 2026-06-16 | Added §16 Admin Portal — Management hierarchy redesign (P3.A-Tree). FR-ADMIN-022 (unified per-user card + `(admin)/admins/[userId]` detail + profile cross-links; `AdminPerson` / `groupGrantsByUser` domain fold) and FR-ADMIN-023 (include-revoked toggle + `a1-reports-*` revoked-grant presentation fix). Phase 1 is FE-only — no schema change. FR-ADMIN-024..026 (organizations + direct-manager tree + public About tree) specified when Phases 2–3 ship. Plan: `docs/SSOT/archive/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. |
 | 0.11 | 2026-06-16 | Phase 2 (P3.A-Tree.2) shipped. FR-ADMIN-024 (organisations entity + Karma Community platform org + `scope_org_id` FK) and FR-ADMIN-025 (per-grant `manager_grant_id` link, `is_ancestor`, `admin_set_manager` + `admin_org_tree` RPCs, collapsible tree with level badges, org-scoped visibility, assign-manager picker). Migration `0203_admin_org_hierarchy.sql`; decision `D-60` (per-grant manager edge). FR-ADMIN-026 (public About tree + field-level privacy) ships in Phase 3. |
-| 0.12 | 2026-10-30 | Added §17 / FR-ADMIN-028 — match quality dashboard (KC#1122): `admin_match_quality` (`0461`), `(admin)/matching`, `matching.view_quality`. |
+| 0.13 | 2026-10-30 | Added §18 / FR-ADMIN-029 — match quality dashboard (KC#1122): `admin_match_quality` (`0461`), `(admin)/matching`, `matching.view_quality`. |

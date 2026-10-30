@@ -1,4 +1,4 @@
-// KC#1122 / FR-ADMIN-028 — admin match-quality dashboard.
+// KC#1122 / FR-ADMIN-029 — admin match-quality dashboard.
 export const adminMatchingHe = {
   title: 'איכות התאמות',
   subtitle: 'לפי עולם, לפי מועד ההתראה הראשונה על כל זוג',

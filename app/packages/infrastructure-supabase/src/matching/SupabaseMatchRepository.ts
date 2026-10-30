@@ -38,7 +38,7 @@ export interface MatchRespondResult {
   readonly mutual: boolean;
 }
 
-/** KC#1122 / FR-ADMIN-028 — one world's match quality over the requested window (0461). */
+/** KC#1122 / FR-ADMIN-029 — one world's match quality over the requested window (0461). */
 export interface MatchQualityByWorld {
   readonly worldSlug: string;
   readonly worldLabelHe: string;
