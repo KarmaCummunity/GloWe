@@ -1,5 +1,6 @@
 import {
   SandboxPaymentProvider,
+  SupabaseKcSupportChannelsRepository,
   SupabasePaymentsRepository,
   getSupabaseClient,
 } from '@kc/infrastructure-supabase';
@@ -9,6 +10,7 @@ import {
   CreateStandingOrderUseCase,
   DonateNowUseCase,
   GetDonationReceiptUseCase,
+  GetKcSupportOptionsUseCase,
   GetNonprofitPublicPageUseCase,
   ListDonationHistoryUseCase,
   ListMyStandingOrdersUseCase,
@@ -18,12 +20,17 @@ import {
 } from '@kc/application';
 import * as Crypto from 'expo-crypto';
 import { pickAuthStorage } from './authSecureStorage';
+import { KC_SUPPORT_FALLBACK_CHANNELS } from '../config/kcSupportChannels';
 
 let _repo: SupabasePaymentsRepository | null = null;
 let _provider: SandboxPaymentProvider | null = null;
 
+function client() {
+  return getSupabaseClient({ storage: pickAuthStorage() });
+}
+
 function repo() {
-  _repo ??= new SupabasePaymentsRepository(getSupabaseClient({ storage: pickAuthStorage() }));
+  _repo ??= new SupabasePaymentsRepository(client());
   return _repo;
 }
 
@@ -44,6 +51,12 @@ export const paymentsUseCases = {
   resumeStandingOrder: () => new ResumeStandingOrderUseCase(repo()),
   listHistory: () => new ListDonationHistoryUseCase(repo()),
   getReceipt: () => new GetDonationReceiptUseCase(repo()),
+  /** FR-DONATE-011 — direct support for KC; compiled channels cover offline / outage. */
+  kcSupportOptions: () =>
+    new GetKcSupportOptionsUseCase(
+      new SupabaseKcSupportChannelsRepository(client()),
+      KC_SUPPORT_FALLBACK_CHANNELS,
+    ),
 };
 
 export function newIdempotencyKey(prefix: string): string {

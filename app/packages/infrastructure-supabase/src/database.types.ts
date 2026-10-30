@@ -2813,6 +2813,30 @@ export type Database = {
         }
         Relationships: []
       }
+      kc_support_channels: {
+        Row: {
+          channel: string
+          is_active: boolean
+          provider_label: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          channel: string
+          is_active?: boolean
+          provider_label: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          channel?: string
+          is_active?: boolean
+          provider_label?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       legal_document_versions: {
         Row: {
           body_md: string

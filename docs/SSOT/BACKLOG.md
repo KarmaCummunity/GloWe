@@ -29,6 +29,12 @@
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
 | PERF-5 | **DB consolidation — per-chat unread count RPC** | agent-fullstack | 🟡 In progress | Migration `0133` |
 
+## DONATE — Money hub
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| DONATE-G8b | **Donation-to-KC confirmation + karma.** Grow webhook Edge Function (verify with Grow API, idempotent via `provider_webhook_events`), record the donation, award karma (1 per ₪10, 10/month standing order, cap 100 — §7.6). [blocked: Grow merchant account + API credentials — launch plan A11] | agent-be | ⏳ Planned | `spec/13_donations.md` FR-DONATE-011 AC8 · `docs/spec/93` G8 |
+
 ## Deferred (post-MVP, still tracked)
 
 | ID | Task | Status | Spec |

@@ -14,9 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
 import { warmPromptCardBase } from './warmPromptCardStyles';
-
-const BIT_URL = 'https://www.bitpay.co.il/app/share-info?i=192485429007_19nlt4Un';
-const PAYBOX_URL = 'https://links.payboxapp.com/XR2JbQRxMUb';
+import { KC_BIT_URL, KC_PAYBOX_URL } from '../config/kcSupportChannels';
 
 export interface DonationSupportCardProps {
   readonly style?: StyleProp<ViewStyle>;
@@ -114,7 +112,7 @@ export function DonationSupportCard({ style, testID }: DonationSupportCardProps)
       <View style={styles.row}>
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary]}
-          onPress={() => openUrl(BIT_URL)}
+          onPress={() => openUrl(KC_BIT_URL)}
           accessibilityRole="button"
           accessibilityLabel={t('donations.supportUs.ctaBitA11y')}
           activeOpacity={0.85}
@@ -128,7 +126,7 @@ export function DonationSupportCard({ style, testID }: DonationSupportCardProps)
 
         <TouchableOpacity
           style={[styles.btn, styles.btnSecondary]}
-          onPress={() => openUrl(PAYBOX_URL)}
+          onPress={() => openUrl(KC_PAYBOX_URL)}
           accessibilityRole="button"
           accessibilityLabel={t('donations.supportUs.ctaPayboxA11y')}
           activeOpacity={0.85}

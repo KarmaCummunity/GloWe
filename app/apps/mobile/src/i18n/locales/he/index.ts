@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────
 
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
@@ -113,6 +114,8 @@ const he = {
 
   marketplace,
   moneyPayments,
+  // Direct support for KC (FR-DONATE-011) — see donations.supportKc.ts
+  supportKc,
   timeVolunteer,
   givingHandoff,
 

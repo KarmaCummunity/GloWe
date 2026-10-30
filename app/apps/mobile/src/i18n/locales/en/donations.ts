@@ -64,7 +64,7 @@ export const donations = {
   moneyScreen: {
     title: 'Monetary donation',
     body:
-      'Donate to verified nonprofits in-app (sandbox — no real charges). External links remain below for legacy flows.',
+      'Support Karma Community directly, find nonprofits to donate to, and share links to nonprofits you know.',
     openLink: 'Open jgive.com',
     linkErrorTitle: 'We couldn’t open the link',
     linkErrorBody: 'Try a different browser or enter the address manually.',

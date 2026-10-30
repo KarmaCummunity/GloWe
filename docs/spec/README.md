@@ -34,7 +34,7 @@
 | 15 | [15_risks.md](./15_risks.md) | Risks |
 | 16 | [16_kpis.md](./16_kpis.md) | KPIs |
 | 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D58 |
-| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S42 |
+| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S43 |
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
 | 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G37 |
 | 95 | [95_reconciliation.md](./95_reconciliation.md) | Book × legacy spec × code verification (2026-10-30), superseded FRs, PM questions Q-1…Q-8, SSOT hygiene notes |

@@ -2,7 +2,9 @@
 
 > **Status:** ✅ Core Complete — Hub, 6 categories, donation links, Edge Function shipped. ⚠️ Audit 2026-05-16: 🔴 **`validate-donation-link` SSRF** — no host allow-list, no private-IP block, follows redirects (TD-79, BACKLOG P2.12). 🟠 FR-DONATE-003 AC2 missing jgive CTA; FR-DONATE-001/006 layout is 2-col grid instead of vertical stacked with divider; FR-DONATE-008 AC3 reachability rule diverged (`!= 404` instead of `200..399`); error-code parity gaps. TD-97. See `docs/SSOT/archive/audit/2026-05-16/06_donations_stats_settings.md`.
 >
-> **Status correction (2026-10-30):** the `validate-donation-link` item from the 2026-05-16 audit (TD-79 there) is resolved in code — host/port/redirect validation is implemented in `supabase/functions/validate-donation-link/index.ts`. Remaining open items: jgive CTA, layout, reachability rule (FR-DONATE-008 is superseded by D9, see `docs/spec/95_reconciliation.md`).
+> **Money hub (2026-10-30):** `FR-DONATE-011` ✅ — direct support for KC (one-time via Bit / PayBox / card page, monthly standing order via a hosted card page) with a donor legal notice; channel URLs are server config (`kc_support_channels`, migration `0447`). `FR-DONATE-003` jgive CTA and community links restored; the sandbox in-app org flow (#850) is hidden behind `money_in_app_org_payments` (default off). Payment confirmation + karma (D20 "receives confirmation", 07.6) remain open — G8.
+>
+> **Status correction (2026-10-30):** the `validate-donation-link` item from the 2026-05-16 audit (TD-79 there) is resolved in code — host/port/redirect validation is implemented in `supabase/functions/validate-donation-link/index.ts`. Remaining open items: layout, reachability rule (FR-DONATE-008 is superseded by D9, see `docs/spec/95_reconciliation.md`).
 >
 > **Behavior update (2026-05-12)** — Donation link **remove** is a hard **`DELETE`** on `donation_links` (authorized by RLS policy `donation_links_delete_own_or_admin`); the app no longer sets `hidden_at` / `hidden_by` on remove. **Edit** must always invoke `validate-donation-link` with body field **`link_id`** set to the UUID of the row being edited so the Edge Function performs an **UPDATE**, never a second INSERT. One-time DB cleanup: migration `0050_donation_links_purge_soft_deleted.sql` deletes rows that were previously soft-hidden (`hidden_at IS NOT NULL`). עברית: מחיקה = מחיקת שורה מהטבלה; עריכה = עדכון אותה שורה ב־UUID שנבחר, לא יצירת קישור חדש.
 
@@ -18,7 +20,7 @@ Non-goals (out of scope):
 
 - Server-side filtering, ranking, or recommendations on the Hub.
 - Per-organization volunteer dispatch beyond a single admin thread.
-- Native fundraising / donation flow (deferred — Money sub-screen is link-out only).
+- Native fundraising / in-app payment processing (deferred — phase 2, D20). Donations to KC itself (`FR-DONATE-011`) and to partner nonprofits are link-outs to licensed providers; the app never handles payment data.
 - Universal search across donation categories — that lives in `FR-FEED-016` (placeholder) and a future `FR-FEED-017+` (engine).
 
 ---
@@ -63,19 +65,20 @@ Tapping the Items tile navigates the user to the Home Feed unchanged.
 ## FR-DONATE-003 — Money sub-screen
 
 **Description.**
-A coming-soon screen for the Money modality that links out to the partner platform `jgive`.
+The Money hub. Top to bottom: hero → *Support KC directly* card (`FR-DONATE-011`) → partner-nonprofits card linking out to `jgive` → community NGO links (`FR-DONATE-007`) → the in-app verified-nonprofit flow (#850), rendered only while the `money_in_app_org_payments` flag is on (it runs on a sandbox provider). The screen is a single vertical `ScrollView` (`FR-DONATE-007 AC6`).
 
 **Source.**
 - Design spec: §5.3.
-- Decisions: `D-16`.
+- Decisions: `D-16`, `D20`, `D37` (project book `docs/spec/05_giving_worlds.md` §5.5).
 
 **Acceptance Criteria.**
-- AC1. Body copy (Hebrew, verbatim): *"קטגוריית הכסף תפתח בקרוב. ועד אז מזמינים אתכם להיכנס ולתרום / לחפש תורמים דרך עמותת jgive."*
-- AC2. A primary button labeled *"פתח את jgive.com ↗"* invokes `Linking.openURL('https://jgive.com')`.
+- AC1. Hero body copy comes from `donations.moneyScreen.body` (2026-10-30: support KC, find nonprofits, share links — replaces the coming-soon and sandbox wording).
+- AC2. The partner card (`PartnerNonprofitsCard`) shows `supportKc.partnersTitle` / `partnersBody` and a secondary button `donations.moneyScreen.openLink` that opens `https://www.jgive.com`.
 - AC3. The link opens in the platform's external browser (no in-app WebView).
-- AC4. If `Linking.canOpenURL` returns false, an inline error is shown: *"לא הצלחנו לפתוח את הקישור. נסו דפדפן אחר."*
+- AC4. If the link cannot be opened, the user sees `donations.moneyScreen.linkErrorBody`.
 - AC5. The screen is auth-required in MVP-core (`FR-DONATE-005`); see TD-112 for future guest-scope mirror.
 - AC6. **(FR-DONATE-007 augmentation, 2026-05-10)** Below the existing CTA, the screen renders a `<DonationLinksList categorySlug="money" />` section — same component as the new category screens — listing community-curated links and exposing the *"+"* add-link button.
+- AC7. **(2026-10-30)** The in-app verified-nonprofit section (nonprofit list, donation history and standing-order links, sandbox banner) renders only when `useFeatureFlag('money_in_app_org_payments')` is true. Compiled default `false`; remote override row seeded `false` by migration `0447`.
 
 **Related.** Screens: 2.7 · External link target: `jgive.com`.
 
@@ -230,6 +233,28 @@ A reusable presentational card prompting the viewer (guest or signed-in — see 
 
 ---
 
+## FR-DONATE-011 — Support KC directly: one-time + monthly standing order
+
+**Description.**
+A *Support KC directly* card at the top of the Money hub lets a donor give to Karma Community itself — once (Bit, PayBox, or a credit-card hosted page) or as a monthly credit-card standing order. Per `D20` the app **only redirects**: every option is a licensed provider's hosted page opened outside the app, so card and bank details never pass through KC (no PCI-DSS scope) and App Store 3.2.2(iv) / Google Play donation rules are respected. Destination URLs are server configuration so the provider can be swapped without a release (`D20`).
+
+**Source.**
+- PM request 2026-10-30; project book `D4`, `D20` (`docs/spec/05_giving_worlds.md` §5.5, `docs/spec/08_organizations.md`), gap `G8`.
+
+**Acceptance Criteria.**
+- AC1. **Configuration.** Channels live in `public.kc_support_channels` (migration `0447`): `channel ∈ {bit, paybox, card_one_time, card_standing_order}` (PK), `url`, `provider_label`, `is_active`. A CHECK accepts only `https://` URLs without credentials or whitespace. RLS: `anon` + `authenticated` read active rows; only `has_admin_role(auth.uid(),'super_admin')` may write. `bit` and `paybox` are seeded with the `FR-DONATE-010` URLs; card rows are added by the operator once the Grow merchant account exists (launch plan A11, `docs/SSOT/OPERATOR_RUNBOOK.md` → *KC support channels*).
+- AC2. **Resolution.** `GetKcSupportOptionsUseCase` returns `{ oneTime, standingOrder }`: insecure URLs are dropped (domain `isSecureSupportUrl`, mirrors the CHECK), the first row per kind wins, one-time order is `bit → paybox → card_one_time`. When the table cannot be read (offline / outage) the compiled Bit + PayBox channels (`src/config/kcSupportChannels.ts`) are used; an empty server list is respected (operator disabled all).
+- AC3. **Buttons.** One-time heading + one full-width button per one-time channel (first = primary style, rest = secondary); standing-order heading, body naming the provider (`supportKc.standingOrderBody`), and a *Set up a standing order* button — each section only when it has a channel. Every button carries an `open-outline` icon and an accessibility label naming the provider and that it opens outside the app. While loading, a spinner; with no channels, `supportKc.unavailable`.
+- AC4. **Opening.** A tap opens the exact configured URL in the external browser / provider app (`Linking.openURL`; `window.open` on web). Never an in-app WebView. Failure → `supportKc.linkError`.
+- AC5. **Legal notice** (`SupportKcDisclosure`, always shown): payment is processed off-app by a licensed provider and card/account details are neither seen nor stored by KC; the money goes to KC and funds building and running the platform; KC is not yet a registered nonprofit, so **no section-46 tax credit**, and the provider sends the payment confirmation; the donation is voluntary and grants no in-app benefit, service or priority.
+- AC6. **Standing-order cancellation.** When a standing order is offered, the notice adds that it can be cancelled at any time, effective within 3 business days at the latest (Israeli Consumer Protection Law §13D), and — for signed-in users — a *Request to cancel a standing order* link: confirm dialog → the fixed text `supportKc.cancelMessage` is posted to the user's support thread (`FR-CHAT-007`) → navigate to that chat. Send failure keeps the user on the screen with `supportKc.cancelError`. Operator obligation: stop the order at the provider and confirm in that chat within 3 business days.
+- AC7. All strings live in `supportKc.*` (he + en); the disclosure wording changes only with PM approval.
+- AC8. Out of scope (open, `G8`): provider confirmation webhook, recording donations to KC, and the karma award for donations / standing orders (`docs/spec/07_cross_cutting_systems.md` §7.6) — they require the Grow API credentials.
+
+**Related.** `FR-DONATE-003` (host screen), `FR-DONATE-010` (same Bit/PayBox URLs on About + Settings, now read from `src/config/kcSupportChannels.ts`), `FR-CHAT-007`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-09 | Initial draft. Reintroduces Donations tab into MVP per `D-16`. Defines `FR-DONATE-001..005`. |
@@ -239,3 +264,4 @@ A reusable presentational card prompting the viewer (guest or signed-in — see 
 | 0.7 | 2026-05-12 | Status banner + `FR-DONATE-008 AC3c` (client edit vs add contract); `FR-DONATE-007 AC1` + `FR-DONATE-009` description clarify DELETE vs Edge update; Hebrew summary in status. |
 | 0.8 | 2026-05-12 | `FR-DONATE-007 AC7` — silent server refetch after add/edit/remove so the list re-renders without manual reload. |
 | 0.9 | 2026-05-18 | Adds `FR-DONATE-010` — platform-support card (Bit + Paybox) embedded on About + Settings. |
+| 1.0 | 2026-10-30 | Adds `FR-DONATE-011` — direct support for KC (one-time + monthly standing order, legal notice, server-configured channels). `FR-DONATE-003` rewritten to the current Money hub; jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. |

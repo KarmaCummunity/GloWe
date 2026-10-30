@@ -26,4 +26,4 @@ See domain `employment` in [06](./06_domain_hubs.md). Any registered org may pos
 
 ## Money and donations
 Phase 1: donation to KC, one-time or standing order, via Grow hosted page — provider swappable without code (D20). Phase 2: JGive-style platform for every approved org; section-46 receipts after KC's nonprofit registration. **No money between users** (D4). Everything free for orgs now (D55).
-Tech: D4,D20,D29,D37 · FR-DONATE-003/010 · Bit/Paybox links · G8
+Tech: D4,D20,D29,D37 · FR-DONATE-003/010/011 · `kc_support_channels` (0447) — Bit/PayBox + Grow hosted pages, swappable without code · sandbox org flow behind `money_in_app_org_payments` · G8
