@@ -27,6 +27,7 @@ export const adminLayersEn = {
   moreRoles:   (n: number) => `+${n}`,
   loadError:   'Failed to load the hierarchy.',
   retry:       'Try again',
-  personA11y:  (name: string, role: string, org: string) => `${name}, ${role}, ${org}`,
+  personA11y:  (name: string, role: string, org: string, extraRoles: number) =>
+    extraRoles > 0 ? `${name}, ${role} and ${extraRoles} more roles, ${org}` : `${name}, ${role}, ${org}`,
   headcountA11y: (n: number) => `${n} people in this layer`,
 } as const;

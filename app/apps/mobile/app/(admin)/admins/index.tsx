@@ -101,8 +101,9 @@ const useStyles = makeUseStyles(({ colors }) => ({
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
   deniedTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
   deniedHint:  { fontSize: 13, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
+  // Wraps so three view tabs + the grant button never overflow a phone width.
   headerControls: {
-    flexDirection: rowDirectionStart, alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: rowDirectionStart, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 12, gap: 12,
   },
   segment:     { flexDirection: rowDirectionStart, backgroundColor: colors.surface, borderRadius: 999, padding: 3 },

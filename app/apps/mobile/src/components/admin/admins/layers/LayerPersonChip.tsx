@@ -36,7 +36,7 @@ export function LayerPersonChip({ person, orgName, orgAccent, onSelect }: LayerP
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={L.admin.admins.layers.personA11y(name, roleLabel, orgName)}
+      accessibilityLabel={L.admin.admins.layers.personA11y(name, roleLabel, orgName, extraRoles)}
       onPress={() => onSelect(person.userId)}
       style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
     >

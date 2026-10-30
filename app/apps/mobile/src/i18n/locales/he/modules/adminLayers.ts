@@ -27,6 +27,7 @@ export const adminLayersHe = {
   moreRoles:   (n: number) => `+${n}`,
   loadError:   'טעינת מבנה ההיררכיה נכשלה.',
   retry:       'נסה שוב',
-  personA11y:  (name: string, role: string, org: string) => `${name}, ${role}, ${org}`,
+  personA11y:  (name: string, role: string, org: string, extraRoles: number) =>
+    extraRoles > 0 ? `${name}, ${role} ועוד ${extraRoles} תפקידים, ${org}` : `${name}, ${role}, ${org}`,
   headcountA11y: (n: number) => `${n} אנשים בשכבה`,
 } as const;

@@ -107,8 +107,10 @@ export function AdminsLayersView({ isWide, onSelect }: AdminsLayersViewProps) {
 
   // Branch on data, not on `isLoading`: while the persisted cache restores, a
   // query is pending without fetching, so "not loading" does not mean "failed".
+  // Loaded data wins over an error: a failed background refetch keeps the last
+  // good pyramid on screen instead of replacing it with the error state.
   let content;
-  if (error) {
+  if (pyramid === null && error) {
     content = (
       <View style={styles.center}>
         <Text style={styles.errorText}>{L.admin.admins.layers.loadError}</Text>
