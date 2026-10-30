@@ -2,6 +2,8 @@
 import React, { Suspense, lazy } from 'react';
 import { PostGridSkeleton } from '../../src/components/skeletons/PostGridSkeleton';
 
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
+
 const PostDetailScreen = lazy(() => import('../../src/screens/post/PostDetailScreen'));
 
 export default function PostDetailRoute() {

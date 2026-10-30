@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, TextInput } from '@kc/ui';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

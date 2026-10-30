@@ -64,7 +64,7 @@ export const donations = {
   moneyScreen: {
     title: 'תרומה כספית',
     body:
-      'תרומה לעמותות מאומתות באפליקציה (סandbox — ללא חיוב אמיתי). קישורים חיצוניים נשארים למטה.',
+      'כאן אפשר לתמוך ישירות בקהילת קארמה, למצוא עמותות לתרומה ולשתף קישורים לעמותות שאתם מכירים.',
     openLink: 'פתח את jgive.com',
     linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
     linkErrorBody: 'נסו דפדפן אחר או הקלידו את הכתובת ידנית.',
@@ -110,12 +110,6 @@ export const donations = {
     title: 'תורמים באהבה? תרמו גם לקהילה',
     tagline:
       'קארמה היא קהילה חופשית שרצה על האהבה והנדיבות שלכם. כל תרומה עוזרת לנו להמשיך לבנות מקום של נתינה לכולם.',
-    ctaBit: 'תרומה דרך ביט',
-    ctaPaybox: 'תרומה דרך פייבוקס',
-    ctaBitA11y: 'פתח את אפליקציית ביט לתרומה לקהילת קארמה',
-    ctaPayboxA11y: 'פתח את אפליקציית פייבוקס לתרומה לקהילת קארמה',
-    linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
-    linkErrorBody: 'נסו לעדכן את האפליקציה או לפתוח את הקישור בדפדפן.',
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
@@ -262,6 +256,8 @@ export const marketplace = {
   forYouTitle: 'בשבילך',
   createHubTitle: 'בחירת עולם נתינה',
   fieldKind: 'סוג מודעה',
+  fieldWorldSubcategory: 'תת-קטגוריה',
+  fieldWorldSubcategoryHint: 'לא חובה — עוזר למצוא לך התאמות',
   fieldDirection: 'מציע / מבקש',
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',

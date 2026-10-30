@@ -3,9 +3,9 @@
 // V2-ADMIN-REPORTS-4 — each row is now tappable; routes the admin straight to
 // the reporter's profile so they can vet the reporter's history before acting.
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { ReportCaseReporter } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface CaseReporterListProps {
@@ -32,7 +32,7 @@ export function CaseReporterList({ reporters }: CaseReporterListProps) {
             key={r.reportId}
             accessibilityRole="button"
             accessibilityLabel={L.admin.caseDetail.openReporter(label)}
-            onPress={() => router.push(`/user/${r.reporterId}` as never)}
+            onPress={() => router.push(`/user/${r.reporterId}`)}
             style={styles.item}
           >
             <View style={styles.head}>

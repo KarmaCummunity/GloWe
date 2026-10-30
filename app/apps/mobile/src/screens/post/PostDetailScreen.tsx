@@ -1,7 +1,7 @@
 // Post detail — wired to live IPostRepository (P0.4-FE).
 // Mapped to: FR-POST-014, FR-POST-015, FR-POST-021, FR-POST-023, FR-CHAT-004, FR-CHAT-005. Closes TD-32 / AUDIT-P2-09.
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { spacing, useTheme } from '@kc/ui';
+import { spacing, useTheme, Text } from '@kc/ui';
 import { EmptyState } from '../../components/EmptyState';
 import { useAuthStore } from '../../store/authStore';
 import { getPostByIdUseCase } from '../../services/postsComposition';

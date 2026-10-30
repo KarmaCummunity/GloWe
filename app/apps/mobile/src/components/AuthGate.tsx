@@ -4,8 +4,8 @@
 // FR-AUTH-010 AC3 (Skip preserves location).
 // FR-CHAT-001: inbox subscription started on sign-in, torn down on sign-out.
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text, ActivityIndicator, Image, View } from 'react-native';
-import { spacing, typography, useTheme } from '@kc/ui';
+import { Pressable, ActivityIndicator, Image, View } from 'react-native';
+import { spacing, typography, useTheme, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSegments, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,6 +15,7 @@ import {
   subscribeToSession,
 } from '../services/authComposition';
 import { tryDevAutoSignIn } from '../services/devAutoSignIn';
+import { startColdStartSession } from '../services/coldStartSession';
 import { getDevGhostSession, isDevGhostSessionEnabled } from '../services/devGhostSession';
 import { getOnboardingBootstrap, getReconcileAuthProfileMetadataUseCase } from '../services/userComposition';
 import { useAuthStore } from '../store/authStore';
@@ -54,36 +55,21 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
   //   2. Auto sign-in — real Supabase auth with test credentials (devAutoSignIn.ts)
   // Ghost takes priority because it's instant and has no network dependency.
   useEffect(() => {
-    let mounted = true;
-
     // Ghost mode short-circuits the restore flow entirely — no Supabase call,
     // no subscription needed (the fake session never changes).
     const ghost = getDevGhostSession();
     if (ghost) {
       setSession(ghost);
-      return () => {
-        mounted = false;
-      };
+      return undefined;
     }
 
-    void (async () => {
-      try {
-        const { session } = await getRestoreSessionUseCase().execute();
-        const devSession = await tryDevAutoSignIn(session);
-        if (mounted) setSession(devSession ?? session);
-      } catch {
-        const devSession = await tryDevAutoSignIn(null);
-        if (mounted) setSession(devSession);
-      }
-    })();
-
-    const unsubscribe = subscribeToSession((s) => {
-      if (mounted) setSession(s);
+    // Restore + subscription race handling lives in coldStartSession (TD-127).
+    return startColdStartSession({
+      restore: async () => (await getRestoreSessionUseCase().execute()).session,
+      subscribe: subscribeToSession,
+      devFallback: tryDevAutoSignIn,
+      setSession,
     });
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
   }, [setSession]);
 
   useEffect(() => {

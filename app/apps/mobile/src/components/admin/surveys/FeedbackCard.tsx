@@ -1,9 +1,9 @@
 // app/apps/mobile/src/components/admin/surveys/FeedbackCard.tsx
 // FR-ADMIN-021 — one free-text feedback entry (FR-SETTINGS-017).
 import type { ReactElement } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { AdminFeedbackEntry } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

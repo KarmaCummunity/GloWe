@@ -1,11 +1,11 @@
 // Convenient map (Epic #1166): clustered pins for every world, filter chips, near me,
 // search-this-area, list/map toggle and a preview sheet using the unified listing card.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, I18nManager, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, I18nManager, Pressable, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import {
   LOD_REGION,
   MARKETPLACE_WORLD_SLUGS,
@@ -146,7 +146,7 @@ export function MapExplorer({ initialWorld = null }: Readonly<{ initialWorld?: s
   );
 
   const selectedRide = selection?.length === 1 ? selection[0]!.route : null;
-  const openListing = (id: string) => router.push(`/(tabs)/donations/marketplace/${id}` as never);
+  const openListing = (id: string) => router.push(`/(tabs)/donations/marketplace/${id}`);
 
   const chips: Array<string | null> = [null, ...MARKETPLACE_WORLD_SLUGS];
 

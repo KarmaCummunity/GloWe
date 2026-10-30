@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import {
-  Pressable, ScrollView, StyleSheet, Text, TextInput, View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import {
   ADMIN_TASK_CATEGORY_DEFAULT,
@@ -11,7 +14,7 @@ import {
   type AdminTaskCategory, type AdminTaskPriority,
   hasPermission, isAdminTaskError,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useCreateAdminTask } from '../../../src/hooks/useAdminTaskMutations';
 import { AssigneePicker } from '../../../src/components/admin/tasks/AssigneePicker';
@@ -61,7 +64,7 @@ export default function NewTaskScreen() {
         assigneeId,
         labels,
       });
-      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } } as never);
+      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } });
     } catch (e) {
       console.error('[admin tasks] create failed', e);
       if (isAdminTaskError(e)) {

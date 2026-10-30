@@ -1,6 +1,7 @@
 // Native map (Apple Maps on iOS, Google Maps on Android) with clustered pins + ride route line.
 import React, { useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@kc/ui';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
 import { isValidLatLng, mapWorldColor, sanitizeRegion, sanitizeRoute } from '@kc/domain';
 import { createRegionChangeGate } from '../../lib/map/regionChangeGate';

@@ -10,11 +10,11 @@
 // with the rest of the redesigned main-screen idiom (welcome-style cream
 // backdrop, soft shadow, orange-tinted icon tiles, staggered spring entries).
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { TopBar } from '../../../src/components/TopBar';
 import { PressableScale } from '../../../src/components/animations/PressableScale';
 import { Screen } from '../../../src/components/ui/Screen';
@@ -30,7 +30,7 @@ import { useRemoteAppFlags } from '../../../src/hooks/useLaunchWorldFlags';
 import { isHubTileLaunchEnabled } from '@kc/domain';
 import {
   DONATIONS_HUB_FEATURED,
-  DONATIONS_HUB_TILES,
+  donationsHubTiles,
   type DonationHubTile,
 } from '../../../src/navigation/donationsHubTiles';
 
@@ -159,7 +159,10 @@ export default function DonationsHubScreen() {
   const tabBarPad = useShellTabBarScrollInset();
   const remoteFlags = useRemoteAppFlags();
   const showFeaturedItems = isHubTileLaunchEnabled('items', remoteFlags);
-  const visibleTiles = DONATIONS_HUB_TILES.filter((tile) => isHubTileLaunchEnabled(tile.key, remoteFlags));
+  // D60 — every world is shown; portal worlds (flag off) say they offer links and knowledge.
+  const visibleTiles = donationsHubTiles(remoteFlags).map(({ tile, mode }) =>
+    mode === 'portal' ? { ...tile, subtitleKey: 'donations.worldLaunch.portalTileSubtitle' } : tile,
+  );
 
   // Desktop (>=1024) aside — live community snapshot (FR-RESP-003).
   useScreenAside(() => <CommunityStatsAside />, []);
@@ -189,7 +192,7 @@ export default function DonationsHubScreen() {
         {showFeaturedItems ? (
           <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
             <PressableScale
-              onPress={() => router.push(DONATIONS_HUB_FEATURED.href as Parameters<typeof router.push>[0])}
+              onPress={() => router.push(DONATIONS_HUB_FEATURED.href)}
               accessibilityRole="button"
               accessibilityLabel={`${t(DONATIONS_HUB_FEATURED.titleKey)} — ${t(DONATIONS_HUB_FEATURED.subtitleKey)}`}
               style={styles.blockStretch}
@@ -250,7 +253,7 @@ export default function DonationsHubScreen() {
                   {pair.map((cat) => (
                     <PressableScale
                       key={cat.key}
-                      onPress={() => router.push(cat.href as Parameters<typeof router.push>[0])}
+                      onPress={() => router.push(cat.href)}
                       accessibilityRole="button"
                       accessibilityLabel={`${t(cat.titleKey)} — ${t(cat.subtitleKey)}`}
                       style={styles.gridPressable}

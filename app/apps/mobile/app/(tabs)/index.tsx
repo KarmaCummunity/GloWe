@@ -273,7 +273,7 @@ export default function HomeFeedScreen() {
             hasActiveFilters={activeCount > 0}
             onClearFilters={() => filter.clearAll()}
             onShare={() => router.push('/(tabs)/create')}
-            onOpenFeedSettings={() => router.push('/settings/feed' as never)}
+            onOpenFeedSettings={() => router.push('/settings/feed')}
           />
         }
       />

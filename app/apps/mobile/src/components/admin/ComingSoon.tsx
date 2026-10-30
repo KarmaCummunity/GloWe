@@ -1,7 +1,8 @@
 // app/apps/mobile/src/components/admin/ComingSoon.tsx
 import { router } from 'expo-router';
 import type { ReactElement } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { Text } from '@kc/ui';
 import { useLocaleBundle } from '../../i18n/useLocaleBundle';
 
 export interface ComingSoonProps {

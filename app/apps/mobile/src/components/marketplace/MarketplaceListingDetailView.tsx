@@ -3,12 +3,11 @@ import {
   Pressable,
   ScrollView,
   Share,
-  Text,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { KCImage } from '../ui/KCImage';
 import { listingImagePublicUrl } from '../../services/listingImageUpload';

@@ -3,6 +3,7 @@
 // Category config drives which fields the unified create form renders and which
 // write path (legacy post vs marketplace listing) is used on submit.
 import { MARKETPLACE_CREATE_WORLD_SLUGS, ROUTED_WORLDS } from '@kc/domain';
+import type { Href } from 'expo-router';
 
 export type CreateEngine = 'post' | 'listing';
 export type CreateDirection = 'give' | 'request';
@@ -18,6 +19,7 @@ export type SpecificCreateField =
   | 'urgency'
   | 'exposure'
   | 'listingKind'
+  | 'worldSubcategory'
   | 'listingDetails'
   | 'rideRoute'
   | 'externalBody'
@@ -44,8 +46,12 @@ const POST_CATEGORY: CreateCategoryConfig = {
   specificFields: ['postCategory', 'condition', 'estimatedValue', 'urgency', 'exposure'],
 };
 
+/** Worlds whose giver picks a world subcategory (items → books, food → bakery…), KC#1296. */
+export const WORLDS_WITH_SUBCATEGORY_PICKER: readonly string[] = ['items', 'food'];
+
 function listingCategory(slug: string): CreateCategoryConfig {
   const specific: SpecificCreateField[] = ['listingKind'];
+  if (WORLDS_WITH_SUBCATEGORY_PICKER.includes(slug)) specific.push('worldSubcategory');
   if (slug === 'rides') specific.push('rideRoute');
   specific.push('listingDetails');
   if ((ROUTED_WORLDS as readonly string[]).includes(slug)) specific.push('externalBody');
@@ -97,7 +103,7 @@ export function visibleCreateCategories(
 }
 
 /** Single entry route for every create button; preselects a category. */
-export function createRouteFor(categoryId?: string | null): string {
+export function createRouteFor(categoryId?: string | null): Href {
   const base = '/(tabs)/create';
   if (!categoryId || categoryId === GENERAL_CREATE_CATEGORY) return base;
   return `${base}?category=${encodeURIComponent(categoryId)}`;

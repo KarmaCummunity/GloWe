@@ -1,10 +1,10 @@
 // FR-KARMA-007 — self-only karma number + "how to earn" explainer.
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart, selfAlignStart } from '../../lib/rtlLayout';
 
 export function KarmaBadge({ points }: { readonly points: number }) {
@@ -17,7 +17,7 @@ export function KarmaBadge({ points }: { readonly points: number }) {
     <>
       <TouchableOpacity
         style={styles.badge}
-        onPress={() => router.push('/karma-history' as never)}
+        onPress={() => router.push('/karma-history')}
         accessibilityRole="button"
         accessibilityHint={t('karma.historyOpen')}
       >

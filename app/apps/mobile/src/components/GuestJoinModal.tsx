@@ -1,12 +1,11 @@
 import React from 'react';
 import {
   Modal,
-  Text,
   TouchableOpacity,
   Pressable,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, radius, typography, shadow } from '@kc/ui';
+import { makeUseStyles, spacing, radius, typography, shadow, Text } from '@kc/ui';
 
 export interface GuestJoinModalProps {
   visible: boolean;

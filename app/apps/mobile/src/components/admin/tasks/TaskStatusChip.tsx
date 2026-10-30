@@ -1,7 +1,7 @@
 // app/apps/mobile/src/components/admin/tasks/TaskStatusChip.tsx
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { AdminTaskStatus } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface TaskStatusChipProps {

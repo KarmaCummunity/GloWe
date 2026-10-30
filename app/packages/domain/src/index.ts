@@ -45,4 +45,5 @@ export * from './marketplace/externalBodies';
 export * from './marketplace/mapPins';
 export * from './launch/launchWorlds';
 export * from './payments/PaymentTypes';
+export * from './payments/KcSupportChannel';
 export * from './volunteering';

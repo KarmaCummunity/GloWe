@@ -19,12 +19,21 @@ Huge market already exists in WhatsApp/Facebook/Yad2 "giveaway" without trust or
 Item subcategories (D18): furniture, kitchen, clothing, books, toys, baby, sport, electronics, tools, other. Baby-product safety warning.
 
 ## 5.3 Rides (`rides`) — MVP (flag off in code)
-Rides live in WhatsApp groups; dedicated apps failed on critical mass. This world is the main growth engine: WhatsApp group import (D38, D47) and fixed routes.
-1. Driver posts — origin, destination, departure, estimated end, seats. Anyone may drive; verification is shown (D23).
-2. Passenger requests/joins — chat, meeting point.
-3. Ride — emergency button during an active ride.
-4. "Ride completed" — karma, internal rating; offer auto-closes 30 min after estimated end (D21).
+Rides live in WhatsApp groups; dedicated apps failed on critical mass. This world is the main growth engine: WhatsApp group import (D38, D47) and fixed routes. The bar is the WhatsApp ride group: publishing a ride is as fast as sending a message, and everyone who cares about that route hears about it at once (D70–D75).
+
+One rides flow (D70): ride offers and requests are posts with a ride extension; bookings use the generic handoff stage. The separate legacy ride screens are retired; their emergency button and cost-sharing caps attach to this flow.
+
+1. Driver posts (quick publish, D75) — origin, destination, up to 3 meeting points, departure, estimated end, seats. The last route is remembered and a past ride can be published again. Anyone may drive; verification is shown (D23).
+2. Places — origin, destination and meeting points are picked **only** from official catalogs: cities, streets, and named junctions & interchanges. No free-text places (D71).
+3. Passenger books a seat or posts a ride request. The driver sees every booking on the ride and approves or declines each; both sides get a push on every change (D73). Chat per pair (D13). Unapproved bookings expire (S45).
+4. Saved route (D74) — a user follows a route (from → to, optional days and hours) and is notified of new rides along it; the rides form of the saved filter (D10). Urgent rides notifications bypass quiet hours (S44).
+5. Map (D72) — the ride's route (origin → meeting points → destination) is shown on the map; every place has "navigate" to Waze, Google Maps or Apple Maps.
+6. Ride — emergency button during an active ride.
+7. "Ride completed" — karma, internal rating; offer auto-closes 30 min after estimated end (D21).
+
+Feed (D75): offers and requests together, sorted by departure, grouped today / tomorrow / later; departed rides are hidden.
 Rules: no profit — cost-sharing caps (₪70 intercity / ₪20 urban). Secondary use: moving items/food.
+Gaps: G44–G49.
 
 ## 5.4 Time & volunteering (`time`) — MVP, live
 Anyone can give an hour (D22). One-off, person-to-person, and org events.
@@ -34,7 +43,7 @@ Anyone can give an hour (D22). One-off, person-to-person, and org events.
 Emotional support only via a hotline. Elderly actions are tagged with the elderly domain (D39).
 
 ## 5.5 Money (`money`) — MVP (Grow) → phase 2
-No money between users (D4). Now: donate to KC, one-time or recurring, via a Grow hosted payment page (D20) — the app only redirects and receives confirmation, so the provider can be swapped without code. Vision: a JGive-like platform inside the app for every approved org, section-46 receipts, with JGive as partner (D37). No post form. Org directory with proper-management badge (S35).
+No money between users (D4). Now: donate to KC, one-time or recurring, via a Grow hosted payment page (D20) — the app only redirects and receives confirmation, so the provider can be swapped without code. Bit / PayBox transfer links are interim only and disappear once the one-time clearing page is live (D64). Vision: a JGive-like platform inside the app for every approved org, section-46 receipts, with JGive as partner (D37). No post form. Org directory with proper-management badge (S35).
 
 ## 5.6 Housing (`housing`) — next to launch (D30)
 Two tracks: (a) community hosting à la Couchsurfing; (b) housing for at-risk populations (street people, at-risk youth, foster care, people fleeing violence) — only via professional bodies. **ID verification required for both sides** (D30).

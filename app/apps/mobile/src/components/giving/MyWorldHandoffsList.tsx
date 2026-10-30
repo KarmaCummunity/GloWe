@@ -1,10 +1,9 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { KcFlashList } from '../lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { spacing } from '@kc/ui';
+import { spacing, Text } from '@kc/ui';
 import { Screen } from '../ui/Screen';
 import { KcRowCard } from '../cards/KcRowCard';
 import { listingWorldIcon } from '../cards/ListingCard';
@@ -42,7 +41,7 @@ export function MyWorldHandoffsList({ worldSlug }: { readonly worldSlug: 'items'
             title={cleanDisplayTitle(item.title)}
             meta={[item.role]}
             statusLabel={item.status}
-            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
+            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
           />
         )}
       />

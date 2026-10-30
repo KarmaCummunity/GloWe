@@ -3,10 +3,10 @@
 // Spec AC2: confirmation modal explains consequences.
 // Spec AC3: calls rpc_recipient_unmark_self, post→deleted_no_recipient.
 import { useState } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { ConfirmActionModal } from '../post/ConfirmActionModal';
 import { NotifyModal } from '../NotifyModal';
 import { getUnmarkRecipientSelfUseCase } from '../../services/postsComposition';

@@ -92,8 +92,7 @@ export function PostMenuButton({
           invalidatePersonalStatsCaches(queryClient, post.ownerId);
           router.back();
         }}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onEdit={() => router.push(`/edit-post/${post.postId}` as any)}
+        onEdit={() => router.push(`/edit-post/${post.postId}`)}
       />
     </>
   );
