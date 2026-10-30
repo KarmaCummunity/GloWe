@@ -6,9 +6,10 @@
 --   2. a caller without an active grant is rejected with 42501;
 --   3. an org-scoped admin sees only their own org;
 --   4. super_admin sees every org, and the counts are correct:
---      community_total counts active users, role_holder_total counts distinct
---      granted users, affiliated_count excludes members who already hold a
---      grant in the same org.
+--      community_total counts members (active or suspended, D66),
+--      role_holder_total counts distinct granted members, affiliated_count
+--      excludes members who already hold a grant in the same org and
+--      non-members (banned).
 -- Runs in a rolled-back transaction so it leaves no rows behind.
 
 begin;
@@ -49,8 +50,10 @@ begin
 end $$;
 
 -- Fixture: one org, an org_admin who also holds a second grant (so distinct
--- users ≠ grant rows), a granted volunteer, two membership-only volunteers, a
--- suspended membership-only volunteer (must not count), and a plain user.
+-- users ≠ grant rows), a suspended org_manager (a member, so a role-holder),
+-- a granted volunteer, two membership-only volunteers, a suspended
+-- membership-only volunteer (a member, so counted), a banned membership-only
+-- volunteer (not a member, so not counted), and a plain user.
 create temp table fx on commit drop as
 select
   gen_random_uuid()              as org_id,
@@ -59,7 +62,9 @@ select
   pg_temp.mk_user('hc_grantvol') as grant_vol_id,
   pg_temp.mk_user('hc_memvol1')  as mem_vol1_id,
   pg_temp.mk_user('hc_memvol2')  as mem_vol2_id,
+  pg_temp.mk_user('hc_suspmgr')  as susp_mgr_id,
   pg_temp.mk_user('hc_suspvol')  as susp_vol_id,
+  pg_temp.mk_user('hc_banvol')   as ban_vol_id,
   pg_temp.mk_user('hc_plain')    as plain_id;
 grant select on fx to authenticated;
 
@@ -73,17 +78,23 @@ insert into public.admin_role_grants (user_id, role, scope_org_id)
 select super_id, 'super_admin', null from fx
 union all select org_admin_id, 'org_admin', org_id from fx
 union all select grant_vol_id, 'org_volunteer', org_id from fx
-union all select org_admin_id, 'org_volunteer', org_id from fx;
+union all select org_admin_id, 'org_volunteer', org_id from fx
+union all select susp_mgr_id, 'org_manager', org_id from fx;
 
 update public.users set account_status = 'suspended_admin'
  where user_id = (select susp_vol_id from fx);
+update public.users set account_status = 'suspended_for_false_reports'
+ where user_id = (select susp_mgr_id from fx);
+update public.users set account_status = 'banned'
+ where user_id = (select ban_vol_id from fx);
 
 -- The granted volunteer also holds a membership: it must not be double-counted.
 insert into public.org_memberships (org_id, user_id, role)
 select org_id, grant_vol_id, 'org_volunteer' from fx
 union all select org_id, mem_vol1_id, 'org_volunteer' from fx
 union all select org_id, mem_vol2_id, 'volunteer' from fx
-union all select org_id, susp_vol_id, 'org_volunteer' from fx;
+union all select org_id, susp_vol_id, 'org_volunteer' from fx
+union all select org_id, ban_vol_id, 'org_volunteer' from fx;
 
 -- 2. No active grant → forbidden.
 select pg_temp.act_as((select plain_id from fx));
@@ -111,8 +122,9 @@ begin
   if (v -> 'orgs' -> 0 ->> 'org_id')::uuid <> v_org then
     raise exception 'ASSERT FAILED: org admin saw a foreign org';
   end if;
-  if (v -> 'orgs' -> 0 ->> 'affiliated_count')::int <> 2 then
-    raise exception 'ASSERT FAILED: affiliated_count expected 2, got %', v -> 'orgs' -> 0 ->> 'affiliated_count';
+  -- mem_vol1 + mem_vol2 + suspended susp_vol; not the granted or banned ones.
+  if (v -> 'orgs' -> 0 ->> 'affiliated_count')::int <> 3 then
+    raise exception 'ASSERT FAILED: affiliated_count expected 3, got %', v -> 'orgs' -> 0 ->> 'affiliated_count';
   end if;
 end $$;
 reset role;
@@ -123,11 +135,13 @@ reset role;
 create temp table expected on commit drop as
 select
   (select count(*)::int from public.organizations) as orgs,
-  (select count(*)::int from public.users where account_status = 'active') as community,
+  (select count(*)::int from public.users
+    where account_status in ('active', 'suspended_admin', 'suspended_for_false_reports')) as community,
   (select count(distinct g.user_id)::int
      from public.admin_role_grants g
      join public.users u on u.user_id = g.user_id
-    where g.revoked_at is null and u.account_status = 'active') as role_holders;
+    where g.revoked_at is null
+      and u.account_status in ('active', 'suspended_admin', 'suspended_for_false_reports')) as role_holders;
 grant select on expected to authenticated;
 
 select pg_temp.act_as((select super_id from fx));
