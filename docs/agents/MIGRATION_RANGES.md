@@ -56,11 +56,13 @@ Last applied on kc-dev when this was written: `0239`.
 | 0450 | G32 / D59 items and requests never expire + owner reminders (#1259) | in progress |
 | 0451 | G3 / D16 listing anonymity both ways (#1254) | in progress |
 | 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
-| 0453+ | — | free |
+| 0453 | G34 / D63 listing-handoff karma per the §7.6 table (#1262) | in progress |
+| 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
+| 0454–0459, 0461+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0453+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0461+`.
 
 ## How to claim
 
