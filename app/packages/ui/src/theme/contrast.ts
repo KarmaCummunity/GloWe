@@ -16,7 +16,7 @@ export function relativeLuminance(hex: string): number {
     throw new RangeError(`Expected an opaque #RRGGBB colour, got "${hex}"`);
   }
   const value = match[1];
-  const [r, g, b] = [0, 2, 4].map((offset) => channelToLinear(parseInt(value.slice(offset, offset + 2), 16)));
+  const [r, g, b] = [0, 2, 4].map((offset) => channelToLinear(Number.parseInt(value.slice(offset, offset + 2), 16)));
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 

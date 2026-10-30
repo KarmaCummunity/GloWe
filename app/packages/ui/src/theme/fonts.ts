@@ -32,8 +32,9 @@ function toNumericWeight(fontWeight: string | number | undefined): number {
 /** Brand font family for a React Native `fontWeight`, snapped to the nearest loaded face. */
 export function brandFontFamily(fontWeight?: string | number): string {
   const wanted = toNumericWeight(fontWeight);
-  const nearest = LOADED_WEIGHTS.reduce((best, weight) =>
-    Math.abs(weight - wanted) < Math.abs(best - wanted) ? weight : best,
+  const nearest = LOADED_WEIGHTS.reduce(
+    (best, weight) => (Math.abs(weight - wanted) < Math.abs(best - wanted) ? weight : best),
+    LOADED_WEIGHTS[0],
   );
   return brandFont.faces[nearest];
 }
