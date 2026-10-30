@@ -1,7 +1,7 @@
 // Web-only thank-you page — shown after the finish popup is dismissed (FR-RESEARCH-001 AC5).
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, View } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';

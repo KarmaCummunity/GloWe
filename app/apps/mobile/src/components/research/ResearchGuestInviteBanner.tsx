@@ -2,7 +2,7 @@
 // Shown only when the visitor is not signed in; keeps the survey fully usable.
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';

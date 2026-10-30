@@ -114,6 +114,7 @@ describe('brand guard', () => {
   if (process.env.KC_BRAND_BASELINE === 'update') {
     it('rewrites brand-guard.baseline.json from the current code', () => {
       writeBaseline(current);
+      expect(readBaseline()).toEqual(current);
     });
     return;
   }
