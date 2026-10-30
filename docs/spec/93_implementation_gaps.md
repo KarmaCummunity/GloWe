@@ -35,7 +35,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G29 | Polls & votes (D40) | 11 |
 | G30 | Registrar data import & proper-management badge (S35) | 12 |
 | G31 | Org verification levels, tags & filters (D53) | 08 |
-| G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
+| G32 | 🟡 2026-10-30 — Items and requests no longer expire; owners get relevance reminders (D59, S3; migration `0450`). Remaining: ride offer +30 min instead of 3 h after departure; event/ticket at their date; the reminder's "bump" action (G11) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
 | G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |

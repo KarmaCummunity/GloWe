@@ -47,6 +47,8 @@ export const notificationsEn = {
   systemBody: '{{messagePreview}}',
   postExpiringTitle: 'Your post will expire in 7 days',
   postExpiringBody: '{{postTitle}}',
+  postRelevanceTitle: 'Is your post still relevant?',
+  postRelevanceBody: '{{postTitle}} — update it or close it',
   markRecipientTitle: '{{ownerName}}',
   markRecipientBody: 'marked you as the recipient of {{postTitle}}',
   unmarkRecipientTitle: '{{recipientName}}',
