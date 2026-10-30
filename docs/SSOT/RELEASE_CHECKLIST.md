@@ -9,7 +9,7 @@ Use this checklist for every production release. CI automates gates; the agent (
 
 ## Before opening the release PR
 
-- [ ] **`dev` is green** — latest `dev` commit passed CI (typecheck, test, lint, DB validate if migrations touched).
+- [ ] **`dev` is green** — latest `dev` commit passed the **CI** workflow (`CI gate`).
 - [ ] **Dev E2E P0 green** — `CI — E2E dev / user journeys (P0)` on this release PR (auth, feed, create-post, chat inbox). Human spot-check on dev optional. Skip only for pure CI/docs hotfixes to `main` (no app paths).
 - [ ] **Migration review** — if `supabase/migrations/**` changed: read each new migration; confirm backward-compatible; note any manual operator steps in the PR body.
 - [ ] **Edge Functions review** — if `supabase/functions/**` changed: note which functions changed; plan post-merge smoke (donation link edit — see OPERATOR_RUNBOOK § Edge Functions).
@@ -21,22 +21,17 @@ Use this checklist for every production release. CI automates gates; the agent (
 
 Required on the release PR (GitHub branch protection on `main`):
 
-> Machine-validated by `scripts/check-required-checks-drift.mjs` (**CI — required-checks drift**): the table below must reference real workflow/job names. Rename a job → update this table and the branch-protection list together.
+> Machine-validated by `scripts/check-required-checks-drift.mjs` (static-guards lane of **CI**): the table below must reference real workflow/job names and must include `CI gate`. Rename a job → update this table and the branch-protection list together.
 
 | Check | Workflow | Job |
 | --- | --- | --- |
-| Quality | CI — frontend | `typecheck · test · lint` |
-| i18n guard | CI — frontend | `Hebrew source scan (no inline UI copy)` |
-| Web bundle | CI — frontend | `web export (production bundle)` |
-| Migration chain | CI — backend | `migration chain lint` |
-| DB + RLS + types | CI — backend | `apply migrations · rls · types · sql probes` |
-| Contract | CI — contract | `rpc · table contract` |
-| PR hygiene | CI — PR hygiene | `PR hygiene` |
+| PR gate | CI | `CI gate` |
 | Main release guard | CI — main release guard | `release PR source is dev` + `migration destructive-op scan` |
 | E2E dev | CI — E2E dev | `user journeys (P0)` |
-| SonarCloud | CI — SonarCloud | `SonarCloud quality gate` |
 
-> Path-filtered workflows: a release PR that only touches `docs/**` will not run the frontend/backend/contract workflows. Such PRs are rare; release PRs typically touch app + supabase paths and trigger the full set. `CI — PR hygiene` always runs on non-draft PRs.
+> `CI gate` (`D-195`) aggregates hygiene, static guards, frontend (incl. SonarCloud), backend and Edge Function lanes and fails if a lane the release diff needs did not succeed. The release guard and dev E2E stay separate until the gated prod pipeline lands (`INFRA-CI-3`).
+>
+> **Owner action (one-time, GitHub → Settings → Branches → `main`):** remove the legacy required checks `typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `PR hygiene` and `SonarCloud quality gate`, and add `CI gate`. Keep `release PR source is dev`, `migration destructive-op scan` and `user journeys (P0)`.
 
 Do **not** require post-merge deploy jobs on the PR rule (`DB deploy`, `Supabase Functions deploy`, `Prod smoke`).
 
