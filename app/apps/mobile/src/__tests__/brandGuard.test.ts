@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,11 +18,15 @@ import he from '../i18n/locales/he';
 // may only go down. After a cleanup, tighten the baseline with:
 //   KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard
 // A line ending in `brand-guard-allow: <reason>` is skipped (reviewed in PR).
+// Touched-file rule (D67): every scanned file the branch changes must be fully
+// clean, whatever its frozen count.
 
 const MOBILE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SCANNED_DIRS = ['src', 'app'] as const;
 const BASELINE_PATH = path.join(MOBILE_ROOT, 'brand-guard.baseline.json');
 const ALLOW_MARKER = 'brand-guard-allow:';
+const REPO_ROOT = path.resolve(MOBILE_ROOT, '../../..');
+const MOBILE_FROM_REPO = `${path.relative(REPO_ROOT, MOBILE_ROOT).split(path.sep).join('/')}/`;
 
 const RULES = {
   // `colors.*` from useTheme() / makeUseStyles().
@@ -85,6 +90,39 @@ function writeBaseline(files: Baseline): void {
     files,
   };
   writeFileSync(BASELINE_PATH, `${JSON.stringify(body, null, 2)}\n`);
+}
+
+/** Base the touched-file rule diffs against: the PR base in CI, else `origin/dev`. */
+function touchedBaseRef(): string {
+  const prBase = process.env.GITHUB_BASE_REF;
+  return process.env.KC_BRAND_BASE_REF ?? (prBase ? `origin/${prBase}` : 'origin/dev');
+}
+
+function git(args: readonly string[]): string {
+  return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+}
+
+/**
+ * Scanned sources (mobile-relative) changed since the merge-base with `baseRef`,
+ * committed or not. Deleted files are left out. Null when the ref cannot be resolved.
+ */
+function touchedSources(baseRef: string): string[] | null {
+  let mergeBase: string;
+  try {
+    mergeBase = git(['merge-base', baseRef, 'HEAD']);
+  } catch {
+    return null;
+  }
+  return git(['diff', '--name-only', '--diff-filter=ACMR', mergeBase, '--', MOBILE_FROM_REPO])
+    .split('\n')
+    .filter((file) => file.startsWith(MOBILE_FROM_REPO))
+    .map((file) => file.slice(MOBILE_FROM_REPO.length))
+    .filter(
+      (file) =>
+        SCANNED_DIRS.some((dir) => file.startsWith(`${dir}/`)) &&
+        !file.includes('/__tests__/') &&
+        isScannedSource(path.posix.basename(file)),
+    );
 }
 
 function compare(current: Baseline, baseline: Baseline) {
@@ -157,6 +195,28 @@ describe('brand guard', () => {
 
   it('keeps the baseline tight after cleanups (rerun with KC_BRAND_BASELINE=update)', () => {
     expect(shrank).toEqual([]);
+  });
+});
+
+describe('touched-file rule (spec 17 §6, D67)', () => {
+  const baseRef = touchedBaseRef();
+  const touched = touchedSources(baseRef);
+
+  if (touched === null) {
+    // CI must always resolve the base (checkout with fetch-depth: 0); a local
+    // clone without the ref only skips this rule.
+    it(`resolves the base ref ${baseRef} in CI`, () => {
+      expect(process.env.CI, `cannot resolve ${baseRef} — fetch it before running the guard`).toBeFalsy();
+    });
+    return;
+  }
+
+  it(`leaves every file changed since ${baseRef} with zero findings`, () => {
+    const dirty = touched.flatMap((file) => {
+      const counts = countLiterals(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'));
+      return Object.keys(counts).length > 0 ? [`${file}: ${JSON.stringify(counts)}`] : [];
+    });
+    expect(dirty, 'a file you change must be fully on tokens — fix the whole file, not only your lines').toEqual([]);
   });
 });
 
