@@ -268,7 +268,11 @@ export function MarketplaceCreateForm({
               }),
             );
             trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
-            void trackActivationIfFirst({ world: worldSlug, cityId: city?.id ?? null });
+            void trackActivationIfFirst({
+              world: worldSlug,
+              cityId: city?.id ?? null,
+              accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt,
+            });
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

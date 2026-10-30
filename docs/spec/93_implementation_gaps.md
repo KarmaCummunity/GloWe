@@ -37,7 +37,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G31 | Org verification levels, tags & filters (D53) | 08 |
 | G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
-| G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
+| G34 | 🟡 2026-10-30 — Listing handoffs now award the §7.6 values per world from one config (`karma_handoff_points`, migration `0453`, D63). Remaining: one closing system (posts closure vs listing handoffs, with G1) and the item bonus on handoffs (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
-| G37 | Launch flags hide worlds instead of "not active yet" (D3) | 04 |
+| G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
