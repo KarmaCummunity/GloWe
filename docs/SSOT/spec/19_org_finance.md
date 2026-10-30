@@ -2,7 +2,7 @@
 
 > **Status:** ⏳ Planned — spec v0.1 (2026-10-30, PM-approved scope). No `FR-FIN-*` code shipped yet. **Phase 1** `FR-FIN-001..011` (org-scoped ledger, roles, accounts, categories, attachments, Section 46(a) tracking, receipt tracking, payment mirroring, exports, portal sub-tree). **Phase 2** `FR-FIN-012..017` (CSV import, bank reconciliation, reports, budgets, smart alerts, overview dashboard). **Phase 3** `FR-FIN-018..021` (documents vault, transparency snapshots, public transparency section, donor-side receipt view). Supersedes the minimal `V2-ADMIN-MONEY-9` ledger at `/admin/money` (migration `0170_finance_ledger.sql`), which is the migration baseline for Phase 1.
 
-Prefix: `FR-FIN-*` · Migration range claimed: `0470–0489` (see `docs/agents/MIGRATION_RANGES.md`) · Product decisions: `D70–D76` + fills `S44`/`S45` in `docs/spec/90_decisions_log.md` / `91_kc_fills_pending.md` · Engineering decision: `D-195` in `docs/SSOT/DECISIONS.md`.
+Prefix: `FR-FIN-*` · Migration range claimed: `0470–0489` (see `docs/agents/MIGRATION_RANGES.md`) · Product decisions: `D76–D82` + fills `S48`/`S49` in `docs/spec/90_decisions_log.md` / `91_kc_fills_pending.md` · Engineering decision: `D-195` in `docs/SSOT/DECISIONS.md`.
 
 ---
 
@@ -33,12 +33,12 @@ Karma Community itself is the **platform organization** (`organizations.is_platf
 
 ### Non-goals (explicit, PM 2026-10-30)
 
-- Double-entry bookkeeping, chart of accounts, trial balance. The ledger stays **single-entry** (D72).
-- Generating official receipts or invoices. Receipt documents come from the organization's accounting software / payment provider and are **attached**, not produced (D71).
+- Double-entry bookkeeping, chart of accounts, trial balance. The ledger stays **single-entry** (D78).
+- Generating official receipts or invoices. Receipt documents come from the organization's accounting software / payment provider and are **attached**, not produced (D77).
 - Payroll, VAT reporting, tax filings, National Insurance.
-- Direct integration with a specific accounting package (Hashavshevet, Rivhit, iCount, Green Invoice). Deferred to `TD-201`; Phase 1 ships a universal CSV/XLSX export instead (S44).
-- Multi-currency. `currency` stays in the schema (`0170`) but every write is `'ILS'` and the UI never offers a currency picker (D72).
-- Valuing in-kind donations (items, time, rides) in money. They stay in their own worlds and never enter the books (D72).
+- Direct integration with a specific accounting package (Hashavshevet, Rivhit, iCount, Green Invoice). Deferred to `TD-201`; Phase 1 ships a universal CSV/XLSX export instead (S48).
+- Multi-currency. `currency` stays in the schema (`0170`) but every write is `'ILS'` and the UI never offers a currency picker (D78).
+- Valuing in-kind donations (items, time, rides) in money. They stay in their own worlds and never enter the books (D78).
 - Public exposure of donor identities. Never, under any setting (`FR-FIN-019 AC6`).
 
 ---
@@ -47,17 +47,17 @@ Karma Community itself is the **platform organization** (`organizations.is_platf
 
 | # | Question (2026-10-30) | Decision | Log |
 | - | --------------------- | -------- | --- |
-| 1 | Whose finances? | Multi-tenant from day one: every finance row carries `org_id`; Karma Community is the platform org. | D70 |
-| 2 | Who accesses? | New org-scoped roles `org_treasurer` (read/write) and `org_accountant` (read + export only). `org_admin` inherits treasurer rights for its org. `moderator` loses finance write access. | D70 |
-| 3 | Section 46(a) depth | Record the organization's approval (number, validity, certificate, expiry reminders) and track receipts per donation (number, date, 46(a)-eligible flag, file). No receipt generation. | D71 |
-| 4 | Does KC hold a 46(a) approval? | **Not today.** The platform org starts with `sec46_status = 'none'`; no public 46(a) claim is rendered anywhere for KC until the status is `active`. | D71 |
-| 5 | Accounting depth | Single-entry ledger upgraded with financial accounts, category tree, fiscal year, budget vs. actual, reconciliation. | D72 |
-| 6 | Data sources | Manual entry + CSV import (bank, Bit, Paybox, generic) + automatic mirroring of in-app payments. | D73 |
-| 7 | Accountant deliverable | PM has no preference → universal CSV + XLSX export of the ledger with attachments index, plus PDF period summary. Software-specific formats deferred (`TD-201`). | S44 |
-| 8 | Must-have reports | PM has no preference → income vs. expense (monthly / annual), by category, by project tag, donors summary, annual summary for the Registrar. | S45 |
-| 9 | "Smart tracking" | Reminders and queues (missing receipt, unreconciled, failed standing order, 46(a) / proper-management expiry, annual report deadline, budget overrun) + counterparty-based auto-categorization. | D74 |
-| 10 | Transparency | Fully optional per organization; organization publishes a frozen yearly **snapshot**, never live books; donor names never public. | D75 |
-| 11 | Where does the organization profile live? | Organization profile is its own future domain (`spec/20_organizations.md`): an extended profile with its own email identity, posts, followers, and an Admin Portal whose **finance sub-tree is this spec**. This spec only defines the finance/transparency contract that profile consumes (§ Dependencies). | D76 |
+| 1 | Whose finances? | Multi-tenant from day one: every finance row carries `org_id`; Karma Community is the platform org. | D76 |
+| 2 | Who accesses? | New org-scoped roles `org_treasurer` (read/write) and `org_accountant` (read + export only). `org_admin` inherits treasurer rights for its org. `moderator` loses finance write access. | D76 |
+| 3 | Section 46(a) depth | Record the organization's approval (number, validity, certificate, expiry reminders) and track receipts per donation (number, date, 46(a)-eligible flag, file). No receipt generation. | D77 |
+| 4 | Does KC hold a 46(a) approval? | **Not today.** The platform org starts with `sec46_status = 'none'`; no public 46(a) claim is rendered anywhere for KC until the status is `active`. | D77 |
+| 5 | Accounting depth | Single-entry ledger upgraded with financial accounts, category tree, fiscal year, budget vs. actual, reconciliation. | D78 |
+| 6 | Data sources | Manual entry + CSV import (bank, Bit, Paybox, generic) + automatic mirroring of in-app payments. | D79 |
+| 7 | Accountant deliverable | PM has no preference → universal CSV + XLSX export of the ledger with attachments index, plus PDF period summary. Software-specific formats deferred (`TD-201`). | S48 |
+| 8 | Must-have reports | PM has no preference → income vs. expense (monthly / annual), by category, by project tag, donors summary, annual summary for the Registrar. | S49 |
+| 9 | "Smart tracking" | Reminders and queues (missing receipt, unreconciled, failed standing order, 46(a) / proper-management expiry, annual report deadline, budget overrun) + counterparty-based auto-categorization. | D80 |
+| 10 | Transparency | Fully optional per organization; organization publishes a frozen yearly **snapshot**, never live books; donor names never public. | D81 |
+| 11 | Where does the organization profile live? | Organization profile is its own future domain (`spec/20_organizations.md`): an extended profile with its own email identity, posts, followers, and an Admin Portal whose **finance sub-tree is this spec**. This spec only defines the finance/transparency contract that profile consumes (§ Dependencies). | D82 |
 | 12 | Phasing | Three phases as in the status header. Each phase is its own PR train to `dev`. | D-195 |
 
 ---
@@ -157,7 +157,7 @@ Shared behaviour:
 - AC4. A `super_admin` switching org in the header sees that org's books only; query keys include `org_id` so no cross-org cache leak is possible.
 - AC5. Unit tests: `mapFinanceEntryRow`, filter serialization, and an RLS persona test (treasurer of org A cannot read org B) in `tests/rls/`.
 
-**Related.** D70, `D-195`. Baseline `0170_finance_ledger.sql`.
+**Related.** D76, `D-195`. Baseline `0170_finance_ledger.sql`.
 
 ---
 
@@ -168,7 +168,7 @@ Shared behaviour:
 - AC2. `can_grant_role` extended as in § Roles. `GrantRoleModal` lists both roles with the org picker; `RoleBadge` renders them (treasurer: `wallet-outline`, accountant: `calculator-outline`).
 - AC3. `@kc/domain` `ADMIN_PERMISSIONS` gains the eight `finance.*` / `transparency.manage` permissions; `PERMISSION_MATRIX` matches the table in § Roles. `money.manage` remains and maps to `['super_admin','admin','org_admin','org_treasurer']` until `TD-202` removes it.
 - AC4. SQL helpers `finance_can_view(p_org_id) returns boolean` and `finance_assert(p_org_id, p_permission) returns void` exist, are `SECURITY DEFINER`, `set search_path = public`, and are unit-tested in SQL (`supabase/tests/`) for: platform role on any org, scoped role on own org, scoped role on other org (forbidden), accountant write (forbidden).
-- AC5. `moderator` keeps read access (`finance.view`) to the **platform org only** so the existing moderation team does not lose visibility; it cannot write. Documented in D70 / `D-195`.
+- AC5. `moderator` keeps read access (`finance.view`) to the **platform org only** so the existing moderation team does not lose visibility; it cannot write. Documented in D76 / `D-195`.
 
 ---
 
@@ -425,7 +425,7 @@ Tracked in `BACKLOG.md` as `ORG-PROFILE-SPEC` (⏳ Planned, PM to brief).
 
 | # | Question | Default applied |
 | - | -------- | --------------- |
-| O1 | Which accounting software does the external accountant use? | Universal CSV/XLSX + PDF (S44); integration is `TD-201`. |
+| O1 | Which accounting software does the external accountant use? | Universal CSV/XLSX + PDF (S48); integration is `TD-201`. |
 | O2 | Should `moderator` keep read access to the platform org's books? | Yes, read-only (`FR-FIN-002 AC5`). |
 | O3 | Legal review of the public 46(a) wording and of the Registrar annual-summary bucket mapping before Phase 3 goes live. | Phase 3 PR must include a PM sign-off line in its body. |
 | O4 | Statement export shapes of the specific bank(s) KC uses, to pin the `csv_bank` preset. | Generic mapping until a sample file is provided. |
@@ -434,4 +434,4 @@ Tracked in `BACKLOG.md` as `ORG-PROFILE-SPEC` (⏳ Planned, PM to brief).
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 0.1 | 2026-10-30 | Initial end-to-end spec from PM Q&A. Defines `FR-FIN-001..021` in three phases, roles `org_treasurer` / `org_accountant`, data model, portal sub-tree, Section 46(a) tracking, payment mirroring, exports, imports, reconciliation, reports, alerts, documents vault, transparency snapshots, donor receipt view. Claims migrations `0470–0489`. Records product decisions D70–D76 (+ S44/S45) and engineering decision `D-195`. |
+| 0.1 | 2026-10-30 | Initial end-to-end spec from PM Q&A. Defines `FR-FIN-001..021` in three phases, roles `org_treasurer` / `org_accountant`, data model, portal sub-tree, Section 46(a) tracking, payment mirroring, exports, imports, reconciliation, reports, alerts, documents vault, transparency snapshots, donor receipt view. Claims migrations `0470–0489`. Records product decisions D76–D82 (+ S48/S49) and engineering decision `D-195`. |

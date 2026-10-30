@@ -54,7 +54,7 @@
 | TD-52 | 🟡 | **Two-person approval workflow for `publish_legal_document`.** A second `super_admin` must approve before `effective_date` arrives. Reduces the blast radius of a single admin pushing bad legal copy. Audit-readiness hardening on top of FR-SETTINGS-010. | Pre-launch hardening |
 | TD-54 | 🟡 | **Periodic check + alert when the ILITA database-registration threshold (תיקון 13 §17B) is approached.** Counts active users + sensitive-data fields; pages when within X% of the trigger. Avoids the "we crossed the line and didn't know" failure mode. | Pre-launch hardening |
 | TD-57 | 🟢 | **Multi-language support for legal documents.** Schema already carries `legal_document_versions.language` (default `'he'`); `LoadLegalDocumentUseCase` would need locale-aware variant selection. Deferred per `R-MVP-Core-4` (Hebrew-only MVP). | Post-MVP |
-| TD-201 | 🟢 | **Accounting-software integration deferred (S44, `spec/19_org_finance.md` non-goals).** Phase 1 ships a universal CSV/XLSX/PDF export (`finance-export` Edge Function). When the PM names the accountant's package (Hashavshevet, Rivhit, iCount, Green Invoice), add a format preset or API push behind `IFinanceExportPort`; keep the universal export as the default. | After PM names the package |
+| TD-201 | 🟢 | **Accounting-software integration deferred (S48, `spec/19_org_finance.md` non-goals).** Phase 1 ships a universal CSV/XLSX/PDF export (`finance-export` Edge Function). When the PM names the accountant's package (Hashavshevet, Rivhit, iCount, Green Invoice), add a format preset or API push behind `IFinanceExportPort`; keep the universal export as the default. | After PM names the package |
 
 ### Mobile & UI (apps/mobile · packages/ui)
 
