@@ -1,4 +1,4 @@
-# 93 — Implementation gaps G1–G43
+# 93 — Implementation gaps G1–G49
 
 Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
 
@@ -47,3 +47,9 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G41 | Edge Functions report errors to Sentry through one shared wrapper | architecture §5.2 |
 | G42 | Health registry (`ops`), hourly monitor on dev + prod, alert router (GitHub issue / email / WhatsApp) (D68, D69) | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
+| G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |
+| G45 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D71, S47) | 05.3 |
+| G46 | Ride route on the map + "navigate" links (D72) | 05.3 |
+| G47 | Driver sees every booking (today `get_listing_handoff` returns one row) + approve/decline + booking push notifications (none sent today) (D73, S45) | 05.3, 07.11 |
+| G48 | Saved routes + rides urgency rule (D74, S44) | 05.3, 07.11 |
+| G49 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D75, S46) | 05.3 |
