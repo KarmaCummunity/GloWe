@@ -42,6 +42,15 @@ supabase db push --dry-run --include-all --linked --yes   # → "Remote database
 
 ---
 
+## Adding a CI lane needs a judge-first PR {#ci-lane-judge-first}
+
+On pull requests, `ci.yml` runs the gate judges (`scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`) from the **base** branch, so a PR cannot weaken its own gate (`D-195`). The flip side: a PR that adds a lane job to `ci.yml` together with the judge changes fails `CI gate` with `job "<lane>" is not in the change detector's plan`, because the base judges do not know the lane yet. Ship it in two PRs:
+
+1. **Judge-first PR** — teach `ci-changes.mjs` / `ci-gate.mjs` (and `check-required-checks-drift.mjs` if needed) about the lane **without** adding the job to `ci.yml`, in a form the current judges and the current `ci.yml` still pass (e.g. an optional lane that is named in the plan only when needed, like `release`).
+2. **Lane PR** — after the first merges, add the job to `ci.yml`.
+
+---
+
 ## 0001 — Foundation & Identity {#0001}
 
 Verify: sign in with Google → confirm row appears in `public.users` with Google name + avatar → re-sign-in must not create a duplicate row.
