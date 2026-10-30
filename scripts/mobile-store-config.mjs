@@ -2,26 +2,31 @@
 // The one place store builds (testflight-ios.yml, play-internal.yml) get their
 // Supabase backend from (D-195 "Mobile nightly").
 //
-// Both workflows run in the `mobile-store` GitHub Environment, which names the
-// backend explicitly: MOBILE_SUPABASE_TARGET (`prod` | `dev`) picks the project
-// and MOBILE_SUPABASE_ANON_KEY is that project's publishable key. This script
-// writes them into the eas.json build profile `env` on the runner only (never
-// committed). eas-cli gives a profile's `env` precedence over the EAS server
-// environment for cloud (Android) and local (iOS) builds alike, so both
-// platforms bake the same backend whatever the EAS dashboard holds.
+// Tester builds come from `dev` and always use the kc-dev project. Production
+// store builds from `main` (prod backend) are not wired yet, so any other
+// source branch fails closed instead of silently shipping a dev-backed build
+// from main or a prod-backed build to testers.
 //
-// Inputs (env): MOBILE_SUPABASE_TARGET, MOBILE_SUPABASE_ANON_KEY,
-// EAS_JSON (default app/apps/mobile/eas.json), EAS_PROFILE (default production).
-// Outputs (GITHUB_OUTPUT): target, ref.
+//   pin    Write the kc-dev URL and MOBILE_SUPABASE_ANON_KEY (from the
+//          `mobile-store` GitHub Environment) into the eas.json `nightly`
+//          profile `env`, on the runner only. eas-cli resolves a profile's
+//          `env` over the EAS server environment; the build is still checked
+//          by `verify`, because a cloud builder also receives server variables.
+//   verify <bundle>
+//          Fail unless the JS bundle extracted from the built IPA / AAB
+//          contains the kc-dev project URL and no prod project URL. Hermes
+//          bytecode stores string literals verbatim, so a byte search works.
+//
+// Inputs (env): SOURCE_BRANCH, MOBILE_SUPABASE_ANON_KEY (pin);
+// EAS_JSON (default app/apps/mobile/eas.json), EAS_PROFILE (default nightly).
 
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-/** Supabase project refs per target, as listed in docs/SSOT/ENVIRONMENTS.md. */
-export const SUPABASE_REFS = Object.freeze({
-  prod: 'kdqtbdbzwvlugkhonexg',
-  dev: 'enbqriuxvvuontiwslun',
-});
+/** Supabase project refs, as listed in docs/SSOT/ENVIRONMENTS.md. */
+export const DEV_REF = 'enbqriuxvvuontiwslun';
+export const PROD_REF = 'kdqtbdbzwvlugkhonexg';
+export const DEV_URL = `https://${DEV_REF}.supabase.co`;
 
 /** Decode a JWT payload, or return null when the key is not a JWT. */
 function jwtPayload(key) {
@@ -37,9 +42,10 @@ function jwtPayload(key) {
 /**
  * Check that the key is a client-safe key of project `ref`. Legacy anon keys
  * are JWTs carrying `ref` and `role`; new `sb_publishable_` keys carry neither,
- * so only their prefix can be checked. A service-role or secret key fails.
+ * so only their prefix can be checked (`verify` still checks the built URL).
  */
 export function checkAnonKey(key, ref) {
+  if (!key) return ['MOBILE_SUPABASE_ANON_KEY is not set'];
   if (key.startsWith('sb_publishable_')) return [];
   if (key.startsWith('sb_secret_')) return ['MOBILE_SUPABASE_ANON_KEY is a secret key; use the publishable (anon) key'];
   const payload = jwtPayload(key);
@@ -50,12 +56,21 @@ export function checkAnonKey(key, ref) {
   return errors;
 }
 
-/** Resolve the backend from the environment's inputs; `errors` is empty when usable. */
-export function resolveStoreConfig({ target, anonKey }) {
-  const ref = Object.hasOwn(SUPABASE_REFS, target) ? SUPABASE_REFS[target] : undefined;
-  if (!ref) return { errors: [`MOBILE_SUPABASE_TARGET must be one of ${Object.keys(SUPABASE_REFS).join(', ')} (got "${target ?? ''}")`] };
-  if (!anonKey) return { errors: ['MOBILE_SUPABASE_ANON_KEY is not set'] };
-  return { ref, url: `https://${ref}.supabase.co`, errors: checkAnonKey(anonKey, ref) };
+/** Errors that block pinning the dev backend for a build from `branch`. */
+export function checkPin({ branch, anonKey }) {
+  if (branch !== 'dev') {
+    return [`store builds use the kc-dev backend and must come from dev (got "${branch ?? ''}"); prod store builds from main are not wired yet`];
+  }
+  return checkAnonKey(anonKey, DEV_REF);
+}
+
+/** Errors when a built JS bundle does not point at kc-dev only. */
+export function checkBundle(bundle) {
+  const text = bundle.toString('latin1');
+  const errors = [];
+  if (!text.includes(DEV_URL)) errors.push(`bundle does not contain the kc-dev URL ${DEV_URL}`);
+  if (text.includes(PROD_REF)) errors.push(`bundle contains the prod project ref ${PROD_REF}`);
+  return errors;
 }
 
 /** Return a copy of eas.json with `vars` merged into build.<profile>.env. */
@@ -68,30 +83,38 @@ export function injectProfileEnv(easJson, profile, vars) {
   };
 }
 
-function main() {
-  const env = process.env;
-  const easPath = env.EAS_JSON || 'app/apps/mobile/eas.json';
-  const profile = env.EAS_PROFILE || 'production';
-  const target = env.MOBILE_SUPABASE_TARGET?.trim();
+function fail(errors) {
+  for (const e of errors) console.log(`::error::${e}`);
+  process.exit(1);
+}
+
+function pin(env) {
   const anonKey = env.MOBILE_SUPABASE_ANON_KEY?.trim() ?? '';
-  const config = resolveStoreConfig({ target, anonKey });
-  if (config.errors.length) {
-    for (const e of config.errors) console.log(`::error::${e}`);
-    process.exit(1);
-  }
+  const errors = checkPin({ branch: env.SOURCE_BRANCH, anonKey });
+  if (errors.length) fail(errors);
+  const easPath = env.EAS_JSON || 'app/apps/mobile/eas.json';
+  const profile = env.EAS_PROFILE || 'nightly';
   const easJson = JSON.parse(readFileSync(easPath, 'utf8'));
   const next = injectProfileEnv(easJson, profile, {
-    EXPO_PUBLIC_SUPABASE_URL: config.url,
+    EXPO_PUBLIC_SUPABASE_URL: DEV_URL,
     EXPO_PUBLIC_SUPABASE_ANON_KEY: anonKey,
   });
   writeFileSync(easPath, `${JSON.stringify(next, null, 2)}\n`);
-
-  const line = `Store build backend: Supabase **${target}** (\`${config.ref}\`, ${config.url}), eas.json profile "${profile}".`;
+  const line = `Store build backend: Supabase **kc-dev** (\`${DEV_REF}\`), eas.json profile "${profile}".`;
   console.log(line);
   if (env.GITHUB_STEP_SUMMARY) appendFileSync(env.GITHUB_STEP_SUMMARY, `${line}\n`);
-  if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `target=${target}\nref=${config.ref}\n`);
+}
+
+function verify(bundlePath) {
+  if (!bundlePath) fail(['usage: mobile-store-config.mjs verify <bundle>']);
+  const errors = checkBundle(readFileSync(bundlePath));
+  if (errors.length) fail(errors);
+  console.log(`${bundlePath}: points at kc-dev only.`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main();
+  const [mode, arg] = process.argv.slice(2);
+  if (mode === 'pin') pin(process.env);
+  else if (mode === 'verify') verify(arg);
+  else fail([`unknown mode "${mode ?? ''}"; use pin or verify <bundle>`]);
 }

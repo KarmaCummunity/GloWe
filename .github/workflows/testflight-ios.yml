@@ -2,15 +2,17 @@
 # then `eas submit`. Uploads to TestFlight only; never submits for App Store review.
 #
 # Callers: the nightly pipeline (mobile-nightly.yml, `workflow_call` with the
-# green SHA) and manual dispatch on dev or main. Either way the commit built must
-# have a successful `CI` push run on dev or main (D-195 "Mobile nightly").
+# green SHA) and manual dispatch on dev. The commit built must have a successful
+# `CI` push run on dev (D-195 "Mobile nightly"). Tester builds use the eas.json
+# `nightly` profile and the kc-dev Supabase backend; store builds from main
+# (prod backend) are not wired yet, and scripts/mobile-store-config.mjs refuses them.
 #
 # Runs in the `mobile-store` GitHub Environment (deployment branches: dev, main).
 # Required, fail closed when unset:
 #   secrets  EXPO_TOKEN, ASC_API_KEY_ID, ASC_API_KEY_ISSUER_ID, ASC_API_KEY_P8, KC_IOS_TEAM_ID,
-#            KC_IOS_DIST_P12_B64, KC_IOS_DIST_P12_PASSWORD, MOBILE_SUPABASE_ANON_KEY
-#   vars     KC_ASC_APP_ID (numeric App Store Connect app id), KC_EAS_PROJECT_ID,
-#            KC_IOS_DIST_CERT_ID, MOBILE_SUPABASE_TARGET (prod | dev)
+#            KC_IOS_DIST_P12_B64, KC_IOS_DIST_P12_PASSWORD,
+#            MOBILE_SUPABASE_ANON_KEY (kc-dev publishable key, mobile-store environment)
+#   vars     KC_ASC_APP_ID (numeric App Store Connect app id), KC_EAS_PROJECT_ID, KC_IOS_DIST_CERT_ID
 # Optional: secret SENTRY_AUTH_TOKEN; vars SENTRY_ORG, SENTRY_URL, EXPO_PUBLIC_SENTRY_DSN, EXPO_PUBLIC_POSTHOG_KEY.
 name: TestFlight iOS
 
@@ -18,16 +20,13 @@ on:
   workflow_call:
     inputs:
       ref:
-        description: Commit SHA to build (must have a successful CI push run on dev or main)
+        description: Commit SHA to build (must have a successful CI push run on dev)
         type: string
         required: true
     outputs:
       build_number:
         description: CFBundleVersion of the uploaded build
         value: ${{ jobs.testflight.outputs.build_number }}
-      supabase_target:
-        description: Supabase target baked into the build (prod | dev)
-        value: ${{ jobs.testflight.outputs.supabase_target }}
   workflow_dispatch:
 
 permissions:
@@ -47,19 +46,20 @@ jobs:
     permissions:
       contents: read
       actions: read # read CI runs to verify the commit is green
-    # One iOS build at a time across the nightly and manual runs. Never cancel
-    # an in-flight build: it has already consumed an EAS build number.
+    # Never cancel an in-flight build: it has already consumed an EAS build
+    # number. The group is per caller (`github.workflow` is the caller's name in
+    # a called run), so queued manual runs can only displace each other, never a
+    # nightly run, which mobile-nightly.yml already serialises.
     concurrency:
-      group: testflight-ios
+      group: testflight-ios-${{ github.workflow }}
       cancel-in-progress: false
     outputs:
       build_number: ${{ steps.build.outputs.build_number }}
-      supabase_target: ${{ steps.config.outputs.target }}
     defaults:
       run:
         working-directory: app/apps/mobile
     steps:
-      - name: Verify the commit passed CI on dev or main
+      - name: Verify the commit passed CI on dev
         id: target
         working-directory: .
         env:
@@ -69,18 +69,22 @@ jobs:
         run: |
           set -euo pipefail
           # A dispatch builds the dispatched ref's head; a nightly call passes its green SHA.
-          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF" != "refs/heads/dev" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then
-            echo "::error::Manual TestFlight runs are allowed only on dev or main (got $GITHUB_REF)."
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF" != "refs/heads/dev" ]; then
+            echo "::error::Manual TestFlight runs are allowed only on dev (got $GITHUB_REF)."
             exit 1
           fi
           sha="${INPUT_REF:-$GITHUB_SHA}"
-          green="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success" \
-            --jq '[.workflow_runs[] | select(.head_branch == "dev" or .head_branch == "main")] | length')"
-          if [ "$green" -eq 0 ]; then
-            echo "::error::$sha has no successful CI push run on dev or main; refusing to build it."
-            exit 1
-          fi
+          # Branches with a green push run for this commit; main wins so that
+          # mobile-store-config.mjs refuses it (prod store builds are not wired).
+          branches="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success" \
+            --jq '[.workflow_runs[].head_branch | select(. == "dev" or . == "main")] | unique | join(" ")')"
+          case " $branches " in
+            *" main "*) branch=main ;;
+            *" dev "*) branch=dev ;;
+            *) echo "::error::$sha has no successful CI push run on dev; refusing to build it."; exit 1 ;;
+          esac
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
       - name: Preflight secrets (fail closed)
         working-directory: .
@@ -96,13 +100,12 @@ jobs:
           KC_ASC_APP_ID: ${{ vars.KC_ASC_APP_ID }}
           KC_EAS_PROJECT_ID: ${{ vars.KC_EAS_PROJECT_ID }}
           KC_IOS_DIST_CERT_ID: ${{ vars.KC_IOS_DIST_CERT_ID }}
-          MOBILE_SUPABASE_TARGET: ${{ vars.MOBILE_SUPABASE_TARGET }}
         run: |
           set -euo pipefail
           missing=()
           for n in EXPO_TOKEN ASC_API_KEY_ID ASC_API_KEY_ISSUER_ID ASC_API_KEY_P8 KC_IOS_TEAM_ID \
                    KC_IOS_DIST_P12_B64 KC_IOS_DIST_P12_PASSWORD MOBILE_SUPABASE_ANON_KEY \
-                   KC_ASC_APP_ID KC_EAS_PROJECT_ID KC_IOS_DIST_CERT_ID MOBILE_SUPABASE_TARGET; do
+                   KC_ASC_APP_ID KC_EAS_PROJECT_ID KC_IOS_DIST_CERT_ID; do
             [ -n "${!n:-}" ] || missing+=("$n")
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -125,6 +128,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: app/pnpm-lock.yaml
 
+      # Writes the kc-dev backend into the eas.json `nightly` profile env (runner
+      # only); fails for a main commit or a key of another project.
+      - name: Pin the Supabase backend
+        working-directory: .
+        env:
+          SOURCE_BRANCH: ${{ steps.target.outputs.branch }}
+          MOBILE_SUPABASE_ANON_KEY: ${{ secrets.MOBILE_SUPABASE_ANON_KEY }}
+        run: node scripts/mobile-store-config.mjs pin
+
       - name: Install dependencies
         working-directory: app
         run: pnpm install --frozen-lockfile --ignore-scripts
@@ -140,15 +152,6 @@ jobs:
             echo "::error::iOS bundleIdentifier is '$actual', expected '$BUNDLE_ID'"
             exit 1
           fi
-
-      # Bakes the mobile-store backend into the eas.json profile env (runner only).
-      - name: Pin the Supabase backend
-        id: config
-        working-directory: .
-        env:
-          MOBILE_SUPABASE_TARGET: ${{ vars.MOBILE_SUPABASE_TARGET }}
-          MOBILE_SUPABASE_ANON_KEY: ${{ secrets.MOBILE_SUPABASE_ANON_KEY }}
-        run: node scripts/mobile-store-config.mjs
 
       - name: Write ASC API key (runner temp, never committed)
         env:
@@ -177,9 +180,9 @@ jobs:
           pw="$KC_IOS_DIST_P12_PASSWORD"
           jq -n --arg p "$sd/kc.mobileprovision" --arg c "$sd/dist.p12" --arg pw "$pw" \
             '{ios:{provisioningProfilePath:$p,distributionCertificate:{path:$c,password:$pw}}}' > credentials.json
-          tmp="$(mktemp)"; jq '.build.production.ios.credentialsSource = "local"' eas.json > "$tmp" && mv "$tmp" eas.json
+          tmp="$(mktemp)"; jq '.build.nightly.ios.credentialsSource = "local"' eas.json > "$tmp" && mv "$tmp" eas.json
 
-      - name: Build iOS locally & upload to TestFlight
+      - name: Build iOS locally, verify the backend & upload to TestFlight
         id: build
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -198,7 +201,10 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "${SENTRY_AUTH_TOKEN:-}" ] || export SENTRY_DISABLE_AUTO_UPLOAD=true
-          eas build --platform ios --profile production --local --non-interactive --output ./build-kc.ipa
+          eas build --platform ios --profile nightly --local --non-interactive --output ./build-kc.ipa
+          # Refuse to upload unless the shipped JS bundle points at kc-dev only.
+          unzip -p ./build-kc.ipa 'Payload/*.app/main.jsbundle' > "$RUNNER_TEMP/main.jsbundle"
+          node "$GITHUB_WORKSPACE/scripts/mobile-store-config.mjs" verify "$RUNNER_TEMP/main.jsbundle"
           # The build number actually inside the IPA (EAS remote autoIncrement assigned it).
           unzip -p ./build-kc.ipa 'Payload/*.app/Info.plist' > "$RUNNER_TEMP/Info.plist"
           build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$RUNNER_TEMP/Info.plist")"
@@ -207,7 +213,7 @@ jobs:
           tmp="$(mktemp)"; jq --arg id "$ASC_APP_ID" --arg k "$EXPO_ASC_API_KEY_PATH" --arg kid "$EXPO_ASC_KEY_ID" --arg iss "$EXPO_ASC_ISSUER_ID" '.submit.production.ios += {ascAppId: $id, ascApiKeyPath: $k, ascApiKeyId: $kid, ascApiKeyIssuerId: $iss}' eas.json > "$tmp" && mv "$tmp" eas.json
           eas submit --platform ios --profile production --path ./build-kc.ipa --non-interactive
           echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
-          echo "TestFlight upload: iOS build $build_number from $BUILD_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "TestFlight upload: iOS build $build_number from $BUILD_SHA (kc-dev backend)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove key files
         if: always()

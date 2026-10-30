@@ -2,32 +2,32 @@
 # beyond the internal track (eas.json submits a draft with changesNotSentForReview).
 #
 # Callers: the nightly pipeline (mobile-nightly.yml, `workflow_call` with the
-# green SHA) and manual dispatch on dev or main. Either way the commit built must
-# have a successful `CI` push run on dev or main (D-195 "Mobile nightly").
+# green SHA) and manual dispatch on dev. The commit built must have a successful
+# `CI` push run on dev (D-195 "Mobile nightly"). Tester builds use the eas.json
+# `nightly` profile and the kc-dev Supabase backend; store builds from main
+# (prod backend) are not wired yet, and scripts/mobile-store-config.mjs refuses them.
 #
 # Runs in the `mobile-store` GitHub Environment (deployment branches: dev, main).
 # Required, fail closed when unset:
-#   secrets  EXPO_TOKEN, GOOGLE_PLAY_SERVICE_ACCOUNT_JSON, MOBILE_SUPABASE_ANON_KEY
-#   vars     KC_EAS_PROJECT_ID, MOBILE_SUPABASE_TARGET (prod | dev)
-# The Supabase backend is pinned from the mobile-store environment into the eas.json
-# profile env, which overrides the EAS "production" environment on the cloud builder.
-# Sentry DSN / org / URL still come from the EAS "production" environment.
+#   secrets  EXPO_TOKEN, GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,
+#            MOBILE_SUPABASE_ANON_KEY (kc-dev publishable key, mobile-store environment)
+#   vars     KC_EAS_PROJECT_ID
+# The AAB builds on EAS cloud, where the runner env never arrives: Sentry and
+# FCM config (SENTRY_*, EXPO_PUBLIC_SENTRY_DSN, GOOGLE_SERVICES_JSON) come from
+# the EAS "preview" environment that the `nightly` profile selects.
 name: Play Internal Android
 
 on:
   workflow_call:
     inputs:
       ref:
-        description: Commit SHA to build (must have a successful CI push run on dev or main)
+        description: Commit SHA to build (must have a successful CI push run on dev)
         type: string
         required: true
     outputs:
       version_code:
         description: Android versionCode of the submitted AAB
         value: ${{ jobs.play-internal.outputs.version_code }}
-      supabase_target:
-        description: Supabase target baked into the build (prod | dev)
-        value: ${{ jobs.play-internal.outputs.supabase_target }}
   workflow_dispatch:
 
 permissions:
@@ -47,19 +47,20 @@ jobs:
     permissions:
       contents: read
       actions: read # read CI runs to verify the commit is green
-    # One Android build at a time across the nightly and manual runs. Never
-    # cancel an in-flight build: it has already consumed an EAS versionCode.
+    # Never cancel an in-flight build: it has already consumed an EAS
+    # versionCode. The group is per caller (`github.workflow` is the caller's
+    # name in a called run), so queued manual runs can only displace each
+    # other, never a nightly run, which mobile-nightly.yml already serialises.
     concurrency:
-      group: play-internal-android
+      group: play-internal-android-${{ github.workflow }}
       cancel-in-progress: false
     outputs:
       version_code: ${{ steps.build.outputs.version_code }}
-      supabase_target: ${{ steps.config.outputs.target }}
     defaults:
       run:
         working-directory: app/apps/mobile
     steps:
-      - name: Verify the commit passed CI on dev or main
+      - name: Verify the commit passed CI on dev
         id: target
         working-directory: .
         env:
@@ -69,18 +70,22 @@ jobs:
         run: |
           set -euo pipefail
           # A dispatch builds the dispatched ref's head; a nightly call passes its green SHA.
-          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF" != "refs/heads/dev" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then
-            echo "::error::Manual Play internal runs are allowed only on dev or main (got $GITHUB_REF)."
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$GITHUB_REF" != "refs/heads/dev" ]; then
+            echo "::error::Manual Play internal runs are allowed only on dev (got $GITHUB_REF)."
             exit 1
           fi
           sha="${INPUT_REF:-$GITHUB_SHA}"
-          green="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success" \
-            --jq '[.workflow_runs[] | select(.head_branch == "dev" or .head_branch == "main")] | length')"
-          if [ "$green" -eq 0 ]; then
-            echo "::error::$sha has no successful CI push run on dev or main; refusing to build it."
-            exit 1
-          fi
+          # Branches with a green push run for this commit; main wins so that
+          # mobile-store-config.mjs refuses it (prod store builds are not wired).
+          branches="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=push&status=success" \
+            --jq '[.workflow_runs[].head_branch | select(. == "dev" or . == "main")] | unique | join(" ")')"
+          case " $branches " in
+            *" main "*) branch=main ;;
+            *" dev "*) branch=dev ;;
+            *) echo "::error::$sha has no successful CI push run on dev; refusing to build it."; exit 1 ;;
+          esac
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
       - name: Preflight secrets (fail closed)
         working-directory: .
@@ -89,11 +94,10 @@ jobs:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           MOBILE_SUPABASE_ANON_KEY: ${{ secrets.MOBILE_SUPABASE_ANON_KEY }}
           KC_EAS_PROJECT_ID: ${{ vars.KC_EAS_PROJECT_ID }}
-          MOBILE_SUPABASE_TARGET: ${{ vars.MOBILE_SUPABASE_TARGET }}
         run: |
           set -euo pipefail
           missing=()
-          for n in EXPO_TOKEN GOOGLE_PLAY_SERVICE_ACCOUNT_JSON MOBILE_SUPABASE_ANON_KEY KC_EAS_PROJECT_ID MOBILE_SUPABASE_TARGET; do
+          for n in EXPO_TOKEN GOOGLE_PLAY_SERVICE_ACCOUNT_JSON MOBILE_SUPABASE_ANON_KEY KC_EAS_PROJECT_ID; do
             [ -n "${!n:-}" ] || missing+=("$n")
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -120,6 +124,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: app/pnpm-lock.yaml
 
+      # Writes the kc-dev backend into the eas.json `nightly` profile env (runner
+      # only); fails for a main commit or a key of another project.
+      - name: Pin the Supabase backend
+        working-directory: .
+        env:
+          SOURCE_BRANCH: ${{ steps.target.outputs.branch }}
+          MOBILE_SUPABASE_ANON_KEY: ${{ secrets.MOBILE_SUPABASE_ANON_KEY }}
+        run: node scripts/mobile-store-config.mjs pin
+
       - name: Install dependencies
         working-directory: app
         run: pnpm install --frozen-lockfile --ignore-scripts
@@ -136,15 +149,6 @@ jobs:
             exit 1
           fi
 
-      # Bakes the mobile-store backend into the eas.json profile env (runner only).
-      - name: Pin the Supabase backend
-        id: config
-        working-directory: .
-        env:
-          MOBILE_SUPABASE_TARGET: ${{ vars.MOBILE_SUPABASE_TARGET }}
-          MOBILE_SUPABASE_ANON_KEY: ${{ secrets.MOBILE_SUPABASE_ANON_KEY }}
-        run: node scripts/mobile-store-config.mjs
-
       - name: Write Play service account key (runner temp, never committed)
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -154,27 +158,28 @@ jobs:
           # Path must match eas.json submit.production.android.serviceAccountKeyPath (gitignored).
           printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > ./google-play-service-account.json
 
-      - name: Build AAB on EAS & submit to Play internal
+      - name: Build AAB on EAS, verify the backend & submit to Play internal
         id: build
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_PROJECT_ID: ${{ vars.KC_EAS_PROJECT_ID }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_URL: ${{ vars.SENTRY_URL }}
           BUILD_SHA: ${{ steps.target.outputs.sha }}
         run: |
           set -euo pipefail
-          [ -n "${SENTRY_AUTH_TOKEN:-}" ] || export SENTRY_DISABLE_AUTO_UPLOAD=true
-          eas build --platform android --profile production --non-interactive --wait --json > build.json
+          eas build --platform android --profile nightly --non-interactive --wait --json > build.json
           url="$(jq -r '.[0].artifacts.buildUrl // empty' build.json)"
           [ -n "$url" ] || { echo "::error::No AAB artifact URL from EAS"; exit 1; }
+          # Refuse to submit unless the shipped JS bundle points at kc-dev only. The
+          # cloud builder also receives EAS server variables, so check the artifact.
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/app.aab" "$url"
+          unzip -p "$RUNNER_TEMP/app.aab" 'base/assets/index.android.bundle' > "$RUNNER_TEMP/index.android.bundle"
+          node "$GITHUB_WORKSPACE/scripts/mobile-store-config.mjs" verify "$RUNNER_TEMP/index.android.bundle"
           # The versionCode of this very build (EAS remote autoIncrement assigned it).
           version_code="$(jq -r '.[0].appBuildVersion // empty' build.json)"
           [ -n "$version_code" ] || { echo "::error::EAS returned no appBuildVersion (versionCode)"; exit 1; }
           eas submit --platform android --profile production --url "$url" --non-interactive
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
-          echo "Play internal upload: Android versionCode $version_code from $BUILD_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Play internal upload: Android versionCode $version_code from $BUILD_SHA (kc-dev backend)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove key file
         if: always()
