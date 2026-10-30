@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { readAppVersion, renderVersionFile, resolveBuildSha } from './web-version.mjs';
 
 const SHA = 'a'.repeat(40);
-const HEAD = 'b'.repeat(40);
+const CI_SHA = 'b'.repeat(40);
 
 function withVersionFile(content, fn) {
   const dir = mkdtempSync(join(tmpdir(), 'web-version-'));
@@ -28,18 +28,18 @@ test('readAppVersion rejects anything that is not plain semver', () => {
   }
 });
 
-test('an explicit EXPO_PUBLIC_GIT_COMMIT_SHA wins over the git HEAD', () => {
-  assert.equal(resolveBuildSha({ env: { EXPO_PUBLIC_GIT_COMMIT_SHA: ` ${SHA} ` }, head: HEAD }), SHA);
+test('an explicit EXPO_PUBLIC_GIT_COMMIT_SHA wins over GITHUB_SHA', () => {
+  assert.equal(resolveBuildSha({ EXPO_PUBLIC_GIT_COMMIT_SHA: ` ${SHA} `, GITHUB_SHA: CI_SHA }), SHA);
 });
 
 test('a short or malformed explicit SHA fails the build', () => {
-  assert.throws(() => resolveBuildSha({ env: { EXPO_PUBLIC_GIT_COMMIT_SHA: 'abc1234' }, head: HEAD }), /full 40-character/);
+  assert.throws(() => resolveBuildSha({ EXPO_PUBLIC_GIT_COMMIT_SHA: 'abc1234', GITHUB_SHA: CI_SHA }), /full 40-character/);
 });
 
-test('falls back to the git HEAD, then to "unknown"', () => {
-  assert.equal(resolveBuildSha({ env: {}, head: HEAD }), HEAD);
-  assert.equal(resolveBuildSha({ env: {}, head: null }), 'unknown');
-  assert.equal(resolveBuildSha({ env: { EXPO_PUBLIC_GIT_COMMIT_SHA: '' }, head: 'not-a-sha' }), 'unknown');
+test('falls back to GITHUB_SHA, then to "unknown" — never to a spawned git', () => {
+  assert.equal(resolveBuildSha({ GITHUB_SHA: CI_SHA }), CI_SHA);
+  assert.equal(resolveBuildSha({}), 'unknown');
+  assert.equal(resolveBuildSha({ EXPO_PUBLIC_GIT_COMMIT_SHA: '', GITHUB_SHA: 'not-a-sha' }), 'unknown');
 });
 
 test('renderVersionFile emits exactly version, sha and builtAt as JSON', () => {

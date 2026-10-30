@@ -6,7 +6,7 @@ import { writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderHeadersFile } from './web-headers.mjs';
-import { gitHead, readAppVersion, renderVersionFile, resolveBuildSha } from './web-version.mjs';
+import { readAppVersion, renderVersionFile, resolveBuildSha } from './web-version.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(here, '..');
@@ -31,7 +31,7 @@ console.log(`[web-postbuild] wrote ${headersPath}`);
 // Build identity polled by the deploy smoke and the release lane (see web-version.mjs).
 const stamp = {
   version: readAppVersion(resolve(appRoot, 'VERSION')),
-  sha: resolveBuildSha({ env: process.env, head: gitHead(appRoot) }),
+  sha: resolveBuildSha(process.env),
   builtAt: new Date().toISOString(),
 };
 writeFileSync(versionPath, renderVersionFile(stamp), 'utf8');
