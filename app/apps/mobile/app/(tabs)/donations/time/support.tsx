@@ -4,12 +4,10 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import { useAuthStore } from '../../../../src/store/authStore';
 import { container } from '../../../../src/lib/container';
 import { Screen } from '../../../../src/components/ui/Screen';

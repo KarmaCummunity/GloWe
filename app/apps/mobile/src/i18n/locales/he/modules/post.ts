@@ -212,4 +212,9 @@ export const postHe = {
     },
   },
 
+  unifiedCreate: {
+    categoryLabel: 'קטגוריה',
+    general: 'כללי',
+    headline: 'מה רוצים לפרסם?',
+  },
 } as const;

@@ -1,13 +1,14 @@
 // Bottom sheet for advanced search filters (FR-FEED-017+).
 // Local state mirrors store so the user can preview before applying.
 import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { ALL_CATEGORIES, DONATION_CATEGORY_SLUGS, RADIUS_OPTIONS_KM } from '@kc/domain';
 import type { Category, DonationCategorySlug, PostType, SearchSortBy } from '@kc/domain';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { useSearchStore } from '../store/searchStore';
 import { CityPicker } from './CityPicker';
 import { SearchChip } from './search/SearchChip';
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function SearchFilterSheet({ visible, onClose }: Props) {
+  useModalHardwareBack(visible, onClose);
   const styles = useSearchFilterSheetStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();

@@ -3,9 +3,9 @@
 // Mapped to: FR-PROFILE-001 AC2, FR-PROFILE-002 AC3, FR-PROFILE-013.
 
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 
 export interface ProfileStatsRowProps {
   followersCount: number;

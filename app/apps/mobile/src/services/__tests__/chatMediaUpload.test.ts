@@ -50,8 +50,8 @@ describe('uploadChatImageAndSend', () => {
     const send = vi.fn(async () => undefined);
     await uploadChatImageAndSend('c1', 'u1', 'file://a', send);
     expect(client.storage.from).toHaveBeenCalledWith('chat-media');
-    expect(storageBucket.upload).toHaveBeenCalledWith('c1/u1/obj-1.jpg', expect.any(Uint8Array), expect.objectContaining({ contentType: 'image/jpeg', upsert: false }));
-    expect(send).toHaveBeenCalledWith({ type: 'image', path: 'c1/u1/obj-1.jpg', url: 'https://cdn/x.jpg', width: 800, height: 600 });
+    expect(storageBucket.upload).toHaveBeenCalledWith('u1/c1/obj-1.jpg', expect.any(Uint8Array), expect.objectContaining({ contentType: 'image/jpeg', upsert: false }));
+    expect(send).toHaveBeenCalledWith({ type: 'image', path: 'u1/c1/obj-1.jpg', url: 'https://cdn/x.jpg', width: 800, height: 600 });
   });
 
   it('throws when encoding fails', async () => {

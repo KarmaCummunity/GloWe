@@ -1,9 +1,9 @@
 // FR-CLOSURE-003 AC2 — recipient picker row: avatar + name + optional city,
 // selectable radio. Used inside ClosureSheet's Step 2.
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { KCImage } from '../ui/KCImage';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import type { ClosureCandidate } from '@kc/application';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

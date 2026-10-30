@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { View, Pressable } from 'react-native';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useAboutContentScope } from './AboutContentScopeContext';
 import { aboutRtlText, aboutRtlRow } from './aboutWebRtlStyle';

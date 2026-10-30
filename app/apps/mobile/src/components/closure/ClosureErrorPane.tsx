@@ -1,9 +1,9 @@
 // FR-CLOSURE-001 — error pane shown inside ClosureSheet when start() fails
 // (e.g. block-list fetch rejected). Without this the modal would never appear
 // and the CTA would just stay disabled — the original "nothing happens" bug.
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

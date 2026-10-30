@@ -1,11 +1,11 @@
 // Chat list (Inbox) — FR-CHAT-001, FR-CHAT-016.
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, TextInput, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import type { ListRenderItem } from '@shopify/flash-list';
+import type { ListRenderItem } from 'react-native';
 import { ChatError, type ChatWithPreview } from '@kc/application';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, TextInput } from '@kc/ui';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
 import { markNeedFreshThreadWith } from '../../src/lib/chatNavigationPrefs';
@@ -21,6 +21,8 @@ import { useChatStore } from '../../src/store/chatStore';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { queryClient } from '../../src/lib/queryPersist';
 import { chatInboxQueryKey } from '../../src/lib/chatInboxQuery';
+
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
 
 const PAGE = 30;
 
@@ -50,7 +52,7 @@ export default function ChatListScreen() {
     if (!inbox) return [];
     const needle = q.trim().toLowerCase();
     const list = needle
-      ? inbox.filter((c) => (c.otherParticipant.displayName ?? '').toLowerCase().startsWith(needle))
+      ? inbox.filter((c) => (c.otherParticipant?.displayName ?? '').toLowerCase().startsWith(needle))
       : inbox;
     return list.slice(0, visible);
   }, [inbox, q, visible]);
@@ -79,7 +81,7 @@ export default function ChatListScreen() {
         options={{
           ...detailOptions,
           headerTitle: t('chat.title'),
-          ...(Platform.OS === 'ios' ? { headerLargeTitle: true } : {}),
+          headerLargeTitle: false,
         }}
       />
 
@@ -103,6 +105,7 @@ export default function ChatListScreen() {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.6}
           estimatedItemSize={76}
+          contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
           refreshControl={
             <KcRefreshControl refreshing={inboxQuery.isRefetching} onRefresh={onRefresh} />
           }
@@ -118,10 +121,10 @@ export default function ChatListScreen() {
                 subtitle={t('emptyStates.chatBody')}
                 action={
                   <EmptyStateActions
-                    primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)' as never) }}
+                    primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)') }}
                     secondary={{
                       label: t('emptyStates.chatMarketplaceCta'),
-                      onPress: () => router.push('/(tabs)/donations/marketplace' as never),
+                      onPress: () => router.push('/(tabs)/donations/marketplace'),
                     }}
                   />
                 }

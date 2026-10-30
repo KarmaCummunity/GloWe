@@ -22,6 +22,28 @@ test('flags DROP TABLE', () => {
   assert.match(errors[0], /DROP TABLE/);
 });
 
+test('does not flag ALTER PUBLICATION ... DROP TABLE (non-destructive)', () => {
+  const errors = scanMigrationSql(
+    "execute 'alter publication supabase_realtime drop table public.messages';\n",
+    '0004.sql'
+  );
+  assert.deepEqual(errors, []);
+});
+
+test('still flags a real DROP TABLE next to a publication change', () => {
+  const errors = scanMigrationSql(
+    'ALTER PUBLICATION supabase_realtime DROP TABLE a; DROP TABLE b;\n',
+    '0005.sql'
+  );
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /DROP TABLE/);
+});
+
+test('does not flag dropping a pg_temp table', () => {
+  const errors = scanMigrationSql('  drop table if exists pg_temp._find_match_ranked;\n', '0006.sql');
+  assert.deepEqual(errors, []);
+});
+
 test('allows override marker on the same line', () => {
   const errors = scanMigrationSql(
     'DROP TABLE legacy_foo; -- migration-safety: allow phased removal\n',

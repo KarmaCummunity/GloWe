@@ -1,9 +1,10 @@
 // app/apps/mobile/app/(admin)/posts/index.tsx
 // FR-ADMIN-019 — admin posts search screen.
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPostSearch } from '../../../src/hooks/useAdminContentSearch';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -53,7 +54,7 @@ export default function PostsScreen() {
         autoCapitalize="none"
         autoCorrect={false}
       />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {STATUS_OPTIONS.map((s) => (
           <Pressable
             key={s.key}

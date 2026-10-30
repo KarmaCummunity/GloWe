@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../store/authStore';
 import { givingHandoffUseCases } from '../../services/givingHandoffComposition';
 import { ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
 import { track } from '../../lib/analytics';
+import { trackCoreLoop } from '../../lib/analyticsCoreLoop';
 import { hapticSuccess } from '../../lib/haptics';
 import { handoffErrorKey } from '../../lib/marketplaceCreateErrors';
 
@@ -50,12 +51,18 @@ export function GivingHandoffActions({ detail }: Props) {
     await qc.invalidateQueries({ queryKey: ['marketplace'] });
   };
 
-  const run = async (fn: () => Promise<void>, event?: 'match_made') => {
+  const run = async (
+    fn: () => Promise<void>,
+    analytics?: 'match_made' | 'handover_completed',
+  ) => {
     setBusy(true);
     try {
       await fn();
-      if (event === 'match_made') {
+      if (analytics === 'match_made') {
         track('match_made', { world: detail.worldSlug });
+      }
+      if (analytics === 'handover_completed') {
+        trackCoreLoop('handover_completed', { world: detail.worldSlug, cityId: detail.cityId });
       }
       hapticSuccess();
       await invalidate();
@@ -156,7 +163,7 @@ export function GivingHandoffActions({ detail }: Props) {
                 } else {
                   await givingHandoffUseCases.markHandedOver().execute(h.handoffId);
                 }
-              })
+              }, 'handover_completed')
             }
           >
             <Text style={styles.btnText}>

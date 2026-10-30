@@ -3,10 +3,11 @@
 // because they're a single transactional flow; Step 3 (the one-time educational
 // note) is a separate sheet. Step 2 is now extracted to ClosureStep2.tsx —
 // it owns the chats/search mode tabs and is the bigger of the two panes.
-import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import type { PostType } from '@kc/domain';
+import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 import { useClosureStore } from '../../store/closureStore';
 import { useAuthStore } from '../../store/authStore';
 import { ClosureStep2 } from './ClosureStep2';
@@ -30,6 +31,7 @@ export function ClosureSheet() {
   // step='error' is shown so the user sees feedback instead of a faded button
   // with nothing happening (the original bug report).
   const visible = step === 'confirm' || step === 'pick' || step === 'error';
+  useModalHardwareBack(visible, reset);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={reset}>

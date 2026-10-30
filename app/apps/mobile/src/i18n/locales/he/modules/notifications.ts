@@ -2,6 +2,7 @@
 export const notificationsHe = {
   inboxTitle: 'מרכז התראות',
   inboxMarkAll: 'סמן הכל כנקרא',
+  inboxError: 'לא הצלחנו לטעון התראות. לחצו לנסות שוב',
   inboxEmpty: 'אין התראות כרגע',
   inboxGrouped: '{{count}} משתתפים',
   postReactionTitle: 'תגובה לפוסט',
@@ -17,6 +18,8 @@ export const notificationsHe = {
   criticalCaption: "הודעות צ'אט, סימון כמקבל, התראות מערכת, פוסט שעומד לפוג, הסרת תוכן",
   socialLabel: 'חברתיות',
   socialCaption: 'עוקבים חדשים, בקשות מעקב, בקשות מאושרות',
+  matchSuggestionsLabel: 'הצעות התאמה',
+  matchSuggestionsCaption: 'כשיש הצעה או בקשה שמתאימה לשלך (גם בוואטסאפ)',
   quietHoursSection: 'שעות שקט',
   quietHoursCaption: 'השהיית התראות חברתיות בלילה (קריטיות עדיין מגיעות)',
   quietHoursEnabled: 'הפעל שעות שקט',

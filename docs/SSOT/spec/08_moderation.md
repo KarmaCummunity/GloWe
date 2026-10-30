@@ -119,6 +119,8 @@ A user removes a block via the Blocked Users screen.
 
 ## FR-MOD-005 — Auto-removal at 3 reports
 
+> ⚠️ **Superseded by the project book** — D33 — 3 reports on a post hide it for human review; 5 distinct reporters (30 days) suspend a user from actions (gap G33, question Q-2). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.15. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 **Description.**
 When a content target accumulates 3 distinct reports from 3 distinct reporters, it is auto-removed.
 

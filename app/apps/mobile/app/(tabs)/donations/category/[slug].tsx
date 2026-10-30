@@ -1,14 +1,14 @@
 // FR-DONATE-006/007 — generic donation category screen.
 // Renders DonationLinksList for any of: food, housing, transport, knowledge, animals, medical.
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   DONATION_CATEGORY_SLUGS,
   type DonationCategorySlug,
 } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { Ionicons } from '@expo/vector-icons';
 import { DonationLinksList } from '../../../../src/components/DonationLinksList';
 import { MedicalBodiesSection } from '../../../../src/components/MedicalBodiesSection';

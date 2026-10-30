@@ -212,4 +212,9 @@ export const postEn = {
     },
   },
 
+  unifiedCreate: {
+    categoryLabel: 'Category',
+    general: 'General',
+    headline: 'What would you like to post?',
+  },
 } as const;

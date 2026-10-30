@@ -3,12 +3,12 @@ import React from 'react';
 import {
   Modal,
   View,
-  Text,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
+import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 
 interface Props {
@@ -22,6 +22,7 @@ export function HideChatConfirmModal({ visible, loading, onCancel, onConfirm }: 
   const styles = useStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  useModalHardwareBack(visible && !loading, onCancel);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>

@@ -44,7 +44,15 @@ function freshState(): State {
 }
 
 function makeRpc(state: State): RpcFn {
+  const claimed = new Set<string>();
   return (fn, args) => {
+    if (fn === 'api_whatsapp_claim_inbound') {
+      // #1089 dedupe: first delivery of a wamid wins.
+      const id = String(args.p_message_id);
+      const fresh = !claimed.has(id);
+      claimed.add(id);
+      return Promise.resolve({ data: fresh, error: null });
+    }
     if (fn === 'api_whatsapp_inbound_allowed') {
       return Promise.resolve({ data: state.allowed, error: null });
     }
@@ -124,6 +132,10 @@ function makeRpc(state: State): RpcFn {
       row.status = 'failed';
       return Promise.resolve({ data: 'failed', error: null });
     }
+    if (fn === 'api_whatsapp_bot_access') {
+      // #1086: e2e phone is not linked; upsell rate-limited away.
+      return Promise.resolve({ data: { access: 'unlinked', user_id: null, upsell: false }, error: null });
+    }
     return Promise.resolve({ data: null, error: { message: `unexpected ${fn}` } });
   };
 }
@@ -151,7 +163,7 @@ async function signedPost(
 }
 
 /** Simulate intake → publish → match notify (DB side) after a free-text ingest. */
-function simulateMatchNotify(state: State, rpc: RpcFn) {
+function simulateMatchNotify(rpc: RpcFn) {
   // Two sides get match_found_v1 once consent allows it.
   return Promise.all([
     rpc('api_whatsapp_queue_outbound', {
@@ -178,7 +190,7 @@ Deno.test('e2e: signed free-text → ingest; START → consent; match → outbou
   assertEquals(state.records.length, 1);
 
   // 2) Without consent, match notify is skipped
-  await simulateMatchNotify(state, rpc);
+  await simulateMatchNotify(rpc);
   assertEquals(state.outbound.filter((o) => o.kind === 'template' && o.status === 'queued').length, 0);
   assertEquals(state.outbound.filter((o) => o.status === 'skipped_no_consent').length, 2);
 
@@ -190,7 +202,7 @@ Deno.test('e2e: signed free-text → ingest; START → consent; match → outbou
 
   // 4) Match notify now queues templates
   state.outbound = state.outbound.filter((o) => o.kind === 'session'); // clear skips
-  await simulateMatchNotify(state, rpc);
+  await simulateMatchNotify(rpc);
   const queued = state.outbound.filter((o) => o.kind === 'template' && o.status === 'queued');
   assertEquals(queued.length, 2);
 
@@ -236,7 +248,7 @@ Deno.test('e2e: STOP after opt-in blocks further proactive templates; confirmati
   assertEquals(state.consentOptedIn, false);
   assertExists(state.outbound.find((o) => o.kind === 'session'));
 
-  await simulateMatchNotify(state, rpc);
+  await simulateMatchNotify(rpc);
   assertEquals(state.outbound.filter((o) => o.kind === 'template' && o.status === 'queued').length, 0);
   assertEquals(state.outbound.filter((o) => o.status === 'skipped_no_consent').length, 2);
 });

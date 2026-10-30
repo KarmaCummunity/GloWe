@@ -1,5 +1,6 @@
 // Reusable filter chip for SearchFilterSheet.
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
+import { Text } from '@kc/ui';
 import { useSearchFilterSheetStyles } from './searchFilterSheet.styles';
 
 interface Props {

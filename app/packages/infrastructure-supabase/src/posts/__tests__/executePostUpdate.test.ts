@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PostError } from '@kc/application';
 import type { Post } from '@kc/domain';
 import { executePostUpdate } from '../executePostUpdate';
 

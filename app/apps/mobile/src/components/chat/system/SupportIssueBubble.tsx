@@ -1,9 +1,9 @@
 // FR-MOD-002 AC3 / FR-CHAT-007 AC3 — renders the system message injected when
 // a user submits a support issue from Settings → Report an Issue.
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
 import { useTranslation } from 'react-i18next';
 import type { SystemMessageBubbleProps } from './SystemMessageBubble';

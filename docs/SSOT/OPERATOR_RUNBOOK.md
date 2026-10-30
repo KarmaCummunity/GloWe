@@ -351,7 +351,7 @@ The `backfill-image-thumbs` Edge Function scans `post-images` and `avatars` buck
 From a machine with the Supabase CLI logged in (or a service-role JWT in `$SR`):
 
 ```bash
-SUPABASE_REF=roeefqpdbftlndzsvhfj
+SUPABASE_REF=enbqriuxvvuontiwslun
 SR="$(cat ~/.kc-dev-secrets.env | grep SUPABASE_SERVICE_ROLE_KEY | cut -d= -f2-)"
 
 # Dry-run first to see what would be processed:
@@ -398,6 +398,44 @@ Re-invoke until every entry's `more` is `false`.
 Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function is deployed automatically by `.github/workflows/supabase-functions-deploy.yml` when `supabase/functions/**` changes land on `main`.
 
 ---
+
+## KC support channels — donations to KC (FR-DONATE-011, migration `0447`)
+
+The Money hub's *Support KC directly* card reads its payment links from `public.kc_support_channels`. Changing a row changes the app immediately — **no release**. Only super admins can write (RLS); the URL must be `https://` with no credentials (CHECK).
+
+| `channel` | Shown as | Seeded |
+|---|---|---|
+| `bit` | One-time — Bit (interim, D64) | ✅ (FR-DONATE-010 link) |
+| `paybox` | One-time — PayBox (interim, D64) | ✅ (FR-DONATE-010 link) |
+| `card_one_time` | One-time — credit-card hosted page | ❌ add after Grow setup |
+| `card_standing_order` | Monthly standing order — hosted page | ❌ add after Grow setup |
+
+### Add / replace a provider page (e.g. Grow, launch plan A11)
+
+Create two hosted pages in the Grow dashboard (one-time; recurring monthly), then run against **dev first**, check the app, then prod:
+
+```sql
+insert into public.kc_support_channels (channel, url, provider_label)
+values
+  ('card_one_time',       'https://<grow one-time page>', 'Grow'),
+  ('card_standing_order', 'https://<grow recurring page>', 'Grow')
+on conflict (channel) do update
+  set url = excluded.url, provider_label = excluded.provider_label, is_active = true;
+```
+
+As soon as an active `card_one_time` row exists, the app hides Bit / PayBox on its own (D64) — on the Money hub and on the About / Settings card. Once clearing is confirmed working on prod, remove the interim rows for good: `delete from public.kc_support_channels where channel in ('bit', 'paybox');`
+
+The app has **no compiled payment links**: if this table cannot be read, donors see "unavailable" rather than a stale link.
+
+Pause a channel: `update public.kc_support_channels set is_active = false where channel = '<channel>';`
+
+### Standing-order cancellation requests (legal obligation)
+
+A donor's *Request to cancel a standing order* posts `בקשה לביטול הוראת הקבע שלי לתמיכה בקהילת קארמה.` (en: *Request to cancel my standing order…*) to their support thread with the super admin. The app promises cancellation **within 3 business days** (Israeli Consumer Protection Law §13D): cancel the recurring transaction in the provider dashboard, then confirm in the same chat.
+
+### Sandbox org-payments flow
+
+The in-app verified-nonprofit donation flow (#850) is sandbox-only and hidden by default. To exercise it on dev: `update public.app_flags set enabled = true where key = 'money_in_app_org_payments';` — never on prod until a real provider is wired.
 
 ## Publishing legal documents (FR-SETTINGS-010)
 

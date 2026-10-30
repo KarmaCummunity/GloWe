@@ -1,9 +1,9 @@
 // Vertical numbered timeline for the About roadmap section — summary + per-phase expand.
 import React, { useCallback, useState } from 'react';
-import { View, Text, Pressable, LayoutAnimation, Platform } from 'react-native';
+import { View, Pressable, LayoutAnimation, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { aboutRtlText, aboutRtlRow } from './aboutWebRtlStyle';
 
 type PhaseSeverity = 'current' | 'soon' | 'future' | 'long-term';

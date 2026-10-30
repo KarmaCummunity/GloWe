@@ -1,8 +1,8 @@
 import React from 'react';
-import { Switch, Text, TextInput, View, Pressable, Platform } from 'react-native';
+import { Switch, View, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 
 type SchemaProp = {
   type?: string | string[];

@@ -25,32 +25,34 @@
     "check:rpc-contract": "node ../scripts/check-rpc-contract.mjs",
     "check:web-manifest": "node ../scripts/check-web-manifest.mjs",
     "check:backend-guards": "node ../scripts/check-migration-chain.mjs && node ../scripts/check-migration-safety.mjs && node ../scripts/check-rpc-contract.mjs",
-    "test:scripts": "node --test ../scripts/check-migration-chain.test.mjs ../scripts/check-migration-safety.test.mjs ../scripts/check-rpc-contract.test.mjs ../scripts/check-web-manifest.test.mjs ../scripts/extract-hebrew-text.test.mjs ../scripts/check-required-checks-drift.test.mjs ../scripts/whatsapp-templates.test.mjs",
+    "test:scripts": "node --test ../scripts/*.test.mjs scripts/*.test.mjs",
     "test:e2e": "npm --prefix ../tests/e2e test",
     "test:e2e:ui": "npm --prefix ../tests/e2e run test:ui"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^5.0.4",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
-    "turbo": "^2.11.8",
+    "turbo": "^2.11.10",
     "typescript": "^5.5.0",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.72.0"
   },
   "pnpm": {
     "overrides": {
       "shell-quote": ">=1.11.0",
       "tar": ">=7.5.19",
-      "brace-expansion": ">=5.0.11",
+      "brace-expansion@<2": "^1.1.19",
+      "brace-expansion@>=2 <3": "^2.1.7",
+      "brace-expansion@>=3": ">=5.0.11",
       "js-yaml": ">=4.3.0",
       "form-data@4": ">=4.0.6",
       "ws@6": ">=6.2.4",
       "ws@7": ">=7.5.11",
       "ws@8": ">=8.21.0",
-      "hono@4": ">=4.12.25",
+      "hono@4": ">=4.13.14",
       "undici@6": "^6.28.1",
       "nanoid@3": "^3.3.18",
       "browserslist": "^4.28.7",
@@ -86,7 +88,8 @@
         "GHSA-vfj7-8cjw-p6xm",
         "GHSA-5p2g-fcmc-qvqq",
         "GHSA-w3rx-r6r6-pgpr",
-        "GHSA-r7fv-28h4-cvq7"
+        "GHSA-r7fv-28h4-cvq7",
+        "GHSA-qr28-fpjm-wq7f"
       ]
     }
   }

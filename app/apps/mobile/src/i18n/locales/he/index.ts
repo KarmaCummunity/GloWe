@@ -7,6 +7,7 @@
 
 import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
@@ -32,6 +33,7 @@ import { surveyHe } from './modules/survey';
 import { researchHe } from './modules/research';
 import { adminHe } from './modules/admin';
 import { karmaHe } from './modules/karma';
+import { cardsHe } from './modules/cards';
 import { asideHe } from './modules/aside';
 import { configHe } from './modules/config';
 import { followHe } from './modules/follow';
@@ -54,6 +56,7 @@ const he = {
 
   // Karma points (FR-KARMA-004/007) — see modules/karma.ts
   karma: karmaHe,
+  cards: cardsHe,
 
   // Post — see modules/post.ts
   post: postHe,
@@ -112,6 +115,8 @@ const he = {
 
   marketplace,
   moneyPayments,
+  // Direct support for KC (FR-DONATE-011) — see donations.supportKc.ts
+  supportKc,
   timeVolunteer,
   medicalBodies,
   givingHandoff,

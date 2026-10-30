@@ -9,9 +9,9 @@
 //   chat → hidden/active label (no link — chats are private; we link to
 //          the reporter side from the reporter list instead)
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { AdminReportTargetType } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface CaseTargetCardProps {
@@ -53,7 +53,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
           {authorId && (
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push(`/user/${authorId}` as never)}
+              onPress={() => router.push(`/user/${authorId}`)}
             >
               <Text style={styles.link}>{t.openAuthor}</Text>
             </Pressable>
@@ -63,7 +63,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/post/${targetId}` as never)}
+          onPress={() => router.push(`/post/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openPost}</Text>
         </Pressable>
@@ -100,7 +100,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         {ownerId ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push(`/user/${ownerId}` as never)}
+            onPress={() => router.push(`/user/${ownerId}`)}
           >
             <Text style={styles.link}>{t.openOwner}</Text>
           </Pressable>
@@ -108,7 +108,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/(tabs)/donations/marketplace/${targetId}` as never)}
+          onPress={() => router.push(`/(tabs)/donations/marketplace/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openListing}</Text>
         </Pressable>
@@ -131,7 +131,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/user/${targetId}` as never)}
+          onPress={() => router.push(`/user/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openProfile}</Text>
         </Pressable>

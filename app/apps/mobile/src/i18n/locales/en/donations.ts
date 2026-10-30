@@ -1,11 +1,12 @@
+import { marketplaceMap } from './marketplaceMap';
 // English — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/en/`; composed into the bundle via `locales/en/index.ts`.
-// Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
-// under the architecture cap.
+// Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -17,6 +18,7 @@ export const donations = {
   hubItemsFeaturedTitle: 'Items',
   hubItemsFeaturedSubtitle: 'Donate and request items — the core action in the app',
   hubCategoriesSectionTitle: 'More donation categories',
+  worldLaunch,
   items: { title: 'Items', subtitle: 'Donate and request items' },
   time: { title: 'Time', subtitle: 'Volunteering and free time' },
   money: { title: 'Money', subtitle: 'Monetary donation' },
@@ -62,7 +64,7 @@ export const donations = {
   moneyScreen: {
     title: 'Monetary donation',
     body:
-      'Donate to verified nonprofits in-app (sandbox — no real charges). External links remain below for legacy flows.',
+      'Support Karma Community directly, find nonprofits to donate to, and share links to nonprofits you know.',
     openLink: 'Open jgive.com',
     linkErrorTitle: 'We couldn’t open the link',
     linkErrorBody: 'Try a different browser or enter the address manually.',
@@ -108,12 +110,6 @@ export const donations = {
     title: 'Giving with love? Give to the community too',
     tagline:
       'Karma is a free community that runs on your love and generosity. Every donation helps us keep building a place of giving for everyone.',
-    ctaBit: 'Donate via Bit',
-    ctaPaybox: 'Donate via PayBox',
-    ctaBitA11y: 'Open the Bit app to donate to Karma Community',
-    ctaPayboxA11y: 'Open the PayBox app to donate to Karma Community',
-    linkErrorTitle: 'We couldn’t open the link',
-    linkErrorBody: 'Try updating the app or opening the link in a browser.',
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
@@ -239,6 +235,7 @@ export const search = {
 } as const;
 
 export const marketplace = {
+  ...marketplaceMap,
   browseTitle: 'Marketplace',
   searchPlaceholder: 'Search listings…',
   allWorlds: 'All worlds',
@@ -246,8 +243,6 @@ export const marketplace = {
   createListing: 'Create listing',
   loading: 'Loading…',
   empty: 'No listings match your filters.',
-  mapTitle: 'Map clusters',
-  mapEmpty: 'No geo-tagged listings in this area.',
   clusterLabel: '{{count}} listings',
   notFound: 'Listing not found.',
   startChat: 'Message publisher',
@@ -261,6 +256,8 @@ export const marketplace = {
   forYouTitle: 'For you',
   createHubTitle: 'Choose a giving world',
   fieldKind: 'Listing type',
+  fieldWorldSubcategory: 'Subcategory',
+  fieldWorldSubcategoryHint: 'Optional — helps us find matches for you',
   fieldDirection: 'Give or request',
   fieldCity: 'City / area',
   fieldRadius: 'Search radius: {{km}} km',
@@ -291,7 +288,6 @@ export const marketplace = {
   myListingsDeleteHint: 'This permanently removes the listing.',
   myListingsSave: 'Save changes',
   myListingsUpdated: 'Updated {{date}}',
-  mapWebFallback: 'Interactive map is available in the iOS/Android app. Clusters below use the same server data.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,

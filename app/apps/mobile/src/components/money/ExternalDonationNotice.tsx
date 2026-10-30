@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { ExternalDonationKind } from '../../config/featureFlags';
 import { useExternalDonations } from '../../hooks/useExternalDonations';
 

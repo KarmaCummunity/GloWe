@@ -1,9 +1,10 @@
 // FR-KARMA-007 — self-only karma number + "how to earn" explainer.
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { useRouter } from 'expo-router';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rowDirectionStart, selfAlignStart } from '../../lib/rtlLayout';
 
 export function KarmaBadge({ points }: { readonly points: number }) {
@@ -11,13 +12,21 @@ export function KarmaBadge({ points }: { readonly points: number }) {
   const { colors } = useTheme();
   const styles = useKarmaBadgeStyles();
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   return (
     <>
-      <TouchableOpacity style={styles.badge} onPress={() => setOpen(true)} accessibilityRole="button">
+      <TouchableOpacity
+        style={styles.badge}
+        onPress={() => router.push('/karma-history')}
+        accessibilityRole="button"
+        accessibilityHint={t('karma.historyOpen')}
+      >
         <Ionicons name="sparkles" size={18} color={colors.primary} />
         <Text style={styles.points}>{points}</Text>
         <Text style={styles.label}>{t('karma.badgeLabel')}</Text>
-        <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+        <TouchableOpacity onPress={() => setOpen(true)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('karma.howToEarnTitle')}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textSecondary} />
+        </TouchableOpacity>
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>

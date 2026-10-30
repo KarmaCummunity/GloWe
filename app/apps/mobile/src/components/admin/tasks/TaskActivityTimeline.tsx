@@ -1,11 +1,11 @@
 // app/apps/mobile/src/components/admin/tasks/TaskActivityTimeline.tsx
 // FR-ADMIN-018 — activity timeline (comments + status/assignment/priority/due changes).
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   type AdminTaskActivity, type AdminTaskActivityKind, type AdminTaskCategory,
   parseAdminTaskCategory,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
 
 function categoryLabel(value: unknown, L: LocaleBundle): string {

@@ -7,7 +7,10 @@
 // counter; tapping the pill refetches + scrolls to top.
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, type ViewToken } from 'react-native';
+import { TouchableOpacity, View, type ViewToken } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@kc/ui';
 import { useRouter } from 'expo-router';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
@@ -52,6 +55,8 @@ if (!feedFirstRenderStarted) {
 
 export default function HomeFeedScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
   const viewerId = session?.userId ?? null;
@@ -229,7 +234,20 @@ export default function HomeFeedScreen() {
   return (
     <Screen blobs="content" testID="feed-screen">
       <TopBar
-        extraIcon={<FeedFilterIcon activeCount={activeCount} onPress={() => setSheetOpen(true)} />}
+        extraIcon={
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => router.navigate('/(tabs)/donations/marketplace/map')}
+              accessibilityRole="button"
+              accessibilityLabel={t('feed.openMapA11y')}
+              testID="feed-open-map"
+              style={{ padding: 4 }}
+            >
+              <Ionicons name="map-outline" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <FeedFilterIcon activeCount={activeCount} onPress={() => setSheetOpen(true)} />
+          </View>
+        }
       />
 
       <PostFeedList
@@ -255,7 +273,7 @@ export default function HomeFeedScreen() {
             hasActiveFilters={activeCount > 0}
             onClearFilters={() => filter.clearAll()}
             onShare={() => router.push('/(tabs)/create')}
-            onOpenFeedSettings={() => router.push('/settings/feed' as never)}
+            onOpenFeedSettings={() => router.push('/settings/feed')}
           />
         }
       />

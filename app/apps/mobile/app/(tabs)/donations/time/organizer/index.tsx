@@ -1,24 +1,16 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
 import { KcFlashList } from '../../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
+import { KcRowCard } from '../../../../../src/components/cards/KcRowCard';
 import { Screen } from '../../../../../src/components/ui/Screen';
 import { volunteerUseCases } from '../../../../../src/services/volunteerComposition';
 import { useShellTabBarScrollInset } from '../../../../../src/navigation/useShellTabBarVisibility';
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  row: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceRaised,
-  },
-  title: { ...typography.bodyLarge, color: colors.textPrimary },
-  meta: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
   create: {
     margin: spacing.lg,
     padding: spacing.md,
@@ -28,6 +20,8 @@ const useStyles = makeUseStyles(({ colors }) => ({
   },
   createText: { ...typography.button, color: colors.textInverse },
 }));
+
+const ROW = { marginHorizontal: spacing.lg };
 
 export default function OrganizerVolunteerListScreen() {
   const { t } = useTranslation();
@@ -59,18 +53,23 @@ export default function OrganizerVolunteerListScreen() {
           ) : null
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.row}
+          <KcRowCard
+            testID={`organizer-row-${item.opportunityId}`}
+            containerStyle={ROW}
+            tone="give"
+            badgeLabel={t('marketplace.world.time', { defaultValue: 'time' })}
+            placeholderIcon="time-outline"
+            title={item.title}
+            statusLabel={item.status}
+            closed={item.status === 'closed' || item.status === 'cancelled'}
+            closedLabel={t('cards.closed')}
             onPress={() =>
               router.push({
                 pathname: '/(tabs)/donations/time/organizer/[opportunityId]',
                 params: { opportunityId: item.opportunityId },
               })
             }
-          >
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.meta}>{item.status}</Text>
-          </Pressable>
+          />
         )}
       />
     </Screen>

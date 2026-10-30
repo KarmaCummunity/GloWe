@@ -7,6 +7,10 @@ import type {
   UpdateDonationLinkInput,
 } from '@kc/application';
 import type { Database } from '../database.types';
+import {
+  donationLinkErrorFromInvokeData,
+  donationLinkErrorFromInvokeFailure,
+} from './parseDonationLinkInvokeError';
 
 type LinkRow = Database['public']['Tables']['donation_links']['Row'];
 
@@ -52,17 +56,9 @@ export class SupabaseDonationLinksRepository implements IDonationLinksRepository
         description: input.description ?? null,
       },
     });
-    if (error) throw new DonationLinkError('network', error.message, error);
+    if (error) throw await donationLinkErrorFromInvokeFailure(error);
     if (!data || !data.ok || !data.link) {
-      const code = (data?.code ?? 'unknown') as
-        | 'invalid_input'
-        | 'invalid_url'
-        | 'unreachable'
-        | 'rate_limited'
-        | 'unauthorized'
-        | 'forbidden'
-        | 'unknown';
-      throw new DonationLinkError(code, `validate-donation-link returned ${code}`);
+      throw donationLinkErrorFromInvokeData(data);
     }
     return mapRow(data.link);
   }
@@ -81,17 +77,9 @@ export class SupabaseDonationLinksRepository implements IDonationLinksRepository
         description: input.description ?? null,
       },
     });
-    if (error) throw new DonationLinkError('network', error.message, error);
+    if (error) throw await donationLinkErrorFromInvokeFailure(error);
     if (!data || !data.ok || !data.link) {
-      const code = (data?.code ?? 'unknown') as
-        | 'invalid_input'
-        | 'invalid_url'
-        | 'unreachable'
-        | 'rate_limited'
-        | 'unauthorized'
-        | 'forbidden'
-        | 'unknown';
-      throw new DonationLinkError(code, `validate-donation-link returned ${code}`);
+      throw donationLinkErrorFromInvokeData(data);
     }
     return mapRow(data.link);
   }

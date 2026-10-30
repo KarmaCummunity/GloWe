@@ -21,7 +21,7 @@ const webGlass: ViewStyle =
       } as unknown as ViewStyle)
     : ({} as ViewStyle);
 
-export const TAB_BAR_HEIGHT = 50;
+export const TAB_BAR_HEIGHT = 60;
 
 interface IconBtnProps {
   active: boolean;
@@ -77,7 +77,7 @@ function PlusBtn({ active, onPress, label }: PlusBtnProps) {
   );
 }
 
-export function TabBar() {
+export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> = {}) {
   const router = useRouter();
   const { t } = useTranslation();
   const segments = useSegments() as string[];
@@ -85,7 +85,10 @@ export function TabBar() {
   const styles = useTabBarStyles();
 
   return (
-    <View style={styles.tabBar}>
+    <View
+      testID="shell-tab-bar"
+      style={[styles.tabBar, { height: TAB_BAR_HEIGHT + bottomInset, paddingBottom: bottomInset }]}
+    >
       {/* RTL reading order: Profile (right) | Search | Plus (center) | Donations | Home (left).
           With dir=rtl on web and I18nManager.isRTL on native, default `row` lays them out
           right-to-left. `row-reverse` would double-flip on web → LTR visual.
@@ -93,7 +96,7 @@ export function TabBar() {
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         const label = t(tab.labelI18nKey);
-        const onPress = () => router.push(tab.route as never);
+        const onPress = () => router.push(tab.route);
         if (tab.isComposer) {
           return <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} />;
         }
@@ -116,22 +119,24 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   tabBar: {
     flexDirection: 'row' as const,
     height: TAB_BAR_HEIGHT,
-    borderRadius: TAB_BAR_HEIGHT / 2,
+    // Docked flush with the screen bottom (#1213): only top corners rounded.
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 6,
     backgroundColor: colors.tabBarGlass,
     alignItems: 'center' as const,
     width: '100%' as const,
-    maxWidth: 480,
     alignSelf: 'center' as const,
     overflow: 'hidden' as const,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: isDark ? 0.45 : 0.1,
-    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: isDark ? 0.45 : 0.14,
+    shadowRadius: 28,
     elevation: 12,
     // Subtle hairline so the pill reads as a distinct surface in dark mode
     // where the underlying background and the glass tint are both dark.
-    borderWidth: isDark ? 1 : 0,
-    borderColor: isDark ? colors.border : 'transparent',
+    borderWidth: 1,
+    borderColor: isDark ? colors.border : 'rgba(0,0,0,0.06)',
     ...webGlass,
   },
   tabBtn: {
@@ -152,9 +157,9 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
     backgroundColor: colors.primarySurface,
   },
   plusCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.primary,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,

@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { View, LayoutChangeEvent } from 'react-native';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { aboutRtlText } from './aboutWebRtlStyle';
 import { useTranslation } from 'react-i18next';
 import { AnimatedEntry } from '../../components/animations/AnimatedEntry';

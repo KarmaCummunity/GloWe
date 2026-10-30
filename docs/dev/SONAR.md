@@ -1,4 +1,4 @@
-# SonarCloud + Cursor + CI (GloWe)
+# SonarCloud + Cursor + CI (KC)
 
 Project: [KarmaCummunity_MVP-2](https://sonarcloud.io/project/overview?id=KarmaCummunity_MVP-2)  
 Organization: `karmacummunity`
@@ -28,7 +28,7 @@ On every PR to `main` / `dev` (when `app/**` changes):
    SonarCloud → **My Account → Security** → Generate token (e.g. `github-actions`).
 
 2. **GitHub secret**  
-   GitHub repo `KarmaCummunity/GloWe` → **Settings → Secrets and variables → Actions** →  
+   GitHub repo `KarmaCummunity/KC` → **Settings → Secrets and variables → Actions** →  
    New secret: `SONAR_TOKEN` = the token above.  
    (Prefer **organization** secret if multiple repos use the same Sonar org.)
 

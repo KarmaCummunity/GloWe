@@ -10,11 +10,11 @@
 // with the rest of the redesigned main-screen idiom (welcome-style cream
 // backdrop, soft shadow, orange-tinted icon tiles, staggered spring entries).
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { TopBar } from '../../../src/components/TopBar';
 import { PressableScale } from '../../../src/components/animations/PressableScale';
 import { Screen } from '../../../src/components/ui/Screen';
@@ -26,36 +26,13 @@ import { useScreenAside } from '../../../src/components/aside/useScreenAside';
 import { CommunityStatsAside } from '../../../src/components/aside/CommunityStatsAside';
 import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
 import { MatchesForYouCard } from '../../../src/components/matching/MatchesForYouCard';
-
-interface CategoryTile {
-  key: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  titleKey: string;
-  subtitleKey: string;
-  href: string;
-  testID: string;
-}
-
-// `items` is rendered as a featured row above the grid — it leads the MVP flow.
-const FEATURED: CategoryTile = {
-  key: 'items',
-  icon: 'gift',
-  titleKey: 'donations.hubItemsFeaturedTitle',
-  subtitleKey: 'donations.hubItemsFeaturedSubtitle',
-  href: '/(tabs)',
-  testID: 'donation-tile-items',
-};
-
-const TILES: CategoryTile[] = [
-  { key: 'time',      icon: 'time-outline',       titleKey: 'donations.time.title',                 subtitleKey: 'donations.time.subtitle',                  href: '/(tabs)/donations/time',               testID: 'donation-tile-time' },
-  { key: 'money',     icon: 'cash-outline',       titleKey: 'donations.money.title',                subtitleKey: 'donations.money.subtitle',                 href: '/(tabs)/donations/money',              testID: 'donation-tile-money' },
-  { key: 'food',      icon: 'restaurant-outline', titleKey: 'donations.categories.food.title',      subtitleKey: 'donations.categories.food.subtitle',       href: '/(tabs)/donations/food',               testID: 'donation-tile-food' },
-  { key: 'housing',   icon: 'home-outline',       titleKey: 'donations.categories.housing.title',   subtitleKey: 'donations.categories.housing.subtitle',    href: '/(tabs)/donations/category/housing',   testID: 'donation-tile-housing' },
-  { key: 'transport', icon: 'car-outline',        titleKey: 'donations.rides.hubTitle', subtitleKey: 'donations.rides.hubSubtitle',  href: '/(tabs)/donations/rides', testID: 'donation-tile-rides' },
-  { key: 'knowledge', icon: 'school-outline',     titleKey: 'donations.categories.knowledge.title', subtitleKey: 'donations.categories.knowledge.subtitle',  href: '/(tabs)/donations/knowledge', testID: 'donation-tile-knowledge' },
-  { key: 'animals',   icon: 'paw-outline',        titleKey: 'donations.categories.animals.title',   subtitleKey: 'donations.categories.animals.subtitle',    href: '/(tabs)/donations/category/animals',   testID: 'donation-tile-animals' },
-  { key: 'medical',   icon: 'medical-outline',    titleKey: 'donations.categories.medical.title',   subtitleKey: 'donations.categories.medical.subtitle',    href: '/(tabs)/donations/category/medical',   testID: 'donation-tile-medical' },
-];
+import { useRemoteAppFlags } from '../../../src/hooks/useLaunchWorldFlags';
+import { isHubTileLaunchEnabled } from '@kc/domain';
+import {
+  DONATIONS_HUB_FEATURED,
+  donationsHubTiles,
+  type DonationHubTile,
+} from '../../../src/navigation/donationsHubTiles';
 
 const useStyles = makeUseStyles(({ colors, isDark }) => ({
   scrollView: { flex: 1, width: '100%', alignSelf: 'stretch' as const },
@@ -180,14 +157,20 @@ export default function DonationsHubScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
   const tabBarPad = useShellTabBarScrollInset();
+  const remoteFlags = useRemoteAppFlags();
+  const showFeaturedItems = isHubTileLaunchEnabled('items', remoteFlags);
+  // D60 — every world is shown; portal worlds (flag off) say they offer links and knowledge.
+  const visibleTiles = donationsHubTiles(remoteFlags).map(({ tile, mode }) =>
+    mode === 'portal' ? { ...tile, subtitleKey: 'donations.worldLaunch.portalTileSubtitle' } : tile,
+  );
 
   // Desktop (>=1024) aside — live community snapshot (FR-RESP-003).
   useScreenAside(() => <CommunityStatsAside />, []);
 
   // Pair grid tiles into rows of 2 — single row when count is odd.
-  const rows: CategoryTile[][] = [];
-  for (let i = 0; i < TILES.length; i += 2) {
-    rows.push(TILES.slice(i, i + 2));
+  const rows: DonationHubTile[][] = [];
+  for (let i = 0; i < visibleTiles.length; i += 2) {
+    rows.push(visibleTiles.slice(i, i + 2));
   }
 
   return (
@@ -206,28 +189,29 @@ export default function DonationsHubScreen() {
           <Text style={styles.heroSubtitle}>{t('donations.hubHeroSubtitle')}</Text>
         </MotionEntry>
         <MatchesForYouCard />
-        {/* ── Featured: items ──────────────── */}
-        <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
-          <PressableScale
-            onPress={() => router.push(FEATURED.href as Parameters<typeof router.push>[0])}
-            accessibilityRole="button"
-            accessibilityLabel={`${t(FEATURED.titleKey)} — ${t(FEATURED.subtitleKey)}`}
-            style={styles.blockStretch}
-          >
-            <Card padding="base" style={styles.featuredCard} testID={FEATURED.testID}>
-              <IconTile icon={FEATURED.icon} size="lg" />
-              <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle} numberOfLines={1}>
-                  {t(FEATURED.titleKey)}
-                </Text>
-                <Text style={styles.featuredSubtitle} numberOfLines={2}>
-                  {t(FEATURED.subtitleKey)}
-                </Text>
-              </View>
-              <Ionicons name="chevron-back" size={22} color={colors.primary} />
-            </Card>
-          </PressableScale>
-        </MotionEntry>
+        {showFeaturedItems ? (
+          <MotionEntry variant="bottom" delay={ENTRY_DELAY.section} style={styles.blockStretch}>
+            <PressableScale
+              onPress={() => router.push(DONATIONS_HUB_FEATURED.href)}
+              accessibilityRole="button"
+              accessibilityLabel={`${t(DONATIONS_HUB_FEATURED.titleKey)} — ${t(DONATIONS_HUB_FEATURED.subtitleKey)}`}
+              style={styles.blockStretch}
+            >
+              <Card padding="base" style={styles.featuredCard} testID={DONATIONS_HUB_FEATURED.testID}>
+                <IconTile icon={DONATIONS_HUB_FEATURED.icon} size="lg" />
+                <View style={styles.featuredText}>
+                  <Text style={styles.featuredTitle} numberOfLines={1}>
+                    {t(DONATIONS_HUB_FEATURED.titleKey)}
+                  </Text>
+                  <Text style={styles.featuredSubtitle} numberOfLines={2}>
+                    {t(DONATIONS_HUB_FEATURED.subtitleKey)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-back" size={22} color={colors.primary} />
+              </Card>
+            </PressableScale>
+          </MotionEntry>
+        ) : null}
 
         <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40} style={styles.blockStretch}>
           <PressableScale
@@ -269,7 +253,7 @@ export default function DonationsHubScreen() {
                   {pair.map((cat) => (
                     <PressableScale
                       key={cat.key}
-                      onPress={() => router.push(cat.href as Parameters<typeof router.push>[0])}
+                      onPress={() => router.push(cat.href)}
                       accessibilityRole="button"
                       accessibilityLabel={`${t(cat.titleKey)} — ${t(cat.subtitleKey)}`}
                       style={styles.gridPressable}

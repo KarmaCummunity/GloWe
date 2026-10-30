@@ -1,14 +1,14 @@
 // Chat conversation screen — FR-CHAT-002, 003, 004, 005, 010, 011, 013, 016.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import type { ListRenderItem } from '@shopify/flash-list';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import type { ListRenderItem } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MESSAGE_MAX_CHARS } from '@kc/domain';
 import { ChatError } from '@kc/application';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import { useChatStore, type OptimisticMessage } from '../../src/store/chatStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
@@ -22,7 +22,7 @@ import { AnchoredRideCard } from '../../src/components/chat/AnchoredRideCard';
 import { ChatScreenOverlays } from '../../src/components/chat/ChatScreenOverlays';
 import { useChatInit } from '../../src/components/useChatInit';
 import { useChatSend } from '../../src/hooks/useChatSend';
-import { useChatConversationStyles } from './chatScreenStyles';
+import { useChatConversationStyles } from '../../src/screens/chat/chatScreenStyles';
 import { usePushPermissionGate, registerCurrentDeviceIfPermitted } from '../../src/lib/notifications';
 import { KcFlashList } from '../../src/components/lists/KcFlashList';
 import { EnablePushModal } from '../../src/components/EnablePushModal';
@@ -34,6 +34,8 @@ import { useChatMessageReactions } from '../../src/hooks/useChatMessageReactions
 import { pickChatImage, uploadChatImageAndSend } from '../../src/services/chatMediaUpload';
 import type { MessageReactionType } from '@kc/infrastructure-supabase';
 import { webEnterToSend } from '../../src/components/chat/webEnterToSend';
+
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
 
 const EMPTY_MESSAGES: OptimisticMessage[] = [];
 

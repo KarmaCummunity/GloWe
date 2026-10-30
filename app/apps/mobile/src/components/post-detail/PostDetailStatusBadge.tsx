@@ -1,9 +1,9 @@
 // Status pill on post-detail hero — distinguishes open vs closed at a glance.
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { PostStatus } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 
 type Props = Readonly<{
   status: PostStatus;

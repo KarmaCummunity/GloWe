@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { Pressable, StyleSheet } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 
 export interface AdminFilterChipProps {
   readonly label:   string;
@@ -11,13 +11,15 @@ export function AdminFilterChip({ label, active, onPress }: AdminFilterChipProps
   const styles = useStyles();
   return (
     <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+      <Text numberOfLines={1} style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
     </Pressable>
   );
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
   chip: {
+    flexShrink: 0,
+    alignSelf: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 14,

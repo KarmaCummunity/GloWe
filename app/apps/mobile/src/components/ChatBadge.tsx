@@ -1,11 +1,11 @@
 // FR-CHAT-012 — unread badge in top-bar.
 import React from 'react';
-import { Platform, View, Text, TouchableOpacity, type ViewStyle } from 'react-native';
+import { Platform, View, TouchableOpacity, type ViewStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useChatStore } from '../store/chatStore';
-import { makeUseStyles, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, useTheme, Text } from '@kc/ui';
 import { isLayoutRtl } from '../lib/rtlLayout';
 
 /**

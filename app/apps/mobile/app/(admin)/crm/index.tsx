@@ -2,14 +2,15 @@
 // V2-ADMIN-CRM-8 — V2 §13.9 Admin CRM (minimal contacts tracker).
 // List + search + status filter + per-row edit / delete / "mark contacted".
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CRM_CONTACT_STATUSES, hasPermission, isCrmContactError,
   type AdminPermission, type AdminRole,
   type CrmContact, type CrmContactStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { ContactCard } from '../../../src/components/admin/crm/ContactCard';
@@ -91,7 +92,7 @@ export default function CrmScreen() {
         autoCorrect={false}
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {(['all', ...CRM_CONTACT_STATUSES] as readonly StatusFilter[]).map((s) => (
           <Pressable
             key={s}

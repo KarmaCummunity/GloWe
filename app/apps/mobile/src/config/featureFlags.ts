@@ -4,6 +4,14 @@
 export const FEATURE_FLAG_DEFAULTS = {
   /** iOS only: false → donation flows open in Safari (App Store 3.2.2(iv)). One-line switch. */
   ios_in_app_donations: false,
+  /** Pro paywall screen (/pro). Off until App Store products + price exist. */
+  pro_paywall: false,
+  /**
+   * Money hub: in-app donations to verified nonprofits (#850, roadmap phase 2).
+   * Runs on the sandbox provider only, so it stays off until a real provider ships;
+   * flip per environment via `public.app_flags` (key `money_in_app_org_payments`).
+   */
+  money_in_app_org_payments: false,
 } as const satisfies Record<string, boolean>;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAG_DEFAULTS;

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ReportReason } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 import { container } from '../../lib/container';
 import { useAuthStore } from '../../store/authStore';
 import { useReportForm, postNamespaceReportMessages } from '../report/useReportForm';

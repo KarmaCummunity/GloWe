@@ -25,6 +25,17 @@ export const DESTRUCTIVE_RULES = [
 const ALLOW_MARKER = 'migration-safety: allow';
 
 /**
+ * `ALTER PUBLICATION <name> DROP TABLE <t>` only removes a table from a
+ * logical-replication publication (e.g. `supabase_realtime`); no data is lost.
+ * These clauses are stripped before the destructive rules run so a real
+ * `DROP TABLE` elsewhere on the same line is still flagged.
+ */
+const PUBLICATION_DROP_TABLE = /\bALTER\s+PUBLICATION\s+[a-z0-9_."]+\s+DROP\s+TABLE\b/gi;
+
+/** Dropping a session-scoped temp table (`pg_temp.*`) touches no persisted data. */
+const TEMP_TABLE_DROP = /\bDROP\s+TABLE\s+(IF\s+EXISTS\s+)?pg_temp\.[a-z0-9_"]+/gi;
+
+/**
  * @param {string} content
  * @param {string} filename
  */
@@ -42,7 +53,7 @@ export function scanMigrationSql(content, filename) {
     const commentIdx = line.indexOf('--');
     if (commentIdx >= 0) line = line.slice(0, commentIdx);
 
-    const sql = line.trim();
+    const sql = line.replace(PUBLICATION_DROP_TABLE, '').replace(TEMP_TABLE_DROP, '').trim();
     if (!sql) continue;
 
     for (const rule of DESTRUCTIVE_RULES) {
