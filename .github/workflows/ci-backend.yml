@@ -57,18 +57,10 @@ jobs:
           done
           exit 1
 
-      - name: Run all DB tests (supabase/tests/*.sql)
-        env:
-          PGPASSWORD: postgres
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          for f in supabase/tests/*.sql; do
-            echo "── Running $f ──"
-            psql -h 127.0.0.1 -p 54322 -U postgres -d postgres \
-              -v ON_ERROR_STOP=1 \
-              -f "$f"
-          done
+      - name: Run all DB tests (harness + supabase/tests + flows)
+        # Same runner agents use locally: installs supabase/tests/_harness, then runs the
+        # per-migration tests and the per-world lifecycle flows (G44).
+        run: scripts/run-db-tests.sh
 
       - name: Check database.types.ts drift
         run: |

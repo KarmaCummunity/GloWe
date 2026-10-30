@@ -39,7 +39,7 @@ permissions: {}
 # scripts, never the PR's: a PR could otherwise weaken its own judge. For
 # pull_request and merge_group that is the base branch tip; pushes and
 # dispatches already run dev/main code. ci.yml itself is still read from the
-# PR (TD-202 / INFRA-CI-2).
+# PR (TD-203 / INFRA-CI-2).
 env:
   JUDGE_REF: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.sha }}
 
