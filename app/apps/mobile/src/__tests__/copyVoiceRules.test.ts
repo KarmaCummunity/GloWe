@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   BUTTON_MAX_WORDS,
+  HIDDEN_MEANING_ALLOWED_FILES,
   checkCopy,
   countCopyFindings,
   singularImperatives,
@@ -143,6 +144,29 @@ describe('hiddenMeaning rule (D67)', () => {
   it('accepts the public slogan "קיבוץ דיגיטלי"', () => {
     expect(checkCopy(he('קיבוץ דיגיטלי בעולם טכנולוגי.'), 'he')).toEqual({});
     expect(checkCopy(he('A digital kibbutz in a tech world'), 'en')).toEqual({});
+  });
+});
+
+describe('hiddenMeaning exemption for the About screen and FAQ (D81 refines D67)', () => {
+  const hebrew = "export const x = { tagline: 'הקיבוץ הקפיטליסטי — רשת של נתינה' };";
+  const english = "export const x = { a: 'KC is also a capitalist kibbutz' };";
+
+  it('does not count it in the About and FAQ modules, in either locale', () => {
+    expect(countCopyFindings(hebrew, 'he', 'src/i18n/locales/he/modules/aboutContentCopyA.ts')).toEqual({});
+    expect(countCopyFindings(english, 'en', 'src/i18n/locales/en/modules/aboutContentNavFaq.ts')).toEqual({});
+  });
+
+  it('still counts it in every other locale module', () => {
+    expect(countCopyFindings(hebrew, 'he', 'src/i18n/locales/he/modules/auth.ts')).toEqual({ hiddenMeaning: 1 });
+    expect(countCopyFindings(english, 'en', 'src/i18n/locales/en/modules/onboarding.ts')).toEqual({ hiddenMeaning: 1 });
+    expect(countCopyFindings(hebrew, 'he')).toEqual({ hiddenMeaning: 1 });
+  });
+
+  it('lists only About / FAQ modules, and exempts no other rule there', () => {
+    expect([...HIDDEN_MEANING_ALLOWED_FILES].every((file) => /\/modules\/aboutContent\w+\.ts$/.test(file))).toBe(true);
+    const imperative = "export const x = { a: 'שלח הודעה' };";
+    const about = 'src/i18n/locales/he/modules/aboutContentCopyA.ts';
+    expect(countCopyFindings(imperative, 'he', about)).toEqual({ genderedImperative: 1 });
   });
 });
 

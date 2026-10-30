@@ -50,7 +50,7 @@ function localeOf(file: string): CopyLocale {
 }
 
 function countFile(file: string) {
-  return countCopyFindings(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'), localeOf(file));
+  return countCopyFindings(readFileSync(path.join(MOBILE_ROOT, file), 'utf8'), localeOf(file), file);
 }
 
 function scanLocales(): Baseline<CopyRule> {

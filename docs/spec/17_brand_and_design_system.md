@@ -14,7 +14,7 @@
 
 **KC, the platform vs. KC, the organization (D67).** "KC" names the platform. KC is also an organization that operates *inside* the platform almost like any other organization (D37). Platform chrome (app name, splash, store listing, navigation) speaks as the platform; content published by the KC organization (posts, org page, donations to KC) is styled like any other organization's content, with no extra visual privilege.
 
-**Hidden meaning (D67).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an internal easter egg only: it never appears in UI copy, store listings, marketing visuals or the logo.
+**Hidden meaning (D67, refined by D81).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an easter egg: it never appears in product surfaces — UI copy, store listings, marketing visuals or the logo — **except the About screen and its FAQ**, where it may appear subtly (PM 2026-10-30).
 
 Rules:
 - Never introduce another product name in KC surfaces. GloWe (`app/apps/glowe-web`, `glowe-*` packages) is a separate product and is out of scope for this brand book.
@@ -137,7 +137,7 @@ Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpower
 - **Register:** UX / dugri-friendly Israeli — short sentences, direct, no bureaucratic Hebrew, no padded softeners. Buttons, errors, toasts and form labels are UX-direct; settings rows, FAQ and the About narrative may use the fuller business register (AC19).
 - **Reading test:** "יהודי בן 60 מהפריפריה יבין בקריאה ראשונה."
 - **Honesty:** the early stage is a feature ("בונים יחד"), not hidden. Doctrine (§16.10): "לא משקרים. כותבים מה יש היום, מה השאיפות, ואיך הולכים משם לשם."
-- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is **superseded by D67** — it never appears in UI copy, in any language. The public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
+- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is limited by D67 / D81 (§1): it may appear subtly on the About screen and in its FAQ only, never elsewhere, in any language. Everywhere else the public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
 - **Brand name:** "קהילת קארמה" or "KC" in Hebrew (§1); first mention "קהילת קארמה (KC)", then KC. Never a Hebrew transliteration of "Karma Community".
 
 ### 7.2 Gender-neutral copy (AC20)
@@ -175,11 +175,11 @@ Out of scope: strings about *another* user ("{{name}} הצטרף"), which follow
 
 ### 7.4 English copy
 
-English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISIONS.md`; polish tracked as TD-176). It follows the same voice: plain words, no internal acronyms (MVP, PMF, KPI, North Star), the name written "Karma Community" or "KC", and no "capitalist kibbutz" (D67). Gender rules do not apply (English addresses "you").
+English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISIONS.md`; polish tracked as TD-176). It follows the same voice: plain words, no internal acronyms (MVP, PMF, KPI, North Star), the name written "Karma Community" or "KC", and "capitalist kibbutz" only on the About screen and in its FAQ (§1). Gender rules do not apply (English addresses "you").
 
 ### 7.5 Enforcement (automated)
 
-`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (292, mostly singular imperatives on buttons) are tracked as TD-201.
+`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (288, mostly singular imperatives on buttons) are tracked as TD-201.
 
 | Rule | Locale | Fails when |
 |---|---|---|
@@ -190,7 +190,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 | `ktivHaser` | he | a listed haser spelling (תכנה, שרות, תאור, בטול, …) |
 | `buttonLength` | he | a key named `cta` or ending in `Cta` / `Btn` / `Button` has more than 4 words |
 | `brandWording` | he, en | a variant of the key slogan; "קומיוניטי"; "Karma Community" with other casing |
-| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" (D67) |
+| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D81) |
 
 Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` on the line the string ends, reviewed in the PR.
 
@@ -212,10 +212,10 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 | Brand font | Rubik, app-wide via `@kc/ui` `Text` / `TextInput` (D66) |
 | Secondary colour | Logo navy `#203050` (light) / `#A5B8DC` (dark) (D66) |
 | Logo master | Current `assets/logo.png` (D66) |
-| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces (D67) |
+| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces except, subtly, the About screen and its FAQ (D67, refined by D81) |
 | Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
 | Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
 | Admin surfaces | Same tokens and components, denser layout (D67) |
-| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; automated copy-voice guard with ratchet + touched-file rule (D81) |
+| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; hidden meaning allowed only on About / FAQ; automated copy-voice guard with ratchet + touched-file rule (D81) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.

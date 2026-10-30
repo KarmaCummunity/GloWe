@@ -74,7 +74,8 @@ export const KEY_SLOGAN = 'לתת — זה גם לקבל';
 const SLOGAN_VARIANT = /לתת\s*[-–—]?\s*זה גם לקבל/g;
 const HE_BRAND_TRANSLITERATION = /קומיוניטי/g;
 const EN_BRAND_VARIANT = /\bkarma community\b/gi;
-// "קיבוץ קפיטליסטי" is an internal easter egg only and never appears in UI copy (spec 17 §1, D67).
+// "קיבוץ קפיטליסטי" is a subtle easter egg: never in UI copy except the About screen and
+// its FAQ (spec 17 §1, D67 refined by D81, PM 2026-10-30).
 const HE_HIDDEN_MEANING = /קיבוץ\s+(?:ה)?קפיטליסטי/g;
 const EN_HIDDEN_MEANING = /\bcapitalist kibbutz/gi;
 
@@ -153,8 +154,30 @@ export function isAllowed(entry: LocaleString, lines: readonly string[]): boolea
   return ALLOW_COMMENT.test(lines[entry.endLine - 1] ?? '');
 }
 
-/** Findings for a whole locale module; allowed strings are skipped. */
-export function countCopyFindings(source: string, locale: CopyLocale): CopyCounts {
+// The only locale modules where `hiddenMeaning` is exempt: the About screen bundle
+// (`aboutContent` = aboutContentBundle and the modules it merges) and its FAQ
+// (aboutContentNavFaq), in both locales. Explicit paths on purpose: a new module
+// is not exempt until it is listed here and reviewed (D81 refines D67).
+const ABOUT_AND_FAQ_MODULES = [
+  'aboutContentBundle',
+  'aboutContentCopyA',
+  'aboutContentCopyB',
+  'aboutContentCopyC',
+  'aboutContentNavFaq',
+  'aboutContentUxRefreshPartA',
+  'aboutContentUxRefreshPartB',
+] as const;
+export const HIDDEN_MEANING_ALLOWED_FILES: ReadonlySet<string> = new Set(
+  (['he', 'en'] as const).flatMap((locale) =>
+    ABOUT_AND_FAQ_MODULES.map((module) => `src/i18n/locales/${locale}/modules/${module}.ts`),
+  ),
+);
+
+/**
+ * Findings for a whole locale module (`file` is mobile-relative); allowed strings are
+ * skipped, and `hiddenMeaning` does not count in the About / FAQ modules.
+ */
+export function countCopyFindings(source: string, locale: CopyLocale, file = ''): CopyCounts {
   const lines = source.split('\n');
   const totals: CopyCounts = {};
   for (const entry of extractLocaleStrings(source)) {
@@ -163,5 +186,6 @@ export function countCopyFindings(source: string, locale: CopyLocale): CopyCount
       totals[rule] = (totals[rule] ?? 0) + found;
     }
   }
+  if (HIDDEN_MEANING_ALLOWED_FILES.has(file)) delete totals.hiddenMeaning;
   return totals;
 }
