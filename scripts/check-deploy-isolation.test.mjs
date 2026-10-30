@@ -1,47 +1,83 @@
-// Unit tests for scripts/check-deploy-isolation.mjs. Run: node --test scripts/check-deploy-isolation.test.mjs
+// Unit tests for scripts/check-deploy-isolation.mjs (needs `npm ci --prefix scripts`).
+// Run: node --test scripts/check-deploy-isolation.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkDeployIsolation, checkWorkflow, triggers } from './check-deploy-isolation.mjs';
+import { checkAction, checkDeployIsolation, checkWorkflow, triggers } from './check-deploy-isolation.mjs';
+import { parse } from 'yaml';
 
-const wf = (on, body = '') => `name: x\non:\n${on}\njobs:\n  a:\n${body}`;
+const GUARD_STEPS = [
+  '      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+  '        with:',
+  '          ref: ${{ github.workflow_sha }}',
+  '          path: .deploy-guard',
+  '      - uses: ./.deploy-guard/.github/actions/deploy-guard',
+].join('\n');
 
-test('triggers reads block and inline forms, ignoring comment lines', () => {
-  assert.deepEqual(triggers('on:\n  # note\n  push:\n    branches: [dev]\n\n  workflow_dispatch:\njobs:\n'), ['push', 'workflow_dispatch']);
-  assert.deepEqual(triggers('on: [push, pull_request]\n'), ['push', 'pull_request']);
-  assert.deepEqual(triggers('on: workflow_call\n'), ['workflow_call']);
+test('triggers reads string, list, mapping and quoted "on" keys', () => {
+  assert.deepEqual(triggers(parse('on: push\n')), ['push']);
+  assert.deepEqual(triggers(parse('on: [push, pull_request]\n')), ['push', 'pull_request']);
+  assert.deepEqual(triggers(parse('"on":\n  push:\n  workflow_dispatch:\n')), ['push', 'workflow_dispatch']);
 });
 
-test('the real workflows pass', () => {
+test('the real workflows and actions pass', () => {
   assert.deepEqual(checkDeployIsolation(), []);
 });
 
-test('deploy.yml may not gain a push trigger', () => {
-  const errors = checkWorkflow('deploy.yml', wf('  workflow_run:\n  push:'));
-  assert.deepEqual(errors, ['deploy.yml: may trigger only on workflow_run / workflow_dispatch (found push)']);
+test('bypass (a): a push workflow calling a deploy stage with target prod is refused', () => {
+  for (const stage of ['deploy-web.yml', 'deploy-db.yml', 'deploy-functions.yml']) {
+    const wf = `name: x\non:\n  push:\n    branches: [main]\njobs:\n  ship:\n    uses: ./.github/workflows/${stage}\n    with:\n      target: prod\n`;
+    assert.match(checkWorkflow('sneaky.yml', wf).join('\n'), /calls \.\/\.github\/workflows\/deploy-/, stage);
+  }
+  const remote = 'on: push\njobs:\n  ship:\n    uses: KarmaCummunity/KC/.github/workflows/deploy-web.yml@main\n';
+  assert.equal(checkWorkflow('sneaky.yml', remote).length, 1);
 });
 
-test('a stage may not trigger on its own beyond its allowed dispatch', () => {
-  assert.match(checkWorkflow('deploy-web.yml', wf('  workflow_call:\n  workflow_dispatch:'))[0], /trigger workflow_dispatch is not allowed/);
-  assert.deepEqual(checkWorkflow('deploy-db.yml', wf('  workflow_call:\n  workflow_dispatch:')), []);
-  assert.match(checkWorkflow('deploy-db.yml', wf('  workflow_call:\n  push:'))[0], /trigger push is not allowed/);
+test('bypass (b): a templated environment and supabase migration up are refused', () => {
+  const wf = [
+    'on: push',
+    'jobs:',
+    '  migrate:',
+    "    environment: ${{ format('supabase-{0}', 'prod') }}",
+    '    steps:',
+    '      - run: |',
+    '          supabase link --project-ref "$REF"',
+    '          supabase migration up --linked',
+  ].join('\n');
+  const errors = checkWorkflow('sneaky.yml', wf);
+  assert.ok(errors.some((e) => /templated environment/.test(e)), errors.join('\n'));
+  assert.ok(errors.some((e) => /runs supabase db push \/ migration up/.test(e)), errors.join('\n'));
 });
 
-test('no other workflow may reference a prod or templated environment', () => {
-  const direct = wf('  push:', '    environment: supabase-prod\n');
-  assert.match(checkWorkflow('sneaky.yml', direct)[0], /references a prod/);
-  const templated = wf('  push:', '    environment: cloudflare-${{ github.ref_name }}\n');
-  assert.match(checkWorkflow('sneaky.yml', templated)[0], /references a prod/);
-  assert.deepEqual(checkWorkflow('seed.yml', wf('  push:', '    environment: supabase-dev\n')), []);
+test('bypass (c): a quoted "on" key cannot hide a trigger on deploy.yml or a stage', () => {
+  assert.match(checkWorkflow('deploy.yml', '"on":\n  push:\njobs: {}\n')[0], /found push/);
+  const stage = `"on":\n  workflow_call:\n  push:\njobs:\n  deploy:\n    environment: cloudflare-\${{ inputs.target }}\n    steps:\n${GUARD_STEPS}\n`;
+  assert.match(checkWorkflow('deploy-web.yml', stage)[0], /trigger push is not allowed/);
 });
 
-test('only deploy.yml may use the production approval environment', () => {
-  const body = '    environment:\n      name: production\n';
-  assert.deepEqual(checkWorkflow('deploy.yml', wf('  workflow_run:', body)), []);
-  assert.match(checkWorkflow('deploy-web.yml', wf('  workflow_call:', body))[0], /only deploy\.yml may use the production approval/);
+test('only deploy.yml may use the production approval environment; others may not name prod', () => {
+  const body = (env) => `on: workflow_call\njobs:\n  a:\n    environment:\n      name: ${env}\n    steps: []\n`;
+  assert.deepEqual(checkWorkflow('deploy.yml', body('production').replace('workflow_call', 'workflow_run')), []);
+  assert.match(checkWorkflow('deploy-smoke.yml', body('production'))[0], /only deploy\.yml may use the production/);
+  assert.match(checkWorkflow('seed.yml', body('supabase-prod'))[0], /uses supabase-prod/);
+  assert.deepEqual(checkWorkflow('seed.yml', body('supabase-dev')), []);
 });
 
-test('deploy commands are confined to their stage; comments do not count', () => {
-  const errors = checkWorkflow('ci-backend.yml', wf('  workflow_call:', '    steps:\n      - run: supabase db push --linked\n'));
-  assert.deepEqual(errors, ['ci-backend.yml: runs `supabase db push`, which only deploy-db.yml may run']);
-  assert.deepEqual(checkWorkflow('ci-backend.yml', wf('  workflow_call:', '    # supabase functions deploy is in deploy-functions.yml\n')), []);
+test('a guarded stage job must start with the trusted guard, and new mutating jobs must be listed', () => {
+  const job = (stepsText) => `on: workflow_call\njobs:\n  deploy:\n    environment: cloudflare-\${{ inputs.target }}\n    steps:\n${stepsText}\n`;
+  assert.deepEqual(checkWorkflow('deploy-web.yml', job(GUARD_STEPS)), []);
+  const unguarded = job('      - uses: actions/checkout@x\n        with:\n          ref: ${{ inputs.sha }}\n      - run: echo hi');
+  assert.match(checkWorkflow('deploy-web.yml', unguarded)[0], /must start with a checkout of github\.workflow_sha/);
+  const extra = job(GUARD_STEPS).replace('jobs:\n', 'jobs:\n  sneak:\n    environment: cloudflare-prod\n    steps: []\n');
+  assert.match(checkWorkflow('deploy-web.yml', extra).join('\n'), /job sneak holds an environment/);
+});
+
+test('deploy commands are confined to their stage and never live in a composite action', () => {
+  const wf = 'on: workflow_call\njobs:\n  a:\n    steps:\n      - run: supabase db push --linked\n      # supabase functions deploy in a comment does not count\n';
+  assert.deepEqual(checkWorkflow('ci-backend.yml', wf), ['ci-backend.yml: job a runs supabase db push / migration up, which only deploy-db.yml may run']);
+  const action = 'runs:\n  using: composite\n  steps:\n    - uses: cloudflare/wrangler-action@v4\n      with:\n        command: pages deploy dist\n';
+  assert.match(checkAction('.github/actions/x/action.yml', action)[0], /Cloudflare Pages deploy/);
+});
+
+test('invalid YAML fails instead of passing', () => {
+  assert.match(checkWorkflow('broken.yml', 'on: [push\n')[0], /not valid YAML/);
 });

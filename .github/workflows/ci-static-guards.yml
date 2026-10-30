@@ -35,6 +35,11 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
           ./actionlint -color
 
+      # The guard scripts' only dependency (a YAML parser), pinned by
+      # scripts/package-lock.json; no install scripts run.
+      - name: Install guard-script dependencies
+        run: npm ci --prefix scripts --ignore-scripts --no-audit --no-fund
+
       - name: Script self-tests (scripts/*.test.mjs, app/scripts/*.test.mjs)
         if: ${{ !cancelled() }}
         run: node --test scripts/*.test.mjs app/scripts/*.test.mjs

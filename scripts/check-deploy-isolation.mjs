@@ -1,30 +1,40 @@
 #!/usr/bin/env node
-// Guard: production can only be deployed through .github/workflows/deploy.yml
-// (D-195, INFRA-CI-3), behind CI and the owner's one approval click.
+// Static guard: production can only be deployed through
+// .github/workflows/deploy.yml (D-195, INFRA-CI-3), behind CI and the owner's
+// one approval click. The runtime deploy guard (scripts/deploy-guard.mjs) is
+// the primary control; this catches a bypass at review time, before it runs.
 //
-// Agents edit workflows unsupervised; one push-triggered job with a prod
-// environment or a deploy command would bypass both. So, for every workflow:
-//   • deploy.yml triggers only on workflow_run / workflow_dispatch, and is the
+// Workflows are parsed with a real YAML parser (a quoted "on": key, flow
+// mappings or block scalars cannot hide anything). Rules:
+//   • deploy.yml triggers only on workflow_run / workflow_dispatch and is the
 //     only file that may use the `production` (approval) environment;
-//   • the stage workflows (STAGES) are reusable: workflow_call only, plus a
-//     manual dispatch where STAGES allows one;
-//   • only deploy.yml and the stages may reference a prod environment
-//     (supabase-prod, cloudflare-prod, or a templated supabase-/cloudflare-
-//     name that could resolve to one);
-//   • each deploy command appears only in its own stage.
-// Regex over YAML text (no YAML dependency, like the other guards); full-line
-// comments are ignored.
+//   • stage workflows (STAGES) are reusable: workflow_call, plus a manual
+//     dispatch where STAGES allows one;
+//   • only deploy.yml and deploy-rollback.yml may call a deploy* workflow;
+//   • only deploy.yml and the stages may name a prod environment; a templated
+//     environment (${{ … }}) is allowed only in a stage, and only as
+//     supabase-/cloudflare-${{ inputs.target }};
+//   • each deploy command runs only in its own stage, never in any other
+//     workflow or in a composite action;
+//   • in the stages, every job that holds an environment or can write is a
+//     GUARDED_JOBS entry whose first two steps check out deploy.yml's own
+//     commit and run the deploy guard from it.
+//
+// Run `npm ci --prefix scripts` first (the `yaml` parser).
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
 
 const DEFAULT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ORCHESTRATOR = 'deploy.yml';
+const CALLERS = new Set([ORCHESTRATOR, 'deploy-rollback.yml']);
 
 /** Stage workflow → triggers it may have besides workflow_call. */
 export const STAGES = {
-  'deploy-db.yml': ['workflow_dispatch'],
+  'deploy-preflight.yml': [],
+  'deploy-db.yml': [],
   'deploy-functions.yml': [],
   'deploy-web.yml': [],
   'deploy-smoke.yml': ['workflow_dispatch'],
@@ -32,57 +42,127 @@ export const STAGES = {
   'deploy-tag.yml': [],
 };
 
+/** Stage → jobs that change an environment and must start with the guard. */
+export const GUARDED_JOBS = {
+  'deploy-db.yml': ['backup', 'migrate'],
+  'deploy-functions.yml': ['deploy'],
+  'deploy-web.yml': ['deploy'],
+  'deploy-tag.yml': ['tag'],
+  'deploy-rollback.yml': ['web'],
+};
+
 /** Deploy command → the only workflow allowed to run it. */
 export const COMMANDS = [
-  { re: /\bsupabase\s+db\s+push\b/, owner: 'deploy-db.yml', what: 'supabase db push' },
-  { re: /\bsupabase\s+functions\s+deploy\b/, owner: 'deploy-functions.yml', what: 'supabase functions deploy' },
-  { re: /\bpages\s+deploy\b/, owner: 'deploy-web.yml', what: 'wrangler pages deploy' },
+  { re: /\bsupabase\s+(?:db\s+push|migration\s+up)\b/, owner: 'deploy-db.yml', what: 'supabase db push / migration up' },
+  { re: /\bsupabase\s+(?:functions\s+deploy|secrets\s+set)\b/, owner: 'deploy-functions.yml', what: 'supabase functions deploy / secrets set' },
+  { re: /\bpages\s+deploy\b|cloudflare\/wrangler-action/, owner: 'deploy-web.yml', what: 'Cloudflare Pages deploy' },
 ];
 
-const PROD_ENV = /\b(?:supabase|cloudflare)-(?:prod\b|\$\{\{)/;
-const APPROVAL_ENV = /^\s+(?:environment|name):\s*['"]?production['"]?\s*$/m;
+const PROD_ENVS = new Set(['production', 'supabase-prod', 'cloudflare-prod']);
+const STAGE_ENV_TEMPLATE = /^(?:supabase|cloudflare)-\$\{\{\s*inputs\.target\s*\}\}$/;
+const CALLS_DEPLOY = /\.github\/workflows\/deploy[^/]*\.ya?ml/;
+const GUARD_ACTION = './.deploy-guard/.github/actions/deploy-guard';
 
-function stripComments(content) {
-  return content.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+/** Trigger names of a parsed workflow (`on` as string, list or mapping). */
+export function triggers(doc) {
+  const on = doc?.on ?? doc?.[true] ?? null;
+  if (typeof on === 'string') return [on];
+  if (Array.isArray(on)) return on.map(String);
+  return on && typeof on === 'object' ? Object.keys(on) : [];
 }
 
-/** Trigger names under `on:` (block or inline form). */
-export function triggers(content) {
-  const inline = content.match(/^on:[ \t]*(\S.*)$/m);
-  if (inline) return inline[1].replace(/[[\]]/g, '').split(',').map((t) => t.trim()).filter(Boolean);
-  const block = content.match(/^on:[ \t]*\n((?:(?: {2}.*)?\n)*)/m);
-  return block ? [...block[1].matchAll(/^ {2}([a-z_]+):/gm)].map((m) => m[1]) : [];
-}
+const jobsOf = (doc) => Object.entries(doc?.jobs ?? {});
+const envName = (job) => (typeof job.environment === 'object' ? job.environment?.name : job.environment);
+const steps = (job) => (Array.isArray(job.steps) ? job.steps : []);
 
-/** Violations for one workflow file. */
-export function checkWorkflow(file, raw) {
-  const content = stripComments(raw);
-  const errors = [];
-  const on = triggers(content);
-  const isStage = Object.hasOwn(STAGES, file);
+function checkTriggers(file, doc) {
+  const on = triggers(doc);
   if (file === ORCHESTRATOR) {
     const extra = on.filter((t) => !['workflow_run', 'workflow_dispatch'].includes(t));
-    if (extra.length) errors.push(`${file}: may trigger only on workflow_run / workflow_dispatch (found ${extra.join(', ')})`);
-  } else if (isStage) {
-    const extra = on.filter((t) => t !== 'workflow_call' && !STAGES[file].includes(t));
-    if (extra.length) errors.push(`${file}: deploy stages are reusable; trigger ${extra.join(', ')} is not allowed`);
+    return extra.length ? [`${file}: may trigger only on workflow_run / workflow_dispatch (found ${extra.join(', ')})`] : [];
   }
-  if (file !== ORCHESTRATOR && APPROVAL_ENV.test(content)) {
-    errors.push(`${file}: only ${ORCHESTRATOR} may use the production approval environment`);
+  if (!Object.hasOwn(STAGES, file)) return [];
+  const extra = on.filter((t) => t !== 'workflow_call' && !STAGES[file].includes(t));
+  return extra.length ? [`${file}: deploy stages are reusable; trigger ${extra.join(', ')} is not allowed`] : [];
+}
+
+function checkEnvironment(file, id, name) {
+  if (name === undefined || name === null) return [];
+  const value = String(name);
+  const isStage = Object.hasOwn(STAGES, file);
+  if (value.includes('${{')) {
+    if (isStage && STAGE_ENV_TEMPLATE.test(value)) return [];
+    return [`${file}: job ${id} has a templated environment (${value}); only deploy stages may template it, as supabase-/cloudflare-\${{ inputs.target }}`];
   }
-  if (file !== ORCHESTRATOR && !isStage && PROD_ENV.test(content)) {
-    errors.push(`${file}: references a prod (or templated) Supabase/Cloudflare environment; deploy through ${ORCHESTRATOR}`);
-  }
+  if (value === 'production' && file !== ORCHESTRATOR) return [`${file}: only ${ORCHESTRATOR} may use the production approval environment`];
+  if (PROD_ENVS.has(value) && file !== ORCHESTRATOR && !isStage) return [`${file}: job ${id} uses ${value}; deploy through ${ORCHESTRATOR}`];
+  return [];
+}
+
+function checkCommands(file, id, job) {
+  const texts = [job.uses, ...steps(job).flatMap((s) => [s.run, s.uses, s.with?.command])].filter((t) => typeof t === 'string');
+  const errors = [];
   for (const { re, owner, what } of COMMANDS) {
-    if (file !== owner && re.test(content)) errors.push(`${file}: runs \`${what}\`, which only ${owner} may run`);
+    if (file !== owner && texts.some((t) => re.test(t))) errors.push(`${file}: job ${id} runs ${what}, which only ${owner} may run`);
+  }
+  if (!CALLERS.has(file) && typeof job.uses === 'string' && CALLS_DEPLOY.test(job.uses)) {
+    errors.push(`${file}: job ${id} calls ${job.uses}; only ${[...CALLERS].join(' and ')} may call deploy workflows`);
   }
   return errors;
+}
+
+/** In a guarded stage, jobs that hold an environment or write must start with the guard. */
+function checkGuards(file, doc) {
+  if (!Object.hasOwn(GUARDED_JOBS, file)) return [];
+  const errors = [];
+  for (const [id, job] of jobsOf(doc)) {
+    const mutating = envName(job) || job.permissions?.contents === 'write';
+    const listed = GUARDED_JOBS[file].includes(id);
+    if (mutating && !listed) errors.push(`${file}: job ${id} holds an environment or write access but is not a GUARDED_JOBS entry`);
+    if (!listed || job.uses) continue;
+    const [checkout, guard] = steps(job);
+    const trusted = checkout?.uses?.startsWith('actions/checkout@') && /github\.workflow_sha/.test(checkout?.with?.ref ?? '');
+    if (!trusted || guard?.uses !== GUARD_ACTION) {
+      errors.push(`${file}: job ${id} must start with a checkout of github.workflow_sha and ${GUARD_ACTION}`);
+    }
+  }
+  for (const id of GUARDED_JOBS[file]) {
+    if (!doc?.jobs?.[id]) errors.push(`${file}: guarded job ${id} is missing`);
+  }
+  return errors;
+}
+
+/** Violations for one workflow file's text. */
+export function checkWorkflow(file, text) {
+  let doc;
+  try {
+    doc = parse(text);
+  } catch (err) {
+    return [`${file}: not valid YAML (${err.message.split('\n')[0]})`];
+  }
+  const errors = [...checkTriggers(file, doc), ...checkGuards(file, doc)];
+  for (const [id, job] of jobsOf(doc)) {
+    errors.push(...checkEnvironment(file, id, envName(job)), ...checkCommands(file, id, job));
+  }
+  return errors;
+}
+
+/** Violations for a composite action: it may run no deploy command at all. */
+export function checkAction(path, text) {
+  const runs = parse(text)?.runs?.steps ?? [];
+  const texts = runs.flatMap((s) => [s.run, s.uses, s.with?.command]).filter((t) => typeof t === 'string');
+  return COMMANDS.filter(({ re }) => texts.some((t) => re.test(t))).map(({ what }) => `${path}: runs ${what}; deploy commands live only in the deploy stages`);
 }
 
 export function checkDeployIsolation(root = DEFAULT_ROOT) {
   const dir = join(root, '.github/workflows');
   const files = readdirSync(dir).filter((f) => /\.ya?ml$/.test(f));
   const errors = files.flatMap((f) => checkWorkflow(f, readFileSync(join(dir, f), 'utf8')));
+  const actions = join(root, '.github/actions');
+  for (const name of existsSync(actions) ? readdirSync(actions) : []) {
+    const path = join(actions, name, 'action.yml');
+    if (existsSync(path)) errors.push(...checkAction(`.github/actions/${name}/action.yml`, readFileSync(path, 'utf8')));
+  }
   for (const required of [ORCHESTRATOR, ...Object.keys(STAGES)]) {
     if (!files.includes(required)) errors.push(`.github/workflows/${required} is missing`);
   }
@@ -96,5 +176,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('✗ Deploy isolation guard failed: production deploys must go through deploy.yml.');
     process.exit(1);
   }
-  console.log('✓ Deploy isolation guard passed — deploys run only through deploy.yml and its stages.');
+  console.log('✓ Deploy isolation guard passed — deploys run only through deploy.yml and its guarded stages.');
 }
