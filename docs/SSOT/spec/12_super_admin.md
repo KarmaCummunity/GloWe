@@ -492,7 +492,7 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 
 ## §17 Admin Portal — Layered hierarchy view (P3.A-Layers)
 
-A visual overview of the whole management structure across every organisation, stacked as a pyramid of strata from the top authority down to the community it serves. It complements the list (FR-ADMIN-015/022) and the manager tree (FR-ADMIN-025): the tree answers "who reports to whom", the layers view answers "who holds which level of responsibility, in which org, on top of how large a community". Decision `D-194`.
+A visual overview of the whole management structure across every organisation, stacked as a pyramid of strata from the top authority down to the community it serves. It complements the list (FR-ADMIN-015/022) and the manager tree (FR-ADMIN-025): the tree answers "who reports to whom", the layers view answers "who holds which level of responsibility, in which org, on top of how large a community". Project book: `docs/spec/03_users_personas_roles.md` — management hierarchy view (D65, D29). Decision `D-194`.
 
 ---
 
