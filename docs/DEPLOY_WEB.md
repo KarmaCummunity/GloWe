@@ -33,7 +33,7 @@ The Dockerfile declares `ARG EXPO_PUBLIC_SUPABASE_URL` and `ARG EXPO_PUBLIC_SUPA
 
 ### 2. Settings
 
-- **Source repo**: `KarmaCummunity/GloWe` (already connected).
+- **Source repo**: `KarmaCummunity/KC` (already connected).
 - **Branch**: `main` (production).
 - **Builder**: leave on auto — `railway.json` overrides it to Dockerfile.
 - **Healthcheck**: optional. If you want one, set path `/` and timeout `30s`.
