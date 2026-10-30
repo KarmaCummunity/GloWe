@@ -44,7 +44,12 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
 
   return (
     <View style={styles.topBar}>
-      <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/chat/')} accessibilityLabel={t('chat.title')}>
+      <TouchableOpacity
+        testID="topbar-chat"
+        style={styles.iconBtn}
+        onPress={() => router.push('/chat/')}
+        accessibilityLabel={t('chat.title')}
+      >
         <Ionicons name="chatbubbles-outline" size={24} color={colors.textPrimary} />
         {chatUnread > 0 && (
           <View style={styles.badge}>
@@ -56,6 +61,7 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
       <View style={styles.rightGroup}>
         {extraIcon}
         <TouchableOpacity
+          testID="topbar-notifications"
           style={styles.iconBtn}
           onPress={() => router.push('/notifications/inbox')}
           accessibilityLabel={t('notifications.inboxTitle')}
@@ -67,7 +73,12 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
             </View>
           ) : null}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel={t('settings.title')}>
+        <TouchableOpacity
+          testID="topbar-settings"
+          style={styles.iconBtn}
+          onPress={() => router.push('/settings')}
+          accessibilityLabel={t('settings.title')}
+        >
           <Ionicons name="settings-outline" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>

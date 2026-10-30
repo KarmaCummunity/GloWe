@@ -1,0 +1,13 @@
+# Dismisses first-launch gates (consent / intro dialogs) when they appear; no-op otherwise.
+appId: org.karmacommunity.app
+---
+- runFlow:
+    when:
+      visible: "המשך"
+    commands:
+      - tapOn: "המשך"
+- runFlow:
+    when:
+      visible: "אישור"
+    commands:
+      - tapOn: "אישור"

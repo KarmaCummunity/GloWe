@@ -104,7 +104,7 @@ export default function GuestPreviewFeedScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView testID="guest-feed-screen" style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}

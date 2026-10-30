@@ -14,6 +14,8 @@ export interface SettingsScreenRowProps {
   readonly rightElement?: React.ReactNode;
   readonly destructive?: boolean;
   readonly disabled?: boolean;
+  /** Stable E2E selector (KC#1235). */
+  readonly testID?: string;
 }
 
 export function SettingsScreenRow({
@@ -23,6 +25,7 @@ export function SettingsScreenRow({
   rightElement,
   destructive,
   disabled,
+  testID,
 }: SettingsScreenRowProps) {
   const styles = useRowStyles();
   const { colors } = useTheme();
@@ -43,6 +46,7 @@ export function SettingsScreenRow({
   if (onPress) {
     return (
       <TouchableOpacity
+        testID={testID}
         style={styles.row}
         onPress={onPress}
         disabled={disabled}
@@ -53,7 +57,7 @@ export function SettingsScreenRow({
     );
   }
 
-  return <View style={styles.row}>{inner}</View>;
+  return <View testID={testID} style={styles.row}>{inner}</View>;
 }
 
 const useRowStyles = makeUseStyles(({ colors }) => ({

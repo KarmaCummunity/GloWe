@@ -143,7 +143,7 @@ export default function SearchScreen() {
   // ── Render ──────────────────────────────────
 
   return (
-    <Screen blobs="content">
+    <Screen blobs="content" testID="search-screen">
       {/* ── Header ──────────────────────────── */}
       <TopBar />
 

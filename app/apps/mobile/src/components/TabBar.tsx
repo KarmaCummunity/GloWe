@@ -27,15 +27,18 @@ interface IconBtnProps {
   active: boolean;
   onPress: () => void;
   label: string;
+  /** Stable E2E selector (`tab-<key>`), independent of the UI language (KC#1235). */
+  testID: string;
   iconActive: IoniconName;
   iconInactive: IoniconName;
 }
 
-function IconBtn({ active, onPress, label, iconActive, iconInactive }: IconBtnProps) {
+function IconBtn({ active, onPress, label, testID, iconActive, iconInactive }: IconBtnProps) {
   const styles = useTabBarStyles();
   const { colors } = useTheme();
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
@@ -58,13 +61,15 @@ interface PlusBtnProps {
   active: boolean;
   onPress: () => void;
   label: string;
+  testID: string;
 }
 
-function PlusBtn({ active, onPress, label }: PlusBtnProps) {
+function PlusBtn({ active, onPress, label, testID }: PlusBtnProps) {
   const styles = useTabBarStyles();
   const { colors } = useTheme();
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -98,7 +103,9 @@ export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> =
         const label = t(tab.labelI18nKey);
         const onPress = () => router.push(tab.route);
         if (tab.isComposer) {
-          return <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} />;
+          return (
+            <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} testID={`tab-${tab.key}`} />
+          );
         }
         return (
           <IconBtn
@@ -106,6 +113,7 @@ export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> =
             active={isActive}
             onPress={onPress}
             label={label}
+            testID={`tab-${tab.key}`}
             iconActive={tab.iconActive}
             iconInactive={tab.iconInactive}
           />

@@ -78,7 +78,7 @@ export default function NotificationSettingsScreen() {
           headerTitle: t('notifications.settingsTitle'),
         }}
       />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView testID="notification-settings-screen" contentContainerStyle={styles.scrollContent}>
         <NotificationToggleRow
           label={t('notifications.criticalLabel')}
           caption={t('notifications.criticalCaption')}

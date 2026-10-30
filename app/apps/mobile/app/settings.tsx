@@ -136,6 +136,7 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
         <View style={styles.section}>
           <SettingsScreenRow
+            testID="settings-row-notifications"
             label={t('settings.notifications')}
             icon="notifications-outline"
             onPress={() => router.push('/settings/notifications')}

@@ -211,6 +211,7 @@ export default function WelcomeScreen() {
             icon={<Text style={styles.googleGLetter}>G</Text>}
           />
           <TouchableOpacity
+            testID="auth-guest-preview"
             style={styles.guestBtn}
             onPress={() => { setGuest(true); router.replace('/(guest)/feed'); }}
           >
