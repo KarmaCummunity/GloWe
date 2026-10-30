@@ -52,7 +52,7 @@ Also added to [93](./93_implementation_gaps.md).
 | G33 | Moderation status `hidden_pending_review` missing from the domain and DB; auto-moderation removes instead of hiding | 7.15 | `value-objects.ts:34-40`, `0125:84-95` |
 | G34 | Two closing systems award different karma for the same act (posts closure 20/15 vs listings handoff 5/3) | 7.5 / 7.6 | `0189:63-64`, `0384:61-62`, `0394:56-57` |
 | G35 | World list in code contains `app_design` (contradicts D18) and domain-type slugs (`medical`, `animals`, `environment`, `creative`) | 04 | `MarketplaceTypes.ts:3-16` |
-| G36 | "Forgot password" button on the sign-in screen has no action (legacy FR-AUTH-008) | auth | `app/(auth)/sign-in.tsx:128` |
+| G36 | ✅ **Fixed in this PR.** "Forgot password" had no action (legacy FR-AUTH-008). Now `(auth)/forgot-password` → email link → `auth/reset-password`. **Ops step:** the hosted Supabase "Reset password" email template must link to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery` (like the signup template), and the recovery OTP expiry set to 30 minutes (AC2) | auth | `app/(auth)/sign-in.tsx:128` |
 | G37 | World launch flags hide worlds instead of showing "not active yet" (D3) | 04 | `0441_world_launch_app_flags.sql` |
 
 ## 4. Questions for the PM (copied to [92](./92_open_questions.md))

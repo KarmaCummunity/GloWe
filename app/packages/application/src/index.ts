@@ -18,25 +18,7 @@ export type { IUserRealtime } from './ports/IUserRealtime';
 export type { IRidesRealtime, RidesRealtimeCallbacks } from './ports/IRidesRealtime';
 export type { CommunityStatsSnapshot, IStatsRepository } from './ports/IStatsRepository';
 export type { IAboutRepository } from './ports/IAboutRepository';
-export * from './auth/errors';
-export * from './auth/SignUpWithEmail';
-export { ResendVerificationEmailUseCase, type ResendVerificationEmailInput } from './auth/ResendVerificationEmail';
-export { VerifyEmailUseCase, type VerifyEmailInput, type VerifyEmailOutput } from './auth/VerifyEmail';
-export { RequestPasswordResetUseCase, type RequestPasswordResetInput } from './auth/RequestPasswordReset';
-export { ResetPasswordUseCase, type ResetPasswordInput } from './auth/ResetPassword';
-export { assertPasswordPolicy, MIN_PASSWORD_LEN } from './auth/passwordPolicy';
-export * from './auth/SignInWithEmail';
-export * from './auth/SignInWithGoogle';
-export * from './auth/SignInWithApple';
-export * from './auth/SignOut';
-export * from './auth/RestoreSession';
-export * from './auth/CompleteBasicInfoUseCase';
-export * from './auth/CompleteOnboardingUseCase';
-export * from './auth/SetAvatarUseCase';
-export * from './auth/UpdateProfileUseCase';
-export * from './auth/assertSessionUser';
-export * from './auth/ReconcileAuthProfileMetadataUseCase';
-export * from './auth/DeleteAccountUseCase';
+export * from './auth';
 export * from './feed/selectGuestPreviewPosts';
 export * from './feed/GetFeedUseCase';
 export * from './feed/GetActivePostsCountUseCase';
@@ -64,7 +46,6 @@ export { ListPostActorIdentityUseCase, type ListPostActorIdentityInput } from '.
 export { UpsertPostActorIdentityUseCase } from './posts/UpsertPostActorIdentityUseCase';
 export * from './posts/AdminRemovePostUseCase';
 export * from './posts/SearchUsersForClosureUseCase';
-export * from './auth/DismissClosureExplainerUseCase';
 
 // Chat use cases
 export { SendMessageUseCase } from './chat/SendMessageUseCase';

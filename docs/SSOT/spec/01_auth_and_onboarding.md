@@ -1,6 +1,6 @@
 # 2.1 Authentication & Onboarding
 
-> **Status:** 🟡 Partial — Google + guest preview shipped; email/password via secondary link on welcome. Full `FR-AUTH-002` picker (Phone OTP, tabbed email) deferred — `TD-151`; Apple SSO (`FR-AUTH-004`) implemented natively (`D-58`, 2026-06-04), live flow pends Supabase Apple provider config. Onboarding + sessions + delete: ✅. **Audit 2026-05-29:** `performFullSignOut` + restore expiry sign-out shipped (TD-164). ⚠️ Audit 2026-05-16: ~~🔴 **FR-AUTH-017 AC3** sign-out leaves Expo push token active~~ addressed by TD-164; welcome screen has no email entry per FR-AUTH-001 AC2 (TD-104); Forgot Password button dead (FR-AUTH-008 unimplemented); FR-AUTH-015 soft-gate wired only to post-create (not follow + chat); FR-AUTH-016 30-day re-registration cooldown unimplemented; FR-AUTH-011 AC2 avatar resize 512 vs spec'd 1024; SignInWithEmail short-circuits `invalid_email` distinct from `authentication_failed` (D-22 spirit). See `docs/SSOT/archive/audit/2026-05-16/02_auth_profile.md`.
+> **Status:** 🟡 Partial — Google + guest preview shipped; email/password via secondary link on welcome. Full `FR-AUTH-002` picker (Phone OTP, tabbed email) deferred — `TD-151`; Apple SSO (`FR-AUTH-004`) implemented natively (`D-58`, 2026-06-04), live flow pends Supabase Apple provider config. Onboarding + sessions + delete: ✅. **Audit 2026-05-29:** `performFullSignOut` + restore expiry sign-out shipped (TD-164). ⚠️ Audit 2026-05-16: ~~🔴 **FR-AUTH-017 AC3** sign-out leaves Expo push token active~~ addressed by TD-164; welcome screen has no email entry per FR-AUTH-001 AC2 (TD-104); ~~Forgot Password button dead (FR-AUTH-008 unimplemented)~~ ✅ FR-AUTH-008 implemented 2026-10-30; FR-AUTH-015 soft-gate wired only to post-create (not follow + chat); FR-AUTH-016 30-day re-registration cooldown unimplemented; FR-AUTH-011 AC2 avatar resize 512 vs spec'd 1024; SignInWithEmail short-circuits `invalid_email` distinct from `authentication_failed` (D-22 spirit). See `docs/SSOT/archive/audit/2026-05-16/02_auth_profile.md`.
 
 
 
@@ -192,6 +192,8 @@ A returning user authenticates using the method they originally signed up with.
 ---
 
 ## FR-AUTH-008 — Forgot password (email method only)
+
+> **Status (2026-10-30):** ✅ Implemented — `RequestPasswordResetUseCase` (AC1 uniform outcome), `ResetPasswordUseCase` (policy check before the single-use token, global sign-out: AC2, AC3), screens `app/(auth)/forgot-password.tsx` and `app/auth/reset-password.tsx`. AC2's 30-minute expiry and the `token_hash` link are hosted Supabase Auth settings (email template + OTP expiry), not repo code — see `docs/spec/95_reconciliation.md` G36.
 
 **Description.**
 A user with the email method can request a password reset link.

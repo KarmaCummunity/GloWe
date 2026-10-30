@@ -26,11 +26,14 @@ import {
   SignUpWithEmailUseCase,
   ResendVerificationEmailUseCase,
   VerifyEmailUseCase,
+  RequestPasswordResetUseCase,
+  ResetPasswordUseCase,
   type AuthSession as KcAuthSession,
   type IAuthService,
   type OpenAuthSession,
   type PerformAppleSignIn,
 } from '@kc/application';
+import { webBaseUrl } from '../config/featureFlags';
 
 let _authService: IAuthService | null = null;
 let _signUp: SignUpWithEmailUseCase | null = null;
@@ -41,6 +44,8 @@ let _signOut: SignOutUseCase | null = null;
 let _restore: RestoreSessionUseCase | null = null;
 let _resend: ResendVerificationEmailUseCase | null = null;
 let _verifyEmail: VerifyEmailUseCase | null = null;
+let _requestPasswordReset: RequestPasswordResetUseCase | null = null;
+let _resetPassword: ResetPasswordUseCase | null = null;
 
 /**
  * Deep link the verification email lands on. Production: web universal link
@@ -189,6 +194,23 @@ export function getResendVerificationEmailUseCase(): ResendVerificationEmailUseC
 export function getVerifyEmailUseCase(): VerifyEmailUseCase {
   _verifyEmail ??= new VerifyEmailUseCase(getAuthService());
   return _verifyEmail;
+}
+
+/**
+ * FR-AUTH-008: where the password-reset email link lands. The hosted
+ * "Reset password" email template must point at this route with
+ * `?token_hash={{ .TokenHash }}&type=recovery` (see `/auth/reset-password`).
+ */
+export const AUTH_RESET_PASSWORD_URL = `${webBaseUrl().replace(/\/+$/, '')}/auth/reset-password`;
+
+export function getRequestPasswordResetUseCase(): RequestPasswordResetUseCase {
+  _requestPasswordReset ??= new RequestPasswordResetUseCase(getAuthService());
+  return _requestPasswordReset;
+}
+
+export function getResetPasswordUseCase(): ResetPasswordUseCase {
+  _resetPassword ??= new ResetPasswordUseCase(getAuthService());
+  return _resetPassword;
 }
 
 /** Used by the `/auth/callback` route to exchange an OAuth code for a session. */

@@ -39,5 +39,5 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G33 | `hidden_pending_review` status; auto-moderation hides instead of removing (D33) | 07.15 |
 | G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
-| G36 | "Forgot password" action on sign-in (legacy FR-AUTH-008) | auth |
+| G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | Launch flags hide worlds instead of "not active yet" (D3) | 04 |
