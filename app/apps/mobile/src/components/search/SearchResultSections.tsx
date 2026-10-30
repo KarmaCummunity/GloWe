@@ -12,6 +12,9 @@ import {
 } from '../SearchResultCard';
 import { useSearchScreenStyles } from '../../../app/(tabs)/search.styles';
 import { SearchSocialSections } from './SearchSocialSections';
+import { kcGridCell } from '../cards/KcCard.styles';
+
+const postsGrid = { flexDirection: 'row' as const, flexWrap: 'wrap' as const };
 
 type Props = {
   results: UniversalSearchResults;
@@ -70,9 +73,13 @@ export function SearchResultSections({
               </TouchableOpacity>
             )}
           </View>
-          {results.posts.map((post) => (
-            <PostResultCard key={post.postId} post={post} />
-          ))}
+          <View style={postsGrid}>
+            {results.posts.map((post) => (
+              <View key={post.postId} style={kcGridCell}>
+                <PostResultCard post={post} />
+              </View>
+            ))}
+          </View>
         </View>
       )}
 

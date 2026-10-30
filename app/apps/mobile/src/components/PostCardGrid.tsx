@@ -127,6 +127,7 @@ function PostCardGridInner({
 
   return (
     <KcCard
+      testID="feed-post-card"
       width={cardWidth}
       dense={isProfileGrid}
       onPress={navigateToPost}
@@ -153,6 +154,8 @@ function PostCardGridInner({
       chip={t(`post.category.${post.category}`)}
       location={locationText}
       timeAgo={timeAgo}
+      closed={post.status !== 'open'}
+      closedLabel={t('cards.closed')}
     />
   );
 }

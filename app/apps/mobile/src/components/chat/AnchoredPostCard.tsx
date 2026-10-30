@@ -1,11 +1,11 @@
 // FR-CHAT-014 + FR-CHAT-015 — sticky anchored-post card; ClosureSheet + explainer render here for chat-initiated closure.
 import { useEffect, useMemo } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, shadow, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
 import type { GestureResponderEvent } from 'react-native';
 import type { PostType } from '@kc/domain';
 import { getPostByIdUseCase } from '../../services/postsComposition';
@@ -18,9 +18,10 @@ import { invalidatePersonalStatsCaches } from '../../lib/invalidatePersonalStats
 import { invalidateMyProfilePostQueries } from '../../lib/invalidateMyProfilePostQueries';
 import { trackSocialHandoverCompleted } from '../../lib/trackSocialHandoverCompleted';
 import { hapticSuccess } from '../../lib/haptics';
-import { AnchoredPostCardPreview } from './AnchoredPostCardPreview';
+import { KcRowCard } from '../cards/KcRowCard';
+import { cleanDisplayTitle } from '../../lib/displayTitle';
+import { getSupabaseImageThumbUrl, getSupabasePublicImageUrl } from '../../lib/imageUrl';
 import { rowDirectionStart } from '../../lib/rtlLayout';
-import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 interface Props {
   chatId: string;
@@ -119,6 +120,10 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
   const isGive = post?.type === 'Give';
   const ctaText = post?.type === 'Give' ? t('closure.markGiveCta') : t('closure.markRequestCta');
 
+  const path0 = post?.mediaAssets[0]?.path;
+  const thumbUri = path0 ? getSupabaseImageThumbUrl({ bucket: 'post-images', path: path0 }) : null;
+  const fullUri = path0 ? getSupabasePublicImageUrl({ bucket: 'post-images', path: path0 }) : null;
+
   const openPost = () => {
     if (!post) return;
     router.push({ pathname: '/post/[id]', params: { id: post.postId } });
@@ -143,40 +148,19 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
   return (
     <>
       {showCard ? (
-        <Pressable
+        <KcRowCard
+          testID="chat-anchored-post"
+          containerStyle={styles.banner}
           onPress={openPost}
-          style={styles.card}
-          accessibilityRole="button"
           accessibilityLabel={t('chat.anchoredOpenA11y')}
-        >
-          <AnchoredPostCardPreview type={post!.type} mediaPaths={post!.mediaAssets} />
-          <View style={styles.body}>
-            <View style={styles.typeTagRow}>
-              <View style={[styles.typeTag, isGive ? styles.typeTagGive : styles.typeTagReq]}>
-                <Text style={[styles.typeTagText, isGive ? styles.typeTagTextGive : styles.typeTagTextReq]}>
-                  {typeLabel}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.title} numberOfLines={1}>
-              {post!.title}
-            </Text>
-            {counterpartPhone ? (
-              <Pressable
-                onPress={handleCall}
-                style={styles.phoneRow}
-                accessibilityRole="link"
-                accessibilityLabel={t('chat.anchoredCallCounterpartA11y', { phone: counterpartPhone })}
-                hitSlop={6}
-              >
-                <Ionicons name="call" size={14} color={colors.primary} />
-                <Text style={styles.phoneText} numberOfLines={1}>
-                  {counterpartPhone}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-          {isOwner ? (
+          tone={isGive ? 'give' : 'request'}
+          badgeLabel={typeLabel}
+          placeholderIcon={isGive ? 'gift-outline' : 'search-outline'}
+          imageUri={thumbUri}
+          fallbackUri={fullUri}
+          title={cleanDisplayTitle(post!.title)}
+          openLinkLabel={t('cards.openFullPost')}
+          trailing={isOwner ? (
             <Pressable
               onPress={handleClose}
               style={styles.cta}
@@ -186,7 +170,21 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
               <Text style={styles.ctaText}>{ctaText}</Text>
             </Pressable>
           ) : null}
-        </Pressable>
+          footer={counterpartPhone ? (
+            <Pressable
+              onPress={handleCall}
+              style={styles.phoneRow}
+              accessibilityRole="link"
+              accessibilityLabel={t('chat.anchoredCallCounterpartA11y', { phone: counterpartPhone })}
+              hitSlop={6}
+            >
+              <Ionicons name="call" size={14} color={colors.primary} />
+              <Text style={styles.phoneText} numberOfLines={1}>
+                {counterpartPhone}
+              </Text>
+            </Pressable>
+          ) : null}
+        />
       ) : null}
       {(isOwner || isActiveChatClosure) ? (
         <>
@@ -199,43 +197,11 @@ export function AnchoredPostCard({ chatId, anchorPostId, viewerId, counterpartId
 }
 
 const useAnchoredPostCardStyles = makeUseStyles(({ colors }) => ({
-  card: {
-    flexDirection: rowDirectionStart,
-    alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.base,
-    marginVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    ...shadow.card,
-  },
-  body: { flex: 1, gap: 6, minWidth: 0 },
-  typeTagRow: { flexDirection: 'row', justifyContent: 'flex-end', width: '100%' },
-  typeTag: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: radius.full,
-  },
-  typeTagGive: { backgroundColor: colors.giveTagBg },
-  typeTagReq: { backgroundColor: colors.requestTagBg },
-  typeTagText: { ...typography.caption, fontWeight: '600' },
-  typeTagTextGive: { color: colors.giveTag },
-  typeTagTextReq: { color: colors.requestTag },
-  title: {
-    ...typography.body,
-    color: colors.textPrimary,
-    textAlign: rtlTextAlignStart,
-    fontWeight: '600',
-  },
+  banner: { marginHorizontal: spacing.base, marginTop: spacing.sm },
   phoneRow: {
     flexDirection: rowDirectionStart,
     alignItems: 'center',
     gap: 4,
-    alignSelf: 'flex-end',
   },
   phoneText: {
     ...typography.caption,
