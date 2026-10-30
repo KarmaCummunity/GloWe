@@ -22,6 +22,8 @@ import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScr
 import { queryClient } from '../../src/lib/queryPersist';
 import { chatInboxQueryKey } from '../../src/lib/chatInboxQuery';
 
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
+
 const PAGE = 30;
 
 export default function ChatListScreen() {

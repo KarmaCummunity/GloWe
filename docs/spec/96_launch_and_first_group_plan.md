@@ -60,4 +60,4 @@ Security work is tracked privately and is not listed here (README rule).
 
 ## 5. Engineering work that needs nothing from the PM
 
-Expiry + relevance reminder (G32, after P5), `hidden_pending_review` moderation (G33, after P4), OTA updates (`expo-updates`), full Content-Security-Policy, route-level error boundaries, world list cleanup (G35, after Q-3), the chat-export importer (G27) up to the consent switch (P3), store-readiness checks.
+Expiry + relevance reminder (G32, after P5), `hidden_pending_review` moderation (G33, after P4), OTA updates (`expo-updates`), full Content-Security-Policy, route-level error boundaries (✅ 2026-10-30: `(tabs)`, `(admin)`, `chat`, `post` — `RouteErrorBoundary`, reported to Sentry), world list cleanup (G35, after Q-3), the chat-export importer (G27) up to the consent switch (P3), store-readiness checks.

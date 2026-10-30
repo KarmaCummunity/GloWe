@@ -35,6 +35,8 @@ import { pickChatImage, uploadChatImageAndSend } from '../../src/services/chatMe
 import type { MessageReactionType } from '@kc/infrastructure-supabase';
 import { webEnterToSend } from '../../src/components/chat/webEnterToSend';
 
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
+
 const EMPTY_MESSAGES: OptimisticMessage[] = [];
 
 function routeStringParam(v: string | string[] | undefined): string | undefined {
