@@ -20,7 +20,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G14 | Form per type without 'general' (D28) | 07.2 |
 | G15 | Recommendation engine & toggle (D27, D34) | 07.3 |
 | G16 | Karma values config (D29) | 07.6 |
-| G17 | Notification preferences & emergency group (D26, D42) | 07.11 |
+| G17 | 🟡 2026-10-30 — Notification preferences & emergency group (D26, D42). Done: per-type opt-out model `kinds` + "Match suggestions" toggle (FR-NOTIF-017, `0460`). Open: other per-type toggles, per-channel preferences, `emergency` group | 07.11 |
 | G18 | Event post & registration (D31) | 08 |
 | G19 | Volunteer hours (D32) | 07.10 |
 | G20 | ✅ 2026-10-30 — Report & suspension thresholds: post 3 reports (14 d) → hidden for review; user 5 distinct reporters (30 d) → suspended; support stays reachable (D33, D61; migration `0452`) | 07.15 |
@@ -37,7 +37,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G31 | Org verification levels, tags & filters (D53) | 08 |
 | G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
-| G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
+| G34 | 🟡 2026-10-30 — Listing handoffs now award the §7.6 values per world from one config (`karma_handoff_points`, migration `0453`, D63). Remaining: one closing system (posts closure vs listing handoffs, with G1) and the item bonus on handoffs (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
