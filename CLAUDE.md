@@ -6,10 +6,10 @@
 
 **App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`).**
 
-1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
-2. **When you ship a breaking change → bump MAJOR** (e.g. `1.4.2` → `2.0.0`) in the same PR **before** merge to `dev`.
-3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
-4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+1. **PATCH is bumped automatically on every merge into `dev`** by `.github/workflows/bump-version-on-merge.yml`. **Do not edit `app/VERSION` in ordinary PRs** — two open PRs that both edit it always conflict (TD-196).
+2. **When you ship a breaking change → set MAJOR** (e.g. `1.4.2` → `2.0.0`) by editing `app/VERSION` in that PR. A PR that edits the file itself is not auto-bumped.
+3. **When you ship a significant non-breaking feature set → set MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
+4. The bump commit is `[skip ci]`, so a deploy builds the previous number and the new one ships with the next merge.
 
 ## ⭐ Current status & product source of truth (read before anything else)
 
@@ -43,7 +43,7 @@
    5. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
 3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**` (vision treasure — never archive it), and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
-5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+5. **Version.** Do not bump `app/VERSION` in ordinary PRs; it is bumped on merge (see banner above).
 
 Doc map for humans: [`docs/README.md`](./docs/README.md).
 

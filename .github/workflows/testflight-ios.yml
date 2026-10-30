@@ -2,7 +2,7 @@
 # (no EAS cloud build quota). Uploads to TestFlight only; never submits for App Store review.
 # Secrets (names only): EXPO_TOKEN, ASC_API_KEY_ID, ASC_API_KEY_ISSUER_ID, ASC_API_KEY_P8, KC_IOS_TEAM_ID
 # Optional: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_URL. Variables: KC_ASC_APP_ID (numeric App Store Connect app id), KC_EAS_PROJECT_ID,
-# EXPO_PUBLIC_SENTRY_DSN, EXPO_PUBLIC_POSTHOG_KEY. Skips cleanly (green, with a notice) when a required one is unset.
+# EXPO_PUBLIC_SENTRY_DSN, EXPO_PUBLIC_POSTHOG_KEY. Fails fast (red, with an error) when a required one is unset.
 name: TestFlight iOS
 
 on:
@@ -29,8 +29,7 @@ jobs:
       run:
         working-directory: app/apps/mobile
     steps:
-      - name: Preflight secrets (skip cleanly when unset)
-        id: preflight
+      - name: Preflight secrets (fail when unset)
         working-directory: .
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -47,39 +46,31 @@ jobs:
             [ -n "${!n:-}" ] || missing+=("$n")
           done
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping TestFlight — missing secrets/variables: ${missing[*]}"
-            exit 0
+            echo "::error::Cannot run TestFlight — missing secrets/variables: ${missing[*]}"
+            exit 1
           fi
-          echo "ready=true" >> "$GITHUB_OUTPUT"
           echo "All TestFlight secrets present."
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.preflight.outputs.ready == 'true'
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: steps.preflight.outputs.ready == 'true'
         with:
           package_json_file: app/package.json
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        if: steps.preflight.outputs.ready == 'true'
         with:
           node-version: "20"
           cache: pnpm
           cache-dependency-path: app/pnpm-lock.yaml
 
       - name: Install dependencies
-        if: steps.preflight.outputs.ready == 'true'
         working-directory: app
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Install EAS CLI
-        if: steps.preflight.outputs.ready == 'true'
         run: npm install -g eas-cli@24.12.1 --ignore-scripts
 
       - name: Verify bundle identifier
-        if: steps.preflight.outputs.ready == 'true'
         run: |
           set -euo pipefail
           actual="$(npx --yes expo config --json --type public | jq -r '.ios.bundleIdentifier')"
@@ -89,7 +80,6 @@ jobs:
           fi
 
       - name: Write ASC API key (runner temp, never committed)
-        if: steps.preflight.outputs.ready == 'true'
         env:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
         run: |
@@ -98,7 +88,6 @@ jobs:
           printf '%s\n' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc-api-key.p8"
 
       - name: Create signing credentials via ASC API (runner only)
-        if: steps.preflight.outputs.ready == 'true'
         env:
           EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc-api-key.p8
           EXPO_ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -120,7 +109,6 @@ jobs:
           tmp="$(mktemp)"; jq '.build.production.ios.credentialsSource = "local"' eas.json > "$tmp" && mv "$tmp" eas.json
 
       - name: Build iOS locally & upload to TestFlight
-        if: steps.preflight.outputs.ready == 'true'
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/asc-api-key.p8
@@ -147,5 +135,5 @@ jobs:
           echo "EAS remote iOS buildNumber: $(eas build:version:get -p ios 2>/dev/null | grep -oE '[0-9]+$' || echo unknown)"
 
       - name: Remove key file
-        if: always() && steps.preflight.outputs.ready == 'true'
+        if: always()
         run: rm -rf "$RUNNER_TEMP/asc-api-key.p8" "$RUNNER_TEMP/sign" credentials.json
