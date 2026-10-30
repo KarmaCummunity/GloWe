@@ -16,8 +16,10 @@
 //   • a lane the plan marks as needed did not succeed (e.g. it was skipped);
 //   • the PR changed ci.yml's jobs or header (scripts/ci-workflow-diff.mjs)
 //     and no owner approved its head SHA (TD-202);
+//   • a PR or review run targets a base other than dev/main;
 //   • on a review event, the PR's latest `pull_request` run for the head SHA
-//     is missing or unfinished, so there are no lane results to reuse.
+//     is missing, unfinished after a wait, or cannot be bound to this PR and
+//     base (scripts/ci-run-binding.mjs), so there are no lane results to reuse.
 // A lane may be skipped only when the plan explicitly marks it not needed.
 //
 // Review events (`pull_request_review`) exist so an owner approval can flip a
@@ -25,20 +27,26 @@
 // only REVIEW_LANES; every other lane's result comes from the latest completed
 // `pull_request` run of this PR for the same head SHA, read via the API.
 //
+// This job's own `CI gate` check can be imitated by any workflow on any
+// branch, so branch protection trusts `CI verdict` (scripts/ci-verdict.mjs),
+// which re-verifies the run this gate belongs to.
+//
 // ci.yml runs this file, and every module it imports, from the base commit.
 //
 // Inputs (env): NEEDS (toJSON(needs)), PLAN (JSON object lane → needed, from
 // scripts/ci-changes.mjs), DRAFT ('true' | 'false'), EVENT_NAME, REF,
-// JUDGE_REF (base commit), BASE_SHA, HEAD_SHA, PR_NUMBER, PR_AUTHOR,
+// BASE_REF, JUDGE_REF (base commit), BASE_SHA, HEAD_SHA, PR_NUMBER, PR_AUTHOR,
 // GITHUB_REPOSITORY, GITHUB_TOKEN.
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { LANE_JOBS, REVIEW_LANES } from './ci-changes.mjs';
-import { findOwnerOverride, reusedLaneResults } from './ci-github.mjs';
+import { findOwnerOverride } from './ci-github.mjs';
+import { PROTECTED, reusedLaneResults } from './ci-run-binding.mjs';
 import { workflowDrift } from './ci-workflow-diff.mjs';
 
 const DISPATCH_REFS = new Set(['refs/heads/dev', 'refs/heads/main']);
+const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
 
 /** Return the list of reasons the gate must fail (empty = pass). */
 export function evaluateGate({ needs, plan, draft, event, ref }) {
@@ -109,6 +117,9 @@ async function ciWorkflowErrors(env) {
 /** Collect every gate error; any exception becomes an error (fail closed). */
 async function judge(env, needs, plan) {
   const draft = env.DRAFT === 'true';
+  if (PR_EVENTS.has(env.EVENT_NAME) && !PROTECTED.has(env.BASE_REF)) {
+    return { judged: needs, errors: [`PR base is ${env.BASE_REF || 'unknown'}: CI gates only PRs into dev or main`] };
+  }
   const errors = [];
   let judged = needs;
   if (env.EVENT_NAME === 'pull_request_review' && !draft) {

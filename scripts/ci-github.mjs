@@ -79,17 +79,41 @@ export async function githubGet(path, env = process.env) {
   return res.json();
 }
 
-/** GET every page (100 per page, at most 10 pages) of a list endpoint. */
+/** POST a JSON body; throws on any non-2xx answer. */
+export async function githubPost(path, body, env = process.env) {
+  const api = env.GITHUB_API_URL || 'https://api.github.com';
+  const res = await fetch(`${api}${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`GitHub API POST ${path} answered HTTP ${res.status}`);
+  return res.json();
+}
+
+/** Most pages githubList reads before giving up (1,000 items). */
+export const MAX_PAGES = 10;
+
+/**
+ * GET every page (100 per page) of a list endpoint. Throws instead of
+ * returning a truncated list when more than MAX_PAGES pages exist: a missing
+ * later review could be the change request that withdraws an approval.
+ */
 export async function githubList(path, key, env = process.env) {
   const items = [];
   const sep = path.includes('?') ? '&' : '?';
-  for (let page = 1; page <= 10; page += 1) {
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
     const body = await githubGet(`${path}${sep}per_page=100&page=${page}`, env);
     const batch = key ? body[key] : body;
     items.push(...batch);
-    if (batch.length < 100) break;
+    if (batch.length < 100) return items;
   }
-  return items;
+  throw new Error(`GitHub API GET ${path} has more than ${MAX_PAGES * 100} items; refusing to judge a truncated list`);
 }
 
 /**
@@ -99,8 +123,11 @@ export async function githubList(path, key, env = process.env) {
  * GITHUB_REPOSITORY, GITHUB_TOKEN; `judgeRef` is the base commit.
  */
 export async function findOwnerOverride(env, judgeRef, cwd = process.cwd()) {
+  // Merge groups (and pushes) have no single PR whose reviews could carry an
+  // override, so an owner override is unsupported there: such a change must
+  // merge through a normal PR, not the merge queue.
   if (!PR_EVENTS.has(env.EVENT_NAME) || !env.PR_NUMBER) {
-    return { login: null, why: `a ${env.EVENT_NAME} run has no PR review to carry an owner approval` };
+    return { login: null, why: `a ${env.EVENT_NAME} run has no PR review to carry an owner approval (overrides need a normal PR merge)` };
   }
   const owners = ownersAt(judgeRef, cwd);
   if (owners.length === 0) return { login: null, why: `the base commit has no ${OWNERS_FILE}` };
@@ -133,36 +160,4 @@ export function laneResults(jobs, lanes) {
     else results[lane] = 'failure';
   }
   return results;
-}
-
-/**
- * The newest `pull_request` run of ci.yml that belongs to PR `prNumber`, or
- * null. Runs of other PRs on the same SHA are ignored: their hygiene and
- * release lanes judged a different title, body or base.
- */
-export function latestPullRequestRun(runs, prNumber) {
-  const mine = runs.filter((r) => r.event === 'pull_request' && r.pull_requests?.some((p) => p.number === prNumber));
-  mine.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id);
-  return mine[0] ?? null;
-}
-
-/**
- * Lane results of the latest completed `pull_request` CI run for this PR's
- * head SHA, for a run started by a review event (which re-runs only the cheap
- * lanes). Throws — so the gate fails closed — when there is no such run or the
- * latest one has not finished (it will report its own gate).
- */
-export async function reusedLaneResults(env, lanes) {
-  const repo = env.GITHUB_REPOSITORY;
-  const query = `event=pull_request&head_sha=${env.HEAD_SHA}&per_page=100`;
-  const { workflow_runs: runs } = await githubGet(`/repos/${repo}/actions/workflows/ci.yml/runs?${query}`, env);
-  const run = latestPullRequestRun(runs, Number(env.PR_NUMBER));
-  if (!run) {
-    throw new Error(`no pull_request CI run of PR #${env.PR_NUMBER} exists for head ${env.HEAD_SHA}; push a commit or re-run CI`);
-  }
-  if (run.status !== 'completed') {
-    throw new Error(`the latest pull_request CI run (${run.html_url}) is still ${run.status}; its own CI gate decides`);
-  }
-  const jobs = await githubList(`/repos/${repo}/actions/runs/${run.id}/jobs?filter=latest`, 'jobs', env);
-  return { run, results: laneResults(jobs, lanes) };
 }

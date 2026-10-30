@@ -9,17 +9,40 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { countAssertions, findViolations, isTest, parseDiff, prDiff } from './check-test-integrity.mjs';
+import { countAssertions, findViolations, isTest, loadDiff, parseDiff, stripComments } from './check-test-integrity.mjs';
 
-const SKIP = 'it' + '.sk' + 'ip(';
-const ONLY = 'describe' + '.on' + 'ly(';
-const TODO = 'it' + '.to' + 'do(';
-const FIXME = 'test' + '.fix' + 'me(';
-const XIT = 'x' + 'it(';
-const NOCHECK = '// @ts-' + 'nocheck';
+const SK = '.sk' + 'ip';
+const MARKER_LINES = [
+  `it${SK}('x', () => {})`,
+  'describe' + '.on' + "ly('x', () => {})",
+  'it' + '.to' + "do('later')",
+  'test' + '.fix' + "me('flaky')",
+  `it${SK}.each([1])('x %s', () => {})`,
+  'describe' + '.on' + 'ly.each`a`',
+  `const pending = describe${SK};`,
+  'it' + '.sk' + "ipIf(isCi)('x', () => {})",
+  'it' + '.ru' + "nIf(isCi)('x', () => {})",
+  "test('x', { " + 'sk' + 'ip: true }, () => {})',
+  "test('x', { " + 'on' + 'ly: true }, () => {})',
+  "Deno.test({ name: 'x', " + 'ign' + 'ore: true, fn() {} })',
+  'Deno.test' + '.ign' + "ore('x', () => {})",
+  'Deno.test' + '.on' + "ly('x', () => {})",
+  'x' + "it('x', () => {})",
+  '// @ts-' + 'nocheck',
+  '  ' + 're' + 'turn;',
+];
 const NO_TESTS = '--pass' + 'WithNoTests';
 
-const mod = (path, { added = [], removed = [] } = {}) => ({ oldPath: path, newPath: path, path, added, removed });
+const mod = (path, { added = [], removed = [], oldText = '', newText = '' } = {}) => ({
+  oldPath: path,
+  newPath: path,
+  path,
+  added,
+  removed,
+  oldText,
+  newText,
+});
+const created = (path, newText) => ({ oldPath: null, newPath: path, path, added: newText.split('\n'), removed: [], newText });
 
 test('isTest covers unit, spec, __tests__, SQL and E2E files only', () => {
   for (const p of ['app/a.test.ts', 'scripts/x.test.mjs', 'app/src/__tests__/helpers.ts', 'supabase/tests/0001_x.sql', 'tests/e2e/journeys/feed.spec.ts']) {
@@ -30,33 +53,31 @@ test('isTest covers unit, spec, __tests__, SQL and E2E files only', () => {
 
 test('a clean diff (new tests, app code) has no violations', () => {
   const files = [
-    { oldPath: null, newPath: 'app/new.test.ts', path: 'app/new.test.ts', added: ['expect(1).toBe(1);'], removed: [] },
+    created('app/new.test.ts', 'expect(1).toBe(1);'),
     mod('app/src/a.ts', { added: ['export const a = 2;'], removed: ['export const a = 1;'] }),
   ];
   assert.deepEqual(findViolations(files), []);
 });
 
-test('deleting a test file, or renaming it to a non-test path, is flagged', () => {
-  const files = [
-    { oldPath: 'app/a.test.ts', newPath: null, path: 'app/a.test.ts', added: [], removed: [] },
-    { oldPath: 'app/b.test.ts', newPath: 'app/b.ts', path: 'app/b.ts', added: [], removed: [] },
-  ];
-  assert.deepEqual(findViolations(files), ['app/a.test.ts: deletes a test file', 'app/b.test.ts: renamed to non-test path app/b.ts']);
+test('deleting a test file is flagged', () => {
+  const files = [{ oldPath: 'app/a.test.ts', newPath: null, path: 'app/a.test.ts', added: [], removed: [] }];
+  assert.deepEqual(findViolations(files), ['app/a.test.ts: deletes a test file']);
 });
 
-test('renaming a test to another test path is fine', () => {
-  assert.deepEqual(findViolations([{ oldPath: 'app/a.test.ts', newPath: 'app/b.test.ts', path: 'app/b.test.ts', added: [], removed: [] }]), []);
+test('any rename or move of a test file is flagged, even to another test path', () => {
+  const moved = (to) => [{ oldPath: 'app/a.test.ts', newPath: to, path: to, added: [], removed: [], oldText: '', newText: '' }];
+  assert.deepEqual(findViolations(moved('app/b.ts')), ['app/a.test.ts: renamed or moved to app/b.ts']);
+  assert.deepEqual(findViolations(moved('app/x/a.test.ts')), ['app/a.test.ts: renamed or moved to app/x/a.test.ts']);
 });
 
-test('skip, focus, todo, fixme, x-prefixed and nocheck markers in tests are flagged', () => {
-  for (const line of [`${SKIP}'x', () => {})`, `${ONLY}'x', () => {})`, `${TODO}'later')`, `${FIXME}'flaky')`, `${XIT}'x', () => {})`, NOCHECK]) {
-    const v = findViolations([mod('app/a.test.ts', { added: [line] })]);
-    assert.equal(v.length, 1, line);
+test('every skip / focus / todo / conditional / alias / option / nocheck / bare-return marker is flagged', () => {
+  for (const line of MARKER_LINES) {
+    assert.equal(findViolations([mod('app/a.test.ts', { added: [line] })]).length, 1, line);
   }
 });
 
 test('markers in non-test code are ignored; pgTAP skip in SQL tests is flagged', () => {
-  assert.deepEqual(findViolations([mod('app/src/list.ts', { added: [`rows${'.sk' + 'ip('}2)`] })]), []);
+  assert.deepEqual(findViolations([mod('app/src/list.ts', { added: [`rows${SK}(2)`] })]), []);
   assert.equal(findViolations([mod('supabase/tests/0001_x.sql', { added: ["select skip('later', 2);"] })]).length, 1);
 });
 
@@ -81,21 +102,29 @@ test('raising or dropping --max-warnings is flagged; lowering is fine', () => {
 });
 
 test('a net loss of assertions in existing tests is flagged', () => {
-  const v = findViolations([mod('app/a.test.ts', { removed: ['expect(a).toBe(1);', 'assert.equal(b, 2);'], added: ['expect(a).toBe(1);'] })]);
-  assert.deepEqual(v, ['removes 1 assertion(s) net from existing tests (2 removed, 1 added; files: app/a.test.ts)']);
+  const file = mod('app/a.test.ts', { oldText: 'expect(a).toBe(1);\nassert.equal(b, 2);', newText: 'expect(a).toBe(1);' });
+  assert.deepEqual(findViolations([file]), ['removes 1 assertion(s) net from tests (2 before, 1 after; files losing some: app/a.test.ts)']);
+});
+
+test('commenting assertions out counts as removing them, line or block comments', () => {
+  const oldText = 'expect(a).toBe(1);\nexpect(b).toBe(2);';
+  for (const newText of ['// expect(a).toBe(1);\nexpect(b).toBe(2);', '/*\nexpect(a).toBe(1);\n*/\nexpect(b).toBe(2);']) {
+    assert.equal(findViolations([mod('app/a.test.ts', { oldText, newText })]).length, 1, newText);
+  }
 });
 
 test('assertions moved into a new test file are not a loss', () => {
   const files = [
-    mod('app/a.test.ts', { removed: ['expect(a).toBe(1);', 'expect(b).toBe(2);'] }),
-    { oldPath: null, newPath: 'app/a2.test.ts', path: 'app/a2.test.ts', added: ['expect(a).toBe(1);', 'expect(b).toBe(2);'], removed: [] },
+    mod('app/a.test.ts', { oldText: 'expect(a).toBe(1);\nexpect(b).toBe(2);', newText: '' }),
+    created('app/a2.test.ts', 'expect(a).toBe(1);\nexpect(b).toBe(2);'),
   ];
   assert.deepEqual(findViolations(files), []);
 });
 
-test('countAssertions knows JS and SQL assertion styles', () => {
-  assert.equal(countAssertions('a.test.ts', ['expect(x).toBe(1); expect.soft(y).toBe(2);', 'assert.deepEqual(a, b)']), 3);
-  assert.equal(countAssertions('supabase/tests/x.sql', ["assert v = 1, 'msg';", "raise exception 'bad';", "select ok(true);"]), 3);
+test('countAssertions knows JS and SQL styles and ignores comments', () => {
+  assert.equal(countAssertions('a.test.ts', 'expect(x).toBe(1); expect.soft(y).toBe(2);\nassert.deepEqual(a, b) // expect(z)'), 3);
+  assert.equal(countAssertions('supabase/tests/x.sql', "assert v = 1, 'msg';\nraise exception 'bad';\nselect ok(true); -- assert x"), 3);
+  assert.equal(stripComments('a /* b */ c // d'), 'a  c ');
 });
 
 test('parseDiff reads statuses, renames and hunks, and treats removed SQL comments as content', () => {
@@ -130,24 +159,38 @@ function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
 }
 
-test('prDiff + findViolations catch a deleted test in a real repository', () => {
+function withRepo(fn) {
   const dir = mkdtempSync(join(tmpdir(), 'test-integrity-'));
   try {
     git(dir, 'init', '-q', '-b', 'main');
     git(dir, 'config', 'user.email', 'ci@example.com');
     git(dir, 'config', 'user.name', 'ci');
     mkdirSync(join(dir, 'app'), { recursive: true });
-    writeFileSync(join(dir, 'app/a.test.ts'), 'expect(1).toBe(1);\n');
+    writeFileSync(join(dir, 'app/a.test.ts'), 'expect(1).toBe(1);\nexpect(2).toBe(2);\n');
     writeFileSync(join(dir, 'app/pnpm-lock.yaml'), 'lockfileVersion: 9\n');
     git(dir, 'add', '-A');
     git(dir, 'commit', '-q', '-m', 'base');
-    const base = git(dir, 'rev-parse', 'HEAD');
-    git(dir, 'rm', '-q', 'app/a.test.ts', 'app/pnpm-lock.yaml');
-    git(dir, 'commit', '-q', '-m', 'drop');
-    const files = parseDiff(prDiff(base, git(dir, 'rev-parse', 'HEAD'), dir));
-    assert.deepEqual(files.map((f) => f.path), ['app/a.test.ts']);
-    assert.deepEqual(findViolations(files), ['app/a.test.ts: deletes a test file']);
+    fn(dir, git(dir, 'rev-parse', 'HEAD'));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+}
+
+test('loadDiff + findViolations catch a deleted test in a real repository', () => {
+  withRepo((dir, base) => {
+    git(dir, 'rm', '-q', 'app/a.test.ts', 'app/pnpm-lock.yaml');
+    git(dir, 'commit', '-q', '-m', 'drop');
+    const files = loadDiff(base, git(dir, 'rev-parse', 'HEAD'), dir);
+    assert.deepEqual(files.map((f) => f.path), ['app/a.test.ts']);
+    assert.deepEqual(findViolations(files), ['app/a.test.ts: deletes a test file']);
+  });
+});
+
+test('loadDiff counts whole files, so a commented-out assertion is caught', () => {
+  withRepo((dir, base) => {
+    writeFileSync(join(dir, 'app/a.test.ts'), 'expect(1).toBe(1);\n// expect(2).toBe(2);\n');
+    git(dir, 'commit', '-qam', 'comment out');
+    const files = loadDiff(base, git(dir, 'rev-parse', 'HEAD'), dir);
+    assert.deepEqual(findViolations(files), ['removes 1 assertion(s) net from tests (2 before, 1 after; files losing some: app/a.test.ts)']);
+  });
 });

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findOwnerOverride, laneResults, latestPullRequestRun, ownerApproval, parseOwners } from './ci-github.mjs';
+import { MAX_PAGES, findOwnerOverride, githubList, laneResults, ownerApproval, parseOwners } from './ci-github.mjs';
 
 const HEAD = 'a'.repeat(40);
 const OLD = 'b'.repeat(40);
@@ -80,15 +80,20 @@ test('laneResults does not confuse lanes sharing a prefix', () => {
   assert.deepEqual(laneResults([job('frontend-extra / x', 'failure')], ['frontend']), { frontend: 'missing' });
 });
 
-test('latestPullRequestRun picks the newest pull_request run of the same PR', () => {
-  const run = (id, created, event = 'pull_request', pr = 7) => ({ id, created_at: created, event, pull_requests: [{ number: pr }] });
-  const runs = [
-    run(1, '2026-10-30T10:00:00Z'),
-    run(2, '2026-10-30T11:00:00Z'),
-    run(3, '2026-10-30T12:00:00Z', 'pull_request_review'),
-    run(4, '2026-10-30T13:00:00Z', 'pull_request', 8),
-  ];
-  assert.equal(latestPullRequestRun(runs, 7).id, 2);
-  assert.equal(latestPullRequestRun(runs, 9), null);
-  assert.equal(latestPullRequestRun([{ ...run(5, '2026-10-30T10:00:00Z'), pull_requests: [] }], 7), null);
+/** Run `fn` with global fetch answering every GET with `body`. */
+async function withFetch(body, fn) {
+  const real = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, json: async () => body });
+  try {
+    return await fn();
+  } finally {
+    globalThis.fetch = real;
+  }
+}
+
+test('githubList returns a short list and refuses to truncate a long one', async () => {
+  const env = { GITHUB_TOKEN: 't' };
+  assert.equal((await withFetch([1, 2], () => githubList('/x', null, env))).length, 2);
+  const full = Array.from({ length: 100 }, (_, i) => i);
+  await assert.rejects(withFetch(full, () => githubList('/x', null, env)), new RegExp(`more than ${MAX_PAGES * 100} items`));
 });

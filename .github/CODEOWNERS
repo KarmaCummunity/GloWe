@@ -13,8 +13,10 @@
 # (bottom of the file) makes a path unowned again.
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# CI and repo automation: workflows, composite actions, this file, the owner
-# allowlist (.github/owners.json), the ruleset, Dependabot and the labeler.
+# CI and repo automation: workflows (including ci-verdict.yml, auto-merge and
+# auto-update-branches, which hold merge and verdict credentials), composite
+# actions, this file, the owner allowlist (.github/owners.json), the ruleset,
+# Dependabot and the labeler.
 /.github/                                   @navesarussi
 
 # Node pin and workspace membership: changing either changes what every lane
@@ -43,10 +45,18 @@
 /app/scripts/web-version.mjs                @navesarussi
 /app/perf-budgets.json                      @navesarussi
 
-# Quality thresholds: coverage (vitest configs), lint rules and warning
-# ratchets (`--max-warnings` lives in each package.json), the task graph, the
-# SonarCloud gate, the E2E runner and the AI review config.
+# Quality thresholds: coverage and test selection (vitest / vite configs and
+# workspaces, Deno task and test config for Edge Functions, Playwright
+# configs), lint rules and warning ratchets (`--max-warnings` lives in each
+# package.json), the task graph, the SonarCloud gate and the AI review config.
+# .gitattributes can mark files binary or change diffs the guards read.
 vitest.config.*                             @navesarussi
+vitest.workspace.*                          @navesarussi
+vite.config.*                               @navesarussi
+deno.json                                   @navesarussi
+deno.jsonc                                  @navesarussi
+playwright.config.*                         @navesarussi
+/.gitattributes                             @navesarussi
 /app/eslint.config.mjs                      @navesarussi
 /app/turbo.json                             @navesarussi
 /app/package.json                           @navesarussi
@@ -54,7 +64,6 @@ vitest.config.*                             @navesarussi
 /app/apps/mobile/web-server/package.json    @navesarussi
 /app/packages/*/package.json                @navesarussi
 /tests/e2e/package.json                     @navesarussi
-/tests/e2e/playwright.config.ts             @navesarussi
 /sonar-project.properties                   @navesarussi
 /.coderabbit.yaml                           @navesarussi
 

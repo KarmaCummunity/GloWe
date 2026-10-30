@@ -3,21 +3,27 @@
 // change that could weaken the test gate needs the owner's approval.
 //
 // It fails a PR or merge-group diff (merge-base of base → head) that:
-//   • deletes an existing test file, or renames one to a non-test path;
-//   • adds a skip / focus / todo marker or `@ts-nocheck` to a test file, or a
-//     "pass with no tests" switch anywhere outside Markdown;
+//   • deletes, renames or moves an existing test file;
+//   • adds to a test file a skip / focus / todo / conditional marker (also as
+//     `.each`, an alias such as `= it.skip`, an option such as `{ skip: true }`
+//     or Deno's `ignore: true` / `Deno.test.only`), an x-prefixed test,
+//     `@ts-nocheck` or a bare `return` line; or adds a "pass with no tests"
+//     switch anywhere outside Markdown;
 //   • lowers or drops a coverage threshold in a vitest config;
 //   • raises or drops an ESLint `--max-warnings` limit;
-//   • removes assertions net: assertions removed from existing test files
-//     outweigh assertions added to test files anywhere in the diff (so moving
-//     tests into a new file is fine).
+//   • removes assertions net: the test files the PR touches hold fewer
+//     assertions (comments stripped, whole files counted at the merge-base and
+//     at head) than before, so moving tests into a new file is fine but
+//     commenting assertions out is not.
 //
 // Override: an owner listed in the base commit's .github/owners.json approves
 // the PR's current head SHA (and is not its author). The static lane runs this
 // file from the base commit (like the CI judges), and `CI gate` re-runs the
-// static lane when a review is submitted or dismissed.
+// static lane when a review is submitted or dismissed. Merge groups cannot
+// carry an override.
 //
 // Pushes and dispatches are not judged: their commits already passed a PR.
+// The checks are textual tripwires, not proof (TD-222).
 //
 // Inputs (env): EVENT_NAME, BASE_SHA, HEAD_SHA, JUDGE_REF, PR_NUMBER,
 // PR_AUTHOR, GITHUB_REPOSITORY, GITHUB_TOKEN.
@@ -35,9 +41,14 @@ const isSqlTest = (path) => path.endsWith('.sql');
 
 /** Markers that silence or narrow a JS/TS test run when added to a test file. */
 const JS_MARKERS = [
-  { re: /\.(skip|skipIf|only|todo|fixme)\s*\(/, why: 'skip / focus / todo marker' },
+  // Member access, not only calls, so `.each` tables, tagged templates and
+  // aliases (`const t = it.skip`) match too.
+  { re: /\.(skip|skipIf|runIf|only|todo|fixme)\b/, why: 'skip / focus / todo / conditional marker' },
+  { re: /\bDeno\.test\.(ignore|only)\b/, why: 'Deno.test.ignore / only' },
+  { re: /\b(skip|only|ignore)\s*:\s*true\b/, why: 'skip / only / ignore test option' },
   { re: /\b(xit|xdescribe|xtest)\s*\(/, why: 'disabled test (x-prefix)' },
   { re: /@ts-nocheck/, why: '@ts-nocheck in a test' },
+  { re: /^\s*return\s*;?\s*$/, why: 'bare `return` (can end a test body before its assertions)' },
 ];
 
 /** pgTAP markers that skip or defer SQL assertions. */
@@ -53,10 +64,20 @@ const MAX_WARNINGS = /--max-warnings(?:=|\s+)(\d+)/g;
 const JS_ASSERTION = /\b(?:expect|assert)\b(?:\.\w+)*\s*\(/g;
 const SQL_ASSERTION = /\bassert\b|\braise\s+exception\b|\b(?:ok|is|isnt|throws_ok|lives_ok|results_eq|set_eq|bag_eq|is_empty)\s*\(/gi;
 
-/** Count assertions in `lines` of a test file at `path`. */
-export function countAssertions(path, lines) {
-  const re = isSqlTest(path) ? SQL_ASSERTION : JS_ASSERTION;
-  return lines.reduce((n, line) => n + (line.match(re)?.length ?? 0), 0);
+/**
+ * Drop block comments and line comments (`//` in JS/TS, `--` in SQL), so a
+ * commented-out assertion no longer counts. Naive about comment markers
+ * inside strings, which can only lower a count on both sides alike.
+ */
+export function stripComments(text, sql = false) {
+  const line = sql ? /--.*$/gm : /\/\/.*$/gm;
+  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(line, '');
+}
+
+/** Count assertions in the text of a test file at `path` (comments ignored). */
+export function countAssertions(path, text) {
+  const sql = isSqlTest(path);
+  return stripComments(text ?? '', sql).match(sql ? SQL_ASSERTION : JS_ASSERTION)?.length ?? 0;
 }
 
 /** Numbers captured by `re` in `lines`, grouped by key ('' when the regex has one group). */
@@ -99,33 +120,40 @@ function markerHits(file, markers) {
   return out;
 }
 
+/** Whether a parsed diff entry was or is a test file. */
+export const testSides = (file) => ({
+  wasTest: file.oldPath !== null && isTest(file.oldPath),
+  isTestNow: file.newPath !== null && isTest(file.newPath),
+});
+
 /**
- * Every gate-weakening change in a parsed diff (see parseDiff). Pure: the
- * caller decides whether an owner approval overrides them.
+ * Every gate-weakening change in a parsed diff (see parseDiff). Test files
+ * carry `oldText` (at the merge-base) and `newText` (at head) for the
+ * assertion count. Pure: the caller decides whether an owner approval
+ * overrides them.
  */
 export function findViolations(files) {
   const out = [];
-  let removedAssertions = 0;
-  let addedAssertions = 0;
+  let before = 0;
+  let after = 0;
   const losers = [];
   for (const file of files) {
-    const wasTest = file.oldPath !== null && isTest(file.oldPath);
-    const isTestNow = file.newPath !== null && isTest(file.newPath);
+    const { wasTest, isTestNow } = testSides(file);
     if (wasTest && file.newPath === null) out.push(`${file.oldPath}: deletes a test file`);
-    if (wasTest && file.newPath !== null && !isTestNow) out.push(`${file.oldPath}: renamed to non-test path ${file.newPath}`);
+    if (wasTest && file.newPath !== null && file.newPath !== file.oldPath) out.push(`${file.oldPath}: renamed or moved to ${file.newPath}`);
     if (isTestNow) out.push(...markerHits(file, isSqlTest(file.path) ? SQL_MARKERS : JS_MARKERS));
     if (!file.path.endsWith('.md')) out.push(...markerHits(file, [{ re: NO_TESTS_SWITCH, why: 'a switch that passes when no tests exist' }]));
     if (VITEST_CONFIG.test(file.path)) out.push(...loosenedLimits(file, THRESHOLD, (o, n) => n < o, 'coverage threshold'));
     out.push(...loosenedLimits(file, MAX_WARNINGS, (o, n) => n > o, '--max-warnings'));
-    if (isTestNow) addedAssertions += countAssertions(file.path, file.added);
-    if (wasTest && isTestNow) {
-      const lost = countAssertions(file.path, file.removed);
-      removedAssertions += lost;
-      if (lost > countAssertions(file.path, file.added)) losers.push(file.path);
-    }
+    // A deleted test is already a violation; count only files that survive.
+    const old = wasTest && file.newPath !== null ? countAssertions(file.oldPath, file.oldText) : 0;
+    const now = isTestNow ? countAssertions(file.newPath, file.newText) : 0;
+    before += old;
+    after += now;
+    if (now < old) losers.push(file.path);
   }
-  if (removedAssertions > addedAssertions) {
-    out.push(`removes ${removedAssertions - addedAssertions} assertion(s) net from existing tests (${removedAssertions} removed, ${addedAssertions} added; files: ${losers.join(', ')})`);
+  if (after < before) {
+    out.push(`removes ${before - after} assertion(s) net from tests (${before} before, ${after} after; files losing some: ${losers.join(', ')})`);
   }
   return out;
 }
@@ -170,16 +198,34 @@ function readHeader(file, line) {
   else if (line.startsWith('rename to ')) file.newPath = line.slice('rename to '.length);
 }
 
-/** The PR diff from the merge-base of `base` and `head`, lockfiles excluded. */
+function git(args, cwd) {
+  return execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+/**
+ * The PR diff from the merge-base of `base` and `head`, lockfiles excluded.
+ * `--text` keeps a file git would call binary (e.g. via .gitattributes) as
+ * lines the guard can read.
+ */
 export function prDiff(base, head, cwd = process.cwd()) {
-  const args = ['-c', 'core.quotePath=false', 'diff', '--no-color', '--no-ext-diff', '--no-textconv', '-U0', '-M'];
+  const args = ['-c', 'core.quotePath=false', 'diff', '--no-color', '--no-ext-diff', '--no-textconv', '--text', '-U0', '-M'];
   const pathspec = ['--', '.', ':(exclude)**/pnpm-lock.yaml', ':(exclude)**/package-lock.json'];
-  return execFileSync('git', [...args, `${base}...${head}`, ...pathspec], {
-    cwd,
-    encoding: 'utf8',
-    maxBuffer: 256 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  return git([...args, `${base}...${head}`, ...pathspec], cwd);
+}
+
+/**
+ * Parse the PR diff and attach whole-file texts to test files: `oldText` at
+ * the merge-base, `newText` at head (for the assertion count).
+ */
+export function loadDiff(base, head, cwd = process.cwd()) {
+  const mergeBase = git(['merge-base', base, head], cwd).trim();
+  const files = parseDiff(prDiff(base, head, cwd));
+  for (const file of files) {
+    const { wasTest, isTestNow } = testSides(file);
+    if (wasTest && file.newPath !== null) file.oldText = git(['show', `${mergeBase}:${file.oldPath}`], cwd);
+    if (isTestNow) file.newText = git(['show', `${head}:${file.newPath}`], cwd);
+  }
+  return files;
 }
 
 async function main() {
@@ -188,7 +234,7 @@ async function main() {
     console.log(`Test integrity: a ${env.EVENT_NAME} run is not a PR diff; nothing to judge.`);
     return;
   }
-  const violations = findViolations(parseDiff(prDiff(env.BASE_SHA, env.HEAD_SHA)));
+  const violations = findViolations(loadDiff(env.BASE_SHA, env.HEAD_SHA));
   if (violations.length === 0) {
     console.log('Test integrity: no deleted tests, skip/focus markers, loosened limits or lost assertions.');
     return;
