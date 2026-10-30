@@ -2,7 +2,7 @@ import type { HierarchySnapshot } from '@kc/domain';
 import type { IOrgHierarchyRepository } from './IOrgHierarchyRepository';
 
 /**
- * FR-ADMIN-027 — loads the raw inputs of the layered hierarchy view.
+ * FR-ADMIN-028 — loads the raw inputs of the layered hierarchy view.
  *
  * Fetches the named role-holders (all visible orgs) and the aggregate census
  * concurrently so both halves describe the same moment. Folding into strata

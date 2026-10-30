@@ -1,5 +1,5 @@
 // app/apps/mobile/src/i18n/locales/he/modules/adminLayers.ts
-// Hebrew strings for the layered hierarchy view of the admin team (FR-ADMIN-027).
+// Hebrew strings for the layered hierarchy view of the admin team (FR-ADMIN-028).
 export const adminLayersHe = {
   tiers: {
     leadership:     { title: 'הנהלת הפלטפורמה', hint: 'מנהל-העל של קארמה קומיוניטי' },

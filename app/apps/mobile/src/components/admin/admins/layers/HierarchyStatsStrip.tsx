@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/HierarchyStatsStrip.tsx
-// FR-ADMIN-027 — headline numbers above the layered hierarchy.
+// FR-ADMIN-028 — headline numbers above the layered hierarchy.
 import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, useTheme } from '@kc/ui';

@@ -1,5 +1,5 @@
 -- supabase/tests/0453_admin_hierarchy_census.sql
--- Regression for migration 0453 (FR-ADMIN-027).
+-- Regression for migration 0453 (FR-ADMIN-028).
 --
 -- Asserts the security + counting contract of public.admin_hierarchy_census():
 --   1. grants: anon has no EXECUTE, authenticated does; SECURITY DEFINER;

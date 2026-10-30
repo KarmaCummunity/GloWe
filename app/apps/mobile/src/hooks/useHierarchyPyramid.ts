@@ -1,5 +1,5 @@
 // app/apps/mobile/src/hooks/useHierarchyPyramid.ts
-// FR-ADMIN-027 — layered hierarchy view across every visible organisation.
+// FR-ADMIN-028 — layered hierarchy view across every visible organisation.
 //
 // One query loads the snapshot (role-holders + census); focusing an org is a
 // pure in-memory re-fold, so switching orgs never waits on the network. The

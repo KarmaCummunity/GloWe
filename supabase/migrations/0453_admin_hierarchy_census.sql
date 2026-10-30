@@ -1,4 +1,4 @@
--- 0453_admin_hierarchy_census — FR-ADMIN-027 layered hierarchy census.
+-- 0453_admin_hierarchy_census — FR-ADMIN-028 layered hierarchy census.
 --
 -- Read-only aggregate that powers the admin portal "layers" view: a pyramid
 -- of visible role-holder strata standing on a masked community base.
@@ -21,7 +21,7 @@
 -- sees every org, everyone else only the orgs their own grants reach
 -- (platform-scoped grants resolve to the platform org).
 --
--- Mapped to spec: FR-ADMIN-027 (docs/SSOT/spec/12_super_admin.md §17).
+-- Mapped to spec: FR-ADMIN-028 (docs/SSOT/spec/12_super_admin.md §17).
 -- Decision: D-194.
 
 create or replace function public.admin_hierarchy_census()
@@ -112,4 +112,4 @@ revoke all on function public.admin_hierarchy_census() from public, anon;
 grant execute on function public.admin_hierarchy_census() to authenticated;
 
 comment on function public.admin_hierarchy_census() is
-  'Admin-only (any active grant). Aggregate counts for the layered hierarchy view: masked community base, role-holder total, and per-org affiliated volunteers. Org rows are RBAC-scoped like admin_org_tree. FR-ADMIN-027.';
+  'Admin-only (any active grant). Aggregate counts for the layered hierarchy view: masked community base, role-holder total, and per-org affiliated volunteers. Org rows are RBAC-scoped like admin_org_tree. FR-ADMIN-028.';

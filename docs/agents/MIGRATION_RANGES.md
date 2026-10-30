@@ -56,7 +56,7 @@ Last applied on kc-dev when this was written: `0239`.
 | 0450 | G32 / D59 items and requests never expire + owner reminders (#1259) | in progress |
 | 0451 | G3 / D16 listing anonymity both ways (#1254) | in progress |
 | 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
-| 0453 | FR-ADMIN-027 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
+| 0453 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
 | 0454+ | — | free |
 
 ## Next free ranges

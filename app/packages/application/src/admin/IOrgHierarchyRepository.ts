@@ -6,7 +6,7 @@ export interface IOrgHierarchyRepository {
   getOrgTree(orgId: string | null): Promise<readonly OrgTreeMember[]>;
   /** Set (or clear, when `managerGrantId` is null) a grant's direct manager. */
   setManager(grantId: string, managerGrantId: string | null): Promise<void>;
-  /** Aggregate counts for the layered hierarchy view (FR-ADMIN-027): the
+  /** Aggregate counts for the layered hierarchy view (FR-ADMIN-028): the
    *  masked community base plus per-org affiliates, RBAC-scoped like the tree. */
   getHierarchyCensus(): Promise<HierarchyCensus>;
 }

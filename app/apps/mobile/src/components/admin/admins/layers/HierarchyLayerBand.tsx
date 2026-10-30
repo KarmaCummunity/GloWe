@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/HierarchyLayerBand.tsx
-// FR-ADMIN-027 — one stratum of the layered hierarchy.
+// FR-ADMIN-028 — one stratum of the layered hierarchy.
 //
 // A card with an accent rail, a header (tier icon, title, hint, headcount) and
 // one cluster per organisation. Large clusters are capped and expand on demand

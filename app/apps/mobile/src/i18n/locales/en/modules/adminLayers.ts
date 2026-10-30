@@ -1,5 +1,5 @@
 // app/apps/mobile/src/i18n/locales/en/modules/adminLayers.ts
-// English strings for the layered hierarchy view of the admin team (FR-ADMIN-027).
+// English strings for the layered hierarchy view of the admin team (FR-ADMIN-028).
 export const adminLayersEn = {
   tiers: {
     leadership:     { title: 'Platform Leadership', hint: 'The Karma Community super admin' },

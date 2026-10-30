@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/layerVisuals.ts
-// FR-ADMIN-027 — visual language of the layered hierarchy view.
+// FR-ADMIN-028 — visual language of the layered hierarchy view.
 //
 // Each stratum gets an icon, an accent and a relative width. Widths grow from
 // the top stratum to the base so the stack reads as a pyramid on wide screens;

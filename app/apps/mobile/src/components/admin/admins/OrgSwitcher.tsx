@@ -15,7 +15,7 @@ export interface OrgSwitcherProps {
   readonly orgs: readonly OrgOption[];
   readonly selected: string | null;
   readonly onSelect: (orgId: string | null) => void;
-  /** Optional colour key per org (FR-ADMIN-027 layered view); renders a dot. */
+  /** Optional colour key per org (FR-ADMIN-028 layered view); renders a dot. */
   readonly accents?: ReadonlyMap<string, string>;
 }
 

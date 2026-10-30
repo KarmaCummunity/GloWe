@@ -1,5 +1,5 @@
 // app/apps/mobile/app/(admin)/admins/index.tsx
-// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 / FR-ADMIN-027 — Admin RBAC screen.
+// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 / FR-ADMIN-028 — Admin RBAC screen.
 //
 // Thin orchestrator: a layers/list/tree view toggle + the grant affordance. The
 // three view bodies (layered pyramid, cards list, hierarchy tree) own their own
@@ -24,7 +24,7 @@ import { AdminsLayersView } from '../../../src/components/admin/admins/layers/Ad
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
 
 type ViewMode = 'layers' | 'list' | 'tree';
-// The layered pyramid is the overview and opens first (FR-ADMIN-027 AC5).
+// The layered pyramid is the overview and opens first (FR-ADMIN-028 AC5).
 const VIEW_MODES: readonly ViewMode[] = ['layers', 'list', 'tree'];
 
 export default function AdminsScreen() {

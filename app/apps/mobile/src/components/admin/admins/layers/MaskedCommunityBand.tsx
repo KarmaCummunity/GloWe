@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/MaskedCommunityBand.tsx
-// FR-ADMIN-027 — the masked base of the hierarchy: the whole community.
+// FR-ADMIN-028 — the masked base of the hierarchy: the whole community.
 //
 // Identities are never shown here (the census RPC returns counts only). The
 // band renders an abstract field of anonymous dots whose density follows the

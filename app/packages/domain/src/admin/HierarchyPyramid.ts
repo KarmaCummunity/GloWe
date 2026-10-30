@@ -1,5 +1,5 @@
 // app/packages/domain/src/admin/HierarchyPyramid.ts
-// FR-ADMIN-027 — layered hierarchy ("pyramid") across every organisation.
+// FR-ADMIN-028 — layered hierarchy ("pyramid") across every organisation.
 //
 // Folds two inputs into a stack of strata, top (authority) to bottom (reach):
 //   • the RBAC-filtered role-holders from `admin_org_tree` (named people), and

@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/LayerPersonChip.tsx
-// FR-ADMIN-027 — one named role-holder inside a hierarchy stratum.
+// FR-ADMIN-028 — one named role-holder inside a hierarchy stratum.
 //
 // A compact vertical tile: avatar wrapped in an org-coloured ring, the name,
 // and the person's highest role tinted by its role accent (+N when the person

@@ -1,5 +1,5 @@
 // app/apps/mobile/src/components/admin/admins/layers/AdminsLayersView.tsx
-// FR-ADMIN-027 — the "layers" tab of the admins screen.
+// FR-ADMIN-028 — the "layers" tab of the admins screen.
 //
 // Renders the whole management structure as a pyramid of strata: platform
 // leadership on top, then platform staff, org leadership, org teams and
