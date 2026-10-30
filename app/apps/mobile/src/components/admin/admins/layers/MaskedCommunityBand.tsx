@@ -6,10 +6,10 @@
 // community size, a lock glyph, the masked count and — when present — the
 // self-declared volunteer affiliates of the focused orgs.
 import { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CommunityBase } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
 
@@ -73,23 +73,23 @@ export function MaskedCommunityBand({ base }: MaskedCommunityBandProps) {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   band: {
-    width: '100%', borderRadius: 18, overflow: 'hidden',
+    width: '100%', borderRadius: radius.lg, overflow: 'hidden',
     borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong,
-    backgroundColor: colors.surfaceCream, padding: 14, gap: 10,
+    backgroundColor: colors.surfaceCream, padding: spacing.md, gap: spacing.sm,
   },
   field: {
     flexDirection: rowDirectionStart, flexWrap: 'wrap', justifyContent: 'center',
-    gap: 6, paddingVertical: 4,
+    gap: spacing.xs, paddingVertical: spacing.xs,
   },
-  dot:        { width: 9, height: 9, borderRadius: 4.5, backgroundColor: colors.textDisabled },
-  header:     { flexDirection: rowDirectionStart, alignItems: 'center', gap: 10 },
+  dot:        { width: 9, height: 9, borderRadius: radius.full, backgroundColor: colors.textDisabled },
+  header:     { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm },
   lockBubble: {
-    width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
+    width: 34, height: 34, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center',
     backgroundColor: colors.skeleton,
   },
-  texts:      { flex: 1, gap: 2 },
-  title:      { fontSize: 15, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  count:      { fontSize: 13, fontWeight: '700', color: colors.textSecondary, textAlign: textAlignStart() },
-  affiliated: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textAlign: textAlignStart() },
-  hint:       { fontSize: 11, color: colors.textDisabled, textAlign: textAlignStart() },
+  texts:      { flex: 1, gap: spacing.xs },
+  title:      { ...typography.h4, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  count:      { ...typography.bodySmall, ...typography.bold, color: colors.textSecondary, textAlign: textAlignStart() },
+  affiliated: { ...typography.label, color: colors.textSecondary, textAlign: textAlignStart() },
+  hint:       { ...typography.caption, color: colors.textDisabled, textAlign: textAlignStart() },
 }));

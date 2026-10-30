@@ -8,6 +8,7 @@
 import type { ComponentProps } from 'react';
 import type { Ionicons } from '@expo/vector-icons';
 import type { AdminRole } from '@kc/domain';
+import { avatarPalette } from '@kc/ui';
 
 export type LayerIconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -25,13 +26,21 @@ export const ROLE_ICON: Readonly<Record<AdminRole, LayerIconName>> = {
   org_volunteer:     'heart',
 };
 
-/** Accent ramp by depth; levels deeper than the ramp reuse it from the start. */
-const LEVEL_ACCENTS: readonly string[] = [
-  '#7c3aed', '#2563eb', '#ca8a04', '#d97706', '#0d9488', '#dc2626', '#db2777', '#65a30d',
-];
+/**
+ * Categorical colours come from the brand's theme-independent palette (spec 17
+ * §4: admin screens introduce no colours of their own). Every entry meets AA
+ * against white, so text and glyphs drawn on them stay legible.
+ */
+const CATEGORICAL: readonly string[] = avatarPalette.backgrounds;
 
+/** Colour at `index`, cycling through the palette. */
+function categorical(index: number): string {
+  return CATEGORICAL[index % CATEGORICAL.length] ?? avatarPalette.backgrounds[0];
+}
+
+/** Accent of a level; levels deeper than the palette reuse it from the start. */
 export function layerAccent(level: number): string {
-  return LEVEL_ACCENTS[level % LEVEL_ACCENTS.length] ?? '#475569';
+  return categorical(level);
 }
 
 /** Narrowest band width on wide screens, as a percentage of the column. */
@@ -53,12 +62,6 @@ export function layerPhoneInset(index: number, total: number): number {
   return Math.min(total - index, PHONE_TAPER_MAX_STEPS) * PHONE_TAPER_STEP;
 }
 
-/** Distinct, theme-neutral hues for non-platform orgs, assigned in list order. */
-const ORG_PALETTE: readonly string[] = [
-  '#2563eb', '#16a34a', '#db2777', '#0891b2',
-  '#9333ea', '#ea580c', '#0d9488', '#65a30d',
-];
-
 /**
  * Stable accent per org. The platform org wears the brand colour; other orgs
  * take palette hues in census order (platform first, then by name), so the
@@ -69,12 +72,13 @@ export function buildOrgAccents(
   brand: string,
 ): ReadonlyMap<string, string> {
   const accents = new Map<string, string>();
-  let next = 0;
+  // Palette slot 0 is the brand orange, which the platform org already wears.
+  let next = 1;
   for (const org of orgs) {
     if (org.isPlatform) {
       accents.set(org.orgId, brand);
     } else {
-      accents.set(org.orgId, ORG_PALETTE[next % ORG_PALETTE.length] ?? brand);
+      accents.set(org.orgId, categorical(next));
       next += 1;
     }
   }

@@ -6,10 +6,10 @@
 // capped and expand on demand so a level with hundreds of volunteers stays
 // scannable.
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { HierarchyLayer, LayerOrgGroup } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { LayerPersonChip } from './LayerPersonChip';
 import { ROLE_ICON, layerAccent } from './layerVisuals';
 import { rowDirectionStart, textAlignStart } from '../../../../lib/rtlLayout';
@@ -122,29 +122,29 @@ export function HierarchyLayerBand({ layer, orgAccents, verifiedOrgIds, onSelect
 const useStyles = makeUseStyles(({ colors }) => ({
   band: {
     alignSelf: 'center', width: '100%',
-    backgroundColor: colors.surface, borderRadius: 18, borderTopWidth: 3,
-    paddingHorizontal: 14, paddingVertical: 12, gap: 10,
+    backgroundColor: colors.surface, borderRadius: radius.lg, borderTopWidth: 3,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.sm,
     shadowColor: colors.shadow, shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  header:      { flexDirection: rowDirectionStart, alignItems: 'center', gap: 10 },
-  iconBubble:  { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  headerTexts: { flex: 1, gap: 2 },
-  title:       { fontSize: 15, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  hint:        { fontSize: 12, color: colors.textSecondary, textAlign: textAlignStart() },
+  header:      { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm },
+  iconBubble:  { width: 34, height: 34, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+  headerTexts: { flex: 1, gap: spacing.xs },
+  title:       { ...typography.h4, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  hint:        { ...typography.bodySmall, color: colors.textSecondary, textAlign: textAlignStart() },
   count: {
-    minWidth: 32, height: 26, paddingHorizontal: 8, borderRadius: 13,
+    minWidth: 32, height: 26, paddingHorizontal: spacing.sm, borderRadius: radius.full,
     alignItems: 'center', justifyContent: 'center',
   },
-  countText:   { fontSize: 13, fontWeight: '800', color: colors.textInverse },
+  countText:   { ...typography.bodySmall, ...typography.extraBold, color: colors.textInverse },
   cluster: {
-    borderRadius: 14, backgroundColor: colors.background, padding: 8, gap: 4,
+    borderRadius: radius.md, backgroundColor: colors.background, padding: spacing.sm, gap: spacing.xs,
   },
-  clusterHeader: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 6, paddingHorizontal: 4 },
-  orgDot:      { width: 8, height: 8, borderRadius: 4 },
-  orgName:     { flexShrink: 1, fontSize: 12, fontWeight: '700', color: colors.textSecondary, textAlign: textAlignStart() },
-  orgCount:    { marginStart: 'auto', fontSize: 11, fontWeight: '700', color: colors.textDisabled },
+  clusterHeader: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xs },
+  orgDot:      { width: 8, height: 8, borderRadius: radius.full },
+  orgName:     { flexShrink: 1, ...typography.bodySmall, ...typography.bold, color: colors.textSecondary, textAlign: textAlignStart() },
+  orgCount:    { marginStart: 'auto', ...typography.caption, ...typography.bold, color: colors.textDisabled },
   people:      { flexDirection: rowDirectionStart, flexWrap: 'wrap', justifyContent: 'center' },
-  moreBtn:     { alignSelf: 'center', paddingVertical: 4, paddingHorizontal: 10 },
-  moreText:    { fontSize: 12, fontWeight: '800' },
+  moreBtn:     { alignSelf: 'center', paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
+  moreText:    { ...typography.bodySmall, ...typography.extraBold },
 }));

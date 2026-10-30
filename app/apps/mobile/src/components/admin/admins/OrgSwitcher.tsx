@@ -2,7 +2,7 @@
 // FR-ADMIN-025 — org filter for the hierarchy tree. super_admin can switch
 // between orgs (or view all); scoped admins are pinned to their org upstream.
 import { ScrollView, Pressable, View } from 'react-native';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
@@ -51,14 +51,14 @@ export function OrgSwitcher({ orgs, selected, onSelect, accents }: OrgSwitcherPr
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  bar: { flexDirection: rowDirectionStart, gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  bar: { flexDirection: rowDirectionStart, gap: spacing.sm, paddingHorizontal: spacing.base, paddingVertical: spacing.sm },
   chip: {
-    flexDirection: rowDirectionStart, alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
+    flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full,
     backgroundColor: colors.surface,
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 8, height: 8, borderRadius: radius.full },
   chipActive: { backgroundColor: colors.primary },
-  chipText: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
+  chipText: { ...typography.bodySmall, ...typography.bold, color: colors.textSecondary },
   chipTextActive: { color: colors.textInverse },
 }));

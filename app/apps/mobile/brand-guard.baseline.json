@@ -11,12 +11,6 @@
       "radiusLiteral": 2,
       "spacingLiteral": 11
     },
-    "app/(admin)/admins/index.tsx": {
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 3,
-      "spacingLiteral": 10
-    },
     "app/(admin)/audit/index.tsx": {
       "fontSizeLiteral": 9,
       "fontWeightLiteral": 3,
@@ -597,12 +591,6 @@
       "fontWeightLiteral": 1,
       "spacingLiteral": 2
     },
-    "src/components/admin/admins/OrgSwitcher.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5
-    },
     "src/components/admin/admins/OrgTree.tsx": {
       "fontSizeLiteral": 1,
       "spacingLiteral": 3
@@ -612,13 +600,6 @@
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
       "spacingLiteral": 8
-    },
-    "src/components/admin/admins/RoleBadge.tsx": {
-      "colorLiteral": 11,
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 2,
-      "spacingLiteral": 3
     },
     "src/components/admin/content/AuditLogRow.tsx": {
       "fontSizeLiteral": 4,

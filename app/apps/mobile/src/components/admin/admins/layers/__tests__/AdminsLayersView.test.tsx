@@ -90,7 +90,7 @@ afterEach(() => {
 });
 
 describe('AdminsLayersView', () => {
-  it('keeps showing loaded strata when a background refetch fails', () => {
+  it('keeps showing loaded levels when a background refetch fails', () => {
     state.snapshot = SNAPSHOT;
     state.error = new Error('network');
     renderView();

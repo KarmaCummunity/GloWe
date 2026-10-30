@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/admins/layers/HierarchyStatsStrip.tsx
 // FR-ADMIN-028 — headline numbers above the layered hierarchy.
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import type { LayerIconName } from './layerVisuals';
 import { rowDirectionStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
@@ -46,12 +46,12 @@ export function HierarchyStatsStrip({ communityTotal, roleHolders, orgCount, aff
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  strip: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: 8 },
+  strip: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: spacing.sm },
   tile: {
-    flexGrow: 1, flexBasis: '22%', minWidth: 72, alignItems: 'center', gap: 2,
-    paddingVertical: 10, paddingHorizontal: 6, borderRadius: 14,
+    flexGrow: 1, flexBasis: '22%', minWidth: 72, alignItems: 'center', gap: spacing.xs,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, borderRadius: radius.md,
     backgroundColor: colors.primarySurface,
   },
-  value: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
-  label: { fontSize: 11, fontWeight: '600', color: colors.textSecondary, textAlign: 'center' },
+  value: { ...typography.h3, ...typography.extraBold, color: colors.textPrimary },
+  label: { ...typography.caption, ...typography.semiBold, color: colors.textSecondary, textAlign: 'center' },
 }));

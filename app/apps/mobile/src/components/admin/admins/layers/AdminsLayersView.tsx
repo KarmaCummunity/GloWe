@@ -7,9 +7,9 @@
 // org chips focus the view on one org without refetching (the fold is
 // in-memory).
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import type { HierarchyPyramid } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { useHierarchyPyramid } from '../../../../hooks/useHierarchyPyramid';
 import { SimpleRowListSkeleton } from '../../../skeletons/SimpleRowListSkeleton';
 import { MotionEntry } from '../../../ui/MotionEntry';
@@ -103,7 +103,7 @@ export function AdminsLayersView({ isWide, onSelect }: AdminsLayersViewProps) {
   const { pyramid, isRefetching, refetch, error } = useHierarchyPyramid(focusOrgId);
 
   // A refetch can drop the focused org (e.g. its last grant was revoked);
-  // fall back to "all orgs" instead of rendering empty strata with no chip.
+  // fall back to "all orgs" instead of rendering empty levels with no chip.
   useEffect(() => {
     if (focusOrgId !== null && pyramid !== null && !pyramid.orgs.some((o) => o.orgId === focusOrgId)) {
       setFocusOrgId(null);
@@ -149,16 +149,16 @@ export function AdminsLayersView({ isWide, onSelect }: AdminsLayersViewProps) {
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  content:     { paddingHorizontal: 16, paddingBottom: 32 },
+  content:     { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   contentWide: { width: '100%', maxWidth: 960, alignSelf: 'center' },
-  body:        { gap: 12 },
+  body:        { gap: spacing.md },
   stack:       { alignItems: 'center' },
   bandSlot:    { alignItems: 'center' },
   baseSlot:    { alignSelf: 'stretch' },
-  connector:   { width: 2, height: 14, backgroundColor: colors.border, borderRadius: 1 },
-  center:      { alignItems: 'center', gap: 12, paddingVertical: 32 },
-  errorText:   { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
-  emptyText:   { fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingVertical: 16 },
-  retryBtn:    { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.primary },
-  retryText:   { color: colors.textInverse, fontWeight: '700', fontSize: 13 },
+  connector:   { width: 2, height: 14, backgroundColor: colors.border, borderRadius: radius.full },
+  center:      { alignItems: 'center', gap: spacing.md, paddingVertical: spacing['2xl'] },
+  errorText:   { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  emptyText:   { ...typography.bodySmall, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.base },
+  retryBtn:    { paddingHorizontal: spacing.base, paddingVertical: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.primary },
+  retryText:   { ...typography.bodySmall, ...typography.bold, color: colors.textInverse },
 }));

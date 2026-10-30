@@ -2,22 +2,26 @@
 // FR-ADMIN-022 — compact role pill used on the unified admin card and detail.
 import { StyleSheet, View } from 'react-native';
 import type { AdminRole } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { avatarPalette, makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
+import { rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
-// Semantic accent per role tier. Platform-wide roles lean on the brand primary;
-// org-scoped roles use cooler neutrals so the hierarchy reads at a glance.
-export const ROLE_ACCENT: Partial<Record<AdminRole, string>> = {
-  super_admin:       '#7c3aed',
-  moderator:         '#2563eb',
-  support:           '#0891b2',
-  operators_manager: '#0d9488',
-  operator:          '#059669',
-  org_admin:         '#ca8a04',
-  org_manager:       '#d97706',
-  volunteer_manager: '#dc2626',
-  org_employee:      '#64748b',
-  org_volunteer:     '#475569',
+// Accent per role, taken from the brand's categorical palette (spec 17 §4:
+// admin screens introduce no colours of their own). Exhaustive by type. The
+// accent marks the dot and border only; the label uses theme text colours so
+// it meets AA in both light and dark mode.
+const [orange, navy, green, pink, teal, amber, violet, blue] = avatarPalette.backgrounds;
+const ROLE_ACCENT: Readonly<Record<AdminRole, string>> = {
+  super_admin:       violet,
+  moderator:         blue,
+  support:           teal,
+  operators_manager: green,
+  operator:          green,
+  org_admin:         orange,
+  org_manager:       amber,
+  volunteer_manager: pink,
+  org_employee:      navy,
+  org_volunteer:     navy,
 };
 
 export interface RoleBadgeProps {
@@ -28,24 +32,24 @@ export interface RoleBadgeProps {
 export function RoleBadge({ role, muted }: RoleBadgeProps) {
   const styles = useStyles();
   const L = useLocaleBundle();
-  const accent = ROLE_ACCENT[role] ?? '#475569';
+  const accent = ROLE_ACCENT[role];
   return (
     <View style={[styles.badge, { borderColor: accent }, muted && styles.muted]}>
       <View style={[styles.dot, { backgroundColor: accent }]} />
-      <Text style={[styles.text, { color: accent }]} numberOfLines={1}>
+      <Text style={styles.text} numberOfLines={1}>
         {L.admin.roles[role]}
       </Text>
     </View>
   );
 }
 
-const useStyles = makeUseStyles(() => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 8, paddingVertical: 3,
-    borderRadius: 999, borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
+    borderRadius: radius.full, borderWidth: StyleSheet.hairlineWidth,
   },
   muted: { opacity: 0.5 },
-  dot:   { width: 6, height: 6, borderRadius: 3 },
-  text:  { fontSize: 11, fontWeight: '700' },
+  dot:   { width: 6, height: 6, borderRadius: radius.full },
+  text:  { ...typography.caption, ...typography.bold, color: colors.textPrimary },
 }));

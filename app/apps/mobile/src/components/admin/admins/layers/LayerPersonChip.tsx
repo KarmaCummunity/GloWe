@@ -1,20 +1,18 @@
 // app/apps/mobile/src/components/admin/admins/layers/LayerPersonChip.tsx
-// FR-ADMIN-028 — one named role-holder inside a hierarchy stratum.
+// FR-ADMIN-028 — one named role-holder inside a hierarchy level.
 //
 // A compact vertical tile: avatar wrapped in an org-coloured ring, the name,
-// and the person's highest role tinted by its role accent (+N when the person
-// holds more roles in the same stratum). Tapping opens the admin-detail card.
-import { Pressable, Text, View } from 'react-native';
+// and the person's highest role (+N when the person holds more roles at the
+// same level). Tapping opens the admin-detail card.
+import { Pressable, View } from 'react-native';
 import type { LayerPerson } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { AvatarInitials } from '../../../AvatarInitials';
-import { ROLE_ACCENT } from '../RoleBadge';
 import { rowDirectionStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
 
 const AVATAR_SIZE = 40;
 const RING_WIDTH = 2;
-const FALLBACK_ROLE_ACCENT = '#475569';
 
 export interface LayerPersonChipProps {
   readonly person: LayerPerson;
@@ -30,7 +28,6 @@ export function LayerPersonChip({ person, orgName, orgAccent, onSelect }: LayerP
   const name = person.displayName ?? L.admin.admins.row.unnamed;
   const [topRole] = person.roles;
   const roleLabel = topRole ? L.admin.roles[topRole] : '';
-  const roleAccent = (topRole && ROLE_ACCENT[topRole]) ?? FALLBACK_ROLE_ACCENT;
   const extraRoles = person.roles.length - 1;
 
   return (
@@ -45,7 +42,7 @@ export function LayerPersonChip({ person, orgName, orgAccent, onSelect }: LayerP
       </View>
       <Text style={styles.name} numberOfLines={1}>{name}</Text>
       <View style={styles.roleRow}>
-        <Text style={[styles.role, { color: roleAccent }]} numberOfLines={1}>{roleLabel}</Text>
+        <Text style={styles.role} numberOfLines={1}>{roleLabel}</Text>
         {extraRoles > 0 && (
           <Text style={styles.more}>{L.admin.admins.layers.moreRoles(extraRoles)}</Text>
         )}
@@ -56,15 +53,15 @@ export function LayerPersonChip({ person, orgName, orgAccent, onSelect }: LayerP
 
 const useStyles = makeUseStyles(({ colors }) => ({
   chip: {
-    width: 84, alignItems: 'center', gap: 4,
-    paddingVertical: 8, paddingHorizontal: 4, borderRadius: 14,
+    width: 84, alignItems: 'center', gap: spacing.xs,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, borderRadius: radius.md,
   },
   pressed: { backgroundColor: colors.surfaceRaised, opacity: 0.85 },
   ring: {
-    padding: 2, borderWidth: RING_WIDTH, borderRadius: (AVATAR_SIZE + 4 + RING_WIDTH * 2) / 2,
+    padding: RING_WIDTH, borderWidth: RING_WIDTH, borderRadius: radius.full,
   },
-  name:    { fontSize: 12, fontWeight: '700', color: colors.textPrimary, textAlign: 'center', maxWidth: 80 },
-  roleRow: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 3, maxWidth: 80 },
-  role:    { fontSize: 10, fontWeight: '700', flexShrink: 1 },
-  more:    { fontSize: 10, fontWeight: '800', color: colors.textSecondary },
+  name:    { ...typography.bodySmall, ...typography.bold, color: colors.textPrimary, textAlign: 'center', maxWidth: 80 },
+  roleRow: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs, maxWidth: 80 },
+  role:    { ...typography.caption, ...typography.semiBold, color: colors.textSecondary, flexShrink: 1 },
+  more:    { ...typography.caption, ...typography.extraBold, color: colors.textSecondary },
 }));

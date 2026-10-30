@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles, useBreakpoint, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography, useBreakpoint } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { rowDirectionStart } from '../../../src/lib/rtlLayout';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -98,19 +98,19 @@ export default function AdminsScreen() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root:        { flex: 1, backgroundColor: colors.background },
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
-  deniedTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
-  deniedHint:  { fontSize: 13, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
+  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm },
+  deniedTitle: { ...typography.h3, ...typography.bold, color: colors.textPrimary },
+  deniedHint:  { ...typography.bodySmall, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
   // Wraps so three view tabs + the grant button never overflow a phone width.
   headerControls: {
     flexDirection: rowDirectionStart, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
+    paddingHorizontal: spacing.base, paddingVertical: spacing.md, gap: spacing.md,
   },
-  segment:     { flexDirection: rowDirectionStart, backgroundColor: colors.surface, borderRadius: 999, padding: 3 },
-  segmentBtn:  { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 },
+  segment:     { flexDirection: rowDirectionStart, backgroundColor: colors.surface, borderRadius: radius.full, padding: spacing.xs },
+  segmentBtn:  { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full },
   segmentBtnActive: { backgroundColor: colors.primary },
-  segmentText: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
+  segmentText: { ...typography.bodySmall, ...typography.bold, color: colors.textSecondary },
   segmentTextActive: { color: colors.textInverse },
-  grantBtn:    { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.primary },
-  grantBtnText: { color: colors.textInverse, fontWeight: '700', fontSize: 13 },
+  grantBtn:    { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.primary },
+  grantBtnText: { ...typography.bodySmall, ...typography.bold, color: colors.textInverse },
 }));

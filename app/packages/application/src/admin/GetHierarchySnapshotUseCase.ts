@@ -9,7 +9,7 @@ import type { IOrgHierarchyRepository } from './IOrgHierarchyRepository';
  * landing between them only skews the masked count until the next refresh,
  * which the domain fold tolerates.
  *
- * Folding into strata stays in the domain (`buildHierarchyPyramid`) so the UI
+ * Folding into levels stays in the domain (`buildHierarchyPyramid`) so the UI
  * can re-focus on an org without another round trip.
  */
 export class GetHierarchySnapshotUseCase {
