@@ -17,6 +17,7 @@ import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { container } from '../../../lib/container';
 import { confirmAction as platformConfirm } from '../../../services/platformConfirm';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
+import { adminPostActions } from '../../../lib/moderation/postModeration';
 
 export interface PostSearchRowProps {
   readonly row: AdminPostSearchResult;
@@ -26,6 +27,7 @@ function statusTone(status: string): 'good' | 'warn' | 'bad' | 'muted' {
   if (status === 'open') return 'good';
   if (status === 'closed_delivered') return 'muted';
   if (status === 'removed_admin' || status === 'expired') return 'bad';
+  if (status === 'hidden_pending_review') return 'warn';
   return 'warn';
 }
 
@@ -45,8 +47,10 @@ export function PostSearchRow({ row }: PostSearchRowProps) {
   const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
   const [busy, setBusy] = useState(false);
 
-  const canRemove  = can('reports.confirm_or_dismiss') && row.status === 'open';
-  const canRestore = can('reports.restore_target')    && row.status === 'removed_admin';
+  const { remove: canRemove, restore: canRestore } = adminPostActions(row.status, {
+    canRemove: can('reports.confirm_or_dismiss'),
+    canRestore: can('reports.restore_target'),
+  });
 
   async function doRemove() {
     const ok = await confirmAction(L.admin.content.postInline.confirmRemove, L);

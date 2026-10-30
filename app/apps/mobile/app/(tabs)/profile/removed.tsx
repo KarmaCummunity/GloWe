@@ -17,6 +17,7 @@ import { getMyPostsUseCase } from '../../../src/services/postsComposition';
 import { useMyProfilePostOwner } from '../../../src/hooks/useProfilePostOwner';
 import { rowDirectionStart } from '../../../src/lib/rtlLayout';
 import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
+import { OWNER_MODERATED_POST_STATUSES } from '../../../src/lib/moderation/postModeration';
 
 export default function MyProfileRemovedScreen() {
   const styles = useStyles();
@@ -31,7 +32,7 @@ export default function MyProfileRemovedScreen() {
     queryFn: () =>
       getMyPostsUseCase().execute({
         userId: userId!,
-        status: ['removed_admin'],
+        status: [...OWNER_MODERATED_POST_STATUSES],
         limit: 30,
       }),
     enabled: Boolean(userId),

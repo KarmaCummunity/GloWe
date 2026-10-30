@@ -18,6 +18,7 @@ const STATUS_OPTIONS = [
   { value: 'closed_delivered',         key: 'closed' as const },
   { value: 'deleted_no_recipient',     key: 'deletedNoRecipient' as const },
   { value: 'removed_admin',            key: 'removedAdmin' as const },
+  { value: 'hidden_pending_review',    key: 'hiddenForReview' as const },
   { value: 'expired',                  key: 'expired' as const },
 ];
 

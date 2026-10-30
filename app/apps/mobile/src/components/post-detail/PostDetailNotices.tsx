@@ -29,6 +29,9 @@ function collectNotices(
   if (post.status === 'removed_admin') {
     notices.push({ key: 'removed', icon: 'shield-outline', text: t('post.detail.removedAdminNotice'), tone: 'danger' });
   }
+  if (post.status === 'hidden_pending_review') {
+    notices.push({ key: 'hidden', icon: 'eye-off-outline', text: t('post.detail.hiddenForReviewNotice'), tone: 'warning' });
+  }
   if (post.status === 'expired') {
     notices.push({ key: 'expired', icon: 'time-outline', text: t('post.detail.expiredNotice'), tone: 'warning' });
   }

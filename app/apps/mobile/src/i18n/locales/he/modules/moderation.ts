@@ -36,6 +36,10 @@ export const moderationHe = {
     confirmCopy: 'פעולה זו לצמיתות ואינה ניתנת לביטול. להמשיך?',
     successToast: 'המשתמש נחסם.',
   },
+  suspendedBanner: {
+    body: 'החשבון שלך מושעה כרגע: אפשר לגלוש, אבל לא לפרסם או לשלוח הודעות. אפשר לפנות לתמיכה.',
+    contactSupport: 'פנייה לתמיכה',
+  },
   bubble: {
     reportReceived: {
       title: 'דיווח התקבל',
@@ -47,6 +51,9 @@ export const moderationHe = {
     },
     modActionTaken: {
       body: '✅ טופל ע״י אדמין · {action} · {time}',
+    },
+    ownerHiddenForReview: {
+      body: 'הפוסט שלך הוסתר בעקבות דיווחים חוזרים וממתין לבדיקת צוות. נעדכן אותך כאן.',
     },
     ownerAutoRemoved: {
       body: 'הפוסט שלך הוסר אוטומטית בעקבות דיווחים חוזרים. אם זו טעות, ניתן לערער דרך כתובת התמיכה.',

@@ -49,6 +49,7 @@ export const adminContentHe = {
     closed:             'סגור (נמסר)',
     deletedNoRecipient: 'נסגר ללא נמען',
     removedAdmin:       'הוסר ע"י מנהל',
+    hiddenForReview:    'מוסתר לבדיקה',
     expired:            'פג תוקף',
   },
   postStatus: {
@@ -56,6 +57,7 @@ export const adminContentHe = {
     closed_delivered:     'נמסר',
     deleted_no_recipient: 'נסגר ללא נמען',
     removed_admin:        'הוסר ע"י מנהל',
+    hidden_pending_review: 'מוסתר לבדיקה',
     expired:              'פג תוקף',
   },
 

@@ -189,6 +189,8 @@ export const postHe = {
     publishedBy: 'פורסם על-ידי',
     // Visibility + lifecycle notices shown to anyone who can still see the post.
     removedAdminNotice: 'הפוסט הוסר על ידי מנהל ואינו מוצג בפיד.',
+    statusHiddenForReview: 'מוסתר לבדיקה',
+    hiddenForReviewNotice: 'הפוסט הוסתר בעקבות דיווחים וממתין לבדיקת צוות. הוא לא מוצג לאחרים בינתיים.',
     expiredNotice: 'הפוסט פג תוקף ואינו פעיל יותר.',
     visibilityFollowersNotice: 'פוסט זה גלוי לעוקבים מאושרים בלבד.',
     visibilityOnlyMeNotice: 'פוסט פרטי — גלוי רק לבעליו.',

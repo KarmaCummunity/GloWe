@@ -50,6 +50,15 @@ export function PostDetailStatusBadge({ status }: Props) {
     );
   }
 
+  if (status === 'hidden_pending_review') {
+    return (
+      <View style={[styles.pill, styles.pillPending]} accessibilityRole="text">
+        <Ionicons name="eye-off-outline" size={15} color={colors.warning} />
+        <Text style={styles.pillTextPending}>{t('post.detail.statusHiddenForReview')}</Text>
+      </View>
+    );
+  }
+
   if (status === 'removed_admin') {
     return (
       <View style={[styles.pill, styles.pillRemoved]} accessibilityRole="text">
