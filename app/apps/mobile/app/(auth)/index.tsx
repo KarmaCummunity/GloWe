@@ -216,6 +216,15 @@ export default function WelcomeScreen() {
           >
             <Text style={styles.guestBtnText}>{t('auth.guestPreviewCta')}</Text>
           </TouchableOpacity>
+          {/* FR-AUTH-001 AC2: the only route to email/password sign-in (and sign-up from there). */}
+          <TouchableOpacity
+            testID="auth-email-entry"
+            style={styles.guestBtn}
+            onPress={() => router.push('/(auth)/sign-in')}
+            accessibilityRole="link"
+          >
+            <Text style={styles.emailEntryText}>{t('auth.continueWithEmail')}</Text>
+          </TouchableOpacity>
         </Animated.View>
 
         <Animated.View style={[propsStyle, styles.miniAboutWrap]}>

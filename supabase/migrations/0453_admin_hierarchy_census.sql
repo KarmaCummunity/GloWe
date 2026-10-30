@@ -1,4 +1,4 @@
--- 0448_admin_hierarchy_census — FR-ADMIN-027 layered hierarchy census.
+-- 0453_admin_hierarchy_census — FR-ADMIN-027 layered hierarchy census.
 --
 -- Read-only aggregate that powers the admin portal "layers" view: a pyramid
 -- of visible role-holder strata standing on a masked community base.
