@@ -10443,6 +10443,10 @@ export type Database = {
         Args: { p_kind: string }
         Returns: string
       }
+      notification_kind_enabled: {
+        Args: { p_kind: string; p_prefs: Json }
+        Returns: boolean
+      }
       notifications_backlog_check: { Args: never; Returns: undefined }
       notifications_bump_attempt: {
         Args: { p_error: string; p_id: string }
