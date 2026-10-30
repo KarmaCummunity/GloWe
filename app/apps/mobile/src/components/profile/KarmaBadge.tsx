@@ -17,7 +17,7 @@ export function KarmaBadge({ points }: { readonly points: number }) {
     <>
       <TouchableOpacity
         style={styles.badge}
-        onPress={() => router.push('/karma-history' as never)}
+        onPress={() => router.push('/karma-history')}
         accessibilityRole="button"
         accessibilityHint={t('karma.historyOpen')}
       >

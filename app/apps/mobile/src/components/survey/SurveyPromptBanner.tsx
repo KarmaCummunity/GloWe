@@ -21,7 +21,7 @@ export function SurveyPromptBanner({ slug, onSnooze }: SurveyPromptBannerProps) 
 
   const handleOpen = () => {
     void onSnooze(); // dismiss banner before navigating
-    router.push(`/settings/survey/${slug}` as never);
+    router.push(`/settings/survey/${slug}`);
   };
 
   const handleSnooze = () => {

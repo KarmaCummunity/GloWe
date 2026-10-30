@@ -38,7 +38,7 @@ export function RideCard({ ride }: Props) {
   return (
     <Pressable
       onPress={() =>
-        router.push(`/(tabs)/donations/rides/${ride.rideId}` as Parameters<typeof router.push>[0])
+        router.push(`/(tabs)/donations/rides/${ride.rideId}`)
       }
       accessibilityRole="button"
       accessibilityLabel={ride.title}

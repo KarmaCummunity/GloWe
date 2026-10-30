@@ -59,7 +59,7 @@ export default function ResearchThanksScreen() {
             <Text style={styles.signUpLead}>{t('research.thanksSignUpLead')}</Text>
             <Pressable
               style={styles.signUpBtn}
-              onPress={() => router.push('/(auth)' as Href)}
+              onPress={() => router.push('/(auth)')}
               accessibilityRole="button"
             >
               <Text style={styles.signUpBtnText}>{t('research.guestInvite.signUpCta')}</Text>

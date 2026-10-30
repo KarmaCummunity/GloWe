@@ -114,7 +114,7 @@ export function MyRequestRow({ request }: Props) {
     <Card padding="base" style={styles.card}>
       <Pressable
         onPress={() =>
-          router.push(`/(tabs)/donations/rides/${request.rideId}` as Parameters<typeof router.push>[0])
+          router.push(`/(tabs)/donations/rides/${request.rideId}`)
         }
         accessibilityRole="button"
         accessibilityLabel={ride?.title ?? t('donations.rides.requests.title')}

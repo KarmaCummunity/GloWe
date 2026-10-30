@@ -212,7 +212,7 @@ export default function WelcomeScreen() {
           />
           <TouchableOpacity
             style={styles.guestBtn}
-            onPress={() => { setGuest(true); router.replace('/(guest)/feed' as Href); }}
+            onPress={() => { setGuest(true); router.replace('/(guest)/feed'); }}
           >
             <Text style={styles.guestBtnText}>{t('auth.guestPreviewCta')}</Text>
           </TouchableOpacity>

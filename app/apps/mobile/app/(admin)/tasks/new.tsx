@@ -61,7 +61,7 @@ export default function NewTaskScreen() {
         assigneeId,
         labels,
       });
-      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } } as never);
+      router.replace({ pathname: '/(admin)/tasks/[taskId]', params: { taskId } });
     } catch (e) {
       console.error('[admin tasks] create failed', e);
       if (isAdminTaskError(e)) {

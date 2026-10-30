@@ -8,7 +8,7 @@ import type { ComponentProps, ReactElement } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { adminChipScroll } from './adminChipScroll';
 import { Ionicons } from '@expo/vector-icons';
-import { router, usePathname } from 'expo-router';
+import { router, usePathname, type Href } from 'expo-router';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../hooks/useAdminRoles';
@@ -19,7 +19,7 @@ type IconName = ComponentProps<typeof Ionicons>['name'];
 
 interface NavItem {
   key: keyof LocaleBundle['admin']['nav'];
-  href: string;
+  href: Extract<Href, string>;
   icon: IconName;
   perm: AdminPermission | null;
 }
@@ -62,7 +62,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
     return (
       <Pressable
         key={it.key}
-        onPress={() => router.push(it.href as never)}
+        onPress={() => router.push(it.href)}
         accessibilityRole="link"
         accessibilityState={{ selected: active }}
         style={[base, active && activeStyle]}

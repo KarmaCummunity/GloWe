@@ -53,7 +53,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
           {authorId && (
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push(`/user/${authorId}` as never)}
+              onPress={() => router.push(`/user/${authorId}`)}
             >
               <Text style={styles.link}>{t.openAuthor}</Text>
             </Pressable>
@@ -63,7 +63,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/post/${targetId}` as never)}
+          onPress={() => router.push(`/post/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openPost}</Text>
         </Pressable>
@@ -100,7 +100,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         {ownerId ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push(`/user/${ownerId}` as never)}
+            onPress={() => router.push(`/user/${ownerId}`)}
           >
             <Text style={styles.link}>{t.openOwner}</Text>
           </Pressable>
@@ -108,7 +108,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/(tabs)/donations/marketplace/${targetId}` as never)}
+          onPress={() => router.push(`/(tabs)/donations/marketplace/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openListing}</Text>
         </Pressable>
@@ -131,7 +131,7 @@ export function CaseTargetCard({ targetType, targetId, target }: CaseTargetCardP
         <Pressable
           accessibilityRole="button"
           style={styles.primaryBtn}
-          onPress={() => router.push(`/user/${targetId}` as never)}
+          onPress={() => router.push(`/user/${targetId}`)}
         >
           <Text style={styles.primaryBtnText}>{t.openProfile}</Text>
         </Pressable>
