@@ -18,7 +18,7 @@ One agent = one issue at a time. Don't edit paths owned by another role without 
 ## Flow
 
 ```
-issue (agent_task form) -> branch from origin/dev -> PR to dev -> CI green
+issue (agent-task form) -> branch from origin/dev -> PR to dev -> CI green
   -> label agent-ready -> auto-merge (squash) -> DB deploy + Deploy Web -> verify on kc-dev
 ```
 

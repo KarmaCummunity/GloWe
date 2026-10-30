@@ -357,6 +357,7 @@ If you don't see a home for something below, **ask the PM** before inventing a n
 | ------------------------- | -------------------------------------- |
 | **App semver (`x.x.x`)**  | **`app/VERSION`** (+ `glowe-version.js`; see banner § above) |
 | Priority queue            | `docs/SSOT/BACKLOG.md`                 |
+| Project board workflow    | `docs/process/PROJECT_BOARD.md`        |
 | **Product project book**  | **`docs/spec/`** (English; Hebrew page is the human source of truth) |
 | Architecture (current/target) | `docs/architecture/`               |
 | Feature specs (FR-*, legacy) | `docs/SSOT/spec/{domain}.md`        |
