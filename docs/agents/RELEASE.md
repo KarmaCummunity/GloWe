@@ -34,13 +34,13 @@ git log --oneline origin/dev --since='2 weeks ago' --grep=''
 
 ## Pipelines (dev → stores)
 
-All store workflows are **manual** (`workflow_dispatch`). They never run on push.
+**Mobile nightly** ([`mobile-nightly.yml`](../../.github/workflows/mobile-nightly.yml), 23:43 UTC) ships the newest green `dev` commit to TestFlight + Play internal after the P0 E2E journeys pass (`D-195`). The store workflows can also be dispatched by hand on `dev`/`main`, for a commit with a green `CI` push run. Missing secrets fail the job. Backend: GitHub Environment `mobile-store` (`MOBILE_SUPABASE_TARGET`, `MOBILE_SUPABASE_ANON_KEY`) — see [`ENVIRONMENTS.md`](../SSOT/ENVIRONMENTS.md).
 
 | Stage | Workflow | What it does | Secrets (names only) |
 |---|---|---|---|
 | Preview smoke | [`kc-mobile-eas-preview.yml`](../../.github/workflows/kc-mobile-eas-preview.yml) | EAS `preview` profile build, no store submit | `EXPO_TOKEN` |
-| TestFlight | [`testflight-ios.yml`](../../.github/workflows/testflight-ios.yml) | macOS local EAS `production` IPA → TestFlight | `EXPO_TOKEN`, `ASC_*`, `KC_IOS_TEAM_ID`; var `KC_ASC_APP_ID` |
-| Play internal | [`play-internal.yml`](../../.github/workflows/play-internal.yml) | EAS cloud AAB → Play **internal** track | `EXPO_TOKEN`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` |
+| TestFlight | [`testflight-ios.yml`](../../.github/workflows/testflight-ios.yml) | macOS local EAS `production` IPA → TestFlight | `EXPO_TOKEN`, `ASC_*`, `KC_IOS_TEAM_ID`, `KC_IOS_DIST_P12_*`; vars `KC_ASC_APP_ID`, `KC_EAS_PROJECT_ID`, `KC_IOS_DIST_CERT_ID`; env `mobile-store` |
+| Play internal | [`play-internal.yml`](../../.github/workflows/play-internal.yml) | EAS cloud AAB → Play **internal** track | `EXPO_TOKEN`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; var `KC_EAS_PROJECT_ID`; env `mobile-store` |
 | Web (dev) | `Deploy Web` on push to `dev` | Cloudflare Pages → `dev.karma-community.pages.dev` | (repo env) |
 | DB (kc-dev) | `DB deploy` on push to `dev` | `supabase db push` → supabase-dev | env `supabase-dev` |
 
@@ -55,7 +55,7 @@ Client observability env (EAS / EAS secrets — never commit values):
 
 1. Ensure `app/VERSION` is what you intend to ship.
 2. GitHub → Actions → **KC mobile — EAS preview build** → Run workflow (platform `all` or one OS).
-3. If `EXPO_TOKEN` is missing, the job notices and skips (non-fatal).
+3. If `EXPO_TOKEN` is missing, the job fails with the missing name.
 4. When green, open the Expo build page from the job log; install the internal build on a device / simulator.
 5. Smoke: cold start, sign-in, create listing, one donation sandbox path, one handoff reserve.
 
