@@ -64,7 +64,7 @@ export const donations = {
   moneyScreen: {
     title: 'Monetary donation',
     body:
-      'Donate to verified nonprofits in-app (sandbox — no real charges). External links remain below for legacy flows.',
+      'Support Karma Community directly, find nonprofits to donate to, and share links to nonprofits you know.',
     openLink: 'Open jgive.com',
     linkErrorTitle: 'We couldn’t open the link',
     linkErrorBody: 'Try a different browser or enter the address manually.',
@@ -110,12 +110,6 @@ export const donations = {
     title: 'Giving with love? Give to the community too',
     tagline:
       'Karma is a free community that runs on your love and generosity. Every donation helps us keep building a place of giving for everyone.',
-    ctaBit: 'Donate via Bit',
-    ctaPaybox: 'Donate via PayBox',
-    ctaBitA11y: 'Open the Bit app to donate to Karma Community',
-    ctaPayboxA11y: 'Open the PayBox app to donate to Karma Community',
-    linkErrorTitle: 'We couldn’t open the link',
-    linkErrorBody: 'Try updating the app or opening the link in a browser.',
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,

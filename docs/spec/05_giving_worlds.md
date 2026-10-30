@@ -34,7 +34,7 @@ Anyone can give an hour (D22). One-off, person-to-person, and org events.
 Emotional support only via a hotline. Elderly actions are tagged with the elderly domain (D39).
 
 ## 5.5 Money (`money`) — MVP (Grow) → phase 2
-No money between users (D4). Now: donate to KC, one-time or recurring, via a Grow hosted payment page (D20) — the app only redirects and receives confirmation, so the provider can be swapped without code. Vision: a JGive-like platform inside the app for every approved org, section-46 receipts, with JGive as partner (D37). No post form. Org directory with proper-management badge (S35).
+No money between users (D4). Now: donate to KC, one-time or recurring, via a Grow hosted payment page (D20) — the app only redirects and receives confirmation, so the provider can be swapped without code. Bit / PayBox transfer links are interim only and disappear once the one-time clearing page is live (D64). Vision: a JGive-like platform inside the app for every approved org, section-46 receipts, with JGive as partner (D37). No post form. Org directory with proper-management badge (S35).
 
 ## 5.6 Housing (`housing`) — next to launch (D30)
 Two tracks: (a) community hosting à la Couchsurfing; (b) housing for at-risk populations (street people, at-risk youth, foster care, people fleeing violence) — only via professional bodies. **ID verification required for both sides** (D30).

@@ -11,7 +11,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G5 | Org links without approval; two org entities (D9) | 08 |
 | G6 | 'Marketplace listings' profile tab (D14) | 07.12 |
 | G7 | Which DB TestFlight connects to (D8) | architecture |
-| G8 | Donation to KC via Grow (D20) | 08 |
+| G8 | 🟡 2026-10-30 — Donation to KC via Grow (D20): redirect half shipped (`FR-DONATE-011`: one-time + standing-order hosted pages, server-configured channels, migration `0447`). Open: Grow merchant account + page URLs (launch plan A11), confirmation webhook, donation record, karma award (07.6) | 08 |
 | G9 | Vague names in code | 94 |
 | G10 | Trust engine (D24) | 07.14 |
 | G11 | Expiry & reminders (D21) | 07.1 |

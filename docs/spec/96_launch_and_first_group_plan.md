@@ -19,7 +19,7 @@ Security work is tracked privately and is not listed here (README rule).
 | A8 | **WhatsApp Business**: Meta business verification, WABA, a dedicated KC number, approved display name; then `WHATSAPP_CLOUD_API_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_WABA_ID` | The existing 1:1 bot (posting, search, match notices, consent) and the group bridge | Supabase Edge secrets; template submission per `docs/agents/WHATSAPP_TEMPLATES.md` |
 | A9 | Apple **Sign in with Apple** provider config (Services ID + key) in Supabase | Native Apple sign-in is coded; the live flow needs the provider (`TD-24`) | Supabase → Auth → Providers |
 | A10 | Confirm which Supabase project **TestFlight** builds use (repo-level secrets `EXPO_PUBLIC_SUPABASE_URL` / `_ANON_KEY`) | D8 — testers must not hit seed data by mistake (G7, Q-6) | GitHub → Settings → Secrets (names only) |
-| A11 | Grow merchant account + hosted page (only if the `money` world is on at launch) | D20 donation to KC | — |
+| A11 | Grow merchant account + two hosted pages — one-time and monthly standing order (only if the `money` world is on at launch) | D20 donation to KC (`FR-DONATE-011`) | Insert the page URLs into `public.kc_support_channels` (`OPERATOR_RUNBOOK.md` → KC support channels) — no release needed |
 
 ## 2. Product decisions (PM)
 

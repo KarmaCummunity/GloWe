@@ -178,3 +178,9 @@ Extracted from `BACKLOG.md` on 2026-07-22 during docs SSOT cleanup.
 |----|------|-------|--------|------|
 | MOBILE-836 | **Unpause KC mobile** — remove scope-guard auto-close, README/CONTRIBUTING/AGENTS, local install + typecheck against Supabase; cross-platform `android` script | agent-fullstack | ✅ Done | GitHub #836; `D-190` |
 | MOBILE-837 | **Expo EAS** — `eas.json` profiles, `app.config.ts` + `org.karmacommunity.app`, EAS Update runtimeVersion, GitHub Actions TestFlight / Play internal (no App Review) | agent-fullstack | ✅ Done | GitHub #837; `app/apps/mobile/README.md` |
+
+## DONATE — Money hub (2026-10-30)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| DONATE-G8a | **Support KC directly + Money hub ownership pass.** One-time (Bit / PayBox / Grow card page) and monthly standing order (Grow hosted page) with a donor legal notice and in-app written cancellation request; channel URLs in `kc_support_channels` (migration `0447`, super-admin write, HTTPS CHECK); jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. | agent-fullstack | ✅ Done | `spec/13_donations.md` FR-DONATE-003, FR-DONATE-011 |

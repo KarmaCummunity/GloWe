@@ -1,4 +1,4 @@
-# 91 — KC fills S1–S42 (pending PM approval)
+# 91 — KC fills S1–S43 (pending PM approval)
 
 Gaps filled by context. **Status of every row: pending approval.** Use as the working assumption; flag in the PR when implementing behavior that rests only on an `S#`. When approved, it becomes a `D#`.
 
@@ -46,3 +46,4 @@ Gaps filled by context. **Status of every row: pending approval.** Use as the wo
 | S40 | Org levels 4–5 criteria: transparency from published reports & registrar data; effectiveness combines Midot rating & KC impact data. | 08 |
 | S41 | Private person / social venture registering as org: level 1 = ID + declared social goal + admin approval; marked 'private venture'. | 08 |
 | S42 | Official body: approved by main admin with defined permission for region, world and emergency level; every declaration logged. | 09 |
+| S43 | Money hub (D20): the standing order is cancelled by a written request in the support chat, honored within 3 business days; the sandbox in-app org donation flow (#850) is hidden from donors until a real provider ships (flag `money_in_app_org_payments`). Donor notice wording in `FR-DONATE-011 AC5–AC6`. | 05.5, 08 |

@@ -2,7 +2,7 @@
 
 > **Human source of truth:** the Hebrew page "KC – ספר הפרויקט (מקור אמת)" maintained by the PM (Nave) with the KC assistant. This folder is its English, AI-agent-friendly derivation. If the two disagree, the Hebrew page wins and this folder must be updated in the same week (decision **D35**, **D58**).
 >
-> Snapshot date: **2026-10-30**. Decisions **D1–D58** included.
+> Snapshot date: **2026-10-30**. Decisions **D1–D64** included.
 
 ## How to read
 
@@ -33,8 +33,8 @@
 | 14 | [14_roadmap.md](./14_roadmap.md) | Phase map |
 | 15 | [15_risks.md](./15_risks.md) | Risks |
 | 16 | [16_kpis.md](./16_kpis.md) | KPIs |
-| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D58 |
-| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S42 |
+| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D64 |
+| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S43 |
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
 | 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G37 |
 | 95 | [95_reconciliation.md](./95_reconciliation.md) | Book × legacy spec × code verification (2026-10-30), superseded FRs, PM questions Q-1…Q-8, SSOT hygiene notes |
