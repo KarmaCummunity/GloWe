@@ -6,7 +6,7 @@ import { useTheme } from '@kc/ui';
 import { CounterpartyIdentityCard } from '../post/CounterpartyIdentityCard';
 import type { LocationDisplayLevel, PostVisibility } from '@kc/domain';
 import { useFeedSessionStore } from '../../store/feedSessionStore';
-import { useCreatePostStyles } from '../../../app/(tabs)/create.styles';
+import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import { LocationDisplayLevelChooser } from './LocationDisplayLevelChooser';
 import { VisibilityChooser } from '../post/VisibilityChooser';
 

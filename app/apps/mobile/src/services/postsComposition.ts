@@ -3,8 +3,6 @@
 // Mapped to SRS: FR-POST-001..010, FR-POST-014, FR-POST-016, FR-FEED-001..005, FR-STATS-003..004.
 // ─────────────────────────────────────────────
 
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getSupabaseClient,
   EdgeFnTranslationService,
@@ -12,7 +10,6 @@ import {
   SupabasePostRepository,
   SupabasePostTranslationReader,
   SupabaseStatsRepository,
-  type SupabaseAuthStorage,
 } from '@kc/infrastructure-supabase';
 import {
   CreatePostUseCase,
@@ -39,6 +36,7 @@ import {
   type IStatsRepository,
 } from '@kc/application';
 import { getUserRepo } from './userComposition';
+import { pickAuthStorage } from './authSecureStorage';
 
 let _repo: IPostRepository | null = null;
 let _realtime: IFeedRealtime | null = null;
@@ -63,16 +61,9 @@ let _upsertPostActorIdentity: UpsertPostActorIdentityUseCase | null = null;
 let _getTranslatedPosts: GetTranslatedPostsUseCase | null = null;
 let _materializePostTranslations: MaterializePostTranslationsUseCase | null = null;
 
-function pickStorage(): SupabaseAuthStorage | undefined {
-  if (Platform.OS === 'web') {
-    return globalThis.window?.localStorage;
-  }
-  return AsyncStorage;
-}
-
 function getRepo(): IPostRepository {
   if (_repo) return _repo;
-  _repo = new SupabasePostRepository(getSupabaseClient({ storage: pickStorage() }));
+  _repo = new SupabasePostRepository(getSupabaseClient({ storage: pickAuthStorage() }));
   return _repo;
 }
 
@@ -142,14 +133,14 @@ export function getGetClosureCandidatesUseCase(): GetClosureCandidatesUseCase {
 // ── P1.2 — feed discovery (FR-FEED-009, 014, 015) ─────────────────────────
 export function getFeedRealtime(): IFeedRealtime {
   if (!_realtime) {
-    _realtime = new SupabaseFeedRealtime(getSupabaseClient({ storage: pickStorage() }));
+    _realtime = new SupabaseFeedRealtime(getSupabaseClient({ storage: pickAuthStorage() }));
   }
   return _realtime;
 }
 
 export function getStatsRepo(): IStatsRepository {
   if (!_stats) {
-    _stats = new SupabaseStatsRepository(getSupabaseClient({ storage: pickStorage() }));
+    _stats = new SupabaseStatsRepository(getSupabaseClient({ storage: pickAuthStorage() }));
   }
   return _stats;
 }
@@ -198,7 +189,7 @@ export function getUpsertPostActorIdentityUseCase(): UpsertPostActorIdentityUseC
 export function getTranslatedPostsUseCase(): GetTranslatedPostsUseCase {
   if (!_getTranslatedPosts) {
     _getTranslatedPosts = new GetTranslatedPostsUseCase(
-      new SupabasePostTranslationReader(getSupabaseClient({ storage: pickStorage() })),
+      new SupabasePostTranslationReader(getSupabaseClient({ storage: pickAuthStorage() })),
     );
   }
   return _getTranslatedPosts;
@@ -207,7 +198,7 @@ export function getTranslatedPostsUseCase(): GetTranslatedPostsUseCase {
 export function materializePostTranslationsUseCase(): MaterializePostTranslationsUseCase {
   if (!_materializePostTranslations) {
     _materializePostTranslations = new MaterializePostTranslationsUseCase(
-      new EdgeFnTranslationService(getSupabaseClient({ storage: pickStorage() })),
+      new EdgeFnTranslationService(getSupabaseClient({ storage: pickAuthStorage() })),
     );
   }
   return _materializePostTranslations;

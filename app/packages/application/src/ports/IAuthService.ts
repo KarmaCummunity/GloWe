@@ -91,6 +91,25 @@ export interface IAuthService {
   verifyEmail(tokenHash: string): Promise<AuthSession>;
 
   /**
+   * FR-AUTH-008: email a password-reset link to `email`. Resolves for
+   * unregistered addresses too (anti-enumeration, AC1). Throws
+   * AuthError('rate_limited', ...) on too-frequent calls.
+   */
+  requestPasswordReset(email: string, options?: { redirectTo?: string }): Promise<void>;
+
+  /**
+   * FR-AUTH-008: exchange the single-use recovery token from the reset link
+   * for a short-lived session that may change the password.
+   */
+  verifyPasswordRecovery(tokenHash: string): Promise<AuthSession>;
+
+  /**
+   * FR-AUTH-008 AC2/AC3: set the new password for the current (recovery)
+   * session, then revoke every session of the user on every device.
+   */
+  updatePasswordAndSignOutEverywhere(newPassword: string): Promise<void>;
+
+  /**
    * FR-PROFILE-007 / FR-AUTH-003 AC5: keep Supabase Auth `user_metadata` aligned with
    * `public.users` so cold-start `AuthSession` matches the profile the UI reads from DB.
    */

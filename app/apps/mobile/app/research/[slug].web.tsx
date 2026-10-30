@@ -15,7 +15,7 @@ import {
 } from '../../src/lib/surveyDraftStorage';
 
 const RESEARCH_DRAFT_NS = 'research';
-import { ResearchRunner, errorKey, type AnswerEntry } from './ResearchRunner';
+import { ResearchRunner, errorKey, type AnswerEntry } from '../../src/screens/research/ResearchRunner';
 
 const SOURCE_REGEX = /^[a-z0-9_-]{1,32}$/;
 

@@ -1,6 +1,6 @@
 import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
-import { crossAxisAlignStart, layoutDirectionStyle, layoutWritingDirectionStyle, textAlignStart } from '../../src/lib/rtlLayout';
-import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { crossAxisAlignStart, layoutDirectionStyle, layoutWritingDirectionStyle, textAlignStart } from '../../lib/rtlLayout';
+import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 const cardShadow = (isDark: boolean, shadowColor: string) =>
   isDark

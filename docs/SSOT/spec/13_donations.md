@@ -2,6 +2,8 @@
 
 > **Status:** ✅ Core Complete — Hub, 6 categories, donation links, Edge Function shipped. ⚠️ Audit 2026-05-16: 🔴 **`validate-donation-link` SSRF** — no host allow-list, no private-IP block, follows redirects (TD-79, BACKLOG P2.12). 🟠 FR-DONATE-003 AC2 missing jgive CTA; FR-DONATE-001/006 layout is 2-col grid instead of vertical stacked with divider; FR-DONATE-008 AC3 reachability rule diverged (`!= 404` instead of `200..399`); error-code parity gaps. TD-97. See `docs/SSOT/archive/audit/2026-05-16/06_donations_stats_settings.md`.
 >
+> **Status correction (2026-10-30):** the `validate-donation-link` item from the 2026-05-16 audit (TD-79 there) is resolved in code — host/port/redirect validation is implemented in `supabase/functions/validate-donation-link/index.ts`. Remaining open items: jgive CTA, layout, reachability rule (FR-DONATE-008 is superseded by D9, see `docs/spec/95_reconciliation.md`).
+>
 > **Behavior update (2026-05-12)** — Donation link **remove** is a hard **`DELETE`** on `donation_links` (authorized by RLS policy `donation_links_delete_own_or_admin`); the app no longer sets `hidden_at` / `hidden_by` on remove. **Edit** must always invoke `validate-donation-link` with body field **`link_id`** set to the UUID of the row being edited so the Edge Function performs an **UPDATE**, never a second INSERT. One-time DB cleanup: migration `0050_donation_links_purge_soft_deleted.sql` deletes rows that were previously soft-hidden (`hidden_at IS NOT NULL`). עברית: מחיקה = מחיקת שורה מהטבלה; עריכה = עדכון אותה שורה ב־UUID שנבחר, לא יצירת קישור חדש.
 
 Prefix: `FR-DONATE-*`
@@ -163,6 +165,8 @@ A reusable component renders the community-curated NGO link list for any categor
 ---
 
 ## FR-DONATE-008 — Add / edit link flow + Edge Function validation
+
+> ⚠️ **Superseded by the project book** — D9 — an org link goes live only after KC admin approval. Binding text: `docs/spec/08_organizations.md`. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
 
 **Description.**
 Any signed-in user can submit a new donation link via a modal sheet, or **edit their own** link (same modal; FR-DONATE-009). The submission is validated server-side by the `validate-donation-link` Edge Function which performs a URL reachability check and inserts or updates the row using the service-role key. Direct `donation_links` INSERT from client roles is blocked by RLS.

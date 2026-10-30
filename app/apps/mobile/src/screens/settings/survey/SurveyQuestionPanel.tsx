@@ -5,14 +5,14 @@ import { Text, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
 import type { SurveyQuestion } from '@kc/domain';
-import { Card } from '../../../src/components/ui/Card';
-import { SurveyRatingRow } from '../../../src/components/survey/SurveyRatingRow';
+import { Card } from '../../../components/ui/Card';
+import { SurveyRatingRow } from '../../../components/survey/SurveyRatingRow';
 import {
   hebrewSurveyFieldTextStyle,
   SURVEY_TEXT_ALIGN,
-} from '../../../src/components/survey/hebrewSurveyFieldStyle';
-import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
-import { webTextRtl } from '../../../src/lib/webRtlStyle';
+} from '../../../components/survey/hebrewSurveyFieldStyle';
+import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
+import { webTextRtl } from '../../../lib/webRtlStyle';
 
 export type QuestionPanelProps = {
   readonly question: SurveyQuestion;

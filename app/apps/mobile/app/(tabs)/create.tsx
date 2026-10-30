@@ -28,7 +28,7 @@ import { NotifyModal } from '../../src/components/NotifyModal';
 import { ConfirmActionModal } from '../../src/components/post/ConfirmActionModal';
 import { DraftResumeModal } from '../../src/components/post/DraftResumeModal';
 import { getUserRepo } from '../../src/services/userComposition';
-import { useCreatePostStyles } from './create.styles';
+import { useCreatePostStyles } from '../../src/screens/tabs/create.styles';
 import { useCreatePostPublish } from '../../src/hooks/useCreatePostPublish';
 import { CreatePostFormScrollContent } from '../../src/components/CreatePostForm/CreatePostFormScrollContent';
 import { useUnifiedCreateCategory } from '../../src/hooks/useUnifiedCreateCategory';

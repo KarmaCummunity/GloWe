@@ -2,7 +2,7 @@
 import React, { Suspense, lazy } from 'react';
 import { PostGridSkeleton } from '../../src/components/skeletons/PostGridSkeleton';
 
-const PostDetailScreen = lazy(() => import('./PostDetailScreen'));
+const PostDetailScreen = lazy(() => import('../../src/screens/post/PostDetailScreen'));
 
 export default function PostDetailRoute() {
   return (

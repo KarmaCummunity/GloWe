@@ -13,7 +13,7 @@ import { CreatePostExposureSection } from './CreatePostExposureSection';
 import { EstimatedValueSlider } from './EstimatedValueSlider';
 import { PhotoPicker } from './PhotoPicker';
 import type { UploadedAsset } from '../../services/imageUpload';
-import { useCreatePostStyles } from '../../../app/(tabs)/create.styles';
+import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibility';
 import type { CreatePostCitySelection } from '../../hooks/useCreatePostPublish';
 

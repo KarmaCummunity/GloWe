@@ -1,6 +1,6 @@
 import { makeUseStyles, spacing, typography } from '@kc/ui';
-import { rtlTextAlignStart } from '../src/lib/rtlTextAlignStart';
-import { webTextRtl, webViewRtl } from '../src/lib/webRtlStyle';
+import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
+import { webTextRtl, webViewRtl } from '../lib/webRtlStyle';
 
 // Settings screen styles — themed via `makeUseStyles` so they respond to
 // FR-SETTINGS-014 (dark mode toggle).

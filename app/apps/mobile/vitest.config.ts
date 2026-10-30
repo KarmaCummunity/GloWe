@@ -32,6 +32,8 @@ export default defineConfig({
         // UI surfaces — covered (or not) via RNTL slice TD-150
         'src/components/**',
         'src/features/**',
+        // Screen bodies / styles moved out of expo-router `app/` (TD-195); `app/` itself is not measured.
+        'src/screens/**',
         'src/navigation/**/*.tsx',
         'src/navigation/useShellTabBarVisibility.ts',
         // React-bound hooks need RNTL infra — out of scope until TD-150
