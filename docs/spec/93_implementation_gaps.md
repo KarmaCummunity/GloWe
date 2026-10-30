@@ -20,7 +20,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G14 | Form per type without 'general' (D28) | 07.2 |
 | G15 | Recommendation engine & toggle (D27, D34) | 07.3 |
 | G16 | Karma values config (D29) | 07.6 |
-| G17 | Notification preferences & emergency group (D26, D42) | 07.11 |
+| G17 | 🟡 2026-10-30 — Notification preferences & emergency group (D26, D42). Done: per-type opt-out model `kinds` + "Match suggestions" toggle (FR-NOTIF-017, `0460`). Open: other per-type toggles, per-channel preferences, `emergency` group | 07.11 |
 | G18 | Event post & registration (D31) | 08 |
 | G19 | Volunteer hours (D32) | 07.10 |
 | G20 | Report & suspension thresholds (D33) | 07.15 |

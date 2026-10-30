@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────
 
 import { ValidationError } from './errors';
+import type { NotificationKind } from './notifications';
 
 // ── Authentication ────────────────────────────
 
@@ -137,10 +138,17 @@ export interface QuietHoursPreferences {
   timezone: string;
 }
 
+/**
+ * Per-type opt-outs (spec §7.11 "per-type preferences"). A kind is enabled unless it is
+ * explicitly `false`; missing keys keep the category default. Stored under `kinds` (0256).
+ */
+export type NotificationKindPreferences = Partial<Record<NotificationKind, boolean>>;
+
 export interface NotificationPreferences {
   critical: boolean;
   social: boolean;
   quietHours?: QuietHoursPreferences;
+  kinds?: NotificationKindPreferences;
 }
 
 // ── Donations ─────────────────────────────────

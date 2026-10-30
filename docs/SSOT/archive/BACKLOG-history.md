@@ -184,3 +184,10 @@ Extracted from `BACKLOG.md` on 2026-07-22 during docs SSOT cleanup.
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | DONATE-G8a | **Support KC directly + Money hub ownership pass.** One-time (Bit / PayBox / Grow card page) and monthly standing order (Grow hosted page) with a donor legal notice and in-app written cancellation request; channel URLs in `kc_support_channels` (migration `0447`, super-admin write, HTTPS CHECK); jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. | agent-fullstack | ✅ Done | `spec/13_donations.md` FR-DONATE-003, FR-DONATE-011 |
+
+## NOTIF — Notification preferences (2026-10-30)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| P3.3 | Quiet hours / DND — shipped earlier (`0256`, KC#869; matching honors them in `0422`); row closed as stale, FR-NOTIF-016 superseded by D26. | agent-fullstack | ✅ Done | `spec/09_notifications.md` FR-NOTIF-016 |
+| NOTIF-1120 | **Match notifications: per-type opt-out.** `notification_preferences.kinds` (opt-out model), per-key merge in `users_merge_notification_preferences`, "Match suggestions" toggle in Settings → Notifications, `match_deliver_pending` skips opted-out users for in-app + push + WhatsApp and keeps them out of the daily cap (migration `0460`). Threshold, 3/day cap and quiet hours already shipped in `0420`–`0425`. | agent-fullstack | ✅ Done | `spec/09_notifications.md` FR-NOTIF-017 · GitHub #1120 |
