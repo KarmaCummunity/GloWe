@@ -171,6 +171,7 @@ export * from './admin/DecideOrgApplicationUseCase';
 export * from './admin/IOrgHierarchyRepository';
 export * from './admin/GetOrgTreeUseCase';
 export * from './admin/SetManagerUseCase';
+export * from './admin/GetHierarchySnapshotUseCase';
 
 // A1 — admin reports inbox & case detail
 export * from './reports/IReportsRepository';
