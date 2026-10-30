@@ -6,12 +6,16 @@ import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
 import { createRouteFor } from '../../../../src/lib/unifiedCreate/createCategories';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
 import { MARKETPLACE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
 import { useRemoteAppFlags } from '../../../../src/hooks/useLaunchWorldFlags';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { EmptyState, EmptyStateActions } from '../../../../src/components/EmptyState';
 import { KcRefreshControl } from '../../../../src/components/lists/KcRefreshControl';
+import {
+  BrowseRefineChips,
+  DEFAULT_BROWSE_RADIUS_KM,
+} from '../../../../src/components/marketplace/BrowseRefineChips';
 import {
   flattenPages,
   useMarketplaceBrowse,
@@ -26,7 +30,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 999,
+    borderRadius: radius.full,
     backgroundColor: colors.surfaceRaised,
   },
   chipActive: { backgroundColor: colors.giveTagBg },
@@ -35,13 +39,14 @@ const useStyles = makeUseStyles(({ colors }) => ({
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
     padding: spacing.sm,
-    borderRadius: 12,
+    borderRadius: radius.md,
     backgroundColor: colors.surfaceRaised,
     color: colors.textPrimary,
   },
   row: { padding: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   title: { ...typography.bodyLarge, color: colors.textPrimary },
-  meta: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
+  meta: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
+  refine: { gap: spacing.sm, paddingHorizontal: spacing.md },
   actions: { flexDirection: 'row' as const, gap: spacing.md, marginTop: spacing.md, paddingHorizontal: spacing.md },
   link: { ...typography.body, color: colors.primary },
 }));
@@ -57,7 +62,15 @@ export default function MarketplaceBrowseScreen() {
   );
   const [world, setWorld] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const filters = useMemo(() => ({ worldSlug: world }), [world]);
+  // KC#1102: world subcategory (items / food) and distance from home refine the browse list.
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_BROWSE_RADIUS_KM);
+  const filters = useMemo(() => ({ worldSlug: world, categoryId, radiusKm }), [world, categoryId, radiusKm]);
+  const selectWorld = (slug: string | null) => {
+    setWorld(slug);
+    setCategoryId(null); // a subcategory belongs to one world
+  };
+  const refined = categoryId !== null || radiusKm !== DEFAULT_BROWSE_RADIUS_KM;
   // Debounced so typing doesn't fire one hybrid search per keystroke.
   const debouncedQuery = useDebouncedValue(query, 250);
   const trimmedQuery = debouncedQuery.trim();
@@ -73,7 +86,8 @@ export default function MarketplaceBrowseScreen() {
   };
   const clearAll = () => {
     setQuery('');
-    setWorld(null);
+    selectWorld(null);
+    setRadiusKm(DEFAULT_BROWSE_RADIUS_KM);
   };
 
   return (
@@ -89,19 +103,31 @@ export default function MarketplaceBrowseScreen() {
         accessibilityLabel={t('marketplace.searchPlaceholder')}
       />
       <View style={styles.filters}>
-        <Pressable style={[styles.chip, world === null && styles.chipActive]} onPress={() => setWorld(null)}>
+        <Pressable style={[styles.chip, world === null && styles.chipActive]} onPress={() => selectWorld(null)}>
           <Text style={styles.chipText}>{t('marketplace.allWorlds')}</Text>
         </Pressable>
         {launchWorldSlugs.map((slug) => (
           <Pressable
             key={slug}
             style={[styles.chip, world === slug && styles.chipActive]}
-            onPress={() => setWorld(slug)}
+            onPress={() => selectWorld(slug)}
           >
             <Text style={styles.chipText}>{t(`marketplace.world.${slug}`, { defaultValue: slug })}</Text>
           </Pressable>
         ))}
       </View>
+      {/* Text search spans every subcategory and distance, so the refinements apply to browse only. */}
+      {!useSearch ? (
+        <View style={styles.refine}>
+          <BrowseRefineChips
+            worldSlug={world}
+            categoryId={categoryId}
+            onCategoryChange={setCategoryId}
+            radiusKm={radiusKm}
+            onRadiusChange={setRadiusKm}
+          />
+        </View>
+      ) : null}
       <View style={styles.actions}>
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/map')}>
           <Text style={styles.link}>{t('marketplace.openMap')}</Text>
@@ -146,7 +172,7 @@ export default function MarketplaceBrowseScreen() {
                     testID: 'marketplace-empty-create',
                   }}
                   secondary={
-                    useSearch || world
+                    useSearch || world || refined
                       ? { label: t('emptyStates.marketplaceClear'), onPress: clearAll, testID: 'marketplace-empty-clear' }
                       : undefined
                   }

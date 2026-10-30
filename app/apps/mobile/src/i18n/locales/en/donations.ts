@@ -4,7 +4,7 @@ import { marketplaceMap } from './marketplaceMap';
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
-import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
@@ -290,6 +290,7 @@ export const marketplace = {
   myListingsUpdated: 'Updated {{date}}',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
+  browseRefine: marketplaceBrowseRefine,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,
   availability: marketplaceAvailabilityLabels,
