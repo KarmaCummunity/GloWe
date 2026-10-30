@@ -53,11 +53,14 @@ Last applied on kc-dev when this was written: `0239`.
 | 0442 | #1228 admin hierarchy position permissions | in review |
 | 0443–0444 | — | free |
 | 0445–0449 | `claude/launch-readiness` (storage media access scope + launch fixes) | in progress |
-| 0450+ | — | free |
+| 0450 | G32 / D59 items and requests never expire + owner reminders (#1259) | in progress |
+| 0451 | G3 / D16 listing anonymity both ways (#1254) | in progress |
+| 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
+| 0453+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0450+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0453+`.
 
 ## How to claim
 
