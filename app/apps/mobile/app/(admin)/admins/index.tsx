@@ -1,9 +1,9 @@
 // app/apps/mobile/app/(admin)/admins/index.tsx
-// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 — Admin RBAC screen.
+// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 / FR-ADMIN-027 — Admin RBAC screen.
 //
-// Thin orchestrator: a list/tree view toggle + the grant affordance. The two
-// view bodies (cards list, hierarchy tree) own their own data and live in
-// AdminsListView / AdminsTreeView.
+// Thin orchestrator: a layers/list/tree view toggle + the grant affordance. The
+// three view bodies (layered pyramid, cards list, hierarchy tree) own their own
+// data and live in AdminsLayersView / AdminsListView / AdminsTreeView.
 //
 // Visibility per PERMISSION_MATRIX['admins.view']:
 //   - super_admin: full list + grant + revoke (revoke on detail screen).
@@ -20,10 +20,12 @@ import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHead
 import { GrantRoleModal } from '../../../src/components/admin/admins/GrantRoleModal';
 import { AdminsListView } from '../../../src/components/admin/admins/AdminsListView';
 import { AdminsTreeView } from '../../../src/components/admin/admins/AdminsTreeView';
+import { AdminsLayersView } from '../../../src/components/admin/admins/layers/AdminsLayersView';
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
 
-type ViewMode = 'list' | 'tree';
-const VIEW_MODES: readonly ViewMode[] = ['list', 'tree'];
+type ViewMode = 'layers' | 'list' | 'tree';
+// The layered pyramid is the overview and opens first (FR-ADMIN-027 AC5).
+const VIEW_MODES: readonly ViewMode[] = ['layers', 'list', 'tree'];
 
 export default function AdminsScreen() {
   const styles = useStyles();
@@ -32,7 +34,7 @@ export default function AdminsScreen() {
   const isWide = useBreakpoint() !== 'mobile';
   const { roles, isLoading: rolesLoading } = useAdminRoles();
   const [grantOpen, setGrantOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('layers');
 
   const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
 
@@ -51,6 +53,11 @@ export default function AdminsScreen() {
   const canGrant = can('admins.grant_role');
   const openDetail = (userId: string) =>
     router.push({ pathname: '/(admin)/admins/[userId]', params: { userId } });
+  const viewLabel: Readonly<Record<ViewMode, string>> = {
+    layers: L.admin.admins.viewLayers,
+    list:   L.admin.admins.viewList,
+    tree:   L.admin.admins.viewTree,
+  };
 
   return (
     <View style={styles.root}>
@@ -61,11 +68,12 @@ export default function AdminsScreen() {
             <Pressable
               key={m}
               accessibilityRole="button"
+              accessibilityState={{ selected: viewMode === m }}
               onPress={() => setViewMode(m)}
               style={[styles.segmentBtn, viewMode === m && styles.segmentBtnActive]}
             >
               <Text style={[styles.segmentText, viewMode === m && styles.segmentTextActive]}>
-                {m === 'list' ? L.admin.admins.viewList : L.admin.admins.viewTree}
+                {viewLabel[m]}
               </Text>
             </Pressable>
           ))}
@@ -77,9 +85,9 @@ export default function AdminsScreen() {
         )}
       </View>
 
-      {viewMode === 'list' ? (
-        <AdminsListView isWide={isWide} onSelect={openDetail} />
-      ) : (
+      {viewMode === 'layers' && <AdminsLayersView isWide={isWide} onSelect={openDetail} />}
+      {viewMode === 'list' && <AdminsListView isWide={isWide} onSelect={openDetail} />}
+      {viewMode === 'tree' && (
         <AdminsTreeView isWide={isWide} isSuper={roles.includes('super_admin')} onSelect={openDetail} />
       )}
 

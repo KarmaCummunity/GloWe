@@ -7,7 +7,7 @@ import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 // Semantic accent per role tier. Platform-wide roles lean on the brand primary;
 // org-scoped roles use cooler neutrals so the hierarchy reads at a glance.
-const ROLE_ACCENT: Partial<Record<AdminRole, string>> = {
+export const ROLE_ACCENT: Partial<Record<AdminRole, string>> = {
   super_admin:       '#7c3aed',
   moderator:         '#2563eb',
   support:           '#0891b2',

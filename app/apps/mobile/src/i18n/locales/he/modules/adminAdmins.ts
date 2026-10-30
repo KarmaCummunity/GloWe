@@ -1,6 +1,8 @@
 // app/apps/mobile/src/i18n/locales/he/modules/adminAdmins.ts
 // Hebrew strings for the Admin Portal "צוות ניהול" (RBAC) surface.
 // Split out of `admin.ts` to respect the 300-line file cap (FR-ADMIN-015/016/021).
+import { adminLayersHe } from './adminLayers';
+
 export const adminAdminsHe = {
   title:                'צוות ניהול',
   loading:              'טוען...',
@@ -15,10 +17,12 @@ export const adminAdminsHe = {
   profileLink:          'כרטיס ניהול',
   viewList:             'רשימה',
   viewTree:             'עץ היררכיה',
+  viewLayers:           'שכבות',
   card: {
     rolesNone:    'ללא תפקיד פעיל',
     rolesMore:    (n: number) => `+${n}`,
   },
+  layers: adminLayersHe,
   tree: {
     levelBadge:   (n: number) => `רמה ${n}`,
     empty:        'אין נתוני היררכיה להצגה.',
