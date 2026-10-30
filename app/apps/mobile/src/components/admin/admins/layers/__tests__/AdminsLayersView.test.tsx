@@ -94,23 +94,23 @@ describe('AdminsLayersView', () => {
     state.snapshot = SNAPSHOT;
     state.error = new Error('network');
     renderView();
-    expect(screen.queryByText('alice')).toBeTruthy();
+    expect(screen.getByText('alice')).toBeTruthy();
     expect(screen.queryByText(L.admin.admins.layers.loadError)).toBeNull();
   });
 
   it('shows the load error with a retry action when nothing has loaded', () => {
     state.error = new Error('forbidden');
     renderView();
-    expect(screen.queryByText(L.admin.admins.layers.loadError)).toBeTruthy();
+    expect(screen.getByText(L.admin.admins.layers.loadError)).toBeTruthy();
     expect(screen.getByRole('button', { name: L.admin.admins.layers.retry })).toBeTruthy();
   });
 
   it('focusing an org chip narrows the strata to that org', () => {
     state.snapshot = SNAPSHOT;
     renderView();
-    expect(screen.queryByText('alice')).toBeTruthy();
+    expect(screen.getByText('alice')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Beta' }));
-    expect(screen.queryByText('bob')).toBeTruthy();
+    expect(screen.getByText('bob')).toBeTruthy();
     expect(screen.queryByText('alice')).toBeNull();
   });
 
