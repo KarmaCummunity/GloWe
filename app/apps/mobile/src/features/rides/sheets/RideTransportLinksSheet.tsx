@@ -1,9 +1,9 @@
 // FR-RIDE-002 — NGO transport links in a dedicated sheet (not on rides hub main feed).
 import React from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { DonationLinksList } from '../../../components/DonationLinksList';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
 

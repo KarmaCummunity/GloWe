@@ -3,8 +3,8 @@
 // super admins, plus a rich preview card when the enriched payload
 // (link_target + target_preview) is present.
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { View, Pressable } from 'react-native';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { useAuthStore } from '../../../store/authStore';

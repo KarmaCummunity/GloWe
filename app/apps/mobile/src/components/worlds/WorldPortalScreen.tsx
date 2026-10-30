@@ -2,11 +2,11 @@
 // a portal — it is still shown in full, with its links and knowledge (the
 // FR-DONATE-006 links list) — instead of a "coming soon" dead end.
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { DonationCategorySlug } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Screen } from '../ui/Screen';
 import { PrimaryButton } from '../ui/Buttons';
 import { DonationLinksList } from '../DonationLinksList';

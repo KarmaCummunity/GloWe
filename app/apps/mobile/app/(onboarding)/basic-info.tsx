@@ -1,12 +1,16 @@
 // Onboarding step 2 — FR-AUTH-010
 import React from 'react';
 import {
-  View, Text, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView,
+  View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text, TextInput } from '@kc/ui';
 import { CityPicker } from '../../src/components/CityPicker';
 import { StreetPicker } from '../../src/components/StreetPicker';
 import { OnboardingStepHeader } from '../../src/components/OnboardingStepHeader';

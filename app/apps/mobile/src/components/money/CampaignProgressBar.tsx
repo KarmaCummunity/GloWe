@@ -1,5 +1,5 @@
-import { Text, View } from 'react-native';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   track: {

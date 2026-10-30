@@ -1,8 +1,8 @@
 // FR-CLOSURE-004 — one-time educational explainer with "don't show again".
 import { useEffect, useState } from 'react';
-import { Modal, View, Text, Pressable } from 'react-native';
+import { Modal, View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
 import { useClosureStore } from '../../store/closureStore';
 import { useAuthStore } from '../../store/authStore';

@@ -5,14 +5,12 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { DonationCategorySlug, DonationLink } from '@kc/domain';
 import { DONATION_LINK_DESCRIPTION_MAX, DONATION_LINK_DISPLAY_NAME_MAX } from '@kc/domain';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import { useAddDonationLinkModalStyles } from './AddDonationLinkModal.styles';
 import { useAddOrEditDonationLinkModal } from './useAddOrEditDonationLinkModal';
 

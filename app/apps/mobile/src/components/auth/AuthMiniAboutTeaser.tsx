@@ -1,10 +1,10 @@
 // Compact "about us" teaser for pre-signup auth surfaces (FR-AUTH-001 / FR-AUTH-018 spirit).
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 

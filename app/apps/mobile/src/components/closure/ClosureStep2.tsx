@@ -8,9 +8,9 @@
 //   2. Close without marking → closeWith(null)
 //   3. Pick a chat partner → toggle 'chats' mode + select + Mark and Close
 //   4. Pick from any user (with search) → toggle 'search' mode + select + Mark and Close
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import type { PostType } from '@kc/domain';
 import { useClosureStore } from '../../store/closureStore';
 import { ChatsPane, ModeTabs, SearchPane } from './ClosureRecipientPanes';

@@ -1,7 +1,8 @@
 // Pro paywall — stub behind feature flag `pro_paywall` (default off). Products attach once pricing is decided.
 import React from 'react';
 import { Redirect } from 'expo-router';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useFeatureFlag } from '../src/hooks/useFeatureFlag';
 

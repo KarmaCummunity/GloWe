@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, Pressable } from 'react-native';
+import { View, ActivityIndicator, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { aboutRtlText, aboutRtlRow } from './aboutWebRtlStyle';
 import { AvatarInitials } from '../../components/AvatarInitials';
 import { useAboutTeamMembers } from '../../hooks/useAboutTeamMembers';

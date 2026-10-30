@@ -1,10 +1,10 @@
 // app/apps/mobile/src/components/admin/reports/ReportRow.tsx
 // FR-ADMIN-012 — single inbox row showing target preview + threshold + age.
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { ReportInboxRow } from '@kc/domain';
 import { thresholdProgress } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface ReportRowProps {

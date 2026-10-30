@@ -4,9 +4,9 @@
 // Alert as a no-op. Mirrors the look of ConfirmActionModal so the two feel
 // like one component family.
 
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 

@@ -1,10 +1,10 @@
 // app/apps/mobile/src/components/admin/reports/ReportFilters.tsx
 // FR-ADMIN-012 — chip-based target/age filters + reporter-id search.
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { adminChipScroll } from '../adminChipScroll';
 import type { ListOpenReportsFilters } from '@kc/application';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface ReportFiltersProps {

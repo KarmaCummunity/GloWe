@@ -1,9 +1,9 @@
 // Post / listing detail header in the same design language as the base post card (KcCard):
 // type pill (give/request tone) + category chip + optional closed chip, then the title.
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { cleanDisplayTitle } from '../../lib/displayTitle';
