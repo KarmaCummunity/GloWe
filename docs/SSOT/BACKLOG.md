@@ -29,6 +29,18 @@
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
 | PERF-5 | **DB consolidation — per-chat unread count RPC** | agent-fullstack | 🟡 In progress | Migration `0133` |
 
+## INFRA — CI/CD hardening (`D-195`)
+
+Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-203`). | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-3 | **Gated prod release pipeline.** One owner approval (GitHub Environment) before `main` deploys (Railway, `supabase-prod` DB deploy, Edge Functions); fold the main release guard + dev E2E into the release flow. | infra | ⏳ Planned | `D-195`, `RELEASE_CHECKLIST.md` |
+| INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed. | infra | ⏳ Planned | `D-195`, `D-192` |
+| INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
+| INFRA-CI-6 | **Agent bot identity.** Move agent pushes, PRs and merges off the owner's personal GitHub account to a bot / GitHub App identity (also closes `TD-197`). | infra | ⏳ Planned | `D-195` |
+
 ## DONATE — Money hub
 
 | ID | Task | Owner | Status | Spec |
@@ -61,7 +73,7 @@
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | FIN-P1 | **Phase 1 — Books + Section 46(a) + exports.** Org-scoped ledger (extend `0170`, backfill to platform org), roles `org_treasurer` / `org_accountant` + `finance.*` permissions + `finance_assert`, financial accounts, category tree + counterparty rules, entry lifecycle (void, locks), attachments bucket, 46(a) status card + certificate, receipt tracking + queue, automatic payment mirroring trigger + backfill, CSV/XLSX/PDF export Edge Function, `(admin)/finance/*` sub-tree replacing `/admin/money`. Migrations `0470–0479`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-001..011 |
-| FIN-P2 | **Phase 2 — Imports, reconciliation, reports, alerts.** CSV import wizard (bank / Bit / Paybox / generic, fingerprint dedupe), reconciliation screen + locks, five reports + export, budget vs actual, computed alerts + 30-day mute + daily digest notification, full overview dashboard. Remove `money.manage` alias and `/admin/money` redirect (`TD-202`). Migrations `0480–0485`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-012..017 |
+| FIN-P2 | **Phase 2 — Imports, reconciliation, reports, alerts.** CSV import wizard (bank / Bit / Paybox / generic, fingerprint dedupe), reconciliation screen + locks, five reports + export, budget vs actual, computed alerts + 30-day mute + daily digest notification, full overview dashboard. Remove `money.manage` alias and `/admin/money` redirect (`TD-205`). Migrations `0480–0485`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-012..017 |
 | FIN-P3 | **Phase 3 — Documents vault, transparency, donor receipts.** `org_documents` + private bucket + signed public URLs, transparency snapshots (build / review / publish / supersede) + toggles, `rpc_org_transparency` + `OrgTransparencySection` on the public nonprofit page, donor-side receipt state + download + `donation_receipt_ready` notification. Requires PM legal sign-off on public 46(a) wording (spec O3). Migrations `0486–0489`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-018..021 |
 | ORG-PROFILE-SPEC | **Organization profile domain spec (D82).** Extended user profile with its own email identity, posts, followers, public page + org Admin Portal entry; hosts `OrgTransparencySection`. PM to brief; no code before the spec. | PM + agent | ⏳ Planned (needs PM brief) | `spec/20_organizations.md` (to be written) · `docs/spec/08_organizations.md` D82 |
 

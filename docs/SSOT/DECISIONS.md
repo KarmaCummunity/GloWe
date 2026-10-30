@@ -1002,6 +1002,8 @@ Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-su
 
 ## D-53 — Automated `main` production gates without human deploy approvers (2026-05-28)
 
+> **Superseded in part by `D-195` (2026-10-30):** production deploys now take one owner approval click; the automated gates below stay.
+
 **Date.** 2026-05-28
 
 **Decision.** Production protection on `main` is enforced entirely by CI and branch protection — no required reviewers on the `supabase-prod` GitHub Environment and no human deploy approvers. The agent acts as CTO; the PM owns product scope only. Gates: (1) PRs to `main` must use head branch `dev`; (2) `scripts/check-migration-safety.mjs` blocks destructive migration SQL unless a line carries `migration-safety: allow`; (3) `db-deploy` runs `supabase db push --dry-run` before apply for `supabase-prod`; (4) `prod-smoke` runs after app, migration, or Edge Function changes on `main`.
@@ -1495,6 +1497,8 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 ## D-193 — CI speed + single store workflows (2026-10-17)
 
+> **Superseded in part by `D-195` (2026-10-30):** per-workflow required checks are replaced by the single `CI gate`, and store builds become nightly instead of manual-only.
+
 **Decision.** Keep required CI job display names stable; gate heavy work with `dorny/paths-filter` so DB-only and FE-only PRs still report required contexts but skip unrelated minutes. Use `${{ github.workflow }}-${{ github.ref }}` concurrency with `cancel-in-progress` on PR CI. Share pnpm + local Turbo cache via `.github/actions/setup-pnpm-turbo`. Consolidate mobile store pipelines to one TestFlight (`testflight-ios.yml`) and one Play internal (`play-internal.yml`) workflow; delete the duplicate `kc-mobile-testflight-ios.yml` / `kc-mobile-play-internal.yml`. Store and prod release workflows stay manual / not auto-promoted.
 
 **Why.** Issues #941 / #942 — cut median PR CI time and remove duplicate store entrypoints without breaking branch-protection required checks.
@@ -1509,7 +1513,30 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `docs/architecture/adr/ADR-002-data-layer.md`, `supabase/migrations/**`, `app/packages/infrastructure-supabase/**`, `app/packages/application/src/ports/**`.
 
-## D-195 — Org finance: extend the `0170` ledger in place, multi-tenant by `org_id`, RPC-only, snapshots for public data (2026-10-30)
+---
+
+## D-195 — Three-tier CI/CD: PR gate / nightly mobile / gated prod (2026-10-30)
+
+**Context.** Every line in this repo is written by AI agents and no human reviews the code, so CI is the only quality gate. The old layout had eleven separately required checks, path-filtered jobs that reported "skipped" (which GitHub counts as passing), and PR checks that typechecked but never built a native bundle.
+
+**Decision.** Delivery runs in three tiers:
+
+1. **PR gate (tier 1, `INFRA-CI-1`).** One workflow, `.github/workflows/ci.yml`, runs every PR check as a lane behind one job, **`CI gate`** — the single required status check on `dev` and `main`. `scripts/ci-changes.mjs` picks the lanes a diff needs (conservatively: unknown paths run everything), and `scripts/ci-gate.mjs` fails the gate when a needed lane failed, was cancelled or was skipped, or when the PR is a draft. Diff-based planning applies to PRs and merge groups only: pushes to `dev`/`main` run every lane, so a green push run certifies the whole tree at that SHA (the nightly mobile builds and deploys trust it). PR runs build the real artifacts: the production web export with a headless smoke load and bundle budget, and the iOS + Android Metro/Hermes bundles. Target wall clock ≤ 8 minutes.
+2. **Nightly mobile (tier 2, `INFRA-CI-4`).** TestFlight and Play internal builds run every night from the last `dev` SHA whose `CI gate` passed. **Supersedes the manual-only part of `D-193`.**
+3. **Gated prod (tier 3, `INFRA-CI-3`).** Production deploys (`main` → Railway, `supabase-prod`, Edge Functions) wait for **one owner approval click** on top of the automated gates. **Supersedes the "no human approvers" part of `D-53`**; its automated gates stay.
+
+Owner rules that go with it:
+
+- **CI files are owner-approved.** Changes to `.github/workflows/**`, `.github/actions/**` and the gate scripts (`scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`, `scripts/check-required-checks-drift.mjs`) need the owner's approval (`INFRA-CI-2` enforces it with CODEOWNERS + protection). Agents may freely **add** tests and checks.
+- **Agents get a bot identity.** Agents stop acting through the owner's personal GitHub account and move to a dedicated bot / GitHub App identity (`INFRA-CI-6`), so owner approvals are meaningful and agent pushes trigger workflows (see `TD-197`).
+
+**Rationale.** A single aggregating check cannot be bypassed by renaming, splitting or path-skipping a job, and it lets the lane plan change without touching branch protection. Building the bundles on every relevant PR catches the class of break a typecheck misses (unresolvable native modules, Hermes-incompatible syntax, crash-on-load web bundles). Keeping humans to one click per prod deploy and to CI-file changes concentrates the owner's attention where an agent could otherwise weaken the gate itself.
+
+**Alternatives rejected.** Keeping per-job required checks with "always-report" skip steps — a skipped or renamed job still passes silently. Running every lane on every PR — docs-only PRs would cost the full ~8 minutes. Full native compiles (EAS) on PRs — too slow and paid; the nightly tier covers them.
+
+**Affected.** `.github/workflows/ci*.yml`, `scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`, `scripts/check-required-checks-drift.mjs`, `docs/SSOT/ENVIRONMENTS.md`, `docs/SSOT/RELEASE_CHECKLIST.md`, `docs/SSOT/BACKLOG.md` (`INFRA-CI-1..6`).
+
+## D-196 — Org finance: extend the `0170` ledger in place, multi-tenant by `org_id`, RPC-only, snapshots for public data (2026-10-30)
 
 **Decision.** The organization finance feature (`spec/19_org_finance.md`, FR-FIN-001..021) **extends** `finance_ledger_entries` from migration `0170` rather than introducing a second ledger: add `org_id` (backfilled to the platform org), accounts, categories, receipt and reconciliation columns; replace soft delete with **void**. Every finance table is tenant-scoped by `org_id`, RLS `SELECT` goes through `finance_can_view(org_id)`, and every write goes through `admin_finance_*` SECURITY DEFINER RPCs guarded by `finance_assert(org_id, permission)` (per `D-194` / ADR-002). The in-app payment tables (`0267–0270`) stay the source of truth and are mirrored into the ledger by an idempotent trigger keyed on `(source, source_ref)`; finance code never writes them. Public transparency never reads live tables: it reads immutable `org_transparency_snapshots` through an anon-safe RPC whose return type has no donor or counterparty fields. Files go to private buckets (`finance-attachments`, `org-documents`) served by short-lived signed URLs (lesson of `TD-11`). Migration range `0470–0489` claimed. Product decisions behind this: D76–D82 in `docs/spec/90_decisions_log.md`.
 
@@ -1521,7 +1548,8 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.23 | 2026-10-30 | Added `D-195` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
+| 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
+| 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
 | 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
 | 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |

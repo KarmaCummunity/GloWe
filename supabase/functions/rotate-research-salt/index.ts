@@ -48,7 +48,7 @@ function generateSaltHex(): string {
 // Auth check
 // ---------------------------------------------------------------------------
 
-async function isAuthorized(req: Request): Promise<boolean> {
+function isAuthorized(req: Request): boolean {
   // Option 1: shared rotation secret header (for scheduler / cron invocations)
   if (ROTATION_SECRET) {
     const headerSecret = req.headers.get('x-rotation-secret') ?? '';
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     return json({ error: 'method_not_allowed' }, 405);
   }
 
-  if (!(await isAuthorized(req))) {
+  if (!isAuthorized(req)) {
     return json({ error: 'unauthorized' }, 401);
   }
 
