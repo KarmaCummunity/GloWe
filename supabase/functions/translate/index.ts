@@ -10,7 +10,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { corsHeaders, isAllowedOrigin } from '../_shared/cors.ts';
 import { isSupportedTarget } from '../_shared/translation/supportedLanguages.ts';
 import { getAuthedUser } from './auth.ts';
-import { isValidSingle, translateSingle } from './single.ts';
+import { isValidSingle, translateSingle, type SingleBody } from './single.ts';
 import { resolveBatch, type TranslateItem } from './resolveBatch.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -41,8 +41,8 @@ function toBatch(raw: unknown): { targetLanguage: string; items: TranslateItem[]
   return null;
 }
 
-function isLegacySingle(raw: unknown): boolean {
-  return isValidSingle(raw) && !Array.isArray((raw as Record<string, unknown>).items);
+function isLegacySingle(raw: unknown): raw is SingleBody {
+  return isValidSingle(raw) && !Array.isArray((raw as unknown as Record<string, unknown>).items);
 }
 
 Deno.serve(async (req) => {

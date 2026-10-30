@@ -88,7 +88,7 @@ export function EditProfileAddressBlock({
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: { width: '100%', maxWidth: 500, alignSelf: 'center' },
   field: { marginVertical: spacing.xs, gap: spacing.xs },
   label: { ...typography.label, color: colors.textSecondary, textAlign: rtlTextAlignStart },
