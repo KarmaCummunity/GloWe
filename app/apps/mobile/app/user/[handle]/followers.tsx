@@ -129,7 +129,7 @@ export default function FollowersListScreen() {
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: { flex: 1, backgroundColor: colors.background },
   searchRow: {
     flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs,
