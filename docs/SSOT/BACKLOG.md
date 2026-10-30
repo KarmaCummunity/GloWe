@@ -18,12 +18,12 @@
 |----|------|-------|--------|------|
 | P1.7 | FR-RESEARCH-001..003 — Public market research form | agent-be + agent-fe | 🟡 In progress (post-merge QA) | `spec/16_public_research.md` |
 | P1.8 | FR-RESEARCH-004 — Share affordance for public research survey | agent-fe | 🟡 Code complete, post-merge QA pending | `spec/16_public_research.md` |
-| INFRA-QA-W1 | Playwright P0 E2E gate on dev + release (`ci-e2e-dev.yml`, `tests/e2e/`) | infra | 🟡 In progress | Wave 1 |
+| INFRA-QA-W1 | Playwright P0 E2E gate on dev + release (release lane `ci-release.yml`, `tests/e2e/`) | infra | 🟡 In progress | Wave 1 |
 | INFRA-QA-W2 | E2E domain expansion (posts, chat send, donations, research) | infra | ⏳ Planned | Wave 2 |
 | INFRA-QA-W3 | RLS persona integration suite | infra | ⏳ Planned | Wave 3 |
 | INFRA-QA-W4 | Performance budgets (Lighthouse + k6) | infra | ⏳ Planned | Wave 4 |
 | INFRA-QA-W5 | Accessibility axe gate | infra | ⏳ Planned | Wave 5 |
-| INFRA-QA-W7 | Expanded prod synthetic monitoring | infra | 🟡 In progress | Wave 7 — KC `prod-smoke.yml` |
+| INFRA-QA-W7 | Expanded prod synthetic monitoring | infra | 🟡 In progress | Wave 7 — KC deploy smoke (`deploy-smoke.yml`) |
 | INFRA-OSS-4 | **Snyk PR scan** | infra | 🟡 In progress | `SECURITY.md` |
 | INFRA-OSS-6 | **GitGuardian** | infra | 🟡 In progress | `SECURITY.md` |
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
@@ -31,12 +31,11 @@
 
 ## INFRA — CI/CD hardening (`D-195`)
 
-Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
+Stage 1 (`INFRA-CI-1`, unified PR gate) and stage 3 (`INFRA-CI-3`, gated prod release) are done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-202`). | infra | ⏳ Planned | `D-195` |
-| INFRA-CI-3 | **Gated prod release pipeline.** One owner approval (GitHub Environment) before `main` deploys (Railway, `supabase-prod` DB deploy, Edge Functions); fold the main release guard + dev E2E into the release flow. | infra | ⏳ Planned | `D-195`, `RELEASE_CHECKLIST.md` |
 | INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed. | infra | ⏳ Planned | `D-195`, `D-192` |
 | INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
 | INFRA-CI-6 | **Agent bot identity.** Move agent pushes, PRs and merges off the owner's personal GitHub account to a bot / GitHub App identity (also closes `TD-197`). | infra | ⏳ Planned | `D-195` |

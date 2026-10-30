@@ -1,7 +1,7 @@
 # Environments
 
 > **Canonical source for branch ↔ Supabase ↔ Cloudflare Pages ↔ env-var mapping.**
-> If another doc disagrees, this one wins. Last reviewed: 2026-06-09.
+> If another doc disagrees, this one wins. Last reviewed: 2026-10-30 (gated deploy pipeline, `INFRA-CI-3`).
 
 ## TL;DR
 
@@ -19,8 +19,8 @@
 
 ## Branching rules
 
-1. **`staging` is optional pre-integration.** Feature PRs may target `staging` first, then `staging` → `dev`.
-2. **`dev` is the integration branch.** Merges deploy KC web to `https://dev.karma-community.pages.dev/`.
+1. **`staging` is optional pre-integration.** Feature PRs may target `staging` first, then `staging` → `dev`. It has no automatic deploy since `INFRA-CI-3` (only `dev` and `main` deploy); `staging.karma-community.pages.dev` keeps its last build.
+2. **`dev` is the integration branch.** After a merge passes CI, **Deploy** ships it to kc-dev and `https://dev.karma-community.pages.dev/`.
 3. **`dev` is never behind `main`.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which merges `main` into `dev`. If that workflow fails (merge conflict), resolving it is the operator's first priority.
 4. **`main` is fast-forward only from `dev`.** KC production releases happen by opening a PR from `dev` → `main` and squash-merging.
 5. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). Whenever they happen, the sync workflow brings them into `dev` automatically.
@@ -36,7 +36,7 @@ All variables prefixed `EXPO_PUBLIC_*` are exposed to the client bundle by Expo'
 | `EXPO_PUBLIC_SUPABASE_URL` | `https://kdqtbdbzwvlugkhonexg.supabase.co` | `https://enbqriuxvvuontiwslun.supabase.co` | `packages/infrastructure-supabase/src/client.ts` |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | (publishable key for prod project) | (publishable key for dev project) | `packages/infrastructure-supabase/src/client.ts` |
 
-**Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by **Supabase Functions deploy**). Values: prod → `https://karma-community-kc.com`; dev → `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006`. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
+**Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by the Edge Functions stage of **Deploy**). Values: prod → `https://karma-community-kc.com`; dev → `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006`. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
 
 > **Pitfall:** Expo only exposes vars that start with `EXPO_PUBLIC_`. A var named `PUBLIC_ENVIRONMENT` (no `EXPO_` prefix) is invisible to the client bundle.
 >
@@ -74,21 +74,32 @@ Checklist in order:
 - Strategy: `git merge --no-edit origin/main` on `dev`. Fast-forward when possible; merge commit otherwise.
 - Failure mode: merge conflict → workflow fails, operator resolves manually. Do not auto-resolve.
 
-## DB deploy automation
+## Deploy pipeline (`D-195`, `INFRA-CI-3`)
 
-`.github/workflows/db-deploy.yml` trigger modes:
+Nothing deploys on push. `.github/workflows/deploy.yml` (**Deploy**) is the only workflow that deploys, and it deploys one exact commit:
 
-- **Auto** — on push to `dev` or `main` when any of these paths change: `supabase/migrations/**`, `supabase/seed.sql`, `supabase/config.toml`, or the workflow file. Pending migrations are applied via `supabase db push` to the matching GitHub Environment: `dev` → `supabase-dev` (`enbqriuxvvuontiwslun`); `main` → `supabase-prod` (`kdqtbdbzwvlugkhonexg`). PRs must keep **CI — backend** (`apply migrations · rls · types · sql probes`) green before merge — it applies all migrations on a fresh local stack.
-- **Manual** — `workflow_dispatch` lets an operator target `supabase-prod` or `supabase-dev`. Defaults to dry-run; flip `apply` to true to push (useful for inspection, retries, or one-off applies).
+- **Trigger:** `workflow_run` of **CI** — a successful **push** run on `dev` or `main` deploys that run's `head_sha` — plus `workflow_dispatch` from `dev` or `main` (re-deploy the tip; the run itself checks via the GitHub API that a push-event CI run gave that SHA a green `CI gate`). A commit that is no longer the branch tip is skipped (its successor deploys after its own CI run), so a slow CI run can never roll an environment back. `workflow_run` executes `deploy.yml` as it is on `main`; changes to the pipeline take effect after a release.
+- **Targets:** `dev` → environments `supabase-dev` + `cloudflare-dev` (kc-dev `enbqriuxvvuontiwslun`, Pages branch `dev`), automatic. `main` → **`production`** (approval only) then `supabase-prod` + `cloudflare-prod` (`kdqtbdbzwvlugkhonexg`, Pages production branch `main`).
+- **Order:** resolve → preflight (`scripts/deploy-preflight.mjs`: secrets present, project refs pinned per target, project `ACTIVE_HEALTHY`; on prod also the backup key and the Pages production branch) → **approve** (prod) → database (`deploy-db.yml`: prod backup, dry-run, apply) → Edge Functions (`deploy-functions.yml`) → web baseline (prod) → web (`deploy-web.yml`) → smoke (`deploy-smoke.yml`) → tag (prod, `deploy-tag.yml`). On prod a failed functions/web/smoke stage runs `deploy-rollback.yml`.
+- **Concurrency:** one deploy per environment (`deploy-dev`, `deploy-main`); a running deploy is never cancelled.
+- **Environment layout:** `production` carries only the owner as required reviewer and no secrets; exactly one job (`approve release`) uses it, so a release is one click, and that job fails if the run has no recorded approval (reviewer missing). The secret-holding environments have **no** reviewers. Restrict `production`, `supabase-prod` and `cloudflare-prod` to the `main` branch; `supabase-dev` / `cloudflare-dev` to `dev` and `main` (`workflow_run` jobs run on `main`).
+- **Guard:** `scripts/check-deploy-isolation.mjs` (static lane of CI) fails if any other workflow references a prod environment or runs `supabase db push`, `supabase functions deploy` or `pages deploy`, or if a stage workflow gains its own trigger.
 
-Concurrency group `db-deploy-<environment>` (with `cancel-in-progress: false`) ensures back-to-back migration pushes queue rather than race.
+| Stage | Workflow | Detail |
+| --- | --- | --- |
+| Database | `deploy-db.yml` (**DB deploy**) | Prod: encrypted `supabase db dump` (schema + data, `age` to `BACKUP_AGE_RECIPIENT`, 14-day artifact) when `supabase/migrations` changed since the last `v*` tag; then `db push --dry-run` and `db push` **without** `--include-all`, so a remote-ahead ledger or an out-of-order migration fails. Dev keeps `--include-all`. Manual dispatch: `dev` ref only, target fixed to dev, dry-run unless `apply`. |
+| Edge Functions | `deploy-functions.yml` | Syncs `PUBLIC_RESEARCH_ALLOWED_ORIGINS` (through `env:`), then deploys every function `scripts/edge-functions.mjs` lists — all of `supabase/functions` except `_shared` and local-only `mock-login` — on both dev and prod. |
+| Web | `deploy-web.yml` | Builds the export with `EXPO_PUBLIC_GIT_COMMIT_SHA` = the deployed SHA (stamped into `/version.json`) and uploads it with `wrangler pages deploy --branch=<dev|main> --commit-hash=<sha>`. |
+| Smoke | `deploy-smoke.yml` | `scripts/smoke-deploy.mjs`: `/version.json` serves the SHA (backoff up to 10 min), `/` + every referenced JS bundle return 200, `/auth/v1/health` with the anon key, every deployed function answers `OPTIONS` without 5xx/404. Manual dispatch (read-only) against dev or prod from `dev`/`main`. |
+| Tag | `deploy-tag.yml` | Annotated `v<app/VERSION>` on the deployed commit + GitHub Release (generated notes). The same version on another commit fails (checked again up front in **resolve**). |
+| Rollback | `deploy-rollback.yml` | Cloudflare Pages production → the deployment recorded by **web baseline**; Edge Functions → previous release tag; smoke re-run; report. DB is forward-fix only. |
 
-**DB apply gate (`D-53`, extended `D-54`):** every auto-push and every manual `workflow_dispatch` apply (both `supabase-dev` and `supabase-prod`) runs `supabase db push --dry-run` immediately before the real `db push`. No human reviewers on deploy environments — protection is automated CI only.
+The Supabase CLI version is pinned once, in `.github/actions/setup-supabase-cli`.
 
 **Migration safety guards:**
 
-- **Dev:** the static-guards lane of **CI** (`.github/workflows/ci-static-guards.yml`, behind the `CI gate` check) runs `scripts/check-migration-safety.mjs` on every PR and push (blocks `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, unqualified `DELETE FROM` unless the line includes `migration-safety: allow`).
-- **Main release:** `.github/workflows/ci-main-guard.yml` on PRs to `main` enforces head branch `dev` **and** runs the same migration safety scan.
+- **Every PR and push:** the static lane of **CI** runs `scripts/check-migration-safety.mjs` over all migrations (blocks `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, unqualified `DELETE FROM` unless the line carries `migration-safety: allow`).
+- **Release into `main`:** the release lane runs it with `--release`: a marked line in a migration the release adds or changes also needs `Migration safety: <file>.sql — <reason>` in the PR body.
 
 ## Dev merge gates (branch protection)
 
@@ -106,7 +117,7 @@ All feature PRs target `dev`. Configure GitHub → Settings → Branches → `de
 
 **Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
 
-Do **not** require **CI — main release guard** on `dev` (prod-only release-source job). Prod-only post-merge jobs (`prod-smoke`, Edge Functions deploy to `supabase-prod`) stay on `main` only.
+`main` requires the same single check: the release lane runs inside `CI gate` for PRs into `main` (see [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green)). Never require deploy jobs on a PR rule; they run after the merge.
 
 ## Production release
 
@@ -117,7 +128,8 @@ Operator checklist: [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 | Lane (job in `ci.yml`) | Workflow file | Runs when | What it checks |
 | --- | --- | --- | --- |
 | `hygiene` | `ci-pr.yml` | every PR | Conventional Commits title + `Mapped to spec` line in the body |
-| `static` | `ci-static-guards.yml` | every non-draft change | actionlint + shellcheck, all `scripts/*.test.mjs` + `app/scripts/*.test.mjs`, architecture, SSOT links, Hebrew scan, RPC contract, web manifest, expo-router fallbacks, migration chain, migration destructive-op scan, FlatList / SQL `OFFSET` guards, required-check docs + gate wiring |
+| `static` | `ci-static-guards.yml` | every non-draft change | actionlint + shellcheck, all `scripts/*.test.mjs` + `app/scripts/*.test.mjs`, architecture, SSOT links, Hebrew scan, RPC contract, web manifest, expo-router fallbacks, migration chain, migration destructive-op scan, FlatList / SQL `OFFSET` guards, required-check docs + gate wiring, deploy isolation |
+| `release` | `ci-release.yml` | every PR / merge group into `main` | head branch is `dev`; strict migration scan (`--release`); `app/VERSION` above the latest `v*` tag; P0 Playwright on `DEV_WEB_URL` once its `/version.json` serves the PR head SHA |
 | `frontend` | `ci-frontend.yml` (+ `ci-sonar.yml`) | `app/**`, `scripts/**`, `Dockerfile`, Sonar config, CI plumbing | typecheck, unit tests with coverage, ESLint (`--max-warnings` ratchet), dependency audit; production web export + bundle budget + headless smoke; iOS + Android Metro/Hermes bundles; SonarCloud quality gate on the same coverage |
 | `backend` | `ci-backend.yml` | `supabase/**` except functions, `infrastructure-supabase`, workspace manifests, `scripts/**`, CI plumbing | fresh local stack, all `supabase/tests/*.sql`, `database.types.ts` drift, sqlProbes |
 | `edge` | `ci-edge-functions.yml` | `supabase/**`, CI plumbing | `deno check`, `deno lint`, every `*.test.ts` under `supabase/functions` |
@@ -130,14 +142,17 @@ Tooling pins: Node version comes from the repo-root `.nvmrc` (all `setup-node` s
 
 Branch protection on `dev` uses the table above; `main` release PRs use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green).
 
-**CI gates on `main` PRs:** the same `CI gate`; its frontend lane's web export mirrors the Dockerfile builder (`EXPO_PUBLIC_*` + `pnpm build:web`).
+**CI gates on `main` PRs:** the same `CI gate`, plus the `release` lane it plans for every PR into `main`.
 
-**Post-merge KC smoke:** `.github/workflows/prod-smoke.yml` polls **`KC_PROD_URL`** (legacy alias: `PROD_WEB_URL`) after `main` deploy.
+**Post-deploy smoke:** the smoke stage of **Deploy** (see "Deploy pipeline" above) checks the environment it just deployed.
 
 | GitHub | Name | Value / purpose |
 | --- | --- | --- |
-| Variable | `KC_PROD_URL` | KC live root — `https://karma-community-kc.com` (for `prod-smoke.yml`) |
-| Variable | `PROD_WEB_URL` | Legacy alias for `KC_PROD_URL` |
+| Variable | `KC_PROD_URL` | KC live root — `https://karma-community-kc.com` (prod preflight, smoke, `production` environment URL) |
+| Variable | `DEV_WEB_URL` | `https://dev.karma-community.pages.dev` (dev preflight + smoke, release-lane E2E) |
+| Variable (`supabase-prod`) | `BACKUP_AGE_RECIPIENT` | `age1…` public key the pre-migration prod backup is encrypted to; the owner keeps the private key offline |
+
+The legacy `PROD_WEB_URL` alias is no longer read; delete it.
 
 **Manual follow-up:** Remove obsolete repo variables `GLOWE_PROD_URL`, `GLOWE_STAGING_URL`, and `GLOWE_SEED_PASSWORD` from GitHub Actions if still present.
 
@@ -152,14 +167,14 @@ Playwright P0 journeys run against the live dev deployment before every `dev` �
 | Secret | `E2E_TEST_PASSWORD` | Matching password |
 | Secret | `E2E_SUPABASE_ANON_KEY_DEV` | Dev project publishable anon key (for `scripts/ensure-e2e-user.mjs` preflight). Dev-scoped name keeps it distinct from prod. Wired to the `E2E_SUPABASE_ANON_KEY` env var the test code reads. |
 
-Workflow: `.github/workflows/ci-e2e-dev.yml` — required status check on `main`: **CI — E2E dev / user journeys (P0)**.
+Release gate: the `dev E2E on the release head` job of the release lane (`.github/workflows/ci-release.yml`, inside `CI gate`) — it first waits until `DEV_WEB_URL/version.json` reports the release PR's head SHA, so E2E never runs against an older dev build. The full suite also runs nightly (`.github/workflows/e2e-nightly-dev.yml`).
 
 Create user (once, if needed): `E2E_TEST_EMAIL=… E2E_TEST_PASSWORD=… node scripts/create-e2e-user.mjs` (requires dev `SUPABASE_SERVICE_ROLE_KEY`).
 
 Local run (after deploy on dev):
 
 ```bash
-export DEV_WEB_URL=https://mvp-2-dev.up.railway.app
+export DEV_WEB_URL=https://dev.karma-community.pages.dev
 export E2E_TEST_EMAIL=…
 export E2E_TEST_PASSWORD=…
 export E2E_SUPABASE_ANON_KEY=…

@@ -1,19 +1,18 @@
 # Production release checklist (`dev` → `main`)
 
-> **Scope:** Web app on Railway + Supabase prod (`kdqtbdbzwvlugkhonexg`).
-> **Branch topology:** [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) · **DB/Functions runbook:** [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md)
+> **Scope:** KC web on Cloudflare Pages (project `karma-community`, production branch `main`, `https://karma-community-kc.com`) + Supabase prod (`kdqtbdbzwvlugkhonexg`) + Edge Functions.
+> **Branch topology:** [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) · **DB/Functions runbook:** [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) · **Policy:** `D-195` (gated prod release).
 
-Use this checklist for every production release. CI automates gates; the agent (CTO) executes the flow — no human approval on deploy environments (`D-53`).
+A release is a PR from `dev` into `main`. CI judges it (`CI gate`, including the release lane); after the squash merge, `.github/workflows/deploy.yml` deploys `main` and waits for **one owner approval click** before touching production. Agents prepare the release; only the owner approves it.
 
 ---
 
 ## Before opening the release PR
 
-- [ ] **`dev` is green** — latest `dev` commit passed the **CI** workflow (`CI gate`).
-- [ ] **Dev E2E P0 green** — `CI — E2E dev / user journeys (P0)` on this release PR (auth, feed, create-post, chat inbox). Human spot-check on dev optional. Skip only for pure CI/docs hotfixes to `main` (no app paths).
-- [ ] **Migration review** — if `supabase/migrations/**` changed: read each new migration; confirm backward-compatible; note any manual operator steps in the PR body.
-- [ ] **Edge Functions review** — if `supabase/functions/**` changed: note which functions changed; plan post-merge smoke (donation link edit — see OPERATOR_RUNBOOK § Edge Functions).
-- [ ] **Release PR** — open **`dev` → `main`**, Conventional Commits title, PR body includes **Mapped to spec** and migration/rollout notes.
+- [ ] **`dev` is deployed** — the latest `dev` push passed **CI** and the **Deploy** run for that commit is green (dev web serves it at `https://dev.karma-community.pages.dev/version.json`).
+- [ ] **`app/VERSION` is above the latest `v*` tag** — the release lane checks it; bump PATCH/MINOR/MAJOR on `dev` first if needed.
+- [ ] **Migration review** — read each new migration since the last tag; confirm it is backward compatible (web and functions may be rolled back, the DB is not). A destructive line needs the `migration-safety: allow` marker **and** a line `Migration safety: <file>.sql — <reason>` in the release PR body.
+- [ ] **Release PR** — **`dev` → `main`**, Conventional Commits title, body with **Mapped to spec** and migration/rollout notes.
 
 ---
 
@@ -26,77 +25,70 @@ Required on the release PR (GitHub branch protection on `main`):
 | Check | Workflow | Job |
 | --- | --- | --- |
 | PR gate | CI | `CI gate` |
-| Main release guard | CI — main release guard | `release PR source is dev` + `migration destructive-op scan` |
-| E2E dev | CI — E2E dev | `user journeys (P0)` |
 
-> `CI gate` (`D-195`) aggregates hygiene, static guards, frontend (incl. SonarCloud), backend and Edge Function lanes and fails if a lane the release diff needs did not succeed. The release guard and dev E2E stay separate until the gated prod pipeline lands (`INFRA-CI-3`).
->
-> **Owner action (one-time, GitHub → Settings → Branches → `main`):** remove the legacy required checks `typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `PR hygiene` and `SonarCloud quality gate`, and add `CI gate`. Keep `release PR source is dev`, `migration destructive-op scan` and `user journeys (P0)`.
+`CI gate` (`D-195`) aggregates every lane. For a PR into `main` the change detector also plans the **release** lane (`.github/workflows/ci-release.yml`), whatever the diff touches, and the gate fails if it did not succeed:
 
-Do **not** require post-merge deploy jobs on the PR rule (`DB deploy`, `Supabase Functions deploy`, `Prod smoke`).
-
----
-
-## Immediately after squash-merge to `main`
-
-Watch **Actions** on `main` (in order, as applicable):
-
-1. **CI** — push workflow green.
-2. **DB deploy** — when migration paths changed: **dry-run then apply** to `supabase-prod` (no human gate).
-3. **Supabase Functions deploy** — runs when `supabase/functions/**` changed.
-4. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after app/Dockerfile changes on `main`.
-5. **KC prod smoke** — `prod-smoke.yml` polls `KC_PROD_URL` after `main` deploy.
-6. **Sync main → dev** — the workflow opens a zero-diff PR `sync/main-into-dev-<sha>` (`git merge -s ours main`). Merge it as a **merge commit** (temporarily enable *Allow merge commits*, merge, disable) — a squash drops the ancestry and the next release PR will conflict.
-
-Watch **Railway → prod** — new deployment from `main` reaches **Success**.
-
----
-
-## Post-deploy smoke (operator — ~5 min)
-
-Automated checks after deploy:
-- **KC (`main`):** `prod-smoke.yml` — HTTP 200 on `KC_PROD_URL`.
-
-Spot-check manually:
-
-- [ ] **Prod URL loads** — incognito window, no dev banner.
-- [ ] **Sign-in** — Google (web) or email OTP path you ship.
-- [ ] **One write path** — e.g. edit profile or create draft post.
-- [ ] **If migrations merged** — exercise the feature that migration enables; run SQL checks from OPERATOR_RUNBOOK for that migration if listed.
-- [ ] **If functions merged** — donation link edit smoke (same row `id`, no duplicate insert).
-
----
-
-## Rollback (if prod is broken)
-
-| Layer | Action |
+| Release-lane job | Fails when |
 | --- | --- |
-| **App (Railway)** | Railway → prod service → Deployments → redeploy previous successful image. |
-| **DB** | **No auto-rollback.** Forward-fix with a new migration or manual SQL per OPERATOR_RUNBOOK. Prefer backward-compatible migrations. |
-| **Edge Functions** | Redeploy from last known-good commit: `workflow_dispatch` on **Supabase Functions deploy**, or local `supabase functions deploy` from that commit. |
-| **Git** | Do **not** force-push `main`. Forward-fix on `dev`, release again. |
+| `release source is dev` | the head branch is not `dev` (a merge group always fails: releases go through a PR) |
+| `release migration scan (strict)` | a migration added or changed by the release has a destructive line without the marker, or with the marker but no `Migration safety:` justification line for its file in the PR body |
+| `release version bump` | `app/VERSION` on the release head is not greater than the latest `v*` tag |
+| `dev E2E on the release head` | dev does not serve the release head SHA (`/version.json`) within 30 minutes, or a P0 Playwright journey fails |
+
+---
+
+## After the squash merge — the deploy
+
+The `main` push runs **CI**; when it succeeds, **Deploy** (`deploy.yml`) starts for exactly that commit:
+
+1. **resolve target** — confirms the commit is the `main` tip, that a push-event CI run gave it a green `CI gate`, and that tag `v<app/VERSION>` does not already exist on another commit.
+2. **preflight · supabase / preflight · web** — every secret present, project refs pinned (`kdqtbdbzwvlugkhonexg`), Supabase project `ACTIVE_HEALTHY`, Pages production branch is `main`, `BACKUP_AGE_RECIPIENT` set. Fails before anything changes.
+3. **approve release** — the run waits on the `production` environment. **Owner: review the run summary (version, SHA) and approve.** This is the only click. The job fails if the environment let the run through without a recorded approval.
+4. **database** — encrypted backup (only when `supabase/migrations` changed since the last tag) → `db push --dry-run` → `db push`. No `--include-all`: a remote that is ahead or an out-of-order migration fails here.
+5. **edge functions** — CORS variable synced, then every function deployed.
+6. **web baseline → web** — the Cloudflare deployment serving prod is recorded, then the new build (stamped with the SHA) is uploaded.
+7. **smoke** — `/version.json` reports the SHA, page + JS bundle load, Supabase Auth health, every function answers.
+8. **tag release** — annotated `vX.Y.Z` on the commit + a GitHub Release with generated notes.
+
+**Sync main → dev** still runs after the merge and still fails with `GH006` (`TD-182`); leave it alone.
+
+### Spot-check after a green deploy (~5 min, optional)
+
+- [ ] Prod URL loads in an incognito window, no dev banner.
+- [ ] Sign-in works; one write path (edit profile or create a draft post).
+- [ ] If migrations merged — exercise the feature they enable; run any SQL checks OPERATOR_RUNBOOK lists for them.
+
+---
+
+## Rollback
+
+| Layer | What happens |
+| --- | --- |
+| **Web (Cloudflare Pages)** | Automatic when the functions, web or smoke stage fails after approval: production is pointed back at the deployment recorded in **web baseline** (Cloudflare Pages rollback API), then the smoke re-runs. By hand: Cloudflare dashboard → Pages → `karma-community` → Deployments → previous production deployment → *Rollback*. |
+| **Edge Functions** | Automatic in the same case: the previous release tag's functions are redeployed. With no earlier tag the rollback report says so and functions stay on the failed release. |
+| **DB** | **Never rolled back.** Forward-fix with a new migration. The deploy run holds an encrypted `prod-db-backup-<sha>-<attempt>` artifact (14 days) for a manual restore — OPERATOR_RUNBOOK § "Restore a pre-migration backup". |
+| **Git** | Do **not** force-push `main`. Forward-fix on `dev`, bump `app/VERSION`, release again. |
+
+A failed release is never tagged, so the next release's notes and rollback target stay correct.
 
 ---
 
 ## Dev branch protection (`dev` — working branch)
 
-Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `dev` — require PR, block force-push/deletion, require status checks from the **Dev merge gates** table in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md#dev-merge-gates-branch-protection) (includes **CI — dev guard / migration destructive-op scan**). Do not add **CI — main release guard** to `dev`.
+Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `dev` — require PR, block force-push/deletion, require the single status check from the **Dev merge gates** table in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md#dev-merge-gates-branch-protection) (`CI gate`).
 
 ---
 
-## GitHub settings (one-time)
+## GitHub settings (one-time, owner)
 
 | Setting | Location | Value |
 | --- | --- | --- |
-| Branch protection on `dev` | Settings → Branches → `dev` | PR required; status checks per ENVIRONMENTS dev table (`D-54`) |
-| Branch protection on `main` | Settings → Branches → `main` | Block direct pushes; require status checks (table above) — **no required human reviewers** (`D-53`) |
-| Required status checks | Same (`main`) | Include **CI — main release guard** and **CI — E2E dev / user journeys (P0)** on `dev` → `main` PRs |
-| Dev web URL for E2E | Settings → Secrets and variables → Actions → **Variables** | `DEV_WEB_URL` = `https://mvp-2-dev.up.railway.app` |
-| E2E credentials | Settings → Secrets and variables → Actions → **Secrets** | `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `E2E_SUPABASE_ANON_KEY_DEV` (dev publishable anon) |
-| `supabase-prod` environment | Settings → Environments → `supabase-prod` | Secrets only (`SUPABASE_*`); **do not** enable required reviewers |
-| KC prod URL for smoke | Settings → Secrets and variables → Actions → **Variables** | `KC_PROD_URL` = `https://karma-community-kc.com` (legacy: `PROD_WEB_URL`) |
-
-Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once confirmed.
+| Branch protection on `main` | Settings → Branches → `main` | PR required; block force-push/deletion; required status checks: **only** `CI gate` (remove `release PR source is dev`, `migration destructive-op scan`, `user journeys (P0)`) |
+| `production` environment | Settings → Environments → `production` | **Required reviewer: the owner.** Deployment branches: `main` only. No secrets. |
+| `supabase-prod`, `cloudflare-prod` | Settings → Environments | **No** required reviewers (each would add a click). Deployment branches: `main` only. |
+| `supabase-dev`, `cloudflare-dev` | Settings → Environments | No reviewers. Deployment branches: `dev` and `main` (`workflow_run` deploys run on `main`). |
+| Backup key | `supabase-prod` → Variables | `BACKUP_AGE_RECIPIENT` = an `age1…` public key; the owner keeps the private key offline |
+| Web URLs | Repository → Variables | `KC_PROD_URL` = `https://karma-community-kc.com`; `DEV_WEB_URL` = `https://dev.karma-community.pages.dev` |
 
 ---
 
@@ -105,9 +97,10 @@ Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once c
 | Concern | Value |
 | --- | --- |
 | Git branch | `main` |
-| Supabase project | `kdqtbdbzwvlugkhonexg` |
+| Supabase project | `kdqtbdbzwvlugkhonexg` (`supabase-prod`) |
+| Web | Cloudflare Pages `karma-community`, branch `main` (`cloudflare-prod`) |
 | `EXPO_PUBLIC_ENVIRONMENT` | `production` |
-| Railway service | `prod` (branch `main`) |
+| Release tag | `v<app/VERSION>` on the deployed commit |
 
 ---
 

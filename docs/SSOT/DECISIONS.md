@@ -1523,7 +1523,7 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 1. **PR gate (tier 1, `INFRA-CI-1`).** One workflow, `.github/workflows/ci.yml`, runs every PR check as a lane behind one job, **`CI gate`** — the single required status check on `dev` and `main`. `scripts/ci-changes.mjs` picks the lanes a diff needs (conservatively: unknown paths run everything), and `scripts/ci-gate.mjs` fails the gate when a needed lane failed, was cancelled or was skipped, or when the PR is a draft. PR runs build the real artifacts: the production web export with a headless smoke load and bundle budget, and the iOS + Android Metro/Hermes bundles. Target wall clock ≤ 8 minutes.
 2. **Nightly mobile (tier 2, `INFRA-CI-4`).** TestFlight and Play internal builds run every night from the last `dev` SHA whose `CI gate` passed. **Supersedes the manual-only part of `D-193`.**
-3. **Gated prod (tier 3, `INFRA-CI-3`).** Production deploys (`main` → Railway, `supabase-prod`, Edge Functions) wait for **one owner approval click** on top of the automated gates. **Supersedes the "no human approvers" part of `D-53`**; its automated gates stay.
+3. **Gated prod (tier 3, `INFRA-CI-3`).** Production deploys (`main` → Cloudflare Pages `karma-community`, `supabase-prod`, Edge Functions) wait for **one owner approval click** on top of the automated gates. **Supersedes the "no human approvers" part of `D-53`**; its automated gates stay. Details under "Gated prod release" below.
 
 Owner rules that go with it:
 
@@ -1536,10 +1536,20 @@ Owner rules that go with it:
 
 **Affected.** `.github/workflows/ci*.yml`, `scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`, `scripts/check-required-checks-drift.mjs`, `docs/SSOT/ENVIRONMENTS.md`, `docs/SSOT/RELEASE_CHECKLIST.md`, `docs/SSOT/BACKLOG.md` (`INFRA-CI-1..6`).
 
+**Gated prod release (`INFRA-CI-3`, 2026-10-30).**
+
+- **One deploy path.** `.github/workflows/deploy.yml` is the only workflow that deploys. It runs when a **push** run of `CI` on `dev`/`main` succeeds (`workflow_run`), or on dispatch from `dev`/`main`, and deploys exactly that commit — after confirming through the GitHub API that a push-event CI run gave it a green `CI gate` and that it is still the branch tip (an older commit never overwrites a newer deploy). Stages are reusable `deploy-*.yml` workflows with no trigger of their own; `scripts/check-deploy-isolation.mjs` fails CI if any other workflow references a prod environment or runs a deploy command. The dev Supabase project the pipeline deploys to is kc-dev `enbqriuxvvuontiwslun` (evidence: the `supabase-dev` secret passed the kc-dev ref guard in run 41000522753, 2026-10-30); `scripts/deploy-preflight.mjs` now pins both refs.
+- **Environment layout.** `production` holds only the owner as required reviewer and no secrets; one job (`approve release`) uses it, so each release is exactly one click, and that job fails if the run has no recorded approval (a missing reviewer fails closed instead of auto-approving). Secrets stay on `supabase-{dev,prod}` and `cloudflare-{dev,prod}`, which have **no** reviewers. Prod environments are restricted to `main`.
+- **Releases into `main`** are judged by `CI gate` through a `release` lane (head is `dev`; strict migration scan where an `allow` marker also needs a `Migration safety: <file> — <reason>` line in the PR body; `app/VERSION` above the latest `v*` tag; P0 E2E on dev once `DEV_WEB_URL/version.json` serves the PR head SHA). `main` requires only `CI gate`; the separate release-guard and E2E checks are gone.
+- **Order:** preflight (fail closed) → approve → DB (backup, dry-run, apply; no `--include-all` on prod) → Edge Functions (all except local-only `mock-login`, dev and prod alike) → web → smoke (`scripts/smoke-deploy.mjs`: `/version.json` SHA, bundle, Auth health, every function) → annotated tag `vX.Y.Z` + GitHub Release. `/version.json` (`{version, sha, builtAt}`, from `app/scripts/web-version.mjs`) is what D-181's "re-stamps VERSION on deploy" now actually means. `staging` no longer auto-deploys.
+- **Rollback policy.** If Edge Functions, web or smoke fail after approval: Cloudflare Pages production goes back to the deployment recorded right before the web deploy, Edge Functions are redeployed from the previous release tag, the smoke re-runs, and the run stays red and untagged. **The database is forward-fix only** — migrations must stay backward compatible with the previous web and functions.
+- **Backups (PII).** Before a prod migration (only when `supabase/migrations` changed since the last tag) the pipeline takes `supabase db dump` (schema + data) streamed straight into `age`, encrypted to the owner's public key (`BACKUP_AGE_RECIPIENT`; missing key = preflight fails). Only ciphertext is stored, as a workflow artifact with 14-day retention; nothing is logged. Restores are manual, PM-confirmed (`OPERATOR_RUNBOOK.md` § Restore a pre-migration backup).
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.24 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, release lane in `CI gate`, rollback (web + functions; DB forward-fix), encrypted 14-day pre-migration backups. |
 | 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
 | 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |

@@ -12,7 +12,7 @@ supabase gen types typescript --project-id <ref> \
   > app/packages/infrastructure-supabase/src/database.types.ts
 ```
 
-**GitHub Actions — DB deploy:** Workflow [`.github/workflows/db-deploy.yml`](../../.github/workflows/db-deploy.yml) applies migrations automatically on **push** to `dev` or `main` when migration-related paths change (see `ENVIRONMENTS.md` § DB deploy automation). It also supports **manual** `workflow_dispatch`: pick **target** `supabase-prod` or `supabase-dev` (each GitHub Environment must define the same three secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`). `SUPABASE_ACCESS_TOKEN` must be an **account** access token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens) (format `sbp_…`), not the project anon/publishable key. For manual runs, use **apply** unchecked first (dry-run), then checked. The workflow passes `--yes` to the CLI so non-interactive runs do not fail on prompts.
+**GitHub Actions — DB deploy:** migrations reach kc-dev and prod only through the **Deploy** workflow ([`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml), database stage [`deploy-db.yml`](../../.github/workflows/deploy-db.yml); see `ENVIRONMENTS.md` § Deploy pipeline): after a `dev` push passes CI it applies them to kc-dev, and after a `main` push passes CI and the owner approves the release it backs up prod (encrypted) and applies them there without `--include-all`. `deploy-db.yml` can also be dispatched by hand from the `dev` ref against kc-dev only (dry-run unless **apply** is ticked). Each GitHub Environment (`supabase-dev`, `supabase-prod`) defines `SUPABASE_ACCESS_TOKEN` (an **account** token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens), `sbp_…`, not a project key), `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`; `scripts/deploy-preflight.mjs` refuses a ref that does not match the target.
 
 ---
 
@@ -20,7 +20,7 @@ supabase gen types typescript --project-id <ref> \
 
 The repo uses **sequential** migration files (`supabase/migrations/NNNN_snake.sql`, e.g. `0212_glowe_event_registration.sql`). The `schema_migrations` ledger on each Supabase project must match those file versions exactly.
 
-**Rule:** apply schema changes to the dev DB ONLY as committed sequential files, via **`supabase db push`** / **`supabase migration up`** — or let the `DB deploy` workflow apply them on push to `dev`.
+**Rule:** apply schema changes to the dev DB ONLY as committed sequential files, via **`supabase db push`** / **`supabase migration up`** — or let the **Deploy** workflow apply them after a `dev` push passes CI.
 
 **Never** apply a dev schema change with the Supabase MCP **`apply_migration`** tool. It records a **TIMESTAMP** version (e.g. `20260701130827`) that has no local file. `supabase db push` then refuses to run — *"Remote migration versions not found in local migrations directory"* — and the next `DB deploy` on `dev` fails until the ledger is repaired. (The MCP **`execute_sql`** tool is fine for read-only inspection; it does not touch the ledger.)
 
@@ -39,6 +39,22 @@ supabase db push --dry-run --include-all --linked --yes   # → "Remote database
 ```
 
 `node scripts/check-migration-drift.mjs` is the same detector the CI guard runs (pipe `supabase migration list --linked` into it).
+
+---
+
+## Restore a pre-migration backup (prod) {#restore-backup}
+
+Before a prod release applies migrations, the database stage of **Deploy** (`deploy-db.yml`, job `backup (prod)`) dumps prod when `supabase/migrations` changed since the last `v*` tag. The dump streams straight into [`age`](https://age-encryption.org), encrypted to the public key in the `supabase-prod` variable `BACKUP_AGE_RECIPIENT`; plaintext never touches the runner disk or the log. The run keeps artifact `prod-db-backup-<sha>-<attempt>` (`schema.sql.age`, `data.sql.age`) for **14 days**. It holds user PII: only the owner holds the private key, and decrypted files must never be committed, uploaded or kept after the restore.
+
+Policy (`D-195`): the database is **forward-fix only**. Restore only when a forward-fix migration cannot repair the damage (e.g. data destroyed), and only with the PM's typed confirmation (CLAUDE.md §7).
+
+1. Download the artifact from the Deploy run (Actions → run → Artifacts) to a private machine.
+2. Decrypt with the owner's private key: `age -d -i key.txt -o schema.sql schema.sql.age` and the same for `data.sql.age`.
+3. Prefer restoring into a **new** Supabase project (or a branch) and copying the lost rows back; replaying a full dump over live prod also drops everything written since the backup.
+4. Restore: `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f schema.sql` then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -c 'SET session_replication_role = replica' -f data.sql` (triggers off while the data loads).
+5. Delete the decrypted files (`shred -u schema.sql data.sql`).
+
+The key pair is created once by the owner: `age-keygen -o key.txt` prints the public key (`age1…`) to put in `BACKUP_AGE_RECIPIENT`; `key.txt` stays offline. Without the variable, the prod preflight fails and nothing deploys.
 
 ---
 
@@ -288,8 +304,7 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 
 ## Edge Functions — CI deploy + prod smoke (2026-05-12)
 
-**Workflow:** `.github/workflows/supabase-functions-deploy.yml`  
-**Triggers:** `push` to `dev` or `main` when `supabase/functions/**` or the workflow file changes (`dev` → `supabase-dev`, `main` → `supabase-prod`); manual **Run workflow** (`workflow_dispatch`) with target choice.
+**Workflow:** the Edge Functions stage of **Deploy** (`.github/workflows/deploy-functions.yml`), after the database stage, for every `dev` push that passes CI (kc-dev) and every approved `main` release (prod). It deploys every function in `supabase/functions` except `_shared` and the local-only `mock-login`; the deploy smoke then sends `OPTIONS` to each and fails on a 5xx or 404. No push or manual trigger of its own — dispatch **Deploy** on `dev` to redeploy kc-dev.
 
 **GitHub:** Repository → Settings → Environments → `supabase-prod` / `supabase-dev` must expose the same secrets as DB deploy:
 
@@ -317,7 +332,7 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
 
-**After merge:** open Actions → latest **Supabase Functions deploy** run → confirm **Deploy all Edge Functions** succeeded. If it failed: fix secrets/permissions, re-run the job or use **Run workflow**.
+**After merge:** open Actions → the **Deploy** run for the commit → confirm the `edge functions` and `smoke` stages succeeded. If a stage failed: fix secrets/permissions and re-run the failed jobs (on prod a failed release has already been rolled back to the previous tag).
 
 **One-time catch-up (if prod was behind `main`):** from a machine with the CLI logged in, at repo root:
 
@@ -395,7 +410,7 @@ Re-invoke until every entry's `more` is `false`.
 
 ### Run against prod
 
-Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function is deployed automatically by `.github/workflows/supabase-functions-deploy.yml` when `supabase/functions/**` changes land on `main`.
+Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function ships to prod with every approved release (Edge Functions stage of **Deploy**).
 
 ---
 
