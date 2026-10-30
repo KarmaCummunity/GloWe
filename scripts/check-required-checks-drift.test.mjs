@@ -70,7 +70,7 @@ test('parseRequiredTable errors when heading missing', () => {
 
 // Minimal valid ci.yml: `changes`, every planned lane, and a gate that depends
 // on all of them and runs always().
-const LANES = ['hygiene', 'static', 'frontend', 'backend', 'edge'];
+const LANES = ['hygiene', 'static', 'release', 'frontend', 'backend', 'edge'];
 const CI_WF = [
   'name: CI',
   'jobs:',
@@ -104,7 +104,6 @@ const ENV_OK = [
   '| Check | Workflow | Job |',
   '| --- | --- | --- |',
   '| Gate | CI | `CI gate` |',
-  '| Quality | CI — frontend | `typecheck · test · lint` |',
   '',
 ].join('\n');
 
@@ -114,13 +113,15 @@ const REL_OK = [
   '| Check | Workflow | Job |',
   '| --- | --- | --- |',
   '| Gate | CI | `CI gate` |',
-  '| Quality | CI — frontend | `typecheck · test · lint` |',
   '',
 ].join('\n');
 
 const FRONTEND_WF = 'name: CI — frontend\njobs:\n  quality:\n    name: typecheck · test · lint\n    steps:\n      - name: x\n';
 
-test('passes when every documented check maps to a real job', () => {
+/** A table with a second required check besides the gate. */
+const withQualityRow = (md) => md.replace('| Gate | CI | `CI gate` |', '| Gate | CI | `CI gate` |\n| Quality | CI — frontend | `typecheck · test · lint` |');
+
+test('passes when CI gate is the only documented check in both tables', () => {
   const root = makeRepo(
     { 'ci-frontend.yml': FRONTEND_WF },
     { environments: ENV_OK, release: REL_OK },
@@ -128,7 +129,22 @@ test('passes when every documented check maps to a real job', () => {
   try {
     const result = checkRequiredChecksDrift({ repoRoot: root });
     assert.equal(result.ok, true, result.errors.join('\n'));
-    assert.equal(result.checked, 4);
+    assert.equal(result.checked, 2);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('fails when a table requires any check besides CI gate, even a real one', () => {
+  const root = makeRepo(
+    { 'ci-frontend.yml': FRONTEND_WF },
+    { environments: ENV_OK, release: withQualityRow(REL_OK) },
+  );
+  try {
+    const result = checkRequiredChecksDrift({ repoRoot: root });
+    assert.deepEqual(result.errors, [
+      'docs/SSOT/RELEASE_CHECKLIST.md: "CI — frontend / typecheck · test · lint" must not be a required check; "CI gate" is the only one (D-195) — make it a ci.yml lane instead.',
+    ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -138,7 +154,7 @@ test('fails when a documented job was renamed in the workflow', () => {
   const renamed = 'name: CI — frontend\njobs:\n  quality:\n    name: typecheck and test and lint\n';
   const root = makeRepo(
     { 'ci-frontend.yml': renamed },
-    { environments: ENV_OK, release: REL_OK },
+    { environments: withQualityRow(ENV_OK), release: REL_OK },
   );
   try {
     const result = checkRequiredChecksDrift({ repoRoot: root });
@@ -153,7 +169,7 @@ test('fails when a documented job was renamed in the workflow', () => {
 test('fails when a documented workflow name does not exist', () => {
   const root = makeRepo(
     { 'other.yml': 'name: CI — something else\njobs:\n  a:\n    name: foo\n' },
-    { environments: ENV_OK, release: REL_OK },
+    { environments: withQualityRow(ENV_OK), release: REL_OK },
   );
   try {
     const result = checkRequiredChecksDrift({ repoRoot: root });
@@ -180,7 +196,7 @@ test('fails when the doc table parses to zero checks (format changed)', () => {
 });
 
 test('fails when a doc table drops the CI gate row', () => {
-  const noGate = ENV_OK.replace('| Gate | CI | `CI gate` |\n', '');
+  const noGate = withQualityRow(ENV_OK).replace('| Gate | CI | `CI gate` |\n', '');
   const root = makeRepo({ 'ci-frontend.yml': FRONTEND_WF }, { environments: noGate, release: REL_OK });
   try {
     const result = checkRequiredChecksDrift({ repoRoot: root });
@@ -203,7 +219,7 @@ test('checkGateWiring accepts inline and block needs lists', () => {
 });
 
 test('checkGateWiring flags a lane missing from the gate needs', () => {
-  const missing = CI_WF.replace(`    needs: [changes, ${LANES.join(', ')}]`, '    needs: [changes, hygiene, static, frontend, backend]');
+  const missing = CI_WF.replace(`    needs: [changes, ${LANES.join(', ')}]`, '    needs: [changes, hygiene, static, release, frontend, backend]');
   assert.deepEqual(checkGateWiring(missing), [
     '.github/workflows/ci.yml: job "edge" is missing from the "CI gate" needs: list — its failure would not block merges',
   ]);

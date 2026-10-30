@@ -2,13 +2,17 @@
 /**
  * Flags destructive SQL in migration files (prod safety gate).
  * Per-line override: append `migration-safety: allow` on the same line.
+ * `--release <base> <head>` is the stricter dev → main mode (see
+ * checkReleaseMigrations), run by the release lane of CI.
  */
+import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { basename, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_DIR = join(__dirname, '..', 'supabase', 'migrations');
+const REPO_ROOT = join(__dirname, '..');
+const DEFAULT_DIR = join(REPO_ROOT, 'supabase', 'migrations');
 
 /** @type {{ id: string; re: RegExp; hint: string }[]} */
 export const DESTRUCTIVE_RULES = [
@@ -38,14 +42,15 @@ const TEMP_TABLE_DROP = /\bDROP\s+TABLE\s+(IF\s+EXISTS\s+)?pg_temp\.[a-z0-9_"]+/
 /**
  * @param {string} content
  * @param {string} filename
+ * @param {{ honorAllow?: boolean }} [options] honorAllow=false scans marked lines too (release mode).
  */
-export function scanMigrationSql(content, filename) {
+export function scanMigrationSql(content, filename, { honorAllow = true } = {}) {
   const errors = [];
   const lines = content.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
-    if (line.includes(ALLOW_MARKER)) continue;
+    if (honorAllow && line.includes(ALLOW_MARKER)) continue;
 
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('--')) continue;
@@ -84,7 +89,62 @@ export function checkMigrationSafety(migrationsDir) {
   return { ok: errors.length === 0, errors };
 }
 
+/**
+ * File names a release PR body justifies, one line each:
+ *   Migration safety: 0450_drop_legacy.sql — <why this is safe, ≥ 10 chars>
+ */
+export function justifiedFiles(prBody) {
+  const re = /^migration safety:\s*(\S+\.sql)\s*[—:-]\s*\S.{9,}$/gim;
+  return new Set([...(prBody ?? '').matchAll(re)].map((m) => m[1]));
+}
+
+/**
+ * Release (dev → main) mode. On `main` the per-line `migration-safety: allow`
+ * marker alone is not enough: every destructive line in a migration this
+ * release adds or changes needs the marker AND a justification line for its
+ * file in the PR body, so the one human approving the release sees why.
+ * @param {{ name: string, content: string }[]} files changed migration files
+ * @param {string} prBody
+ */
+export function checkReleaseMigrations(files, prBody) {
+  const justified = justifiedFiles(prBody);
+  const errors = [];
+  for (const { name, content } of files) {
+    const honorAllow = justified.has(name);
+    for (const err of scanMigrationSql(content, name, { honorAllow })) {
+      errors.push(`${err}${honorAllow ? '' : ` — add \`Migration safety: ${name} — <reason>\` to the release PR body`}`);
+    }
+  }
+  return errors;
+}
+
+/** Migrations added or modified between `base` and `head` (merge-base diff). */
+function changedMigrations(base, head) {
+  const out = execFileSync(
+    'git',
+    ['diff', '--name-only', '--no-renames', '--diff-filter=AM', `${base}...${head}`, '--', 'supabase/migrations/*.sql'],
+    { cwd: REPO_ROOT, encoding: 'utf8' },
+  );
+  return out.split('\n').filter(Boolean).map((path) => ({
+    name: basename(path),
+    content: readFileSync(join(REPO_ROOT, path), 'utf8'),
+  }));
+}
+
+function releaseMain(base, head) {
+  if (!base || !head) {
+    console.error('usage: check-migration-safety.mjs --release <base-sha> <head-sha>  (PR body in $PR_BODY)');
+    process.exit(2);
+  }
+  const files = changedMigrations(base, head);
+  const errors = checkReleaseMigrations(files, process.env.PR_BODY);
+  for (const err of errors) console.log(`::error::${err}`);
+  if (errors.length) process.exit(1);
+  console.log(`✓ Release migration scan passed — ${files.length} changed migration file(s).`);
+}
+
 function main() {
+  if (process.argv[2] === '--release') return releaseMain(process.argv[3], process.argv[4]);
   const dir = process.argv[2] ?? DEFAULT_DIR;
   const result = checkMigrationSafety(dir);
   if (!result.ok) {

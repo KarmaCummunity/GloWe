@@ -6,7 +6,8 @@
 // a path that no lane claims and that is not provably inert turns every heavy
 // lane on instead of slipping through untested.
 //
-// Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_SHA, HEAD_SHA.
+// Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_REF (PR / merge-group
+// target branch), BASE_SHA, HEAD_SHA.
 // Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job, sonar,
 // and plan — a JSON object mapping every lane job id to whether it is needed.
 // scripts/ci-gate.mjs requires the plan to name every lane explicitly.
@@ -45,8 +46,13 @@ export const INERT = [
 
 const LANES = Object.keys(LANE_RULES);
 
-/** Every lane job id in ci.yml; the gate and the drift guard key on this list. */
-export const LANE_JOBS = ['hygiene', 'static', ...LANES];
+/**
+ * Every lane job id in ci.yml; the gate and the drift guard key on this list.
+ * `release` is the dev → main lane (source branch, strict migration scan,
+ * VERSION bump, dev E2E on the release head): needed for every change whose
+ * base is main, whatever it touches.
+ */
+export const LANE_JOBS = ['hygiene', 'static', 'release', ...LANES];
 
 /** Map changed paths to the heavy lanes they need. */
 export function classify(files) {
@@ -65,11 +71,15 @@ export function classify(files) {
  * Build the CI plan. `files` is null when the diff could not be computed;
  * that (like a manual dispatch) runs every lane.
  */
-export function plan({ event, draft, actor, ref, files }) {
+export function plan({ event, draft, actor, ref, baseRef, files }) {
   const isPr = event === 'pull_request';
   if (isPr && draft) {
     return { draft: true, sonar: false, plan: Object.fromEntries(LANE_JOBS.map((j) => [j, false])) };
   }
+  // A PR into main or a merge-queue group for main. The lane itself fails a
+  // merge group (no head branch to check), so main cannot use a merge queue
+  // to bypass the release checks.
+  const release = ['pull_request', 'merge_group'].includes(event) && baseRef?.replace(/^refs\/heads\//, '') === 'main';
   const allLanes = files === null || !['pull_request', 'merge_group', 'push'].includes(event);
   const lanes = allLanes ? Object.fromEntries(LANES.map((l) => [l, true])) : classify(files);
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
@@ -78,7 +88,7 @@ export function plan({ event, draft, actor, ref, files }) {
   return {
     draft: false,
     sonar: lanes.frontend && sonarTarget,
-    plan: { hygiene: isPr, static: true, ...lanes },
+    plan: { hygiene: isPr, static: true, release, ...lanes },
   };
 }
 
@@ -113,6 +123,7 @@ function main() {
     draft: env.DRAFT === 'true',
     actor: env.ACTOR,
     ref: env.REF,
+    baseRef: env.BASE_REF,
     files,
   });
   const lines = [

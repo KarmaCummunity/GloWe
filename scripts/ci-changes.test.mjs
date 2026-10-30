@@ -7,12 +7,12 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { LANE_JOBS, changedFiles, classify, plan } from './ci-changes.mjs';
 
-const PR = { event: 'pull_request', draft: false, actor: 'agent', ref: 'refs/pull/1/merge' };
-const ALL = { hygiene: true, static: true, frontend: true, backend: true, edge: true };
+const PR = { event: 'pull_request', draft: false, actor: 'agent', ref: 'refs/pull/1/merge', baseRef: 'dev' };
+const ALL = { hygiene: true, static: true, release: false, frontend: true, backend: true, edge: true };
 
 test('docs-only PR runs only hygiene and static', () => {
   const r = plan({ ...PR, files: ['docs/SSOT/BACKLOG.md', 'CLAUDE.md', '.claude/settings.json'] });
-  assert.deepEqual(r.plan, { hygiene: true, static: true, frontend: false, backend: false, edge: false });
+  assert.deepEqual(r.plan, { hygiene: true, static: true, release: false, frontend: false, backend: false, edge: false });
   assert.equal(r.sonar, false);
 });
 
@@ -23,7 +23,7 @@ test('the plan names every lane job explicitly', () => {
 
 test('app change runs frontend + sonar only', () => {
   const r = plan({ ...PR, files: ['app/apps/mobile/src/lib/x.ts'] });
-  assert.deepEqual(r.plan, { hygiene: true, static: true, frontend: true, backend: false, edge: false });
+  assert.deepEqual(r.plan, { hygiene: true, static: true, release: false, frontend: true, backend: false, edge: false });
   assert.equal(r.sonar, true);
 });
 
@@ -62,7 +62,7 @@ test('unclaimed non-inert path runs every lane (fail closed)', () => {
 test('draft PR plans every lane as not needed and flags draft', () => {
   const r = plan({ ...PR, draft: true, files: ['app/x.ts'] });
   assert.equal(r.draft, true);
-  assert.deepEqual(Object.values(r.plan), [false, false, false, false, false]);
+  assert.deepEqual(Object.values(r.plan), [false, false, false, false, false, false]);
 });
 
 test('unknown diff runs every lane', () => {
@@ -84,6 +84,27 @@ test('push runs sonar on main only', () => {
   const files = ['app/a.ts'];
   assert.equal(plan({ event: 'push', draft: false, actor: 'x', ref: 'refs/heads/main', files }).sonar, true);
   assert.equal(plan({ event: 'push', draft: false, actor: 'x', ref: 'refs/heads/dev', files }).sonar, false);
+});
+
+test('a PR into main needs the release lane, even when docs-only', () => {
+  assert.equal(plan({ ...PR, baseRef: 'main', files: ['docs/SSOT/BACKLOG.md'] }).plan.release, true);
+  assert.equal(plan({ ...PR, files: ['docs/SSOT/BACKLOG.md'] }).plan.release, false);
+});
+
+test('a merge group for main needs the release lane; one for dev does not', () => {
+  const group = { event: 'merge_group', draft: false, actor: 'x', ref: 'refs/heads/gh-readonly-queue/main/pr-1', files: [] };
+  assert.equal(plan({ ...group, baseRef: 'refs/heads/main' }).plan.release, true);
+  assert.equal(plan({ ...group, baseRef: 'refs/heads/dev' }).plan.release, false);
+});
+
+test('a draft PR into main plans nothing (the gate fails drafts)', () => {
+  assert.equal(plan({ ...PR, baseRef: 'main', draft: true, files: [] }).plan.release, false);
+});
+
+test('pushes and dispatches never run the release lane', () => {
+  for (const event of ['push', 'workflow_dispatch']) {
+    assert.equal(plan({ event, draft: false, actor: 'x', ref: 'refs/heads/main', baseRef: '', files: [] }).plan.release, false);
+  }
 });
 
 test('manual dispatch runs every heavy lane', () => {

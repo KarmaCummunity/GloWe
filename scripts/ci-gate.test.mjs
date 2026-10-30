@@ -61,3 +61,11 @@ test('manual dispatch gates only dev and main', () => {
   const errors = evaluateGate({ needs, plan: all, draft: false, event: 'workflow_dispatch', ref: 'refs/heads/feat/x' });
   assert.match(errors[0], /Manual runs gate only dev or main/);
 });
+
+test('a release into main cannot pass with the release lane skipped', () => {
+  const plan = { ...PLAN, release: true };
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: skipped }, plan }), [
+    'job "release" is needed for this change but was skipped',
+  ]);
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: ok }, plan }), []);
+});

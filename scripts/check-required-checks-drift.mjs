@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Guard: the required-status-check tables in the SSOT docs must reference
-// jobs that actually exist in .github/workflows/**, and the single required
-// check — the `CI gate` job in ci.yml (D-195) — must depend on every other
-// job in that workflow.
+// Guard: the required-status-check tables in the SSOT docs must list exactly
+// the single required check — the `CI gate` job in ci.yml (D-195) — which
+// must exist and depend on every other job in that workflow (including the
+// release lane that judges PRs into main).
 //
 // Why this exists: branch protection on `dev` and `main` enumerates required
 // checks by their exact display names (see docs/SSOT/ENVIRONMENTS.md "Dev
@@ -203,6 +203,11 @@ export function checkRequiredChecksDrift({ repoRoot = DEFAULT_REPO_ROOT } = {}) 
     }
     for (const { workflow, job } of pairs) {
       checked += 1;
+      // dev and main (incl. the release lane) both require only the gate; any
+      // other required context can hang "Expected" or bypass the lane plan.
+      if (workflow !== GATE.workflow || job !== GATE.job) {
+        errors.push(`${src.file}: "${workflow} / ${job}" must not be a required check; "${GATE.job}" is the only one (D-195) — make it a ci.yml lane instead.`);
+      }
       const jobs = workflows.get(workflow);
       if (!jobs) {
         errors.push(
