@@ -1536,10 +1536,27 @@ Owner rules that go with it:
 
 **Affected.** `.github/workflows/ci*.yml`, `scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`, `scripts/check-required-checks-drift.mjs`, `docs/SSOT/ENVIRONMENTS.md`, `docs/SSOT/RELEASE_CHECKLIST.md`, `docs/SSOT/BACKLOG.md` (`INFRA-CI-1..6`).
 
+## D-196 — Org finance: extend the `0170` ledger in place, multi-tenant by `org_id`, RPC-only, snapshots for public data (2026-10-30)
+
+**Decision.** The organization finance feature (`spec/19_org_finance.md`, FR-FIN-001..021) **extends** `finance_ledger_entries` from migration `0170` rather than introducing a second ledger: add `org_id` (backfilled to the platform org), accounts, categories, receipt and reconciliation columns; replace soft delete with **void**. Every finance table is tenant-scoped by `org_id`, RLS `SELECT` goes through `finance_can_view(org_id)`, and every write goes through `admin_finance_*` SECURITY DEFINER RPCs guarded by `finance_assert(org_id, permission)` (per `D-194` / ADR-002). The in-app payment tables (`0267–0270`) stay the source of truth and are mirrored into the ledger by an idempotent trigger keyed on `(source, source_ref)`; finance code never writes them. Public transparency never reads live tables: it reads immutable `org_transparency_snapshots` through an anon-safe RPC whose return type has no donor or counterparty fields. Files go to private buckets (`finance-attachments`, `org-documents`) served by short-lived signed URLs (lesson of `TD-11`). Migration range `0470–0489` claimed. Product decisions behind this: D76–D82 in `docs/spec/90_decisions_log.md`.
+
+**Why.** One ledger avoids a double source of truth for KC's own books, which already live in `0170`. Tenant scoping from day one is far cheaper than retrofitting it once other nonprofits keep books. Snapshots make "publish transparency" an explicit, reviewable act and make donor-privacy leaks structurally impossible.
+
+**Affected.** `supabase/migrations/0470–0489`, `app/packages/domain/src/finance/**`, `app/packages/domain/src/admin/AdminPermission.ts`, `app/packages/application/src/finance/**`, `app/packages/infrastructure-supabase/src/finance/**`, `app/apps/mobile/app/(admin)/finance/**`, `supabase/functions/finance-export/**`.
+
+## D-198 — Layered hierarchy view: reporting-chain levels on a masked, count-only base (2026-10-30)
+
+**Decision.** The admin portal's overview of the management structure is a stack of layers across every visible org, one layer per level of the reporting chain (`manager_grant_id`). Depth is unbounded: a grant sits one level below its visible manager; a grant without a visible manager falls back to its role's natural level (`roleBaseLevel`), so legacy grants created before automatic manager links still stack sensibly. Levels are computed over every visible grant before an org focus is applied, so focusing never re-levels anyone. The stack stands on a base layer that represents the whole community **by count only**. Named people come exclusively from `admin_org_tree` (active grants, RBAC-scoped); the `admin_hierarchy_census` RPC returns aggregates only (community size, distinct role-holders, per-org self-declared volunteer affiliates). Community membership includes suspended users (project book D84). Self-declared `org_memberships` rows are counted as affiliates and never rendered as named role-holders. The layers view is the default view of `(admin)/admins`; list and tree remain one tap away.
+
+**Why.** PM request (2026-10-30) for an advanced visual of the full hierarchy, from the hidden layer of all users up to the visible layers of role-holders, volunteers and managers in every org; the PM then ruled that depth is not fixed (manager → manager → … → volunteer manager → volunteer) and that a suspended user stays a regular member until an admin decides. Deriving levels from the chain rather than from role categories makes the view match the real organisation. Keeping identities on a single RBAC path (`admin_org_tree`) avoids a second visibility predicate to keep in sync; counts-only for the base honours the privacy floor; treating memberships as aggregates prevents self-declared affiliations from reading as granted authority.
+
+**Affected.** `supabase/migrations/0461_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
 | 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
 | 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
