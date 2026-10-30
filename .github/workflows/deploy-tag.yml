@@ -5,7 +5,8 @@ name: Deploy tag
 # deployed commit and a GitHub Release with generated notes since the
 # previous tag. Re-running a deploy of the same commit reuses its tag; the
 # same version on another commit fails (forgotten app/VERSION bump —
-# deploy.yml's resolve job already refuses that before deploying).
+# deploy.yml's resolve job already refuses that before deploying). The job
+# starts with the deploy guard (.github/actions/deploy-guard).
 
 on:
   workflow_call:
@@ -14,9 +15,14 @@ on:
         description: The released commit
         type: string
         required: true
+      approved_attempt:
+        description: run_attempt in which the release was approved (empty on dev)
+        type: string
+        required: true
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   tag:
@@ -27,6 +33,23 @@ jobs:
       SHA: ${{ inputs.sha }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      # The guard comes from deploy.yml's own commit, not the deployed one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .deploy-guard
+          sparse-checkout: |
+            .github/actions/deploy-guard
+            scripts/deploy-guard.mjs
+            scripts/release-version.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: ./.deploy-guard/.github/actions/deploy-guard
+        with:
+          target: prod
+          release-sha: ${{ inputs.sha }}
+          approved-attempt: ${{ inputs.approved_attempt }}
+
       # Full history and tags: the plan compares against existing v* tags,
       # and the push uses the persisted token.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

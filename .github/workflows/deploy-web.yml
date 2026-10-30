@@ -9,7 +9,8 @@ name: Deploy Web → Cloudflare Pages
 # (https://dev.karma-community.pages.dev), target prod → branch `main`, the
 # project's production branch (https://karma-community-kc.com). The build
 # stamps /version.json with that SHA (app/scripts/web-version.mjs), which the
-# deploy smoke then waits for.
+# deploy smoke then waits for. The job starts with the deploy guard
+# (.github/actions/deploy-guard).
 #
 # Environment cloudflare-<target> (no reviewers): CLOUDFLARE_API_TOKEN,
 # CLOUDFLARE_ACCOUNT_ID, EXPO_PUBLIC_SUPABASE_URL,
@@ -26,9 +27,14 @@ on:
         description: Exact commit to build and deploy
         type: string
         required: true
+      approved_attempt:
+        description: run_attempt in which the release was approved (empty on dev)
+        type: string
+        required: true
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -37,6 +43,23 @@ jobs:
     timeout-minutes: 30
     environment: cloudflare-${{ inputs.target }}
     steps:
+      # The guard comes from deploy.yml's own commit, not the deployed one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .deploy-guard
+          sparse-checkout: |
+            .github/actions/deploy-guard
+            scripts/deploy-guard.mjs
+            scripts/release-version.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: ./.deploy-guard/.github/actions/deploy-guard
+        with:
+          target: ${{ inputs.target }}
+          release-sha: ${{ inputs.sha }}
+          approved-attempt: ${{ inputs.approved_attempt }}
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.sha }}

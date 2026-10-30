@@ -11,7 +11,13 @@
 //     must not overwrite a newer deploy (the newer commit's own CI triggers
 //     its deploy);
 //   • a push-event CI run for that commit succeeded with its `CI gate` job
-//     successful (a dispatch cannot deploy an ungated commit).
+//     successful (a dispatch cannot deploy an ungated commit);
+//   • prod only: the commit is the merge commit of a merged dev → main PR of
+//     this repository (no direct pushes, no PRs from forks or other branches).
+// A workflow_run must also come from a CI run of this repository.
+//
+// deploy.yml runs this file from its own commit (github.workflow_sha), never
+// from the commit being judged.
 //
 // Env: EVENT_NAME, REF, SHA (github.sha), WORKFLOW_RUN (toJSON of
 // github.event.workflow_run, or empty), GITHUB_REPOSITORY, GITHUB_TOKEN.
@@ -24,11 +30,14 @@ export const BRANCH_TARGETS = { dev: 'dev', main: 'prod' };
 const GATE_JOB = 'CI gate';
 
 /** Branch, SHA and target of this deploy, or throw when the event cannot deploy. */
-export function resolveTarget({ event, ref, sha, workflowRun }) {
+export function resolveTarget({ event, ref, sha, workflowRun, repo }) {
   let branch;
   if (event === 'workflow_run') {
     if (workflowRun?.event !== 'push' || workflowRun?.conclusion !== 'success') {
       throw new Error(`CI run was a ${workflowRun?.event} event ending ${workflowRun?.conclusion}; only successful pushes deploy`);
+    }
+    if (workflowRun.head_repository?.full_name !== repo) {
+      throw new Error(`CI run came from ${workflowRun.head_repository?.full_name}, not ${repo}`);
     }
     branch = workflowRun.head_branch;
     sha = workflowRun.head_sha;
@@ -56,10 +65,25 @@ export async function findGatedRun(runs, jobsOf) {
   return null;
 }
 
+/** Number of the merged dev → main PR of `repo` whose merge commit is `sha`, or null. */
+export function findReleasePr(pulls, { repo, sha }) {
+  const pr = pulls.find(
+    (p) =>
+      p.merged_at &&
+      p.merge_commit_sha === sha &&
+      p.base?.ref === 'main' &&
+      p.base?.repo?.full_name === repo &&
+      p.head?.ref === 'dev' &&
+      p.head?.repo?.full_name === repo,
+  );
+  return pr?.number ?? null;
+}
+
 function githubApi(token, repo) {
   return async (path) => {
     const res = await fetch(`https://api.github.com/repos/${repo}${path}`, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) throw new Error(`GitHub API ${path} → HTTP ${res.status}`);
     return res.json();
@@ -78,7 +102,8 @@ async function main() {
     event: env.EVENT_NAME,
     ref: env.REF,
     sha: env.SHA,
-    workflowRun: env.WORKFLOW_RUN ? JSON.parse(env.WORKFLOW_RUN) : null,
+    workflowRun: env.WORKFLOW_RUN && env.WORKFLOW_RUN !== 'null' ? JSON.parse(env.WORKFLOW_RUN) : null,
+    repo: env.GITHUB_REPOSITORY,
   });
   const api = githubApi(env.GITHUB_TOKEN, env.GITHUB_REPOSITORY);
   const tip = (await api(`/branches/${branch}`)).commit.sha;
@@ -90,6 +115,11 @@ async function main() {
   const { workflow_runs: runs } = await api(`/actions/workflows/ci.yml/runs?head_sha=${sha}&event=push&per_page=20`);
   const runId = await findGatedRun(runs, async (id) => (await api(`/actions/runs/${id}/jobs?per_page=100`)).jobs);
   if (!runId) throw new Error(`no successful push CI run with a green "${GATE_JOB}" for ${sha}; refusing to deploy`);
+  if (target === 'prod') {
+    const pr = findReleasePr(await api(`/commits/${sha}/pulls`), { repo: env.GITHUB_REPOSITORY, sha });
+    if (!pr) throw new Error(`${sha} is not the merge commit of a merged dev → main PR of this repository; refusing to deploy prod`);
+    console.log(`Release PR #${pr}.`);
+  }
   console.log(`CI gate passed for ${sha} in run ${runId}; deploying ${branch} → ${target}.`);
   emit({ deploy: true, target, branch, sha });
 }

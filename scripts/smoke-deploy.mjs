@@ -10,22 +10,31 @@
 //              before version.json exists.
 //   web        `/` returns HTML and every script it references returns 200.
 //   supabase   Auth health (/auth/v1/health) answers 200 with the anon key.
-//   functions  every deployed Edge Function answers an OPTIONS preflight with
-//              neither a 5xx (crashing handler) nor a 404 (not deployed).
-//              Handlers that do not special-case OPTIONS answer 4xx (e.g. 405),
-//              which proves the function is deployed and boots.
+//   functions  every Edge Function with a probe in scripts/edge-functions.mjs
+//              (SMOKE_PROBES) answers one OPTIONS request with exactly the
+//              status its handler's first check returns — proof it is deployed
+//              and boots, without side effects. Functions with a `null` probe
+//              are not called (the deploy checks them ACTIVE).
 //
+// Every request has a timeout, so a hanging endpoint fails instead of
+// stalling the job.
 // Env: SMOKE_WEB_URL, SMOKE_SHA (empty = skip the SHA match, used after a
 // rollback with no earlier release tag), SMOKE_CHECKS (comma list, default
-// all), SMOKE_TIMEOUT_SECONDS (default 600), SUPABASE_URL, SUPABASE_ANON_KEY,
-// SMOKE_FUNCTIONS (space-separated names).
+// all), SMOKE_TIMEOUT_SECONDS (default 600), SUPABASE_URL, SUPABASE_ANON_KEY.
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { SMOKE_PROBES, listDeployableFunctions } from './edge-functions.mjs';
 
 export const ALL_CHECKS = ['version', 'web', 'supabase', 'functions'];
 const FIRST_DELAY_MS = 5_000;
 const MAX_DELAY_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 15_000;
+
+/** fetch with a per-request timeout (AbortSignal.timeout). */
+function request(fetch, url, init = {}) {
+  return fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+}
 
 /** Absolute URLs of every <script src> in `html`, resolved against `base`. */
 export function extractScriptSrcs(html, base) {
@@ -53,7 +62,7 @@ export async function waitForVersion({ webUrl, sha, timeoutMs, fetch, sleep, now
   let last = 'no response';
   for (let attempt = 1; ; attempt++) {
     try {
-      const res = await fetch(`${webUrl}/version.json?smoke=${now()}`, { cache: 'no-store' });
+      const res = await request(fetch, `${webUrl}/version.json?smoke=${now()}`, { cache: 'no-store' });
       const found = res.ok ? parseVersion(await res.text()) : null;
       if (found && (!sha || found.sha === sha)) return { ok: true, detail: `v${found.version} @ ${found.sha} (attempt ${attempt})` };
       last = found ? `serving ${found.sha}` : `HTTP ${res.status}, no version.json yet`;
@@ -68,14 +77,14 @@ export async function waitForVersion({ webUrl, sha, timeoutMs, fetch, sleep, now
 
 /** `/` must be HTML whose scripts (the JS bundle) all load. */
 export async function checkWeb({ webUrl, fetch }) {
-  const res = await fetch(`${webUrl}/`, { cache: 'no-store' });
+  const res = await request(fetch, `${webUrl}/`, { cache: 'no-store' });
   const html = await res.text();
   if (!res.ok || !/<html/i.test(html)) return { ok: false, detail: `GET / → HTTP ${res.status}, not an HTML page` };
   const scripts = extractScriptSrcs(html, `${webUrl}/`);
   if (scripts.length === 0) return { ok: false, detail: 'index.html references no script bundle' };
   const broken = [];
   for (const src of scripts) {
-    const r = await fetch(src);
+    const r = await request(fetch, src);
     if (r.status !== 200) broken.push(`${src} → HTTP ${r.status}`);
   }
   return broken.length ? { ok: false, detail: broken.join('; ') } : { ok: true, detail: `${scripts.length} scripts load` };
@@ -83,22 +92,38 @@ export async function checkWeb({ webUrl, fetch }) {
 
 /** Supabase Auth health with the public anon key: proves URL, key and project are live. */
 export async function checkSupabase({ supabaseUrl, anonKey, fetch }) {
-  const res = await fetch(`${supabaseUrl}/auth/v1/health`, { headers: { apikey: anonKey } });
+  const res = await request(fetch, `${supabaseUrl}/auth/v1/health`, { headers: { apikey: anonKey } });
   return res.status === 200 ? { ok: true, detail: 'auth health 200' } : { ok: false, detail: `auth health → HTTP ${res.status}` };
 }
 
-/** OPTIONS every function; a 5xx or 404 fails it. */
-export async function checkFunctions({ supabaseUrl, webUrl, names, fetch }) {
-  if (names.length === 0) return { ok: false, detail: 'no function names given' };
+/**
+ * One OPTIONS request per probed function (anon key + web origin); only the
+ * statuses its probe lists pass. `probes` maps name → probe, null (not probed)
+ * or undefined (no probe declared, which fails).
+ */
+export async function checkFunctions({ supabaseUrl, webUrl, anonKey, probes, fetch }) {
+  const names = Object.keys(probes);
+  if (names.length === 0) return { ok: false, detail: 'no functions to check' };
   const bad = [];
+  const skipped = [];
   for (const name of names) {
-    const res = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
+    const probe = probes[name];
+    if (probe === null) {
+      skipped.push(name);
+      continue;
+    }
+    if (!probe) {
+      bad.push(`${name} has no probe in scripts/edge-functions.mjs`);
+      continue;
+    }
+    const res = await request(fetch, `${supabaseUrl}/functions/v1/${name}`, {
       method: 'OPTIONS',
-      headers: { Origin: webUrl, 'Access-Control-Request-Method': 'POST' },
+      headers: { Origin: webUrl, 'Access-Control-Request-Method': 'POST', apikey: anonKey, Authorization: `Bearer ${anonKey}` },
     });
-    if (res.status >= 500 || res.status === 404) bad.push(`${name} → HTTP ${res.status}`);
+    if (!probe.expect.includes(res.status)) bad.push(`${name} → HTTP ${res.status} (expected ${probe.expect.join('/')}: ${probe.why})`);
   }
-  return bad.length ? { ok: false, detail: bad.join('; ') } : { ok: true, detail: `${names.length} functions answer` };
+  const note = skipped.length ? `; not probed: ${skipped.join(', ')}` : '';
+  return bad.length ? { ok: false, detail: bad.join('; ') + note } : { ok: true, detail: `${names.length - skipped.length} functions answer${note}` };
 }
 
 /** Run the selected checks; a thrown error becomes that check's failure. */
@@ -142,8 +167,8 @@ export function optionsFromEnv(env) {
     sha: env.SMOKE_SHA ?? '',
     timeoutMs: Number(env.SMOKE_TIMEOUT_SECONDS || 600) * 1000,
     supabaseUrl: needsSupabase ? need('SUPABASE_URL') : '',
-    anonKey: checks.includes('supabase') ? need('SUPABASE_ANON_KEY') : '',
-    names: (env.SMOKE_FUNCTIONS ?? '').split(/\s+/).filter(Boolean),
+    anonKey: needsSupabase ? need('SUPABASE_ANON_KEY') : '',
+    probes: Object.fromEntries(listDeployableFunctions().map((n) => [n, SMOKE_PROBES[n]])),
   };
 }
 

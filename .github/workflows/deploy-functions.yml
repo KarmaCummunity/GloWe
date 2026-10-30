@@ -7,8 +7,10 @@ name: Edge Functions deploy
 #
 # Deploys every function scripts/edge-functions.mjs lists (all of
 # supabase/functions except shared code and local-only mock-login) to the
-# target project, so the remote cannot drift behind the branch (TD-53). The
-# deploy smoke probes the same list.
+# target project, so the remote cannot drift behind the branch (TD-53), then
+# checks the project lists each one as ACTIVE. The deploy smoke probes the
+# ones that can be probed without side effects. The job starts with the
+# deploy guard (.github/actions/deploy-guard).
 #
 # Environment supabase-<target> (no reviewers): SUPABASE_ACCESS_TOKEN,
 # SUPABASE_DB_PASSWORD, SUPABASE_PROJECT_REF; optional variable
@@ -26,9 +28,18 @@ on:
         description: Exact commit whose functions to deploy
         type: string
         required: true
+      release_sha:
+        description: The release being deployed (differs from sha only in a rollback)
+        type: string
+        required: true
+      approved_attempt:
+        description: run_attempt in which the release was approved (empty on dev)
+        type: string
+        required: true
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -43,6 +54,23 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       BACKUP_AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
     steps:
+      # The guard comes from deploy.yml's own commit, not the deployed one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .deploy-guard
+          sparse-checkout: |
+            .github/actions/deploy-guard
+            scripts/deploy-guard.mjs
+            scripts/release-version.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: ./.deploy-guard/.github/actions/deploy-guard
+        with:
+          target: ${{ inputs.target }}
+          release-sha: ${{ inputs.release_sha }}
+          approved-attempt: ${{ inputs.approved_attempt }}
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.sha }}
@@ -77,3 +105,11 @@ jobs:
             supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --use-api
             echo "::endgroup::"
           done
+
+      # A function that failed to deploy is not ACTIVE; this also covers the
+      # functions the smoke has no probe for.
+      - name: Every function is ACTIVE
+        run: |
+          set -euo pipefail
+          supabase functions list --project-ref "$SUPABASE_PROJECT_REF" -o json > "$RUNNER_TEMP/functions.json"
+          node scripts/edge-functions.mjs --verify-active "$RUNNER_TEMP/functions.json"
