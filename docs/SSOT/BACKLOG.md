@@ -35,6 +35,15 @@
 |----|------|-------|--------|------|
 | DONATE-G8b | **Donation-to-KC confirmation + karma.** Grow webhook Edge Function (verify with Grow API, idempotent via `provider_webhook_events`), record the donation, award karma (1 per ₪10, 10/month standing order, cap 100 — §7.6). [blocked: Grow merchant account + API credentials — launch plan A11] | agent-be | ⏳ Planned | `spec/13_donations.md` FR-DONATE-011 AC8 · `docs/spec/93` G8 |
 
+## FINANCE — Org finance & transparency (`spec/19_org_finance.md`)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| FIN-P1 | **Phase 1 — Books + Section 46(a) + exports.** Org-scoped ledger (extend `0170`, backfill to platform org), roles `org_treasurer` / `org_accountant` + `finance.*` permissions + `finance_assert`, financial accounts, category tree + counterparty rules, entry lifecycle (void, locks), attachments bucket, 46(a) status card + certificate, receipt tracking + queue, automatic payment mirroring trigger + backfill, CSV/XLSX/PDF export Edge Function, `(admin)/finance/*` sub-tree replacing `/admin/money`. Migrations `0470–0479`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-001..011 |
+| FIN-P2 | **Phase 2 — Imports, reconciliation, reports, alerts.** CSV import wizard (bank / Bit / Paybox / generic, fingerprint dedupe), reconciliation screen + locks, five reports + export, budget vs actual, computed alerts + 30-day mute + daily digest notification, full overview dashboard. Remove `money.manage` alias and `/admin/money` redirect (`TD-201`). Migrations `0480–0485`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-012..017 |
+| FIN-P3 | **Phase 3 — Documents vault, transparency, donor receipts.** `org_documents` + private bucket + signed public URLs, transparency snapshots (build / review / publish / supersede) + toggles, `rpc_org_transparency` + `OrgTransparencySection` on the public nonprofit page, donor-side receipt state + download + `donation_receipt_ready` notification. Requires PM legal sign-off on public 46(a) wording (spec O3). Migrations `0486–0489`. | agent-fullstack | ⏳ Planned | `spec/19_org_finance.md` FR-FIN-018..021 |
+| ORG-PROFILE-SPEC | **Organization profile domain spec (D74).** Extended user profile with its own email identity, posts, followers, public page + org Admin Portal entry; hosts `OrgTransparencySection`. PM to brief; no code before the spec. | PM + agent | ⏳ Planned (needs PM brief) | `spec/20_organizations.md` (to be written) · `docs/spec/08_organizations.md` D74 |
+
 ## Deferred (post-MVP, still tracked)
 
 | ID | Task | Status | Spec |

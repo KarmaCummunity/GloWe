@@ -58,11 +58,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
 | 0453 | G34 / D63 listing-handoff karma per the §7.6 table (#1262) | in progress |
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
-| 0454–0459, 0461+ | — | free |
+| 0470–0489 | Org finance & transparency — `SSOT/spec/19_org_finance.md` FR-FIN-001..021 (P1 `0470–0479`, P2 `0480–0485`, P3 `0486–0489`) | claimed (spec only, no files yet) |
+| 0454–0459, 0461–0469, 0490+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0461+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0461–0469`, `0490+`.
 
 ## How to claim
 

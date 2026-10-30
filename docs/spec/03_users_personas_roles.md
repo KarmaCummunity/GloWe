@@ -20,6 +20,8 @@
 | Suspended user | Sees everything, cannot act, can chat with support (D33) | MVP |
 | Org-affiliated volunteer | Post on org's behalf, register to its events without verification (D22); logs hours approved by manager (D32) | MVP |
 | Organization account | Separate entity with roles (S15); always verified (D53); events, volunteers, jobs, directory | MVP |
+| Org treasurer | Keeps the org's books in the Admin Portal finance sub-tree: entries, receipts, 46(a) status, imports, reconciliation, exports (D68–D72) | Phase 2 |
+| Org accountant | External accountant / auditor: reads the org's books and exports; never writes (D68) | Phase 2 |
 | Medical body | Only publisher in the medical domain (D30) | Later |
 | Org manager / authorized security officer | Activates emergency mode **inside the org only** (D51) | Phase 2 |
 | Verified official/state body | Declares emergency within its permissions (D56, S42) | Phase 2 |

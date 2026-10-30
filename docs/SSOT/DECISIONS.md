@@ -1509,10 +1509,19 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `docs/architecture/adr/ADR-002-data-layer.md`, `supabase/migrations/**`, `app/packages/infrastructure-supabase/**`, `app/packages/application/src/ports/**`.
 
+## D-195 — Org finance: extend the `0170` ledger in place, multi-tenant by `org_id`, RPC-only, snapshots for public data (2026-10-30)
+
+**Decision.** The organization finance feature (`spec/19_org_finance.md`, FR-FIN-001..021) **extends** `finance_ledger_entries` from migration `0170` rather than introducing a second ledger: add `org_id` (backfilled to the platform org), accounts, categories, receipt and reconciliation columns; replace soft delete with **void**. Every finance table is tenant-scoped by `org_id`, RLS `SELECT` goes through `finance_can_view(org_id)`, and every write goes through `admin_finance_*` SECURITY DEFINER RPCs guarded by `finance_assert(org_id, permission)` (per `D-194` / ADR-002). The in-app payment tables (`0267–0270`) stay the source of truth and are mirrored into the ledger by an idempotent trigger keyed on `(source, source_ref)`; finance code never writes them. Public transparency never reads live tables: it reads immutable `org_transparency_snapshots` through an anon-safe RPC whose return type has no donor or counterparty fields. Files go to private buckets (`finance-attachments`, `org-documents`) served by short-lived signed URLs (lesson of `TD-11`). Migration range `0470–0489` claimed. Product decisions behind this: D68–D74 in `docs/spec/90_decisions_log.md`.
+
+**Why.** One ledger avoids a double source of truth for KC's own books, which already live in `0170`. Tenant scoping from day one is far cheaper than retrofitting it once other nonprofits keep books. Snapshots make "publish transparency" an explicit, reviewable act and make donor-privacy leaks structurally impossible.
+
+**Affected.** `supabase/migrations/0470–0489`, `app/packages/domain/src/finance/**`, `app/packages/domain/src/admin/AdminPermission.ts`, `app/packages/application/src/finance/**`, `app/packages/infrastructure-supabase/src/finance/**`, `app/apps/mobile/app/(admin)/finance/**`, `supabase/functions/finance-export/**`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.23 | 2026-10-30 | Added `D-195` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
 | 4.21 | 2026-10-16 | Added `D-192` (KC mobile store track + EAS CI; unpause #836 / #837). |
 | 4.20 | 2026-10-16 | Added `D-191` (GloWe translation engine ported to KC `translate` + `content_translations`). |
