@@ -10,7 +10,7 @@
 //
 // Run by .github/workflows/ops-health.yml. Env: OPS_ENV (dev | prod), SUPABASE_ACCESS_TOKEN,
 // SUPABASE_PROJECT_REF, GITHUB_TOKEN, GITHUB_REPOSITORY, OPS_ALERT_ASSIGNEE (optional).
-// `--dry-run` prints the planned actions and changes nothing.
+// `--dry-run` (or OPS_DRY_RUN=true) prints the planned actions and changes nothing.
 
 import { pathToFileURL } from 'node:url';
 import { planAlertActions, unavailableReport } from './health-alerts.mjs';
@@ -76,7 +76,7 @@ async function main(args) {
   const repo = requiredEnv('GITHUB_REPOSITORY');
   const summary = await runMonitor({
     env,
-    dryRun: args.includes('--dry-run'),
+    dryRun: args.includes('--dry-run') || process.env.OPS_DRY_RUN === 'true',
     runbookUrl: `https://github.com/${repo}/blob/dev/docs/SSOT/OPERATOR_RUNBOOK.md#ops-health-alerts`,
     supabase: supabaseManagement({
       projectRef: requiredEnv('SUPABASE_PROJECT_REF'),

@@ -70,5 +70,5 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           GITHUB_TOKEN: ${{ github.token }}
           OPS_ALERT_ASSIGNEE: ${{ vars.OPS_ALERT_ASSIGNEE || 'navesarussi' }}
-          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
-        run: node scripts/ops/health-monitor.mjs $DRY_RUN
+          OPS_DRY_RUN: ${{ inputs.dry_run }}
+        run: node scripts/ops/health-monitor.mjs
