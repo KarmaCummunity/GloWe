@@ -1,0 +1,11 @@
+# 14 — Phase map
+
+Order within a phase is a KC fill. **Current status (2026-10-30): store release paused; focus on spec, architecture and GTM.**
+
+| Phase | Contents |
+|---|---|
+| MVP — now | Active worlds: food, items, rides, time, money; other worlds shown "not active yet" (D3). One Post, form per type, feed with basic recommendations, sort & filter, toggle, closing, chat, likes & comments, notifications, karma config, expiry, volunteering & hours, events, reports, phone verification, rating & trust engine, org links, donation to KC via Grow, clean prod environment, WhatsApp message paste (S22). |
+| Next to launch | Housing (D30); medical page in hub; chat-export import and group bridge (D38); general emergency by main admin (D42, D51). |
+| Phase 2 | Full JGive-style money + section 46 (D20); smart recommendation engine (D27); knowledge & experiences worlds (D45); domain tag on every post + domain hubs (D36, D39–D41, D44, D45); challenges (D43); democracy knowledge & directory (D40); live WhatsApp bot; local & targeted emergency; ID + blue check. |
+| Phase 3 | Community polls & council (D40, GeoPoll); heritage timeline (D44); org CRM; AI assistant; connecting people in need to nonprofits. |
+| Vision | Binding votes, iron constitution, handover to the community (D40); international expansion. |

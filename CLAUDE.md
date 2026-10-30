@@ -11,15 +11,37 @@
 3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
 4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
 
-## Quick Start (read this first)
+## ⭐ Current status & product source of truth (read before anything else)
+
+- **Status (2026-10-30):** store release is **paused**. Focus: precise spec, architecture, and go-to-market. Development continues in Claude Code against this repo.
+- **Product source of truth:** the PM's Hebrew project book ("KC – ספר הפרויקט (מקור אמת)", product decision D35). Its English, agent-oriented derivation is [`docs/spec/`](./docs/spec/README.md) — start at its README. Where `docs/spec/` and a legacy `docs/SSOT/spec/*` FR conflict, **`docs/spec/` wins**; reconcile the legacy file in the same PR.
+- **Architecture:** [`docs/architecture/`](./docs/architecture/README.md) — current (from code) and target.
+- **ID namespaces:** product decisions are `D1…D58` (in `docs/spec/90_decisions_log.md`); engineering decisions are `D-*` / `EXEC-*` (in `docs/SSOT/DECISIONS.md`). KC fills pending approval are `S#`; implementation gaps are `G#`.
+
+### Working rules (PM-mandated)
+1. **Spec is the source of truth.** Spec first, then task, then code.
+2. **Every task or bug = code + spec section + automated test.** Cite the `docs/spec` section (and legacy FR-ID if any). Every bug fix ships a regression test that fails before the fix.
+3. **Meaningful names** in code and in product language: "giving world", "item subcategory", "post type" — **never a bare `categories`** / generic names. Follow [`docs/spec/94_glossary_and_naming.md`](./docs/spec/94_glossary_and_naming.md).
+4. **`PRD_V2_NOT_FOR_MVP/` is a treasure** — long-horizon vision. **Never archive, move or delete it.** Don't implement from it unless the spec links there; mine it when specifying later phases.
+5. **Secrets never in the repo** — reference secrets by *name* only (e.g. GitHub Environment secret names). No tokens, keys, personal emails or real user data in docs, code, tests or PR bodies.
+6. **Never describe security vulnerabilities publicly** (issues, PRs, docs, commit messages). Report them privately to the PM.
+7. Decisions taken in chat with the PM are written into `docs/spec/` (every affected section + `90_decisions_log.md`) in the same PR.
+
+### Standing goals (product decision D58)
+1. Continuous spec maintenance at every level (project book, PRD, SRS, technical docs).
+2. First release to the Apple App Store and Google Play, then continuous version updates.
+3. Professional, efficient, modular, scalable code.
+
+## Quick Start
 
 1. **Product focus.** KC mobile + web export (`app/apps/mobile/**`) and shared Supabase backend — see [`AGENTS.md`](./AGENTS.md).
 2. **Read order.**
-   1. [`docs/SSOT/BACKLOG.md`](./docs/SSOT/BACKLOG.md) — **open items only** (`⏳` / `🟡`)
-   2. Relevant [`docs/SSOT/spec/{domain}.md`](./docs/SSOT/spec/)
-   3. Scan [`docs/SSOT/TECH_DEBT.md`](./docs/SSOT/TECH_DEBT.md) for the area you touch
-   4. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
-3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**`, and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
+   1. [`docs/spec/README.md`](./docs/spec/README.md) — product project book (source of truth) and the section for your area
+   2. [`docs/SSOT/BACKLOG.md`](./docs/SSOT/BACKLOG.md) — **open items only** (`⏳` / `🟡`)
+   3. Relevant legacy [`docs/SSOT/spec/{domain}.md`](./docs/SSOT/spec/) for FR-IDs / ACs
+   4. Scan [`docs/SSOT/TECH_DEBT.md`](./docs/SSOT/TECH_DEBT.md) for the area you touch
+   5. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
+3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**` (vision treasure — never archive it), and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
 5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
 
@@ -27,7 +49,8 @@ Doc map for humans: [`docs/README.md`](./docs/README.md).
 
 ## 1. Required reading (before doing anything)
 
-1. **`docs/SSOT/spec/{domain}.md`** — single source of truth per feature domain. Each file is the full spec (FR-IDs, ACs, business rules) plus a status header (✅/🟡/⏳). Read only the file relevant to your task.
+0. **`docs/spec/`** — product project book (vision → worlds/domains → cross-cutting systems → governance/GTM/roadmap), D1–D58. Wins over legacy FR files.
+1. **`docs/SSOT/spec/{domain}.md`** — legacy per-domain FR spec (FR-IDs, ACs). Each file is the full spec (FR-IDs, ACs, business rules) plus a status header (✅/🟡/⏳). Read only the file relevant to your task.
 2. **`docs/SSOT/BACKLOG.md`** — priority-ordered task queue (what's next, who owns it).
 3. **`docs/SSOT/TECH_DEBT.md`** — active technical debt grouped by area. Scan items in the area you're touching before opening a PR; close adjacent debt opportunistically when scope is small.
 4. **`docs/SSOT/DECISIONS.md`** — architecture & product decisions (D-* and EXEC-*). Check before proposing structural changes.
@@ -50,13 +73,13 @@ docs/SSOT/spec/
 ├── 12_super_admin.md             FR-ADMIN-*
 ├── 13_donations.md               FR-DONATE-*
 ├── 14_karma.md                   FR-KARMA-*
-├── 14_responsive_desktop.md      FR-RESP-*
 ├── 15_rides.md                   FR-RIDE-*
 ├── 16_public_research.md         FR-RESEARCH-*
+├── 17_responsive_desktop.md      FR-RESP-*
 └── 18_translation.md             FR-TRANSLATE-*
 ```
 
-Note: dual `14_*` filenames are intentional legacy numbering — do not renumber.
+Note: `17_responsive_desktop.md` was formerly `14_responsive_desktop.md` (renamed 2026-10-30 to remove the duplicate `14_` and fill the missing `17_`). FR-RESP-* IDs are unchanged.
 
 ## 2. Spec Validation Gate
 
@@ -285,7 +308,9 @@ git branch -D feat/FR-AUTH-001-otp-login
 
 - **Never** force-push to `main`.
 - **Never** rewrite published history on a shared branch.
-- **Never** commit secrets (`.env`, API keys, tokens).
+- **Never** commit secrets (`.env`, API keys, tokens) — refer to them by name only.
+- **Never** describe security vulnerabilities in public issues, PRs, docs or commits.
+- **Never** archive, move or delete `PRD_V2_NOT_FOR_MVP/`.
 - **Never** merge a PR with red required checks.
 - **Never** open a PR without a `Mapped to spec` line.
 - **Never** delete a branch you didn't create unless the user asked.
@@ -310,7 +335,11 @@ When two agents are running concurrently:
 
 ## 10. How to pick the next task
 
-If no task was assigned: open `docs/SSOT/BACKLOG.md` (active open items only — not `archive/`) and pick the highest-priority `⏳ Planned` item. Move it to `🟡 In progress` before you start coding.
+Release is paused (see top), so priorities are:
+1. **Assigned task** from the PM — always first.
+2. **Spec work** — closing open questions / `S#` approvals in `docs/spec/92_open_questions.md` and `91_kc_fills_pending.md` only with the PM.
+3. **Implementation gaps** in `docs/spec/93_implementation_gaps.md` (`G#`) the PM has prioritized — each as a task with code + spec section + automated test.
+4. Otherwise: the highest-priority `⏳ Planned` item in `docs/SSOT/BACKLOG.md` (active open items only — not `archive/`) that does not contradict `docs/spec/`. Move it to `🟡 In progress` before you start coding.
 
 ## 11. Tech stack quick reference
 
@@ -328,7 +357,10 @@ If you don't see a home for something below, **ask the PM** before inventing a n
 | ------------------------- | -------------------------------------- |
 | **App semver (`x.x.x`)**  | **`app/VERSION`** (+ `glowe-version.js`; see banner § above) |
 | Priority queue            | `docs/SSOT/BACKLOG.md`                 |
-| Feature specs (FR-*)      | `docs/SSOT/spec/{domain}.md`           |
+| **Product project book**  | **`docs/spec/`** (English; Hebrew page is the human source of truth) |
+| Architecture (current/target) | `docs/architecture/`               |
+| Feature specs (FR-*, legacy) | `docs/SSOT/spec/{domain}.md`        |
+| Long-horizon vision       | `PRD_V2_NOT_FOR_MVP/` (never archive)  |
 | Tech debt register        | `docs/SSOT/TECH_DEBT.md`               |
 | Architectural decisions   | `docs/SSOT/DECISIONS.md`               |
 | Migration verification    | `docs/SSOT/OPERATOR_RUNBOOK.md`        |
