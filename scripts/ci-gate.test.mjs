@@ -42,6 +42,22 @@ test('fails when a skipped lane is absent from the plan', () => {
   ]);
 });
 
+test('an optional lane left out of the plan may only be skipped', () => {
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: skipped }, plan: PLAN }), []);
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: ok }, plan: PLAN }), [
+    'job "release" is not in the change detector\'s plan',
+  ]);
+});
+
+test('a release into main cannot pass with the release lane skipped or unwired', () => {
+  const plan = { ...PLAN, release: true };
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: skipped }, plan }), [
+    'job "release" is needed for this change but was skipped',
+  ]);
+  assert.deepEqual(evaluateGate({ ...PR, needs: NEEDS, plan }), ['job "release" is planned but missing from the gate\'s needs: list']);
+  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: ok }, plan }), []);
+});
+
 test('fails when a planned lane is not wired into needs', () => {
   const { edge: _edge, ...needs } = NEEDS;
   assert.deepEqual(evaluateGate({ ...PR, needs, plan: PLAN }), [
@@ -60,12 +76,4 @@ test('manual dispatch gates only dev and main', () => {
   assert.deepEqual(evaluateGate({ needs, plan: all, draft: false, event: 'workflow_dispatch', ref: 'refs/heads/dev' }), []);
   const errors = evaluateGate({ needs, plan: all, draft: false, event: 'workflow_dispatch', ref: 'refs/heads/feat/x' });
   assert.match(errors[0], /Manual runs gate only dev or main/);
-});
-
-test('a release into main cannot pass with the release lane skipped', () => {
-  const plan = { ...PLAN, release: true };
-  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: skipped }, plan }), [
-    'job "release" is needed for this change but was skipped',
-  ]);
-  assert.deepEqual(evaluateGate({ ...PR, needs: { ...NEEDS, release: ok }, plan }), []);
 });
