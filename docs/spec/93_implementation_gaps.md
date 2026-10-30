@@ -23,7 +23,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G17 | 🟡 2026-10-30 — Notification preferences & emergency group (D26, D42). Done: per-type opt-out model `kinds` + "Match suggestions" toggle (FR-NOTIF-017, `0460`). Open: other per-type toggles, per-channel preferences, `emergency` group | 07.11 |
 | G18 | Event post & registration (D31) | 08 |
 | G19 | Volunteer hours (D32) | 07.10 |
-| G20 | Report & suspension thresholds (D33) | 07.15 |
+| G20 | ✅ 2026-10-30 — Report & suspension thresholds: post 3 reports (14 d) → hidden for review; user 5 distinct reporters (30 d) → suspended; support stays reachable (D33, D61; migration `0452`) | 07.15 |
 | G21 | Housing world (D30) | 05.6 |
 | G22 | Wire the medical directory into the hub (D30) | 06 |
 | G23 | World hub infra + WorldHubConfig (D36) | 04 |
@@ -36,7 +36,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G30 | Registrar data import & proper-management badge (S35) | 12 |
 | G31 | Org verification levels, tags & filters (D53) | 08 |
 | G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
-| G33 | `hidden_pending_review` status; auto-moderation hides instead of removing (D33) | 07.15 |
+| G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
 | G34 | One closing system with one karma table (posts closure vs listing handoffs differ) (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
