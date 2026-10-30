@@ -1,11 +1,11 @@
 // Bubble for a single chat message — FR-CHAT-002 AC2/AC4.
 // FR-ADMIN-005 — admins can long-press a user-kind bubble to hard-delete it.
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import type { MessageReactionType } from '@kc/infrastructure-supabase';
 import { Ionicons } from '@expo/vector-icons';
 import type { OptimisticMessage } from '../store/chatStore';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { SystemMessageBubble } from './chat/system/SystemMessageBubble';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../hooks/useAdminRoles';

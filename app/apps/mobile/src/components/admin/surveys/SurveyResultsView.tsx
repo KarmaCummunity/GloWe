@@ -2,11 +2,11 @@
 // FR-ADMIN-021 — survey detail: per-question stats + per-user answers; the Sean Ellis
 // survey also shows its PMF score card (KC#1058).
 import type { ReactElement } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyResults } from '@kc/domain';
 import type { PmfSurveyReportView } from '@kc/application';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { AdminListEmpty } from '../AdminListEmpty';
 import { QuestionStatCard } from './QuestionStatCard';

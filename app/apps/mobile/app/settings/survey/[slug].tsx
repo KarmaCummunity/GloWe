@@ -6,14 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useBreakpoint, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useBreakpoint, useTheme, Text } from '@kc/ui';
 import { hasSurveyAnswerValue, type SurveyBundle, type SurveyQuestion } from '@kc/domain';
 import { useDetailStackScreenOptions } from '../../../src/navigation/detailStackScreenOptions';
 import { SurveyQuestionMap } from '../../../src/components/survey/SurveyQuestionMap';

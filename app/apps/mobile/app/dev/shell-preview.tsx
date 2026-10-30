@@ -1,6 +1,6 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
-import { useTheme, useBreakpoint, spacing } from '@kc/ui';
+import { useTheme, useBreakpoint, spacing, Text } from '@kc/ui';
 import { AppShell } from '../../src/components/shell/AppShell';
 import { SHELL_V2_ENABLED } from '../../src/config/environment';
 

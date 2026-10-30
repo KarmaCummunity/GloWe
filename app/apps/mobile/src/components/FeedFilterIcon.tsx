@@ -3,10 +3,10 @@
 // >0 (FR-FEED-004 / replaces the deprecated FR-FEED-013 in-feed chip).
 
 import React from 'react';
-import { Platform, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { Platform, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, useTheme, Text } from '@kc/ui';
 import { isLayoutRtl } from '../lib/rtlLayout';
 
 /**

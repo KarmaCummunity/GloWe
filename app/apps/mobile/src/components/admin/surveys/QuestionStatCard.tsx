@@ -2,9 +2,9 @@
 // FR-ADMIN-021 — per-question aggregate stats with a 1..7 distribution chart, or per-option
 // counts for a single-choice question (KC#1058).
 import type { ReactElement } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { AdminSurveyQuestionStat } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

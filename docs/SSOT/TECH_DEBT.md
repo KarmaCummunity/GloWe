@@ -9,7 +9,7 @@
 > Live execution state lives in [`BACKLOG.md`](./BACKLOG.md). Per-feature status lives in [`spec/*.md`](./spec/). This file is the active debt register.
 
 **Severity**: 🔴 High · 🟠 Med · 🟢 Low
-**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-199+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
+**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-200+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
 
 ---
 
@@ -58,6 +58,7 @@
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-199 | 🟡 | **App code bypasses design tokens (ratcheted).** As of 2026-10-30 (D67), `apps/mobile/{src,app}` holds ~2,300 findings in 303 files: spacing literals ~870, `fontSize` ~460, `fontWeight` ~440, `borderRadius` ~355, colour ~100, physical left/right sides ~90, `fontFamily` 2. About half sit in admin screens. Frozen per file by `apps/mobile/src/__tests__/brandGuard.test.ts` + `brand-guard.baseline.json`; burn down area by area and lower the baseline. The touched-file rule (spec 17 §6, D67) makes every file a PR changes fully clean. Decide whether `13` joins the type scale or maps to `body`/`bodySmall`. | Touched-file rule + per-area cleanups (epic #1061) |
 | TD-194 | 🟡 | **Partially closed 2026-10-30** (baseline headers shipped; follow-up remains). Security/privacy hardening item (details reported privately to the PM). | P1 security |
 | TD-176 | 🟠 | **English UI bundle is machine-translated (FR-SETTINGS-018).** The `apps/mobile/src/i18n/locales/en/**` tree (~3,500 strings) was auto-translated from Hebrew and needs a native-English review pass for tone, idiom, and truncation (buttons/labels). A `localeParity` test guards key structure, but not wording quality. Translation subagents flagged specific judgment calls (unit order, gendered-slash collapses, `MA"B`/gemach glosses) in the PR body. | Post-launch polish |
 | TD-177 | 🟠 | **Residual hardcoded RTL not direction-aware (FR-SETTINGS-018).** The centralized helpers (`rtlTextAlignStart`, `rowDirectionStart`, `webTextRtl`, `textAlignStart()`, `layoutWritingDirectionStyle()`) now follow the active language, but ~30 scattered `writingDirection: 'rtl'` hardcodes remain in long-form content (legal readers/markdown, survey field styles, a few modals/PostCard). In English these areas render RTL-biased. Migrate each to `layoutWritingDirectionStyle()` / `isLayoutRtl()`. | Post-launch polish |

@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { isAuthError } from '@kc/application';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { useAuthStore } from '../../store/authStore';
 import {
   getOAuthRedirectUri,

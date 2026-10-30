@@ -2,9 +2,8 @@
 // FR-SETTINGS-016 AC1-2: rating row with per-question anchors + optional text.
 // AC8 (KC#1058): a single-choice question shows its options instead of the rating row.
 import React from 'react';
-import { Text, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import type { SurveyQuestion } from '@kc/domain';
 import { Card } from '../../../components/ui/Card';
 import { SurveyRatingRow } from '../../../components/survey/SurveyRatingRow';

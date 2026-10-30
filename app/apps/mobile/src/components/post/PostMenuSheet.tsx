@@ -3,11 +3,11 @@
 import { useState, type ComponentProps } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { container } from '../../lib/container';
-import { Modal, Text, Pressable, ScrollView, View, StyleSheet } from 'react-native';
+import { Modal, Pressable, ScrollView, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 import { ConfirmActionModal } from './ConfirmActionModal';

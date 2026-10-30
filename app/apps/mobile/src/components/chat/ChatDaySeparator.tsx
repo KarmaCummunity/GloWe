@@ -1,8 +1,8 @@
 // Centered day label between message groups — FR-CHAT-002.
 import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 
 function startOfLocalDay(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();

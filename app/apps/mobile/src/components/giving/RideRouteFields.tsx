@@ -1,9 +1,8 @@
 // Ride origin/destination picker: fills origin_*/dest_* (label, lat, lng, city_id) in
 // listing details from public.cities, so riders never type coordinates.
 import React, { useState } from 'react';
-import { Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography } from '@kc/ui';
+import { makeUseStyles, typography, Text } from '@kc/ui';
 import { withRideEndpoint } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { cityToRideEndpoint } from '../../services/ridesKnowledgeComposition';

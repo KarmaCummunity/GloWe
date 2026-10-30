@@ -1,8 +1,8 @@
 // FR-MOD-010 — owner-facing notice when their post has been auto-removed.
 // Read-only; no admin actions.
 import React from 'react';
-import { View, Text } from 'react-native';
-import { makeUseStyles, radius, typography } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, radius, typography, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
 import type { SystemMessageBubbleProps } from './SystemMessageBubble';

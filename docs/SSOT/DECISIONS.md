@@ -1501,6 +1501,14 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `.github/workflows/ci-*.yml`, `.github/actions/setup-pnpm-turbo`, `app/turbo.json`, `app/apps/mobile/README.md`, `docs/SSOT/ENVIRONMENTS.md`.
 
+## D-194 — Data-layer contract: RPCs, tables, repositories, types (2026-10-30)
+
+**Decision.** Adopt [ADR-002](../architecture/adr/ADR-002-data-layer.md) as the data-access contract: adapters in `infrastructure-supabase` are the only callers of `.rpc()` / `.from()`; direct table access only for RLS-expressible reads and single owner-scoped writes; everything rule-bearing goes through SECURITY DEFINER `rpc_*` / `admin_*` (role-gated) / `api_*` (service role) functions with explicit `revoke … from public, anon` + one grant; RLS on every table; SQL raises stable codes that adapters map to typed errors; `database.types.ts` is generated and drift-checked; migration numbers are claimed in `MIGRATION_RANGES.md`. The ADR's checklist is the definition of done for a new RPC.
+
+**Why.** KC#1016. About 124 client-facing functions and 200 adapter RPC calls had no written rule, which led to type drift, `anon`-callable functions and raw `Error`s reaching the UI.
+
+**Affected.** `docs/architecture/adr/ADR-002-data-layer.md`, `supabase/migrations/**`, `app/packages/infrastructure-supabase/**`, `app/packages/application/src/ports/**`.
+
 ## Change Log
 
 | Version | Date | Summary |

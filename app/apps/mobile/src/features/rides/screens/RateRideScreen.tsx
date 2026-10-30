@@ -2,12 +2,12 @@
 // Shows the list of counterpart users to rate (driver-rates-rider or
 // rider-rates-driver, never rider-to-rider).
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 
 import { TopBar } from '../../../components/TopBar';
 import { Screen } from '../../../components/ui/Screen';
