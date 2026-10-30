@@ -43,7 +43,8 @@
    5. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
 3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**` (vision treasure — never archive it), and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
-5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+5. **Autonomous loop.** When running via `scripts/agent-loop/`, follow [`docs/process/AGENT_LOOP.md`](docs/process/AGENT_LOOP.md).
+6. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
 
 Doc map for humans: [`docs/README.md`](./docs/README.md).
 
