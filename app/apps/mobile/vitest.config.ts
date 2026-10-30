@@ -45,7 +45,6 @@ export default defineConfig({
         'src/services/devAutoSignIn.ts',
         'src/services/avatarUpload.ts',
         'src/services/imageUpload.ts',
-        'src/services/mediaEncoding.ts',
         'src/services/postMessages.ts',
         'src/services/authMessages.ts',
         'src/services/postFormConfirm.ts',
