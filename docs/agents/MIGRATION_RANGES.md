@@ -64,11 +64,13 @@ Last applied on kc-dev when this was written: `0239`.
 | 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
 | 0462 | #1296 listing world subcategory must match the listing's world | in review |
 | 0470–0489 | Org finance & transparency — `SSOT/spec/19_org_finance.md` FR-FIN-001..021 (P1 `0470–0479`, P2 `0480–0485`, P3 `0486–0489`) | claimed (spec only, no files yet) |
-| 0463–0469, 0490+ | — | free |
+| 0463–0464 | — | free |
+| 0465 | FR-ADMIN-030 team management: org-scoped `admin_list_admins` + atomic `admin_change_role` (D-197) | in progress |
+| 0466–0469, 0490+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0463–0469`, `0490+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0463–0464`, `0466–0469`, `0490+`.
 
 ## How to claim
 

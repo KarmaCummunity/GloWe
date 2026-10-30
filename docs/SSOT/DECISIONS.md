@@ -1552,10 +1552,19 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0461_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
 
+## D-197 — Team management: role-derived permissions, org-run teams, atomic role change (2026-10-30)
+
+**Decision.** The admin person screen (`(admin)/admins/[userId]`) manages one person end to end, for any user. Permissions stay role-derived (project book D85): the portal lists each role's permissions from `PERMISSION_MATRIX` and offers no per-person override. Every org runs its own team (D86): org admins and the three manager roles gain the team-area permissions, `admin_list_admins` is scoped like `admin_org_tree`, and the UI offers only actions the server accepts, through a pure-domain mirror (`GrantAuthority`) of the FR-ADMIN-027 rules (migration `0442`): `can_grant_role` (role matrix + a role strictly junior to the viewer in that scope), `can_manage_grant` (the viewer holds a strictly more senior ancestor grant; never their own grant), and `admin_set_manager` (the new manager is the viewer or inside their subtree and strictly senior to the target; only `super_admin` detaches). A role change is one RPC, `admin_change_role`, gated like a revoke plus a grant (`can_manage_grant` on the grant, `can_grant_role` for both the old and the new role), that revokes the old grant and inserts the new one with the same user, scope and manager, and re-points the old grant's reports to it, in a single transaction; it is audited as the revoke + grant pair it is (existing audit actions, linked by `metadata.change_of`).
+
+**Why.** PM request (2026-10-30): manage the whole team from the hierarchy — view anyone, change their role and permissions, move them under another manager — with display and permissions as first-class parts. A revoke-then-grant pair from the client would leave the person outside the chain (their reports detached) and could fail halfway; doing it server-side in one transaction keeps the subtree intact. Mirroring the server's authority rules in the domain keeps unreachable actions out of the UI while the server stays the authority; if the two ever drift, an offered action only turns into a typed, localized error. Gating the change by position as well as by role closes the gap where a change could reach a grant outside the actor's subtree that a revoke could not. Reusing the existing audit actions avoids widening the audit check constraint and the audit viewer.
+
+**Affected.** `supabase/migrations/0465_admin_team_management.sql`, `app/packages/domain/src/admin/{GrantAuthority,AdminGrant,AdminPermission,AdminRoleError}.ts`, `app/packages/application/src/admin/{GrantAdminRoleUseCase,ChangeAdminRoleUseCase,IAdminRoleRepository}.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseAdminRoleRepository.ts`, `app/apps/mobile/app/(admin)/admins/[userId].tsx`, `app/apps/mobile/src/components/admin/admins/**`; FR-ADMIN-030.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.25 | 2026-10-30 | Added `D-197` (team management: role-derived permissions, org-run teams, position-gated atomic role change aligned with FR-ADMIN-027; FR-ADMIN-030). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
 | 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |
