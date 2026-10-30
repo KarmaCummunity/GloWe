@@ -1517,6 +1517,14 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
 
+## D-196 — Realtime: private DB Broadcast by default; realtime never the source of truth (2026-10-30)
+
+**Decision.** Adopt [ADR-003](../architecture/adr/ADR-003-realtime.md): new realtime features use database-sent Broadcast on a private, entity-scoped topic (`<entity>:<uuid>:<facet>`) authorized by an RLS policy on `realtime.messages` in the same migration; Presence only for who-is-here/online (one shared app-level channel for online presence); postgres_changes only for low-fan-out, owner-filtered streams. Adapters own channels behind ports; exact topics open through `openExactTopicChannel`, postgres_changes use a unique topic per mount. Payloads carry ids or pings, and clients re-read through RLS. Every realtime screen also loads by query and has a refetch or polling fallback. Topic registry: `docs/SSOT/social_realtime_conventions.md`.
+
+**Why.** KC#1017. Mechanism choice, auth and lifecycle lived only in migration comments; channel pile-up (#994) and the cost of postgres_changes fan-out (#878 / #879) needed one written rule.
+
+**Affected.** `supabase/migrations/**` (realtime policies + triggers), `app/packages/infrastructure-supabase/src/{realtime,chat,rides,users}/**`, realtime-consuming hooks in `app/apps/mobile/src/hooks/**`.
+
 ## Change Log
 
 | Version | Date | Summary |
