@@ -1,4 +1,4 @@
-// Compares the ci.yml a PR runs with the base commit's ci.yml (TD-202).
+// Compares the ci.yml a PR runs with the base commit's ci.yml (TD-203).
 //
 // ci.yml is read from the PR, so a PR could rewire its own lanes or gate job
 // (drop a lane from `needs:`, replace the judge step, change a lane's `if:`).

@@ -15,7 +15,7 @@
 //     gate's `needs:`;
 //   • a lane the plan marks as needed did not succeed (e.g. it was skipped);
 //   • the PR changed ci.yml's jobs or header (scripts/ci-workflow-diff.mjs)
-//     and no owner approved its head SHA (TD-202);
+//     and no owner approved its head SHA (TD-203);
 //   • a PR or review run targets a base other than dev/main;
 //   • on a review event, the PR's latest `pull_request` run for the head SHA
 //     is missing, unfinished after a wait, or cannot be bound to this PR and
