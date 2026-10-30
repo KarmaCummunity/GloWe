@@ -93,8 +93,37 @@ export default tseslint.config(
               importNames: ['Text', 'TextInput'],
               message: 'Import Text / TextInput from @kc/ui so text uses the brand font (spec 17 §4).',
             },
+            // Spec 17 §4.2 (D71) — Ionicons is the one icon set; other
+            // @expo/vector-icons families (MaterialIcons, Feather, …) are blocked.
+            {
+              name: '@expo/vector-icons',
+              allowImportNames: ['Ionicons'],
+              message: 'Ionicons is the only icon set (spec 17 §4.2): import { Ionicons } from @expo/vector-icons.',
+            },
           ],
           patterns: [
+            // Spec 17 §4.2 (D71) — deep imports of other families, and other icon
+            // libraries, would add a second visual language.
+            {
+              group: ['@expo/vector-icons/*', '!@expo/vector-icons/Ionicons'],
+              message: 'Ionicons is the only icon set (spec 17 §4.2): import { Ionicons } from @expo/vector-icons.',
+            },
+            {
+              group: [
+                'lucide-react-native',
+                'lucide-react',
+                'react-native-vector-icons',
+                'react-native-vector-icons/*',
+                '@react-native-vector-icons/*',
+                'react-native-feather',
+                'phosphor-react-native',
+                'react-native-heroicons',
+                'react-native-heroicons/*',
+                '@tabler/icons-react-native',
+                '@fortawesome/*',
+              ],
+              message: 'Ionicons is the only icon set (spec 17 §4.2); another icon library needs a PM decision.',
+            },
             {
               group: [
                 '**/i18n/locales/he',

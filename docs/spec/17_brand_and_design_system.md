@@ -1,6 +1,6 @@
 # 17 — Brand and design system
 
-> Decisions **D65, D66, D67** (2026-10-30). This file is the brand book for agents and designers. The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
+> Decisions **D65, D66, D67, D80** (2026-10-30). This file is the brand book for agents and designers. The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
 
 ## 1. Brand identity (D65)
 
@@ -52,7 +52,9 @@ packages/ui/tokens/kc.tokens.json   ← generated, W3C design-tokens format
 | Font | `theme/fonts.ts` | Brand font **Rubik** (Hebrew + Latin, rounded and warm like the logo; SIL OFL) in weights 400/500/600/700/800 (D66). Loaded by `apps/mobile/src/lib/useBrandFonts.ts` before the splash hides; falls back to the system font if loading fails. |
 | Typography | `theme/typography.ts` | Scale h1–h4, bodyLarge/body/bodySmall, button, label, caption. Hebrew RTL first. |
 | Spacing | `theme/spacing.ts` | 4-based scale `xs…4xl`; shell layout sizes in `shellDimensions`. |
-| Radius / elevation | `theme/spacing.ts` | `radius` xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67 — matches the values screens already used most); `shadow.card`, `shadow.modal`. |
+| Radius / elevation | `theme/spacing.ts` | `radius` xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67 — matches the values screens already used most); `shadow.card`, `shadow.modal` (neutral) and `shadow.glow` — the brand-coloured lift under primary calls to action (offset 0/4, opacity 0.3, blur 8, elevation 4; spread it and set `shadowColor: colors.primary`) (D80). |
+| Icon size | `theme/iconSize.ts` | `iconSize` xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24 (D80 — the six sizes screens already used most, ~85% of literal Ionicons sizes). |
+| Layers | `theme/zIndex.ts` | `zIndex` base 0 · raised 1 · overlay 2 · floating 20 · toast 9999 (D80 — the values already in use, so stacking does not change). |
 | Weight | `theme/typography.ts` | Weight modifiers `typography.medium / semiBold / bold / extraBold` (500–800), one per loaded Rubik face, spread over a size preset. |
 | Decoration orange | `theme/colors.ts` | `primaryVivid` `#F97316` — the same in both palettes; decoration only (no text, no meaning). Config files that cannot import tokens (`app.json` web `themeColor`, notification `color`, `app/+html.tsx`) are pinned to it by `brandGuard.test.ts`. |
 | Avatar colours | `theme/colors.ts` | `avatarPalette` — 8 theme-independent backgrounds with white initials, each ≥ 4.5:1. |
@@ -66,7 +68,11 @@ Usage rules for app code (`app/apps/mobile/**`):
 5. Corner radii come from `radius.*` — no raw `borderRadius: <number>` (`0` is allowed).
 6. Margin, padding and gap come from `spacing.*` (`0` is allowed). Layout sizes (widths, heights, rail and content widths) are not spacing; shell sizes live in `shellDimensions`.
 7. Use logical sides so layouts mirror between Hebrew (RTL) and English (LTR): `Start` / `End` properties and the `lib/rtlLayout.ts` helpers — never `textAlign: 'left' | 'right'`, `marginLeft`, `paddingRight`, `borderLeft*` or `borderTopLeftRadius`.
-8. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
+8. Icon sizes come from `iconSize.*` — no numeric `size={N}` on `Ionicons` (§4.2).
+9. Stacking order comes from `zIndex.*` — no raw `zIndex: <number>` (`0` is allowed).
+10. Shadows come from the `shadow.*` presets — no raw `shadowOpacity`, `shadowRadius`, `shadowOffset` or `elevation` numbers (`0`, which switches a shadow off, is allowed).
+11. Form fields use the kit `TextField` (`apps/mobile/src/components/ui/TextField.tsx`) instead of a raw `<TextInput`; a non-form input (chat composer, search bar) carries the allow-marker with its reason. Dialogs: a raw React Native `<Modal` is frozen at its current count until the shared modal exists (GitHub #1284). The UI kit folder (`apps/mobile/src/components/ui/`) is where these wrappers live, so these two rules do not apply there.
+12. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
 
 ### 4.1 Components
 
@@ -84,11 +90,12 @@ Screens are composed from shared components, not restyled per screen. Use these 
 | Section title, field label, icon tile, image, date/time field | `SectionHeading`, `FormFieldLabel`, `IconTile`, `KCImage`, `DateTimeField` | `apps/mobile/src/components/ui/` |
 | Avatar | `AvatarInitials` | `apps/mobile/src/components/` |
 
-Not built yet (GitHub epic #1061 / #1021): a shared text field, modal, bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+Not built yet (GitHub epic #1061 / #1021): a shared text field (`TextField`, being added to the kit), modal (#1284), bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
 
 ### 4.2 Icons
 
-- One icon set: **Ionicons** from `@expo/vector-icons`. Do not add another icon library or inline SVG icons without a decision.
+- One icon set: **Ionicons** from `@expo/vector-icons`. Do not add another icon library or inline SVG icons without a decision. ESLint `no-restricted-imports` blocks the other `@expo/vector-icons` families (named or deep imports) and other icon libraries (lucide, react-native-vector-icons, Feather, Phosphor, Heroicons, Tabler, Font Awesome) (D80).
+- Sizes come from `iconSize` (xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24). A larger hero / empty-state glyph (28+) stays off the scale with an end-of-line `brand-guard-allow: <reason>` on its `size=` line.
 - Directional icons (arrows, chevrons, "back") must mirror between RTL and LTR; non-directional icons never mirror.
 - Icon colours come from tokens (`colors.primary` for brand glyphs, `textSecondary` for neutral ones).
 
@@ -118,7 +125,8 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Brand identity | `packages/ui/src/__tests__/brandTokens.test.ts` + `apps/mobile/src/__tests__/brandGuard.test.ts` | the brand name / nickname, the locale `appName`s, or the store name in `app.json` drift |
 | Contrast floor | `packages/ui/src/__tests__/brandContrast.test.ts` | a required pair drops below AA, or a listed exception starts passing (stale) |
 | Brand font | `packages/ui/src/__tests__/brandFont.test.tsx` + ESLint `no-restricted-imports` | a weight stops mapping to its face, or app code imports `Text` / `TextInput` from `react-native` |
-| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file gains a colour, `fontSize`, `fontWeight`, `fontFamily`, `borderRadius` or spacing literal, or a physical (left/right) side, beyond its frozen baseline, or a new file has any |
+| Icon set | ESLint `no-restricted-imports` (`app/eslint.config.mjs`) | app code imports an icon family other than `Ionicons`, or another icon library (D80) |
+| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` (rules in `brandGuardRules.ts`, pinned by `brandGuardRules.test.ts`) | a file gains a finding beyond its frozen baseline, or a new file has any. Rules: `colorLiteral`, `fontSizeLiteral`, `fontWeightLiteral`, `fontFamilyLiteral`, `radiusLiteral`, `spacingLiteral`, `physicalSide`; since D80 also `iconSizeLiteral` (numeric Ionicons `size`), `zIndexLiteral`, `shadowLiteral`, `rawTextInput` (use `TextField`) and `rawModal` (count frozen until #1284) |
 | Touched-file rule | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file changed since the PR base still has any finding (D67) |
 | Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
 
@@ -133,7 +141,7 @@ The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. A
 3. After merge to `dev`, refresh Figma variables and the Claude Design project from `kc.tokens.json`.
 4. Exploratory design (new screens, components) may start in Figma or Claude Design; implementation must consume existing tokens or add new ones through step 1.
 
-## 8. Brand decisions log (D65, D66)
+## 8. Brand decisions log (D65, D66, D67, D80)
 
 | Question | Decision |
 |---|---|
@@ -146,5 +154,7 @@ The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. A
 | Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
 | Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
 | Admin surfaces | Same tokens and components, denser layout (D67) |
+| Icon, layer and shadow tokens | `iconSize` xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24; `zIndex` base 0 · raised 1 · overlay 2 · floating 20 · toast 9999; `shadow.glow` added beside `card` / `modal` — each matches the values screens already used most (D80) |
+| Components and icons in the guard | Ratchet adds icon size, z-index, shadow, raw `TextInput` and raw `Modal`; ESLint allows only Ionicons (D80) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.
