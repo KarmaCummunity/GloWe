@@ -5,16 +5,16 @@
 // Two palettes share the same token shape so the rest of the app can swap
 // at runtime via `useTheme()` (see `theme/ThemeContext.tsx`). The static
 // `colors` export keeps pointing at the light palette as the legacy default
-// for files that haven't migrated to the hook yet (tracked under TD-130).
+// for files that haven't migrated to the hook yet (tracked under TD-199).
 
 export interface ColorPalette {
-  // Brand — warm orange, symbolizes generosity
+  // Brand — warm orange, symbolizes generosity (light `primary` darkened for AA, D66)
   primary: string;
   primaryDark: string;
   primaryLight: string;
   primarySurface: string;
 
-  // Secondary — calm indigo for social/community feel
+  // Secondary — navy from the logo (K and globe ring), D66
   secondary: string;
   secondaryLight: string;
 
@@ -70,17 +70,17 @@ export interface ColorPalette {
 }
 
 export const lightColors: ColorPalette = {
-  primary: '#F97316',
-  primaryDark: '#EA580C',
+  primary: '#C2410C',  // AA: 5.2:1 with white text (D66); vivid #F97316 stays for decoration
+  primaryDark: '#9A3412',  // pressed state
   primaryLight: '#FED7AA',
   primarySurface: '#FFF7ED',
 
-  secondary: '#6366F1',
-  secondaryLight: '#E0E7FF',
+  secondary: '#203050',  // logo navy (D66)
+  secondaryLight: '#E3E8F2',
 
   success: '#22C55E',
   successLight: '#DCFCE7',
-  error: '#EF4444',
+  error: '#DC2626',  // AA on white
   errorLight: '#FEE2E2',
   warning: '#F59E0B',
   warningLight: '#FEF3C7',
@@ -100,14 +100,14 @@ export const lightColors: ColorPalette = {
   textDisabled: '#9CA3AF',
   textInverse: '#FFFFFF',
 
-  tabActive: '#F97316',
-  tabInactive: '#9CA3AF',
+  tabActive: '#C2410C',
+  tabInactive: '#7A818C',  // 3.9:1 on white (UI glyph AA)
   tabBarGlass: 'rgba(255, 255, 255, 0.72)',
 
-  giveTag: '#F97316',
+  giveTag: '#C2410C',
   giveTagBg: '#FFF7ED',
   requestTag: '#FFF7ED',
-  requestTagBg: '#F97316',
+  requestTagBg: '#C2410C',
 
   publicBadge: '#6B7280',
   followersOnlyBadge: '#8B5CF6',
@@ -128,8 +128,8 @@ export const darkColors: ColorPalette = {
   primaryLight: '#7C2D12',     // used for soft-brand tints on dark surfaces
   primarySurface: '#2A1810',   // deep warm brown for brand-chip backgrounds
 
-  secondary: '#818CF8',
-  secondaryLight: '#312E81',
+  secondary: '#A5B8DC',  // logo navy, lifted for dark surfaces
+  secondaryLight: '#1F2E4E',
 
   // Semantic — lifted toward HSL "brighter" variants for AA contrast on dark
   success: '#4ADE80',
@@ -179,5 +179,5 @@ export const darkColors: ColorPalette = {
 export type ColorToken = keyof ColorPalette;
 
 // Legacy export — files that haven't migrated to `useTheme()` keep importing
-// `colors` and silently render in light. Tracked under TD-130 (FE).
+// `colors` and silently render in light. Tracked under TD-199 (FE).
 export const colors: ColorPalette = lightColors;

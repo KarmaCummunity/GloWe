@@ -40,6 +40,7 @@ import { DevBanner } from '../src/components/DevBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
+import { useBrandFonts } from '../src/lib/useBrandFonts';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
 import { NavigationBar } from 'expo-navigation-bar';
@@ -181,6 +182,9 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
+  // Splash stays up (preventAutoHideAsync) until the brand font is ready.
+  const brandFontsReady = useBrandFonts();
+  if (!brandFontsReady) return null;
   if (!isSupabaseConfigured()) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>

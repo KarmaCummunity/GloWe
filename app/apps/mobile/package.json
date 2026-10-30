@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.0",
+    "@expo-google-fonts/rubik": "0.4.2",
     "@expo/metro-runtime": "6.1.2",
     "@expo/vector-icons": "^15.1.1",
     "@kc/application": "workspace:*",

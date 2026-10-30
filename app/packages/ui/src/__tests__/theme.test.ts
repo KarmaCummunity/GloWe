@@ -3,7 +3,7 @@ import { colors, spacing, radius, shadow, typography, fontFamily, shellDimension
 
 describe('theme/colors', () => {
   it('exposes the brand primary token', () => {
-    expect(colors.primary).toBe('#F97316');
+    expect(colors.primary).toBe('#C2410C');
   });
 
   it('exposes semantic status tokens (success / error / warning / info)', () => {

@@ -1,19 +1,14 @@
 // ─────────────────────────────────────────────
 // Typography — Karma Community
-// Hebrew RTL — using system font (SF Pro on iOS, Roboto on Android)
+// Hebrew RTL — brand font Rubik (see `fonts.ts`, D66). `Text` / `TextInput`
+// from @kc/ui resolve the weight-specific family, so presets only carry
+// size, weight and line height.
 // ─────────────────────────────────────────────
 
-import { Platform } from 'react-native';
+import { brandFontFamily } from './fonts';
 
-// Wrapped in try/catch: Platform.select fails in SSR/Node contexts (expo-router 5 route analysis).
-// Runtime behavior on iOS/Android/Web is unchanged.
-export const fontFamily = (() => {
-  try {
-    return Platform.select({ ios: 'System', android: 'Roboto', default: 'System' }) ?? 'System';
-  } catch {
-    return 'System';
-  }
-})();
+/** Regular brand face, for the rare style that sets a family explicitly. */
+export const fontFamily = brandFontFamily(400);
 
 export const typography = {
   // Display
