@@ -50,7 +50,7 @@ export async function initSentry(): Promise<void> {
       dsn: DSN,
       environment: env,
       enableAutoSessionTracking: true,
-      // Shared kupay-hb free quota: keep prod tracing <= 0.1 (shared-dev conventions).
+      // Free-tier Sentry quota: keep prod tracing <= 0.1 (shared-dev conventions).
       tracesSampleRate: env === 'prod' ? 0.1 : 1.0,
       enableNativeFramesTracking: true,
     });
