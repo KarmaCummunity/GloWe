@@ -6,7 +6,7 @@
 ## Pyramid
 
 1. **Unit** — `cd app && pnpm test` (vitest). Required on every PR to `dev`.
-2. **Contract / migrations** — `ci-backend`, `ci-contract`. Required on `dev`.
+2. **Contract / migrations / DB flows** — `ci-backend`, `ci-contract`. Required on `dev`. DB tests run through `scripts/run-db-tests.sh` (shared `kc_test` harness, per-migration tests, per-world lifecycle flows) — see [`supabase/tests/_harness/README.md`](../../supabase/tests/_harness/README.md).
 3. **Bundle smoke** — `scripts/smoke-web-bundle.mjs` on exported dist. Required on `dev`.
 4. **E2E (Web)** — Playwright vs `DEV_WEB_URL`. **Required** on PR `dev` → `main` (P0 journeys).
 5. **Performance** — Lighthouse + k6. Scheduled on `dev` (Wave 4); blocking only after budgets stabilize.

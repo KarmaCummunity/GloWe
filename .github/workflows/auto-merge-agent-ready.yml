@@ -1,20 +1,25 @@
-name: Auto-merge agent-ready PRs
+name: Auto-merge PRs
 
-# Enables squash auto-merge on PRs into `dev` labeled `agent-ready`.
-# GitHub then merges by itself once the dev ruleset is satisfied (`CI gate`
-# green, plus the owner's code-owner approval when the PR touches a
-# gate-critical path). Never touches `main`. Docs: docs/agents/OPERATING_MODEL.md.
+# Enables squash auto-merge on every non-draft PR into `dev` (no label needed).
+# Draft PRs are the opt-out: convert to ready to enter the merge flow.
+# GitHub then merges by itself once the dev ruleset is satisfied (`CI verdict`
+# and `CI gate` green, plus the owner's code-owner approval when the PR touches
+# a gate-critical path). Never touches `main`. Docs: docs/agents/OPERATING_MODEL.md.
 # Safe as pull_request_target: no checkout, and no PR code runs.
-# Same-repo heads only: only collaborators with write access can push to them,
-# so a label applied once cannot carry later commits from a fork.
+# Same-repo heads only: only collaborators with write access can push to them.
 #
 # Identity (INFRA-CI-6, TD-197): auto-merge is enabled with a token of the
-# agent GitHub App (secrets AGENT_APP_ID + AGENT_APP_PRIVATE_KEY), or else
-# the AGENT_MERGE_TOKEN secret. The merge GitHub performs later is attributed
-# to that identity, so its push to `dev` triggers the push workflows (CI →
-# Deploy, close-issues-on-dev-merge). GITHUB_TOKEN is never used: its pushes
-# start no workflows, so a merge made with it would skip push CI and every
-# deploy without any error. With neither secret set the job fails visibly.
+# agent GitHub App (AGENT_APP_ID + AGENT_APP_PRIVATE_KEY), or else
+# AGENT_MERGE_TOKEN. The merge GitHub performs later is attributed to that
+# identity, so its push to `dev` triggers the push workflows (CI → Deploy,
+# close-issues-on-dev-merge, auto-update-branches). GITHUB_TOKEN is never
+# used: its pushes start no workflows, so a merge made with it would skip push
+# CI and every deploy without any error. With no credential the job fails.
+#
+# The credentials are secrets of the `agent-merge` environment, whose
+# deployment-branch policy allows only `dev`: a pull_request_target job runs
+# on its base branch, so only PRs into dev reach them, and a workflow an agent
+# pushes on any other branch cannot read them (TD-223).
 
 on:
   pull_request_target:
@@ -34,22 +39,32 @@ jobs:
     if: >-
       github.event.pull_request.base.ref == 'dev' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.draft == false &&
-      contains(github.event.pull_request.labels.*.name, 'agent-ready')
+      github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: agent-merge
     permissions: {}
-    # Step `if:` cannot read secrets, so the job exposes whether the App
-    # credentials exist as a plain flag.
-    env:
-      HAS_AGENT_APP: ${{ secrets.AGENT_APP_ID != '' && secrets.AGENT_APP_PRIVATE_KEY != '' }}
     steps:
+      # Step `if:` cannot read secrets, so this step turns "are the App
+      # credentials configured?" into an output.
+      - name: Detect the agent App credentials
+        id: identity
+        env:
+          APP_ID: ${{ secrets.AGENT_APP_ID }}
+          APP_KEY: ${{ secrets.AGENT_APP_PRIVATE_KEY }}
+        run: |
+          if [ -n "$APP_ID" ] && [ -n "$APP_KEY" ]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Installation token scoped to this repository and to what enabling
       # auto-merge and deleting the head branch need. It expires within an
       # hour and the action revokes it when the job ends.
       - name: Mint agent GitHub App token
         id: app
-        if: env.HAS_AGENT_APP == 'true'
+        if: steps.identity.outputs.app == 'true'
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ secrets.AGENT_APP_ID }}
@@ -65,7 +80,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::error::No agent merge identity: set the AGENT_APP_ID + AGENT_APP_PRIVATE_KEY secrets (GitHub App, preferred) or AGENT_MERGE_TOKEN. GITHUB_TOKEN is not used because a merge made with it triggers no push CI and no deploy (TD-197). See docs/SSOT/OPERATOR_RUNBOOK.md § Owner setup for D-195 CI/CD."
+            echo "::error::No agent merge identity: set AGENT_APP_ID + AGENT_APP_PRIVATE_KEY (GitHub App, preferred) or AGENT_MERGE_TOKEN in the agent-merge environment. GITHUB_TOKEN is not used because a merge made with it triggers no push CI and no deploy (TD-197). See docs/SSOT/OPERATOR_RUNBOOK.md § Owner setup for D-195 CI/CD."
             exit 1
           fi
           gh pr merge "$PR" --repo "$REPO" --auto --squash --delete-branch

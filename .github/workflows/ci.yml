@@ -59,7 +59,7 @@ permissions: {}
 # that introduces a judge is merged once by the owner — OPERATOR_RUNBOOK.md
 # § Owner setup for D-195 CI/CD). ci.yml itself is read from the PR, so the
 # gate compares its jobs with the base copy and fails on any change no owner
-# approved (TD-202); the native backstop is the code-owner rule on .github/**.
+# approved (TD-203); the native backstop is the code-owner rule on .github/**.
 # Because any branch's workflow can post a check named `CI gate`, the ruleset
 # requires `CI verdict` (ci-verdict.yml), which re-verifies each run.
 env:

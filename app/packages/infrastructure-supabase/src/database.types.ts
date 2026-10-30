@@ -8566,6 +8566,10 @@ export type Database = {
         Args: { p_owner: string; p_viewer: string }
         Returns: number
       }
+      actor_scope_rank: {
+        Args: { p_actor: string; p_scope: string }
+        Returns: number
+      }
       add_volunteer_shift: {
         Args: {
           p_capacity?: number
@@ -9384,6 +9388,10 @@ export type Database = {
       can_contact_support: { Args: { uid: string }; Returns: boolean }
       can_grant_role: {
         Args: { granter_uid: string; target_role: string; target_scope: string }
+        Returns: boolean
+      }
+      can_manage_grant: {
+        Args: { p_actor: string; p_grant_id: string }
         Returns: boolean
       }
       cancel_giving_handoff: {
@@ -10861,6 +10869,7 @@ export type Database = {
       }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
       ride_templates_materialize: { Args: never; Returns: number }
+      role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {
         Args: { p_chat_id: string }
         Returns: undefined
