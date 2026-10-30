@@ -26,6 +26,9 @@ import { invalidatePersonalStatsCaches } from '../lib/invalidatePersonalStatsCac
 import { hapticSuccess } from '../lib/haptics';
 import { invalidateMyProfilePostQueries } from '../lib/invalidateMyProfilePostQueries';
 import { buildPostCreatePayload } from '../lib/unifiedCreate/unifiedCreatePayload';
+import { GENERAL_CREATE_CATEGORY } from '../lib/unifiedCreate/createCategories';
+import { trackActivationIfFirst, trackCoreLoop } from '../lib/analyticsCoreLoop';
+import { useAuthStore } from '../store/authStore';
 import type { UploadedAsset } from '../services/imageUpload';
 import type { PrePromptTrigger } from '../lib/notifications/usePushPermissionGate';
 
@@ -122,6 +125,10 @@ export function useCreatePostPublish(args: {
       }
       // FR-POST-007 AC4 — successful publish clears the local draft.
       usePostDraftStore.getState().clearDraft();
+      // Core-loop funnel (#1055, #1042): post-engine publishes count like marketplace listings.
+      const funnel = { world: GENERAL_CREATE_CATEGORY, cityId: city?.id ?? null };
+      trackCoreLoop('listing_created', funnel);
+      void trackActivationIfFirst({ ...funnel, accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt });
       await queryClient.invalidateQueries({ queryKey: ['feed'] });
       invalidateMyProfilePostQueries(queryClient, ownerId);
       await queryClient.invalidateQueries({ queryKey: ['openPostsCount'] });
