@@ -66,3 +66,10 @@ Also added to [93](./93_implementation_gaps.md).
 | Q-5 | **Karma for listing handoffs:** apply the §7.6 values (food 20/10, ride 25/10) to the listing handoffs too (currently 5/3)? Retroactively? | Changes users' karma totals |
 | Q-6 | **TestFlight database (D8 / G7):** which Supabase project do the repository-level secrets used by `testflight-ios.yml` point to? Recommendation: move them into a dedicated GitHub Environment (`supabase-prod-clean`) so the target is explicit. | Cannot be read from the repo |
 | Q-7 | **Supabase project refs:** `ENVIRONMENTS.md` and `CLAUDE.md` / `.mcp.json` name **different** projects as dev. Which is canonical? | Agents hold write authority on "dev" |
+| Q-8 | **Account deletion and shared chats:** deleting an account now removes the user's chat images. The counterpart keeps the (anonymized) chat, so those images disappear for them too. Confirm that right-to-be-forgotten wins over the counterpart's copy (current behavior), or keep them until the counterpart deletes the chat. | Privacy vs. counterpart experience |
+
+## 5. SSOT hygiene notes
+
+- **Tech-debt ID reuse.** Legacy spec headers cite `TD-69`, `TD-75` and `TD-79` for 2026-05-16 audit items, but `docs/SSOT/TECH_DEBT.md` now uses those IDs for unrelated rows (migration-drift guard, translation provider, translate tests). When reading a legacy header, treat its TD reference as **historical** and use `TECH_DEBT.md` as the live register. New IDs must never reuse a number.
+- **Migration registry.** `docs/agents/MIGRATION_RANGES.md` recorded `0440` for the world launch flags; the flags shipped as `0441`, and `0440` is the chat-media path change. Noted in the registry.
+- **CI script tests.** Before this PR only 2 of the 8 `scripts/*.test.mjs` suites ran in CI, and two Edge Function test files (`delete-account`, `revenuecat-webhook`) were never executed. Both are now wired.
