@@ -62,11 +62,17 @@ Last applied on kc-dev when this was written: `0239`.
 | 0455–0458 | #1058 Sean Ellis PMF survey (single-choice questions, `user_active_days`, admin PMF report) | in review |
 | 0459 | #1294 listing expiry from `details.expires_at`, food urgency on the 1–3 scale | in review |
 | 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
-| 0462+ | — | free |
+| 0462 | #1296 listing world subcategory must match the listing's world | in review |
+| 0463 | #1298 listing reports recorded, reported listings hidden for review | in review |
+| 0464 | #1297 chat from a listing opens and anchors the listing | in review |
+| 0465 | #1102 / #1111 `browse_listings` world subcategory filter | in review |
+| 0466 | #1306 "Rating given" karma for handoff and ride ratings | in review |
+| 0467 | #1316 food expiry notices (24 h before, at expiry), unclaimed expired food is `expired` | in review |
+| 0468+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0462+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0468+`.
 
 ## How to claim
 

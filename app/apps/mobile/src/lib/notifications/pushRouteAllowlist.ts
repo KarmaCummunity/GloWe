@@ -111,7 +111,16 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
   match_suggested: () => ({ pathname: '/matches', params: {} }),
   match_interest: () => ({ pathname: '/matches', params: {} }),
   match_accepted: () => ({ pathname: '/matches', params: {} }),
+  // KC#1316 — food expiry notices open the listing.
+  listing_expiring: (d) => listingRoute(d.params?.listingId),
+  listing_expired: (d) => listingRoute(d.params?.listingId),
 };
+
+/** Marketplace listing detail, only for a well-formed listing id. */
+function listingRoute(raw: string | undefined): ResolvedRoute | null {
+  const listingId = requireUuid(raw);
+  return listingId ? { pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId } } : null;
+}
 
 export function resolvePushRoute(data: Partial<PushData>): ResolvedRoute | null {
   const kind = data.kind;

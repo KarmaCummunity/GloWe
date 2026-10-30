@@ -25,6 +25,15 @@ describe('resolvePushRoute', () => {
     ).toEqual({ pathname: '/settings/follow-requests', params: {} });
   });
 
+  it.each(['listing_expiring', 'listing_expired'] as const)('routes %s to the listing (KC#1316)', (kind) => {
+    expect(
+      resolvePushRoute({ category: 'critical', kind, notification_id: 'n9', params: { listingId: UUID } }),
+    ).toEqual({ pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId: UUID } });
+    expect(
+      resolvePushRoute({ category: 'critical', kind, notification_id: 'n10', params: { listingId: 'not-a-uuid' } }),
+    ).toBeNull();
+  });
+
   it('rejects an unknown kind', () => {
     expect(
       resolvePushRoute({

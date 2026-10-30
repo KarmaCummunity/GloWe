@@ -31,7 +31,10 @@ export type NotificationKind =
   // Matching v2 (0420–0423) — automatic offer↔request suggestions + responses.
   | 'match_suggested'
   | 'match_interest'
-  | 'match_accepted';
+  | 'match_accepted'
+  // KC#1316 — food offer expiring within 24 h / expired unclaimed (spec 05 §5.1, S4).
+  | 'listing_expiring'
+  | 'listing_expired';
 
 /** Payload attached to every Expo push under `data`. The client reads this on tap. */
 export interface PushData {
