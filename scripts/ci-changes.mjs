@@ -12,10 +12,12 @@
 // it, and a docs-only push after a red (or never-run) push would otherwise
 // come out green without the code having passed.
 //
-// Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_SHA, HEAD_SHA.
-// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job, sonar,
-// and plan — a JSON object mapping every lane job id to whether it is needed.
-// scripts/ci-gate.mjs requires the plan to name every lane explicitly.
+// Inputs (env): EVENT_NAME, DRAFT, ACTOR, REF, BASE_REF (PR / merge-group
+// target branch), BASE_SHA, HEAD_SHA.
+// Outputs ($GITHUB_OUTPUT): draft, one true/false flag per lane job (and per
+// optional lane), sonar, and plan — a JSON object mapping every lane job id
+// to whether it is needed. scripts/ci-gate.mjs requires the plan to name
+// every lane explicitly; an optional lane is named only when it is needed.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -54,6 +56,16 @@ const LANES = Object.keys(LANE_RULES);
 /** Every lane job id in ci.yml; the gate and the drift guard key on this list. */
 export const LANE_JOBS = ['hygiene', 'static', ...LANES];
 
+/**
+ * Lanes that appear in the plan only when needed: `release`, the dev → main
+ * lane (source branch, strict migration scan, VERSION bump, dev E2E), needed
+ * for every PR or merge group whose base is main, whatever it touches. Never
+ * planned as `false`, so a ci.yml without the job (and the gate copy that
+ * predates it) keeps passing; scripts/ci-gate.mjs accepts the job as skipped
+ * when the plan omits it. Keep in sync with OPTIONAL_LANES there.
+ */
+export const OPTIONAL_LANES = ['release'];
+
 /** Map changed paths to the heavy lanes they need. */
 export function classify(files) {
   const lanes = Object.fromEntries(LANES.map((l) => [l, false]));
@@ -74,11 +86,15 @@ export const DIFF_EVENTS = new Set(['pull_request', 'merge_group']);
  * Build the CI plan. `files` is null when the diff could not be computed;
  * that (like a push or a manual dispatch) runs every lane.
  */
-export function plan({ event, draft, actor, ref, files }) {
+export function plan({ event, draft, actor, ref, baseRef, files }) {
   const isPr = event === 'pull_request';
   if (isPr && draft) {
     return { draft: true, sonar: false, plan: Object.fromEntries(LANE_JOBS.map((j) => [j, false])) };
   }
+  // A merge group for main is planned too; the release lane fails it (no
+  // head branch to check), so main cannot use a merge queue to skip release
+  // checks.
+  const release = DIFF_EVENTS.has(event) && baseRef?.replace(/^refs\/heads\//, '') === 'main';
   const allLanes = files === null || !DIFF_EVENTS.has(event);
   const lanes = allLanes ? Object.fromEntries(LANES.map((l) => [l, true])) : classify(files);
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
@@ -87,7 +103,7 @@ export function plan({ event, draft, actor, ref, files }) {
   return {
     draft: false,
     sonar: lanes.frontend && sonarTarget,
-    plan: { hygiene: isPr, static: true, ...lanes },
+    plan: { hygiene: isPr, static: true, ...lanes, ...(release ? { release: true } : {}) },
   };
 }
 
@@ -122,12 +138,14 @@ function main() {
     draft: env.DRAFT === 'true',
     actor: env.ACTOR,
     ref: env.REF,
+    baseRef: env.BASE_REF,
     files,
   });
   const lines = [
     `draft=${result.draft}`,
     `sonar=${result.sonar}`,
     ...LANE_JOBS.map((job) => `${job}=${result.plan[job]}`),
+    ...OPTIONAL_LANES.map((job) => `${job}=${result.plan[job] === true}`),
     `plan=${JSON.stringify(result.plan)}`,
   ];
   console.log(`changed files: ${files === null ? 'not diffed (all lanes)' : files.length}`);
