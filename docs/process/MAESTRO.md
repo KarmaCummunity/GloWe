@@ -29,6 +29,10 @@ Tracking issue: KC#1235. Workflow: [`ci-maestro-android.yml`](../../.github/work
 3. `scripts/maestro-run-android.sh` installs the APK on an API 34 emulator and runs each flow on its own, screen-recording it.
 4. Artifacts (`maestro-android`): JUnit per flow, Maestro debug output (screenshots, logs), and a video **only for failed flows**.
 
+Known emulator quirks the job handles:
+- The release lint step needs more than the template's 512 MB Metaspace; the workflow raises the Gradle daemon to `-Xmx4096m -XX:MaxMetaspaceSize=1536m` after prebuild.
+- A cold-booted emulator can show a system "Pixel Launcher isn't responding" dialog over the app. The runner sets `hide_error_dialogs`, and `dismiss-gates.yaml` taps "Wait" if one still appears. If every flow fails on its first assertion, check the failure video for a system dialog before suspecting the app.
+
 The check is **not required** for merge yet. Make it required (issue AC6) after it has been green for a week of PRs.
 
 ## Writing a flow

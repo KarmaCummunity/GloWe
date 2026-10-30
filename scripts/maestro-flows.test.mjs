@@ -57,3 +57,11 @@ test('every flow under flows/ links to its spec section', () => {
     assert.match(readFileSync(file, 'utf8'), /^# Spec: /m, `${file} has no "# Spec:" header`);
   }
 });
+
+test('system ANR dialogs from the emulator cannot cover the app', () => {
+  // Run 4 of KC#1235: a "Pixel Launcher isn't responding" dialog hid the welcome screen in every flow.
+  const runner = readFileSync(join(ROOT, 'scripts', 'maestro-run-android.sh'), 'utf8');
+  assert.match(runner, /^adb shell settings put global hide_error_dialogs 1$/m);
+  const gates = readFileSync(join(MAESTRO_DIR, 'subflows', 'dismiss-gates.yaml'), 'utf8');
+  assert.match(gates, /visible: "isn't responding"[\s\S]*tapOn: "Wait"/);
+});

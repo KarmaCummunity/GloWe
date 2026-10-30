@@ -1,6 +1,13 @@
 # Dismisses first-launch gates (consent / intro dialogs) when they appear; no-op otherwise.
+# Also answers a system "<app> isn't responding" dialog from the emulator (not from KC) with
+# "Wait", so it cannot cover the app; the runner already suppresses most of them.
 appId: org.karmacommunity.app
 ---
+- runFlow:
+    when:
+      visible: "isn't responding"
+    commands:
+      - tapOn: "Wait"
 - runFlow:
     when:
       visible: "המשך"

@@ -15,6 +15,12 @@ DEVICE_VIDEO=/sdcard/kc-e2e.mp4
 : "${KC_E2E_PASSWORD:?KC_E2E_PASSWORD is required (scripts/maestro-dev-env.mjs)}"
 
 mkdir -p "$OUT_DIR/reports" "$OUT_DIR/videos" "$OUT_DIR/debug"
+
+# A cold-booted CI emulator often shows "Pixel Launcher isn't responding" (a system ANR
+# dialog) on top of every app, which hides the app's elements from Maestro. Suppress system
+# crash / ANR dialogs for the run; dismiss-gates.yaml still taps "Wait" if one slips through.
+adb shell settings put global hide_error_dialogs 1
+
 adb install -r "$APK"
 
 env_args=(-e "KC_E2E_PASSWORD=$KC_E2E_PASSWORD")
