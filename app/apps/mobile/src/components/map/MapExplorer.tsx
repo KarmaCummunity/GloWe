@@ -146,7 +146,7 @@ export function MapExplorer({ initialWorld = null }: Readonly<{ initialWorld?: s
   );
 
   const selectedRide = selection?.length === 1 ? selection[0]!.route : null;
-  const openListing = (id: string) => router.push(`/(tabs)/donations/marketplace/${id}` as never);
+  const openListing = (id: string) => router.push(`/(tabs)/donations/marketplace/${id}`);
 
   const chips: Array<string | null> = [null, ...MARKETPLACE_WORLD_SLUGS];
 

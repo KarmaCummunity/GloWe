@@ -50,7 +50,7 @@ export default function AdminsScreen() {
 
   const canGrant = can('admins.grant_role');
   const openDetail = (userId: string) =>
-    router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId } } as never);
+    router.push({ pathname: '/(admin)/admins/[userId]', params: { userId } });
 
   return (
     <View style={styles.root}>

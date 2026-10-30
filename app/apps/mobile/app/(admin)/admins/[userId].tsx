@@ -64,7 +64,7 @@ export default function AdminDetailScreen() {
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push(`/user/${person.userId}` as never)}
+          onPress={() => router.push(`/user/${person.userId}`)}
           style={styles.profileBtn}
         >
           <Ionicons name="person-circle-outline" size={18} color={colors.primary} />

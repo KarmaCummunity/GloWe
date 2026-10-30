@@ -33,7 +33,7 @@ export function AnchoredRideCard({ anchorRideId }: Props) {
   const departsLabel = format(new Date(ride.departsAt), 'dd/MM HH:mm', { locale: dateFnsHe });
 
   const openRide = () => {
-    router.push(`/(tabs)/donations/rides/${ride.rideId}` as Parameters<typeof router.push>[0]);
+    router.push(`/(tabs)/donations/rides/${ride.rideId}`);
   };
 
   return (

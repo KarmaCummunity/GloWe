@@ -5,7 +5,7 @@ import type { IKcSupportChannelsRepository } from '../ports/IKcSupportChannelsRe
  * FR-DONATE-011 — resolves how a donor can support KC directly.
  *
  * The server-configured channels are the single source of truth (D20: the
- * provider is swappable without a release; D59: interim links are withdrawn
+ * provider is swappable without a release; D64: interim links are withdrawn
  * once clearing exists), so there is deliberately no compiled fallback — a
  * load failure propagates as `KcSupportChannelsError` and the UI shows the
  * "unavailable" state instead of possibly stale payment links.

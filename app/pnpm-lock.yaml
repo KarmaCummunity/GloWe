@@ -15,7 +15,7 @@ overrides:
   ws@6: '>=6.2.4'
   ws@7: '>=7.5.11'
   ws@8: '>=8.21.0'
-  hono@4: '>=4.12.25'
+  hono@4: '>=4.13.14'
   undici@6: ^6.28.1
   nanoid@3: ^3.3.18
   browserslist: ^4.28.7
@@ -279,10 +279,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: ^2.1.5
-        version: 2.1.5(hono@4.12.25)
+        version: 2.1.5(hono@4.13.14)
       hono:
-        specifier: '>=4.12.25'
-        version: 4.12.25
+        specifier: '>=4.13.14'
+        version: 4.13.14
 
   packages/application:
     dependencies:
@@ -1483,7 +1483,7 @@ packages:
     resolution: {integrity: sha512-MgP/I06GdvsilDspMk/qmRzpk8LOUStP6jFAbSRi40W09DhoyUn+Mj7eyKICPqeYKybOjVFLVIAQzvu1bfIa7Q==}
     engines: {node: '>=20'}
     peerDependencies:
-      hono: '>=4.12.25'
+      hono: '>=4.13.14'
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3931,8 +3931,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.12.25:
-    resolution: {integrity: sha512-2NFaIyNVgJmBs/ecmtGzlmluTFs5cHEWGTdu0t1HBwYzoGXOL5nUQBRMXsXWla5i4KkG//QMzVP88m1+I3fdAQ==}
+  hono@4.13.14:
+    resolution: {integrity: sha512-yhRLQ21U6qa9Hsu2N7Qcbh8tE+WKEcoErjIo56LeSGiGXGp9sA7UpE86Ui9uexb61KakiGwuHMn2QdV7w6i6kQ==}
     engines: {node: '>=16.9.0'}
 
   hookified@1.15.1:
@@ -7838,9 +7838,9 @@ snapshots:
       chalk: 4.1.2
       js-yaml: 5.5.0
 
-  '@hono/node-server@2.1.5(hono@4.12.25)':
+  '@hono/node-server@2.1.5(hono@4.13.14)':
     dependencies:
-      hono: 4.12.25
+      hono: 4.13.14
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -10819,7 +10819,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.12.25: {}
+  hono@4.13.14: {}
 
   hookified@1.15.1: {}
 

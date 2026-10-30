@@ -44,7 +44,7 @@ export function ProfileStatsAside() {
       <TouchableOpacity
         accessibilityRole="button"
         testID="aside-profile-all-stats"
-        onPress={() => router.push('/stats' as never)}
+        onPress={() => router.push('/stats')}
       >
         <Text style={styles.allLink}>{t('aside.profileAllStats')}</Text>
       </TouchableOpacity>

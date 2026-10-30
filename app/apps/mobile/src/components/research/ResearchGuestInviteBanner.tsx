@@ -21,7 +21,7 @@ export function ResearchGuestInviteBanner(): React.JSX.Element | null {
   if (isLoading || isAuthenticated) return null;
 
   function handleSignUp() {
-    router.push('/(auth)' as Href);
+    router.push('/(auth)');
   }
 
   return (

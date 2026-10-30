@@ -54,7 +54,7 @@ describe('buildKcSupportOptions', () => {
     expect(options.standingOrder?.url).toBe('https://pay.grow.link/monthly');
   });
 
-  it('withdraws Bit / PayBox once a one-time clearing page exists (D59)', () => {
+  it('withdraws Bit / PayBox once a one-time clearing page exists (D64)', () => {
     const options = buildKcSupportOptions([
       channel(),
       channel({ kind: 'paybox', url: 'https://links.payboxapp.com/x', providerLabel: 'PayBox' }),

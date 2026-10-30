@@ -25,7 +25,7 @@ export function TaskRow({ task }: TaskRowProps) {
     <Pressable
       style={styles.root}
       onPress={() =>
-        router.push({ pathname: '/(admin)/tasks/[taskId]', params: { taskId: task.taskId } } as never)
+        router.push({ pathname: '/(admin)/tasks/[taskId]', params: { taskId: task.taskId } })
       }
     >
       <View style={styles.header}>

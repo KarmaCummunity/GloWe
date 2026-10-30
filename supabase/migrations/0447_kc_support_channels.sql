@@ -61,7 +61,7 @@ grant select on public.kc_support_channels to anon;
 grant select, insert, update, delete on public.kc_support_channels to authenticated;
 
 -- Seed the two instant-transfer channels already published in FR-DONATE-010.
--- They are interim (D59): the app hides them once an active card_one_time row exists.
+-- They are interim (D64): the app hides them once an active card_one_time row exists.
 -- Card one-time / standing-order rows are inserted by the operator once the
 -- Grow merchant account exists (launch plan A11); until then the UI hides them.
 insert into public.kc_support_channels (channel, url, provider_label)

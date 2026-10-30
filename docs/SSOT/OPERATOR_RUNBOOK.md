@@ -405,8 +405,8 @@ The Money hub's *Support KC directly* card reads its payment links from `public.
 
 | `channel` | Shown as | Seeded |
 |---|---|---|
-| `bit` | One-time — Bit (interim, D59) | ✅ (FR-DONATE-010 link) |
-| `paybox` | One-time — PayBox (interim, D59) | ✅ (FR-DONATE-010 link) |
+| `bit` | One-time — Bit (interim, D64) | ✅ (FR-DONATE-010 link) |
+| `paybox` | One-time — PayBox (interim, D64) | ✅ (FR-DONATE-010 link) |
 | `card_one_time` | One-time — credit-card hosted page | ❌ add after Grow setup |
 | `card_standing_order` | Monthly standing order — hosted page | ❌ add after Grow setup |
 
@@ -423,7 +423,7 @@ on conflict (channel) do update
   set url = excluded.url, provider_label = excluded.provider_label, is_active = true;
 ```
 
-As soon as an active `card_one_time` row exists, the app hides Bit / PayBox on its own (D59) — on the Money hub and on the About / Settings card. Once clearing is confirmed working on prod, remove the interim rows for good: `delete from public.kc_support_channels where channel in ('bit', 'paybox');`
+As soon as an active `card_one_time` row exists, the app hides Bit / PayBox on its own (D64) — on the Money hub and on the About / Settings card. Once clearing is confirmed working on prod, remove the interim rows for good: `delete from public.kc_support_channels where channel in ('bit', 'paybox');`
 
 The app has **no compiled payment links**: if this table cannot be read, donors see "unavailable" rather than a stale link.
 

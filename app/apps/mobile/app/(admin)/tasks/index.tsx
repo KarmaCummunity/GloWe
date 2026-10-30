@@ -148,7 +148,7 @@ export default function TasksScreen() {
         right={can('tasks.create') ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push('/(admin)/tasks/new' as never)}
+            onPress={() => router.push('/(admin)/tasks/new')}
             style={styles.newBtn}
           >
             <Text style={styles.newBtnText}>{L.admin.tasks.newBtn}</Text>

@@ -28,8 +28,8 @@ Security work is tracked privately and is not listed here (README rule).
 | P1 | **Which group first: rides or items?** Name, size, admin contact | Everything in §4 |
 | P2 | **Launch worlds** — which `app_flags.world_*_enabled` are on at launch; the `rides` world is **off** today (`0441`). A rides group needs it on. Also D3 vs hiding (Q-1) | Launch scope, rides migration |
 | P3 | **Import consent (D54, open):** may non-members' messages appear (anonymously, 72 h) or only consenting members'? | Chat-export import design |
-| P4 | Moderation thresholds (Q-2, D33) | Launch moderation behavior |
-| P5 | Expiry per type + relevance reminder (G32, D21) — confirm before items stop expiring | Feed quality after launch |
+| P4 | ✅ D61 — Moderation thresholds (Q-2, D33) | Launch moderation behavior |
+| P5 | ✅ D59 — Expiry per type + relevance reminder (G32, D21) — confirm before items stop expiring | Feed quality after launch |
 | P6 | Approve the `S#` fills the launch relies on: S1–S4 (post lifecycle), S10 (notification defaults), S11–S12 (suspension), S21–S23 (import, claim, bridge), S34 (limits) | Irreversible behavior must not rest on `S#` alone |
 | P7 | Q-3, Q-4, Q-5, Q-8 in [95](./95_reconciliation.md) | Data cleanup, karma totals, deletion behavior |
 | P8 | Profile "marketplace" tab (G6, D14): remove it (a feature deletion) or keep for now? | Profile UI |

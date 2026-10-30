@@ -32,7 +32,7 @@ export function CaseReporterList({ reporters }: CaseReporterListProps) {
             key={r.reportId}
             accessibilityRole="button"
             accessibilityLabel={L.admin.caseDetail.openReporter(label)}
-            onPress={() => router.push(`/user/${r.reporterId}` as never)}
+            onPress={() => router.push(`/user/${r.reporterId}`)}
             style={styles.item}
           >
             <View style={styles.head}>

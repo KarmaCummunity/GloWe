@@ -6,7 +6,7 @@ Gaps filled by context. **Status of every row: pending approval.** Use as the wo
 |---|---|---|
 | S1 | Post state machine: open → (hidden_pending_review ↔ open) → closed_delivered / expired / deleted_no_recipient / removed_admin; reopen from closed_delivered and expired, by owner. | 07.1 |
 | S2 | Edit/delete: owner & super-admin; hide: KC admin; suspended user cannot create, edit, comment. | 07.1 |
-| S3 | Relevance reminder 14 days after publish then every 30 days; bump updates sort time, not created_at. | 07.1 |
+| S3 | ✅ Approved (D59) — Relevance reminder 14 days after publish then every 30 days; bump updates sort time, not created_at. | 07.1 |
 | S4 | Food expiry: alert 24h before and at expiry; close at midnight of the expiry date. | 07.1 |
 | S5 | Boost inside chosen sort: ≤1 promoted item per 5, labeled 'Recommended'. | 07.3 |
 | S6 | 'Friends' = people I follow; default 'Everyone'. | 07.3 |
@@ -14,7 +14,7 @@ Gaps filled by context. **Status of every row: pending approval.** Use as the wo
 | S8 | Comment on anonymous post shows commenter's name; anonymous poster replies as 'the poster'; one thread level. | 07.9 |
 | S9 | Comment deletion: author, post owner, admin; 3 reports hide a comment. | 07.9 |
 | S10 | Default: push for 'important', in-app only for 'social'; group per post per hour. | 07.11 |
-| S11 | Suspended: open posts hidden; '5' = 5 distinct reporters in 30 days. | 07.15 |
+| S11 | ✅ Approved (D61) — Suspended: open posts hidden; '5' = 5 distinct reporters in 30 days. | 07.15 |
 | S12 | Report review within 48h; malicious reports count against the reporter. | 07.15 |
 | S13 | Event: org picks world; optional capacity & waitlist; karma only for marked attendance. | 08 |
 | S14 | Unaffiliated volunteering: karma at closing by declared duration, ≤8h per post. | 07.10 |

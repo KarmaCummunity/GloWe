@@ -50,7 +50,7 @@ export const paymentsUseCases = {
   resumeStandingOrder: () => new ResumeStandingOrderUseCase(repo()),
   listHistory: () => new ListDonationHistoryUseCase(repo()),
   getReceipt: () => new GetDonationReceiptUseCase(repo()),
-  /** FR-DONATE-011 — direct support for KC; channels are server config only (D20, D59). */
+  /** FR-DONATE-011 — direct support for KC; channels are server config only (D20, D64). */
   kcSupportOptions: () => new GetKcSupportOptionsUseCase(new SupabaseKcSupportChannelsRepository(client())),
 };
 

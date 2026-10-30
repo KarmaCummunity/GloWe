@@ -32,7 +32,7 @@ const ONE_TIME_ORDER: readonly KcSupportChannelKind[] = ['bit', 'paybox', 'card_
 /**
  * Bit / PayBox are plain transfer links to KC's wallet, not merchant clearing
  * (no receipt, no refund flow). They are an interim channel only: once a
- * licensed one-time clearing page exists they are withdrawn (D59).
+ * licensed one-time clearing page exists they are withdrawn (D64).
  */
 const INTERIM_TRANSFER_KINDS: ReadonlySet<KcSupportChannelKind> = new Set(['bit', 'paybox']);
 
@@ -55,7 +55,7 @@ export function isSecureSupportUrl(url: string): boolean {
 /**
  * Builds the donor-facing options from raw channels: drops insecure URLs,
  * keeps the first channel per kind, withdraws the interim Bit / PayBox links
- * once a one-time clearing page exists (D59), and orders one-time channels.
+ * once a one-time clearing page exists (D64), and orders one-time channels.
  */
 export function buildKcSupportOptions(channels: readonly KcSupportChannel[]): KcSupportOptions {
   const byKind = new Map<KcSupportChannelKind, KcSupportChannel>();

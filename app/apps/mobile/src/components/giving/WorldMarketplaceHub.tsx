@@ -65,7 +65,7 @@ export function WorldMarketplaceHub({
             <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
           </Pressable>
         ) : null}
-        <Pressable onPress={() => router.push(createRouteFor(worldSlug) as never)}>
+        <Pressable onPress={() => router.push(createRouteFor(worldSlug))}>
           <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
         </Pressable>
       </View>
@@ -91,7 +91,7 @@ export function WorldMarketplaceHub({
           <ListingCard
             item={item}
             meta={rowMeta ? rowMeta(item) : undefined}
-            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
+            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
           />
           </View>
         )}

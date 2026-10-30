@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { KCImage } from './ui/KCImage';
 import { ChatReactionChips } from './chat/ChatReactionChips';
 import type { ReactionSummary } from '../hooks/useChatMessageReactions';
+import { systemMessageText } from '../lib/chat/systemMessageText';
 
 const KNOWN_MOD_KINDS = [
   'report_received',
@@ -90,7 +91,7 @@ function MessageBubbleInner({
       <View style={styles.systemWrap}>
         <View style={styles.systemPill}>
           <Ionicons name="information-circle-outline" size={14} color={colors.textSecondary} />
-          <Text style={styles.systemText}>{m.body}</Text>
+          <Text style={styles.systemText}>{systemMessageText(m, t)}</Text>
         </View>
       </View>
     );

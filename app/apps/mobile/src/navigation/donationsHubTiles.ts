@@ -1,11 +1,12 @@
 import type { Ionicons } from '@expo/vector-icons';
+import type { Href } from 'expo-router';
 
 export interface DonationHubTile {
   key: string;
   icon: keyof typeof Ionicons.glyphMap;
   titleKey: string;
   subtitleKey: string;
-  href: string;
+  href: Extract<Href, string>;
   testID: string;
 }
 
