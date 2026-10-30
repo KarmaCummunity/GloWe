@@ -8,7 +8,7 @@
 - The feed **is** the give-and-take marketplace between people and between people and organizations, filterable by world and by domain.
 - Topic-based "worlds" decided earlier (D39–D41, D44) are now **domain hubs** (S37). Verification exceptions for medical and housing remain (D30).
 - Religion is out; spirituality and philosophy are in (D45).
-- All worlds and domains are always shown; inactive = "not active yet" plus whatever knowledge/org blocks exist (D3).
+- All worlds and domains are always shown in full (D3, D60). A world is either **active** — full in-app flow (form, matching, chat, closing) — or a **portal** — links, knowledge and org blocks only. Launch flags switch a world between active and portal; they never hide it. Every world and every domain has its own screen tree under the Donations tab (D62).
 - Challenges are a **layer**, not a world (D43). Emergency is a **mode**, not a world (D42).
 
 ## Giving worlds
