@@ -490,6 +490,25 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 
 ---
 
+## §17 Admin Portal — Match quality dashboard (KC#1122)
+
+## FR-ADMIN-028 — Match quality per world
+
+> **Status (2026-10-30):** ✅ Implemented — migration `0461`, screen `(admin)/matching`, permission `matching.view_quality`.
+
+**Description.**
+The team sees how well matching v2 works per world, to tune `matching_settings` (`docs/SSOT/MATCHING_V2.md`).
+
+**Acceptance Criteria.**
+- AC1. Admin → Match quality lists every world with alerted pairs in the window (7 / 30 / 90 days, default 30; server clamps 1..365), each with: alerted pairs, **precision proxy** (accepted answers / all answers), **notification→chat rate** (pairs whose owners exchanged a user message after the first alert / alerted pairs), **completion rate** (pairs with a handed-over giving handoff between the two owners / alerted pairs).
+- AC2. A pair counts from its first real alert; sides that opted out of match alerts (FR-NOTIF-017) do not make a pair "alerted".
+- AC3. Completion is shown only for worlds that hand off through `giving_handoffs` (items, food, rides, knowledge); other worlds show "not tracked". A rate with a zero denominator renders as "—", never 0%.
+- AC4. Only super admin and moderator can open the screen or call `admin_match_quality` (`42501` otherwise; anon has no execute).
+
+**Related.** `supabase/tests/0461_admin_match_quality.sql` · `SupabaseMatchRepository.qualityByWorld` · `formatRate`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-05 | Initial draft from PRD §2.2 and Flow 9. |
@@ -503,3 +522,4 @@ Adds a per-grant direct-manager edge and a collapsible org-hierarchy tree. A gra
 | 0.9 | 2026-06-14 | Added §15 Admin Portal — Survey results & feedback dashboard (A5). FR-ADMIN-021 (`/admin/surveys`): aggregate per-question stats + per-user answers + free-feedback list, gated by new `surveys.view` permission. Migration `0194_admin_survey_results.sql` ships `admin_survey_overview` / `admin_survey_results` / `admin_user_feedback_list` (all SECURITY DEFINER + `admin_assert_role` super_admin\|moderator). Also redesigned the `(admin)/tasks` filter bar (chips no longer wrap vertically; centered max-width layout). |
 | 0.10 | 2026-06-16 | Added §16 Admin Portal — Management hierarchy redesign (P3.A-Tree). FR-ADMIN-022 (unified per-user card + `(admin)/admins/[userId]` detail + profile cross-links; `AdminPerson` / `groupGrantsByUser` domain fold) and FR-ADMIN-023 (include-revoked toggle + `a1-reports-*` revoked-grant presentation fix). Phase 1 is FE-only — no schema change. FR-ADMIN-024..026 (organizations + direct-manager tree + public About tree) specified when Phases 2–3 ship. Plan: `docs/SSOT/archive/superpowers/plans/2026-06-16-admin-management-tree-redesign.md`. |
 | 0.11 | 2026-06-16 | Phase 2 (P3.A-Tree.2) shipped. FR-ADMIN-024 (organisations entity + Karma Community platform org + `scope_org_id` FK) and FR-ADMIN-025 (per-grant `manager_grant_id` link, `is_ancestor`, `admin_set_manager` + `admin_org_tree` RPCs, collapsible tree with level badges, org-scoped visibility, assign-manager picker). Migration `0203_admin_org_hierarchy.sql`; decision `D-60` (per-grant manager edge). FR-ADMIN-026 (public About tree + field-level privacy) ships in Phase 3. |
+| 0.12 | 2026-10-30 | Added §17 / FR-ADMIN-028 — match quality dashboard (KC#1122): `admin_match_quality` (`0461`), `(admin)/matching`, `matching.view_quality`. |

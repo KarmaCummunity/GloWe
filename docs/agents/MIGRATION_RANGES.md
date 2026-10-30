@@ -55,11 +55,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0445–0449 | `claude/launch-readiness` (storage media access scope + launch fixes) | in progress |
 | 0450–0453 | project-book gaps G3, G32, G33, G34 (#1254, #1259, #1260, #1262) | in review |
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
-| 0454–0459, 0461+ | — | free |
+| 0461 | #1122 admin match-quality metrics (`admin_match_quality`) | in review |
+| 0454–0459, 0462+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0461+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0462+`.
 
 ## How to claim
 
