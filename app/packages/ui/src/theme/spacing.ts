@@ -48,7 +48,7 @@ export const radius = {
 /**
  * Elevation presets (spec 17 §4). `card` and `modal` are neutral (black)
  * shadows; `glow` is the brand-coloured lift under primary calls to action
- * (D71 — the offset, opacity, blur and elevation those buttons already used
+ * (D80 — the offset, opacity, blur and elevation those buttons already used
  * most). `glow` carries the light-mode primary; theme-aware screens spread it
  * and override `shadowColor` with `colors.primary` from `useTheme()`.
  */

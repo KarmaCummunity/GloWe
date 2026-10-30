@@ -93,7 +93,7 @@ export default tseslint.config(
               importNames: ['Text', 'TextInput'],
               message: 'Import Text / TextInput from @kc/ui so text uses the brand font (spec 17 §4).',
             },
-            // Spec 17 §4.2 (D71) — Ionicons is the one icon set; other
+            // Spec 17 §4.2 (D80) — Ionicons is the one icon set; other
             // @expo/vector-icons families (MaterialIcons, Feather, …) are blocked.
             {
               name: '@expo/vector-icons',
@@ -102,7 +102,7 @@ export default tseslint.config(
             },
           ],
           patterns: [
-            // Spec 17 §4.2 (D71) — deep imports of other families, and other icon
+            // Spec 17 §4.2 (D80) — deep imports of other families, and other icon
             // libraries, would add a second visual language.
             {
               group: ['@expo/vector-icons/*', '!@expo/vector-icons/Ionicons'],

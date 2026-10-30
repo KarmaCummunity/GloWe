@@ -10,7 +10,7 @@ import en from '../i18n/locales/en';
 import he from '../i18n/locales/he';
 import { countLiterals, RULE_NAMES, type FileCounts } from './brandGuardRules';
 
-// Brand guard — spec 17 §4/§6 (D65, D67, D71), debt TD-199.
+// Brand guard — spec 17 §4/§6 (D65, D67, D80), debt TD-199.
 //
 // App code must take colours, type (size, weight, family), corner radii,
 // spacing, icon sizes, layers and shadows from @kc/ui tokens, use logical sides

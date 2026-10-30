@@ -1,4 +1,4 @@
-// Brand guard rules — spec 17 §4/§4.1/§4.2/§6 (D65, D67, D71), debt TD-199.
+// Brand guard rules — spec 17 §4/§4.1/§4.2/§6 (D65, D67, D80), debt TD-199.
 //
 // The patterns the guard counts in app code, and `countLiterals`, which applies
 // them to one source file. `brandGuard.test.ts` runs them over the whole app;
