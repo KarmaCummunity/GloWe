@@ -25,6 +25,10 @@
 | אתגר | Challenge | Personal, group or community (D43) |
 | פוסט מיובא / תביעה | Imported post / claim | From WhatsApp; ownership confirmed by phone verification (D38, S21) |
 | גשר קבוצה | Group bridge | Parallel community + summaries during migration (S23) |
+| מקום רשמי | Official place | A city, street, or named junction/interchange from an official catalog; the only kind of place a ride may use (D66) |
+| נקודת איסוף | Meeting point | An official place along a ride where passengers board; up to 3 per ride (D66) |
+| מסלול שמור | Saved route | A followed from → to route that notifies on new rides along it (D69) |
+| הזמנת מקום | Seat booking | A passenger's request for seats on a ride offer; approved or declined by the driver (D68) |
 | חוקת ברזל | Iron constitution | Rules core not changeable by vote (D40) |
 | listings | listings (code term) | Legacy table to become `posts` (D19); **not** a product term |
 

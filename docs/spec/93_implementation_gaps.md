@@ -1,4 +1,4 @@
-# 93 — Implementation gaps G1–G37
+# 93 — Implementation gaps G1–G43
 
 Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
 
@@ -41,3 +41,9 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | Launch flags hide worlds instead of "not active yet" (D3) | 04 |
+| G38 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D65) | 05.3 |
+| G39 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D66, S47) | 05.3 |
+| G40 | Ride route on the map + "navigate" links (D67) | 05.3 |
+| G41 | Driver sees every booking (today `get_listing_handoff` returns one row) + approve/decline + booking push notifications (none sent today) (D68, S45) | 05.3, 07.11 |
+| G42 | Saved routes + rides urgency rule (D69, S44) | 05.3, 07.11 |
+| G43 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D70, S46) | 05.3 |

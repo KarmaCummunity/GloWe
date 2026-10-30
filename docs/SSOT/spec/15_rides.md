@@ -1,5 +1,7 @@
 # 2.14 Rides (Hitchhiking V2.0 → V3.0 — Carpooling for Good)
 
+> ⚠️ **Superseded in part by the project book** — D65–D70 (one rides flow, official places, map, bookings, saved routes, quick publish and feed; gaps G38–G43). Binding text: `docs/spec/05_giving_worlds.md` §5.3. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 > **Status:** 🟡 V2.0 minimal product shipped 2026-05-26 (FR-RIDE-001..010 ✅); UI temporarily hidden 2026-05-28 (D-51) while backend hardens. FR-RIDE-011 schema ✅ + FR-RIDE-012 application layer ✅. Backend participants (013–022) ✅ shipped. **V3.0 (2026-05-29) — D-55 supersedes D-51**: rides UI is restored alongside FR-RIDE-019 + FR-RIDE-023..045 to cover the full PRD scope (advanced publish, driver dashboard, active-ride lifecycle, emergency button, ratings, business rules, cross-world). Requires migrations `0122`..`0152` (existing) + `0161`..`0170` (new) on dev DB before runtime use.
 
 Prefix: `FR-RIDE-*`

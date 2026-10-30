@@ -41,6 +41,7 @@ Each superseded legacy FR now carries a banner in its legacy file pointing here.
 | FR-DONATE-008 (link reachability rules) | D9 — org link goes live only after admin approval | 08 |
 | FR-MOD-005 thresholds (3 reports → auto-removal) | D33 — 3 on a post → hidden for review; 5 on a user → suspended from actions | 7.15 |
 | FR-KARMA visibility | D29 — owner + main admin (legacy said owner only; compatible) | 7.6 |
+| FR-RIDE-002–004, 023–025, 033–034 (legacy `ride_listings` hub, publish sheet, detail, driver dashboard, my requests, active-ride screens) | D65 — one rides flow on posts + handoffs; D66–D70 define places, map, bookings, saved routes, quick publish and feed | 5.3 |
 
 ## 3. New implementation gaps (G32+)
 
