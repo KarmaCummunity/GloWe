@@ -36,7 +36,7 @@ Karma Community itself is the **platform organization** (`organizations.is_platf
 - Double-entry bookkeeping, chart of accounts, trial balance. The ledger stays **single-entry** (D78).
 - Generating official receipts or invoices. Receipt documents come from the organization's accounting software / payment provider and are **attached**, not produced (D77).
 - Payroll, VAT reporting, tax filings, National Insurance.
-- Direct integration with a specific accounting package (Hashavshevet, Rivhit, iCount, Green Invoice). Deferred to `TD-204`; Phase 1 ships a universal CSV/XLSX export instead (S48).
+- Direct integration with a specific accounting package (Hashavshevet, Rivhit, iCount, Green Invoice). Deferred to `TD-207`; Phase 1 ships a universal CSV/XLSX export instead (S48).
 - Multi-currency. `currency` stays in the schema (`0170`) but every write is `'ILS'` and the UI never offers a currency picker (D78).
 - Valuing in-kind donations (items, time, rides) in money. They stay in their own worlds and never enter the books (D78).
 - Public exposure of donor identities. Never, under any setting (`FR-FIN-019 AC6`).
@@ -53,7 +53,7 @@ Karma Community itself is the **platform organization** (`organizations.is_platf
 | 4 | Does KC hold a 46(a) approval? | **Not today.** The platform org starts with `sec46_status = 'none'`; no public 46(a) claim is rendered anywhere for KC until the status is `active`. | D77 |
 | 5 | Accounting depth | Single-entry ledger upgraded with financial accounts, category tree, fiscal year, budget vs. actual, reconciliation. | D78 |
 | 6 | Data sources | Manual entry + CSV import (bank, Bit, Paybox, generic) + automatic mirroring of in-app payments. | D79 |
-| 7 | Accountant deliverable | PM has no preference → universal CSV + XLSX export of the ledger with attachments index, plus PDF period summary. Software-specific formats deferred (`TD-204`). | S48 |
+| 7 | Accountant deliverable | PM has no preference → universal CSV + XLSX export of the ledger with attachments index, plus PDF period summary. Software-specific formats deferred (`TD-207`). | S48 |
 | 8 | Must-have reports | PM has no preference → income vs. expense (monthly / annual), by category, by project tag, donors summary, annual summary for the Registrar. | S49 |
 | 9 | "Smart tracking" | Reminders and queues (missing receipt, unreconciled, failed standing order, 46(a) / proper-management expiry, annual report deadline, budget overrun) + counterparty-based auto-categorization. | D80 |
 | 10 | Transparency | Fully optional per organization; organization publishes a frozen yearly **snapshot**, never live books; donor names never public. | D81 |
@@ -86,7 +86,7 @@ Karma Community itself is the **platform organization** (`organizations.is_platf
 | `finance.documents` (org documents vault write) | ✓ | ✓ | ✓ | ✓ | — | — |
 | `transparency.manage` (publish / unpublish snapshots, toggles) | ✓ | ✓ | ✓ | — | — | — |
 
-- `money.manage` is kept as a deprecated alias of `finance.manage` for one release and removed in Phase 2 (`TD-205`).
+- `money.manage` is kept as a deprecated alias of `finance.manage` for one release and removed in Phase 2 (`TD-208`).
 - Client-side `hasPermission()` is UX gating only. Every RPC calls `finance_assert(p_org_id uuid, p_permission text)`, a `SECURITY DEFINER` helper that resolves the caller's active grants (`has_admin_role` 3-arg overload) against the matrix above and raises `forbidden` (SQLSTATE `42501`) otherwise. Platform-wide roles resolve for any `org_id`; org-scoped roles only when `scope_org_id = p_org_id`.
 - RLS on every finance table: `SELECT` allowed when `finance_can_view(org_id)`; `INSERT/UPDATE/DELETE` revoked from `anon, authenticated` (RPC-only writes, per `D-194` / ADR-002).
 
@@ -166,7 +166,7 @@ Shared behaviour:
 **Acceptance Criteria.**
 - AC1. `admin_role_grants.role` CHECK gains `org_treasurer`, `org_accountant` (both require non-null `scope_org_id`; `invalid_scope` otherwise, per `FR-ADMIN-016 AC2`).
 - AC2. `can_grant_role` extended as in § Roles. `GrantRoleModal` lists both roles with the org picker; `RoleBadge` renders them (treasurer: `wallet-outline`, accountant: `calculator-outline`).
-- AC3. `@kc/domain` `ADMIN_PERMISSIONS` gains the eight `finance.*` / `transparency.manage` permissions; `PERMISSION_MATRIX` matches the table in § Roles. `money.manage` remains and maps to `['super_admin','admin','org_admin','org_treasurer']` until `TD-205` removes it.
+- AC3. `@kc/domain` `ADMIN_PERMISSIONS` gains the eight `finance.*` / `transparency.manage` permissions; `PERMISSION_MATRIX` matches the table in § Roles. `money.manage` remains and maps to `['super_admin','admin','org_admin','org_treasurer']` until `TD-208` removes it.
 - AC4. SQL helpers `finance_can_view(p_org_id) returns boolean` and `finance_assert(p_org_id, p_permission) returns void` exist, are `SECURITY DEFINER`, `set search_path = public`, and are unit-tested in SQL (`supabase/tests/`) for: platform role on any org, scoped role on own org, scoped role on other org (forbidden), accountant write (forbidden).
 - AC5. `moderator` keeps read access (`finance.view`) to the **platform org only** so the existing moderation team does not lose visibility; it cannot write. Documented in D76 / `D-196`.
 
@@ -271,7 +271,7 @@ Shared behaviour:
 
 **Acceptance Criteria.**
 - AC1. `AdminNav` replaces the "money" entry with "כספים" → `/admin/finance`; visible when `finance.view` resolves for at least one org the caller can see.
-- AC2. `/admin/money` route stays for one release and `router.replace`s to `/admin/finance/ledger`; removed in Phase 2 (`TD-205`).
+- AC2. `/admin/money` route stays for one release and `router.replace`s to `/admin/finance/ledger`; removed in Phase 2 (`TD-208`).
 - AC3. Overview (`/admin/finance`) Phase 1 tiles: balance per account, income / expense MTD and YTD, pending receipts count, last 5 entries. Phase 2 adds the alerts list (FR-FIN-016).
 - AC4. Finance sub-tree is a nested navigator inside `(admin)`: on web ≥ md a secondary left rail lists the finance routes; on mobile a horizontal chip row under the header. Deep links to any finance route go through `AdminGate` + `finance.view`.
 - AC5. E2E (Playwright, `tests/e2e/`): treasurer creates an entry with attachment, marks receipt issued, exports CSV; accountant sees the entry but gets no write affordances; moderator sees platform org read-only.
@@ -425,7 +425,7 @@ Tracked in `BACKLOG.md` as `ORG-PROFILE-SPEC` (⏳ Planned, PM to brief).
 
 | # | Question | Default applied |
 | - | -------- | --------------- |
-| O1 | Which accounting software does the external accountant use? | Universal CSV/XLSX + PDF (S48); integration is `TD-204`. |
+| O1 | Which accounting software does the external accountant use? | Universal CSV/XLSX + PDF (S48); integration is `TD-207`. |
 | O2 | Should `moderator` keep read access to the platform org's books? | Yes, read-only (`FR-FIN-002 AC5`). |
 | O3 | Legal review of the public 46(a) wording and of the Registrar annual-summary bucket mapping before Phase 3 goes live. | Phase 3 PR must include a PM sign-off line in its body. |
 | O4 | Statement export shapes of the specific bank(s) KC uses, to pin the `csv_bank` preset. | Generic mapping until a sample file is provided. |
