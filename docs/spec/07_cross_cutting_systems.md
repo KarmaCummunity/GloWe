@@ -22,7 +22,7 @@ One form creates a Post: giving world first, then one domain (auto-suggested fro
 | Food request | no | city | none | quantity, urgency |
 | Item offer | recommended (S19) | address | none | item subcategory, condition |
 | Item request | no | city | none | item subcategory, urgency |
-| Ride | no (D28) | origin, destination, meeting point | offer: +30 min | departure, est. end, seats |
+| Ride | no (D28) | origin, destination, ≤ 3 meeting points — official places only (D71) | offer: +30 min | departure, est. end, seats |
 | Time / elderly / consulting | no | city or "remote" | none | estimated duration (D32) |
 | Event (org) | no | address | date | capacity, registration policy (D31) |
 | Housing stay | no | city; exact after approval | stay dates | nights, house rules (D30) |
@@ -92,13 +92,13 @@ Every registered user may offer volunteering (D22); karma is automatic (D32). Or
 Tech: · R-Time-1 superseded · none · G19
 
 ## 7.11 Notifications
-Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28).
-Types: match & saved filter (D10), expiry & relevance (D21), like & comment (D25), event (D31), hours (D32), report & suspension (D33), emergency (D42), challenge (D43), community poll (D40), imported post awaiting claim (S21).
+Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28). Rides are time-critical: booking changes are `important` (D73), and saved-route alerts follow their own urgency rule and daily cap (D74, S44).
+Types: match & saved filter (D10), ride booking & saved route (D73, D74), expiry & relevance (D21), like & comment (D25), event (D31), hours (D32), report & suspension (D33), emergency (D42), challenge (D43), community poll (D40), imported post awaiting claim (S21).
 Tech: · `09_notifications`, MATCHING_V2, PRD_V2 merged · `inbox.tsx` · per-type opt-out `kinds` (FR-NOTIF-017, `0460`; first type: match suggestions) · G17
 
 ## 7.12 Profile
-Avatar, name, city, bio, counters; posts in "Open" / "Closed" tabs (D2, D14) — no "marketplace listings" tab. Verification level and reliability data shown (D23); rating not (D24). Karma, active challenges and volunteering log — owner only (D29). Exportable volunteer CV later.
-Tech: · FR-PROFILE-001–006 · `ProfileMarketplaceListings` adds a "marketplace" tab · G6
+Avatar, name, city, bio, counters; posts in "Open" / "Closed" tabs (D2, D14) — no "marketplace listings" tab. Verification level and reliability data shown (D23); rating not (D24). Karma, active challenges and volunteering log — owner only (D29). Exportable volunteer CV later. **Organization profile**: same shape adapted to organizations (logo, cover, type, fields, links, badges, team opt-in, activity, impact, transparency), always public, reached at `/org/{slug}` (D88–D92).
+Tech: · FR-PROFILE-001–006 · FR-ORG-003 (`20_organizations`) · `ProfileMarketplaceListings` adds a "marketplace" tab · G6
 
 ## 7.13 Anonymity, privacy, location
 Visibility `Public / FollowersOnly / OnlyMe` and counterpart masking, chosen in the form and changeable **both ways** (D16). The counterpart in a handoff sees the real name. Location: `CityOnly / CityAndStreet` (default) `/ FullAddress`; profile shows city only; housing exact only after approval (D30). EXIF stripped. WhatsApp import keeps no identity of non-members (S21). No commercial use of community data.

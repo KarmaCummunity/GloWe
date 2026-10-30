@@ -374,6 +374,54 @@
       "$value": "9999px"
     }
   },
+  "iconSize": {
+    "xs": {
+      "$type": "dimension",
+      "$value": "14px"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "18px"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "20px"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "22px"
+    },
+    "2xl": {
+      "$type": "dimension",
+      "$value": "24px"
+    }
+  },
+  "zIndex": {
+    "base": {
+      "$type": "number",
+      "$value": 0
+    },
+    "raised": {
+      "$type": "number",
+      "$value": 1
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 2
+    },
+    "floating": {
+      "$type": "number",
+      "$value": 20
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 9999
+    }
+  },
   "breakpoint": {
     "mobile": {
       "$type": "dimension",
@@ -532,6 +580,16 @@
         "offsetX": "0px",
         "offsetY": "4px",
         "blur": "12px",
+        "spread": "0px"
+      }
+    },
+    "glow": {
+      "$type": "shadow",
+      "$value": {
+        "color": "rgba(194, 65, 12, 0.3)",
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "8px",
         "spread": "0px"
       }
     }
