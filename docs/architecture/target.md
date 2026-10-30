@@ -46,3 +46,25 @@ Each step = its own migration + contract tests + regression tests; no data loss;
 - Ports/adapters keep Supabase replaceable; domain stays pure.
 - Contract tests for every port change; migration drift check; perf budgets.
 - Feature flags per world/phase (D3) instead of branches.
+
+## 5. Testing and observability (D71, D72) — G44–G49
+Principle: one shared, world-agnostic infrastructure; a giving world plugs in by adding a fixture file, a lifecycle flow, health checks and funnel rows — never a new framework.
+
+### 5.1 Test layers
+| Layer | Where | Runs | Gap |
+|---|---|---|---|
+| Domain / use-case unit | `packages/*/src/**/__tests__` (vitest) | every PR | — |
+| DB harness | `supabase/tests/_harness/` → local-only `kc_test` schema: actors (`act_as`), assertions (`assert_eq`, `assert_raises`, `assert_row_count`), fixtures (`create_user`, `create_listing`), one `20_world_<slug>.sql` per world | installed by `scripts/run-db-tests.sh`; never migrated | G44 |
+| Per-migration regression | `supabase/tests/NNNN_*.sql` | every backend PR | — |
+| Per-world lifecycle flow | `supabase/tests/flows/<world>_lifecycle.sql`: publish → book → confirm → complete → karma → rating + every guard | every backend PR | G44 |
+| Port contract | one shared suite per port, run against an in-memory fake **and** the Supabase adapter (local stack) — the safety net for the listings → posts move (G1) | every PR touching a port/adapter | G45 |
+| Two-user E2E journey | `tests/e2e/journeys/<world>.spec.ts` against dev (Playwright, session injection) | relevant PRs + nightly + release gate | G46 |
+
+### 5.2 Observability
+| Concern | Shape | Gap |
+|---|---|---|
+| Client errors | Sentry (`lib/observability/sentry.ts`), env-tagged | — |
+| Server errors | every Edge Function wrapped by one `_shared/observability` handler that reports to Sentry (secret referenced by name only) | G47 |
+| Health registry | `ops` schema: `ops.health_checks` rows (key, severity, threshold, environments, enabled) each backed by a check function returning `(status, value, detail)`; `ops.run_health_checks()` behind a service-role-only RPC. First checks: scheduled-job last success / failures, notification and WhatsApp outbound backlog and failures, matching errors, stuck flows (bookings past confirm-by, rides open past departure, confirmed handoffs never completed). Thresholds are rows, not code | G48 |
+| Monitor + alert router | scheduled workflow (hourly) runs the health report on dev and prod (prod read-only) plus a short synthetic web check, and hands failures to `scripts/ops/alert` — one interface, pluggable channels: **GitHub issue** (one per check key, deduplicated, assigned to the PM → email, auto-closed on recovery), **email**, **WhatsApp** to the PM once the WhatsApp channel is live (D71) | G48 |
+| Flow funnel | per-world funnel view over existing handoff timestamps (published → booked → confirmed → completed / cancelled), no client events needed; feeds the KPI dashboards (16) | G49 |

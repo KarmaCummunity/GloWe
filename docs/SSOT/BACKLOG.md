@@ -35,6 +35,17 @@
 |----|------|-------|--------|------|
 | DONATE-G8b | **Donation-to-KC confirmation + karma.** Grow webhook Edge Function (verify with Grow API, idempotent via `provider_webhook_events`), record the donation, award karma (1 per ₪10, 10/month standing order, cap 100 — §7.6). [blocked: Grow merchant account + API credentials — launch plan A11] | agent-be | ⏳ Planned | `spec/13_donations.md` FR-DONATE-011 AC8 · `docs/spec/93` G8 |
 
+## OPS — Testing & observability infrastructure (D71, D72)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| OPS-G44 | **Shared DB test harness + per-world lifecycle flows.** Harness + runner + rides flow shipped; port items, food, knowledge flows onto it. | agent-be | 🟡 In progress | `docs/architecture/target.md` §5.1 · G44 |
+| OPS-G48 | **Health registry + monitor + alert router.** `ops.health_checks`, hourly dev + prod run, GitHub issue / email now, WhatsApp later. | agent-fullstack | ⏳ Planned | §5.2 · G48 |
+| OPS-G47 | **Edge Function error reporting** through one shared wrapper. | agent-be | ⏳ Planned | §5.2 · G47 |
+| OPS-G45 | **Port contract tests** (fake + Supabase adapter, same suite). | agent-fullstack | ⏳ Planned | §5.1 · G45 |
+| OPS-G46 | **Two-user E2E journey per active world** on relevant PRs. | agent-fe | ⏳ Planned | §5.1 · G46 |
+| OPS-G49 | **Per-world flow funnel** from handoff timestamps. | agent-be | ⏳ Planned | §5.2 · G49 |
+
 ## Deferred (post-MVP, still tracked)
 
 | ID | Task | Status | Spec |

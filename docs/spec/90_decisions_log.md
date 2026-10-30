@@ -68,3 +68,5 @@ Index only — the binding wording lives in the linked spec files. All decided b
 | D62 | Code follows the spec list: 8 giving worlds + 11 domains (D45). Legacy code worlds map to it (`app_design` removed per D18; `medical`, `animals`, `environment`, `creative`→`culture` become domains). Every world and every domain gets its own screen tree under the Donations tab — answers Q-3 | 04, 05, 06 | Approved (PM 2026-10-30) |
 | D63 | Listing handoffs award the §7.6 karma values (one closing/karma model, G34); applies from the change on, not retroactively — answers Q-5 | 07.5, 07.6 | Approved (PM 2026-10-30) |
 | D64 | Bit / PayBox links to KC are interim transfer links, not clearing: withdrawn automatically once a licensed one-time clearing page exists | 05.5, 08 | Approved |
+| D71 | Operational alerts reach the PM as a GitHub issue (assigned → email) and by email now, and by WhatsApp once the WhatsApp channel is live | architecture §5.2 | Approved (PM 2026-10-30) |
+| D72 | Monitoring covers both dev and production; production checks are read-only | architecture §5.2 | Approved (PM 2026-10-30) |
