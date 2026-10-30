@@ -243,7 +243,7 @@ const useRunnerStyles = makeUseStyles(({ colors }) => ({
   },
   progressText: {
     ...typography.bodySmall,
-    fontWeight: '700',
+    ...typography.bold,
     color: colors.textPrimary,
     ...webTextRtl,
   },

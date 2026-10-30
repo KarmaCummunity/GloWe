@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyResults } from '@kc/domain';
 import type { PmfSurveyReportView } from '@kc/application';
-import { makeUseStyles, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { AdminListEmpty } from '../AdminListEmpty';
 import { QuestionStatCard } from './QuestionStatCard';
@@ -77,15 +77,15 @@ export function SurveyResultsView({
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  root: { gap: 12 },
-  back: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 6, paddingVertical: 4 },
-  backText: { fontSize: 14, fontWeight: '700', color: colors.primary },
-  center: { paddingVertical: 40, alignItems: 'center' },
-  heading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  subheading: { fontSize: 13, color: colors.textSecondary, textAlign: textAlignStart() },
+  root: { gap: spacing.md },
+  back: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.xs },
+  backText: { fontSize: typography.body.fontSize, ...typography.bold, color: colors.primary },
+  center: { paddingVertical: spacing['2xl'], alignItems: 'center' },
+  heading: { fontSize: typography.h2.fontSize, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  subheading: { fontSize: typography.bodySmall.fontSize, color: colors.textSecondary, textAlign: textAlignStart() },
   sectionTitle: {
-    fontSize: 14, fontWeight: '800', color: colors.textSecondary,
-    textAlign: textAlignStart(), marginTop: 8,
+    fontSize: typography.body.fontSize, ...typography.extraBold, color: colors.textSecondary,
+    textAlign: textAlignStart(), marginTop: spacing.sm,
   },
-  list: { gap: 12 },
+  list: { gap: spacing.md },
 }));

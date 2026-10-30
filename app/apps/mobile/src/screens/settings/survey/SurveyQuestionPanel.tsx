@@ -3,7 +3,7 @@
 // AC8 (KC#1058): a single-choice question shows its options instead of the rating row.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import type { SurveyQuestion } from '@kc/domain';
 import { Card } from '../../../components/ui/Card';
 import { SurveyRatingRow } from '../../../components/survey/SurveyRatingRow';
@@ -86,13 +86,13 @@ const usePanelStyles = makeUseStyles(({ colors }) => ({
   questionIndex: {
     ...typography.caption,
     color: colors.primary,
-    fontWeight: '700',
+    ...typography.bold,
     textAlign: rtlTextAlignStart,
     ...webTextRtl,
   },
   prompt: {
     ...typography.h3,
-    fontSize: 18,
+    fontSize: typography.h3.fontSize,
     color: colors.textPrimary,
     textAlign: rtlTextAlignStart,
     lineHeight: 26,
@@ -100,7 +100,7 @@ const usePanelStyles = makeUseStyles(({ colors }) => ({
   },
   context: {
     ...typography.body,
-    fontSize: 15,
+    fontSize: typography.body.fontSize,
     color: colors.textSecondary,
     textAlign: rtlTextAlignStart,
     lineHeight: 23,
@@ -108,7 +108,7 @@ const usePanelStyles = makeUseStyles(({ colors }) => ({
   },
   fieldLabel: {
     ...typography.bodySmall,
-    fontWeight: '600',
+    ...typography.semiBold,
     color: colors.textSecondary,
     textAlign: rtlTextAlignStart,
     marginTop: spacing.xs,
@@ -116,12 +116,12 @@ const usePanelStyles = makeUseStyles(({ colors }) => ({
   },
   textInput: {
     ...typography.body,
-    fontSize: 15,
+    fontSize: typography.body.fontSize,
     lineHeight: 22,
     minHeight: 88,
     maxHeight: 128,
     padding: spacing.md,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,

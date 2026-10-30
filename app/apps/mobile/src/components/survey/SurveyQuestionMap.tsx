@@ -146,23 +146,23 @@ export function SurveyQuestionMap({
 
 const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
   compactWrap: {
-    paddingVertical: 6,
+    paddingVertical: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     ...webViewRtl,
   },
   compactRow: {
     paddingHorizontal: spacing.base,
-    gap: 6,
+    gap: spacing.xs,
     alignItems: 'center',
     ...webViewRtl,
   },
   compactChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -175,9 +175,9 @@ const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
     backgroundColor: colors.primarySurface,
   },
   compactNumber: {
-    fontSize: 12,
+    fontSize: typography.bodySmall.fontSize,
     lineHeight: 14,
-    fontWeight: '800',
+    ...typography.extraBold,
     color: colors.textSecondary,
     minWidth: 14,
     textAlign: 'center',
@@ -186,7 +186,7 @@ const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
     color: colors.primary,
   },
   compactLabel: {
-    fontSize: 11,
+    fontSize: typography.caption.fontSize,
     lineHeight: 14,
     color: colors.textSecondary,
     flexShrink: 1,
@@ -195,12 +195,12 @@ const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   compactLabelActive: {
     color: colors.textPrimary,
-    fontWeight: '600',
+    ...typography.semiBold,
   },
   compactDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
+    borderRadius: radius.xs,
     flexShrink: 0,
   },
   rail: {
@@ -236,7 +236,7 @@ const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   itemNumber: {
     ...typography.caption,
-    fontWeight: '700',
+    ...typography.bold,
     color: colors.textSecondary,
     minWidth: 18,
     textAlign: 'center',
@@ -251,6 +251,6 @@ const useMapStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   itemLabelActive: {
     color: colors.textPrimary,
-    fontWeight: '600',
+    ...typography.semiBold,
   },
 }));

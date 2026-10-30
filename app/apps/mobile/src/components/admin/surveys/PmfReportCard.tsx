@@ -3,10 +3,10 @@
 // respondents with its 95% margin of error, the 40% benchmark, sample size, and a 7-day
 // retention cross-check per answer option.
 import type { ReactElement } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { PMF_MIN_RELIABLE_SAMPLE, type PmfOptionSummary } from '@kc/domain';
 import type { PmfSurveyReportView } from '@kc/application';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 import { formatPmfPercent } from './formatPmfPercent';
@@ -96,27 +96,27 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
-    padding: 16,
-    gap: 10,
+    borderRadius: radius.lg,
+    padding: spacing.base,
+    gap: spacing.sm,
   },
-  title: { fontSize: 15, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  scoreRow: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 12 },
-  score: { fontSize: 36, fontWeight: '800', color: colors.primaryDark },
-  scoreText: { flex: 1, gap: 2 },
-  caption: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textAlign: textAlignStart() },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  title: { fontSize: typography.body.fontSize, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  scoreRow: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.md },
+  score: { fontSize: typography.h1.fontSize, ...typography.extraBold, color: colors.primaryDark },
+  scoreText: { flex: 1, gap: spacing.xs },
+  caption: { fontSize: typography.bodySmall.fontSize, ...typography.semiBold, color: colors.textSecondary, textAlign: textAlignStart() },
+  badge: { borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   badgeGood: { backgroundColor: colors.primarySurface },
   badgeBad: { backgroundColor: colors.secondaryLight },
-  badgeText: { fontSize: 11, fontWeight: '800', color: colors.textPrimary },
-  muted: { fontSize: 13, color: colors.textSecondary, textAlign: textAlignStart() },
-  warning: { fontSize: 12, fontWeight: '700', color: colors.error, textAlign: textAlignStart() },
-  hint: { fontSize: 11, color: colors.textDisabled, textAlign: textAlignStart() },
-  options: { gap: 10, marginTop: 4 },
-  option: { gap: 4 },
-  optionTop: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 8 },
-  optionLabel: { flex: 1, fontSize: 13, fontWeight: '700', color: colors.textPrimary, textAlign: textAlignStart() },
-  optionValue: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
-  track: { height: 8, borderRadius: 4, backgroundColor: colors.skeleton, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 4, backgroundColor: colors.primary },
+  badgeText: { fontSize: typography.caption.fontSize, ...typography.extraBold, color: colors.textPrimary },
+  muted: { fontSize: typography.bodySmall.fontSize, color: colors.textSecondary, textAlign: textAlignStart() },
+  warning: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.error, textAlign: textAlignStart() },
+  hint: { fontSize: typography.caption.fontSize, color: colors.textDisabled, textAlign: textAlignStart() },
+  options: { gap: spacing.sm, marginTop: spacing.xs },
+  option: { gap: spacing.xs },
+  optionTop: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm },
+  optionLabel: { flex: 1, fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.textPrimary, textAlign: textAlignStart() },
+  optionValue: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.textSecondary },
+  track: { height: 8, borderRadius: radius.xs, backgroundColor: colors.skeleton, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: radius.xs, backgroundColor: colors.primary },
 }));

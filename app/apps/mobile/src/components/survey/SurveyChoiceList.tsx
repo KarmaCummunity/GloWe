@@ -1,9 +1,9 @@
 // Single-choice answer list — one option out of the question's choiceOptions.
 // FR-SETTINGS-016 AC8 (KC#1058): used by the Sean Ellis PMF question.
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { SurveyChoiceOption } from '@kc/domain';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
@@ -64,10 +64,10 @@ const useChoiceStyles = makeUseStyles(({ colors }) => ({
   label: {
     ...typography.body,
     flex: 1,
-    fontSize: 15,
+    fontSize: typography.body.fontSize,
     color: colors.textPrimary,
     textAlign: rtlTextAlignStart,
     ...webTextRtl,
   },
-  labelSelected: { fontWeight: '700' },
+  labelSelected: { ...typography.bold },
 }));
