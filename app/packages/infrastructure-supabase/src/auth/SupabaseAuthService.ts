@@ -206,6 +206,7 @@ function toSession(s: SbSession): AuthSession {
     expiresAt: s.expires_at ?? Math.floor(Date.now() / 1000) + (s.expires_in ?? 3600),
     displayName: pickString(meta, ['full_name', 'name']),
     avatarUrl: pickString(meta, ['avatar_url', 'picture']),
+    accountCreatedAt: s.user.created_at ?? null,
   };
 }
 

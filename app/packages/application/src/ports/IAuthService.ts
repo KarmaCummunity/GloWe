@@ -24,6 +24,12 @@ export interface AuthSession {
    * adapter from `user.user_metadata.avatar_url` / `picture`.
    */
   readonly avatarUrl: string | null;
+  /**
+   * Auth account creation time (ISO 8601), from Supabase `user.created_at`. Used only for the
+   * time-to-first-post funnel metric (#1042). Optional: sessions built outside the adapter
+   * (dev ghost session, fakes) may omit it.
+   */
+  readonly accountCreatedAt?: string | null;
 }
 
 /** Patch for `IAuthService.syncProfileMetadata` — mirrors `public.users` display fields. */
