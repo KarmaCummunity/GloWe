@@ -1501,6 +1501,14 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `.github/workflows/ci-*.yml`, `.github/actions/setup-pnpm-turbo`, `app/turbo.json`, `app/apps/mobile/README.md`, `docs/SSOT/ENVIRONMENTS.md`.
 
+## D-194 — Layered hierarchy view: named strata on a masked, count-only base (2026-10-30)
+
+**Decision.** The admin portal's overview of the management structure is a pyramid of five role strata (platform leadership → platform staff → org leadership → org teams → volunteers) across every visible org, standing on a base layer that represents the whole community **by count only**. Named people come exclusively from `admin_org_tree` (active grants, RBAC-scoped); the new `admin_hierarchy_census` RPC returns aggregates only (active community size, distinct role-holders, per-org self-declared volunteer affiliates). Self-declared `org_memberships` rows are counted as affiliates and never rendered as named role-holders. Operations roles (`operators_manager`, `operator`) are placed by scope: platform staff when platform-scoped, org team when org-scoped. The layers view becomes the default view of `(admin)/admins`; list and tree remain one tap away.
+
+**Why.** PM request (2026-10-30) for an advanced visual of the full hierarchy, from the hidden layer of all users up to the visible layers of role-holders, volunteers and managers in every org. Keeping identities on a single RBAC path (`admin_org_tree`) avoids a second visibility predicate to keep in sync; counts-only for the base honours the privacy floor (no identity exposure for users without a role); treating memberships as aggregates prevents self-declared affiliations from reading as granted authority.
+
+**Affected.** `supabase/migrations/0448_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-027.
+
 ## Change Log
 
 | Version | Date | Summary |
