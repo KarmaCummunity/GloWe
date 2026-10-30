@@ -993,10 +993,6 @@
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
     },
-    "src/components/marketplace/MarketplaceListingDetailView.tsx": {
-      "radiusLiteral": 4,
-      "physicalSide": 2
-    },
     "src/components/marketplace/ReportListingModal.tsx": {
       "radiusLiteral": 4,
       "physicalSide": 2
