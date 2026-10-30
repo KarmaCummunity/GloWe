@@ -143,7 +143,8 @@ export function PostDetailScreen() {
   const ownerLabel = postOwnerDisplayLabel(post, t);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    // testID: stable E2E anchor for "the loaded post opened" (Maestro flow 06, KC#1235).
+    <SafeAreaView style={styles.container} edges={['bottom']} testID="post-detail-screen">
       <Stack.Screen
         options={{
           // Under forceRTL=true, the inner row visually flips so the *first*

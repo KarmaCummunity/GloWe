@@ -14,7 +14,7 @@ tags: [feed, smoke]
     index: 0
 - extendedWaitUntil:
     visible:
-      id: post-detail-header
+      id: post-detail-screen
     timeout: 20000
 - back
 - assertVisible:

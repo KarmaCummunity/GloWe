@@ -42,6 +42,8 @@ The check is **not required** for merge yet. Make it required (issue AC6) after 
 - Put the spec reference in the flow's header comment and in the table above.
 - Bug fixes start with a failing flow that reproduces the bug, then the fix (issue AC5).
 - Wait with `extendedWaitUntil` (kc-dev latency), not fixed sleeps.
+- Wait for an id the screen itself renders (e.g. its root `testID`), not one on a shared component the screen may not use: `post-detail-header` lives on a card component the post screen does not render, so flow 06 waits for `post-detail-screen`.
+- Reach rows below the fold with `scrollUntilVisible` (settings rows sit under the donation card on a phone screen).
 
 ## Running locally
 

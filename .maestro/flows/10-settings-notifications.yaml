@@ -7,10 +7,12 @@ tags: [settings]
 - runFlow: ../subflows/sign-in.yaml
 - tapOn:
     id: topbar-settings
-- extendedWaitUntil:
-    visible:
+# The donation card at the top of settings pushes this row below the fold on a phone screen.
+- scrollUntilVisible:
+    element:
       id: settings-row-notifications
-    timeout: 15000
+    direction: DOWN
+    timeout: 20000
 - tapOn:
     id: settings-row-notifications
 - extendedWaitUntil:
