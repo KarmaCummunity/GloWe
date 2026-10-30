@@ -1,5 +1,9 @@
 # KC agent loop (Claude Code)
 
+**Primary:** Claude Code Scheduled task (cloud). Paste [`prompts/scheduled-task.md`](prompts/scheduled-task.md) into `/schedule` (or claude.ai/code/routines), hourly. Hourly Hebrew log: issue #1257.
+
+**Below: optional local fallback** (`run-loop.sh`).
+
 Runs Claude Code headless on queued GitHub issues, one at a time, with gates, security review,
 independent reviewer, PR to `dev`, TestFlight per session, and auto-resume after the quota resets.
 Rules: [`docs/process/AGENT_LOOP.md`](../../docs/process/AGENT_LOOP.md).
