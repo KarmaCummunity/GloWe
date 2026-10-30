@@ -32,7 +32,10 @@ export function OrgSwitcher({ orgs, selected, onSelect, accents }: OrgSwitcherPr
         onPress={() => onSelect(id)}
         style={[styles.chip, selected === id && styles.chipActive]}
       >
-        {accent !== undefined && <View style={[styles.dot, { backgroundColor: accent }]} />}
+        {/* A ring keeps the dot visible on the selected chip, whose fill can match the accent. */}
+        {accent !== undefined && (
+          <View style={[styles.dot, { backgroundColor: accent }, selected === id && styles.dotActive]} />
+        )}
         <Text style={[styles.chipText, selected === id && styles.chipTextActive]}>{label}</Text>
       </Pressable>
     );
@@ -58,6 +61,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surface,
   },
   dot: { width: 8, height: 8, borderRadius: radius.full },
+  dotActive: { borderWidth: 2, borderColor: colors.textInverse },
   chipActive: { backgroundColor: colors.primary },
   chipText: { ...typography.bodySmall, ...typography.bold, color: colors.textSecondary },
   chipTextActive: { color: colors.textInverse },

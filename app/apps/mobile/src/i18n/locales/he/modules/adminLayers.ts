@@ -1,5 +1,11 @@
 // app/apps/mobile/src/i18n/locales/he/modules/adminLayers.ts
 // Hebrew strings for the layered hierarchy view of the admin team (FR-ADMIN-028).
+
+/** "and N more roles" — Hebrew pairs the number one with the singular noun. */
+function extraRolesHe(n: number): string {
+  return n === 1 ? 'ועוד תפקיד אחד' : `ועוד ${n} תפקידים`;
+}
+
 export const adminLayersHe = {
   apexTitle:   'צמרת הפלטפורמה',
   levelTitle:  (n: number) => `רמה ${n}`,
@@ -23,6 +29,6 @@ export const adminLayersHe = {
   loadError:   'טעינת מבנה ההיררכיה נכשלה.',
   retry:       'נסה שוב',
   personA11y:  (name: string, role: string, org: string, extraRoles: number) =>
-    extraRoles > 0 ? `${name}, ${role} ועוד ${extraRoles} תפקידים, ${org}` : `${name}, ${role}, ${org}`,
+    extraRoles > 0 ? `${name}, ${role} ${extraRolesHe(extraRoles)}, ${org}` : `${name}, ${role}, ${org}`,
   headcountA11y: (n: number) => `${n} אנשים בשכבה`,
 } as const;

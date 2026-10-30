@@ -21,7 +21,8 @@
 -- Named role-holders keep flowing through `admin_org_tree` (migration 0203),
 -- so identity visibility stays governed by a single RBAC predicate.
 --
--- Visibility mirrors `admin_org_tree`: any active grant may call; super_admin
+-- Visibility mirrors `admin_org_tree`: a community member holding an active
+-- grant may call; super_admin
 -- sees every org, everyone else only the orgs their own grants reach
 -- (platform-scoped grants resolve to the platform org).
 --
@@ -41,11 +42,16 @@ declare
   v_platform_org uuid;
   v_result       json;
 begin
-  -- Same gate as admin_org_tree: the caller must hold at least one active grant.
+  -- The caller must hold at least one active grant (as in admin_org_tree)
+  -- and still be a community member (D69), the same set every count uses.
   if v_actor is null
      or not exists (
-       select 1 from public.admin_role_grants g
-        where g.user_id = v_actor and g.revoked_at is null
+       select 1
+         from public.admin_role_grants g
+         join public.users u on u.user_id = g.user_id
+        where g.user_id = v_actor
+          and g.revoked_at is null
+          and u.account_status in ('active', 'suspended_admin', 'suspended_for_false_reports')
      ) then
     raise exception 'forbidden' using errcode = '42501';
   end if;

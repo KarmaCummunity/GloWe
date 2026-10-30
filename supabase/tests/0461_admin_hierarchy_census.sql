@@ -3,7 +3,8 @@
 --
 -- Asserts the security + counting contract of public.admin_hierarchy_census():
 --   1. grants: anon has no EXECUTE, authenticated does; SECURITY DEFINER;
---   2. a caller without an active grant is rejected with 42501;
+--   2. a caller without an active grant, or a banned grant holder, is
+--      rejected with 42501;
 --   3. an org-scoped admin sees only their own org;
 --   4. super_admin sees every org, and the counts are correct:
 --      community_total counts members (active or suspended, D69),
@@ -52,8 +53,9 @@ end $$;
 -- Fixture: one org, an org_admin who also holds a second grant (so distinct
 -- users ≠ grant rows), a suspended org_manager (a member, so a role-holder),
 -- a granted volunteer, two membership-only volunteers, a suspended
--- membership-only volunteer (a member, so counted), a banned membership-only
--- volunteer (not a member, so not counted), and a plain user.
+-- membership-only volunteer (a member, so counted), a banned volunteer with
+-- an unrevoked grant and a membership (not a member, so counted nowhere), and
+-- a plain user.
 create temp table fx on commit drop as
 select
   gen_random_uuid()              as org_id,
@@ -79,7 +81,8 @@ select super_id, 'super_admin', null from fx
 union all select org_admin_id, 'org_admin', org_id from fx
 union all select grant_vol_id, 'org_volunteer', org_id from fx
 union all select org_admin_id, 'org_volunteer', org_id from fx
-union all select susp_mgr_id, 'org_manager', org_id from fx;
+union all select susp_mgr_id, 'org_manager', org_id from fx
+union all select ban_vol_id, 'org_volunteer', org_id from fx;
 
 update public.users set account_status = 'suspended_admin'
  where user_id = (select susp_vol_id from fx);
@@ -103,6 +106,18 @@ do $$
 begin
   perform public.admin_hierarchy_census();
   raise exception 'ASSERT FAILED: caller without a grant was not rejected';
+exception when insufficient_privilege then
+  null;
+end $$;
+reset role;
+
+-- 2b. A banned account keeps its grant row but is not a member → forbidden.
+select pg_temp.act_as((select ban_vol_id from fx));
+set local role authenticated;
+do $$
+begin
+  perform public.admin_hierarchy_census();
+  raise exception 'ASSERT FAILED: banned grant holder was not rejected';
 exception when insufficient_privilege then
   null;
 end $$;

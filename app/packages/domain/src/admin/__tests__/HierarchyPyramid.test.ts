@@ -115,6 +115,15 @@ describe('buildHierarchyPyramid — levels', () => {
     expect(namesByLevel(pyramid)).toEqual({ 3: ['vm'] });
   });
 
+  it('keeps grants on a manager cycle, at their natural level', () => {
+    const pyramid = build([
+      member({ grantId: 'a', role: 'org_manager', managerGrantId: 'b' }),
+      member({ grantId: 'b', role: 'volunteer_manager', managerGrantId: 'a' }),
+    ]);
+    expect(namesByLevel(pyramid)).toEqual({ 2: ['a'], 3: ['b'] });
+    expect(pyramid.visiblePeople).toBe(2);
+  });
+
   it('lists the roles present at each level, highest first', () => {
     const pyramid = build([
       member({ grantId: 'emp', role: 'org_employee' }),

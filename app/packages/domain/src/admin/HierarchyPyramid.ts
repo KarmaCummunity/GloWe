@@ -144,12 +144,20 @@ interface LeveledMember {
  */
 function levelMembers(members: readonly OrgTreeMember[]): LeveledMember[] {
   const out: LeveledMember[] = [];
+  const placed = new Set<string>();
   const walk = (node: OrgTreeNode, level: number): void => {
     out.push({ member: node.member, level });
+    placed.add(node.member.grantId);
     for (const child of node.children) walk(child, level + 1);
   };
   for (const root of buildOrgForest(members)) {
     walk(root, roleBaseLevel(root.member.role, root.member.isPlatform));
+  }
+  // A manager cycle has no root, so the forest never reaches it. The RPC
+  // rejects cycles, but concurrent writes could still persist one; such grants
+  // fall back to their role's natural level rather than vanishing from view.
+  for (const m of members) {
+    if (!placed.has(m.grantId)) out.push({ member: m, level: roleBaseLevel(m.role, m.isPlatform) });
   }
   return out;
 }

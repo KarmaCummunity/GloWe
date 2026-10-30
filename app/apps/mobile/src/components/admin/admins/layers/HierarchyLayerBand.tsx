@@ -34,6 +34,7 @@ interface OrgClusterProps {
 
 function OrgCluster({ group, accent, isVerified, onSelect }: OrgClusterProps) {
   const styles = useStyles();
+  const { colors } = useTheme();
   const L = useLocaleBundle();
   const [expanded, setExpanded] = useState(false);
   const hidden = group.people.length - CLUSTER_PREVIEW;
@@ -44,11 +45,13 @@ function OrgCluster({ group, accent, isVerified, onSelect }: OrgClusterProps) {
       <View style={styles.clusterHeader}>
         <View style={[styles.orgDot, { backgroundColor: accent }]} />
         <Text style={styles.orgName} numberOfLines={1}>{group.orgName}</Text>
+        {/* Org accents identify an org but some are too dark to read on the
+            dark surface, so readable marks use contrast-checked theme tokens. */}
         {isVerified && (
           <Ionicons
             name="checkmark-circle"
             size={13}
-            color={accent}
+            color={colors.textSecondary}
             accessibilityLabel={L.admin.admins.layers.verified}
           />
         )}
@@ -67,7 +70,7 @@ function OrgCluster({ group, accent, isVerified, onSelect }: OrgClusterProps) {
       </View>
       {hidden > 0 && (
         <Pressable accessibilityRole="button" onPress={() => setExpanded((v) => !v)} style={styles.moreBtn}>
-          <Text style={[styles.moreText, { color: accent }]}>
+          <Text style={styles.moreText}>
             {expanded ? L.admin.admins.layers.showLess : L.admin.admins.layers.showMore(hidden)}
           </Text>
         </Pressable>
@@ -146,5 +149,5 @@ const useStyles = makeUseStyles(({ colors }) => ({
   orgCount:    { marginStart: 'auto', ...typography.caption, ...typography.bold, color: colors.textDisabled },
   people:      { flexDirection: rowDirectionStart, flexWrap: 'wrap', justifyContent: 'center' },
   moreBtn:     { alignSelf: 'center', paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
-  moreText:    { ...typography.bodySmall, ...typography.extraBold },
+  moreText:    { ...typography.bodySmall, ...typography.extraBold, color: colors.textSecondary },
 }));
