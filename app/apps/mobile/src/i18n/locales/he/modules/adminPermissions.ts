@@ -1,5 +1,5 @@
 // app/apps/mobile/src/i18n/locales/he/modules/adminPermissions.ts
-// Hebrew labels for every admin-portal permission (FR-ADMIN-030, D76), shown on
+// Hebrew labels for every admin-portal permission (FR-ADMIN-030, D85), shown on
 // the person screen. Keyed by `AdminPermission`, so a new permission fails
 // typecheck until it has a label.
 import type { AdminPermission } from '@kc/domain';

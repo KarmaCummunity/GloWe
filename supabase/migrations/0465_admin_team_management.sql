@@ -1,7 +1,7 @@
 -- 0465_admin_team_management — FR-ADMIN-030 end-to-end team management.
 --
 -- Two changes that let every organisation run its own team from the admin
--- portal (project book D77) while permissions stay role-derived (D76):
+-- portal (project book D86) while permissions stay role-derived (D85):
 --
 --   1. `admin_list_admins` is scoped like `admin_org_tree` (migration 0203):
 --      super_admin sees every grant; anyone else sees only grants in the orgs
@@ -17,7 +17,7 @@
 --      old and the new role in that scope (`can_grant_role`, FR-ADMIN-016).
 --
 -- Mapped to spec: FR-ADMIN-030 (docs/SSOT/spec/12_super_admin.md §18).
--- Decisions: D-197; project book D76, D77.
+-- Decisions: D-197; project book D85, D86.
 
 -- ── 1. admin_list_admins: org-scoped roster ─────────────────────────────────
 create or replace function public.admin_list_admins(p_include_revoked boolean default false)

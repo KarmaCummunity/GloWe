@@ -67,7 +67,7 @@ export function OnboardingStepHeader({
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   wrap: { gap: spacing.sm },
   row: {
     flexDirection: 'row',

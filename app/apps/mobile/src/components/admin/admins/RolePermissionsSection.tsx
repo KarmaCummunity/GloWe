@@ -1,6 +1,6 @@
 // app/apps/mobile/src/components/admin/admins/RolePermissionsSection.tsx
 // FR-ADMIN-030 — what a person may do in the admin portal. Permissions are
-// role-derived only (project book D76), so this block lists, per active role,
+// role-derived only (project book D85), so this block lists, per active role,
 // the permissions that role carries; changing permissions means changing a role.
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

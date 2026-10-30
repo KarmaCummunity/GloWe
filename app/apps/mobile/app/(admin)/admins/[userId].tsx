@@ -3,7 +3,7 @@
 // single place to manage one person end to end. Opens for any user (role
 // holders from the team views, anyone from the users search) and shows:
 //   • their roles, with add / change / revoke within the viewer's authority;
-//   • the permissions those roles carry (role-derived only, D76);
+//   • the permissions those roles carry (role-derived only, D85);
 //   • their direct manager and reports, with assign / change manager.
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';

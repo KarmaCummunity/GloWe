@@ -1,0 +1,84 @@
+name: CI — static guards
+
+# Repo-wide static guards, called by ci.yml on every non-draft change. Each is
+# a dependency-free Node script (or a pinned linter), so the lane needs no
+# `pnpm install` and finishes in about a minute. These guards are the CI copy
+# of `pnpm lint:arch` / `pnpm lint:i18n`; the frontend lane runs only the
+# ESLint part of `pnpm lint` so nothing is scanned twice.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    name: static guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    # Every guard step runs even after an earlier one fails (`!cancelled()`),
+    # so one run reports every broken guard instead of only the first.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+
+      # Pinned release binary; agents edit workflows unsupervised, so they get
+      # their own linter (actionlint also runs shellcheck on every `run:`).
+      - name: Workflow lint (actionlint 1.7.7)
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
+
+      - name: Script self-tests (scripts/*.test.mjs, app/scripts/*.test.mjs)
+        if: ${{ !cancelled() }}
+        run: node --test scripts/*.test.mjs app/scripts/*.test.mjs
+
+      - name: Architecture (file size, layers, typed domain errors)
+        if: ${{ !cancelled() }}
+        run: node app/scripts/check-architecture.mjs
+
+      - name: SSOT dead-link guard
+        if: ${{ !cancelled() }}
+        run: node app/scripts/check-ssot-links.mjs
+
+      - name: Hebrew source scan (no inline UI copy)
+        if: ${{ !cancelled() }}
+        run: node scripts/extract-hebrew-text.mjs --check
+
+      - name: RPC / table contract
+        if: ${{ !cancelled() }}
+        run: node scripts/check-rpc-contract.mjs
+
+      - name: Web manifest parity
+        if: ${{ !cancelled() }}
+        run: node scripts/check-web-manifest.mjs
+
+      - name: expo-router platform-extension fallbacks
+        if: ${{ !cancelled() }}
+        run: node scripts/check-expo-router-platform-extensions.mjs
+
+      - name: Migration chain (single head)
+        if: ${{ !cancelled() }}
+        run: node scripts/check-migration-chain.mjs
+
+      - name: Migration destructive-op scan
+        if: ${{ !cancelled() }}
+        run: node scripts/check-migration-safety.mjs
+
+      - name: No FlatList in mobile (#896)
+        if: ${{ !cancelled() }}
+        run: node app/scripts/check-mobile-flatlist.mjs
+
+      - name: No OFFSET pagination in SQL (#898)
+        if: ${{ !cancelled() }}
+        run: node app/scripts/check-sql-no-offset.mjs
+
+      - name: Required-check docs and CI gate wiring
+        if: ${{ !cancelled() }}
+        run: node scripts/check-required-checks-drift.mjs

@@ -7,7 +7,7 @@
 --      rejected with 42501;
 --   3. an org-scoped admin sees only their own org;
 --   4. super_admin sees every org, and the counts are correct:
---      community_total counts members (active or suspended, D79),
+--      community_total counts members (active or suspended, D84),
 --      role_holder_total counts distinct granted members, affiliated_count
 --      excludes members who already hold a grant in the same org and
 --      non-members (banned).

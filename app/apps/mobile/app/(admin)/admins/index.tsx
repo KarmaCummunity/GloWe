@@ -9,7 +9,7 @@
 //
 // Visibility per PERMISSION_MATRIX['admins.view'] (the server scopes the data):
 //   - super_admin:             every org; grant / change / revoke anywhere.
-//   - org admins and managers: their own org; manage within their authority (D77).
+//   - org admins and managers: their own org; manage within their authority (D86).
 //   - moderator:               the platform team, read-only.
 //   - support, org members:    no access (denial card).
 import { useState } from 'react';

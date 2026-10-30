@@ -38,7 +38,7 @@ describe('AdminPermission matrix', () => {
     expect(hasPermission(['super_admin'], 'admins.grant_role')).toBe(true);
   });
 
-  it('org admins and managers run their org team (D77); org members do not', () => {
+  it('org admins and managers run their org team (D86); org members do not', () => {
     for (const role of ['org_admin', 'org_manager', 'volunteer_manager', 'operators_manager'] as const) {
       expect(hasPermission([role], 'admins.view')).toBe(true);
       expect(hasPermission([role], 'admins.grant_role')).toBe(true);

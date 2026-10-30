@@ -33,7 +33,7 @@ export const ADMIN_PERMISSIONS = [
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
 
 /**
- * Org roles that run their own org's team in the portal (project book D77):
+ * Org roles that run their own org's team in the portal (project book D86):
  * they see the team area and may grant, change and revoke roles. The server
  * scopes every call to their org (`can_grant_role`, `admin_list_admins`).
  */
@@ -42,7 +42,7 @@ const ORG_TEAM_MANAGERS: readonly AdminRole[] = [
 ];
 
 /**
- * Permissions are role-derived only (project book D76): a person's
+ * Permissions are role-derived only (project book D85): a person's
  * permissions are the union of their roles' rows here, never set per person.
  */
 export const PERMISSION_MATRIX: Readonly<Record<AdminPermission, readonly AdminRole[]>> = {
@@ -88,7 +88,7 @@ export function hasPermission(
   return false;
 }
 
-/** Every permission `role` carries, in matrix order (D76 — role-derived only). */
+/** Every permission `role` carries, in matrix order (D85 — role-derived only). */
 export function permissionsOfRole(role: AdminRole): AdminPermission[] {
   return ADMIN_PERMISSIONS.filter((permission) => PERMISSION_MATRIX[permission].includes(role));
 }
