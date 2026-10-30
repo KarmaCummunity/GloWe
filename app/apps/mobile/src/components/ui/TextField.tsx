@@ -25,7 +25,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput, type ColorPalette } from '@kc/ui';
 import { layoutWritingDirectionStyle } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
@@ -36,6 +36,12 @@ const MESSAGE_ICON_SIZE = 14;
 /** Web only: the border colour is the focus indicator, so drop the browser's focus ring. */
 const WEB_NO_FOCUS_RING: TextStyle =
   Platform.OS === 'web' ? { outlineStyle: 'solid', outlineWidth: 0 } : {};
+
+/** Icon tint for the field state. Error wins over focus: it stays red while the user fixes the value. */
+function fieldAccentColor(colors: ColorPalette, hasError: boolean, focused: boolean): string {
+  if (hasError) return colors.error;
+  return focused ? colors.primary : colors.textSecondary;
+}
 
 type FocusEvent = Parameters<NonNullable<TextInputProps['onFocus']>>[0];
 type BlurEvent = Parameters<NonNullable<TextInputProps['onBlur']>>[0];
@@ -85,8 +91,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
   const disabled = inputProps.editable === false;
   const hasError = Boolean(errorText);
   const multiline = Boolean(inputProps.multiline);
-  // Error wins over focus: the red border stays while the user fixes the value.
-  const accentColor = hasError ? colors.error : focused ? colors.primary : colors.textSecondary;
+  const accentColor = fieldAccentColor(colors, hasError, focused);
 
   const handleFocus = (e: FocusEvent) => {
     setFocused(true);
