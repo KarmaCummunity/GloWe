@@ -1,0 +1,26 @@
+// D60 / D3 (docs/spec/04_product_structure.md): every world is shown in full.
+// A launch flag decides whether a world is "active" (full in-app flow) or a
+// "portal" (links + knowledge) — it never removes the world from the hub (G37).
+import { describe, expect, it } from 'vitest';
+import { LAUNCH_WORLD_FLAG_DEFAULTS } from '@kc/domain';
+import { DONATIONS_HUB_TILES, donationsHubTiles } from '../donationsHubTiles';
+
+const ALL_OFF = Object.fromEntries(Object.keys(LAUNCH_WORLD_FLAG_DEFAULTS).map((k) => [k, false]));
+
+describe('donationsHubTiles', () => {
+  it('shows every world tile with the default launch flags', () => {
+    expect(donationsHubTiles(undefined).map((t) => t.tile.key)).toEqual(DONATIONS_HUB_TILES.map((t) => t.key));
+  });
+
+  it('marks worlds whose flag is off as portals instead of hiding them', () => {
+    const tiles = donationsHubTiles(ALL_OFF);
+    expect(tiles).toHaveLength(DONATIONS_HUB_TILES.length);
+    expect(new Set(tiles.map((t) => t.mode))).toEqual(new Set(['portal']));
+  });
+
+  it('marks worlds whose flag is on as active', () => {
+    const tiles = donationsHubTiles({ world_food_enabled: true, world_rides_enabled: false });
+    expect(tiles.find((t) => t.tile.key === 'food')?.mode).toBe('active');
+    expect(tiles.find((t) => t.tile.key === 'transport')?.mode).toBe('portal');
+  });
+});

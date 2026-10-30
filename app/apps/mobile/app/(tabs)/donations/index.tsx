@@ -30,7 +30,7 @@ import { useRemoteAppFlags } from '../../../src/hooks/useLaunchWorldFlags';
 import { isHubTileLaunchEnabled } from '@kc/domain';
 import {
   DONATIONS_HUB_FEATURED,
-  DONATIONS_HUB_TILES,
+  donationsHubTiles,
   type DonationHubTile,
 } from '../../../src/navigation/donationsHubTiles';
 
@@ -159,7 +159,10 @@ export default function DonationsHubScreen() {
   const tabBarPad = useShellTabBarScrollInset();
   const remoteFlags = useRemoteAppFlags();
   const showFeaturedItems = isHubTileLaunchEnabled('items', remoteFlags);
-  const visibleTiles = DONATIONS_HUB_TILES.filter((tile) => isHubTileLaunchEnabled(tile.key, remoteFlags));
+  // D60 — every world is shown; portal worlds (flag off) say they offer links and knowledge.
+  const visibleTiles = donationsHubTiles(remoteFlags).map(({ tile, mode }) =>
+    mode === 'portal' ? { ...tile, subtitleKey: 'donations.worldLaunch.portalTileSubtitle' } : tile,
+  );
 
   // Desktop (>=1024) aside — live community snapshot (FR-RESP-003).
   useScreenAside(() => <CommunityStatsAside />, []);
