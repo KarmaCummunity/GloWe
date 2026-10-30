@@ -3,18 +3,28 @@
 // builds and decides whether it needs to build at all (D-195 tier 2, INFRA-CI-4).
 //
 // The candidate is the newest commit on BRANCH whose `CI` workflow push run
-// concluded success. That exact SHA is built, never the branch tip, so a red or
-// still-running tip never reaches testers. The build is skipped when the
-// candidate is the commit the marker tag (MARKER_TAG) already points at, which
-// the pipeline moves only after both store submissions succeeded — unless FORCE.
+// concluded success. Push runs plan every lane (scripts/ci-changes.mjs), so a
+// green run certifies the whole tree. That exact SHA is built, never the tip,
+// so a red or still-running tip never reaches testers. The build is skipped
+// when the candidate already carries a `mobile/v*` tag: the pipeline creates
+// that tag only after both store submissions succeeded — unless FORCE.
 //
 // Inputs (env): GITHUB_TOKEN, GITHUB_REPOSITORY, GITHUB_API_URL (optional),
-// BRANCH (default dev), LOOKBACK (commits to scan, default 30), FORCE ('true'),
-// MARKER_TAG (default mobile-nightly/last).
-// Outputs (GITHUB_OUTPUT): sha, version, build ('true' | 'false'), last_sha.
+// BRANCH (default dev), LOOKBACK (commits to scan, 1–100, default 30), FORCE ('true').
+// Outputs (GITHUB_OUTPUT): sha, version, build ('true' | 'false').
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
+/** Prefix of the per-build traceability tags; a tagged commit has shipped. */
+export const SHIPPED_TAG_PREFIX = 'mobile/v';
+
+/** Parse LOOKBACK; one API page holds at most 100 commits, so larger values are refused. */
+export function parseLookback(raw) {
+  const n = Number(raw ?? 30);
+  if (!Number.isInteger(n) || n < 1 || n > 100) throw new Error(`LOOKBACK must be an integer from 1 to 100 (got "${raw}")`);
+  return n;
+}
 
 /** Return the first SHA in `commitShas` (newest first) that has a green CI push run. */
 export function pickGreenSha(commitShas, greenShas) {
@@ -22,12 +32,25 @@ export function pickGreenSha(commitShas, greenShas) {
   return commitShas.find((sha) => green.has(sha)) ?? null;
 }
 
+/** Map commit SHA → shipped tag names, from a git/matching-refs API response. */
+export function shippedTags(refs) {
+  const byCommit = new Map();
+  for (const ref of refs) {
+    // Lightweight tags point at the commit; anything else is not ours.
+    if (ref.object?.type !== 'commit') continue;
+    const tag = ref.ref.replace(/^refs\/tags\//, '');
+    byCommit.set(ref.object.sha, [...(byCommit.get(ref.object.sha) ?? []), tag]);
+  }
+  return byCommit;
+}
+
 /** Decide whether tonight's candidate must be built. */
-export function planNightly({ greenSha, lastSha, force }) {
+export function planNightly({ greenSha, shipped, force }) {
   if (!greenSha) throw new Error('planNightly needs a green SHA');
+  const tags = shipped.get(greenSha);
   if (force) return { build: true, reason: 'forced by the `force` input' };
-  if (greenSha === lastSha) return { build: false, reason: `${greenSha} is already the last nightly build` };
-  return { build: true, reason: lastSha ? `new green commit since ${lastSha}` : 'no previous nightly build' };
+  if (tags) return { build: false, reason: `${greenSha} already shipped as ${tags.join(', ')}` };
+  return { build: true, reason: 'new green commit' };
 }
 
 /** Validate the `MAJOR.MINOR.PATCH` content of app/VERSION. */
@@ -35,15 +58,6 @@ export function parseVersion(text) {
   const version = String(text).trim();
   if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error(`app/VERSION is not MAJOR.MINOR.PATCH: "${version}"`);
   return version;
-}
-
-/** Read the commit a lightweight tag points at from a git/ref API response (null when absent). */
-export function markerSha(ref) {
-  if (!ref) return null;
-  if (ref.object?.type !== 'commit') {
-    throw new Error(`marker tag must be a lightweight tag on a commit (got ${ref.object?.type ?? 'nothing'})`);
-  }
-  return ref.object.sha;
 }
 
 /** GET a GitHub REST path; resolves to null on 404 when `allow404` is set. */
@@ -76,8 +90,7 @@ async function main() {
   const env = process.env;
   const repo = env.GITHUB_REPOSITORY;
   const branch = env.BRANCH || 'dev';
-  const lookback = Number(env.LOOKBACK || 30);
-  const marker = env.MARKER_TAG || 'mobile-nightly/last';
+  const lookback = parseLookback(env.LOOKBACK);
 
   const commits = await api(`/repos/${repo}/commits?sha=${branch}&per_page=${lookback}`);
   // `status=success` filters on the run conclusion; 100 runs cover the lookback window.
@@ -90,17 +103,17 @@ async function main() {
     console.log(`::error::No commit among the last ${lookback} on ${branch} has a successful CI push run.`);
     process.exit(1);
   }
-  const lastSha = markerSha(await api(`/repos/${repo}/git/ref/tags/${marker}`, { allow404: true }));
-  const plan = planNightly({ greenSha, lastSha, force: env.FORCE === 'true' });
+  // An empty list (or a 404) means nothing has shipped yet.
+  const refs = (await api(`/repos/${repo}/git/matching-refs/tags/${SHIPPED_TAG_PREFIX}`, { allow404: true })) ?? [];
+  const plan = planNightly({ greenSha, shipped: shippedTags(refs), force: env.FORCE === 'true' });
   const version = parseVersion(await api(`/repos/${repo}/contents/app/VERSION?ref=${greenSha}`, { raw: true }));
 
-  writeOutputs({ sha: greenSha, version, build: String(plan.build), last_sha: lastSha ?? '' });
+  writeOutputs({ sha: greenSha, version, build: String(plan.build) });
   writeSummary(
     [
       `### Mobile nightly — ${plan.build ? 'building' : 'nothing to build'}`,
       '',
       `- Green ${branch} commit: \`${greenSha}\` (version ${version})`,
-      `- Last nightly build: ${lastSha ? `\`${lastSha}\`` : 'none'}`,
       `- Decision: ${plan.reason}`,
     ].join('\n'),
   );

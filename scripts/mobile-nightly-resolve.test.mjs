@@ -1,7 +1,9 @@
 // Unit tests for scripts/mobile-nightly-resolve.mjs. Run: node --test scripts/mobile-nightly-resolve.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { markerSha, parseVersion, pickGreenSha, planNightly } from './mobile-nightly-resolve.mjs';
+import { parseLookback, parseVersion, pickGreenSha, planNightly, shippedTags } from './mobile-nightly-resolve.mjs';
+
+const tagRef = (name, sha, type = 'commit') => ({ ref: `refs/tags/${name}`, object: { type, sha } });
 
 test('picks the newest commit that has a green CI push run, not the tip', () => {
   assert.equal(pickGreenSha(['tip', 'mid', 'old'], ['old', 'mid']), 'mid');
@@ -12,40 +14,50 @@ test('returns null when no scanned commit is green', () => {
   assert.equal(pickGreenSha([], []), null);
 });
 
-test('builds when the green commit differs from the last nightly build', () => {
-  assert.deepEqual(planNightly({ greenSha: 'b', lastSha: 'a', force: false }), {
+test('shippedTags groups lightweight tags by commit and ignores annotated tags', () => {
+  const shipped = shippedTags([
+    tagRef('mobile/v1.5.3-ios14-android22', 'a'),
+    tagRef('mobile/v1.5.3-ios15-android23', 'a'),
+    tagRef('mobile/v1.5.4-ios16-android24', 'tagobj', 'tag'),
+  ]);
+  assert.deepEqual([...shipped], [['a', ['mobile/v1.5.3-ios14-android22', 'mobile/v1.5.3-ios15-android23']]]);
+});
+
+test('builds a green commit that has no shipped tag', () => {
+  assert.deepEqual(planNightly({ greenSha: 'b', shipped: shippedTags([tagRef('mobile/v1-ios1-android1', 'a')]), force: false }), {
     build: true,
-    reason: 'new green commit since a',
+    reason: 'new green commit',
   });
 });
 
-test('builds on the first run, when no marker exists', () => {
-  assert.equal(planNightly({ greenSha: 'a', lastSha: null, force: false }).build, true);
+test('skips a commit that already shipped, even if an earlier record step failed', () => {
+  const r = planNightly({ greenSha: 'a', shipped: shippedTags([tagRef('mobile/v1-ios1-android1', 'a')]), force: false });
+  assert.equal(r.build, false);
+  assert.match(r.reason, /already shipped as mobile\/v1-ios1-android1/);
 });
 
-test('skips when the green commit is already the last nightly build', () => {
-  assert.equal(planNightly({ greenSha: 'a', lastSha: 'a', force: false }).build, false);
-});
-
-test('force rebuilds an unchanged commit', () => {
-  assert.equal(planNightly({ greenSha: 'a', lastSha: 'a', force: true }).build, true);
+test('force rebuilds a shipped commit', () => {
+  assert.equal(planNightly({ greenSha: 'a', shipped: shippedTags([tagRef('mobile/v1-ios1-android1', 'a')]), force: true }).build, true);
 });
 
 test('planNightly refuses to plan without a green commit', () => {
-  assert.throws(() => planNightly({ greenSha: null, lastSha: 'a', force: true }), /green SHA/);
+  assert.throws(() => planNightly({ greenSha: null, shipped: new Map(), force: true }), /green SHA/);
+});
+
+test('parseLookback defaults to 30 and accepts 1..100', () => {
+  assert.equal(parseLookback(undefined), 30);
+  assert.equal(parseLookback('1'), 1);
+  assert.equal(parseLookback('100'), 100);
+});
+
+test('parseLookback refuses values one API page cannot hold', () => {
+  assert.throws(() => parseLookback('101'), /1 to 100/);
+  assert.throws(() => parseLookback('0'), /1 to 100/);
+  assert.throws(() => parseLookback('ten'), /1 to 100/);
 });
 
 test('parseVersion accepts MAJOR.MINOR.PATCH and rejects anything else', () => {
   assert.equal(parseVersion('1.5.3\n'), '1.5.3');
   assert.throws(() => parseVersion('1.5'), /MAJOR\.MINOR\.PATCH/);
   assert.throws(() => parseVersion('v1.5.3'), /MAJOR\.MINOR\.PATCH/);
-});
-
-test('markerSha reads a lightweight tag and treats a missing tag as no previous build', () => {
-  assert.equal(markerSha({ object: { type: 'commit', sha: 'abc' } }), 'abc');
-  assert.equal(markerSha(null), null);
-});
-
-test('markerSha rejects an annotated tag, whose object is not the commit', () => {
-  assert.throws(() => markerSha({ object: { type: 'tag', sha: 'tagobj' } }), /lightweight/);
 });

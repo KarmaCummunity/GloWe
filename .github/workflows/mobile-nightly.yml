@@ -2,15 +2,16 @@ name: Mobile nightly
 
 # Tier 2 of D-195 (INFRA-CI-4): every night, ship the newest green `dev` commit
 # to TestFlight (iOS) and Play internal (Android). No human approval: both are
-# internal tester tracks.
+# internal tester tracks, built with the eas.json `nightly` profile on the
+# kc-dev Supabase backend (each store job checks the built bundle for it).
 #
 #   resolve → e2e (P0 against dev) → ios ∥ android → record
 #
 # `resolve` picks the newest dev commit whose `CI` push run succeeded and builds
 # that exact SHA, never the tip. Nothing is built when that SHA already carries
-# the `mobile-nightly/last` tag (the macOS runner is the costly part), unless
-# `force` is set. `record` moves that tag only after both stores accepted the
-# build, so a failed night is retried in full the next night.
+# a `mobile/v*` tag (the macOS runner is the costly part), unless `force` is
+# set. `record` creates that tag only after both stores accepted the build, so
+# a night where either store failed is retried in full the next night.
 #
 # Scheduled runs use the default branch's (main's) copy of this file, so the
 # schedule takes effect once it reaches main; it still builds dev's commit.
@@ -33,23 +34,18 @@ concurrency:
 
 permissions: {}
 
-env:
-  # Lightweight tag on the last commit both stores received from this pipeline.
-  MARKER_TAG: mobile-nightly/last
-
 jobs:
   resolve:
     name: resolve green dev commit
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: read # commits, app/VERSION, marker tag
+      contents: read # commits, app/VERSION, shipped tags
       actions: read # CI run conclusions
     outputs:
       sha: ${{ steps.pick.outputs.sha }}
       version: ${{ steps.pick.outputs.version }}
       build: ${{ steps.pick.outputs.build }}
-      last_sha: ${{ steps.pick.outputs.last_sha }}
     steps:
       # A dispatch from a feature branch would run that branch's copy of the
       # store workflows; only dev's (or the schedule's main) copy may ship.
@@ -121,37 +117,40 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write # create/move tags
+      contents: write # create the traceability tag
     steps:
-      - name: Tag the build and move the nightly marker
+      - name: Tag the shipped commit
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ needs.resolve.outputs.sha }}
-          LAST_SHA: ${{ needs.resolve.outputs.last_sha }}
           VERSION: ${{ needs.resolve.outputs.version }}
           IOS_BUILD: ${{ needs.ios.outputs.build_number }}
           ANDROID_CODE: ${{ needs.android.outputs.version_code }}
-          IOS_TARGET: ${{ needs.ios.outputs.supabase_target }}
-          ANDROID_TARGET: ${{ needs.android.outputs.supabase_target }}
         run: |
           set -euo pipefail
           if [ -z "$IOS_BUILD" ] || [ -z "$ANDROID_CODE" ]; then
             echo "::error::A store job reported no build number"
             exit 1
           fi
-          # Traceability: which commit became which store builds.
+          # Traceability, and the marker resolve uses to skip a shipped commit.
           tag="mobile/v$VERSION-ios$IOS_BUILD-android$ANDROID_CODE"
-          gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null
-          # The marker exists from the second night on; resolve reported its old commit.
-          if [ -n "$LAST_SHA" ]; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$MARKER_TAG" -f sha="$SHA" -F force=true > /dev/null
-          else
-            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$MARKER_TAG" -f sha="$SHA" > /dev/null
-          fi
+          # Create or move the tag; idempotent, so a retry after a lost response is safe.
+          put_tag() {
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" -f sha="$SHA" -F force=true > /dev/null 2>&1 ||
+              gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null
+          }
+          for delay in 2 4 8 0; do
+            if put_tag; then break; fi
+            if [ "$delay" -eq 0 ]; then
+              echo "::error::Could not create tag $tag on $SHA; tomorrow's run will rebuild this commit."
+              exit 1
+            fi
+            sleep "$delay"
+          done
           {
             echo "### Mobile nightly shipped"
             echo
-            echo "| Version | Commit | iOS build | Android versionCode | Supabase (iOS / Android) | Tag |"
+            echo "| Version | Commit | iOS build | Android versionCode | Supabase | Tag |"
             echo "| --- | --- | --- | --- | --- | --- |"
-            echo "| $VERSION | \`$SHA\` | $IOS_BUILD | $ANDROID_CODE | $IOS_TARGET / $ANDROID_TARGET | \`$tag\` |"
+            echo "| $VERSION | \`$SHA\` | $IOS_BUILD | $ANDROID_CODE | kc-dev | \`$tag\` |"
           } >> "$GITHUB_STEP_SUMMARY"
