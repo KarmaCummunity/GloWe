@@ -106,7 +106,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/map')}>
           <Text style={styles.link}>{t('marketplace.openMap')}</Text>
         </Pressable>
-        <Pressable onPress={() => router.push(createRouteFor(world) as never)}>
+        <Pressable onPress={() => router.push(createRouteFor(world))}>
           <Text style={styles.link}>{t('marketplace.createListing')}</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/my-listings')}>
@@ -142,7 +142,7 @@ export default function MarketplaceBrowseScreen() {
                 <EmptyStateActions
                   primary={{
                     label: t('emptyStates.marketplaceCreate'),
-                    onPress: () => router.push(createRouteFor(world) as never),
+                    onPress: () => router.push(createRouteFor(world)),
                     testID: 'marketplace-empty-create',
                   }}
                   secondary={

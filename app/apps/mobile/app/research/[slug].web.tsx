@@ -156,7 +156,7 @@ export default function PublicResearchScreen() {
     const ok = await submitAnswers();
     if (ok) {
       clearSurveyDraft(RESEARCH_DRAFT_NS, slug);
-      router.replace('/research/thanks' as Href);
+      router.replace('/research/thanks');
     }
   }
 

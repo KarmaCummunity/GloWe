@@ -42,7 +42,7 @@ export function MyWorldHandoffsList({ worldSlug }: { readonly worldSlug: 'items'
             title={cleanDisplayTitle(item.title)}
             meta={[item.role]}
             statusLabel={item.status}
-            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}` as never)}
+            onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
           />
         )}
       />

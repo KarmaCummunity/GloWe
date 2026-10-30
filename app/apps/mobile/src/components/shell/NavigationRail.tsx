@@ -45,7 +45,7 @@ function NavigationRailItem({ tab, expanded }: { tab: TabDefinition; expanded: b
 
   return (
     <Pressable
-      onPress={() => router.push(tab.route as never)}
+      onPress={() => router.push(tab.route)}
       style={[
         styles.item,
         expanded ? styles.itemExpanded : styles.itemCollapsed,

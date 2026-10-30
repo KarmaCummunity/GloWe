@@ -3,6 +3,7 @@
 // Category config drives which fields the unified create form renders and which
 // write path (legacy post vs marketplace listing) is used on submit.
 import { MARKETPLACE_CREATE_WORLD_SLUGS, ROUTED_WORLDS } from '@kc/domain';
+import type { Href } from 'expo-router';
 
 export type CreateEngine = 'post' | 'listing';
 export type CreateDirection = 'give' | 'request';
@@ -97,7 +98,7 @@ export function visibleCreateCategories(
 }
 
 /** Single entry route for every create button; preselects a category. */
-export function createRouteFor(categoryId?: string | null): string {
+export function createRouteFor(categoryId?: string | null): Href {
   const base = '/(tabs)/create';
   if (!categoryId || categoryId === GENERAL_CREATE_CATEGORY) return base;
   return `${base}?category=${encodeURIComponent(categoryId)}`;

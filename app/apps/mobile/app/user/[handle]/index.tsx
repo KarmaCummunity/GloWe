@@ -185,14 +185,14 @@ export default function OtherProfileScreen() {
             followingCount={u.followingCount}
             postsCount={tabCounts.totalCount ?? 0}
             enabled
-            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers' as never, params: { handle } } as never)}
-            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
+            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers', params: { handle } })}
+            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following', params: { handle } })}
           />
 
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
-              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId: u.userId } } as never)}
+              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]', params: { userId: u.userId } })}
             >
               <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
               <Text style={styles.adminLinkText}>{t('admin.admins.profileLink')}</Text>

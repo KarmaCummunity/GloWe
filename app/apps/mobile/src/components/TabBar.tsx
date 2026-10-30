@@ -96,7 +96,7 @@ export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> =
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         const label = t(tab.labelI18nKey);
-        const onPress = () => router.push(tab.route as never);
+        const onPress = () => router.push(tab.route);
         if (tab.isComposer) {
           return <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} />;
         }

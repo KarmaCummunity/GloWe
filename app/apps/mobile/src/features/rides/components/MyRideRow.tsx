@@ -86,7 +86,7 @@ export function MyRideRow({ ride, activeRow = true }: Props) {
     <Card padding="base" style={styles.card}>
       <Pressable
         onPress={() =>
-          router.push(`/(tabs)/donations/rides/${ride.rideId}` as Parameters<typeof router.push>[0])
+          router.push(`/(tabs)/donations/rides/${ride.rideId}`)
         }
         accessibilityRole="button"
         accessibilityLabel={ride.title}
