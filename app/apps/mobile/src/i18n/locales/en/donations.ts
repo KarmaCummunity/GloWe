@@ -257,6 +257,8 @@ export const marketplace = {
   forYouTitle: 'For you',
   createHubTitle: 'Choose a giving world',
   fieldKind: 'Listing type',
+  fieldWorldSubcategory: 'Subcategory',
+  fieldWorldSubcategoryHint: 'Optional — helps us find matches for you',
   fieldDirection: 'Give or request',
   fieldCity: 'City / area',
   fieldRadius: 'Search radius: {{km}} km',

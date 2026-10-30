@@ -257,6 +257,8 @@ export const marketplace = {
   forYouTitle: 'בשבילך',
   createHubTitle: 'בחירת עולם נתינה',
   fieldKind: 'סוג מודעה',
+  fieldWorldSubcategory: 'תת-קטגוריה',
+  fieldWorldSubcategoryHint: 'לא חובה — עוזר למצוא לך התאמות',
   fieldDirection: 'מציע / מבקש',
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',

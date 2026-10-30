@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SaveSurveyAnswersUseCase } from '../SaveSurveyAnswersUseCase';
-import { SurveyError } from '@kc/domain';
 import { makeFakeRepo, makeBundle, makeAnswer, makeQuestion } from './surveyFakeRepository';
 
 describe('SaveSurveyAnswersUseCase', () => {
