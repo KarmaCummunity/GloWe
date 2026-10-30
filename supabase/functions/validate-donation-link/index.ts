@@ -14,6 +14,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { type Handler, withTiming } from '../_shared/withTiming.ts';
+import { denoResolve, resolvesOnlyToPublic } from './dnsGuard.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -115,6 +116,20 @@ function isSafeHost(url: URL): { ok: true } | { ok: false; reason: string } {
   return { ok: true };
 }
 
+/** IP literals were already checked by isSafeHost; names must resolve to public addresses only. */
+function isIpLiteral(host: string): boolean {
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':') || host.startsWith('[');
+}
+
+async function hostResolvesToPublic(hostname: string): Promise<boolean> {
+  const host = hostname.toLowerCase();
+  if (isIpLiteral(host)) return true;
+  return resolvesOnlyToPublic(host, denoResolve, {
+    isPrivateIPv4,
+    isPrivateIPv6: isPrivateIPv6Literal,
+  });
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -148,6 +163,7 @@ async function checkReachable(initial: URL): Promise<boolean> {
   for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
     const safety = isSafeHost(url);
     if (!safety.ok) return false;
+    if (!(await hostResolvesToPublic(url.hostname))) return false;
     for (const method of ['HEAD', 'GET'] as const) {
       try {
         const resp = await fetch(url.toString(), {
