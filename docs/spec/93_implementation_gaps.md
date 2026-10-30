@@ -1,4 +1,4 @@
-# 93 — Implementation gaps G1–G37
+# 93 — Implementation gaps G1–G43
 
 Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
 
@@ -41,3 +41,9 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
 | G36 | ✅ 2026-10-30 — "Forgot password" flow (legacy FR-AUTH-008): `(auth)/forgot-password` + `auth/reset-password`; needs the hosted reset-email template (see 95) | auth |
 | G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
+| G38 | 🟡 2026-10-30 — Shared DB test harness (`supabase/tests/_harness`, `scripts/run-db-tests.sh`) + rides lifecycle flow. Open: items, food, knowledge flows on the harness | architecture §5.1 |
+| G39 | Port contract tests: one suite per port, run against a fake and the Supabase adapter | architecture §5.1 |
+| G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
+| G41 | Edge Functions report errors to Sentry through one shared wrapper | architecture §5.2 |
+| G42 | Health registry (`ops`), hourly monitor on dev + prod, alert router (GitHub issue / email / WhatsApp) (D68, D69) | architecture §5.2 |
+| G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
