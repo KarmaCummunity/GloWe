@@ -1562,10 +1562,19 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0465_admin_team_management.sql`, `app/packages/domain/src/admin/{GrantAuthority,AdminGrant,AdminPermission,AdminRoleError}.ts`, `app/packages/application/src/admin/{GrantAdminRoleUseCase,ChangeAdminRoleUseCase,IAdminRoleRepository}.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseAdminRoleRepository.ts`, `app/apps/mobile/app/(admin)/admins/[userId].tsx`, `app/apps/mobile/src/components/admin/admins/**`; FR-ADMIN-030.
 
+## D-199 — Organizations: one entity, organization accounts on `users`, act-as context re-checked server-side (2026-10-30)
+
+**Decision.** `organizations` is the only organization entity: `org_applications` folds into `organizations(status='pending')` + a new `org_registrations` table, and `external_bodies` folds in as `status='unclaimed'` rows behind a temporary compatibility view (TD-209). An **organization account** is an ordinary Supabase auth user with `users.account_type='organization'` and a unique `users.org_id`, whose display name / avatar mirror the organization, so every existing author / chat / follow projection works without a second identity type. "Acting as an organization" is a client context that every write RPC receives explicitly (`p_as_org_id`) and re-checks with `can_act_as_org(auth.uid(), org_id)` (organization account binding or active org-scoped grant); the acting person is always recorded (`posted_by_user_id`, `sent_by_user_id`). Follows generalise in place (`follows.actor_org_id` / `target_org_id` with exactly-one CHECKs) instead of a parallel table. Organization profiles live at `/org/{slug}` with a slug-redirect table; the money nonprofit page becomes a tab and redirects. Migration range `0490–0509`. Product decisions: D88–D92.
+
+**Why.** Three org-like tables (G5) were already diverging; a single row with a status column is cheaper than reconciliation. Reusing `users` for the organization identity avoids forking profile, chat and follow code paths. Explicit `p_as_org_id` keeps authorization server-side and auditable, which D85's role-derived permissions require.
+
+**Affected.** `supabase/migrations/0490–0509`, `app/packages/domain/src/organizations/**`, `app/packages/application/src/organizations/**`, `app/packages/infrastructure-supabase/src/organizations/**`, `app/apps/mobile/app/org/**`, `app/apps/mobile/src/components/profile/**` (organization variants), `(tabs)/search.tsx`, `(admin)/org-approvals`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
 | 4.25 | 2026-10-30 | Added `D-197` (team management: role-derived permissions, org-run teams, position-gated atomic role change aligned with FR-ADMIN-027; FR-ADMIN-030). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
 | 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
