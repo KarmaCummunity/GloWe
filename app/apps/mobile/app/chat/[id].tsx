@@ -22,7 +22,7 @@ import { AnchoredRideCard } from '../../src/components/chat/AnchoredRideCard';
 import { ChatScreenOverlays } from '../../src/components/chat/ChatScreenOverlays';
 import { useChatInit } from '../../src/components/useChatInit';
 import { useChatSend } from '../../src/hooks/useChatSend';
-import { useChatConversationStyles } from './chatScreenStyles';
+import { useChatConversationStyles } from '../../src/screens/chat/chatScreenStyles';
 import { usePushPermissionGate, registerCurrentDeviceIfPermitted } from '../../src/lib/notifications';
 import { KcFlashList } from '../../src/components/lists/KcFlashList';
 import { EnablePushModal } from '../../src/components/EnablePushModal';

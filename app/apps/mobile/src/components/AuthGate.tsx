@@ -181,6 +181,10 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
     // out; the route itself exchanges the token and sets the session.
     const isEmailVerify =
       (segments[0] as string | undefined) === 'auth' && segments[1] === 'verify';
+    // FR-AUTH-008 — reset-password opens from an email link while signed out and
+    // must not be redirected once the recovery token creates a session.
+    const isPasswordReset =
+      (segments[0] as string | undefined) === 'auth' && segments[1] === 'reset-password';
     // FR-MOD-010 AC4 — account-blocked is a terminal screen reachable while
     // signed out; do not bounce the user back to (auth).
     const isAccountBlocked = (segments[0] as string | undefined) === 'account-blocked';
@@ -201,6 +205,7 @@ export function AuthGate({ children }: Readonly<{ children: React.ReactNode }>) 
         !inGuestGroup &&
         !isOAuthCallback &&
         !isEmailVerify &&
+        !isPasswordReset &&
         !isAccountBlocked &&
         !isAboutSurface &&
         !isResearchSurface &&

@@ -31,7 +31,7 @@ import { webTextRtl, webViewRtl } from '../../../src/lib/webRtlStyle';
 import { container } from '../../../src/lib/container';
 import { useSurveyRunnerState } from '../../../src/hooks/useSurveyRunnerState';
 import { track } from '../../../src/lib/analytics';
-import { SurveyQuestionPanel } from './SurveyQuestionPanel';
+import { SurveyQuestionPanel } from '../../../src/screens/settings/survey/SurveyQuestionPanel';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 

@@ -100,6 +100,11 @@ jobs:
         if: needs.changes.outputs.frontend == 'true'
         run: pnpm test:coverage
 
+      # Repo-guard and build-script unit tests (`app/package.json` → test:scripts).
+      - name: Script unit tests
+        if: needs.changes.outputs.frontend == 'true'
+        run: pnpm test:scripts
+
       - name: Upload coverage artifacts
         if: always() && needs.changes.outputs.frontend == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -188,7 +193,7 @@ jobs:
 
       - name: Verify dist output
         if: needs.changes.outputs.frontend == 'true'
-        run: test -f apps/mobile/dist/index.html
+        run: test -f apps/mobile/dist/index.html && test -f apps/mobile/dist/_headers
 
       - name: Cache Playwright browsers
         if: needs.changes.outputs.frontend == 'true'

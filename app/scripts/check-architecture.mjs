@@ -175,11 +175,35 @@ function checkNotificationsCoalesceMirror(violations) {
   }
 }
 
+/**
+ * TD-195: expo-router registers every file under `apps/mobile/app/` as a
+ * route, so styles and helper components placed there become reachable URLs
+ * (`/settings.styles`, `/post/PostDetailScreen`). Route files must default-
+ * export a screen; everything else belongs in `apps/mobile/src/`.
+ */
+const ROUTE_DIR = 'apps/mobile/app/';
+const ROUTE_SPECIAL_FILES = /^(_layout|\+html|\+not-found|\+native-intent)(\.[a-z]+)?\.tsx?$/;
+const ROUTE_COMPONENT_NAME = /^[A-Z]/;
+
+function checkRouteFile(absPath, violations) {
+  const rel = relative(ROOT, absPath).replaceAll('\\', '/');
+  if (!rel.startsWith(ROUTE_DIR)) return;
+  const name = rel.slice(rel.lastIndexOf('/') + 1);
+  if (ROUTE_SPECIAL_FILES.test(name)) return;
+  const hint = 'expo-router turns every file in app/ into a route — move non-screen modules to apps/mobile/src/ (TD-195).';
+  if (/\.styles\.tsx?$/.test(name) || ROUTE_COMPONENT_NAME.test(name)) {
+    violations.push(`ROUTE: ${rel} is a style/component module inside app/. ${hint}`);
+  } else if (!/\bexport\s+default\b/.test(readFileSync(absPath, 'utf8'))) {
+    violations.push(`ROUTE: ${rel} has no default export. ${hint}`);
+  }
+}
+
 const targets = [join(ROOT, 'packages'), join(ROOT, 'apps', 'mobile')];
 const files = targets.flatMap((t) => walk(t));
 const violations = [];
 checkNotificationsCoalesceMirror(violations);
 for (const f of files) checkFile(f, violations);
+for (const f of files) checkRouteFile(f, violations);
 
 if (violations.length > 0) {
   console.error(

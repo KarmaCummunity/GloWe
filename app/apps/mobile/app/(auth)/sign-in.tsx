@@ -125,7 +125,11 @@ export default function SignInScreen() {
                   secureTextEntry
                   editable={!loading}
                 />
-                <TouchableOpacity disabled={loading}>
+                <TouchableOpacity
+                  testID="auth-forgot-password"
+                  disabled={loading}
+                  onPress={() => router.push({ pathname: '/(auth)/forgot-password', params: { email } })}
+                >
                   <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
                 </TouchableOpacity>
                 <SubmitButton label={t('auth.signIn')} loading={loading} onPress={handleSignIn} />

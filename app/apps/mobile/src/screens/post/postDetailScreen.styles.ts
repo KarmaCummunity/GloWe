@@ -2,8 +2,8 @@
 // 300-LOC cap (TD-29).
 import { Platform, type ViewStyle } from 'react-native';
 import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
-import { heroCornerEnd, heroCornerStart } from '../../src/components/post-detail/postDetailCorner';
-import { rowDirectionStart, selfAlignStart, textAlignStart } from '../../src/lib/rtlLayout';
+import { heroCornerEnd, heroCornerStart } from '../../components/post-detail/postDetailCorner';
+import { rowDirectionStart, selfAlignStart, textAlignStart } from '../../lib/rtlLayout';
 
 const IMAGE_OVERLAY_BG = 'rgba(0, 0, 0, 0.68)';
 const IMAGE_OVERLAY_BORDER = 'rgba(255, 255, 255, 0.22)';

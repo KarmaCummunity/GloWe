@@ -4,6 +4,8 @@ name: Auto-merge agent-ready PRs
 # GitHub then merges by itself once the branch protection's required checks pass.
 # Never touches `main`. Docs: docs/agents/OPERATING_MODEL.md.
 # Safe as pull_request_target: no checkout, and no PR code runs.
+# Same-repo heads only: only collaborators with write access can push to them,
+# so a label applied once cannot carry later commits from a fork.
 
 on:
   pull_request_target:
@@ -23,6 +25,7 @@ jobs:
     name: enable auto-merge (squash)
     if: >-
       github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false &&
       contains(github.event.pull_request.labels.*.name, 'agent-ready')
     runs-on: ubuntu-latest

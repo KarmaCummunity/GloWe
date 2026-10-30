@@ -5,7 +5,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
-import { useCreatePostStyles } from '../../../app/(tabs)/create.styles';
+import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import type { CreateCategoryConfig, CreateDirection } from '../../lib/unifiedCreate/createCategories';
 
 const useChipStyles = makeUseStyles(({ colors }) => ({

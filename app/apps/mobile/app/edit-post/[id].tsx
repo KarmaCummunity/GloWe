@@ -33,7 +33,7 @@ import { mapPostErrorToHebrew } from '../../src/services/postMessages';
 import { NotifyModal } from '../../src/components/NotifyModal';
 import { syncOwnerPostActorIdentity } from '../../src/lib/syncOwnerPostActorIdentity';
 import { getUserRepo } from '../../src/services/userComposition';
-import { useEditPostScreenStyles } from './editPostScreen.styles';
+import { useEditPostScreenStyles } from '../../src/screens/edit-post/editPostScreen.styles';
 
 const POST_IMAGES_BUCKET = 'post-images';
 function assetUrl(path: string): string {

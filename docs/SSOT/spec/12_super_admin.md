@@ -443,7 +443,7 @@ The admins list shows one card per *user* (not per grant). Each card carries all
 - AC2. Section counts reflect **active** team members. Fully-revoked users render in a separate "מינויים שבוטלו" section shown only when the include-revoked toggle is on.
 - AC3. Tapping a card opens `(admin)/admins/[userId]`, which lists every grant (active + revoked) with per-role **revoke** (gated by `admins.revoke_role`) and a button to the user's public profile (`/user/[userId]`, resolved via the route's `findById` fallback — no `share_handle` round-trip).
 - AC4. A role-holder's public profile (`/user/[handle]`) shows a cross-link to their admin-detail card, visible only when the viewer holds `admins.view` and the target has ≥1 grant.
-- AC5. All surfaces use `@kc/ui` design tokens (`makeUseStyles`, `radius`, `shadow`, RTL helpers) and are responsive — a centered max-width column at ≥ `tablet` (768px) — per `spec/14_responsive_desktop.md`.
+- AC5. All surfaces use `@kc/ui` design tokens (`makeUseStyles`, `radius`, `shadow`, RTL helpers) and are responsive — a centered max-width column at ≥ `tablet` (768px) — per `spec/17_responsive_desktop.md`.
 
 **Related.** Domain: `AdminPerson`, `groupGrantsByUser`, `adminRoleRank`. Mobile: `AdminPersonCard`, `RoleBadge`, `useAdminPerson`, `(admin)/admins/index.tsx`, `(admin)/admins/[userId].tsx`, profile cross-link in `user/[handle]/index.tsx`.
 

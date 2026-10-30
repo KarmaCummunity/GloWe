@@ -17,7 +17,7 @@ import { getEditableProfile, getUpdateProfileUseCase } from '../src/services/use
 import { removeUploadedAvatar } from '../src/services/avatarUpload';
 import { mapEditProfileSaveError } from '../src/lib/editProfileSaveErrors';
 import { useUnsavedChangesGuard } from '../src/hooks/useUnsavedChangesGuard';
-import { useEditProfileStyles } from './edit-profile.styles';
+import { useEditProfileStyles } from '../src/screens/edit-profile.styles';
 
 interface InitialState {
   // Nullable after migration 0084 (user still in `pending_basic_info`). The form
