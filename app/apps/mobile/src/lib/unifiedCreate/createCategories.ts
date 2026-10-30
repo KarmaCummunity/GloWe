@@ -19,6 +19,7 @@ export type SpecificCreateField =
   | 'urgency'
   | 'exposure'
   | 'listingKind'
+  | 'worldSubcategory'
   | 'listingDetails'
   | 'rideRoute'
   | 'externalBody'
@@ -45,8 +46,12 @@ const POST_CATEGORY: CreateCategoryConfig = {
   specificFields: ['postCategory', 'condition', 'estimatedValue', 'urgency', 'exposure'],
 };
 
+/** Worlds whose giver picks a world subcategory (items → books, food → bakery…), KC#1296. */
+export const WORLDS_WITH_SUBCATEGORY_PICKER: readonly string[] = ['items', 'food'];
+
 function listingCategory(slug: string): CreateCategoryConfig {
   const specific: SpecificCreateField[] = ['listingKind'];
+  if (WORLDS_WITH_SUBCATEGORY_PICKER.includes(slug)) specific.push('worldSubcategory');
   if (slug === 'rides') specific.push('rideRoute');
   specific.push('listingDetails');
   if ((ROUTED_WORLDS as readonly string[]).includes(slug)) specific.push('externalBody');

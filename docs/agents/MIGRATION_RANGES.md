@@ -58,11 +58,16 @@ Last applied on kc-dev when this was written: `0239`.
 | 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
 | 0453 | G34 / D63 listing-handoff karma per the §7.6 table (#1262) | in progress |
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
-| 0454–0459, 0461+ | — | free |
+| 0454 | #1122 admin match-quality metrics (`admin_match_quality`; moved from 0461, which #1268 uses) | in review |
+| 0455–0458 | #1058 Sean Ellis PMF survey (single-choice questions, `user_active_days`, admin PMF report) | in review |
+| 0459 | #1294 listing expiry from `details.expires_at`, food urgency on the 1–3 scale | in review |
+| 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
+| 0462 | #1296 listing world subcategory must match the listing's world | in review |
+| 0463+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0461+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0463+`.
 
 ## How to claim
 
