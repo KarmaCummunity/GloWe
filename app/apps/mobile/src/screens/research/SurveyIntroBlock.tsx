@@ -6,14 +6,14 @@ import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
-import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
-import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
+import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
+import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import {
   shareResearchSurvey,
   RESEARCH_SHARE_SRC_DURING_SURVEY,
   type ShareResearchOutcome,
-} from '../../src/lib/shareResearchSurvey';
-import { track } from '../../src/lib/analytics';
+} from '../../lib/shareResearchSurvey';
+import { track } from '../../lib/analytics';
 
 export function SurveyIntroBlock(): React.JSX.Element {
   const { t } = useTranslation();

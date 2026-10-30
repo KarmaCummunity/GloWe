@@ -10,7 +10,7 @@ import { LocationDisplayLevelChooser } from '../CreatePostForm/LocationDisplayLe
 import { PhotoPicker } from '../CreatePostForm/PhotoPicker';
 import { EditPostExposureSection } from './EditPostExposureSection';
 import type { UploadedAsset } from '../../services/imageUpload';
-import { useEditPostScreenStyles } from '../../../app/edit-post/editPostScreen.styles';
+import { useEditPostScreenStyles } from '../../screens/edit-post/editPostScreen.styles';
 
 export interface EditPostFormScrollContentProps {
   readonly isGive: boolean;

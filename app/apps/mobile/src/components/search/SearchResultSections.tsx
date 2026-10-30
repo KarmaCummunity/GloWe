@@ -10,7 +10,7 @@ import {
   PostResultCard,
   LinkResultCard,
 } from '../SearchResultCard';
-import { useSearchScreenStyles } from '../../../app/(tabs)/search.styles';
+import { useSearchScreenStyles } from '../../screens/tabs/search.styles';
 import { SearchSocialSections } from './SearchSocialSections';
 import { kcGridCell } from '../cards/KcCard.styles';
 

@@ -11,14 +11,14 @@ import { useTranslation } from 'react-i18next';
 import { makeUseStyles, spacing, typography } from '@kc/ui';
 import { PublicResearchError } from '@kc/domain';
 import type { PublicResearchBundle } from '@kc/domain';
-import { SurveyQuestionMap } from '../../src/components/survey/SurveyQuestionMap';
+import { SurveyQuestionMap } from '../../components/survey/SurveyQuestionMap';
 import {
   SURVEY_FLOAT_NAV_CLEARANCE,
   SurveyFloatingNav,
-} from '../../src/components/survey/SurveyFloatingNav';
-import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
-import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
-import { ResearchEndShareCard } from '../../src/components/research/ResearchEndShareCard';
+} from '../../components/survey/SurveyFloatingNav';
+import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
+import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
+import { ResearchEndShareCard } from '../../components/research/ResearchEndShareCard';
 import { ResearchQuestionPanel } from './ResearchQuestionPanel';
 import { SurveyIntroBlock } from './SurveyIntroBlock';
 

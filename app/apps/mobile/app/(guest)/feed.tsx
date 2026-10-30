@@ -15,7 +15,7 @@ import { FeedCommunityCounter } from '../../src/components/FeedCommunityCounter'
 import { useAuthStore } from '../../src/store/authStore';
 import { getFeedUseCase } from '../../src/services/postsComposition';
 import { useActivePostsCount } from '../../src/hooks/useActivePostsCount';
-import { useGuestFeedStyles } from './feed.styles';
+import { useGuestFeedStyles } from '../../src/screens/guest/feed.styles';
 import { KcFlashList } from '../../src/components/lists/KcFlashList';
 
 export default function GuestPreviewFeedScreen() {

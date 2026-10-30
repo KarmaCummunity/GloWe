@@ -4,8 +4,8 @@
 // border, filter button matches at radius.lg).
 import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
-import { rtlTextAlignEnd, rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
-import { isLayoutRtl, layoutDirectionStyle, rowDirectionStart } from '../../src/lib/rtlLayout';
+import { rtlTextAlignEnd, rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
+import { isLayoutRtl, layoutDirectionStyle, rowDirectionStart } from '../../lib/rtlLayout';
 
 /**
  * Pin the filter-count badge to the button's reading-end corner.

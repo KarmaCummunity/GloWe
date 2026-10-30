@@ -1,5 +1,5 @@
 import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
-import { rtlTextAlignStart } from '../src/lib/rtlTextAlignStart';
+import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 
 export const useEditProfileStyles = makeUseStyles(({ colors }) => ({
   container: { flex: 1, backgroundColor: colors.background },

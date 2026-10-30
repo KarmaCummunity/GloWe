@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useSearchScreenStyles } from '../../../app/(tabs)/search.styles';
+import { useSearchScreenStyles } from '../../screens/tabs/search.styles';
 import { localizeSuggestedTag } from './localizeSuggestedTag';
 
 type Props = {
