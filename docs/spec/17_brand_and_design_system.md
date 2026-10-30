@@ -1,6 +1,6 @@
 # 17 — Brand and design system
 
-> Decisions **D65, D66, D67** (2026-10-30). This file is the brand book for agents and designers. The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
+> Decisions **D65, D66, D67, D81** (2026-10-30). This file is the brand book for agents and designers — visual (§1–§6) and verbal (§7). The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
 
 ## 1. Brand identity (D65)
 
@@ -121,19 +121,89 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file gains a colour, `fontSize`, `fontWeight`, `fontFamily`, `borderRadius` or spacing literal, or a physical (left/right) side, beyond its frozen baseline, or a new file has any |
 | Touched-file rule | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file changed since the PR base still has any finding (D67) |
 | Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
+| Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D81) |
 
 **Touched-file rule (D67).** A PR that changes a file in `apps/mobile/{src,app}` must leave that file with **zero** findings — every rule, the whole file, not only the changed lines. Files nobody touches keep their frozen counts until someone works in them. The guard diffs against the merge-base with the PR base (`GITHUB_BASE_REF`, else `origin/dev`; override with `KC_BRAND_BASE_REF`), including uncommitted changes. In CI an unresolvable base fails the test (the frontend job checks out full history); a local clone without the ref skips the rule.
 
 The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. After removing literals, refresh it with `KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard`; a PR that *raises* a count must explain why in its body.
 
-## 7. Change process
+## 7. Voice and tone (D81)
+
+Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpowers/specs/2026-05-26-karma-community-master-narrative.md` §7.4, §15, §16) and FR-RESP-006 AC19/AC20 ([legacy spec](../SSOT/spec/17_responsive_desktop.md)). Nothing here is new brand content; where the narrative and a later decision differ, the decision wins (noted inline).
+
+### 7.1 Principles
+
+- **One voice** (§7.4): "קול אחד. מסרים אחידים וברורים. בכל ערוץ אנחנו נשמעים כמו עצמנו." App, Instagram, WhatsApp, email and partnerships speak in it. Length and format per channel are execution, not voice.
+- **Register:** UX / dugri-friendly Israeli — short sentences, direct, no bureaucratic Hebrew, no padded softeners. Buttons, errors, toasts and form labels are UX-direct; settings rows, FAQ and the About narrative may use the fuller business register (AC19).
+- **Reading test:** "יהודי בן 60 מהפריפריה יבין בקריאה ראשונה."
+- **Honesty:** the early stage is a feature ("בונים יחד"), not hidden. Doctrine (§16.10): "לא משקרים. כותבים מה יש היום, מה השאיפות, ואיך הולכים משם לשם."
+- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is **superseded by D67** — it never appears in UI copy, in any language. The public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
+- **Brand name:** "קהילת קארמה" or "KC" in Hebrew (§1); first mention "קהילת קארמה (KC)", then KC. Never a Hebrew transliteration of "Karma Community".
+
+### 7.2 Gender-neutral copy (AC20)
+
+The current user is addressed without grammatical gender. **House convention: the infinitive** — alone on buttons ("ללחוץ", "לפרסם") or after "יש" / "אפשר" / "ניתן" in sentences ("יש ללחוץ", "אפשר לבחור"). It is the neutral form the locale bundles already use most (about 210 infinitives vs. 100 plural imperatives across the common UI verbs). Action nouns ("שמירה", "שליחת קישור") are fine for buttons. Plural imperatives ("לחצו", "נסו") are neutral and tolerated, but new copy prefers the infinitive.
+
+| Don't (gendered) | Do (neutral) |
+|---|---|
+| לחץ כאן / לחצי כאן | ללחוץ כאן · יש ללחוץ כאן |
+| נסה שוב | לנסות שוב · נסו שוב |
+| בחר עיר | בחירת עיר · אפשר לבחור עיר |
+| אתה יכול לבחור עד 5 תמונות | אפשר לבחור עד 5 תמונות |
+| מה אתה נותן? | מה נותנים? |
+| תוכלי לשלוח בקשה חדשה | אפשר לשלוח בקשה חדשה |
+
+Out of scope: strings about *another* user ("{{name}} הצטרף"), which follow that user's stored gender.
+
+### 7.3 Spelling, words and length
+
+- **Ktiv maleh** (§15): תוכנה, שירות, תיאור, ביטול — not תכנה, שרות, תאור, בטול.
+- **Forbidden jargon** (§15) — replace with plain Hebrew:
+
+| Avoid | Use instead |
+|---|---|
+| MVP | "מה יש היום" / "הגרסה הראשונה" / "מה שכבר עובד" |
+| Vision (English label) | "מה אנחנו בונים בהמשך" / "הכיוון שלנו" |
+| PMF, KPI, North Star, toggle, feed (unexplained) | עברית פשוטה |
+| Philanthropy, infrastructure, scale | translation or everyday wording |
+| Unexplained acronyms | "קהילת קארמה (KC)" first time, then KC |
+
+- **Allowed loanwords** when Israelis expect them: ווטסאפ, ביט, פייבוקס, אינסטגרם, גיטהאב (with "קוד פתוח"); צ׳אט, פוסט, פיד only when plain ("רשימת בקשות והצעות באזור שלכם" may replace "פיד").
+- **Padded softeners** (AC19): no "נשמח אם…", "אנא…", "ייתכן שכדאי…". A plain "ייתכן ש…" that reports an uncertain cause ("ייתכן שהפוסט נסגר") is information, not padding.
+- **Length** (AC19): a call-to-action (button) is **≤ 4 words**; emoji, arrows and symbols do not count. Errors and toasts are short and direct; titles have no fixed limit.
+- **Key slogan** (§16.1), locked wording: **"לתת — זה גם לקבל."** Variants (no dash, different words) are not used. The other §16 lines are the slogan bank; their wording is locked there too.
+
+### 7.4 English copy
+
+English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISIONS.md`; polish tracked as TD-176). It follows the same voice: plain words, no internal acronyms (MVP, PMF, KPI, North Star), the name written "Karma Community" or "KC", and no "capitalist kibbutz" (D67). Gender rules do not apply (English addresses "you").
+
+### 7.5 Enforcement (automated)
+
+`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (292, mostly singular imperatives on buttons) are tracked as TD-201.
+
+| Rule | Locale | Fails when |
+|---|---|---|
+| `jargon` | he, en | §7.3 jargon in Hebrew; MVP / PMF / KPI / North Star in English |
+| `genderedImperative` | he | a sentence opens with a singular (masc. or fem.) imperative from a curated list — "שלח", "נסה", "מחק", "שמרי" |
+| `genderedAddress` | he | "אתה", "הנך", "הינך", "תוכלי", "תרצי" anywhere |
+| `paddedSoftener` | he | "נשמח אם", "אנא", "ייתכן שכדאי" |
+| `ktivHaser` | he | a listed haser spelling (תכנה, שרות, תאור, בטול, …) |
+| `buttonLength` | he | a key named `cta` or ending in `Cta` / `Btn` / `Button` has more than 4 words |
+| `brandWording` | he, en | a variant of the key slogan; "קומיוניטי"; "Karma Community" with other casing |
+| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" (D67) |
+
+Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` on the line the string ends, reviewed in the PR.
+
+**Not enforced (manual review):** register and reading test, honesty, unexplained acronyms and loanwords in context, gender in adjectives and future-tense verbs ("תוכל" is also third-person feminine), slash forms ("מחובר/ת", tolerated), title length, and English quality.
+
+## 8. Change process
 
 1. Token or brand change → edit `theme/*.ts` (and this file if the meaning changes) → regenerate `kc.tokens.json` → tests green.
-2. New/changed **brand-level** value (primary colour, font, logo, name) needs a PM decision `D#` logged in [90](./90_decisions_log.md).
+2. New/changed **brand-level** value (primary colour, font, logo, name, a voice rule or slogan) needs a PM decision `D#` logged in [90](./90_decisions_log.md).
 3. After merge to `dev`, refresh Figma variables and the Claude Design project from `kc.tokens.json`.
 4. Exploratory design (new screens, components) may start in Figma or Claude Design; implementation must consume existing tokens or add new ones through step 1.
 
-## 8. Brand decisions log (D65, D66)
+## 9. Brand decisions log (D65, D66, D67, D81)
 
 | Question | Decision |
 |---|---|
@@ -146,5 +216,6 @@ The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. A
 | Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
 | Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
 | Admin surfaces | Same tokens and components, denser layout (D67) |
+| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; automated copy-voice guard with ratchet + touched-file rule (D81) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.
