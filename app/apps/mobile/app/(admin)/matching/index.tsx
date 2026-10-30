@@ -1,12 +1,12 @@
 // KC#1122 / FR-ADMIN-029 — match quality per world: alerted pairs, precision proxy,
 // notification→chat and completion rates over a selectable window (admin_match_quality, 0454).
 import { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import type { MatchQualityByWorld } from '@kc/infrastructure-supabase';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { getMatchRepository } from '../../../src/services/matchingComposition';
 import { AdminFilterChip } from '../../../src/components/admin/AdminFilterChip';
@@ -98,23 +98,23 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 48, gap: 8, width: '100%', maxWidth: 900, alignSelf: 'center' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  content: { padding: spacing.base, paddingBottom: spacing['2xl'], gap: spacing.sm, width: '100%', maxWidth: 900, alignSelf: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   forbidden: { color: colors.error, textAlign: 'center' },
-  title: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, textAlign: textAlignStart() },
-  muted: { color: colors.textSecondary, fontSize: 13, textAlign: textAlignStart() },
-  error: { color: colors.error, fontSize: 13, textAlign: textAlignStart() },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 6 },
+  title: { fontSize: typography.h2.fontSize, ...typography.bold, color: colors.textPrimary, textAlign: textAlignStart() },
+  muted: { color: colors.textSecondary, fontSize: typography.bodySmall.fontSize, textAlign: textAlignStart() },
+  error: { color: colors.error, fontSize: typography.bodySmall.fontSize, textAlign: textAlignStart() },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginVertical: spacing.xs },
   card: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 10,
+    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.sm,
   },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, textAlign: textAlignStart() },
-  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  cardTitle: { fontSize: typography.bodyLarge.fontSize, ...typography.bold, color: colors.textPrimary, textAlign: textAlignStart() },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   kpi: {
-    flexGrow: 1, flexBasis: 140, minWidth: 120, backgroundColor: colors.background, borderRadius: 10, padding: 10,
-    borderWidth: 1, borderColor: colors.border, gap: 2,
+    flexGrow: 1, flexBasis: 140, minWidth: 120, backgroundColor: colors.background, borderRadius: radius.sm, padding: spacing.sm,
+    borderWidth: 1, borderColor: colors.border, gap: spacing.xs,
   },
-  kpiValue: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  kpiLabel: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, textAlign: textAlignStart() },
-  kpiHint: { fontSize: 11, color: colors.textSecondary, textAlign: textAlignStart() },
+  kpiValue: { fontSize: typography.h3.fontSize, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  kpiLabel: { fontSize: typography.bodySmall.fontSize, ...typography.semiBold, color: colors.textSecondary, textAlign: textAlignStart() },
+  kpiHint: { fontSize: typography.caption.fontSize, color: colors.textSecondary, textAlign: textAlignStart() },
 }));
