@@ -5,8 +5,9 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { WorldSubcategory } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { marketplaceRepository } from '../../services/marketplaceComposition';
+import { useListingChipStyles } from './listingChipStyles';
 
 interface Props {
   readonly worldSlug: string;
@@ -18,6 +19,7 @@ interface Props {
 export function WorldSubcategoryPicker({ worldSlug, value, onChange, disabled = false }: Props) {
   const { t, i18n } = useTranslation();
   const styles = useStyles();
+  const chipStyles = useListingChipStyles();
   const [subcategories, setSubcategories] = useState<WorldSubcategory[]>([]);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function WorldSubcategoryPicker({ worldSlug, value, onChange, disabled = 
     <View style={styles.root}>
       <Text style={styles.label}>{t('marketplace.fieldWorldSubcategory')}</Text>
       <Text style={styles.hint}>{t('marketplace.fieldWorldSubcategoryHint')}</Text>
-      <View style={styles.chipRow}>
+      <View style={chipStyles.chipRow}>
         {subcategories.map((s) => {
           const selected = s.categoryId === value;
           return (
@@ -48,11 +50,11 @@ export function WorldSubcategoryPicker({ worldSlug, value, onChange, disabled = 
               testID={`world-subcategory-${s.slug}`}
               disabled={disabled}
               onPress={() => onChange(selected ? null : s.categoryId)}
-              style={[styles.chip, selected && styles.chipOn]}
+              style={[chipStyles.chip, selected && chipStyles.chipOn]}
               accessibilityRole="button"
               accessibilityState={{ selected, disabled }}
             >
-              <Text style={styles.chipText}>{hebrew ? s.labelHe : (s.labelEn ?? s.labelHe)}</Text>
+              <Text style={chipStyles.chipText}>{hebrew ? s.labelHe : (s.labelEn ?? s.labelHe)}</Text>
             </Pressable>
           );
         })}
@@ -65,15 +67,4 @@ const useStyles = makeUseStyles(({ colors }) => ({
   root: { gap: spacing.xs },
   label: { ...typography.caption, color: colors.textSecondary },
   hint: { ...typography.caption, color: colors.textSecondary },
-  chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.caption, color: colors.textPrimary },
 }));

@@ -22,6 +22,7 @@ import { ListingSchemaFields } from './ListingSchemaFields';
 import { RideRouteFields } from '../giving/RideRouteFields';
 import { ExternalBodyPicker } from './ExternalBodyPicker';
 import { WorldSubcategoryPicker } from './WorldSubcategoryPicker';
+import { useListingChipStyles } from './listingChipStyles';
 import {
   pickListingImages,
   uploadListingImages,
@@ -47,17 +48,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
   },
   label: { ...typography.caption, color: colors.textSecondary },
   hint: { ...typography.caption, color: colors.textSecondary },
-  chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.caption, color: colors.textPrimary },
   btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.primary },
   btnText: { ...typography.body, color: colors.textInverse, textAlign: 'center' as const },
   err: { ...typography.caption, color: colors.error },
@@ -88,6 +78,7 @@ export function MarketplaceCreateForm({
 }: Props) {
   const { t, i18n } = useTranslation();
   const styles = useStyles();
+  const chipStyles = useListingChipStyles();
   const userId = useAuthStore((s) => s.session?.userId ?? null);
   const [kinds, setKinds] = useState<ListingKindOption[]>([]);
   const [kindId, setKindId] = useState<string | null>(null);
@@ -140,16 +131,16 @@ export function MarketplaceCreateForm({
     <ScrollView contentContainerStyle={styles.body}>
       {header}
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
-      <View style={styles.chipRow}>
+      <View style={chipStyles.chipRow}>
         {directionKinds.map((k) => {
           const label = i18n.language.startsWith('he') ? k.labelHe : k.labelEn;
           return (
             <Pressable
               key={k.kindId}
-              style={[styles.chip, activeKind.kindId === k.kindId && styles.chipOn]}
+              style={[chipStyles.chip, activeKind.kindId === k.kindId && chipStyles.chipOn]}
               onPress={() => setKindId(k.kindId)}
             >
-              <Text style={styles.chipText}>{label}</Text>
+              <Text style={chipStyles.chipText}>{label}</Text>
             </Pressable>
           );
         })}
@@ -209,14 +200,14 @@ export function MarketplaceCreateForm({
           <Image key={p.uri} source={{ uri: p.uri }} style={styles.thumb} />
         ))}
         <Pressable
-          style={styles.chip}
+          style={chipStyles.chip}
           onPress={async () => {
             const next = await pickListingImages(picked.length);
             if (!next.length) return;
             setPicked((prev) => [...prev, ...next]);
           }}
         >
-          <Text style={styles.chipText}>+</Text>
+          <Text style={chipStyles.chipText}>+</Text>
         </Pressable>
       </View>
       {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
