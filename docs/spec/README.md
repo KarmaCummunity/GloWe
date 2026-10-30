@@ -38,7 +38,10 @@
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
 | 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G37 |
 | 95 | [95_reconciliation.md](./95_reconciliation.md) | Book × legacy spec × code verification (2026-10-30), superseded FRs, PM questions Q-1…Q-8, SSOT hygiene notes |
+<<<<<<< HEAD
 | 96 | [96_launch_and_first_group_plan.md](./96_launch_and_first_group_plan.md) | Path to store launch and the first WhatsApp group migration: what the PM provides, decisions, run sheet |
+=======
+>>>>>>> origin/dev
 | 94 | [94_glossary_and_naming.md](./94_glossary_and_naming.md) | Glossary + naming conventions |
 
 ## Update procedure
