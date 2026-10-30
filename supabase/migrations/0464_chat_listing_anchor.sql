@@ -11,7 +11,8 @@
 -- (FR-CHAT-014 AC6). Opening from a listing anchors the listing and clears a post / ride anchor;
 -- opening from a post or a ride clears a listing anchor (the ride RPC already cleared the post).
 --
---   1. `start_listing_chat` reuses the pair's chat the way the app's DM flow does
+--   1. `start_listing_chat` requires an active account (like the other chat RPCs, `0200`),
+--      serializes per pair, and reuses the pair's chat the way the app's DM flow does
 --      (`findOrCreateDmChat`: the latest non-support chat the caller has not hidden, else the
 --      pair's support thread, else a new chat) and anchors it to the listing.
 --   2. `rpc_chat_set_anchor` (post) also clears the ride and listing anchors.
@@ -40,6 +41,11 @@ begin
   if v_uid is null then
     raise exception 'auth_required' using errcode = '42501';
   end if;
+  -- KC#1297: same gate as the other chat RPCs (0200) — the opener below is written as definer,
+  -- so the messages RLS check for an active account would not apply to it.
+  if not public.is_active_member(v_uid) then
+    raise exception 'account_not_active' using errcode = 'P0001';
+  end if;
 
   select * into v_listing from public.listings where listing_id = p_listing_id;
   if not found or not public.is_listing_visible_to(v_listing, v_uid) then
@@ -53,6 +59,10 @@ begin
 
   v_a := least(v_uid, v_other);
   v_b := greatest(v_uid, v_other);
+
+  -- Serialize concurrent first contact for this pair: ordinary chats have no unique pair index,
+  -- so two parallel calls could otherwise both miss the lookup below and insert two chats.
+  perform pg_advisory_xact_lock(hashtext('chat_pair_' || v_a::text || '_' || v_b::text)::bigint);
 
   -- KC#1297: same chat choice as the app's DM flow — the most recent ordinary chat of the pair
   -- that the caller has not hidden from their inbox (FR-CHAT-016).

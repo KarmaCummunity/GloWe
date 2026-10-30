@@ -119,7 +119,17 @@ begin
   exception when sqlstate '22023' then null;
   end;
 
-  raise notice '✓ T1-T6 listing chat opens, reuses, re-anchors, honours inbox hide';
+  -- T7: a suspended account cannot open a listing chat (the opener would bypass the messages RLS).
+  update public.users set account_status = 'suspended_admin' where user_id = v_taker;
+  perform pg_temp.act_as(v_taker);
+  begin
+    perform public.start_listing_chat(v_shelf, 'hello');
+    raise exception 'ASSERT FAILED: a suspended account opened a listing chat';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'account_not_active' then raise; end if;
+  end;
+
+  raise notice '✓ T1-T7 listing chat opens, reuses, re-anchors, honours inbox hide and suspension';
 end $$;
 
 rollback;
