@@ -26,6 +26,9 @@
     "src/i18n/locales/he/modules/adminCrm.ts": {
       "genderedImperative": 7
     },
+    "src/i18n/locales/he/modules/adminLayers.ts": {
+      "genderedImperative": 2
+    },
     "src/i18n/locales/he/modules/adminMoney.ts": {
       "genderedImperative": 6
     },
