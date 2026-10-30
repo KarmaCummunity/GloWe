@@ -31,6 +31,7 @@ Archive of rows moved out of [`../TECH_DEBT.md`](../TECH_DEBT.md), which lists *
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-127 | ✅ | **Closed 2026-10-30.** Routing / cold-start cluster. (1) Casts on static route literals removed, route configs typed as `Href`, guard `typedRouteCasts.test.ts` (#1255). (2) Cold-start race: a late restore failure no longer overwrites a live session from the auth subscription; logic extracted to `src/services/coldStartSession.ts` with tests. | Closed |
 | TD-148 | ✅ | **Closed 2026-10-30.** Post-closure system messages (0031 trigger) were shown with their stored Hebrew body. The client now renders them from `system_payload` (`src/lib/chat/systemMessageText.ts`) in the bubble and the inbox preview; the Hebrew body stays only as the fallback for other clients. | Closed |
 | TD-121 | ✅ | **Closed 2026-10-30 (verified stale).** `extra.eas.projectId` has been committed in `app.json` since #1097, so push registration gets a project id on local prebuilds too; #1251 adds `appConfigUpdates.test.ts`, which asserts the resolved id. | Closed |
 | TD-178 | ✅ | **Closed 2026-10-30.** Native language switch relied on `DevSettings.reload` (dev only). `expo-updates` installed; `reloadApp()` reloads through `Updates.reloadAsync()` in release builds and falls back to `DevSettings` in dev clients (`src/i18n/language.ts`, tests `reloadApp.native.test.ts`). | Closed |
