@@ -95,7 +95,7 @@ jobs:
       # with a `*.test.ts` must be listed here, or its tests never run in CI.
       - name: Deno test Edge Function handlers (mocked, no secrets)
         working-directory: supabase/functions
-        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank delete-account revenuecat-webhook --allow-read
+        run: deno test _shared/whatsapp whatsapp-webhook whatsapp-sender _shared/matching match-rerank delete-account revenuecat-webhook validate-donation-link --allow-read
 
   db-validate:
     # REQUIRED status check — always runs so the context reports on every PR.
