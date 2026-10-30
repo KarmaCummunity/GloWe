@@ -3,7 +3,7 @@
 > **Scope:** KC web on Cloudflare Pages (project `karma-community`, production branch `main`, `https://karma-community-kc.com`) + Supabase prod (`kdqtbdbzwvlugkhonexg`) + Edge Functions.
 > **Branch topology:** [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) · **DB/Functions runbook:** [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) · **Policy:** `D-195` (gated prod release).
 
-A release is a PR from `dev` into `main`. CI judges it (`CI gate`, including the release lane); after the squash merge, `.github/workflows/deploy.yml` deploys `main` and waits for **one owner approval click** before touching production. Agents prepare the release; only the owner approves it.
+A release is a PR from `dev` into `main`. CI judges it (`CI gate`, including the release lane); after the squash merge, `.github/workflows/deploy.yml` deploys `main` and waits for **one owner approval click** before touching production. Agents prepare the release; only the owner approves it. Under the `dev`/`main` ruleset (`.github/rulesets/dev-main.json`), a release PR that carries changes to code-owned gate files also needs the owner's code-owner review before it can merge.
 
 ---
 
