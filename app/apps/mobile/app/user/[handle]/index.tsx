@@ -189,11 +189,6 @@ export default function OtherProfileScreen() {
             onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
           />
 
-          <View style={styles.karmaRow}>
-            <Text style={styles.karmaLabel}>{t('karma.badgeLabel')}</Text>
-            <Text style={styles.karmaValue}>{u.karmaPoints}</Text>
-          </View>
-
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
