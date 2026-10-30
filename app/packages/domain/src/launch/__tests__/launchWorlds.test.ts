@@ -29,3 +29,21 @@ describe('launchWorlds', () => {
     expect(analyticsCitySegment(null)).toBe('other');
   });
 });
+
+describe('launchWorldMode (D60)', () => {
+  it('returns active when the flag is on and portal when it is off — never hidden', async () => {
+    const { launchWorldMode, hubTileLaunchMode } = await import('../launchWorlds');
+    expect(launchWorldMode('world_items_enabled', undefined)).toBe('active');
+    expect(launchWorldMode('world_rides_enabled', undefined)).toBe('portal');
+    expect(launchWorldMode('world_rides_enabled', { world_rides_enabled: true })).toBe('active');
+    expect(hubTileLaunchMode('transport', { world_rides_enabled: false })).toBe('portal');
+    expect(hubTileLaunchMode('unknown-tile', undefined)).toBe('active');
+  });
+
+  it('gives every portal world with a links list its category', async () => {
+    const { PORTAL_CATEGORY_BY_FLAG } = await import('../launchWorlds');
+    expect(PORTAL_CATEGORY_BY_FLAG.world_rides_enabled).toBe('transport');
+    expect(PORTAL_CATEGORY_BY_FLAG.world_food_enabled).toBe('food');
+    expect(PORTAL_CATEGORY_BY_FLAG.world_items_enabled).toBeUndefined();
+  });
+});

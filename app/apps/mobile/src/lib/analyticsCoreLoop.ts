@@ -37,15 +37,35 @@ export function trackCoreLoop(event: CoreLoopEvent, props?: CoreLoopProps): void
   track(event as AnalyticsEvent, withCoreLoopProps(props));
 }
 
-/** First listing in the session path counts as activation once per install. */
-export async function trackActivationIfFirst(props: CoreLoopProps): Promise<void> {
+/**
+ * Whole seconds from account creation to `now` (#1042 time-to-first-post). Null when the
+ * creation time is unknown, unparsable or ahead of the device clock (skew), so a bad value
+ * never pollutes the median.
+ */
+export function secondsSinceSignup(accountCreatedAt: string | null | undefined, now = Date.now()): number | null {
+  if (!accountCreatedAt) return null;
+  const created = Date.parse(accountCreatedAt);
+  if (Number.isNaN(created) || created > now) return null;
+  return Math.floor((now - created) / 1000);
+}
+
+type ActivationProps = CoreLoopProps & {
+  /** Auth account creation time (ISO); sent only as `seconds_since_signup`. */
+  readonly accountCreatedAt?: string | null;
+};
+
+/** First listing or post in the session path counts as activation once per install. */
+export async function trackActivationIfFirst(props: ActivationProps): Promise<void> {
+  const { accountCreatedAt, ...rest } = props;
+  const seconds = secondsSinceSignup(accountCreatedAt);
+  const activation: CoreLoopProps = seconds === null ? rest : { ...rest, seconds_since_signup: seconds };
   try {
     const sent = await AsyncStorage.getItem(ACTIVATION_KEY);
     if (sent === '1') return;
     await AsyncStorage.setItem(ACTIVATION_KEY, '1');
-    trackCoreLoop('activation', props);
+    trackCoreLoop('activation', activation);
   } catch {
-    trackCoreLoop('activation', props);
+    trackCoreLoop('activation', activation);
   }
 }
 
