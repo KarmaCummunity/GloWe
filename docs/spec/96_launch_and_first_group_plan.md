@@ -54,6 +54,7 @@ Security work is tracked privately and is not listed here (README rule).
 | M4 | Eng | Rides readiness: rides world end-to-end on dev, origin/destination/time parsing for ride messages, expiry +30 min (D21) |
 | M5 | PM | Admin exports the chat **without media** and shares it through the agreed channel |
 | M6 | Eng | Import into **kc-dev** first; PM reviews the review queue and sample posts |
+| M6a | Eng | Import the PM-approved posts into **kc-prod** (the project the store app uses, A1/A10) and confirm they appear in the production app before any bridge link is shared |
 | M7 | PM + Eng | Group bridge (S23): bot or admin posts daily summaries with app links; measure claimed posts (16 KPIs) |
 | M8 | PM | Admin locks the group once most activity moved |
 
