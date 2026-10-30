@@ -199,7 +199,7 @@ export default function WelcomeScreen() {
               textStyle={styles.appleBtnText}
               onPress={handleApple}
               loading={appleLoading}
-              icon={<Ionicons name="logo-apple" size={20} color="#FFFFFF" />}
+              icon={<Ionicons name="logo-apple" size={20} color="#FFFFFF" />} // brand-guard-allow: Apple's logo keeps its own white on the Apple button
             />
           )}
           <AuthButton

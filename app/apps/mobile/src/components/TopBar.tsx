@@ -10,7 +10,7 @@ import { Image, Platform, TouchableOpacity, View, type ViewStyle } from 'react-n
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationInboxBadge } from '../hooks/useNotificationInboxBadge';
@@ -105,12 +105,12 @@ const useTopBarStyles = makeUseStyles(({ colors }) => ({
     top: 0,
     ...badgeCornerEnd(),
     backgroundColor: colors.primary,
-    borderRadius: 10,
+    borderRadius: radius.full,
     minWidth: 18,
     height: 18,
-    paddingHorizontal: 4,
+    paddingHorizontal: spacing.xs,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
   },
-  badgeText: { color: colors.textInverse, fontWeight: '700' as const, fontSize: 10 },
+  badgeText: { ...typography.caption, ...typography.bold, color: colors.textInverse },
 }));

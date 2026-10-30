@@ -50,7 +50,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.success,
     borderRadius: radius.sm,
   },
-  buttonText: { ...typography.body, color: colors.textInverse, fontSize: 14 },
+  buttonText: { ...typography.body, color: colors.textInverse },
 }));
 
 type PermStatus = 'granted' | 'denied' | 'undetermined';

@@ -8,7 +8,7 @@ import { Platform, Pressable, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, useTheme } from '@kc/ui';
 import { TABS, resolveActiveTabKey, type IoniconName } from './shell/tabs.config';
 
 // Glassmorphism on web — RN-Web forwards unknown style keys to CSS. RN's
@@ -128,15 +128,15 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
     flexDirection: 'row' as const,
     height: TAB_BAR_HEIGHT,
     // Docked flush with the screen bottom (#1213): only top corners rounded.
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 6,
+    borderTopStartRadius: radius.xl,
+    borderTopEndRadius: radius.xl,
+    paddingHorizontal: spacing.xs,
     backgroundColor: colors.tabBarGlass,
     alignItems: 'center' as const,
     width: '100%' as const,
     alignSelf: 'center' as const,
     overflow: 'hidden' as const,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: isDark ? 0.45 : 0.14,
     shadowRadius: 28,
@@ -144,7 +144,7 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
     // Subtle hairline so the pill reads as a distinct surface in dark mode
     // where the underlying background and the glass tint are both dark.
     borderWidth: 1,
-    borderColor: isDark ? colors.border : 'rgba(0,0,0,0.06)',
+    borderColor: colors.border,
     ...webGlass,
   },
   tabBtn: {
@@ -157,7 +157,7 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   iconSlot: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.full,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
@@ -167,7 +167,7 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   plusCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: radius.full,
     backgroundColor: colors.primary,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
