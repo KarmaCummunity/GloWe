@@ -27,8 +27,9 @@ issue (agent_task form) -> branch from origin/dev -> PR to dev -> CI green
 3. **PR**: base `dev`. The body includes `Closes #N` and `Mapped to spec` (required by CI — PR hygiene).
 4. **CI**: all required checks green. Don't disable or skip a gate. Fix the cause, or add a documented exception.
 5. **Merge**: add the `agent-ready` label. [`auto-merge-agent-ready.yml`](../../.github/workflows/auto-merge-agent-ready.yml) enables squash auto-merge, and GitHub merges once required checks pass. Stacked PRs: merge the base first (see [STACK_MAP.md](./STACK_MAP.md)).
-6. **Deploy**: a push to `dev` runs `DB deploy` (supabase-dev / kc-dev) and `Deploy Web` (dev.karma-community.pages.dev). Verify there.
-7. **`main` / prod (kc-prod)**: **only with Nave's explicit approval.** Agents never push to or merge into `main`, never run prod deploy workflows, and never touch kc-prod.
+6. **Issues close on merge**: GitHub only honors `Closes #N` on merges into `main`, so [`close-issues-on-dev-merge.yml`](../../.github/workflows/close-issues-on-dev-merge.yml) closes the referenced issues when a PR merges into `dev` (plus a daily sweep as backstop). Use `Closes #N` only when the PR fully finishes the issue; use `Refs #N` / `Part of #N` otherwise.
+7. **Deploy**: a push to `dev` runs `DB deploy` (supabase-dev / kc-dev) and `Deploy Web` (dev.karma-community.pages.dev). Verify there.
+8. **`main` / prod (kc-prod)**: **only with Nave's explicit approval.** Agents never push to or merge into `main`, never run prod deploy workflows, and never touch kc-prod.
 
 ## Labels
 
