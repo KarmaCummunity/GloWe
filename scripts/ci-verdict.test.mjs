@@ -4,21 +4,24 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GATE_JOB, VERDICT_CHECK, gateJobErrors, judgeRun, verdictCheck } from './ci-verdict.mjs';
+import { GATE_JOB, VERDICT_CHECK, decide, gateJobErrors, judgeRun, verdictCheck } from './ci-verdict.mjs';
 
 const REPO = 'Org/KC';
 const HEAD = 'h'.repeat(40);
 const MERGE = 'm'.repeat(40);
 const BASE = 'b'.repeat(40);
-const ENV = { GITHUB_TOKEN: 't' };
-const ok = (name) => ({ name, status: 'completed', conclusion: 'success' });
+const TIP = 't'.repeat(40);
+const ENV = { GITHUB_TOKEN: 't', RUN_ID: '1', HEAD_SHA: HEAD };
+const ok = (name, run_attempt = 1) => ({ name, run_attempt, status: 'completed', conclusion: 'success' });
 
 function prRun(overrides = {}) {
   return {
     id: 1,
+    run_attempt: 1,
     event: 'pull_request',
     status: 'completed',
     conclusion: 'success',
+    created_at: '2026-10-30T10:00:00Z',
     path: '.github/workflows/ci.yml',
     head_sha: HEAD,
     head_branch: 'feat/x',
@@ -30,12 +33,17 @@ function prRun(overrides = {}) {
   };
 }
 
-/** Serve the API a verdict needs for PR #7 into `baseRef`, with `jobs` in run 1. */
-async function withApi({ baseRef = 'dev', jobs = [ok('detect changes'), ok(GATE_JOB)] } = {}, fn) {
+/** Serve the API a verdict needs: run 1 is `run`, PR #7 targets `baseRef`. */
+async function withApi({ run = prRun(), baseRef = 'dev', jobs = [ok('detect changes'), ok(GATE_JOB)], runs = [run], siblings } = {}, fn) {
+  const pr = { number: 7, base: { ref: baseRef, repo: { full_name: REPO } }, head: { ref: 'feat/x', sha: HEAD, repo: { full_name: REPO } } };
   const routes = {
-    [`/repos/${REPO}/pulls/7`]: { number: 7, base: { ref: baseRef, repo: { full_name: REPO } } },
+    [`/repos/${REPO}/actions/runs/1`]: run,
+    [`/repos/${REPO}/actions/workflows/ci.yml/runs`]: { workflow_runs: runs },
+    [`/repos/${REPO}/pulls/7`]: pr,
+    [`/repos/${REPO}/pulls`]: siblings ?? [pr],
     [`/repos/${REPO}/commits/${MERGE}`]: { parents: [{ sha: BASE }, { sha: HEAD }] },
-    [`/repos/${REPO}/compare/${BASE}...${baseRef}`]: { status: 'identical', files: [] },
+    [`/repos/${REPO}/branches/${baseRef}`]: { commit: { sha: TIP } },
+    [`/repos/${REPO}/compare/${BASE}...${TIP}`]: { status: 'identical', files: [] },
     [`/repos/${REPO}/actions/runs/1/jobs`]: { jobs },
   };
   const real = globalThis.fetch;
@@ -57,7 +65,7 @@ test('gateJobErrors needs exactly one successful CI gate job', () => {
   assert.match(gateJobErrors([{ name: GATE_JOB, status: 'completed', conclusion: 'failure' }])[0], /ended failure/);
 });
 
-test('a bound, green PR run into dev certifies its head SHA', async () => {
+test('a bound, green, newest PR run into dev certifies its head SHA', async () => {
   assert.deepEqual(await withApi({}, () => judgeRun(prRun(), REPO, ENV)), []);
 });
 
@@ -66,15 +74,29 @@ test('a green CI gate from a PR into another branch is not certified', async () 
   assert.ok(errors.some((e) => /not dev or main/.test(e)), errors.join('\n'));
 });
 
+test('a forged run on another branch that references PR #7 merge ref is not certified', async () => {
+  const forged = prRun({ head_branch: 'attack-branch' });
+  const errors = await withApi({ run: forged }, () => judgeRun(forged, REPO, ENV));
+  assert.ok(errors.some((e) => /but the run built attack-branch/.test(e)), errors.join('\n'));
+});
+
 test('failed or cancelled CI runs get a red verdict', async () => {
-  const failed = await withApi({ jobs: [{ name: GATE_JOB, status: 'completed', conclusion: 'failure' }] }, () =>
-    judgeRun(prRun({ conclusion: 'failure' }), REPO, ENV),
-  );
+  const failed = await withApi({ jobs: [{ ...ok(GATE_JOB), conclusion: 'failure' }] }, () => judgeRun(prRun({ conclusion: 'failure' }), REPO, ENV));
   assert.deepEqual(failed, ['CI run concluded failure', '"CI gate" ended failure']);
-  const cancelled = await withApi({ jobs: [{ name: GATE_JOB, status: 'completed', conclusion: 'cancelled' }] }, () =>
-    judgeRun(prRun({ conclusion: 'cancelled' }), REPO, ENV),
-  );
+  const cancelled = await withApi({ jobs: [{ ...ok(GATE_JOB), conclusion: 'cancelled' }] }, () => judgeRun(prRun({ conclusion: 'cancelled' }), REPO, ENV));
   assert.equal(cancelled.length, 2);
+});
+
+test('an older run (or a re-run of one) cannot override a newer run on the same SHA', async () => {
+  const newer = prRun({ id: 2, created_at: '2026-10-30T11:00:00Z', html_url: 'https://github.com/Org/KC/actions/runs/2' });
+  const errors = await withApi({ runs: [prRun(), newer] }, () => judgeRun(prRun(), REPO, ENV));
+  assert.ok(errors.some((e) => /newer CI run exists/.test(e)), errors.join('\n'));
+});
+
+test('a partial re-run that keeps jobs from an earlier attempt is not certified', async () => {
+  const run = prRun({ run_attempt: 2 });
+  const errors = await withApi({ run, jobs: [ok('static / test integrity', 1), ok(GATE_JOB, 2)] }, () => judgeRun(run, REPO, ENV));
+  assert.ok(errors.some((e) => /earlier attempt/.test(e)), errors.join('\n'));
 });
 
 test('a look-alike workflow is rejected without trusting its jobs', async () => {
@@ -82,29 +104,51 @@ test('a look-alike workflow is rejected without trusting its jobs', async () => 
   assert.match(errors[0], /not \.github\/workflows\/ci\.yml/);
 });
 
-test('review runs are bound like PR runs; push runs on dev need no PR', async () => {
-  assert.deepEqual(await withApi({}, () => judgeRun(prRun({ event: 'pull_request_review' }), REPO, ENV)), []);
-  const push = prRun({ event: 'push', head_branch: 'dev', referenced_workflows: [] });
-  assert.deepEqual(await withApi({}, () => judgeRun(push, REPO, ENV)), []);
+test('review runs are bound like PR runs', async () => {
+  const review = prRun({ event: 'pull_request_review' });
+  assert.deepEqual(await withApi({ run: review }, () => judgeRun(review, REPO, ENV)), []);
 });
 
-test('verdictCheck posts success only without errors, always on the run head SHA', () => {
-  const green = verdictCheck(prRun(), []);
+test('decide posts nothing for push runs and a red verdict on any lookup error', async () => {
+  assert.equal(await withApi({ run: prRun({ event: 'push', head_branch: 'dev' }) }, () => decide(ENV, REPO)), null);
+  const lost = await withApi({}, () => decide({ ...ENV, RUN_ID: '404' }, REPO));
+  assert.equal(lost.conclusion, 'failure');
+  assert.equal(lost.head_sha, HEAD);
+  assert.match(lost.output.summary, /verification failed/);
+  const green = await withApi({}, () => decide(ENV, REPO));
+  assert.equal(green.conclusion, 'success');
+});
+
+test('decide refuses a run whose head differs from the triggering event', async () => {
+  const check = await withApi({}, () => decide({ ...ENV, HEAD_SHA: BASE }, REPO));
+  assert.equal(check.conclusion, 'failure');
+  assert.equal(check.head_sha, BASE);
+});
+
+test('verdictCheck posts success only without errors, on the given SHA', () => {
+  const green = verdictCheck(HEAD, 'u', []);
   assert.equal(green.name, VERDICT_CHECK);
   assert.equal(green.head_sha, HEAD);
   assert.equal(green.conclusion, 'success');
-  const red = verdictCheck(prRun(), ['nope']);
+  const red = verdictCheck(HEAD, undefined, ['nope']);
   assert.equal(red.conclusion, 'failure');
   assert.match(red.output.summary, /- nope/);
+  assert.equal('details_url' in red, false);
 });
 
-test('the committed ruleset requires CI verdict from its own App, CI gate from Actions, and has no bypass', () => {
+test('the committed rulesets: CI verdict from its own App, CI gate from Actions, no bypass, no dev/main tags', () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-  const ruleset = JSON.parse(readFileSync(join(root, '.github/rulesets/dev-main.json'), 'utf8'));
+  const read = (name) => JSON.parse(readFileSync(join(root, '.github/rulesets', name), 'utf8'));
+  const ruleset = read('dev-main.json');
   assert.deepEqual(ruleset.bypass_actors, []);
   const checks = ruleset.rules.find((r) => r.type === 'required_status_checks').parameters.required_status_checks;
   const verdict = checks.find((c) => c.context === VERDICT_CHECK);
   assert.ok(verdict, 'CI verdict must be required');
   assert.notEqual(verdict.integration_id, 15368, 'CI verdict must come from the CI-verdict App, not GitHub Actions');
   assert.equal(checks.find((c) => c.context === GATE_JOB)?.integration_id, 15368);
+  const tags = read('tags-no-branch-names.json');
+  assert.equal(tags.target, 'tag');
+  assert.deepEqual(tags.conditions.ref_name.include.sort(), ['refs/tags/dev', 'refs/tags/main']);
+  assert.deepEqual(tags.bypass_actors, []);
+  assert.ok(tags.rules.some((r) => r.type === 'creation'));
 });

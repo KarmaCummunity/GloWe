@@ -4,34 +4,43 @@
 // branch can post a check named `CI gate` on a commit, e.g. a PR from that
 // commit into an unprotected branch whose own ci.yml exits 0. So neither the
 // trusted verdict (scripts/ci-verdict.mjs) nor a review-triggered gate that
-// reuses lane results may trust a run until it is proven to be:
+// reuses lane results (scripts/ci-run-reuse.mjs) may trust a run until it is
+// proven to be:
 //   • a run of this repository's .github/workflows/ci.yml, on a same-repo head;
-//   • for PR events: a run of PR #N's merge ref (refs/pull/N/merge, read from
-//     the run's local reusable-workflow references, which GitHub records), PR
-//     #N targets dev or main of this repository, the merge commit's second
-//     parent is the run's head SHA, and its first parent is already part of
-//     that base branch with no gate file (.github/**, scripts/ci-*,
-//     scripts/check-*) changed on the base since — so the workflow and judges
-//     that ran are the base branch's own;
+//   • for PR events, a run of PR #N into dev or main:
+//       – EVERY reusable-workflow reference the run records is a workflow of
+//         this repository at refs/pull/N/merge, all at one merge commit (a
+//         remote-form call to another PR's merge ref is recorded like a local
+//         one, so this alone is not proof — hence the next checks);
+//       – PR #N's head is this run's head branch and head SHA, and no PR from
+//         that branch with that head SHA (open or closed) targets any other
+//         base — so a PR from the same commit into an attacker's branch,
+//         whose own ci.yml could fake the gate, makes the commit unprovable;
+//       – the merge commit's second parent is the head SHA and its first
+//         parent is already part of the base branch's tip with no gate file
+//         (.github/**, scripts/ci-*, scripts/check-*) changed since, so the
+//         workflow and judges that ran are the base branch's own;
 //   • for merge groups: a queue branch of dev or main; for pushes and
-//     dispatches: dev or main itself (rulesets allow no direct pushes there).
+//     dispatches: dev or main itself. ci-verdict.mjs never certifies pushes or
+//     dispatches (deploy.yml checks its push runs itself).
 // Every failure is reported as a reason; callers fail closed.
 
-import { githubGet, githubList, laneResults } from './ci-github.mjs';
+import { githubGet, githubList } from './ci-github.mjs';
 
 export const CI_PATH = '.github/workflows/ci.yml';
 export const PROTECTED = new Set(['dev', 'main']);
-const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
+export const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
 const GATE_FILES = [/^\.github\//, /^scripts\/ci-/, /^scripts\/check-/];
 const QUEUE_BRANCH = /^gh-readonly-queue\/(dev|main)\//;
+
+const same = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
 
 /** Reasons a run's own fields rule it out (empty = plausible). Pure. */
 export function runShapeErrors(run, repo) {
   const errors = [];
-  const same = (name) => name?.toLowerCase() === repo.toLowerCase();
   if (run.path !== CI_PATH) errors.push(`workflow file is ${run.path}, not ${CI_PATH}`);
-  if (!same(run.repository?.full_name)) errors.push('run belongs to another repository');
-  if (!same(run.head_repository?.full_name)) errors.push('run head is not a branch of this repository (fork)');
+  if (!same(run.repository?.full_name, repo)) errors.push('run belongs to another repository');
+  if (!same(run.head_repository?.full_name, repo)) errors.push('run head is not a branch of this repository (fork)');
   if (run.status !== 'completed') errors.push(`run is ${run.status}, not completed`);
   if (PR_EVENTS.has(run.event)) return errors;
   if (run.event === 'merge_group' && !QUEUE_BRANCH.test(run.head_branch ?? '')) {
@@ -45,22 +54,48 @@ export function runShapeErrors(run, repo) {
 }
 
 /**
- * The merge commit and PR number a PR-event run executed, from its local
- * reusable-workflow references (`<repo>/.github/workflows/x.yml@refs/pull/N/merge`),
- * or null when they are absent or disagree. Pure.
+ * The merge commit and PR number a PR-event run executed, or null unless
+ * EVERY reusable-workflow reference is `<repo>/.github/workflows/<file>@refs/pull/N/merge`
+ * with that same ref and one merge commit SHA. Pure.
  */
 export function mergeRefOf(run, repo) {
-  const prefix = `${repo}/.github/workflows/`.toLowerCase();
-  const local = (run.referenced_workflows ?? []).filter((w) => w.path?.toLowerCase().startsWith(prefix));
-  if (local.length === 0) return null;
-  if (new Set(local.map((w) => w.sha)).size !== 1 || new Set(local.map((w) => w.ref)).size !== 1) return null;
-  const m = /^refs\/pull\/(\d+)\/merge$/.exec(local[0].ref ?? '');
-  return m ? { sha: local[0].sha, pr: Number(m[1]) } : null;
+  const refs = run.referenced_workflows ?? [];
+  if (refs.length === 0) return null;
+  const pathRe = /^([^/]+\/[^/]+)\/\.github\/workflows\/[^/@]+\.ya?ml@(refs\/pull\/(\d+)\/merge)$/;
+  const parsed = refs.map((w) => ({ m: pathRe.exec(w.path ?? ''), w }));
+  const ok = parsed.every(({ m, w }) => m && same(m[1], repo) && w.ref === m[2] && w.sha === refs[0].sha && w.ref === refs[0].ref);
+  if (!ok || !refs[0].sha) return null;
+  return { sha: refs[0].sha, pr: Number(parsed[0].m[3]) };
 }
 
 /** Gate files among a compare's changed files. Pure. */
 export function gateFilesChanged(files) {
   return files.map((f) => f.filename).filter((name) => GATE_FILES.some((re) => re.test(name)));
+}
+
+/** Reasons PR #N (the API object) is not the PR this run built. Pure. */
+export function prMismatchErrors(pr, run, repo, expect = {}) {
+  const n = `PR #${pr.number}`;
+  const errors = [];
+  if (!same(pr.base?.repo?.full_name, repo)) errors.push(`${n} targets another repository`);
+  if (!PROTECTED.has(pr.base?.ref)) errors.push(`${n} targets ${pr.base?.ref}, not dev or main`);
+  if (expect.baseRef !== undefined && pr.base?.ref !== expect.baseRef) errors.push(`${n} targets ${pr.base?.ref}, not ${expect.baseRef}`);
+  if (!same(pr.head?.repo?.full_name, repo)) errors.push(`${n} comes from another repository`);
+  if (pr.head?.ref !== run.head_branch) errors.push(`${n} head branch is ${pr.head?.ref}, but the run built ${run.head_branch}`);
+  if (pr.head?.sha !== run.head_sha) errors.push(`${n} head is ${pr.head?.sha}, but the run built ${run.head_sha}`);
+  return errors;
+}
+
+/**
+ * Reasons the run's head commit is also proposed elsewhere: any PR from the
+ * same branch with the same head SHA (open or closed) whose base is not
+ * dev/main of this repository. Pure.
+ */
+export function siblingPrErrors(prs, run, repo) {
+  return prs
+    .filter((p) => p.head?.sha === run.head_sha)
+    .filter((p) => !PROTECTED.has(p.base?.ref) || !same(p.base?.repo?.full_name, repo))
+    .map((p) => `PR #${p.number} also proposes ${run.head_sha} into ${p.base?.ref}; a run of that PR could fake the gate`);
 }
 
 /**
@@ -70,22 +105,22 @@ export function gateFilesChanged(files) {
  */
 export async function bindPrRun(run, repo, env, expect = {}) {
   const merge = mergeRefOf(run, repo);
-  if (!merge) return { errors: ['run records no single refs/pull/N/merge workflow reference'] };
-  if (expect.pr !== undefined && merge.pr !== expect.pr) {
-    return { errors: [`run judged PR #${merge.pr}, not PR #${expect.pr}`] };
-  }
+  if (!merge) return { errors: ['run references workflows other than this repository at one refs/pull/N/merge commit'] };
+  if (expect.pr !== undefined && merge.pr !== expect.pr) return { errors: [`run judged PR #${merge.pr}, not PR #${expect.pr}`] };
   const pr = await githubGet(`/repos/${repo}/pulls/${merge.pr}`, env);
-  const errors = [];
-  if (pr.base?.repo?.full_name?.toLowerCase() !== repo.toLowerCase()) errors.push(`PR #${merge.pr} targets another repository`);
-  if (!PROTECTED.has(pr.base?.ref)) errors.push(`PR #${merge.pr} targets ${pr.base?.ref}, not dev or main`);
-  if (expect.baseRef !== undefined && pr.base?.ref !== expect.baseRef) errors.push(`PR #${merge.pr} targets ${pr.base?.ref}, not ${expect.baseRef}`);
-  if (errors.length) return { errors };
+  const mismatch = prMismatchErrors(pr, run, repo, expect);
+  if (mismatch.length) return { errors: mismatch };
+  const owner = repo.split('/')[0];
+  const siblings = await githubList(`/repos/${repo}/pulls?state=all&head=${owner}:${encodeURIComponent(run.head_branch)}`, null, env);
+  const elsewhere = siblingPrErrors(siblings, run, repo);
+  if (elsewhere.length) return { errors: elsewhere };
   const commit = await githubGet(`/repos/${repo}/commits/${merge.sha}`, env);
   const parents = commit.parents?.map((p) => p.sha) ?? [];
-  if (parents.length !== 2 || parents[1] !== run.head_sha) {
-    return { errors: [`merge commit ${merge.sha} does not merge head ${run.head_sha}`] };
-  }
-  const cmp = await githubGet(`/repos/${repo}/compare/${parents[0]}...${pr.base.ref}`, env);
+  if (parents.length !== 2 || parents[1] !== run.head_sha) return { errors: [`merge commit ${merge.sha} does not merge head ${run.head_sha}`] };
+  // Resolve the branch tip by the branches API: a tag named like the branch
+  // cannot stand in for it.
+  const tip = (await githubGet(`/repos/${repo}/branches/${pr.base.ref}`, env)).commit?.sha;
+  const cmp = await githubGet(`/repos/${repo}/compare/${parents[0]}...${tip}`, env);
   if (!['ahead', 'identical'].includes(cmp.status)) {
     return { errors: [`the run's base ${parents[0]} is not part of ${pr.base.ref} (${cmp.status})`] };
   }
@@ -96,45 +131,19 @@ export async function bindPrRun(run, repo, env, expect = {}) {
 }
 
 /**
- * The newest `pull_request` run that GitHub associates with PR `prNumber` on
- * base `baseRef`, or null. Only a candidate: `pull_requests` lists every open
- * PR whose head matches, so bindPrRun must still prove the run is this PR's.
+ * Reasons a run's jobs mix attempts (empty = all from `run.run_attempt`). A
+ * "Re-run failed jobs" attempt keeps older jobs' results, e.g. a `static`
+ * success from before an approval was withdrawn, so only full attempts count.
+ * Pure.
  */
-export function latestPullRequestRun(runs, prNumber, baseRef) {
-  const mine = runs.filter(
-    (r) => r.event === 'pull_request' && r.pull_requests?.some((p) => p.number === prNumber && p.base?.ref === baseRef),
-  );
-  mine.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id);
-  return mine[0] ?? null;
+export function attemptErrors(run, jobs) {
+  const stale = jobs.filter((j) => j.run_attempt !== run.run_attempt).map((j) => j.name);
+  return stale.length ? [`jobs from an earlier attempt (${stale.join(', ')}); use "Re-run all jobs"`] : [];
 }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Lane results of this PR's latest `pull_request` CI run for its head SHA, for
- * a run started by a review event (which re-runs only the cheap lanes). Waits
- * up to `waitMs` for a run still in progress, so this review run's verdict
- * lands after that run's. Throws — the gate fails closed — when there is no
- * such run, it never finishes in time, or it cannot be bound to this PR.
- * Inputs (env): GITHUB_REPOSITORY, HEAD_SHA, PR_NUMBER, BASE_REF, GITHUB_TOKEN.
- */
-export async function reusedLaneResults(env, lanes, { waitMs = 12 * 60_000, pollMs = 20_000 } = {}) {
-  const repo = env.GITHUB_REPOSITORY;
-  const pr = Number(env.PR_NUMBER);
-  const query = `event=pull_request&head_sha=${env.HEAD_SHA}&per_page=100`;
-  const deadline = Date.now() + waitMs;
-  for (;;) {
-    const { workflow_runs: runs } = await githubGet(`/repos/${repo}/actions/workflows/ci.yml/runs?${query}`, env);
-    const run = latestPullRequestRun(runs, pr, env.BASE_REF);
-    if (!run) throw new Error(`no pull_request CI run of PR #${pr} into ${env.BASE_REF} exists for head ${env.HEAD_SHA}; push a commit or re-run CI`);
-    if (run.status === 'completed') {
-      const { errors } = await bindPrRun(run, repo, env, { pr, baseRef: env.BASE_REF });
-      if (errors.length) throw new Error(`run ${run.html_url} cannot be reused: ${errors.join('; ')}`);
-      const jobs = await githubList(`/repos/${repo}/actions/runs/${run.id}/jobs?filter=latest`, 'jobs', env);
-      return { run, results: laneResults(jobs, lanes) };
-    }
-    if (Date.now() >= deadline) throw new Error(`the latest pull_request CI run (${run.html_url}) is still ${run.status}`);
-    console.log(`Waiting for ${run.html_url} (${run.status}) to finish…`);
-    await sleep(pollMs);
-  }
+/** The newest-created PR-event run among `runs`, or null. Pure. */
+export function newestPrRun(runs) {
+  const prRuns = runs.filter((r) => PR_EVENTS.has(r.event));
+  prRuns.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || b.id - a.id);
+  return prRuns[0] ?? null;
 }

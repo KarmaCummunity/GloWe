@@ -42,7 +42,8 @@ import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { LANE_JOBS, OPTIONAL_LANES as OPTIONAL_LANE_IDS, REVIEW_LANES } from './ci-changes.mjs';
 import { findOwnerOverride } from './ci-github.mjs';
-import { PROTECTED, reusedLaneResults } from './ci-run-binding.mjs';
+import { PROTECTED } from './ci-run-binding.mjs';
+import { reusedLaneResults } from './ci-run-reuse.mjs';
 import { workflowDrift } from './ci-workflow-diff.mjs';
 
 const DISPATCH_REFS = new Set(['refs/heads/dev', 'refs/heads/main']);

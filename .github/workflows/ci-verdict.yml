@@ -5,8 +5,10 @@ name: CI verdict
 # App, because `CI gate` (a plain Actions job) can be imitated on any commit
 # by a workflow on another branch. scripts/ci-verdict.mjs re-verifies the run
 # (ci.yml path, same repository, PR into dev/main bound through its merge
-# commit, head SHA, `CI gate` job success) and posts a green or red
-# `CI verdict` on the run's head SHA.
+# commit, head branch and SHA, no sibling PR into another base, newest
+# PR-event run for the SHA, one attempt, `CI gate` job success) and posts a
+# green or red `CI verdict` on the run's head SHA. The verdict is per SHA;
+# push and dispatch runs get none.
 #
 # `workflow_run` always runs this file and the checked-out scripts from the
 # DEFAULT branch (`main`), never from the run's branch, so a PR cannot change
@@ -65,5 +67,7 @@ jobs:
       - name: Verify the CI run and post CI verdict
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
+          # Lets the verifier post a red verdict even when the run lookup fails.
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           GITHUB_TOKEN: ${{ steps.app.outputs.token }}
         run: node scripts/ci-verdict.mjs

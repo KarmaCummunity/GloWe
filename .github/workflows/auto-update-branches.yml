@@ -1,8 +1,11 @@
 name: Auto-update PR branches
 
 # After every push to `dev`, brings each open auto-merge PR into `dev` up to date.
-# Branch protection requires PRs to be current with `dev`, so without this every
-# merge leaves all other PRs "behind" and they never merge on their own.
+# The classic `dev` branch protection requires PRs to be current with `dev`, so
+# without this every merge leaves all other PRs "behind" and they never merge
+# on their own. The D-195 ruleset (.github/rulesets/dev-main.json) does not
+# require that (`strict_required_status_checks_policy: false`); under it this
+# workflow only keeps each PR's CI run against a recent `dev`.
 #
 # Identity (INFRA-CI-6, TD-197): the update is pushed with the agent GitHub App
 # token (AGENT_APP_ID + AGENT_APP_PRIVATE_KEY), or else AGENT_MERGE_TOKEN —
