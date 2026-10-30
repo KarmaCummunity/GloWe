@@ -27,9 +27,9 @@
 | גשר קבוצה | Group bridge | Parallel community + summaries during migration (S23) |
 | חוקת ברזל | Iron constitution | Rules core not changeable by vote (D40) |
 | listings | listings (code term) | Legacy table to become `posts` (D19); **not** a product term |
-| סעיף 46א | Section 46(a) | Income Tax Ordinance approval that lets donors claim a tax credit; KC records an org's approval and receipts, never decides eligibility or issues receipts (D69) |
-| גזבר ארגון / רו"ח ארגון | Org treasurer / org accountant | Org-scoped finance roles: treasurer writes the books, accountant reads and exports (D68) |
-| תמונת שקיפות | Transparency snapshot | Frozen yearly financial summary an org publishes on its profile; never live books, never donor names (D73) |
+| סעיף 46א | Section 46(a) | Income Tax Ordinance approval that lets donors claim a tax credit; KC records an org's approval and receipts, never decides eligibility or issues receipts (D71) |
+| גזבר ארגון / רו"ח ארגון | Org treasurer / org accountant | Org-scoped finance roles: treasurer writes the books, accountant reads and exports (D70) |
+| תמונת שקיפות | Transparency snapshot | Frozen yearly financial summary an org publishes on its profile; never live books, never donor names (D75) |
 
 ## Naming rules
 1. Always the precise name: "giving world", "item subcategory", "post type" — **never a bare "categories"**.
