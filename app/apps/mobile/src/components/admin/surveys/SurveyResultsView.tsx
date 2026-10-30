@@ -1,25 +1,31 @@
 // app/apps/mobile/src/components/admin/surveys/SurveyResultsView.tsx
-// FR-ADMIN-021 — survey detail: per-question stats + per-user answers.
+// FR-ADMIN-021 — survey detail: per-question stats + per-user answers; the Sean Ellis
+// survey also shows its PMF score card (KC#1058).
 import type { ReactElement } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyResults } from '@kc/domain';
+import type { PmfSurveyReportView } from '@kc/application';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { AdminListEmpty } from '../AdminListEmpty';
 import { QuestionStatCard } from './QuestionStatCard';
 import { RespondentCard } from './RespondentCard';
+import { PmfReportCard } from './PmfReportCard';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface SurveyResultsViewProps {
   readonly results: AdminSurveyResults | null;
   readonly isLoading: boolean;
+  /** PMF score state for the Sean Ellis survey; null for every other survey. */
+  readonly pmf: { readonly view: PmfSurveyReportView | null; readonly isLoading: boolean } | null;
   readonly onBack: () => void;
 }
 
 export function SurveyResultsView({
   results,
   isLoading,
+  pmf,
   onBack,
 }: SurveyResultsViewProps): ReactElement {
   const styles = useStyles();
@@ -44,6 +50,8 @@ export function SurveyResultsView({
           <Text style={styles.subheading}>
             {t.overview.versionLabel(results.version)} · {t.overview.respondents(results.respondentCount)}
           </Text>
+
+          {pmf ? <PmfReportCard view={pmf.view} isLoading={pmf.isLoading} /> : null}
 
           <Text style={styles.sectionTitle}>{t.stats.sectionTitle}</Text>
           <View style={styles.list}>

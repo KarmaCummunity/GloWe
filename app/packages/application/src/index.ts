@@ -276,6 +276,11 @@ export type { ISurveyAdminRepository } from './ports/ISurveyAdminRepository';
 export { GetAdminSurveyOverviewUseCase } from './survey/GetAdminSurveyOverviewUseCase';
 export { GetAdminSurveyResultsUseCase } from './survey/GetAdminSurveyResultsUseCase';
 export { ListUserFeedbackUseCase } from './survey/ListUserFeedbackUseCase';
+export { GetPmfSurveyReportUseCase } from './survey/GetPmfSurveyReportUseCase';
+export type { PmfSurveyReportView } from './survey/GetPmfSurveyReportUseCase';
+// Server-side activity days (KC#1058)
+export type { IUserActivityRepository } from './ports/IUserActivityRepository';
+export { RecordActiveDayUseCase } from './activity/RecordActiveDayUseCase';
 export type { IPublicResearchRepository } from './ports/IPublicResearchRepository';
 export { LoadPublicResearchBundleUseCase } from './research/LoadPublicResearchBundleUseCase';
 export { SubmitPublicResearchResponseUseCase } from './research/SubmitPublicResearchResponseUseCase';

@@ -4,10 +4,11 @@
 // "Feedback" (free-text entries). RBAC-gated by surveys.view.
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
+import { PMF_SURVEY_SLUG, type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
 import { makeUseStyles, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import {
+  useAdminPmfReport,
   useAdminSurveyOverview,
   useAdminSurveyResults,
   useAdminUserFeedback,
@@ -36,6 +37,8 @@ export default function AdminSurveysScreen() {
 
   const overview = useAdminSurveyOverview(allowed && tab === 'surveys');
   const results = useAdminSurveyResults(allowed && selectedSlug ? selectedSlug : null);
+  // The Sean Ellis survey also loads its PMF score (KC#1058).
+  const pmf = useAdminPmfReport(allowed && selectedSlug === PMF_SURVEY_SLUG ? selectedSlug : null);
   const feedback = useAdminUserFeedback(allowed && tab === 'feedback');
 
   if (rolesLoading) {
@@ -56,7 +59,7 @@ export default function AdminSurveysScreen() {
 
   const onRefresh = () => {
     if (tab === 'feedback') { feedback.refetch(); return; }
-    if (selectedSlug) { results.refetch(); return; }
+    if (selectedSlug) { results.refetch(); pmf.refetch(); return; }
     overview.refetch();
   };
 
@@ -77,6 +80,7 @@ export default function AdminSurveysScreen() {
           <SurveyResultsView
             results={results.results}
             isLoading={results.isLoading}
+            pmf={selectedSlug === PMF_SURVEY_SLUG ? pmf : null}
             onBack={() => setSelectedSlug(null)}
           />
         ) : tab === 'surveys' ? (

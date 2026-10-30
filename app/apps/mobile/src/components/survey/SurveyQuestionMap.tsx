@@ -11,16 +11,20 @@ import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 
 export type QuestionCompletion = 'empty' | 'partial' | 'done';
 
+/** 'done' once the question has its value: a rating or, for single-choice questions, an option. */
 export function getQuestionCompletion(
   rating: number | null | undefined,
   text: string,
+  choiceKey?: string | null,
 ): QuestionCompletion {
-  if (rating != null) return 'done';
+  if (rating != null || choiceKey != null) return 'done';
   if (text.trim().length > 0) return 'partial';
   return 'empty';
 }
 
-type AnswerMap = Readonly<Record<string, { rating: number | null; answerText: string | null }>>;
+type AnswerMap = Readonly<
+  Record<string, { rating: number | null; choiceKey?: string | null; answerText: string | null }>
+>;
 
 type SurveyQuestionMapProps = {
   readonly questions: readonly SurveyQuestion[];
@@ -44,7 +48,7 @@ export function SurveyQuestionMap({
 
   const renderCompactChip = (q: SurveyQuestion, index: number) => {
     const answer = answers[q.id] ?? { rating: null, answerText: null };
-    const completion = getQuestionCompletion(answer.rating, answer.answerText ?? '');
+    const completion = getQuestionCompletion(answer.rating, answer.answerText ?? '', answer.choiceKey);
     const isActive = index === activeIndex;
     const dotColor =
       completion === 'done'
@@ -78,7 +82,7 @@ export function SurveyQuestionMap({
 
   const renderRailItem = (q: SurveyQuestion, index: number) => {
     const answer = answers[q.id] ?? { rating: null, answerText: null };
-    const completion = getQuestionCompletion(answer.rating, answer.answerText ?? '');
+    const completion = getQuestionCompletion(answer.rating, answer.answerText ?? '', answer.choiceKey);
     const isActive = index === activeIndex;
     const statusIcon =
       completion === 'done'

@@ -1,5 +1,6 @@
 // app/apps/mobile/src/components/admin/surveys/QuestionStatCard.tsx
-// FR-ADMIN-021 — per-question aggregate stats with a 1..7 distribution chart.
+// FR-ADMIN-021 — per-question aggregate stats with a 1..7 distribution chart, or per-option
+// counts for a single-choice question (KC#1058).
 import type { ReactElement } from 'react';
 import { Text, View } from 'react-native';
 import type { AdminSurveyQuestionStat } from '@kc/domain';
@@ -8,6 +9,40 @@ import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export function QuestionStatCard({ stat }: { stat: AdminSurveyQuestionStat }): ReactElement {
+  if (stat.questionType === 'single_choice_with_optional_text') {
+    return <ChoiceStatCard stat={stat} />;
+  }
+  return <RatingStatCard stat={stat} />;
+}
+
+/** Single-choice question: one horizontal bar per option, in option order. */
+function ChoiceStatCard({ stat }: { stat: AdminSurveyQuestionStat }): ReactElement {
+  const styles = useStyles();
+  const t = useLocaleBundle().admin.surveys.stats;
+  const max = Math.max(1, ...stat.choiceCounts.map((c) => c.count));
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.label} numberOfLines={2}>{stat.shortLabelHe}</Text>
+      <Text style={styles.prompt} numberOfLines={3}>{stat.promptHe}</Text>
+      <Text style={styles.prompt}>{t.choiceDistributionTitle}</Text>
+      {stat.choiceCounts.map((choice) => (
+        <View key={choice.key} style={styles.choiceRow}>
+          <Text style={styles.choiceLabel} numberOfLines={2}>{choice.labelHe}</Text>
+          <View style={styles.choiceTrack}>
+            <View style={[styles.choiceFill, { width: `${(choice.count / max) * 100}%` }]} />
+          </View>
+          <Text style={styles.barCount}>{choice.count}</Text>
+        </View>
+      ))}
+      <Text style={styles.responses}>
+        {stat.responseCount} {t.responsesLabel}
+      </Text>
+    </View>
+  );
+}
+
+function RatingStatCard({ stat }: { stat: AdminSurveyQuestionStat }): ReactElement {
   const styles = useStyles();
   const L = useLocaleBundle();
   const t = L.admin.surveys.stats;
@@ -94,4 +129,14 @@ const useStyles = makeUseStyles(({ colors }) => ({
   footer: { flexDirection: rowDirectionStart, alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   anchor: { flex: 1, fontSize: 11, color: colors.textDisabled, textAlign: 'center' },
   responses: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
+  choiceRow: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 8 },
+  choiceLabel: { width: '40%', fontSize: 12, color: colors.textPrimary, textAlign: textAlignStart() },
+  choiceTrack: {
+    flex: 1,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.skeleton,
+    overflow: 'hidden',
+  },
+  choiceFill: { height: '100%', borderRadius: 5, backgroundColor: colors.primary, minWidth: 2 },
 }));

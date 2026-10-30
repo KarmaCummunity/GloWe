@@ -20,6 +20,7 @@ export const surveyHe = {
   progressHint: 'ניתן לחזור ולערוך',
   questionIndex: 'שאלה {{index}}',
   ratingFieldLabel: 'דירוג (1–7, חובה)',
+  choiceFieldLabel: 'בחירה אחת (חובה)',
   textFieldLabel: 'פירוט (אופציונלי)',
   savingLabel: 'שומר...',
   saveErrorTitle: 'שגיאת שמירה',

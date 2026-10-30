@@ -1,8 +1,12 @@
 // app/apps/mobile/src/components/admin/surveys/RespondentCard.tsx
-// FR-ADMIN-021 — one respondent's full answer set for a survey.
+// FR-ADMIN-021 — one respondent's full answer set for a survey (rating or chosen option).
 import type { ReactElement } from 'react';
 import { Text, View } from 'react-native';
-import type { AdminSurveyRespondent, AdminSurveyQuestionStat } from '@kc/domain';
+import type {
+  AdminSurveyRespondent,
+  AdminSurveyRespondentAnswer,
+  AdminSurveyQuestionStat,
+} from '@kc/domain';
 import { makeUseStyles } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
@@ -24,6 +28,12 @@ export function RespondentCard({ respondent, questions }: RespondentCardProps): 
   const t = L.admin.surveys.respondents;
   const labelFor = (qid: string): string =>
     questions.find((q) => q.id === qid)?.shortLabelHe ?? '';
+  // Pill text: "5/7" for a rating, the option label for a single-choice answer (KC#1058).
+  const valueFor = (a: AdminSurveyRespondentAnswer): string => {
+    if (a.choiceKey == null) return a.rating == null ? '—' : `${a.rating}/7`;
+    const options = questions.find((q) => q.id === a.questionId)?.choiceCounts ?? [];
+    return options.find((o) => o.key === a.choiceKey)?.labelHe ?? a.choiceKey;
+  };
 
   return (
     <View style={styles.card}>
@@ -47,7 +57,7 @@ export function RespondentCard({ respondent, questions }: RespondentCardProps): 
             <View style={styles.answerTop}>
               <Text style={styles.qLabel} numberOfLines={1}>{labelFor(a.questionId)}</Text>
               <View style={styles.ratingPill}>
-                <Text style={styles.ratingText}>{a.rating}/7</Text>
+                <Text style={styles.ratingText} numberOfLines={1}>{valueFor(a)}</Text>
               </View>
             </View>
             {a.answerText ? (
