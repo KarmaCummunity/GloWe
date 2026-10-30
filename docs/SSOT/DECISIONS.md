@@ -1509,6 +1509,14 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `docs/architecture/adr/ADR-002-data-layer.md`, `supabase/migrations/**`, `app/packages/infrastructure-supabase/**`, `app/packages/application/src/ports/**`.
 
+## D-195 — Client state: TanStack Query for server state, Zustand for client state (2026-10-30)
+
+**Decision.** Adopt [ADR-001](../architecture/adr/ADR-001-client-state.md): server data lives only in the TanStack Query cache (query functions call use cases / repositories); Zustand stores hold optimistic, realtime-lifecycle and client-only cross-screen state, read through selectors; screen-local state stays in `useState`; persisted stores use `kc-*` AsyncStorage keys and must be registered in `clearAllPersistedStores()` when user-specific; the offline query cache persists only `PERSISTABLE_ROOTS`; secrets only in `expo-secure-store`. Redux Toolkit and Context-only were rejected; MMKV deferred until cold-start measurements justify a native module.
+
+**Why.** KC#1015. Agents had no rule for query vs store vs persisted state, and TD-103 showed persisted state leaking across users on sign-out.
+
+**Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
+
 ## Change Log
 
 | Version | Date | Summary |
