@@ -10,6 +10,15 @@
 
 begin;
 
+-- Precondition: anon has no EXECUTE on has_admin_role (0161). The anon read below
+-- proves the anon policy never calls it — a regression would raise 42501 there.
+do $$
+begin
+  if has_function_privilege('anon', 'public.has_admin_role(uuid, text)', 'EXECUTE') then
+    raise exception 'PRECONDITION FAILED: anon should NOT have EXECUTE on has_admin_role (0161)';
+  end if;
+end $$;
+
 create or replace function pg_temp.mk_user(p_handle text)
 returns uuid language plpgsql as $$
 declare v_id uuid := gen_random_uuid();

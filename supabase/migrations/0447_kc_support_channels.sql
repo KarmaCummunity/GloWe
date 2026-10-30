@@ -39,8 +39,15 @@ create trigger kc_support_channels_set_updated_at
 alter table public.kc_support_channels enable row level security;
 
 -- Readable by guests too: the support CTA is auth-agnostic (mirrors FR-DONATE-010 AC5).
-create policy kc_support_channels_select_active on public.kc_support_channels
-  for select to anon, authenticated
+-- Guests get a plain `is_active` policy: anon has no EXECUTE on has_admin_role
+-- (revoked in 0161), so calling it from an anon policy would fail every read.
+create policy kc_support_channels_select_active_anon on public.kc_support_channels
+  for select to anon
+  using (is_active);
+
+-- Signed-in users see active rows; super admins also see paused ones.
+create policy kc_support_channels_select_authenticated on public.kc_support_channels
+  for select to authenticated
   using (is_active or public.has_admin_role(auth.uid(), 'super_admin'));
 
 -- Only super admins may change where donor money is sent.
