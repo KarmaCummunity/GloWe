@@ -106,6 +106,12 @@ All feature PRs target `dev`. Configure GitHub → Settings → Branches → `de
 
 **Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
 
+### Merge queue (recommended on `dev`)
+
+`ci.yml` already runs on `merge_group`, so the queue needs no workflow change. **Owner action (one-time):** GitHub → Settings → Rules → the `dev` ruleset → enable **Require merge queue** (squash). Keep `CI gate` as the only required check.
+
+Why: without a queue every merge makes all other PRs "behind" and `auto-update-branches.yml` re-merges `dev` into each, which restarts and cancels their CI. The queue tests PRs one after another on top of each other, so no PR needs updating. After enabling it, switch off "require branches to be up to date" and remove `auto-update-branches.yml` (TD-206). `gh pr merge --auto` then adds the PR to the queue by itself.
+
 Do **not** require **CI — main release guard** on `dev` (prod-only release-source job). Prod-only post-merge jobs (`prod-smoke`, Edge Functions deploy to `supabase-prod`) stay on `main` only.
 
 ## Production release
