@@ -87,7 +87,7 @@ Concurrency group `db-deploy-<environment>` (with `cancel-in-progress: false`) e
 
 **Migration safety guards:**
 
-- **Dev:** `.github/workflows/ci-dev-guard.yml` on PRs/pushes to `dev` runs `scripts/check-migration-safety.mjs` (blocks `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, unqualified `DELETE FROM` unless the line includes `migration-safety: allow`).
+- **Dev:** the static-guards lane of **CI** (`.github/workflows/ci-static-guards.yml`, behind the `CI gate` check) runs `scripts/check-migration-safety.mjs` on every PR and push (blocks `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, unqualified `DELETE FROM` unless the line includes `migration-safety: allow`).
 - **Main release:** `.github/workflows/ci-main-guard.yml` on PRs to `main` enforces head branch `dev` **and** runs the same migration safety scan.
 
 ## Dev merge gates (branch protection)
@@ -96,23 +96,21 @@ All feature PRs target `dev`. Configure GitHub → Settings → Branches → `de
 
 - Require a pull request before merging (0 approvals).
 - Block force-push and branch deletion.
-- Require status checks (path-filtered workflows may skip when unrelated paths change — that is OK):
+- Require status checks: **exactly one** — `CI gate` (`D-195`). It aggregates every PR lane and fails when a lane the change needs failed, was cancelled or was skipped, so no other check needs to be listed. Do not also require the lane jobs: they skip on unrelated PRs, and an extra required context only adds a way to hang "Expected".
 
-> The table below is machine-validated: `scripts/check-required-checks-drift.mjs` (workflow **CI — required-checks drift**) fails CI if any row references a workflow/job name that no longer exists. If you rename a job, update this table **and** the GitHub branch-protection required-checks list in the same change.
+> The table below is machine-validated: `scripts/check-required-checks-drift.mjs` (static-guards lane of **CI**) fails CI if any row references a workflow/job name that no longer exists, if the `CI gate` row is missing, or if a job in `ci.yml` is not in the gate's `needs:`. If you rename the gate, update this table **and** the GitHub branch-protection required-checks list in the same change.
 
 | Check | Workflow | Job |
 | --- | --- | --- |
-| Quality | CI — frontend | `typecheck · test · lint` |
-| i18n guard | CI — frontend | `Hebrew source scan (no inline UI copy)` |
-| Web bundle | CI — frontend | `web export (production bundle)` |
-| Migration chain | CI — backend | `migration chain lint` |
-| DB + RLS + types | CI — backend | `apply migrations · rls · types · sql probes` |
-| Contract | CI — contract | `rpc · table contract` |
-| Architecture | CI — contract | `coalesce mirror · layer invariants` |
-| Manifest | CI — contract | `web manifest parity` |
-| PR hygiene | CI — PR hygiene | `PR hygiene` |
-| Migration safety | CI — dev guard | `migration destructive-op scan` |
-| SonarCloud | CI — SonarCloud | `SonarCloud quality gate` |
+| Single PR gate | CI | `CI gate` |
+
+**Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
+
+### Merge queue (recommended on `dev`)
+
+`ci.yml` already runs on `merge_group`, so the queue needs no workflow change. **Owner action (one-time):** GitHub → Settings → Rules → the `dev` ruleset → enable **Require merge queue** (squash). Keep `CI gate` as the only required check.
+
+Why: without a queue every merge makes all other PRs "behind" and `auto-update-branches.yml` re-merges `dev` into each, which restarts and cancels their CI. The queue tests PRs one after another on top of each other, so no PR needs updating. After enabling it, switch off "require branches to be up to date" and remove `auto-update-branches.yml` (TD-206). `gh pr merge --auto` then adds the PR to the queue by itself.
 
 Do **not** require **CI — main release guard** on `dev` (prod-only release-source job). Prod-only post-merge jobs (`prod-smoke`, Edge Functions deploy to `supabase-prod`) stay on `main` only.
 
@@ -120,22 +118,25 @@ Do **not** require **CI — main release guard** on `dev` (prod-only release-sou
 
 Operator checklist: [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 
-**CI layout (2026-05-22, speed pass 2026-10-17):** PR/push checks are split by responsibility. Required job **names stay stable** and always report; a cheap `dorny/paths-filter` `changes` job skips heavy work when the PR does not touch that area (so DB-only PRs do not burn mobile/web minutes and vice versa). PR workflows use `concurrency: group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true` so superseded pushes cancel. Shared setup: `.github/actions/setup-pnpm-turbo` (pnpm store cache + local Turbo cache under `app/.turbo`; optional remote cache via `TURBO_TOKEN`/`TURBO_TEAM` if set later).
+**CI layout (unified gate, 2026-10-30 — `D-195`):** one workflow, `.github/workflows/ci.yml` (**CI**), runs on every PR into `dev`/`main` (`opened`, `synchronize`, `reopened`, `ready_for_review`, `edited`), on merge-queue groups, on pushes to `dev`/`main` and on manual dispatch. Its `detect changes` job runs `scripts/ci-changes.mjs`, which maps a PR's (or merge group's) diff to lanes (conservatively: `.github/**` and `.nvmrc` turn on every lane, and a path no lane claims that is not docs-only turns on every lane). Pushes to `dev`/`main` and manual dispatches run every lane, so a green push run certifies the whole tree at that SHA — a docs-only push after a red or never-run push cannot come out green. The lanes are reusable workflows; the `CI gate` job needs all of them and is the only required check. PR runs use `concurrency` with `cancel-in-progress`; `dev`/`main` pushes keep every run. Shared setup: `.github/actions/setup-pnpm-turbo` (pnpm store cache + local Turbo cache under `app/.turbo`).
 
-- `.github/workflows/ci-frontend.yml` — `app/**`, `Dockerfile`, Hebrew scan. Jobs: `typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`.
-- `.github/workflows/ci-dev-guard.yml` — every non-draft PR to `dev`; migration destructive-op scan (`D-54`).
-- `.github/workflows/ci-backend.yml` — `supabase/**` + the migration chain script. Jobs: `migration chain lint`, then `apply migrations · rls · types · sql probes` against a fresh local Supabase stack (replaces the old `db-validate.yml`).
-- `.github/workflows/ci-contract.yml` — infra/application/domain packages + migrations + locale + manifest script. Jobs: `rpc · table contract`, `coalesce mirror · layer invariants` (file-size + layer + domain-typed-error guard), `web manifest parity`.
-- `.github/workflows/ci-pr.yml` — `pull_request` only, non-draft. Job: `PR hygiene` (Conventional Commits title + required `Mapped to spec` line).
-- `.github/workflows/ci-actionlint.yml` — `.github/workflows/**` (+ composite actions); runs `actionlint` (pinned) + shellcheck over every workflow's `run:` blocks. Meta-guard: agents edit CI unsupervised, so workflow files need their own linter. **Not** a required check (path-filtered — would hang "Expected" on non-workflow PRs).
+| Lane (job in `ci.yml`) | Workflow file | Runs when | What it checks |
+| --- | --- | --- | --- |
+| `hygiene` | `ci-pr.yml` | every PR | Conventional Commits title + `Mapped to spec` line in the body |
+| `static` | `ci-static-guards.yml` | every non-draft change | actionlint + shellcheck, all `scripts/*.test.mjs` + `app/scripts/*.test.mjs`, architecture, SSOT links, Hebrew scan, RPC contract, web manifest, expo-router fallbacks, migration chain, migration destructive-op scan, FlatList / SQL `OFFSET` guards, required-check docs + gate wiring |
+| `frontend` | `ci-frontend.yml` (+ `ci-sonar.yml`) | `app/**`, `scripts/**`, `Dockerfile`, Sonar config, CI plumbing | typecheck, unit tests with coverage, ESLint (`--max-warnings` ratchet), dependency audit; production web export + bundle budget + headless smoke; iOS + Android Metro/Hermes bundles; SonarCloud quality gate on the same coverage |
+| `backend` | `ci-backend.yml` | `supabase/**` except functions, `infrastructure-supabase`, workspace manifests, `scripts/**`, CI plumbing | fresh local stack, all `supabase/tests/*.sql`, `database.types.ts` drift, sqlProbes |
+| `edge` | `ci-edge-functions.yml` | `supabase/**`, CI plumbing | `deno check`, `deno lint`, every `*.test.ts` under `supabase/functions` |
+
+The gate fails closed: every lane must be explicitly planned as needed or not needed, and a needed lane must succeed. A draft PR fails `CI gate` on purpose (nothing ran); `ready_for_review` re-runs the whole workflow. A manual dispatch only produces a passing gate on `dev` or `main`. On PRs, `scripts/ci-changes.mjs` and `scripts/ci-gate.mjs` run from the base branch's copy, so a PR cannot weaken its own judge. A docs-only PR runs only `hygiene` + `static` (about a minute); a full-stack PR is bounded by the slowest lane (web export + smoke or the DB stack; expected 6–8 minutes).
 
 **Store pipelines (manual only):** one TestFlight workflow (`.github/workflows/testflight-ios.yml`) and one Play internal workflow (`.github/workflows/play-internal.yml`). Both are `workflow_dispatch` only — never auto-run on push; prod/release submit stays disabled.
 
 Tooling pins: Node version comes from the repo-root `.nvmrc` (all `setup-node` steps use `node-version-file`); pnpm version comes from the `packageManager` field in `app/package.json` (all `pnpm/action-setup` steps use `package_json_file`). Bump either in one place only. **One deliberate exception:** the `ci-backend.yml` db-validate job pins Node 22 — `@supabase/realtime-js` needs the native WebSocket global (Node ≥ 22) for the sqlProbes integration tests; do not align it back to `.nvmrc`.
 
-Draft PRs skip every job except none (PR hygiene waits for `ready_for_review`). Branch protection on `dev` uses the table above; `main` release PRs use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green).
+Branch protection on `dev` uses the table above; `main` release PRs use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green).
 
-**CI gates on `main` PRs:** `CI — frontend / web export (production bundle)` mirrors the Dockerfile builder (`EXPO_PUBLIC_*` + `pnpm build:web`).
+**CI gates on `main` PRs:** the same `CI gate`; its frontend lane's web export mirrors the Dockerfile builder (`EXPO_PUBLIC_*` + `pnpm build:web`).
 
 **Post-merge KC smoke:** `.github/workflows/prod-smoke.yml` polls **`KC_PROD_URL`** (legacy alias: `PROD_WEB_URL`) after `main` deploy.
 

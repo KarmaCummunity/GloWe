@@ -1,6 +1,8 @@
 // app/apps/mobile/src/i18n/locales/en/modules/adminAdmins.ts
 // English strings for the Admin Portal "Admin Team" (RBAC) surface.
 // Split out of `admin.ts` to respect the 300-line file cap (FR-ADMIN-015/016/021).
+import { adminLayersEn } from './adminLayers';
+
 export const adminAdminsEn = {
   title:                'Admin Team',
   loading:              'Loading...',
@@ -15,10 +17,12 @@ export const adminAdminsEn = {
   profileLink:          'Admin Card',
   viewList:             'List',
   viewTree:             'Hierarchy Tree',
+  viewLayers:           'Layers',
   card: {
     rolesNone:    'No active role',
     rolesMore:    (n: number) => `+${n}`,
   },
+  layers: adminLayersEn,
   tree: {
     levelBadge:   (n: number) => `Level ${n}`,
     empty:        'No hierarchy data to display.',

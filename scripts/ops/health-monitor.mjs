@@ -4,7 +4,7 @@
 // Reads ops.run_health_checks() from one Supabase project through the Management API and
 // routes the result to the alert channels: a failing check opens an alert (a GitHub issue
 // assigned to the PM, so they get an email), a recovered check closes it. The query is
-// read-only by construction (see migration 0454). A paused project is skipped; an
+// read-only by construction (see migration 0463). A paused project is skipped; an
 // unreadable report is itself raised as a critical alert, so the monitor never goes blind
 // silently.
 //

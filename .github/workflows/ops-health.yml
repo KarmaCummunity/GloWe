@@ -1,12 +1,13 @@
 name: Ops health monitor
 
 # Hourly operational health check of dev and prod (G42, D68, D69). Reads
-# ops.run_health_checks() (migration 0454, read-only by construction) through the
+# ops.run_health_checks() (migration 0463, read-only by construction) through the
 # Supabase Management API and syncs failing checks to GitHub issues labelled `ops-alert`,
 # assigned to the PM (GitHub emails the assignee); recovered checks close their issue.
-# Logic + tests: scripts/ops/. What to do on an alert: docs/SSOT/OPERATOR_RUNBOOK.md
-# § Ops health alerts. Secrets come from the existing `supabase-dev` / `supabase-prod`
-# environments (the same three DB deploy uses); no new secret is needed.
+# Logic: scripts/ops/ (its unit tests run in CI — static guards). What to do on an alert:
+# docs/SSOT/OPERATOR_RUNBOOK.md § Ops health alerts. Secrets come from the existing
+# `supabase-dev` / `supabase-prod` environments (the same ones DB deploy uses); no new
+# secret is needed.
 
 on:
   schedule:
@@ -17,32 +18,13 @@ on:
         description: Only print the planned alert actions
         type: boolean
         default: false
-  pull_request:
-    branches: [dev, main]
-    paths:
-      - 'scripts/ops/**'
-      - '.github/workflows/ops-health.yml'
 
 permissions:
   contents: read
 
 jobs:
-  unit-tests:
-    name: monitor unit tests
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version-file: .nvmrc
-      - name: Run alert policy and channel tests
-        run: node --test scripts/ops/*.test.mjs
-
   monitor:
     name: health · ${{ matrix.target.env }}
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

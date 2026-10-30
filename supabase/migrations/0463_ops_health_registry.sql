@@ -1,4 +1,4 @@
--- 0454_ops_health_registry | Operational health registry + first checks (G42, D68, D69).
+-- 0463_ops_health_registry | Operational health registry + first checks (G42, D68, D69).
 --
 -- docs/architecture/target.md §5.2. A check is one row in ops.health_checks pointing at a
 -- function that returns ops.health_result (a number + a short, data-free detail). The row

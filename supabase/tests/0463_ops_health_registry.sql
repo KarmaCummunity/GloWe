@@ -1,4 +1,4 @@
--- 0454_ops_health_registry.sql | Health registry contract (G42):
+-- 0463_ops_health_registry.sql | Health registry contract (G42):
 --   * every seeded check runs and reports ok | alert;
 --   * a stuck ride booking and a ride left open after departure raise their checks;
 --   * a check that tries to write is reported as `error`, changes nothing, and does not
@@ -103,4 +103,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0454_ops_health_registry.sql passed'
+\echo '✓ 0463_ops_health_registry.sql passed'
