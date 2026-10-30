@@ -53,7 +53,10 @@ Last applied on kc-dev when this was written: `0239`.
 | 0442 | #1228 admin hierarchy position permissions | in review |
 | 0443–0444 | — | free |
 | 0445–0449 | `claude/launch-readiness` (storage media access scope + launch fixes) | in progress |
-| 0450–0453 | project-book gaps G3, G32, G33, G34 (#1254, #1259, #1260, #1262) | in review |
+| 0450 | G32 / D59 items and requests never expire + owner reminders (#1259) | in progress |
+| 0451 | G3 / D16 listing anonymity both ways (#1254) | in progress |
+| 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
+| 0453 | G34 / D63 listing-handoff karma per the §7.6 table (#1262) | in progress |
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
 | 0454–0459, 0461+ | — | free |
 
