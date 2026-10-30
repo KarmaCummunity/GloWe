@@ -58,7 +58,7 @@ serve(async (req) => {
 
   let processed = 0;
   for (const job of jobs) {
-    const listing = (job as { listings: { title: string; summary: string | null; details: unknown } })
+    const listing = (job as unknown as { listings: { title: string; summary: string | null; details: unknown } })
       .listings;
     const text = [listing.title, listing.summary ?? '', JSON.stringify(listing.details ?? {})]
       .join('\n')

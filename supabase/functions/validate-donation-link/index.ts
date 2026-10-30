@@ -121,9 +121,9 @@ function isIpLiteral(host: string): boolean {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':') || host.startsWith('[');
 }
 
-async function hostResolvesToPublic(hostname: string): Promise<boolean> {
+function hostResolvesToPublic(hostname: string): Promise<boolean> {
   const host = hostname.toLowerCase();
-  if (isIpLiteral(host)) return true;
+  if (isIpLiteral(host)) return Promise.resolve(true);
   return resolvesOnlyToPublic(host, denoResolve, {
     isPrivateIPv4,
     isPrivateIPv6: isPrivateIPv6Literal,

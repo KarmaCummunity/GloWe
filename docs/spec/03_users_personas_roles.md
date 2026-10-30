@@ -20,10 +20,12 @@
 | Suspended user | Sees everything, cannot act, can chat with support (D33) | MVP |
 | Org-affiliated volunteer | Post on org's behalf, register to its events without verification (D22); logs hours approved by manager (D32) | MVP |
 | Organization account | Separate entity with roles (S15); always verified (D53); events, volunteers, jobs, directory | MVP |
+| Org treasurer | Keeps the org's books in the Admin Portal finance sub-tree: entries, receipts, 46(a) status, imports, reconciliation, exports (D76–D80) | Phase 2 |
+| Org accountant | External accountant / auditor: reads the org's books and exports; never writes (D76) | Phase 2 |
 | Medical body | Only publisher in the medical domain (D30) | Later |
 | Org manager / authorized security officer | Activates emergency mode **inside the org only** (D51) | Phase 2 |
 | Verified official/state body | Declares emergency within its permissions (D56, S42) | Phase 2 |
 | Hotline operator | Sensitive requests | Later |
 | KC admin / main admin | Reports (D33), ratings (D24); main admin sees everything (D29) and alone declares a general emergency (D51) | MVP |
 
-**Management hierarchy view (D78, D79).** The admin portal presents every role holder above as layers across all organizations, one layer per level of the reporting chain. Depth is not fixed: inside an org a manager can report to a manager who reports to a manager, down to a volunteer manager and a volunteer, and each link adds a layer. The community stands under the layers and is shown as a count only, never as identities. A suspended user is a regular member until an admin decides (D79). Visibility follows D29: the main admin sees every org; anyone else sees the orgs their own roles belong to. Self-declared org affiliations are counted, never shown as granted roles. Tech: FR-ADMIN-028 (`docs/SSOT/spec/12_super_admin.md` §17), `admin_hierarchy_census` (migration `0461`).
+**Management hierarchy view (D83, D84).** The admin portal presents every role holder above as layers across all organizations, one layer per level of the reporting chain. Depth is not fixed: inside an org a manager can report to a manager who reports to a manager, down to a volunteer manager and a volunteer, and each link adds a layer. The community stands under the layers and is shown as a count only, never as identities. A suspended user is a regular member until an admin decides (D84). Visibility follows D29: the main admin sees every org; anyone else sees the orgs their own roles belong to. Self-declared org affiliations are counted, never shown as granted roles. Tech: FR-ADMIN-028 (`docs/SSOT/spec/12_super_admin.md` §17), `admin_hierarchy_census` (migration `0461`).
