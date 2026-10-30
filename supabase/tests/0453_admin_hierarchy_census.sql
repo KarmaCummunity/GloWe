@@ -48,8 +48,9 @@ begin
     json_build_object('sub', p_uid, 'role', 'authenticated')::text, true);
 end $$;
 
--- Fixture: one org, an org_admin, a granted volunteer, two membership-only
--- volunteers, and a plain user with no grant.
+-- Fixture: one org, an org_admin who also holds a second grant (so distinct
+-- users ≠ grant rows), a granted volunteer, two membership-only volunteers, a
+-- suspended membership-only volunteer (must not count), and a plain user.
 create temp table fx on commit drop as
 select
   gen_random_uuid()              as org_id,
@@ -58,6 +59,7 @@ select
   pg_temp.mk_user('hc_grantvol') as grant_vol_id,
   pg_temp.mk_user('hc_memvol1')  as mem_vol1_id,
   pg_temp.mk_user('hc_memvol2')  as mem_vol2_id,
+  pg_temp.mk_user('hc_suspvol')  as susp_vol_id,
   pg_temp.mk_user('hc_plain')    as plain_id;
 grant select on fx to authenticated;
 
@@ -70,13 +72,18 @@ update public.admin_role_grants set revoked_at = now()
 insert into public.admin_role_grants (user_id, role, scope_org_id)
 select super_id, 'super_admin', null from fx
 union all select org_admin_id, 'org_admin', org_id from fx
-union all select grant_vol_id, 'org_volunteer', org_id from fx;
+union all select grant_vol_id, 'org_volunteer', org_id from fx
+union all select org_admin_id, 'org_volunteer', org_id from fx;
+
+update public.users set account_status = 'suspended_admin'
+ where user_id = (select susp_vol_id from fx);
 
 -- The granted volunteer also holds a membership: it must not be double-counted.
 insert into public.org_memberships (org_id, user_id, role)
 select org_id, grant_vol_id, 'org_volunteer' from fx
 union all select org_id, mem_vol1_id, 'org_volunteer' from fx
-union all select org_id, mem_vol2_id, 'volunteer' from fx;
+union all select org_id, mem_vol2_id, 'volunteer' from fx
+union all select org_id, susp_vol_id, 'org_volunteer' from fx;
 
 -- 2. No active grant → forbidden.
 select pg_temp.act_as((select plain_id from fx));

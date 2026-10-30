@@ -70,8 +70,10 @@ begin
   affiliated as (
     -- Volunteer-type memberships that are not already represented by a grant
     -- in the same org (a granted volunteer is a named node, not an aggregate).
+    -- Scoped to visible orgs before grouping so scoped callers skip the rest.
     select m.org_id, count(distinct m.user_id)::int as cnt
       from public.org_memberships m
+      join visible_orgs vo on vo.org_id = m.org_id
       join public.users u on u.user_id = m.user_id
      where m.role in ('org_volunteer', 'volunteer')
        and u.account_status = 'active'
