@@ -1,12 +1,12 @@
 // FR-RIDE-002 — ride feed card.
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import type { RideListingRow } from '@kc/application';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { Card } from '../../../components/ui/Card';
 import { AvatarInitials } from '../../../components/AvatarInitials';
 import { getUserRepo } from '../../../services/userComposition';

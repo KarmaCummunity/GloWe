@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/reports/CaseAuditTimeline.tsx
 // FR-ADMIN-013 — chronological list of moderation events on a case.
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { ReportCaseAuditEntry } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 
 export interface CaseAuditTimelineProps {
   readonly entries: readonly ReportCaseAuditEntry[];

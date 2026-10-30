@@ -1,9 +1,9 @@
 // Thank-you modal — FR-RESEARCH-001 (public research finish), FR-SETTINGS-016 (in-app).
 import React from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

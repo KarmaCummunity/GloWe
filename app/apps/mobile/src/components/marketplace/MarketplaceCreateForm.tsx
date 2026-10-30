@@ -4,13 +4,11 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
 import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
 import {

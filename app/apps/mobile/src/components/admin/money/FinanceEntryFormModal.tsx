@@ -1,12 +1,12 @@
 // V2-ADMIN-MONEY-9 — bottom-sheet modal for create/edit a ledger entry.
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import {
   FINANCE_ENTRY_KINDS, FINANCE_ENTRY_STATUSES, isFinanceLedgerError,
   type FinanceEntry, type FinanceEntryKind, type FinanceEntryStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { AdminFormField } from '../AdminFormField';
 import { AdminFormActions } from '../AdminFormActions';

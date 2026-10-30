@@ -1,10 +1,10 @@
 // app/apps/mobile/src/components/admin/surveys/SurveyOverviewCard.tsx
 // FR-ADMIN-021 — selectable survey summary card (counts + last response).
 import type { ReactElement } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyOverviewItem } from '@kc/domain';
-import { makeUseStyles, shadow, useTheme } from '@kc/ui';
+import { makeUseStyles, shadow, useTheme, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

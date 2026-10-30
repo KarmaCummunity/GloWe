@@ -1,7 +1,7 @@
 // Sub-panes for ClosureStep2: tab switcher + chats list + search input/results.
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text, TextInput } from '@kc/ui';
 import type { ClosureCandidate } from '@kc/application';
 import type { PickMode } from '../../store/closureStore';
 import { RecipientPickerRow } from './RecipientPickerRow';

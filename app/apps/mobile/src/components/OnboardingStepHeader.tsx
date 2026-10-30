@@ -1,9 +1,9 @@
 // FR-AUTH-018 + FR-AUTH-010..012 — onboarding chrome: skip · step · back (4 steps).
 import React from 'react';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { View, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { OnboardingProgressBar } from './animations/OnboardingProgressBar';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 

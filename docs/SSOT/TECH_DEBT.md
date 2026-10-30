@@ -9,7 +9,7 @@
 > Live execution state lives in [`BACKLOG.md`](./BACKLOG.md). Per-feature status lives in [`spec/*.md`](./spec/). This file is the active debt register.
 
 **Severity**: 🔴 High · 🟠 Med · 🟢 Low
-**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-199+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
+**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-200+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
 
 ---
 
@@ -59,6 +59,7 @@
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-199 | 🟡 | **App code bypasses design tokens (ratcheted).** As of 2026-10-30 (D67), `apps/mobile/{src,app}` holds ~2,300 findings in 303 files: spacing literals ~870, `fontSize` ~460, `fontWeight` ~440, `borderRadius` ~355, colour ~100, physical left/right sides ~90, `fontFamily` 2. About half sit in admin screens. Frozen per file by `apps/mobile/src/__tests__/brandGuard.test.ts` + `brand-guard.baseline.json`; burn down area by area and lower the baseline. The touched-file rule (spec 17 §6, D67) makes every file a PR changes fully clean. Decide whether `13` joins the type scale or maps to `body`/`bodySmall`. | Touched-file rule + per-area cleanups (epic #1061) |
 | TD-194 | 🟡 | **Partially closed 2026-10-30** (baseline headers shipped; follow-up remains). Security/privacy hardening item (details reported privately to the PM). | P1 security |
 | TD-201 | 🟢 | **Horizontal chip rows start at the wrong end on RTL web.** `rowDirectionStart` is `row-reverse` on RTL web, so inside a horizontal `ScrollView` the first chip (e.g. "כל הארגונים" in `OrgSwitcher`, the first `AdminNav` topbar pill) sits at the far edge and is off-screen until the user scrolls when the row overflows a phone viewport. Order is correct; only the initial scroll position is. Fix once in a shared helper (scroll to the reading-start edge on mount for RTL web) and apply it to `OrgSwitcher`, `AdminNav` topbar and the admin task chip bars. Found while verifying FR-ADMIN-028. | With TD-177 RTL sweep |
 | TD-176 | 🟠 | **English UI bundle is machine-translated (FR-SETTINGS-018).** The `apps/mobile/src/i18n/locales/en/**` tree (~3,500 strings) was auto-translated from Hebrew and needs a native-English review pass for tone, idiom, and truncation (buttons/labels). A `localeParity` test guards key structure, but not wording quality. Translation subagents flagged specific judgment calls (unit order, gendered-slash collapses, `MA"B`/gemach glosses) in the PR body. | Post-launch polish |

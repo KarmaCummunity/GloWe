@@ -1,9 +1,9 @@
 // Audience block — visually emphasized on About (FR-SETTINGS-001 About narrative).
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { aboutRtlText, aboutRtlRow } from './aboutWebRtlStyle';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];

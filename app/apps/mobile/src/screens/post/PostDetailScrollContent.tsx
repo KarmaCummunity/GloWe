@@ -1,9 +1,9 @@
 import React from 'react';
-import { AccessibilityInfo, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import { AvatarInitials } from '../../components/AvatarInitials';
 import { PostImageCarousel } from '../../components/PostImageCarousel';

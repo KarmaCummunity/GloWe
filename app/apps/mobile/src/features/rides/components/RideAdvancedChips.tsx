@@ -2,11 +2,11 @@
 // advanced settings. Rendered on RideCard + RideDetailScreen so users can
 // scan capacity / payment / requirements at a glance.
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import type { RideListingRow } from '@kc/application';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 import { rowDirectionStart } from '../../../lib/rtlLayout';
 

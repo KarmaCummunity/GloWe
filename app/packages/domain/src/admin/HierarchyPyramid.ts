@@ -1,5 +1,5 @@
 // app/packages/domain/src/admin/HierarchyPyramid.ts
-// FR-ADMIN-028 — layered hierarchy across every organisation (D65, D66).
+// FR-ADMIN-028 — layered hierarchy across every organisation (D68, D69).
 //
 // Folds two inputs into a stack of levels, top (authority) to bottom (reach):
 //   • the RBAC-filtered role-holders from `admin_org_tree` (named people), and
@@ -28,7 +28,7 @@ export interface HierarchyOrgCensus {
 }
 
 export interface HierarchyCensus {
-  /** Every community member (active or suspended, D66). */
+  /** Every community member (active or suspended, D69). */
   readonly communityTotal: number;
   /** Distinct members holding at least one active grant (platform-wide). */
   readonly roleHolderTotal: number;

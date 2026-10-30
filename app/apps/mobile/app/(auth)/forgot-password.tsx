@@ -4,11 +4,11 @@
 // `/auth/reset-password`.
 // docs/SSOT/spec/01_auth_and_onboarding.md
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { AUTH_RESET_PASSWORD_URL, getRequestPasswordResetUseCase } from '../../src/services/authComposition';
 import { mapAuthErrorToHebrew } from '../../src/services/authMessages';

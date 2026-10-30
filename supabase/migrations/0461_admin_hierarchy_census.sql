@@ -15,7 +15,7 @@
 --                         surfaced as an aggregate and never as named people.
 --
 -- A community member is an account that is active or suspended: a suspended
--- user stays a regular member until an admin decides (project book D66).
+-- user stays a regular member until an admin decides (project book D69).
 -- Banned, deleted and unverified accounts are not members.
 --
 -- Named role-holders keep flowing through `admin_org_tree` (migration 0203),
@@ -26,7 +26,7 @@
 -- (platform-scoped grants resolve to the platform org).
 --
 -- Mapped to spec: FR-ADMIN-028 (docs/SSOT/spec/12_super_admin.md §17).
--- Decisions: D-195; project book D65, D66.
+-- Decisions: D-195; project book D68, D69.
 
 create or replace function public.admin_hierarchy_census()
 returns json
@@ -55,7 +55,7 @@ begin
     from public.organizations o where o.is_platform limit 1;
 
   with members as (
-    -- Community membership (D66): the single definition every count reuses.
+    -- Community membership (D69): the single definition every count reuses.
     select u.user_id
       from public.users u
      where u.account_status in ('active', 'suspended_admin', 'suspended_for_false_reports')
@@ -122,4 +122,4 @@ revoke all on function public.admin_hierarchy_census() from public, anon;
 grant execute on function public.admin_hierarchy_census() to authenticated;
 
 comment on function public.admin_hierarchy_census() is
-  'Admin-only (any active grant). Aggregate counts for the layered hierarchy view: masked community base (active + suspended members, D66), role-holder total, and per-org affiliated volunteers. Org rows are RBAC-scoped like admin_org_tree. FR-ADMIN-028.';
+  'Admin-only (any active grant). Aggregate counts for the layered hierarchy view: masked community base (active + suspended members, D69), role-holder total, and per-org affiliated volunteers. Org rows are RBAC-scoped like admin_org_tree. FR-ADMIN-028.';

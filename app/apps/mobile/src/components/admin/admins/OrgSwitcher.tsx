@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/admins/OrgSwitcher.tsx
 // FR-ADMIN-025 — org filter for the hierarchy tree. super_admin can switch
 // between orgs (or view all); scoped admins are pinned to their org upstream.
-import { ScrollView, Pressable, Text, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { ScrollView, Pressable, View } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 import { rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

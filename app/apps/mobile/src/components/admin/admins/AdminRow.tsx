@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/admins/AdminRow.tsx
 // FR-ADMIN-015 — single admin row with optional revoke action.
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import type { AdminGrant } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface AdminRowProps {
