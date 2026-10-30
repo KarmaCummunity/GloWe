@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { Pressable, StyleSheet } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 
 export interface AdminFilterChipProps {
   readonly label:   string;

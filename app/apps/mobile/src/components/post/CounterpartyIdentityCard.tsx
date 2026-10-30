@@ -1,7 +1,7 @@
 // FR-POST-021 — partner-surface identity mask (shared: create, edit, post menu).
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, PlatformSwitch, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, PlatformSwitch, radius, spacing, typography, Text } from '@kc/ui';
 import {
   layoutDirectionStyle,
   layoutWritingDirectionStyle,

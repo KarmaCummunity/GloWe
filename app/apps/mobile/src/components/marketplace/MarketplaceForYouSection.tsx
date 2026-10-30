@@ -1,8 +1,8 @@
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { useMarketplaceRecommendations } from '../../hooks/useMarketplaceBrowse';
 import { ListingCard } from '../cards/ListingCard';
 

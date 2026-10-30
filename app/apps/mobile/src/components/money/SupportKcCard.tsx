@@ -3,10 +3,10 @@
 // Every option opens a licensed provider's hosted page outside the app, so no
 // payment data is handled here and store rules on donations are respected.
 import React, { useCallback } from 'react';
-import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { warmPromptCardBase } from '../warmPromptCardStyles';
 import { aboutOpenExternalUrl } from '../../features/about-landing/aboutOpenExternalUrl';
 import { useKcSupportOptions } from '../../hooks/useKcSupportOptions';

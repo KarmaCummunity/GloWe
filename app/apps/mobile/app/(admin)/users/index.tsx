@@ -1,10 +1,10 @@
 // app/apps/mobile/app/(admin)/users/index.tsx
 // FR-ADMIN-019 — admin users search screen.
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminUserSearch } from '../../../src/hooks/useAdminContentSearch';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';

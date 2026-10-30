@@ -77,6 +77,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history: the brand guard's touched-file rule diffs against the PR base (spec 17 §6).
+          fetch-depth: 0
 
       - name: No frontend changes — typecheck/test/lint not required
         if: needs.changes.outputs.frontend != 'true'

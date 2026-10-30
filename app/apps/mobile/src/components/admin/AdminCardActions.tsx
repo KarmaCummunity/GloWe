@@ -1,5 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { Pressable, View } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 
 export interface AdminCardActionsProps {
   readonly editLabel:   string;

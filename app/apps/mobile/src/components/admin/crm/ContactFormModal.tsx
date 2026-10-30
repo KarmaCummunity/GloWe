@@ -1,12 +1,12 @@
 // V2-ADMIN-CRM-8 — bottom-sheet modal for create / edit CRM contact.
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import {
   CRM_CONTACT_STATUSES, isCrmContactError,
   type CrmContact, type CrmContactStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

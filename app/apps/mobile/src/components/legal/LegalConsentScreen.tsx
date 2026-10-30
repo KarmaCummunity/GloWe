@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, Platform } from 'react-native';
+import { View, Pressable, ScrollView, Modal, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import type { LegalPendingItem } from '@kc/domain';
-import { typography, spacing, useTheme } from '@kc/ui';
+import { typography, spacing, useTheme, Text } from '@kc/ui';
 import { LegalDocumentReader } from './LegalDocumentReader';
 import { LegalConsentCard } from './LegalConsentCard';
 import { getAcceptLegalDocumentUseCase } from '../../services/legalComposition';

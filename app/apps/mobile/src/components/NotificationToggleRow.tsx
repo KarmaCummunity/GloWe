@@ -1,5 +1,5 @@
-import { Platform, Text, View } from 'react-native';
-import { makeUseStyles, PlatformSwitch, spacing } from '@kc/ui';
+import { Platform, View } from 'react-native';
+import { makeUseStyles, PlatformSwitch, spacing, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../lib/webRtlStyle';
 

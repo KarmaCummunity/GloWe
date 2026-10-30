@@ -4,8 +4,8 @@
 // FR-AUTH-010 AC3 (Skip preserves location).
 // FR-CHAT-001: inbox subscription started on sign-in, torn down on sign-out.
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text, ActivityIndicator, Image, View } from 'react-native';
-import { spacing, typography, useTheme } from '@kc/ui';
+import { Pressable, ActivityIndicator, Image, View } from 'react-native';
+import { spacing, typography, useTheme, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSegments, usePathname, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';

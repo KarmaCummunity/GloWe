@@ -1,10 +1,10 @@
 // FR-ADMIN-007 — admin-only audit lookup. Hidden from non-admins via Redirect.
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { View, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, Redirect } from 'expo-router';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import type { AuditEvent } from '@kc/domain';
 import { useIsSuperAdmin } from '../../src/hooks/useIsSuperAdmin';
 import { container } from '../../src/lib/container';

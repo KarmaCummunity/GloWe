@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/tasks/TaskCategoryPicker.tsx
 // V2-ADMIN-TASKS-2 — single-select radio strip for picking a task category.
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { ADMIN_TASK_CATEGORIES, type AdminTaskCategory } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface TaskCategoryPickerProps {
