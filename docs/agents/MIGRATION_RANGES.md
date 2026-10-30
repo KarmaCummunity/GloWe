@@ -60,11 +60,13 @@ Last applied on kc-dev when this was written: `0239`.
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
 | 0454–0459 | — | free |
 | 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
-| 0462+ | — | free |
+| 0462–0464 | listing work on open branches `feat/1296-listing-subcategory`, `feat/1297-chat-listing-anchor`, `feat/1298-listing-hidden-pending-review` | in progress |
+| 0465 | FR-ADMIN-030 team management: org-scoped `admin_list_admins` + atomic `admin_change_role` (D-197) | in progress |
+| 0466+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0462+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0454–0459`, `0466+`.
 
 ## How to claim
 

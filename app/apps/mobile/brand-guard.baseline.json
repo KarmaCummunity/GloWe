@@ -4,13 +4,6 @@
     "app/(admin)/_layout.tsx": {
       "spacingLiteral": 1
     },
-    "app/(admin)/admins/[userId].tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 2,
-      "spacingLiteral": 11
-    },
     "app/(admin)/audit/index.tsx": {
       "fontSizeLiteral": 9,
       "fontWeightLiteral": 3,
@@ -543,13 +536,6 @@
       "fontWeightLiteral": 2,
       "spacingLiteral": 7
     },
-    "src/components/admin/admins/AdminRow.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "spacingLiteral": 6
-    },
     "src/components/admin/admins/AdminsListView.tsx": {
       "fontSizeLiteral": 5,
       "fontWeightLiteral": 2,
@@ -563,14 +549,6 @@
       "fontWeightLiteral": 2,
       "radiusLiteral": 2,
       "spacingLiteral": 11
-    },
-    "src/components/admin/admins/GrantRoleModal.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 11,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 6,
-      "spacingLiteral": 22,
-      "physicalSide": 1
     },
     "src/components/admin/admins/LevelBadge.tsx": {
       "fontSizeLiteral": 1,
@@ -612,12 +590,6 @@
       "fontWeightLiteral": 4,
       "radiusLiteral": 3,
       "spacingLiteral": 11
-    },
-    "src/components/admin/content/UserSearchRow.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 2,
-      "spacingLiteral": 8
     },
     "src/components/admin/crm/ContactCard.tsx": {
       "fontSizeLiteral": 8,

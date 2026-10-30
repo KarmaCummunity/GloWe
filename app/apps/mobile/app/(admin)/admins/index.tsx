@@ -1,14 +1,17 @@
 // app/apps/mobile/app/(admin)/admins/index.tsx
-// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 / FR-ADMIN-028 — Admin RBAC screen.
+// FR-ADMIN-015 / FR-ADMIN-016 / FR-ADMIN-022 / FR-ADMIN-025 / FR-ADMIN-028 /
+// FR-ADMIN-030 — Admin RBAC screen.
 //
 // Thin orchestrator: a layers/list/tree view toggle + the grant affordance. The
 // three view bodies (layered pyramid, cards list, hierarchy tree) own their own
-// data and live in AdminsLayersView / AdminsListView / AdminsTreeView.
+// data and live in AdminsLayersView / AdminsListView / AdminsTreeView. Every
+// person opens the person screen, where roles and managers are managed.
 //
-// Visibility per PERMISSION_MATRIX['admins.view']:
-//   - super_admin: full list + grant + revoke (revoke on detail screen).
-//   - moderator:   read-only list.
-//   - support:     no access (denial card; AdminGate may also block earlier).
+// Visibility per PERMISSION_MATRIX['admins.view'] (the server scopes the data):
+//   - super_admin:             every org; grant / change / revoke anywhere.
+//   - org admins and managers: their own org; manage within their authority (D77).
+//   - moderator:               the platform team, read-only.
+//   - support, org members:    no access (denial card).
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';

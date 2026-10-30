@@ -140,6 +140,7 @@ export * from './admin/IAdminRoleRepository';
 export * from './admin/GetMyAdminRolesUseCase';
 export * from './admin/GrantAdminRoleUseCase';
 export * from './admin/RevokeAdminRoleUseCase';
+export * from './admin/ChangeAdminRoleUseCase';
 export * from './admin/ListAdminsUseCase';
 export * from './admin/IAdminTaskRepository';
 export * from './admin/ListAdminTasksUseCase';

@@ -1517,6 +1517,14 @@ Feature PRs target `staging`; release PRs are `staging` → `dev`. `CI — GloWe
 
 **Affected.** `supabase/migrations/0461_admin_hierarchy_census.sql`, `app/packages/domain/src/admin/HierarchyPyramid.ts`, `app/packages/application/src/admin/GetHierarchySnapshotUseCase.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseOrgHierarchyRepository.ts`, `app/apps/mobile/src/components/admin/admins/layers/**`, `app/apps/mobile/app/(admin)/admins/index.tsx`; FR-ADMIN-028.
 
+## D-197 — Team management: role-derived permissions, org-run teams, atomic role change (2026-10-30)
+
+**Decision.** The admin person screen (`(admin)/admins/[userId]`) manages one person end to end, for any user. Permissions stay role-derived (project book D76): the portal lists each role's permissions from `PERMISSION_MATRIX` and offers no per-person override. Every org runs its own team (D77): org admins and the three manager roles gain the team-area permissions, `admin_list_admins` is scoped like `admin_org_tree`, and the UI offers only grants the server's `can_grant_role` accepts, through a pure-domain mirror (`GrantAuthority`). A role change is one RPC, `admin_change_role`, that revokes the old grant and inserts the new one with the same user, scope and manager, and re-points the old grant's reports to it, in a single transaction; it is audited as the revoke + grant pair it is (existing audit actions, linked by `metadata.change_of`).
+
+**Why.** PM request (2026-10-30): manage the whole team from the hierarchy — view anyone, change their role and permissions, move them under another manager — with display and permissions as first-class parts. A revoke-then-grant pair from the client would leave the person outside the chain (their reports detached) and could fail halfway; doing it server-side in one transaction keeps the subtree intact. Mirroring `can_grant_role` in the domain keeps unreachable actions out of the UI while the server stays the authority, so a stricter server rule (e.g. FR-ADMIN-027's subtree rules, #1228) only turns an offered action into a typed error. Reusing the existing audit actions avoids widening the audit check constraint and the audit viewer.
+
+**Affected.** `supabase/migrations/0465_admin_team_management.sql`, `app/packages/domain/src/admin/{GrantAuthority,AdminGrant,AdminPermission,AdminRoleError}.ts`, `app/packages/application/src/admin/{GrantAdminRoleUseCase,ChangeAdminRoleUseCase,IAdminRoleRepository}.ts`, `app/packages/infrastructure-supabase/src/admin/SupabaseAdminRoleRepository.ts`, `app/apps/mobile/app/(admin)/admins/[userId].tsx`, `app/apps/mobile/src/components/admin/admins/**`; FR-ADMIN-030.
+
 ## Change Log
 
 | Version | Date | Summary |
