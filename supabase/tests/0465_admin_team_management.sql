@@ -86,8 +86,9 @@ update public.admin_role_grants set revoked_at = now()
  where role = 'super_admin' and revoked_at is null;
 
 insert into public.admin_role_grants (user_id, role, scope_org_id)
-select super_id, 'super_admin', null from fx
-union all select mod_id, 'moderator', null from fx
+-- Typed nulls: an untyped null pair would resolve the UNION column to text.
+select super_id, 'super_admin', null::uuid from fx
+union all select mod_id, 'moderator', null::uuid from fx
 union all select admin_a_id, 'org_admin', org_a from fx
 union all select admin_b_id, 'org_admin', org_b from fx
 union all select dual_a_id, 'org_employee', org_a from fx
@@ -143,7 +144,9 @@ select pg_temp.act_as((select mod_id from fx));
 set local role authenticated;
 do $$
 begin
-  if exists (select 1 from public.admin_list_admins(false) r where r.scope_org_id is not null) then
+  -- Checked against the fixture orgs so pre-existing platform rows cannot interfere.
+  if exists (select 1 from public.admin_list_admins(false) r
+              where r.scope_org_id in (select org_a from fx union all select org_b from fx)) then
     raise exception 'ASSERT FAILED: platform moderator saw an org-scoped grant';
   end if;
 end $$;

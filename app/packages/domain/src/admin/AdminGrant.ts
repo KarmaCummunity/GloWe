@@ -35,10 +35,10 @@ export function isGrantableAdminRole(role: AdminRole): role is GrantableAdminRol
 }
 
 /** Roles granted on the platform (null scope); every other grantable role needs an org. */
-const PLATFORM_GRANT_ROLES: readonly GrantableAdminRole[] = ['moderator', 'support'];
+const PLATFORM_GRANT_ROLES: ReadonlySet<GrantableAdminRole> = new Set(['moderator', 'support']);
 
 export function isPlatformGrantRole(role: GrantableAdminRole): boolean {
-  return PLATFORM_GRANT_ROLES.includes(role);
+  return PLATFORM_GRANT_ROLES.has(role);
 }
 
 /** Whether `scopeOrgId` has the shape `role` requires (mirrors `admin_grant_role`). */
