@@ -411,7 +411,7 @@ When this section is active, the agent operates as a continuous self-driven task
 
 - **Product decisions**: when a task forks on UX/product, decide based on user-visible coherence + simplicity. Record the call in `docs/SSOT/DECISIONS.md` as a new `D-*` entry with a one-paragraph rationale. Do not block on PM input.
 - **CI / tooling repairs**: if `.github/workflows/*`, root configs, or monorepo tooling appear broken, fix as part of the loop — CI is in-scope.
-- **Dev Supabase database**: full read/write/migration authority on project `roeefqpdbftlndzsvhfj` via Supabase MCP tools and the local CLI. Migrations live in `supabase/migrations/` and ship in the same PR as their consumers. Secrets needed by the CLI are in `~/.kc-dev-secrets.env` (outside the repo).
+- **Dev Supabase database**: full read/write/migration authority on project `enbqriuxvvuontiwslun` (kc-dev; verified 2026-10-30 against the deployed dev web bundle, matches `docs/SSOT/ENVIRONMENTS.md`) via Supabase MCP tools and the local CLI. `roeefqpdbftlndzsvhfj` ("MVP-2") and `slxijdfvinbjmrsfgbzx` ("MVP-PROD") are older, paused projects — never target them. Migrations live in `supabase/migrations/` and ship in the same PR as their consumers. Secrets needed by the CLI are in `~/.kc-dev-secrets.env` (outside the repo).
 
 ### Still prohibited (§7 holds regardless of loop mode)
 
