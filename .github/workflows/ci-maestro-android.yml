@@ -77,6 +77,10 @@ jobs:
           set -euo pipefail
           npx expo prebuild --platform android --no-install --clean
           cd android
+          # The template's 512m Metaspace runs out in :expo-modules-core:lintVitalAnalyzeRelease;
+          # the 16 GB runner affords a larger daemon. Fail fast if the template line ever changes.
+          sed -i 's/^org\.gradle\.jvmargs=.*/org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1536m/' gradle.properties
+          grep -q '^org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1536m$' gradle.properties
           ./gradlew assembleRelease -PreactNativeArchitectures="$E2E_ABI" --console=plain
           echo "E2E_APK=$PWD/app/build/outputs/apk/release/app-release.apk" >> "$GITHUB_ENV"
 
