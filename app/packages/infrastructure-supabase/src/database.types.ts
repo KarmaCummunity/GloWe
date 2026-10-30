@@ -9381,6 +9381,7 @@ export type Database = {
           world_slug: string
         }[]
       }
+      can_contact_support: { Args: { uid: string }; Returns: boolean }
       can_grant_role: {
         Args: { granter_uid: string; target_role: string; target_scope: string }
         Returns: boolean
