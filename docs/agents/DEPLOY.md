@@ -53,7 +53,8 @@ Playwright QA suite against `https://dev.karma-community.pages.dev` + kc-dev: [`
 | `k6-load-dev.yml` | manual | Load test against dev |
 | `kc-mobile-eas-preview.yml`, `testflight-ios.yml`, `play-internal.yml` | manual | Store builds, see [RELEASE.md](./RELEASE.md) |
 | `prod-smoke.yml`, `sync-main-to-dev.yml`, `ci-main-guard.yml` | main / release | Prod side. Do not trigger without Nave |
-| `auto-merge-agent-ready.yml`, `labeler.yml`, `bump-app-version.yml`, `stale-stack-report.yml` | PR / schedule | Housekeeping |
+| `auto-merge-agent-ready.yml`, `labeler.yml`, `stale-stack-report.yml` | PR / schedule | Housekeeping |
+| `bump-app-version.yml` | push to `dev` | Bumps `app/VERSION` PATCH after each merge (bot commit) |
 
 ## Web Dockerfile / Railway (legacy note)
 

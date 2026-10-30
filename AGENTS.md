@@ -36,7 +36,7 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 - [ ] New or changed behavior has tests
 - [ ] Migrations, if any: numbered inside your claimed range, apply cleanly on a fresh stack (`./scripts/dev-up.sh`), RLS plus policy tests, no destructive ops (`CI — dev guard`)
 - [ ] DB types regenerated and committed if the API surface changed
-- [ ] `app/VERSION` PATCH bumped (`node scripts/bump-app-version.mjs`)
+- [ ] `app/VERSION` untouched (PATCH is bumped automatically after merge; set it only for a MAJOR/MINOR bump)
 - [ ] PR body: `Closes #N` and `Mapped to spec: …`, following the CLAUDE.md §6 template
 - [ ] All required CI checks green, then label `agent-ready` to auto-merge
 - [ ] After merge: verified on kc-dev / dev.karma-community.pages.dev

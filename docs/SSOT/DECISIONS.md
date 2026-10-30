@@ -1544,10 +1544,23 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0470–0489`, `app/packages/domain/src/finance/**`, `app/packages/domain/src/admin/AdminPermission.ts`, `app/packages/application/src/finance/**`, `app/packages/infrastructure-supabase/src/finance/**`, `app/apps/mobile/app/(admin)/finance/**`, `supabase/functions/finance-export/**`.
 
+## D-197 — `app/VERSION` is bumped after merge, not in the PR (2026-10-30)
+
+**Context.** `D-` rules and `CLAUDE.md` required every PR into `dev` to bump the `app/VERSION` PATCH. With many parallel PRs this made every merge conflict with all the others on the same line: twenty open PRs conflicted on `app/VERSION` at once, and each merge re-broke the rest. The old `Bump app version` workflow could only prepare a branch, because org policy blocks Actions from opening PRs.
+
+**Decision.** PRs do not edit `app/VERSION`. A workflow on push to `dev` (`.github/workflows/bump-app-version.yml`) raises PATCH and pushes a `chore(version): bump to X.Y.Z` commit to `dev`, authenticated with `AGENT_MERGE_TOKEN` (needed to push to the protected branch and so that the push triggers CI). It skips its own commits, and skips a merge that itself changed `app/VERSION`, which is how a MAJOR or MINOR bump is made. `main` is **not** bumped separately: `sync-main-to-dev.yml` uses `merge -s ours` and fails unless the two trees are identical, so a release carries the version `dev` already has. TestFlight and Play build numbers still come from EAS remote versions and need no commit.
+
+**Rationale.** One bump per push to `dev` removes the shared-line conflict entirely and keeps the number tied to what was really merged. Consecutive merges that land before the bot runs are collapsed into one bump (concurrency group), so the number counts bumps, not PRs.
+
+**Alternatives rejected.** Keeping the bump in the PR and resolving the conflict on each merge — serial, about six minutes of CI per PR. Bumping `main` separately — breaks the identical-trees invariant of the main-to-dev sync.
+
+**Affected.** `.github/workflows/bump-app-version.yml`, `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `docs/agents/RELEASE.md`, `docs/agents/DEPLOY.md`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.25 | 2026-10-30 | Added `D-197` (`app/VERSION` bumped by a workflow after merge to `dev`, not in the PR; `main` inherits the version). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
 | 4.23 | 2026-10-30 | Added `D-195` (three-tier CI/CD: single required `CI gate` PR check, nightly mobile builds, one owner approval before prod; supersedes parts of `D-53` and `D-193`). |
 | 4.22 | 2026-10-17 | Added `D-193` (CI speed: pnpm/Turbo cache + path-filter skips; single TestFlight/Play workflows; closes #941/#942). |

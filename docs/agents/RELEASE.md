@@ -9,19 +9,16 @@ Related: #949, #840, #841, #866. Version source of truth: [`app/VERSION`](../../
 
 | Field | Where | Who bumps |
 |---|---|---|
-| Marketing version (`MAJOR.MINOR.PATCH`) | `app/VERSION` (read by `app.config.ts` → Expo `version`) | Agents on every meaningful PR to `dev`, or [`bump-app-version.yml`](../../.github/workflows/bump-app-version.yml) |
+| Marketing version (`MAJOR.MINOR.PATCH`) | `app/VERSION` (read by `app.config.ts` → Expo `version`) | [`bump-app-version.yml`](../../.github/workflows/bump-app-version.yml) raises PATCH after every merge to `dev`; MAJOR/MINOR are set by hand in the PR |
 | iOS `buildNumber` / Android `versionCode` | EAS remote (`eas build:version:get`) with `autoIncrement` on production profile | EAS on each store-bound build |
 
-### Patch bump (preferred)
+### Patch bump (automatic)
 
-```bash
-node scripts/bump-app-version.mjs          # writes app/VERSION
-node scripts/bump-app-version.mjs --dry-run
-```
+Do not edit `app/VERSION` in a PR. After each merge to `dev`, the workflow runs `node scripts/bump-app-version.mjs` and pushes `chore(version): bump to X.Y.Z` (needs `AGENT_MERGE_TOKEN`). `main` is a snapshot of `dev`, so a release carries the version `dev` already has.
 
-Or dispatch **Bump app version** → it pushes `chore/version-bump-X.Y.Z` (Actions cannot open PRs under org policy — open the PR to `dev` yourself).
+### Major / minor bump (manual)
 
-Keep the bump in the same PR as the change when possible (see `CLAUDE.md` APP VERSION banner).
+Set `app/VERSION` in the PR itself (for example `2.0.0`). The workflow detects that the merge changed the file and skips the automatic bump. To preview a patch locally: `node scripts/bump-app-version.mjs --dry-run`.
 
 ### Changelog
 

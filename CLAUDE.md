@@ -6,10 +6,10 @@
 
 **App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`).**
 
-1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
-2. **When you ship a breaking change → bump MAJOR** (e.g. `1.4.2` → `2.0.0`) in the same PR **before** merge to `dev`.
-3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
-4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+1. **PRs never edit `app/VERSION`.** After every merge into `dev`, the `Bump app version` workflow raises PATCH automatically (bot commit `chore(version): bump to X.Y.Z`). This removes the version conflict every parallel PR used to hit (D-197).
+2. **MAJOR / MINOR are manual.** To ship a breaking change (`1.4.2` → `2.0.0`) or a significant feature set (`1.4.2` → `1.5.0`), set `app/VERSION` in that PR. The workflow sees the file changed in the merge and skips the automatic bump.
+3. **`main` is not bumped separately.** It is a snapshot of `dev` (the sync workflow needs identical trees), so a release carries the version `dev` already has.
+4. The workflow needs `AGENT_MERGE_TOKEN` (a PAT allowed to push to `dev`); see `TD-197`.
 
 ## ⭐ Current status & product source of truth (read before anything else)
 
@@ -43,7 +43,7 @@
    5. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
 3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**` (vision treasure — never archive it), and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
-5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+5. **Version.** Do not edit `app/VERSION` in a PR; PATCH is bumped automatically after merge (see banner above).
 
 Doc map for humans: [`docs/README.md`](./docs/README.md).
 

@@ -1,14 +1,19 @@
 name: Bump app version
 
-# Org policy blocks GitHub Actions from creating PRs (409 / GraphQL createPullRequest).
-# This workflow therefore only prepares a bump branch; agents (or a human) open the PR.
-# Preferred path: agents bump app/VERSION in every PR to `dev`
-# (see CLAUDE.md APP VERSION banner). workflow_dispatch remains for a prepared branch.
+# Advances app/VERSION (PATCH) after every merge into `dev`, so PRs never touch the
+# file and never conflict on it (D-197). `main` is not bumped on its own: it is a
+# snapshot of `dev`, and sync-main-to-dev.yml requires the two trees to be identical.
+#
+# AGENT_MERGE_TOKEN (a PAT, see TD-197) is required for two reasons: the bot must be
+# allowed to push to the protected `dev`, and a push made with GITHUB_TOKEN triggers no
+# workflow, which would leave the new head of `dev` without a `CI gate` run.
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [dev]
 
 concurrency:
+  # Queued runs collapse into the newest one: a burst of merges gets one bump, not N.
   group: bump-app-version-dev
   cancel-in-progress: false
 
@@ -17,39 +22,48 @@ permissions:
 
 jobs:
   bump:
-    name: Prepare version bump branch
+    name: Bump app version
+    # The bump commit is itself a push to `dev`; without this guard it would loop.
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(version): bump') }}"
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: dev
+          fetch-depth: 2
+          token: ${{ secrets.AGENT_MERGE_TOKEN }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
 
-      - name: Bump patch + push branch
+      - name: Bump PATCH and push to dev
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_TOKEN: ${{ secrets.AGENT_MERGE_TOKEN != '' }}
         run: |
           set -euo pipefail
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::AGENT_MERGE_TOKEN is not set; see TD-197"
+            exit 1
+          fi
+          # A merge that edits app/VERSION itself is a deliberate MAJOR/MINOR bump: keep it.
+          if git diff-tree --no-commit-id --name-only -r HEAD | grep -qx 'app/VERSION'; then
+            echo "app/VERSION was set explicitly by the merged change; not bumping."
+            exit 0
+          fi
           out="$(node scripts/bump-app-version.mjs)"
           echo "$out"
-          VERSION="$(cut -d' ' -f3 <<<"$out")"
-          BRANCH="chore/version-bump-${VERSION}"
-
+          next="$(cut -d' ' -f3 <<<"$out")"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app/VERSION
-          if git diff --cached --quiet; then
-            echo "No version changes"
-            exit 0
-          fi
-          git switch -c "$BRANCH"
-          git commit -m "chore(version): bump to ${VERSION}"
-          git push -u origin HEAD
-          echo "::notice::Pushed ${BRANCH}. Open a PR to dev (Actions cannot create PRs under org policy)."
-          echo "Branch: https://github.com/${{ github.repository }}/pull/new/${BRANCH}"
+          git commit -m "chore(version): bump to ${next}"
+          # Another merge may land between checkout and push: rebase and retry.
+          for attempt in 1 2 3; do
+            git push origin HEAD:dev && exit 0
+            echo "push rejected (attempt ${attempt}); rebasing"
+            git pull --rebase origin dev
+          done
+          echo "::error::could not push the version bump to dev"
+          exit 1
