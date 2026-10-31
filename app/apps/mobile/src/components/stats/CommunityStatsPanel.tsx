@@ -59,7 +59,6 @@ export function CommunityStatsPanel({
 
 function Row({ label, value, last }: { label: string; value: number; last?: boolean }) {
   const styles = useStyles();
-  const { colors } = useTheme();
   return (
     <View style={[styles.row, !last && styles.rowBorder]}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -68,7 +67,7 @@ function Row({ label, value, last }: { label: string; value: number; last?: bool
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   wrap: { gap: spacing.sm },
   headerRow: {
     flexDirection: 'row',

@@ -58,7 +58,7 @@ export const donations = {
       title: 'Medical',
       subtitle: 'Medical support and equipment',
       body:
-        'The medical category is coming soon.\nUntil then, we invite you to donate to the community itself and help us grow and develop.\nFor nonprofits offering medical equipment, care, and support, as well as blood and organ donation — visit one of the links below.',
+        'Blood donation, the ADI organ donor card, first aid and medical equipment — find the leading organizations in Israel here.\nPick one, visit its site and help save lives.',
     },
   },
   moneyScreen: {
@@ -247,6 +247,7 @@ export const marketplace = {
   notFound: 'Listing not found.',
   startChat: 'Message publisher',
   shareFeed: 'Share to feed',
+  actionFailed: 'That did not go through. Please try again.',
   chatOpener: 'Hi — I saw your listing on the marketplace.',
   createTitle: 'New {{world}} listing',
   fieldTitle: 'Title',
@@ -256,6 +257,8 @@ export const marketplace = {
   forYouTitle: 'For you',
   createHubTitle: 'Choose a giving world',
   fieldKind: 'Listing type',
+  fieldWorldSubcategory: 'Subcategory',
+  fieldWorldSubcategoryHint: 'Optional — helps us find matches for you',
   fieldDirection: 'Give or request',
   fieldCity: 'City / area',
   fieldRadius: 'Search radius: {{km}} km',

@@ -7,6 +7,7 @@ import {
   parseWorkflow,
   parseRequiredTable,
   checkRequiredChecksDrift,
+  checkGateWiring,
 } from './check-required-checks-drift.mjs';
 
 test('parseWorkflow extracts workflow name and 4-space job names, ignores step names', () => {
@@ -67,11 +68,27 @@ test('parseRequiredTable errors when heading missing', () => {
 
 // ── Integration over a synthetic repo ────────────────────────────────────
 
+// Minimal valid ci.yml: `changes`, every planned lane, and a gate that depends
+// on all of them and runs always().
+const LANES = ['hygiene', 'static', 'frontend', 'backend', 'edge'];
+const CI_WF = [
+  'name: CI',
+  'jobs:',
+  '  changes:',
+  '    name: detect changes',
+  ...LANES.flatMap((l) => [`  ${l}:`, `    name: ${l}`, '    needs: changes']),
+  '  gate:',
+  '    name: CI gate',
+  `    needs: [changes, ${LANES.join(', ')}]`,
+  '    if: always()',
+  '',
+].join('\n');
+
 function makeRepo(workflows, docs) {
   const root = mkdtempSync(join(tmpdir(), 'drift-'));
   const wfDir = join(root, '.github/workflows');
   mkdirSync(wfDir, { recursive: true });
-  for (const [file, content] of Object.entries(workflows)) {
+  for (const [file, content] of Object.entries({ 'ci.yml': CI_WF, ...workflows })) {
     writeFileSync(join(wfDir, file), content);
   }
   const ssot = join(root, 'docs/SSOT');
@@ -86,6 +103,7 @@ const ENV_OK = [
   '',
   '| Check | Workflow | Job |',
   '| --- | --- | --- |',
+  '| Gate | CI | `CI gate` |',
   '| Quality | CI — frontend | `typecheck · test · lint` |',
   '',
 ].join('\n');
@@ -95,6 +113,7 @@ const REL_OK = [
   '',
   '| Check | Workflow | Job |',
   '| --- | --- | --- |',
+  '| Gate | CI | `CI gate` |',
   '| Quality | CI — frontend | `typecheck · test · lint` |',
   '',
 ].join('\n');
@@ -109,7 +128,7 @@ test('passes when every documented check maps to a real job', () => {
   try {
     const result = checkRequiredChecksDrift({ repoRoot: root });
     assert.equal(result.ok, true, result.errors.join('\n'));
-    assert.equal(result.checked, 2);
+    assert.equal(result.checked, 4);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -155,6 +174,77 @@ test('fails when the doc table parses to zero checks (format changed)', () => {
     const result = checkRequiredChecksDrift({ repoRoot: root });
     assert.equal(result.ok, false);
     assert.match(result.errors.join('\n'), /ENVIRONMENTS\.md/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('fails when a doc table drops the CI gate row', () => {
+  const noGate = ENV_OK.replace('| Gate | CI | `CI gate` |\n', '');
+  const root = makeRepo({ 'ci-frontend.yml': FRONTEND_WF }, { environments: noGate, release: REL_OK });
+  try {
+    const result = checkRequiredChecksDrift({ repoRoot: root });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join('\n'), /must include "CI \/ CI gate"/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// ── CI gate wiring ───────────────────────────────────────────────────────
+
+test('checkGateWiring accepts inline and block needs lists', () => {
+  assert.deepEqual(checkGateWiring(CI_WF), []);
+  const block = CI_WF.replace(
+    `    needs: [changes, ${LANES.join(', ')}]`,
+    ['    needs:', ...['changes', ...LANES].map((j) => `      - ${j}`)].join('\n'),
+  );
+  assert.deepEqual(checkGateWiring(block), []);
+});
+
+test('checkGateWiring flags a lane missing from the gate needs', () => {
+  const missing = CI_WF.replace(`    needs: [changes, ${LANES.join(', ')}]`, '    needs: [changes, hygiene, static, frontend, backend]');
+  assert.deepEqual(checkGateWiring(missing), [
+    '.github/workflows/ci.yml: job "edge" is missing from the "CI gate" needs: list — its failure would not block merges',
+  ]);
+});
+
+test('checkGateWiring flags a job the change detector does not plan', () => {
+  const extra = CI_WF.replace('  gate:', '  e2e:\n    name: e2e\n  gate:');
+  const errors = checkGateWiring(extra);
+  assert.ok(errors.some((e) => /job "e2e" is not a lane the change detector plans/.test(e)), errors.join('\n'));
+});
+
+test('checkGateWiring accepts an optional release lane wired into the gate', () => {
+  const withRelease = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:').replace(
+    `    needs: [changes, ${LANES.join(', ')}]`,
+    `    needs: [changes, ${LANES.join(', ')}, release]`,
+  );
+  assert.deepEqual(checkGateWiring(withRelease), []);
+  const unwired = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:');
+  assert.match(checkGateWiring(unwired)[0], /job "release" is missing from the "CI gate" needs: list/);
+});
+
+test('checkGateWiring flags a planned lane with no job', () => {
+  const noEdge = CI_WF.replace('  edge:\n    name: edge\n    needs: changes\n', '').replace(', edge]', ']');
+  assert.deepEqual(checkGateWiring(noEdge), ['.github/workflows/ci.yml: planned job "edge" does not exist']);
+});
+
+test('checkGateWiring requires if: always() and a CI gate job', () => {
+  assert.match(checkGateWiring(CI_WF.replace('    if: always()\n', ''))[0], /must use `if: always\(\)`/);
+  assert.match(checkGateWiring(CI_WF.replace('CI gate', 'gate'))[0], /no job named "CI gate"/);
+});
+
+test('fails when another workflow defines a job named CI gate', () => {
+  const impostor = 'name: Other\njobs:\n  fake:\n    name: CI gate\n';
+  const root = makeRepo(
+    { 'ci-frontend.yml': FRONTEND_WF, 'other.yml': impostor },
+    { environments: ENV_OK, release: REL_OK },
+  );
+  try {
+    const result = checkRequiredChecksDrift({ repoRoot: root });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join('\n'), /other\.yml: defines a job named "CI gate"/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
