@@ -35,7 +35,7 @@ export default function MyProfileOpenScreen() {
   });
 
   return (
-    <Screen blobs="content">
+    <Screen blobs="content" testID="my-profile-screen">
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: tabBarPad }}

@@ -134,7 +134,7 @@ Parallel branches that each take "the next free number" collide. So a PR **never
 | `docs/spec/93_implementation_gaps.md` | `{{G:slug}}` | `G50` |
 | `docs/SSOT/DECISIONS.md` (`## …` heading) | `{{ENG:slug}}` | `D-200` |
 
-After the merge into `dev`, `bump-version-on-merge.yml` runs `node scripts/spec-ids.mjs assign`: every placeholder becomes the next free number of its registry and every citation is rewritten, in the same `[skip ci]` commit as the version bump. `node scripts/spec-ids.mjs check` (in `pnpm lint:arch` and CI static guards) fails on a duplicate number or a placeholder without exactly one entry. Existing numbers are never renumbered.
+After the merge into `dev`, `bump-version-on-merge.yml` runs `node scripts/spec-ids.mjs assign`: every placeholder becomes the next free number of its registry and every citation is rewritten, in a commit of its own that CI certifies (the version bump stays a separate `app/VERSION`-only commit, TD-231). `node scripts/spec-ids.mjs check` (in `pnpm lint:arch` and CI static guards) fails on a duplicate number or a placeholder without exactly one entry. Existing numbers are never renumbered.
 
 ### Before you call the work done
 
@@ -193,6 +193,7 @@ When you spot tech debt outside the immediate scope:
 ### Testing protocol
 
 - Any new domain or application code ships with unit tests beside it (`__tests__/` directory inside the package).
+- Mobile UI journeys are covered by Maestro flows on Android (`.maestro/flows/`, CI `ci-maestro-android.yml`). A UI bug fix starts with a failing flow. Runbook: [`docs/process/MAESTRO.md`](docs/process/MAESTRO.md).
 - Tests cover both happy path and at least one boundary / error condition.
 - Test runner: `vitest`. Run with `pnpm --filter @kc/<package> test`.
 

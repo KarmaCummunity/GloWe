@@ -25,7 +25,7 @@
     "check:rpc-contract": "node ../scripts/check-rpc-contract.mjs",
     "check:web-manifest": "node ../scripts/check-web-manifest.mjs",
     "check:backend-guards": "node ../scripts/check-migration-chain.mjs && node ../scripts/check-migration-safety.mjs && node ../scripts/check-rpc-contract.mjs",
-    "test:scripts": "node --test ../scripts/*.test.mjs scripts/*.test.mjs",
+    "test:scripts": "npm ci --prefix ../scripts --ignore-scripts --no-audit --no-fund && node --test ../scripts/*.test.mjs scripts/*.test.mjs",
     "test:e2e": "npm --prefix ../tests/e2e test",
     "test:e2e:ui": "npm --prefix ../tests/e2e run test:ui"
   },
@@ -60,6 +60,7 @@
       "@xmldom/xmldom@0.9": "^0.9.12",
       "source-map-js": "^1.2.2",
       "compression": "^1.8.2",
+      "decode-uri-component": ">=0.5.1",
       "vite@6": "^6.4.4",
       "zod@4": "^4.6.6"
     },

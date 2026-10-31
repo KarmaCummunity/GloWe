@@ -8,10 +8,19 @@ name: Bump app version on merge
 #    (TD-196): two open PRs that both bump it always conflict.
 #
 # A PR that edits `app/VERSION` itself (a MINOR/MAJOR release) gets no bump, but
-# its placeholders are still assigned. The commit carries `[skip ci]`: it only
-# rewrites IDs and one version line, and a full CI run per merge would double
-# the cost. Consequence: the deploy for a merge builds the
-# previous version, and the new number first ships with the next merge.
+# its placeholders are still assigned.
+#
+# The ID commit runs CI like any merge (no `[skip ci]`): it may rewrite
+# citations anywhere, so it must be certified on its own. The bump commit
+# carries `[skip ci]`: it changes one file, and a full CI run per merge would
+# double the cost. The dev deploy still ships it: deploy.yml also triggers on
+# this workflow's name, and scripts/deploy-target.mjs deploys the bump commit
+# on its parent's green `CI gate` (TD-231). That inheritance keys on the bump
+# commit's exact output — the git identity, the commit subject and
+# app/VERSION as the only changed file — so keep the three in sync with
+# deploy-target.mjs (BUMP_IDENTITY, BUMP_SUBJECT, VERSION_FILE), never fold the
+# ID rewrite into the bump commit, and renaming this workflow requires the same
+# rename in deploy.yml's `workflows:` list.
 #
 # Needs AGENT_MERGE_TOKEN whose owner may push to `dev` (branch protection
 # bypass). A push made with GITHUB_TOKEN could not do this either way.
@@ -77,21 +86,31 @@ jobs:
           for attempt in 1 2 3; do
             git fetch --depth=2 origin dev
             git reset --hard origin/dev
+
+            # 1. Registry IDs, pushed on their own so CI certifies them and the
+            #    bump below stays a VERSION-only child of a gated commit. A
+            #    retry after this push finds no placeholders left.
             node scripts/spec-ids.mjs assign
-            subject="chore(release): assign spec ids"
-            if [ "$bump_version" = true ]; then
-              node scripts/bump-app-version.mjs
-              version="$(tr -d '[:space:]' < app/VERSION)"
-              subject="chore(release): bump app version to ${version}"
-            fi
             git add -u
-            if git diff --cached --quiet; then
-              echo "Nothing to commit."
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(release): assign spec ids"
+              if ! git push origin HEAD:dev; then
+                echo "Push rejected (attempt ${attempt}); retrying on the new tip of dev"
+                sleep $((attempt * 5))
+                continue
+              fi
+            fi
+
+            # 2. Version bump: app/VERSION only, `[skip ci]` (see the header).
+            if [ "$bump_version" != true ]; then
               exit 0
             fi
-            git commit -m "${subject} [skip ci]"
+            node scripts/bump-app-version.mjs
+            version="$(tr -d '[:space:]' < app/VERSION)"
+            git add app/VERSION
+            git commit -m "chore(release): bump app version to ${version} [skip ci]"
             if git push origin HEAD:dev; then
-              echo "Pushed: ${subject}"
+              echo "Bumped to ${version}"
               exit 0
             fi
             echo "Push rejected (attempt ${attempt}); retrying on the new tip of dev"

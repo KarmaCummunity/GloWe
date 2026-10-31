@@ -47,7 +47,7 @@ export const REGISTRIES = [
  * Duplicates that predate merge-time allocation. Renumbering them would silently
  * change what existing citations point at, so they are tolerated, and only them.
  */
-export const KNOWN_DUPLICATES = { TD: [200, 201], ENG: [38, 40, 41] };
+export const KNOWN_DUPLICATES = { TD: [200, 201, 204], ENG: [38, 40, 41] };
 
 /**
  * Regex fragments around an entry's ID. A table cell may carry a trailing `*`

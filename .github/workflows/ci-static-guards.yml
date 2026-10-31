@@ -4,7 +4,9 @@ name: CI — static guards
 # a dependency-free Node script (or a pinned linter), so the lane needs no
 # `pnpm install` and finishes in about a minute. These guards are the CI copy
 # of `pnpm lint:arch` / `pnpm lint:i18n`; the frontend lane runs only the
-# ESLint part of `pnpm lint` so nothing is scanned twice.
+# ESLint part of `pnpm lint` so nothing is scanned twice. The `integrity` job
+# is the test-integrity guard; ci.yml also calls this lane on review events so
+# an owner approval can clear it.
 
 on:
   workflow_call:
@@ -13,6 +15,50 @@ permissions:
   contents: read
 
 jobs:
+  # Test-integrity guard (INFRA-CI-2): deleted tests, skip/focus markers,
+  # loosened coverage or warning limits, net-removed assertions. Runs the base
+  # commit's scripts/check-test-integrity.mjs (like the CI judges), which reads
+  # owner approvals through the API, hence `pull-requests: read`. The `github`
+  # context here is the caller's (ci.yml's event).
+  integrity:
+    name: test integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      JUDGE_REF: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.sha }}
+    steps:
+      # Full history without blobs: enough to diff from the merge-base and to
+      # read the owner allowlist at the base commit.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: .nvmrc
+          sparse-checkout-cone-mode: false
+
+      # The judge: the base commit's scripts/ directory, never the PR's copy. A
+      # base that predates the guard fails the next step (one-time bootstrap,
+      # merged by the owner — OPERATOR_RUNBOOK.md § Owner setup for D-195 CI/CD).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.JUDGE_REF }}
+          path: .judge
+          persist-credentials: false
+          sparse-checkout: scripts
+
+      - name: Judge the diff for weakened tests
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .judge/scripts/check-test-integrity.mjs
+
   guards:
     name: static guards
     runs-on: ubuntu-latest
@@ -34,6 +80,11 @@ jobs:
         run: |
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
           ./actionlint -color
+
+      # The guard scripts' only dependency (a YAML parser), pinned by
+      # scripts/package-lock.json; no install scripts run.
+      - name: Install guard-script dependencies
+        run: npm ci --prefix scripts --ignore-scripts --no-audit --no-fund
 
       - name: Script self-tests (scripts/*.test.mjs, scripts/ops/*.test.mjs, app/scripts/*.test.mjs)
         if: ${{ !cancelled() }}
@@ -86,3 +137,7 @@ jobs:
       - name: Required-check docs and CI gate wiring
         if: ${{ !cancelled() }}
         run: node scripts/check-required-checks-drift.mjs
+
+      - name: Deploys only through deploy.yml
+        if: ${{ !cancelled() }}
+        run: node scripts/check-deploy-isolation.mjs
