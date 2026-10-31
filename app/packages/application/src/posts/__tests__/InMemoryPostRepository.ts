@@ -104,10 +104,13 @@ export class InMemoryPostRepository implements IPostRepository {
     return clonePost(post);
   }
 
-  // RLS `posts_delete_self_open`: only the owner, only while open; otherwise no row matches.
+  // RLS `posts_delete_self_unlinked` (0053): the owner may delete an open post, or a closed
+  // one with no recipient row; anything else matches no row.
   async delete(postId: string): Promise<void> {
     const post = this.store.posts.get(postId);
-    if (!post || post.ownerId !== this.actorId || post.status !== 'open') {
+    const unlinkedClosed = post?.recipient === null
+      && (post.status === 'deleted_no_recipient' || post.status === 'closed_delivered');
+    if (!post || post.ownerId !== this.actorId || !(post.status === 'open' || unlinkedClosed)) {
       throw new PostError('post_owner_delete_forbidden', 'delete: no row deleted');
     }
     this.store.posts.delete(postId);

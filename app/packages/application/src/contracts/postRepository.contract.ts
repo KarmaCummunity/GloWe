@@ -191,8 +191,11 @@ const reopenAfterClose: ContractCase<Ctx> = {
   },
 };
 
-const deleteOnlyOpenOwnPost: ContractCase<Ctx> = {
-  name: 'delete: removes an open post of its owner; a missing or closed post → post_owner_delete_forbidden',
+// Policy `posts_delete_self_unlinked` (migration 0053, FR-POST-010 + D-18): the owner may
+// delete an open post, or a closed one that has no recipient row. The first run of this
+// contract against the stack corrected an older "open only" reading of that rule.
+const deleteUnlinkedOwnPost: ContractCase<Ctx> = {
+  name: 'delete: removes an open or closed-without-recipient post of its owner; a missing post → post_owner_delete_forbidden',
   async run(ctx) {
     const actor = await ctx.newActor();
     const open = await createFor(actor, ctx);
@@ -201,7 +204,8 @@ const deleteOnlyOpenOwnPost: ContractCase<Ctx> = {
     await assertRejectsWithCode(actor.repo.delete(open.postId), 'post_owner_delete_forbidden', 'delete twice');
     const closed = await createFor(actor, ctx);
     await actor.repo.close(closed.postId, null);
-    await assertRejectsWithCode(actor.repo.delete(closed.postId), 'post_owner_delete_forbidden', 'delete a closed post');
+    await actor.repo.delete(closed.postId);
+    assertEqual(await actor.repo.findById(closed.postId, actor.userId), null, 'findById after deleting a closed post');
   },
 };
 
@@ -216,6 +220,6 @@ export function postRepositoryContract(): ContractCase<PostRepositoryContractCon
     countsFollowLifecycle,
     closeWithoutRecipient,
     reopenAfterClose,
-    deleteOnlyOpenOwnPost,
+    deleteUnlinkedOwnPost,
   ];
 }
