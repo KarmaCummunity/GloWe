@@ -16,11 +16,13 @@ Organization: `karmacummunity`
 
 Workflow: [`.github/workflows/ci-sonar.yml`](../../.github/workflows/ci-sonar.yml)
 
-On every PR to `main` / `dev` (when `app/**` changes):
+Called by the `frontend` lane of `CI gate` (`ci-frontend.yml`) on every PR whose `frontend` lane runs (not for Dependabot) and on pushes to `main`:
 
-1. Runs SonarCloud analysis on the PR branch.
+1. Downloads the tests job's lcov coverage and runs SonarCloud analysis on the PR branch.
 2. Waits for the **Quality Gate** (`sonar.qualitygate.wait=true`).
-3. **Fails the check** if the gate fails on **new code** → merge blocked when branch protection is enabled.
+3. **Fails the lane** if the gate fails on **new code**, which fails `CI gate` and blocks the merge.
+
+New-code coverage only counts files that vitest measures. Keep `sonar.coverage.exclusions` a superset of each package's vitest coverage `exclude` list; a file vitest skips shows 0% here and fails the gate on any PR that touches it.
 
 ### One-time setup (repo admin)
 
@@ -36,10 +38,7 @@ On every PR to `main` / `dev` (when `app/**` changes):
    SonarCloud → **MVP-2 → Administration → Analysis Method** → turn off **Automatic Analysis**  
    (CI workflow replaces it; avoids double scans.)
 
-4. **Branch protection** (blocks merge; closest thing to “no bad push”)  
-   GitHub → **Settings → Branches** → rule for `dev` and `main`:
-   - Require status check: **`SonarCloud quality gate`** (job name from workflow).
-   - Also keep existing checks (`typecheck · test · lint`, etc.).
+4. **No separate required check.** Sonar runs inside `CI gate`, the only required check on `dev` and `main` (`D-195`); never require `SonarCloud quality gate` on its own.
 
 > **Note:** Git cannot reject `git push` from the server before upload. Protection works by **required PR checks** + **no merge** until Sonar passes. Direct pushes to `dev`/`main` should be disallowed by branch rules.
 

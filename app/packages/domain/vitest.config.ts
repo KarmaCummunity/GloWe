@@ -17,7 +17,6 @@ export default defineConfig({
         'src/index.ts',
         'src/entities.ts',
         'src/posts.ts',
-        'src/notifications.ts',
         'src/audit.ts',
         'src/donations.ts',
         'src/searchTypes.ts',
