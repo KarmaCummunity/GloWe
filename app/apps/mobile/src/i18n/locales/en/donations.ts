@@ -7,6 +7,7 @@ import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
+import { marketplaceMyListings } from './donations.myListings';
 import { worldsHub } from './donations.worldsHub';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
@@ -276,22 +277,7 @@ export const marketplace = {
   profileListingsTitle: 'Marketplace listings',
   profileListingsEmpty: 'No public listings yet.',
   statusClosed: 'Fulfilled',
-  myListingsNav: 'My listings',
-  myListingsTitle: 'My listings',
-  myListingsSubtitle: 'Edit, pause, mark fulfilled, or delete your marketplace posts. Fulfilling earns karma.',
-  myListingsEmpty: 'You have no listings yet.',
-  myListingsEdit: 'Edit',
-  myListingsPause: 'Pause',
-  myListingsResume: 'Resume',
-  myListingsFulfill: 'Mark fulfilled',
-  myListingsFulfillTitle: 'Mark as fulfilled?',
-  myListingsFulfillHint: 'This closes the listing and awards karma for completing a give/request.',
-  myListingsDelete: 'Delete',
-  myListingsDeleteTitle: 'Delete listing?',
-  myListingsDeleteHint: 'This permanently removes the listing.',
-  myListingsSave: 'Save changes',
-  myListingsUpdated: 'Updated {{date}}',
-  myListingsHiddenHint: 'Hidden from others until the team reviews the reports',
+  ...marketplaceMyListings,
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   browseRefine: marketplaceBrowseRefine,
