@@ -6,7 +6,7 @@ export const adminSurveysHe = {
   loading: 'טוען...',
   forbiddenTitle: 'אין לך הרשאת גישה לנתוני הסקרים.',
   errorTitle: 'אירעה שגיאה בטעינת הנתונים.',
-  retry: 'נסה שוב',
+  retry: 'נסו שוב',
 
   tabs: {
     surveys: 'סקרים',
