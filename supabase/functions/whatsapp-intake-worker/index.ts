@@ -2,6 +2,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { withObservability } from '../_shared/observability/mod.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -23,7 +24,7 @@ type IntakeRequest = {
   confirm_publish?: boolean;
 };
 
-serve(async (req) => {
+serve(withObservability('whatsapp-intake-worker', async (req) => {
   if (req.method !== 'POST') return new Response('method not allowed', { status: 405 });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -111,4 +112,4 @@ serve(async (req) => {
     JSON.stringify({ ok: true, session_id: sessionId, extraction_id: extractionId, listing_id: listingId }),
     { headers: { 'Content-Type': 'application/json' } },
   );
-});
+}));

@@ -9,6 +9,7 @@
     "lint": "pnpm lint:arch && pnpm lint:i18n && turbo run lint",
     "lint:arch": "node scripts/check-architecture.mjs && node scripts/check-ssot-links.mjs",
     "lint:i18n": "node ../scripts/extract-hebrew-text.mjs --check",
+    "lint:hebrew-register": "pnpm --filter @kc/mobile exec vitest run src/__tests__/copyVoiceRules.test.ts src/__tests__/copyVoiceGuard.test.ts",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
@@ -60,6 +61,7 @@
       "@xmldom/xmldom@0.9": "^0.9.12",
       "source-map-js": "^1.2.2",
       "compression": "^1.8.2",
+      "decode-uri-component": ">=0.5.1",
       "vite@6": "^6.4.4",
       "zod@4": "^4.6.6"
     },

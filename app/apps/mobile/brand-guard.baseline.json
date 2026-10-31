@@ -108,10 +108,6 @@
       "radiusLiteral": 4,
       "spacingLiteral": 20
     },
-    "app/(auth)/index.tsx": {
-      "colorLiteral": 1,
-      "iconSizeLiteral": 2
-    },
     "app/(auth)/sign-in.tsx": {
       "colorLiteral": 1,
       "fontSizeLiteral": 1,
@@ -125,9 +121,6 @@
       "radiusLiteral": 2,
       "spacingLiteral": 1,
       "shadowLiteral": 8,
-      "iconSizeLiteral": 1
-    },
-    "app/(guest)/feed.tsx": {
       "iconSizeLiteral": 1
     },
     "app/(onboarding)/about-intro.tsx": {
@@ -248,10 +241,6 @@
       "radiusLiteral": 1,
       "iconSizeLiteral": 1
     },
-    "app/(tabs)/search.tsx": {
-      "rawTextInput": 1,
-      "iconSizeLiteral": 6
-    },
     "app/auth/callback.tsx": {
       "radiusLiteral": 1
     },
@@ -331,9 +320,6 @@
     },
     "app/settings/language.tsx": {
       "radiusLiteral": 1
-    },
-    "app/settings/notifications.tsx": {
-      "fontSizeLiteral": 1
     },
     "app/settings/report-issue.tsx": {
       "fontWeightLiteral": 3,
@@ -611,24 +597,6 @@
     "src/components/SettingsAboutCard.tsx": {
       "fontWeightLiteral": 1,
       "iconSizeLiteral": 2
-    },
-    "src/components/SettingsScreenRow.tsx": {
-      "iconSizeLiteral": 2
-    },
-    "src/components/TabBar.tsx": {
-      "colorLiteral": 2,
-      "radiusLiteral": 4,
-      "spacingLiteral": 1,
-      "physicalSide": 2,
-      "shadowLiteral": 8,
-      "iconSizeLiteral": 2
-    },
-    "src/components/TopBar.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 1,
-      "iconSizeLiteral": 3
     },
     "src/components/WebRefreshButton.tsx": {
       "iconSizeLiteral": 1
@@ -1647,9 +1615,6 @@
     },
     "src/screens/guest/feed.styles.ts": {
       "spacingLiteral": 1
-    },
-    "src/screens/post/PostDetailScreen.tsx": {
-      "iconSizeLiteral": 1
     },
     "src/screens/post/PostDetailScrollContent.tsx": {
       "iconSizeLiteral": 6
