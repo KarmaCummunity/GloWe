@@ -2,11 +2,12 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { withObservability } from '../_shared/observability/mod.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-serve(async (req) => {
+serve(withObservability('receipts-issuer', async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const { payment_id: paymentId } = await req.json().catch(() => ({}));
   if (!paymentId) {
@@ -44,4 +45,4 @@ serve(async (req) => {
   return new Response(JSON.stringify({ ok: true, section46_serial: serial }), {
     headers: { 'Content-Type': 'application/json' },
   });
-});
+}));
