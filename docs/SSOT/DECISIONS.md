@@ -1624,7 +1624,7 @@ Owner rules that go with it:
 
 **Affected.** `scripts/spec-ids.mjs`, `.github/workflows/bump-version-on-merge.yml`, `.github/workflows/ci-static-guards.yml`, `app/package.json` (`lint:arch`), `CLAUDE.md` §4 / §9.
 
-## {{ENG:port-contracts}} — Port contracts are framework-agnostic case lists, run against a behavioural fake and the Supabase adapter (2026-10-31)
+## D-204 — Port contracts are framework-agnostic case lists, run against a behavioural fake and the Supabase adapter (2026-10-31)
 
 **Decision.** A port contract (G39) is a module in `@kc/application` (`src/contracts/<port>.contract.ts`) that exports `ContractCase[]`: named behaviours with plain assertions that throw `ContractViolation`. No test-framework import, so the contract is part of the package surface and any adapter package imports it. Two runners map each case to one `it(...)`: the fake leg in `@kc/application` against a behavioural in-memory repository (every `pnpm test`), the adapter leg in `@kc/infrastructure-supabase` (`*.contract.integration.test.ts`) against the real adapter with a client signed in as a seeded user, so RLS applies as in the app; it runs in `ci-backend` on the local stack, whose credentials the lane exports from `supabase status -o env`; `vitest.config.ts` collects the suite only when they are set, so no skip marker and no stack key ever appear in the repo. Each case starts from a fresh actor (user + repository bound to that identity) and covers owner-side behaviour only; viewer visibility, admin flows and feed ranking stay in per-adapter tests. The spy fakes use-case tests rely on (`FakePostRepository`: canned results + call capture) stay as they are; the behavioural fakes are new siblings (`InMemoryPostRepository`).
 
@@ -1636,7 +1636,7 @@ Owner rules that go with it:
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.31 | 2026-10-31 | Added `{{ENG:port-contracts}}` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
+| 4.31 | 2026-10-31 | Added `D-204` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
 | 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
 | 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
