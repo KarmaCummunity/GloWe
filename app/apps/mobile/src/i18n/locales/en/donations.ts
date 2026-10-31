@@ -58,7 +58,7 @@ export const donations = {
       title: 'Medical',
       subtitle: 'Medical support and equipment',
       body:
-        'The medical category is coming soon.\nUntil then, we invite you to donate to the community itself and help us grow and develop.\nFor nonprofits offering medical equipment, care, and support, as well as blood and organ donation — visit one of the links below.',
+        'Blood donation, the ADI organ donor card, first aid and medical equipment — find the leading organizations in Israel here.\nPick one, visit its site and help save lives.',
     },
   },
   moneyScreen: {
