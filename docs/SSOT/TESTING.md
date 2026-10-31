@@ -24,6 +24,21 @@ All PR checks run behind the single required check `CI gate` (`.github/workflows
 | push → `dev` / `main` | every lane, then **Deploy** (kc-dev automatically; prod after the owner's approval) with its smoke stage | none |
 | nightly | — | QA suite (`e2e-nightly-dev.yml`); P0 journeys before the mobile store builds (`mobile-nightly.yml`) |
 
+## Port contract tests (G39, `D-203`)
+
+One suite per application port, written once and run twice:
+
+| Leg | Where | Runs |
+| --- | --- | --- |
+| In-memory fake | `app/packages/application/src/<area>/__tests__/*.contract.test.ts` against a behavioural `InMemory*Repository` | every `pnpm test` (frontend lane) |
+| Supabase adapter | `app/packages/infrastructure-supabase/src/<area>/__tests__/*.contract.integration.test.ts` against the real adapter with a signed-in (RLS-scoped) client | `ci-backend` on the local stack; `vitest.config.ts` collects these files only when `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are set (the lane exports them from `supabase status -o env`) |
+
+The cases live in `app/packages/application/src/contracts/<port>.contract.ts` as a plain `ContractCase[]` with framework-agnostic assertions (`ContractViolation`), so the module ships in `@kc/application` without a vitest import and any adapter package can import it. A fake that drifts from the adapter fails the same case the adapter passes.
+
+Adding a port: write `contracts/<port>.contract.ts` (fresh actor per case; owner-side behaviour only — viewer visibility, admin flows and ranking stay in per-adapter tests), a behavioural in-memory fake beside the use-case tests, the two runners, and export the contract from `contracts/index.ts`. Run the adapter leg locally: `supabase start`, then `eval "$(supabase status -o env)"` and `SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY pnpm --filter @kc/infrastructure-supabase test contract.integration`. No stack key is ever written in the repo (GitGuardian scans every PR), and the suite files carry no skip marker (the test-integrity judge rejects added ones).
+
+Shipped: `IPostRepository`. Queue: BACKLOG `OPS-G39`.
+
 ## E2E test user (dev only)
 
 **Manual / agent super-admin user** (Supabase dev `enbqriuxvvuontiwslun`). CI no longer uses it: the Playwright suites sign in as the public kc-dev seed users ([`tests/e2e/README.md`](../../tests/e2e/README.md)).

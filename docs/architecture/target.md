@@ -57,7 +57,7 @@ Principle: one shared, world-agnostic infrastructure; a giving world plugs in by
 | DB harness | `supabase/tests/_harness/` → local-only `kc_test` schema: actors (`act_as`), assertions (`assert_eq`, `assert_raises`, `assert_row_count`), fixtures (`create_user`, `create_listing`), one `20_world_<slug>.sql` per world | installed by `scripts/run-db-tests.sh`; never migrated | G38 |
 | Per-migration regression | `supabase/tests/NNNN_*.sql` | every backend PR | — |
 | Per-world lifecycle flow | `supabase/tests/flows/<world>_lifecycle.sql`: publish → book → confirm → complete → karma → rating + every guard | every backend PR | G38 |
-| Port contract | one shared suite per port, run against an in-memory fake **and** the Supabase adapter (local stack) — the safety net for the listings → posts move (G1) | every PR touching a port/adapter | G39 |
+| Port contract | 🟡 one shared suite per port, run against an in-memory fake **and** the Supabase adapter (local stack) — the safety net for the listings → posts move (G1). Kit: `app/packages/application/src/contracts/` (framework-agnostic `ContractCase[]` + assertions, `D-203`); fake leg in `@kc/application` `__tests__` (every `pnpm test`), adapter leg `*.contract.integration.test.ts` in `@kc/infrastructure-supabase` (`ci-backend`; collected only when the stack credentials are in the environment). Shipped: `IPostRepository`; next: saved posts, chat, rides, users, reports (BACKLOG `OPS-G39`) | every PR touching a port/adapter | G39 |
 | Two-user E2E journey | `tests/e2e/journeys/<world>.spec.ts` against dev (Playwright, session injection) | relevant PRs + nightly + release gate | G40 |
 
 ### 5.2 Observability
