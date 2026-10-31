@@ -14,7 +14,7 @@ import type {
 export interface MediaAsset {
   readonly mediaAssetId: string;
   readonly postId: string | null;
-  /** Storage bucket of `path`: uploads live in post-images; a feed mirror borrows its listing's photos from listing-images ({{ENG:listing-feed-mirror}}). */
+  /** Storage bucket of `path`: uploads live in post-images; a feed mirror borrows its listing's photos from listing-images (D-206). */
   readonly bucket: 'post-images' | 'listing-images';
   readonly path: string;
   readonly mimeType: string;
@@ -48,7 +48,7 @@ export interface Post {
   recipient: Recipient | null;
   reopenCount: number;
   deleteAfter: string | null;
-  /** Set on a feed mirror of a native listing ({{ENG:listing-feed-mirror}}); the detail screen opens that listing instead. */
+  /** Set on a feed mirror of a native listing (D-206); the detail screen opens that listing instead. */
   readonly listingId: string | null;
   readonly createdAt: string;
   updatedAt: string;

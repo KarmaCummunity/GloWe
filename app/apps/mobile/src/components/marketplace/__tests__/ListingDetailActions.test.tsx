@@ -61,7 +61,7 @@ describe('ListingDetailActions', () => {
     expect(queryByTestId('listing-action-report')).toBeNull();
   });
 
-  it('hides share to feed from the owner once the listing has a feed mirror ({{ENG:listing-feed-mirror}})', () => {
+  it('hides share to feed from the owner once the listing has a feed mirror (D-206)', () => {
     const mirrored = { ...DETAIL, feedPostId: 'p_mirror' } as MarketplaceListingDetail;
     const { queryByTestId } = renderActions('u_owner', vi.fn(), mirrored);
 

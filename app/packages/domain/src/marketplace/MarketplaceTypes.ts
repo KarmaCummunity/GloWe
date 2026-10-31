@@ -82,7 +82,7 @@ export interface MarketplaceListingDetail {
   readonly maxRadiusKm: number | null;
   readonly media: readonly MarketplaceListingMedia[];
   readonly owner: MarketplaceListingOwner | null;
-  /** The listing's feed mirror post, when it has one ({{ENG:listing-feed-mirror}}); null until shared or mirrored. */
+  /** The listing's feed mirror post, when it has one (D-206); null until shared or mirrored. */
   readonly feedPostId: string | null;
 }
 

@@ -1,4 +1,4 @@
--- supabase/tests/0466_listing_feed_mirror.sql | 0466 (KC#1101 / KC#1109, {{ENG:listing-feed-mirror}}): a native
+-- supabase/tests/0466_listing_feed_mirror.sql | 0466 (KC#1101 / KC#1109, D-206): a native
 -- items or food listing keeps one mirror post in the main feed that follows its edits,
 -- photos, privacy, status and deletion; the manual share reuses that mirror; mirrors never
 -- spawn a second listing and never count toward the open-posts cap.
