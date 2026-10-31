@@ -26,6 +26,7 @@ const base = (id: string, createdAt: string, visibility: 'Public' | 'FollowersOn
   recipientUser: null,
   distanceKm: null,
   reopenCount: 0,
+  listingId: null,
   deleteAfter: null,
   createdAt,
   updatedAt: createdAt,

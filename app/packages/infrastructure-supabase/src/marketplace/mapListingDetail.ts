@@ -41,5 +41,6 @@ export function mapListingDetail(raw: unknown): MarketplaceListingDetail | null 
           cityId: ownerRaw.city_id != null ? String(ownerRaw.city_id) : null,
         }
       : null,
+    feedPostId: o.feed_post_id != null ? String(o.feed_post_id) : null,
   };
 }
