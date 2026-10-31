@@ -224,10 +224,6 @@
     "app/auth/verify.tsx": {
       "radiusLiteral": 1
     },
-    "app/chat/[id].tsx": {
-      "rawTextInput": 1,
-      "iconSizeLiteral": 2
-    },
     "app/chat/index.tsx": {
       "rawTextInput": 1
     },
