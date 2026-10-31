@@ -49,6 +49,8 @@ On pull requests, `ci.yml` runs the gate judges (`scripts/ci-changes.mjs`, `scri
 1. **Judge-first PR** — teach `ci-changes.mjs` / `ci-gate.mjs` (and `check-required-checks-drift.mjs` if needed) about the lane **without** adding the job to `ci.yml`, in a form the current judges and the current `ci.yml` still pass (e.g. an optional lane that is named in the plan only when needed, like `release`).
 2. **Lane PR** — after the first merges, add the job to `ci.yml`.
 
+**Second instance — the test-integrity judge (INFRA-CI-2, PR #1308).** #1308's static lane runs `.judge/scripts/check-test-integrity.mjs` from the base commit with no fallback, so it could not pass while `dev` lacked the script. The judge-first PR (`chore/ci-integrity-judges`) ships only the base-loaded files — `scripts/check-test-integrity.mjs`, its sole import `scripts/ci-github.mjs`, their tests, and `.github/owners.json` (read at the base commit) — without wiring them into `dev`'s workflows. `scripts/ci-gate.mjs` deliberately stays at `dev`'s version: `dev`'s `ci.yml` copies that one file alone to `$RUNNER_TEMP`, so #1308's multi-module gate (it imports `ci-changes`, `ci-github`, `ci-run-binding`, `ci-run-reuse`, `ci-workflow-diff`) would fail to load there; `dev`'s standalone gate already judges #1308's `pull_request` runs. Until #1308 merges, a review on it re-runs every lane (the base `ci-changes.mjs` does not plan review events from the diff) instead of reusing lane results — slower, still sound.
+
 ---
 
 ## 0001 — Foundation & Identity {#0001}
@@ -313,7 +315,7 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 
 | Secret (optional, recommended) | Purpose |
 | ------------------------------ | ------- |
-| `EDGE_SENTRY_DSN` | DSN of the Sentry project for Edge Functions (G41, `D-200`). Synced on each deploy to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` on `supabase-prod`, `dev` on `supabase-dev`) and `SENTRY_RELEASE` (`functions@<sha>`; full deploys only). Without it every function stays in log-only mode. |
+| `EDGE_SENTRY_DSN` | DSN of the Sentry project for Edge Functions (G41, `D-201`). Synced on each deploy to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` on `supabase-prod`, `dev` on `supabase-dev`) and `SENTRY_RELEASE` (`functions@<sha>`; full deploys only). Without it every function stays in log-only mode. |
 
 **Survey B CORS values (2026-05-29 catch-up):**
 
@@ -330,7 +332,7 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
 
-### Edge Function error reporting (G41, `D-200`)
+### Edge Function error reporting (G41, `D-201`)
 
 Every function is wrapped by `withObservability` (`supabase/functions/_shared/observability/`): a throw that escapes the handler and every 5xx response reach Sentry; handled fatal paths and the WhatsApp agent background job call `reportError`. Secrets are referenced by name only.
 

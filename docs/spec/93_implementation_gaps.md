@@ -35,7 +35,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G29 | Polls & votes (D40) | 11 |
 | G30 | Registrar data import & proper-management badge (S35) | 12 |
 | G31 | Org verification levels, tags & filters (D53) | 08 |
-| G32 | Per-type expiry replaces the single 300-day rule (D21) — evidence in [95](./95_reconciliation.md) | 07.1 |
+| G32 | 🟡 2026-10-30 — Items and requests no longer expire; owners get relevance reminders (D59, S3; migration `0450`). Remaining: ride offer +30 min instead of 3 h after departure; event/ticket at their date; the reminder's "bump" action (G11) — evidence in [95](./95_reconciliation.md) | 07.1 |
 | G33 | 🟡 2026-10-30 — DB done: `hidden_pending_review` status, auto-moderation hides, admin restore/remove/search handle it (migration `0452`). Remaining: app UI for the status and suspended-user browsing + support chat (client PR) (D33, D61) | 07.15 |
 | G34 | 🟡 2026-10-30 — Listing handoffs now award the §7.6 values per world from one config (`karma_handoff_points`, migration `0453`, D63). Remaining: one closing system (posts closure vs listing handoffs, with G1) and the item bonus on handoffs (D12, D17) | 07.5, 07.6 |
 | G35 | World list in code holds `app_design` (D18) and domain-type slugs (D45) | 04 |
@@ -44,7 +44,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G38 | 🟡 2026-10-30 — Shared DB test harness (`supabase/tests/_harness`, `scripts/run-db-tests.sh`) + rides lifecycle flow. Open: items, food, knowledge flows on the harness | architecture §5.1 |
 | G39 | Port contract tests: one suite per port, run against a fake and the Supabase adapter | architecture §5.1 |
 | G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
-| G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-200`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
+| G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-201`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
 | G42 | 🟡 2026-10-30 — Health registry (`ops`, migration `0463`) + hourly monitor on dev + prod + GitHub-issue alerts (→ email) with auto-close (D68, D69). Open: WhatsApp channel once live, synthetic web check, WhatsApp outbound checks | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
 | G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |

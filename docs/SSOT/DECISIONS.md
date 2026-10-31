@@ -948,7 +948,7 @@ Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-su
 **Sample rates:** Performance 100% in dev, 25% in prod. Revisit at >1k DAU.
 **Why not Datadog/Honeycomb:** vendor cost + integration overhead exceed value at this scale.
 
-**2026-10-31:** Edge Functions now also report to Sentry — `withTiming` is composed into `withObservability` (`D-200`, G41).
+**2026-10-31:** Edge Functions now also report to Sentry — `withTiming` is composed into `withObservability` (`D-201`, G41).
 
 ---
 
@@ -1572,7 +1572,15 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0490–0509`, `app/packages/domain/src/organizations/**`, `app/packages/application/src/organizations/**`, `app/packages/infrastructure-supabase/src/organizations/**`, `app/apps/mobile/app/org/**`, `app/apps/mobile/src/components/profile/**` (organization variants), `(tabs)/search.tsx`, `(admin)/org-approvals`.
 
-## D-200 — Edge Function errors reach Sentry through one dependency-free wrapper (2026-10-31)
+## D-200 — Client state: TanStack Query for server state, Zustand for client state (2026-10-30)
+
+**Decision.** Adopt [ADR-001](../architecture/adr/ADR-001-client-state.md): server data lives only in the TanStack Query cache (query functions call use cases / repositories); Zustand stores hold optimistic, realtime-lifecycle and client-only cross-screen state, read through selectors; screen-local state stays in `useState`; persisted stores use `kc-*` AsyncStorage keys and must be registered in `clearAllPersistedStores()` when user-specific; the offline query cache persists only `PERSISTABLE_ROOTS`; secrets only in `expo-secure-store`. Redux Toolkit and Context-only were rejected; MMKV deferred until cold-start measurements justify a native module.
+
+**Why.** KC#1015. Agents had no rule for query vs store vs persisted state, and TD-103 showed persisted state leaking across users on sign-out.
+
+**Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
+
+## D-201 — Edge Function errors reach Sentry through one dependency-free wrapper (2026-10-31)
 
 **Decision.** Every Edge Function entry (`supabase/functions/*/index.ts`) is wrapped by `withObservability(fnName, handler)` from `supabase/functions/_shared/observability/`, the single server-side error sink (G41). The module ships its own minimal Sentry envelope client (`fetch` POST to `/api/<project>/envelope/`, protocol v7) instead of importing `@sentry/deno`. Reported: (1) a throw that escapes the handler — Sentry exception, `handled=false`, the caller gets a generic JSON `500 { ok: false, error: 'internal' }`; (2) any 5xx response — Sentry message tagged with function, status and the body's `error` code, forwarded only when it is identifier-shaped so free-text Postgres or provider messages never become tags; (3) handled fatal paths and background jobs (the WhatsApp agent runs under `EdgeRuntime.waitUntil`, outside the request) through `reportError(err, { fn, req?, tags?, extra? })`, deduplicated per request against (2). Every capture also writes one structured `edge_error` log line, so Supabase function logs keep the failure when no DSN is set. Configuration is read from secrets by name only — `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` / `dev`), `SENTRY_RELEASE` (`functions@<sha>`) — and synced per Supabase project by the functions deploy workflows from the GitHub Environment secret `EDGE_SENTRY_DSN`. Requests contribute method and path only (no query string, headers or body).
 
@@ -1584,7 +1592,8 @@ Owner rules that go with it:
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.27 | 2026-10-31 | Added `D-200` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
+| 4.28 | 2026-10-31 | Added `D-201` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
+| 4.27 | 2026-10-30 | Added `D-200` (client state: TanStack Query for server state, Zustand for client state; ADR-001). |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
 | 4.25 | 2026-10-30 | Added `D-197` (team management: role-derived permissions, org-run teams, position-gated atomic role change aligned with FR-ADMIN-027; FR-ADMIN-030). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |
