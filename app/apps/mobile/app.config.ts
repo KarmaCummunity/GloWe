@@ -8,11 +8,14 @@ function readAppVersion(): string {
   return readFileSync(versionPath, 'utf8').trim();
 }
 
+// The explicit EXPO_PUBLIC_GIT_COMMIT_SHA wins over GITHUB_SHA: the deploy
+// pipeline runs on `workflow_run`, where GITHUB_SHA is the default branch tip,
+// not the deployed commit.
 function resolveGitCommitSha(): string {
   const sha =
     process.env.EAS_BUILD_GIT_COMMIT_HASH ??
-    process.env.GITHUB_SHA ??
     process.env.EXPO_PUBLIC_GIT_COMMIT_SHA ??
+    process.env.GITHUB_SHA ??
     '';
   return sha.trim().slice(0, 7);
 }

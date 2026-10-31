@@ -26,3 +26,7 @@ test('app-link manifests are served as JSON', () => {
   assert.match(body, /\/\.well-known\/apple-app-site-association\n {2}Content-Type: application\/json/);
   assert.match(body, /\/\.well-known\/assetlinks\.json\n {2}Content-Type: application\/json/);
 });
+
+test('the build identity file is never cached', () => {
+  assert.match(renderHeadersFile(), /\/version\.json\n {2}Cache-Control: no-store/);
+});
