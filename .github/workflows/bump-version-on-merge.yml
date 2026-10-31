@@ -34,10 +34,7 @@ on:
 # triggered by this workflow's own ID commit is skipped by the job `if` below,
 # so it takes a group of its own and never displaces a merge's pending run.
 concurrency:
-  group: >-
-    ${{ startsWith(github.event.head_commit.message, 'chore(release): assign spec ids')
-      && format('bump-version-on-merge-own-{0}', github.run_id)
-      || 'bump-version-on-merge' }}
+  group: "${{ startsWith(github.event.head_commit.message, 'chore(release): assign spec ids') && format('bump-version-on-merge-own-{0}', github.run_id) || 'bump-version-on-merge' }}"
   cancel-in-progress: false
 
 permissions:
