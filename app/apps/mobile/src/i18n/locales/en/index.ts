@@ -7,6 +7,7 @@
 // Default export: full English resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
+import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
@@ -119,6 +120,7 @@ const en = {
   // Direct support for KC (FR-DONATE-011) — see donations.supportKc.ts
   supportKc,
   timeVolunteer,
+  medicalBodies,
   givingHandoff,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
