@@ -6,11 +6,13 @@
 // a path that no lane claims and that is not provably inert turns every heavy
 // lane on instead of slipping through untested.
 //
-// Only PRs, PR reviews and merge-queue groups are planned from their diff. A
-// push to dev/main and a manual dispatch run every lane, so a green push run certifies
-// the whole tree at that SHA: the nightly mobile builds and the deploys trust
-// it, and a docs-only push after a red (or never-run) push would otherwise
-// come out green without the code having passed.
+// Only PRs and PR reviews are planned from their diff (D-195 addendum: PR =
+// fast feedback, merge queue = full gate). A merge-queue group, a push to
+// dev/main and a manual dispatch run every lane: nothing lands on dev without
+// the full gate, and a green push run certifies the whole tree at that SHA
+// (the nightly mobile builds and the deploys trust it; a docs-only push after
+// a red or never-run push would otherwise come out green). A PR into dev also
+// defers HEAVY_LANES to its merge-queue run.
 //
 // A review event (`pull_request_review`, so the gate re-judges owner
 // overrides) plans the same lanes a `pull_request` run would, but runs only
@@ -23,10 +25,12 @@
 // optional lane (whether it runs in this workflow run), sonar, and plan — a
 // JSON object mapping every lane job id to whether the change needs it.
 // scripts/ci-gate.mjs requires the plan to name every lane explicitly; an
-// optional lane is named only when it is needed.
+// optional lane is named only when it is needed or, for a heavy lane, wired.
+// Also reads .github/workflows/ci.yml (the running copy) to see which heavy
+// lanes it wires.
 
 import { execFileSync } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // CI plumbing and the Node pin can break any lane, so they trigger all of them.
@@ -62,15 +66,37 @@ const LANES = Object.keys(LANE_RULES);
 /** Every lane job id in ci.yml; the gate and the drift guard key on this list. */
 export const LANE_JOBS = ['hygiene', 'static', ...LANES];
 
+/** Lanes only PR events need (the PR title and body); every other event plans them false. */
+export const PR_ONLY_LANES = ['hygiene'];
+
 /**
- * Lanes that appear in the plan only when needed: `release`, the dev → main
- * lane (source branch, strict migration scan, VERSION bump, dev E2E), needed
- * for every PR or merge group whose base is main, whatever it touches. Never
- * planned as `false`, so a ci.yml without the job (and the gate copy that
- * predates it) keeps passing; scripts/ci-gate.mjs accepts the job as skipped
- * when the plan omits it. Keep in sync with OPTIONAL_LANES there.
+ * Heavy lanes: the frontend builds a PR into dev defers to its merge-queue
+ * run. `bundles` (production web export + bundle budget + headless smoke,
+ * iOS + Android Metro bundles) builds what the frontend lane checks, so it is
+ * needed exactly when `frontend` is, except on a PR (or review) into dev: the
+ * dev merge queue runs every lane before the PR lands. A PR into main has no
+ * merge queue after it, so it runs them. scripts/ci-gate.mjs accepts a heavy
+ * lane planned `false` only on PR events into dev.
  */
-export const OPTIONAL_LANES = ['release'];
+export const HEAVY_LANES = ['bundles'];
+
+/**
+ * Lanes the plan may leave out. `release`, the dev → main lane (source
+ * branch, strict migration scan, VERSION bump, dev E2E), is named only when
+ * needed: for every PR or merge group whose base is main, whatever it
+ * touches. Never planned as `false`, so a ci.yml without the job (and the
+ * gate copy that predates it) keeps passing. A heavy lane is named, as true or
+ * false, only once the running ci.yml wires its job (`wiredLanes`); until
+ * then the frontend lane runs those builds itself. scripts/ci-gate.mjs
+ * accepts an optional lane as skipped when the plan omits it. Keep in sync
+ * with OPTIONAL_LANES there.
+ */
+export const OPTIONAL_LANES = ['release', ...HEAVY_LANES];
+
+/** The heavy lanes `ciYml` (the text of ci.yml) defines as top-level jobs. */
+export function wiredLanes(ciYml) {
+  return new Set(HEAVY_LANES.filter((lane) => new RegExp(`^ {2}${lane}:[ \\t]*$`, 'm').test(ciYml)));
+}
 
 /** Map changed paths to the heavy lanes they need. */
 export function classify(files) {
@@ -85,11 +111,11 @@ export function classify(files) {
   return lanes;
 }
 
-/** Events planned from their diff; every other event runs every lane. */
-export const DIFF_EVENTS = new Set(['pull_request', 'pull_request_review', 'merge_group']);
-
-/** Events that belong to one PR (they get the hygiene lane and Sonar). */
+/** Events that belong to one PR: planned from their diff, they get the hygiene lane and Sonar. */
 const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
+
+/** Events planned from their diff; every other event (merge group, push, dispatch) runs every lane. */
+export const DIFF_EVENTS = PR_EVENTS;
 
 /**
  * Lanes a review event runs itself: the static lane holds the test-integrity
@@ -99,11 +125,12 @@ export const REVIEW_LANES = ['static'];
 
 /**
  * Build the CI plan. `files` is null when the diff could not be computed;
- * that (like a push or a manual dispatch) runs every lane. `plan` is what the
- * change needs; `run` is what this workflow run executes (they differ only on
- * review events, which run REVIEW_LANES and reuse the rest).
+ * that (like a merge group, a push or a manual dispatch) runs every lane.
+ * `wired` is the set of heavy lanes ci.yml defines (`wiredLanes`). `plan` is
+ * what the change needs; `run` is what this workflow run executes (they
+ * differ only on review events, which run REVIEW_LANES and reuse the rest).
  */
-export function plan({ event, draft, actor, ref, baseRef, files }) {
+export function plan({ event, draft, actor, ref, baseRef, files, wired = new Set() }) {
   const isPr = PR_EVENTS.has(event);
   if (isPr && draft) {
     const none = Object.fromEntries(LANE_JOBS.map((j) => [j, false]));
@@ -112,13 +139,16 @@ export function plan({ event, draft, actor, ref, baseRef, files }) {
   // A merge group for main is planned too; the release lane fails it (no
   // head branch to check), so main cannot use a merge queue to skip release
   // checks.
-  const release = DIFF_EVENTS.has(event) && baseRef?.replace(/^refs\/heads\//, '') === 'main';
+  const base = baseRef?.replace(/^refs\/heads\//, '');
+  const release = (isPr || event === 'merge_group') && base === 'main';
   const allLanes = files === null || !DIFF_EVENTS.has(event);
   const lanes = allLanes ? Object.fromEntries(LANES.map((l) => [l, true])) : classify(files);
+  const deferHeavy = isPr && base === 'dev';
+  const heavy = Object.fromEntries(HEAVY_LANES.filter((l) => wired.has(l)).map((l) => [l, lanes.frontend && !deferHeavy]));
   // SonarCloud's free plan analyses PRs and `main` only, and Dependabot-triggered
   // runs get no secrets, so the scan cannot run for them.
   const sonarTarget = (isPr && actor !== 'dependabot[bot]') || (!isPr && event !== 'merge_group' && ref === 'refs/heads/main');
-  const needed = { hygiene: isPr, static: true, ...lanes, ...(release ? { release: true } : {}) };
+  const needed = { hygiene: isPr, static: true, ...lanes, ...heavy, ...(release ? { release: true } : {}) };
   if (event === 'pull_request_review') {
     const jobs = [...LANE_JOBS, ...OPTIONAL_LANES];
     const run = Object.fromEntries(jobs.map((j) => [j, needed[j] === true && REVIEW_LANES.includes(j)]));
@@ -160,6 +190,7 @@ function main() {
     ref: env.REF,
     baseRef: env.BASE_REF,
     files,
+    wired: wiredLanes(readFileSync('.github/workflows/ci.yml', 'utf8')),
   });
   const lines = [
     `draft=${result.draft}`,

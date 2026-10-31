@@ -1,7 +1,7 @@
 // Unit tests for scripts/ci-gate.mjs. Run: node --test scripts/ci-gate.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateGate, mergeReused } from './ci-gate.mjs';
+import { deferralErrors, evaluateGate, mergeReused } from './ci-gate.mjs';
 
 const ok = { result: 'success' };
 const skipped = { result: 'skipped' };
@@ -113,4 +113,69 @@ test('a review on a release PR needs the reused release lane to have passed', ()
 test('mergeReused leaves an optional lane alone when this ci.yml has no such job', () => {
   const { release: _release, ...own } = REVIEW_OWN;
   assert.equal('release' in mergeReused(own, { release: 'success' }), false);
+});
+
+// Heavy lanes (D-195 addendum: PR = fast feedback, merge queue = full gate).
+// Only a PR (or review) into dev may plan them as not needed; merge groups,
+// pushes and dispatches must run every lane.
+const FULL = { hygiene: false, static: true, frontend: true, backend: true, edge: true, bundles: true };
+const FULL_NEEDS = { changes: ok, hygiene: skipped, static: ok, frontend: ok, backend: ok, edge: ok, bundles: ok };
+const DEV_PR = { ...PR, baseRef: 'dev' };
+
+test('a PR into dev may skip a heavy lane the plan marks not needed', () => {
+  const plan = { ...PLAN, bundles: false };
+  assert.deepEqual(evaluateGate({ ...DEV_PR, needs: { ...NEEDS, bundles: skipped }, plan }), []);
+  assert.deepEqual(evaluateGate({ ...DEV_PR, event: 'pull_request_review', needs: { ...NEEDS, bundles: skipped }, plan }), []);
+});
+
+test('a PR into main fails when a heavy lane is deferred for a frontend change', () => {
+  const plan = { ...PLAN, bundles: false, release: true };
+  const needs = { ...NEEDS, bundles: skipped, release: ok };
+  assert.deepEqual(evaluateGate({ ...PR, baseRef: 'main', needs, plan }), [
+    'job "bundles" is planned as not needed on a PR into main; only PRs into dev may leave it to the merge queue',
+  ]);
+  const docsOnly = { ...plan, frontend: false };
+  assert.deepEqual(evaluateGate({ ...PR, baseRef: 'main', needs: { ...needs, frontend: skipped }, plan: docsOnly }), []);
+});
+
+test('a merge group or push fails when a heavy lane was skipped', () => {
+  for (const event of ['merge_group', 'push']) {
+    const run = { draft: false, event, ref: 'refs/heads/dev', baseRef: 'refs/heads/dev' };
+    assert.deepEqual(evaluateGate({ ...run, needs: FULL_NEEDS, plan: FULL }), [], event);
+    assert.deepEqual(evaluateGate({ ...run, needs: { ...FULL_NEEDS, bundles: skipped }, plan: FULL }), [
+      'job "bundles" is needed for this change but was skipped',
+    ]);
+    assert.deepEqual(evaluateGate({ ...run, needs: { ...FULL_NEEDS, bundles: skipped }, plan: { ...FULL, bundles: false } }), [
+      `job "bundles" must run on every ${event} run, but the plan marks it not needed`,
+    ]);
+  }
+});
+
+test('a merge group, push or dispatch fails when the plan defers any lane but hygiene', () => {
+  for (const event of ['merge_group', 'push', 'workflow_dispatch']) {
+    const run = { draft: false, event, ref: 'refs/heads/dev', baseRef: 'refs/heads/dev' };
+    const plan = { ...FULL, backend: false };
+    assert.deepEqual(evaluateGate({ ...run, needs: { ...FULL_NEEDS, backend: skipped }, plan }), [
+      `job "backend" must run on every ${event} run, but the plan marks it not needed`,
+    ]);
+  }
+});
+
+test('a merge group fails when a wired heavy lane is left out of the plan', () => {
+  const { bundles: _bundles, ...plan } = FULL;
+  const errors = deferralErrors({ needs: FULL_NEEDS, plan, event: 'merge_group', baseRef: 'refs/heads/dev' });
+  assert.deepEqual(errors, ['job "bundles" must run on every merge_group run, but the plan leaves it out']);
+});
+
+test('before ci.yml wires a heavy lane, a merge group passes on the other lanes', () => {
+  const { bundles: _plan, ...plan } = FULL;
+  const { bundles: _needs, ...needs } = FULL_NEEDS;
+  assert.deepEqual(evaluateGate({ draft: false, event: 'merge_group', ref: 'refs/heads/gh-readonly-queue/dev/pr-1', baseRef: 'refs/heads/dev', needs, plan }), []);
+});
+
+test('a review into dev reuses a skipped heavy lane the plan defers', () => {
+  const own = { ...REVIEW_OWN, bundles: skipped };
+  const reused = { hygiene: 'success', release: 'skipped', frontend: 'success', backend: 'skipped', edge: 'skipped', bundles: 'skipped' };
+  const plan = { ...REVIEW_PLAN, bundles: false };
+  assert.deepEqual(evaluateGate({ ...REVIEW, baseRef: 'dev', needs: mergeReused(own, reused), plan }), []);
 });
