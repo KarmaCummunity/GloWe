@@ -41,9 +41,7 @@ jobs:
           if [ "$SUPABASE_PROJECT_REF" != "$KC_DEV_REF" ]; then
             echo "::error::supabase-dev SUPABASE_PROJECT_REF is not kc-dev; refusing."; exit 1
           fi
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
-        with:
-          version: 2.99.0
+      - uses: ./.github/actions/setup-supabase-cli
       - name: Install psql
         run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
       - name: Link (resolves the pooler URL)

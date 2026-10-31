@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { LANE_JOBS, OPTIONAL_LANES, changedFiles, classify, plan } from './ci-changes.mjs';
+import { LANE_JOBS, OPTIONAL_LANES, REVIEW_LANES, changedFiles, classify, plan } from './ci-changes.mjs';
 
 const PR = { event: 'pull_request', draft: false, actor: 'agent', ref: 'refs/pull/1/merge' };
 const ALL = { hygiene: true, static: true, frontend: true, backend: true, edge: true };
@@ -120,6 +120,34 @@ test('a merge group for main plans the release lane; one for dev does not', () =
   const group = { event: 'merge_group', draft: false, actor: 'x', ref: 'refs/heads/gh-readonly-queue/main/pr-1', files: [] };
   assert.equal(plan({ ...group, baseRef: 'refs/heads/main' }).plan.release, true);
   assert.equal('release' in plan({ ...group, baseRef: 'refs/heads/dev' }).plan, false);
+});
+
+test('a review event plans like its PR but runs only the review lanes', () => {
+  const files = ['app/apps/mobile/src/lib/x.ts'];
+  const review = plan({ ...PR, event: 'pull_request_review', files });
+  assert.deepEqual(review.plan, plan({ ...PR, files }).plan);
+  assert.deepEqual(REVIEW_LANES, ['static']);
+  assert.deepEqual(review.run, { hygiene: false, static: true, release: false, frontend: false, backend: false, edge: false });
+  assert.equal(review.sonar, false);
+});
+
+test('a review on a PR into main still plans the release lane (reused, not re-run)', () => {
+  const review = plan({ ...PR, event: 'pull_request_review', baseRef: 'main', files: [] });
+  assert.equal(review.plan.release, true);
+  assert.equal(review.run.release, false);
+});
+
+test('a review on a draft PR plans and runs nothing', () => {
+  const review = plan({ ...PR, event: 'pull_request_review', draft: true, files: ['app/a.ts'] });
+  assert.equal(review.draft, true);
+  assert.ok(Object.values(review.run).every((runs) => runs === false));
+});
+
+test('every non-review event runs exactly what it plans', () => {
+  for (const event of ['pull_request', 'merge_group', 'push', 'workflow_dispatch']) {
+    const r = plan({ ...PR, event, files: ['app/a.ts'] });
+    assert.deepEqual(r.run, r.plan, event);
+  }
 });
 
 test('manual dispatch runs every heavy lane', () => {

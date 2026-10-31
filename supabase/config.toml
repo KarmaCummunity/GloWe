@@ -1,8 +1,6 @@
 # Karma Community — Supabase project config
 # See https://supabase.com/docs/reference/cli/config for the full reference.
 # This file is committed; secrets (anon/service-role keys, project URL) live in .env / dashboard.
-# Touch (2026-06-13): refresh the supabase-dev deployment for the dev→main release
-# gate (see .github/workflows/db-deploy.yml note). No behavioral change.
 
 project_id = "karma-community"
 
