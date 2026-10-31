@@ -5,7 +5,7 @@ name: CI — SonarCloud
 # re-running the test suite. ci.yml enables it for PRs into `main` and pushes
 # to `main` only: the free plan analyses only `main` and pull requests, so
 # merge groups and dev pushes cannot be scanned, and PRs into dev get fast
-# feedback only (D-195 addendum, {{TD:sonar-no-dev-pr-gate}}). Dependabot runs get no secrets.
+# feedback only (D-195 addendum, TD-236). Dependabot runs get no secrets.
 # Setup, waivers: docs/dev/SONAR.md.
 
 on:
