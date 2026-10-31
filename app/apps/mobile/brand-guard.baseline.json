@@ -500,12 +500,6 @@
       "spacingLiteral": 13,
       "shadowLiteral": 4
     },
-    "src/components/PostCardGrid.tsx": {
-      "colorLiteral": 1
-    },
-    "src/components/PostFeedList.tsx": {
-      "radiusLiteral": 1
-    },
     "src/components/PostFilterSheet/Chip.tsx": {
       "fontWeightLiteral": 1
     },
@@ -1067,9 +1061,6 @@
     "src/components/marketplace/ListingSchemaFields.tsx": {
       "radiusLiteral": 2,
       "rawTextInput": 3
-    },
-    "src/components/marketplace/MarketplaceCreateForm.tsx": {
-      "rawTextInput": 2
     },
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1

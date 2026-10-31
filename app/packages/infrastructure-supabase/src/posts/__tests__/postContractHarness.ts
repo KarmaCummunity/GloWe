@@ -1,6 +1,6 @@
-// Local-stack harness for the IPostRepository contract (G39). Imported only by
-// SupabasePostRepository.contract.integration.test.ts (kept out of the main
-// bundle by the __tests__ location).
+// Local-stack harness for the posts-area port contracts (G39): IPostRepository and
+// ISavedPostsRepository. Imported only by the *.contract.integration.test.ts files
+// beside it (kept out of the main bundle by the __tests__ location).
 //
 // Credentials come from the environment only — SUPABASE_URL, SUPABASE_ANON_KEY,
 // SUPABASE_SERVICE_ROLE_KEY — never from literals in the repo. ci-backend exports
@@ -11,9 +11,12 @@
 // Without them vitest.config.ts does not collect the contract suites at all.
 
 import type { Address } from '@kc/domain';
-import type { PostRepositoryActor } from '@kc/application';
+import type { PostRepositoryActor, SavedPostsActor } from '@kc/application';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../../database.types';
 import { createIntegrationClient } from '../../__tests__/integrationSupabaseClient';
 import { SupabasePostRepository } from '../SupabasePostRepository';
+import { SupabaseSavedPostsRepository } from '../SupabaseSavedPostsRepository';
 
 const PASSWORD = 'contract-p4ssword!!';
 
@@ -25,7 +28,7 @@ function requireEnv(name: string): string {
   return value;
 }
 
-/** Seeds users on the stack and hands out one signed-in SupabasePostRepository per actor. */
+/** Seeds users on the stack and hands out repositories bound to one signed-in client per actor. */
 export class PostContractHarness {
   private readonly url = requireEnv('SUPABASE_URL');
   private readonly anonKey = requireEnv('SUPABASE_ANON_KEY');
@@ -39,8 +42,24 @@ export class PostContractHarness {
     return { city: data.city_id, cityName: data.name_he, street: 'Contract St', streetNumber: '1' };
   }
 
-  /** New confirmed auth user, signed in through the anon key so RLS applies exactly as in the app. */
+  /** IPostRepository actor: a new user with a post repository acting as that user. */
   async newActor(): Promise<PostRepositoryActor> {
+    const { userId, client } = await this.signInNewUser();
+    return { userId, repo: new SupabasePostRepository(client) };
+  }
+
+  /** ISavedPostsRepository actor: the same signed-in client behind both repositories. */
+  async newSavedPostsActor(): Promise<SavedPostsActor> {
+    const { userId, client } = await this.signInNewUser();
+    return {
+      userId,
+      posts: new SupabasePostRepository(client),
+      saved: new SupabaseSavedPostsRepository(client),
+    };
+  }
+
+  /** New confirmed auth user, signed in through the anon key so RLS applies exactly as in the app. */
+  private async signInNewUser(): Promise<{ userId: string; client: SupabaseClient<Database> }> {
     const email = `contract-${crypto.randomUUID().slice(0, 8)}@kc.test`;
     const { data, error } = await this.admin.auth.admin.createUser({
       email,
@@ -65,7 +84,7 @@ export class PostContractHarness {
     const client = createIntegrationClient(this.url, this.anonKey);
     const { error: signInError } = await client.auth.signInWithPassword({ email, password: PASSWORD });
     if (signInError) throw new Error(`contract harness: sign-in failed (${signInError.message})`);
-    return { userId, repo: new SupabasePostRepository(client) };
+    return { userId, client };
   }
 
   async teardown(): Promise<void> {
