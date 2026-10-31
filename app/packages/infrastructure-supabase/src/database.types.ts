@@ -10560,6 +10560,7 @@ export type Database = {
         Args: { p_error: string; p_id: string }
         Returns: undefined
       }
+      notifications_food_expiry_check: { Args: never; Returns: number }
       notifications_post_relevance_check: { Args: never; Returns: number }
       organizer_message_shift_volunteers: {
         Args: { p_message: string; p_shift_id: string }
