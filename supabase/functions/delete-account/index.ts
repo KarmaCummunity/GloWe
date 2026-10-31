@@ -19,7 +19,7 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { CORS_HEADERS, jsonResponse } from './cors.ts';
 import { getAuthedUser } from './auth.ts';
-import { type Handler, withTiming } from '../_shared/withTiming.ts';
+import { type Handler, reportError, withObservability } from '../_shared/observability/mod.ts';
 import { chunkPaths, collectObjectPaths, type StorageListEntry } from './storageCleanup.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -32,7 +32,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
  */
 const USER_FOLDER_BUCKETS = ['chat-media', 'listing-images'] as const;
 
-/** Removes every object under `<userId>/` in `bucket`. Errors are logged, not thrown. */
+/** Removes every object under `<userId>/` in `bucket`. Errors are reported, not thrown. */
 async function purgeUserFolder(admin: SupabaseClient, bucket: string, userId: string): Promise<void> {
   const listPage = async (prefix: string, offset: number, limit: number): Promise<StorageListEntry[]> => {
     const { data, error } = await admin.storage.from(bucket).list(prefix, { limit, offset });
@@ -42,7 +42,7 @@ async function purgeUserFolder(admin: SupabaseClient, bucket: string, userId: st
   const paths = await collectObjectPaths(listPage, userId);
   for (const chunk of chunkPaths(paths)) {
     const { error } = await admin.storage.from(bucket).remove(chunk);
-    if (error) console.error(`[delete-account] ${bucket} cleanup failed`, error);
+    if (error) await reportError(error, { fn: 'delete-account', tags: { stage: 'storage_cleanup', bucket } });
   }
 }
 
@@ -81,28 +81,32 @@ const handler: Handler = async (req) => {
   try {
     if (rpc.media_paths.length > 0) {
       const { error: rmErr } = await adminClient.storage.from('post-images').remove(rpc.media_paths);
-      if (rmErr) console.error('[delete-account] post-images cleanup failed', rmErr);
+      if (rmErr) {
+        await reportError(rmErr, { fn: 'delete-account', req, tags: { stage: 'storage_cleanup', bucket: 'post-images' } });
+      }
     }
     if (rpc.avatar_path) {
       const { error: avErr } = await adminClient.storage.from('avatars').remove([rpc.avatar_path]);
-      if (avErr) console.error('[delete-account] avatar cleanup failed', avErr);
+      if (avErr) {
+        await reportError(avErr, { fn: 'delete-account', req, tags: { stage: 'storage_cleanup', bucket: 'avatars' } });
+      }
     }
     for (const bucket of USER_FOLDER_BUCKETS) {
       await purgeUserFolder(adminClient, bucket, user.id);
     }
   } catch (e) {
-    console.error('[delete-account] storage cleanup threw', e);
+    await reportError(e, { fn: 'delete-account', req, tags: { stage: 'storage_cleanup' } });
   }
 
   // Step 4: free the auth identity. If this fails the user is in the
   // "DB clean, auth alive" state — client must retry from the modal.
   const { error: authErr } = await adminClient.auth.admin.deleteUser(user.id);
   if (authErr) {
-    console.error('[delete-account] auth.admin.deleteUser failed', authErr);
+    await reportError(authErr, { fn: 'delete-account', req, tags: { stage: 'auth_delete' } });
     return jsonResponse({ ok: false, error: 'auth_delete_failed', counts: rpc.counts }, 500);
   }
 
   return jsonResponse({ ok: true, counts: rpc.counts }, 200);
 };
 
-serve(withTiming('delete-account', handler));
+serve(withObservability('delete-account', handler));

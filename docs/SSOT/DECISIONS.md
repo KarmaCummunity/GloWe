@@ -948,6 +948,8 @@ Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-su
 **Sample rates:** Performance 100% in dev, 25% in prod. Revisit at >1k DAU.
 **Why not Datadog/Honeycomb:** vendor cost + integration overhead exceed value at this scale.
 
+**2026-10-31:** Edge Functions now also report to Sentry — `withTiming` is composed into `withObservability` (`D-202`, G41).
+
 ---
 
 ## D-49 — Server-driven surveys via Supabase Studio publish (mirrors legal-documents pattern)
@@ -1604,11 +1606,40 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/**` (realtime policies + triggers), `app/packages/infrastructure-supabase/src/{realtime,chat,rides,users}/**`, realtime-consuming hooks in `app/apps/mobile/src/hooks/**`.
 
+## D-202 — Edge Function errors reach Sentry through one dependency-free wrapper (2026-10-31)
+
+**Decision.** Every Edge Function entry (`supabase/functions/*/index.ts`) is wrapped by `withObservability(fnName, handler)` from `supabase/functions/_shared/observability/`, the single server-side error sink (G41). The module ships its own minimal Sentry envelope client (`fetch` POST to `/api/<project>/envelope/`, protocol v7) instead of importing `@sentry/deno`. Reported: (1) a throw that escapes the handler — Sentry exception, `handled=false`, the caller gets a generic JSON `500 { ok: false, error: 'internal' }`; (2) any 5xx response — Sentry message tagged with the function (`edge_function`), status and the body's `error` code, forwarded only when it is identifier-shaped so free-text Postgres or provider messages never become tags; (3) handled fatal paths and background jobs (the WhatsApp agent runs under `EdgeRuntime.waitUntil`, outside the request) through `reportError(err, { fn, req?, tags?, extra? })`, deduplicated per request against (2). Every capture also writes one structured `edge_error` log line, so Supabase function logs keep the failure when no DSN is set. Configuration is read from secrets by name only — `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` / `dev`), `SENTRY_RELEASE` (`functions@<sha>`) — and synced per Supabase project by the Edge Functions stage of the Deploy pipeline (`deploy-functions.yml`, D-195) from the GitHub Environment secret `EDGE_SENTRY_DSN`. Requests contribute method and path only (no query string, headers or body).
+
+**Why.** Before this, a server error was visible only to someone reading the Supabase function logs by hand; nothing alerted. A hand-rolled envelope client (≈300 lines with tests) keeps cold start flat — the SDK would be the largest module in most functions — and is unit-tested byte-for-byte with a fake transport, which `@sentry/deno` would not allow without network. Codes-only tags are the PII boundary the mobile client already respects (D-48). Extends D-48: Edge Functions now report to the same Sentry organisation as the app, in a dedicated project.
+
+**Affected.** `supabase/functions/_shared/observability/**` (+ tests), all 19 `supabase/functions/*/index.ts`, `.github/workflows/deploy-functions.yml`, `docs/SSOT/OPERATOR_RUNBOOK.md` § Edge Functions, `docs/architecture/target.md` §5.2, `docs/spec/93_implementation_gaps.md` G41.
+
+## D-203 — Registry IDs are assigned on merge, not in the PR (2026-10-31)
+
+**Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in a commit of its own that CI certifies, right before the version bump (which stays a VERSION-only commit so the dev deploy can inherit its parent's gate, TD-231). The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
+
+**Why.** Many agent branches append to the same registries in parallel, so a number picked at branch time collided again and again: `TD-200`, `TD-201`, `D-38`, `D-40` and `D-41` are each used twice, and open PRs were renumbered several times before merging. The app version had the same shape and already moved to merge time (TD-196).
+
+**Rejected.** Per-lane number ranges (exhausted, and still collide inside a lane); a reservation file (itself a merge-conflict hotspot); random or date-based IDs (hard to cite and to read).
+
+**Affected.** `scripts/spec-ids.mjs`, `.github/workflows/bump-version-on-merge.yml`, `.github/workflows/ci-static-guards.yml`, `app/package.json` (`lint:arch`), `CLAUDE.md` §4 / §9.
+
+## D-204 — Port contracts are framework-agnostic case lists, run against a behavioural fake and the Supabase adapter (2026-10-31)
+
+**Decision.** A port contract (G39) is a module in `@kc/application` (`src/contracts/<port>.contract.ts`) that exports `ContractCase[]`: named behaviours with plain assertions that throw `ContractViolation`. No test-framework import, so the contract is part of the package surface and any adapter package imports it. Two runners map each case to one `it(...)`: the fake leg in `@kc/application` against a behavioural in-memory repository (every `pnpm test`), the adapter leg in `@kc/infrastructure-supabase` (`*.contract.integration.test.ts`) against the real adapter with a client signed in as a seeded user, so RLS applies as in the app; it runs in `ci-backend` on the local stack, whose credentials the lane exports from `supabase status -o env`; `vitest.config.ts` collects the suite only when they are set, so no skip marker and no stack key ever appear in the repo. Each case starts from a fresh actor (user + repository bound to that identity) and covers owner-side behaviour only; viewer visibility, admin flows and feed ranking stay in per-adapter tests. The spy fakes use-case tests rely on (`FakePostRepository`: canned results + call capture) stay as they are; the behavioural fakes are new siblings (`InMemoryPostRepository`).
+
+**Why.** Use-case tests pass against fakes whose behaviour nobody checks against the database, and the listings → posts move (G1) will rewrite adapters under those fakes. One case list that both legs must pass makes a drifting fake fail where the adapter passes, in the lane that already starts a stack. Keeping vitest out of the contract keeps `@kc/application` free of test-runner coupling in its public surface and lets a future adapter (or a Deno Edge Function) reuse the same cases.
+
+**Affected.** `app/packages/application/src/contracts/**`, `app/packages/application/src/posts/__tests__/{InMemoryPostRepository,inMemoryPostStore,postRepository.contract.test}.ts`, `app/packages/infrastructure-supabase/src/posts/__tests__/{postContractHarness,SupabasePostRepository.contract.integration.test}.ts`, `.github/workflows/ci-backend.yml`, `docs/SSOT/TESTING.md` § Port contract tests, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G39, BACKLOG `OPS-G39`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.29 | 2026-10-31 | `D-195` bot-identity amendment: the `agent-merge` environment allows `main` only, because `pull_request_target` runs on the default branch (`TD-235`). |
+| 4.32 | 2026-10-31 | `D-195` bot-identity amendment: the `agent-merge` environment allows `main` only, because `pull_request_target` runs on the default branch (`TD-235`). |
+| 4.31 | 2026-10-31 | Added `D-204` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
+| 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
+| 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
 | 4.27 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, runtime deploy guard (caller, approval attempt, freshness), release lane in `CI gate` (expand/contract justifications), rollback (web + functions only without migrations; DB forward-fix), encrypted 14-day pre-migration backups. |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
