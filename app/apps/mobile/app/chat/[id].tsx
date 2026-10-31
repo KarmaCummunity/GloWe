@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MESSAGE_MAX_CHARS } from '@kc/domain';
 import { ChatError } from '@kc/application';
-import { useTheme, Text, TextInput } from '@kc/ui';
+import { useTheme, Text, TextInput, iconSize } from '@kc/ui';
 import { useChatStore, type OptimisticMessage } from '../../src/store/chatStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { container } from '../../src/lib/container';
@@ -239,14 +239,14 @@ export default function ChatScreen() {
             onPress={() => void handleAttachImage()}
             accessibilityLabel={t('chat.attachImage')}
           >
-            <Ionicons name="image-outline" size={22} color={colors.primary} />
+            <Ionicons name="image-outline" size={iconSize.xl} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]} onPress={() => { notifyMessageSent(); void send(); }} disabled={sendDisabled}
             accessibilityRole="button" accessibilityLabel={t('chat.send')} testID="chat-send">
-            <Ionicons name="send" size={20} color={colors.textInverse} />
+            <Ionicons name="send" size={iconSize.lg} color={colors.textInverse} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <TextInput
+            <TextInput // brand-guard-allow: chat composer is a non-form input (spec 17 §4.1)
               style={styles.input}
               value={input}
               onChangeText={(text) => {
