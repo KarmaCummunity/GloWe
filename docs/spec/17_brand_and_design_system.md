@@ -1,6 +1,6 @@
 # 17 — Brand and design system
 
-> Decisions **D65, D66, D67, D87, D88** (2026-10-30). This file is the brand book for agents and designers — visual (§1–§6) and verbal (§7). The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
+> Decisions **D65, D66, D67, D87, D93** (2026-10-30). This file is the brand book for agents and designers — visual (§1–§6) and verbal (§7). The values themselves live in code; this file says what they mean, who owns them, and how a change travels.
 
 ## 1. Brand identity (D65)
 
@@ -14,7 +14,7 @@
 
 **KC, the platform vs. KC, the organization (D67).** "KC" names the platform. KC is also an organization that operates *inside* the platform almost like any other organization (D37). Platform chrome (app name, splash, store listing, navigation) speaks as the platform; content published by the KC organization (posts, org page, donations to KC) is styled like any other organization's content, with no extra visual privilege.
 
-**Hidden meaning (D67, refined by D88).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an easter egg: it never appears in product surfaces — UI copy, store listings, marketing visuals or the logo — **except the About screen and its FAQ**, where it may appear subtly (PM 2026-10-30).
+**Hidden meaning (D67, refined by D93).** The initials also stand for "קיבוץ קפיטליסטי" ("capitalist kibbutz"). It is an easter egg: it never appears in product surfaces — UI copy, store listings, marketing visuals or the logo — **except the About screen and its FAQ**, where it may appear subtly (PM 2026-10-30).
 
 Rules:
 - Never introduce another product name in KC surfaces. GloWe (`app/apps/glowe-web`, `glowe-*` packages) is a separate product and is out of scope for this brand book.
@@ -130,13 +130,13 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` (rules in `brandGuardRules.ts`, pinned by `brandGuardRules.test.ts`) | a file gains a finding beyond its frozen baseline, or a new file has any. Rules: `colorLiteral`, `fontSizeLiteral`, `fontWeightLiteral`, `fontFamilyLiteral`, `radiusLiteral`, `spacingLiteral`, `physicalSide`; since D87 also `iconSizeLiteral` (numeric Ionicons `size`), `zIndexLiteral`, `shadowLiteral`, `rawTextInput` (use `TextField`) and `rawModal` (count frozen until #1284) |
 | Touched-file rule | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file changed since the PR base still has any finding (D67) |
 | Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
-| Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D88) |
+| Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D93) |
 
 **Touched-file rule (D67).** A PR that changes a file in `apps/mobile/{src,app}` must leave that file with **zero** findings — every rule, the whole file, not only the changed lines. Files nobody touches keep their frozen counts until someone works in them. The guard diffs against the merge-base with the PR base (`GITHUB_BASE_REF`, else `origin/dev`; override with `KC_BRAND_BASE_REF`), including uncommitted changes. In CI an unresolvable base fails the test (the frontend job checks out full history); a local clone without the ref skips the rule.
 
 The ratchet baseline (`apps/mobile/brand-guard.baseline.json`) only goes down. After removing literals, refresh it with `KC_BRAND_BASELINE=update pnpm --filter @kc/mobile test -- brandGuard`; a PR that *raises* a count must explain why in its body.
 
-## 7. Voice and tone (D88)
+## 7. Voice and tone (D93)
 
 Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpowers/specs/2026-05-26-karma-community-master-narrative.md` §7.4, §15, §16) and FR-RESP-006 AC19/AC20 ([legacy spec](../SSOT/spec/17_responsive_desktop.md)). Nothing here is new brand content; where the narrative and a later decision differ, the decision wins (noted inline).
 
@@ -146,7 +146,7 @@ Ported from the Founder-approved master narrative (`docs/SSOT/archive/superpower
 - **Register:** UX / dugri-friendly Israeli — short sentences, direct, no bureaucratic Hebrew, no padded softeners. Buttons, errors, toasts and form labels are UX-direct; settings rows, FAQ and the About narrative may use the fuller business register (AC19).
 - **Reading test:** "יהודי בן 60 מהפריפריה יבין בקריאה ראשונה."
 - **Honesty:** the early stage is a feature ("בונים יחד"), not hidden. Doctrine (§16.10): "לא משקרים. כותבים מה יש היום, מה השאיפות, ואיך הולכים משם לשם."
-- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is limited by D67 / D88 (§1): it may appear subtly on the About screen and in its FAQ only, never elsewhere, in any language. Everywhere else the public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
+- **Metaphor:** the narrative's "קיבוץ קפיטליסטי" is limited by D67 / D93 (§1): it may appear subtly on the About screen and in its FAQ only, never elsewhere, in any language. Everywhere else the public form is the slogan "קיבוץ דיגיטלי בעולם טכנולוגי."
 - **Brand name:** "קהילת קארמה" or "KC" in Hebrew (§1); first mention "קהילת קארמה (KC)", then KC. Never a Hebrew transliteration of "Karma Community".
 
 ### 7.2 Gender-neutral copy (AC20)
@@ -188,7 +188,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 
 ### 7.5 Enforcement (automated)
 
-`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (288, mostly singular imperatives on buttons) are tracked as TD-229.
+`apps/mobile/src/__tests__/copyVoiceGuard.test.ts` (rules in `__tests__/guardKit/copyVoiceRules.ts`, unit tests in `copyVoiceRules.test.ts`) reads every string in `src/i18n/locales/{he,en}/**` and runs inside `pnpm test`. Shortcut: `pnpm lint:hebrew-register` (from `app/`). It works like the brand guard (§6): per-file counts frozen in `apps/mobile/copy-voice.baseline.json` may only go down (refresh with `KC_COPY_BASELINE=update pnpm --filter @kc/mobile test -- copyVoiceGuard`), and the **touched-file rule** (D67) applies — a locale file a PR changes must have zero findings. The findings frozen at adoption (288, mostly singular imperatives on buttons) are tracked as TD-231.
 
 | Rule | Locale | Fails when |
 |---|---|---|
@@ -199,7 +199,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 | `ktivHaser` | he | a listed haser spelling (תכנה, שרות, תאור, בטול, …) |
 | `buttonLength` | he | a key named `cta` or ending in `Cta` / `Btn` / `Button` has more than 4 words |
 | `brandWording` | he, en | a variant of the key slogan; "קומיוניטי"; "Karma Community" with other casing |
-| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D88) |
+| `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D93) |
 
 Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` on the line the string ends, reviewed in the PR.
 
@@ -212,7 +212,7 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 3. After merge to `dev`, refresh Figma variables and the Claude Design project from `kc.tokens.json`.
 4. Exploratory design (new screens, components) may start in Figma or Claude Design; implementation must consume existing tokens or add new ones through step 1.
 
-## 9. Brand decisions log (D65, D66, D67, D87, D88)
+## 9. Brand decisions log (D65, D66, D67, D87, D93)
 
 | Question | Decision |
 |---|---|
@@ -221,12 +221,12 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 | Brand font | Rubik, app-wide via `@kc/ui` `Text` / `TextInput` (D66) |
 | Secondary colour | Logo navy `#203050` (light) / `#A5B8DC` (dark) (D66) |
 | Logo master | Current `assets/logo.png` (D66) |
-| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces except, subtly, the About screen and its FAQ (D67, refined by D88) |
+| KC platform vs. KC organization; hidden meaning | KC = the platform; the KC organization is styled like any other org; "קיבוץ קפיטליסטי" never appears in product surfaces except, subtly, the About screen and its FAQ (D67, refined by D93) |
 | Radius scale | xs 4 · sm 8 · md 12 · lg 16 · xl 24 · full (D67) |
 | Enforcement | Ratchet covers colour, type, radius, spacing and physical sides; every file a PR touches must be fully clean (D67) |
 | Admin surfaces | Same tokens and components, denser layout (D67) |
 | Icon, layer and shadow tokens | `iconSize` xs 14 · sm 16 · md 18 · lg 20 · xl 22 · 2xl 24; `zIndex` base 0 · raised 1 · overlay 2 · floating 20 · toast 9999; `shadow.glow` added beside `card` / `modal` — each matches the values screens already used most (D87) |
 | Components and icons in the guard | Ratchet adds icon size, z-index, shadow, raw `TextInput` and raw `Modal`; ESLint allows only Ionicons (D87) |
-| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; hidden meaning allowed only on About / FAQ; automated copy-voice guard with ratchet + touched-file rule (D88) |
+| Voice and tone | Master narrative §15 rules adopted as the verbal brand; gender-neutral via the infinitive; ≤ 4-word CTAs; key slogan locked; hidden meaning allowed only on About / FAQ; automated copy-voice guard with ratchet + touched-file rule (D93) |
 
 Open: logo teal `#95D1CF` is not a token yet — add it only when a surface needs it.

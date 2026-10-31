@@ -1,5 +1,5 @@
 {
-  "$comment": "Frozen copy-voice findings per locale file (spec 17 §7, D88). Counts may only go down.",
+  "$comment": "Frozen copy-voice findings per locale file (spec 17 §7, D93). Counts may only go down.",
   "files": {
     "src/i18n/locales/he/donations.rides.ts": {
       "genderedImperative": 16

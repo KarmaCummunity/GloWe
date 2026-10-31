@@ -379,7 +379,7 @@ Shared behaviour:
 
 **Acceptance Criteria.**
 - AC1. Component `OrgTransparencySection` renders, in this order: 46(a) badge (when enabled: *"תרומות לארגון מזכות בזיכוי ממס לפי סעיף 46א"* with validity year), yearly totals cards (income, expense, program share %), a small year selector when more than one snapshot is published, public documents list with download, and *"עודכן לאחרונה"* with `last_published_at`.
-- AC2. Hosted today on `/(tabs)/donations/money/nonprofit/[slug]` below the campaigns block; when `spec/20_organizations.md` ships the general organization profile, the same component moves to its "שקיפות" tab unchanged (component is presentational; data via `rpc_org_transparency`).
+- AC2. Hosted today on `/(tabs)/donations/money/nonprofit/[slug]` below the campaigns block; when `FR-ORG-003` ships the organization profile at `/org/[slug]`, the same component mounts in its "שקיפות" tab (`FR-ORG-020`) unchanged (component is presentational; data via `rpc_org_transparency`).
 - AC3. Empty state when nothing is published: *"הארגון עדיין לא פרסם נתוני שקיפות"*; the whole section is hidden when the org disabled every toggle and has no 46(a) badge.
 - AC4. Guest-accessible (anon RPC), responsive per `spec/14_responsive_desktop.md`, strings under `org.transparency.*`.
 - AC5. The KC platform org uses the same path: the About screen (`FR-DONATE-010` placements) links to KC's transparency section once at least one snapshot is published.
@@ -396,16 +396,16 @@ Shared behaviour:
 
 ---
 
-## Dependencies & contract with the future organization profile (`spec/20_organizations.md`)
+## Dependencies & contract with the organization profile (`spec/20_organizations.md`)
 
-The PM's definition (2026-10-30): an **organization profile is an extended user profile** — it has its own email identity, posts, followers and a public page like a user, plus an **Admin Portal** for running the organization in which **this spec is the finance sub-tree**. That domain is not specified here. What this spec assumes from it, so the two can ship independently:
+Specified in `spec/20_organizations.md` (FR-ORG-001..020, D87–D91). The PM's definition (2026-10-30): an **organization profile is an extended user profile** — it has its own email identity, posts, followers and a public page like a user, plus an **Admin Portal** for running the organization in which **this spec is the finance sub-tree**. That domain is not specified here. What this spec assumes from it, so the two can ship independently:
 
 1. `organizations.org_id` stays the tenant key; the profile domain must not introduce a second organization identity.
 2. Membership/roles keep flowing through `admin_role_grants` (+ `org_memberships`); finance never reads anything else for authorization.
 3. The public profile exposes a slot for `OrgTransparencySection` (FR-FIN-020) and reads `rpc_org_transparency(slug)` only.
 4. Org-level Admin Portal entry point: `/admin` with the org pre-selected for org-scoped roles (already how `OrgSwitcher` pins scoped admins). Finance adds nothing to that contract.
 
-Tracked in `BACKLOG.md` as `ORG-PROFILE-SPEC` (⏳ Planned, PM to brief).
+Tracked in `BACKLOG.md` as `ORG-P1..P3`. The transparency tab mounts via `FR-ORG-020`.
 
 ---
 

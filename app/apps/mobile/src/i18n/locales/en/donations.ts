@@ -247,6 +247,7 @@ export const marketplace = {
   notFound: 'Listing not found.',
   startChat: 'Message publisher',
   shareFeed: 'Share to feed',
+  actionFailed: 'That did not go through. Please try again.',
   chatOpener: 'Hi — I saw your listing on the marketplace.',
   createTitle: 'New {{world}} listing',
   fieldTitle: 'Title',

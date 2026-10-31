@@ -1,6 +1,6 @@
 // Reads the string values out of a locale bundle file (`src/i18n/locales/**`)
 // without executing it, so every value keeps its file, line and key name.
-// Used by the copy-voice guard (spec 17 §7, D88).
+// Used by the copy-voice guard (spec 17 §7, D93).
 
 export interface LocaleString {
   /** Nearest property name the value belongs to (`publishCta`), or null at top level. */

@@ -19,7 +19,7 @@ import {
   type Baseline,
 } from './guardKit/ratchet';
 
-// Copy-voice guard — spec 17 §7 "Voice and tone" (D88), FR-RESP-006 AC19/AC20.
+// Copy-voice guard — spec 17 §7 "Voice and tone" (D93), FR-RESP-006 AC19/AC20.
 //
 // Every string in the locale bundles (`src/i18n/locales/{he,en}/**`) is checked
 // against the voice rules in ./guardKit/copyVoiceRules.ts: no English product
@@ -70,7 +70,7 @@ describe('copy-voice guard', () => {
     it('rewrites copy-voice.baseline.json from the current locale bundles', () => {
       writeBaseline(
         BASELINE_PATH,
-        'Frozen copy-voice findings per locale file (spec 17 §7, D88). Counts may only go down.',
+        'Frozen copy-voice findings per locale file (spec 17 §7, D93). Counts may only go down.',
         current,
       );
       expect(readBaseline(BASELINE_PATH)).toEqual(current);

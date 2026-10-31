@@ -1,7 +1,7 @@
 // Shared plumbing for the per-file ratchet guards (spec 17 §6, D67):
 // a frozen baseline of finding counts that may only go down, and the
 // touched-file rule that diffs against the PR base.
-// Used by brandGuard.test.ts (style literals) and copyVoiceGuard.test.ts (copy voice, D88).
+// Used by brandGuard.test.ts (style literals) and copyVoiceGuard.test.ts (copy voice, D93).
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';

@@ -9,7 +9,7 @@ import {
 } from './guardKit/copyVoiceRules';
 import { extractLocaleStrings, type LocaleString } from './guardKit/localeStrings';
 
-// Unit tests for the copy-voice rules — spec 17 §7 (D88), FR-RESP-006 AC19/AC20.
+// Unit tests for the copy-voice rules — spec 17 §7 (D93), FR-RESP-006 AC19/AC20.
 
 function he(text: string, key: string | null = 'body'): LocaleString {
   return { key, text, line: 1, endLine: 1 };
@@ -147,7 +147,7 @@ describe('hiddenMeaning rule (D67)', () => {
   });
 });
 
-describe('hiddenMeaning exemption for the About screen and FAQ (D88 refines D67)', () => {
+describe('hiddenMeaning exemption for the About screen and FAQ (D93 refines D67)', () => {
   const hebrew = "export const x = { tagline: 'הקיבוץ הקפיטליסטי — רשת של נתינה' };";
   const english = "export const x = { a: 'KC is also a capitalist kibbutz' };";
 
