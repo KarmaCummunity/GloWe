@@ -146,11 +146,6 @@
       "spacingLiteral": 1,
       "iconSizeLiteral": 2
     },
-    "app/(tabs)/donations/marketplace/index.tsx": {
-      "radiusLiteral": 2,
-      "spacingLiteral": 1,
-      "rawTextInput": 1
-    },
     "app/(tabs)/donations/marketplace/my-listings.tsx": {
       "fontWeightLiteral": 1,
       "radiusLiteral": 1
@@ -1108,9 +1103,6 @@
     "src/components/map/MapExplorer.tsx": {
       "spacingLiteral": 2,
       "iconSizeLiteral": 5
-    },
-    "src/components/marketplace/GivingHandoffActions.tsx": {
-      "radiusLiteral": 2
     },
     "src/components/marketplace/ListingSchemaFields.tsx": {
       "radiusLiteral": 2,

@@ -34,7 +34,7 @@ Tech: · FR-POST-002–007, 011, 020 · unified form #1227 with duplicated "gene
 ## 7.3 Feed, sorting, recommendations
 Main feed of all worlds plus a feed per world (D5, D36). Default sort = **Recommended** — KC's recommendation engine, aiming to be as smart as Facebook/Instagram (D27). Phase 1 weights (S33): distance, freshness, worlds the user is active in, urgency and near expiry, reliability (never shown), posts with no response yet; region weight during emergency. The user always controls: sort (recommended/new/old/near) and filters (world, domain, item subcategory, direction, people/orgs, city+radius, status). Inside a chosen sort the engine may boost ≤ 1 of every 5 items, labeled "Recommended" (S5). Sort choice persists per session; a new session returns to Recommended (S7). A **Friends / Everyone** toggle hides on scroll down and returns on scroll up, TikTok-style (D34); "Friends" = people I follow, default Everyone (S6). Emergency items go on top with a banner (D42). Hidden-for-review posts don't appear (D33). Notify only on good match or saved filter (D10).
 
-Tech: · FR-FEED-001 "no algorithm" superseded; MATCHING_V2 score ≥ 0.60 kept · `PostFilterSheet`; matching on `listings` · G15
+Tech: · FR-FEED-001 "no algorithm" superseded; MATCHING_V2 score ≥ 0.60 kept · `PostFilterSheet`; matching on `listings` · G15 · world hubs (items/food): item subcategory + distance-from-home filters on `browse_listings` (`0469`, KC#1102/#1111)
 
 ## 7.4 Card and detail screen
 Uniform card and detail for all types (D2, D6*): image or world icon, world/direction/status chips, title, description, location & time, publisher per anonymity (D16) with verification level (D23) and **no rating** (D24), likes & comments (D25), fixed action button and report (D33). Closing button per type (D11, D17); event → register (D31); job → apply (D41); imported post → "Is this yours? Claim it" (S21). Color/icon from world config (D36). **Domain not shown on the card** — at most a tiny corner icon (D45). Needs further design depth (D6*).
@@ -77,7 +77,7 @@ Tech: D12,D29,D32,D43,D52 · `14_karma`, migration 0099, FR-KARMA-007/008 · `ka
 
 ## 7.7 Ratings
 After each handoff both sides rate 1–5 with a note — one generic rating for all types (D15, D19). **Users never see ratings, not even their own**; only KC admins (D24). Ratings feed the trust engine.
-Tech: · FR-RIDE-037 kept; FR-RIDE-038 superseded · `ride_ratings`, `giving_handoff_ratings` currently readable via RLS · G4
+Tech: · FR-RIDE-037 kept; FR-RIDE-038 superseded · `ride_ratings`, `giving_handoff_ratings` currently readable via RLS · G4 · items/food/rides/knowledge handoffs: rating step = pick 1–5 stars, optional note (≤300 chars), submit (`HandoffRatingForm`, KC#1106/#1114); "Rating given" karma (7.6) tracked in KC#1306
 
 ## 7.8 Chat
 One conversation per pair; contacting from a post pins it (D13). Closing from chat (D17). Group chat only around a project/challenge/event, locked at the end. Suspended users can still talk to support (D33).
