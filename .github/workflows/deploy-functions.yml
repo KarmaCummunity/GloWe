@@ -15,7 +15,7 @@ name: Edge Functions deploy
 # Environment supabase-<target> (no reviewers): SUPABASE_ACCESS_TOKEN,
 # SUPABASE_DB_PASSWORD, SUPABASE_PROJECT_REF; optional variable
 # PUBLIC_RESEARCH_ALLOWED_ORIGINS (Survey B CORS allowlist, synced as a
-# function secret); optional secret EDGE_SENTRY_DSN (G41, D-201: synced as
+# function secret); optional secret EDGE_SENTRY_DSN (G41, D-202: synced as
 # SENTRY_DSN + SENTRY_ENVIRONMENT + SENTRY_RELEASE; without it every function
 # reports errors to its logs only).
 
@@ -97,7 +97,7 @@ jobs:
           ORIGINS: ${{ vars.PUBLIC_RESEARCH_ALLOWED_ORIGINS }}
         run: supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "PUBLIC_RESEARCH_ALLOWED_ORIGINS=$ORIGINS"
 
-      # G41 / D-201: every function reports errors through _shared/observability.
+      # G41 / D-202: every function reports errors through _shared/observability.
       # The environment name is the deploy target (dev | prod); the release is the
       # commit being deployed. Secrets are referenced by name only.
       - name: Sync Sentry error-reporting secrets

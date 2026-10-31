@@ -44,7 +44,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G38 | 🟡 2026-10-30 — Shared DB test harness (`supabase/tests/_harness`, `scripts/run-db-tests.sh`) + rides lifecycle flow. Open: items, food, knowledge flows on the harness | architecture §5.1 |
 | G39 | Port contract tests: one suite per port, run against a fake and the Supabase adapter | architecture §5.1 |
 | G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
-| G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-201`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
+| G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-202`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
 | G42 | 🟡 2026-10-30 — Health registry (`ops`, migration `0463`) + hourly monitor on dev + prod + GitHub-issue alerts (→ email) with auto-close (D68, D69). Open: WhatsApp channel once live, synthetic web check, WhatsApp outbound checks | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
 | G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |

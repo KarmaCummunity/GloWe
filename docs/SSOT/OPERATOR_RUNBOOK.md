@@ -372,7 +372,7 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 
 | Secret (optional, recommended) | Purpose |
 | ------------------------------ | ------- |
-| `EDGE_SENTRY_DSN` | DSN of the Sentry project for Edge Functions (G41, `D-201`). Synced on each deploy to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` on `supabase-prod`, `dev` on `supabase-dev`) and `SENTRY_RELEASE` (`functions@<sha>` of the deployed commit). Without it every function stays in log-only mode. |
+| `EDGE_SENTRY_DSN` | DSN of the Sentry project for Edge Functions (G41, `D-202`). Synced on each deploy to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` on `supabase-prod`, `dev` on `supabase-dev`) and `SENTRY_RELEASE` (`functions@<sha>` of the deployed commit). Without it every function stays in log-only mode. |
 
 **Survey B CORS values (2026-05-29 catch-up):**
 
@@ -389,7 +389,7 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
 
-### Edge Function error reporting (G41, `D-201`)
+### Edge Function error reporting (G41, `D-202`)
 
 Every function is wrapped by `withObservability` (`supabase/functions/_shared/observability/`): a throw that escapes the handler and every 5xx response reach Sentry; handled fatal paths and the WhatsApp agent background job call `reportError`. Secrets are referenced by name only.
 
