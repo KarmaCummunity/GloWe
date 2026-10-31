@@ -2,11 +2,11 @@
 // plus the links list where one exists (medical, animals). Posts by domain
 // follow once posts carry a domain (G24).
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { DONATION_CATEGORY_SLUGS, isDomainSlug, type DonationCategorySlug } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { IconTile } from '../../../../src/components/ui/IconTile';
 import { DonationLinksList } from '../../../../src/components/DonationLinksList';
@@ -17,7 +17,7 @@ import { rtlTextAlignStart } from '../../../../src/lib/rtlTextAlignStart';
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md, maxWidth: 480, width: '100%', alignSelf: 'center' as const },
   hero: { alignItems: 'center' as const, gap: spacing.sm },
-  title: { ...typography.h1, fontSize: 28, color: colors.textPrimary, textAlign: 'center' as const },
+  title: { ...typography.h1, color: colors.textPrimary, textAlign: 'center' as const },
   subtitle: { ...typography.body, color: colors.textSecondary, textAlign: rtlTextAlignStart },
 }));
 

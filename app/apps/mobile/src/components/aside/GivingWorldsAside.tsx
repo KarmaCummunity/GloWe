@@ -4,7 +4,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { AsideCard } from './AsideCard';
@@ -30,7 +30,7 @@ export function GivingWorldsAside() {
           onPress={() => router.push(world.href)}
         >
           <View style={styles.iconWrap}>
-            <Ionicons name={world.icon} size={16} color={colors.primary} />
+            <Ionicons name={world.icon} size={iconSize.sm} color={colors.primary} />
           </View>
           <Text style={styles.rowLabel} numberOfLines={1}>
             {t(world.titleKey)}
@@ -44,7 +44,7 @@ export function GivingWorldsAside() {
         onPress={() => router.push('/follow/suggestions')}
       >
         <View style={styles.iconWrap}>
-          <Ionicons name="person-add-outline" size={16} color={colors.primary} />
+          <Ionicons name="person-add-outline" size={iconSize.sm} color={colors.primary} />
         </View>
         <Text style={styles.rowLabel} numberOfLines={1}>
           {t('follow.suggestionsTitle')}

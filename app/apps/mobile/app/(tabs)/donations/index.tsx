@@ -14,7 +14,7 @@ import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { TopBar } from '../../../src/components/TopBar';
 import { PressableScale } from '../../../src/components/animations/PressableScale';
 import { Screen } from '../../../src/components/ui/Screen';
@@ -33,7 +33,6 @@ import {
   DONATIONS_HUB_DOMAIN_TILES,
   DONATIONS_HUB_FEATURED,
   donationsHubTiles,
-  type DonationHubTile,
 } from '../../../src/navigation/donationsHubTiles';
 
 const useStyles = makeUseStyles(({ colors, isDark }) => ({
@@ -57,11 +56,9 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   heroTitle: {
     ...typography.h1,
-    fontSize: 26,
     color: colors.textPrimary,
     letterSpacing: -0.4,
     textAlign: rtlTextAlignStart,
-    lineHeight: 34,
     width: '100%',
   },
   heroSubtitle: {
@@ -92,7 +89,7 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
     ...typography.h2,
     color: colors.textPrimary,
     textAlign: rtlTextAlignStart,
-    marginBottom: 2,
+    marginBottom: spacing.xs,
   },
   featuredSubtitle: {
     ...typography.body,
@@ -154,7 +151,7 @@ export default function DonationsHubScreen() {
                     {t(DONATIONS_HUB_FEATURED.subtitleKey)}
                   </Text>
                 </View>
-                <Ionicons name="chevron-back" size={22} color={colors.primary} />
+                <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
               </Card>
             </PressableScale>
           </MotionEntry>
@@ -177,7 +174,7 @@ export default function DonationsHubScreen() {
                   {t('donations.marketplaceHubSubtitle')}
                 </Text>
               </View>
-              <Ionicons name="chevron-back" size={22} color={colors.primary} />
+              <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
             </Card>
           </PressableScale>
         </MotionEntry>

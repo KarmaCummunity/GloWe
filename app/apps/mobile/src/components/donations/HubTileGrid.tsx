@@ -1,10 +1,10 @@
 // Donations hub — a section heading plus a 2-column grid of tiles. Used for the
 // giving worlds and for the domains (D62).
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { PressableScale } from '../animations/PressableScale';
 import { Card } from '../ui/Card';
 import { IconTile } from '../ui/IconTile';
@@ -106,11 +106,9 @@ const useStyles = makeUseStyles(({ colors }) => ({
     alignSelf: 'stretch' as const,
   },
   gridTitle: {
-    ...typography.body,
-    fontWeight: '700' as const,
+    ...typography.h4,
     color: colors.textPrimary,
     textAlign: 'center' as const,
-    fontSize: 16,
     marginTop: spacing.xs,
   },
   gridSubtitle: {
