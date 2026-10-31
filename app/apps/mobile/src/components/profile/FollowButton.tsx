@@ -6,10 +6,10 @@
 // Mapped to: FR-FOLLOW-011, FR-FOLLOW-002 AC1, FR-FOLLOW-004 AC1.
 
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { FollowState } from '@kc/application';
 import { ConfirmActionModal } from '../post/ConfirmActionModal';
 

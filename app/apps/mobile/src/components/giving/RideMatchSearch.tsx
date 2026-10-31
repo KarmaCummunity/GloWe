@@ -1,10 +1,10 @@
 // Rides hub: pick from/to cities → PostGIS corridor match (find_ride_listing_matches, 0392).
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { RideEndpoint } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { worldHubBaseStyles } from './worldHubStyles';

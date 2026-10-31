@@ -1,8 +1,8 @@
 // FR-POST-003 — audience picker (Public / Followers / Only me). Shared by create + post menu.
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import type { PostVisibility } from '@kc/domain';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';

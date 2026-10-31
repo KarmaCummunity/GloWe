@@ -1,9 +1,9 @@
 // app/apps/mobile/src/components/admin/surveys/RespondentCard.tsx
 // FR-ADMIN-021 — one respondent's full answer set for a survey.
 import type { ReactElement } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { AdminSurveyRespondent, AdminSurveyQuestionStat } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

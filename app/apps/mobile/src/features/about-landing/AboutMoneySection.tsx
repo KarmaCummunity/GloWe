@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { aboutRtlText } from './aboutWebRtlStyle';
 
 /**

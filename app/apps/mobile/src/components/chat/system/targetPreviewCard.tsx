@@ -4,10 +4,10 @@
 // card, and navigates via typed expo-router routes. Caller decides
 // whether to render at all (admin gate happens upstream).
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { isOpaqueSystemShareHandle } from '../../../lib/shareHandleDisplay';
 

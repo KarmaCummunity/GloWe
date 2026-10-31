@@ -1,7 +1,7 @@
 // Sub-components for the Appearance settings screen (FR-SETTINGS-014).
 // Lives under src/ (not app/) so expo-router does not register it as a route.
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -12,6 +12,7 @@ import {
   useTheme,
   type ColorPalette,
   type ThemeMode,
+  Text,
 } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';

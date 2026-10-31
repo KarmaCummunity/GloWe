@@ -9,7 +9,8 @@
 //      shortcuts are enabled.
 // All strips use the same styling so the warning is recognizable.
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { isDevGhostSessionEnabled } from '../services/devGhostSession';
 import { isDevAutoSignInEnabled } from '../services/devAutoSignIn';

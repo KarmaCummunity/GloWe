@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import { Screen } from '../../../../../src/components/ui/Screen';
 import { volunteerUseCases } from '../../../../../src/services/volunteerComposition';
 import { rtlTextAlignStart } from '../../../../../src/lib/rtlTextAlignStart';

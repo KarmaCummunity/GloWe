@@ -1,14 +1,17 @@
 // Personal & community statistics — FR-STATS-001..004.
 import React, { useCallback, useMemo } from 'react';
 import {
-  ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PersonalActivityItem } from '@kc/domain';
 import { useAuthStore } from '../src/store/authStore';
 import { getUserRepo } from '../src/services/userComposition';

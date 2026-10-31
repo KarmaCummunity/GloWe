@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import {
   ABOUT_FACEBOOK_PROFILE_URL,
   ABOUT_INSTAGRAM_PROFILE_URL,

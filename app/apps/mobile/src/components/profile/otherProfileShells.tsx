@@ -1,9 +1,9 @@
 import React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { useOtherProfileScreenStyles } from './otherProfileScreen.styles';
 
 export function OtherProfileLoading() {

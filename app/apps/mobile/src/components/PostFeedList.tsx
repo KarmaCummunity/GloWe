@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { KcRefreshControl } from './lists/KcRefreshControl';
 import type { ViewToken } from 'react-native';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import type { useTranslatedPosts } from '../hooks/useTranslatedPosts';
 import { HOME_FEED_GRID_COLUMNS, usePostGridCardWidth } from '../hooks/useShellContentWidth';

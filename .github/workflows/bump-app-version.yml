@@ -2,8 +2,8 @@ name: Bump app version
 
 # Org policy blocks GitHub Actions from creating PRs (409 / GraphQL createPullRequest).
 # This workflow therefore only prepares a bump branch; agents (or a human) open the PR.
-# Preferred path: agents bump app/VERSION in every PR to `dev`
-# (see CLAUDE.md APP VERSION banner). workflow_dispatch remains for a prepared branch.
+# The routine patch bump now happens on merge (bump-version-on-merge.yml, TD-196);
+# this manual dispatch remains for a prepared branch.
 
 on:
   workflow_dispatch:

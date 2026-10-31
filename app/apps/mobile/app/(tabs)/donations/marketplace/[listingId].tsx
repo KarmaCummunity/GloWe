@@ -1,8 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { spacing } from '@kc/ui';
+import { spacing, Text } from '@kc/ui';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { useMarketplaceListingDetail } from '../../../../src/hooks/useMarketplaceListingDetail';
 import { MarketplaceListingDetailView } from '../../../../src/components/marketplace/MarketplaceListingDetailView';

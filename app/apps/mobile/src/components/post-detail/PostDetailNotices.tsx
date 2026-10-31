@@ -2,10 +2,10 @@
 // viewer who can still see the post (owner or permitted follower / admin).
 // Mapped to FR-POST-014 (viewer detail), FR-POST-015 AC2/AC3 (visibility banners).
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import { textAlignStart } from '../../lib/rtlLayout';
 

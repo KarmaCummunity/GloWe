@@ -1,7 +1,7 @@
 // V2-ADMIN-MONEY-9 — single ledger entry card.
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { FinanceEntry } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { AdminCardActions } from '../AdminCardActions';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 

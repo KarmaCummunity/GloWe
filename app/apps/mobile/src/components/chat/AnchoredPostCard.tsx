@@ -1,11 +1,11 @@
 // FR-CHAT-014 + FR-CHAT-015 — sticky anchored-post card; ClosureSheet + explainer render here for chat-initiated closure.
 import { useEffect, useMemo } from 'react';
-import { Linking, Pressable, Text } from 'react-native';
+import { Linking, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { GestureResponderEvent } from 'react-native';
 import type { PostType } from '@kc/domain';
 import { getPostByIdUseCase } from '../../services/postsComposition';

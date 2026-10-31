@@ -3,7 +3,7 @@
 // V2-ADMIN-POSTS-6 — inline "Remove" / "Restore" affordance so admins can act
 // straight from the search results instead of opening every post detail.
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -12,7 +12,7 @@ import {
   hasPermission,
   type AdminPostSearchResult,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { container } from '../../../lib/container';
 import { confirmAction as platformConfirm } from '../../../services/platformConfirm';

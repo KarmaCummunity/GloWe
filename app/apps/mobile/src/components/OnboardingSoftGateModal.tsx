@@ -3,15 +3,13 @@ import React, { useState } from 'react';
 import {
   Modal,
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
-import { makeUseStyles, typography, spacing, radius, shadow, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, shadow, useTheme, Text, TextInput } from '@kc/ui';
 import { EditProfileAddressBlock } from './EditProfileAddressBlock';
 import { NotifyModal } from './NotifyModal';
 import { useAuthStore } from '../store/authStore';
