@@ -5,8 +5,13 @@ name: Bump app version on merge
 #
 # A PR that edits `app/VERSION` itself (a MINOR/MAJOR release) is left alone.
 # The bump commit carries `[skip ci]`: it changes one file, and a full CI run
-# per merge would double the cost. Consequence: the deploy for a merge builds the
-# previous version, and the new number first ships with the next merge.
+# per merge would double the cost. The dev deploy still ships it: deploy.yml
+# also triggers on this workflow's name, and scripts/deploy-target.mjs deploys
+# the bump commit on its parent's green `CI gate` (TD-231). That inheritance
+# keys on this file's exact output — the git identity, the commit subject and
+# app/VERSION as the only changed file — so keep the three in sync with
+# deploy-target.mjs (BUMP_IDENTITY, BUMP_SUBJECT, VERSION_FILE), and renaming
+# this workflow requires the same rename in deploy.yml's `workflows:` list.
 #
 # Needs AGENT_MERGE_TOKEN whose owner may push to `dev` (branch protection
 # bypass). A push made with GITHUB_TOKEN could not do this either way.

@@ -166,7 +166,7 @@ Read-only Playwright probes against **`GLOWE_PROD_URL`** — GloWe's live site (
 
 - **Spec:** `tests/e2e/journeys/prod-health.spec.ts` (`prod-health` project).
 - **CI:** `.github/workflows/glowe-prod-smoke.yml` — post-merge on `dev`, `workflow_dispatch`, every 15 minutes.
-- **KC smoke (separate):** `.github/workflows/prod-smoke.yml` — HTTP 200 on `KC_PROD_URL` after `main` merge.
+- **KC deploy smoke (separate):** smoke stage of `.github/workflows/deploy.yml` (`deploy-smoke.yml`, `scripts/smoke-deploy.mjs`) after every dev and prod deploy — `/version.json` SHA, page + bundle, Supabase Auth health, every Edge Function.
 - **Ingest:** `scripts/record-prod-health.mjs` → `glowe_health_checks` on **dev** Supabase via `supabase-dev` environment.
 - **Admin UI:** `admin.html` → System health panel.
 
