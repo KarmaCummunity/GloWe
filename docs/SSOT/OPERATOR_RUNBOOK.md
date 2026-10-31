@@ -62,37 +62,36 @@ The key pair is created once by the owner: `age-keygen -o key.txt` prints the pu
 
 Repository settings only the owner (admin) can apply. Tracked as `INFRA-CI-OWNER` in [`BACKLOG.md`](./BACKLOG.md); background in [`DECISIONS.md`](./DECISIONS.md) `D-195`, layout in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md). Do the steps **in this order**: each merge assumes the settings before it.
 
-1. **Single required check, then merge #1292.** Settings → Branches (or the ruleset of step 5, if you apply it now) → `dev` and `main`: replace the legacy required checks with exactly **`CI gate`**, source **GitHub Actions** (list in [`ENVIRONMENTS.md` § Dev merge gates](./ENVIRONMENTS.md#dev-merge-gates-branch-protection)). Then merge PR #1292 (unified PR gate).
+1. **Single required check (`dev` done, `main` open).** `dev`: done — the ruleset `dev protection (merge queue)` requires only **`CI gate`** (GitHub Actions), with the merge queue and the repository-admin bypass; #1292 is merged. **`main`: still open** — Settings → Branches → `main` still requires eight legacy contexts that nothing reports any more (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `PR hygiene`, `SonarCloud quality gate`). Replace them with exactly **`CI gate`**, source **GitHub Actions**, before the next release PR, which otherwise never merges (list in [`ENVIRONMENTS.md` § Dev merge gates](./ENVIRONMENTS.md#dev-merge-gates-branch-protection)).
 2. **Bot identities (`INFRA-CI-6`, `INFRA-CI-2`).**
    1. **Agent GitHub App** — Settings (your account or the org) → Developer settings → GitHub Apps → New GitHub App. Name e.g. `kc-agent`; webhook off; **Repository permissions:** Contents **Read and write**, Pull requests **Read and write**, Actions **Read-only**, Checks **Read-only**, Metadata **Read-only** (mandatory); everything else **No access** — never Administration. "Where can this app be installed?" → Only on this account. Create it, note the **App ID**, generate a **private key** (`.pem`).
    2. Install the App → **Only select repositories** → `KC` (no other repository).
-   3. Settings → Environments → New environment **`agent-merge`**: Deployment branches and tags → **Selected branches** → add `dev` only; no reviewers. Add environment secrets `AGENT_APP_ID` = the App ID and `AGENT_APP_PRIVATE_KEY` = the full `.pem` contents. Delete the local `.pem` afterwards, and delete any **repository-level** `AGENT_APP_*` / `AGENT_MERGE_TOKEN` secrets (a repository secret is readable by any workflow pushed on any branch, `TD-223`). `auto-merge-agent-ready.yml` and `auto-update-branches.yml` now act as the App, so merges trigger **CI** → **Deploy** and updated PR heads get fresh CI (`TD-197`); with no credential they fail visibly.
+   3. Settings → Environments → New environment **`agent-merge`**: Deployment branches and tags → **Selected branches** → add `dev` only; no reviewers. Add environment secrets `AGENT_APP_ID` = the App ID and `AGENT_APP_PRIVATE_KEY` = the full `.pem` contents. Delete the local `.pem` afterwards, and delete any **repository-level** `AGENT_APP_*` / `AGENT_MERGE_TOKEN` secrets (a repository secret is readable by any workflow pushed on any branch, `TD-223`). `auto-merge-agent-ready.yml` acts as the App, so merges trigger **CI** → **Deploy** (`TD-197`); with no credential it fails visibly.
    4. **Agent machine user** — create a separate GitHub account for Claude / agent sessions (its own e-mail, 2FA on; GitHub's terms allow one machine account per person). Invite it to `KC` with role **Write** — not Maintain, not Admin. Add its login nowhere in `.github/owners.json` or `.github/CODEOWNERS`.
    5. In Claude Code (claude.ai → Settings → Connectors → GitHub, and any local `gh auth login`), disconnect your personal account and connect **the machine user** instead. From then on agent PRs are authored by the machine user, so **you can approve them** (GitHub never counts an author's own approval) and agents can no longer use your admin rights to bypass rules.
    6. Optional fallback: a fine-grained PAT of the machine user (this repository only; Contents + Pull requests read/write) as `agent-merge` environment secret `AGENT_MERGE_TOKEN`.
    7. **CI-verdict GitHub App** (a second, separate App — the ruleset will accept `CI verdict` only from it). New GitHub App, e.g. `kc-ci-verdict`; webhook off; **Repository permissions:** Checks **Read and write**, Actions **Read-only**, Contents **Read-only**, Pull requests **Read-only**, Metadata **Read-only**; nothing else. Only on this account; install on `KC` only. Note its **App ID** (this is the `integration_id` for the ruleset) and generate a private key.
    8. Settings → Environments → New environment **`ci-verdict`**: Deployment branches → **Selected branches** → `main` only (the default branch, where `workflow_run` jobs run); no reviewers. Environment secrets `CI_VERDICT_APP_ID` and `CI_VERDICT_APP_PRIVATE_KEY`. Never store them at repository level.
    9. Move the remaining sensitive repository-level secrets into branch-restricted environments when their workflows allow it (store credentials into `mobile-store`, see `TD-223` for the list).
-3. **Prod environments, then merge #1308** (gated prod release, `INFRA-CI-3`). Settings → Environments:
+3. **Prod environments** (gated prod release, `INFRA-CI-3`; #1308 is merged, so `main` deploys need these before the first release). Settings → Environments:
    - `production` — required reviewer: **you** only; deployment branches: `main` only; no secrets.
    - `supabase-prod`, `cloudflare-prod` — deployment branches `main` only; no reviewers. `supabase-dev`, `cloudflare-dev` — deployment branches `dev` and `main`; no reviewers.
    - Variables: `BACKUP_AGE_RECIPIENT` on `supabase-prod` (see [§ Restore a pre-migration backup](#restore-backup) for the key pair); repository variables `KC_PROD_URL` and `DEV_WEB_URL` ([`ENVIRONMENTS.md`](./ENVIRONMENTS.md) table). Delete the legacy `PROD_WEB_URL`.
    - `EXPO_PUBLIC_ENVIRONMENT` per environment: `production` on `cloudflare-prod`, `development` on `cloudflare-dev`.
    - The Cloudflare API token in `cloudflare-*` needs **Cloudflare Pages: Edit**.
-   - Then merge PR #1308.
 4. **Mobile store** (nightly mobile, `INFRA-CI-4`; PR #1304 is already merged, so the nightly fails until this is done).
    - Environment `mobile-store` (deployment branches `dev` + `main`) with secret `MOBILE_SUPABASE_ANON_KEY` = the **kc-dev** publishable key.
    - EAS → project → Environment variables → `preview`: the Sentry values and the `GOOGLE_SERVICES_JSON` file variable.
    - Verify the iOS signing secrets are present (`KC_IOS_*`, `ASC_*`).
    - Allow `mobile/*` tags (if a tag ruleset restricts tag creation, add `mobile/*` to the allowed patterns).
    - Then dispatch **Mobile nightly** once on `dev` to confirm.
-5. **Bootstrap merge of the gate-integrity PR (#1319), then import the ruleset (`INFRA-CI-2`).**
-   - **One-time bootstrap.** The judges now load only from the base commit, with no fallback to the PR's copy. The PR that introduces a judge module (the test-integrity guard, the run binding) therefore fails its own `static` lane / `CI gate`, because its base does not have them yet. Read the diff, then merge it once with your admin override while classic branch protection is still in place (before the ruleset, which has no bypass actors). Every later PR is judged by the merged copy.
+5. **Import the ruleset (`INFRA-CI-2`).** The gate-integrity PR #1319 is merged.
+   - **One-time bootstrap.** The judges now load only from the base commit, with no fallback to the PR's copy. The PR that introduces a judge module (the test-integrity guard, the run binding) therefore fails its own `static` lane / `CI gate`, because its base does not have them yet. Read the diff, then merge it once with your admin override (the live `dev` ruleset allows the repository-admin bypass; the committed `dev-main.json` has no bypass actors). Every later PR is judged by the merged copy. Done for #1319; repeat only for a future judge-first PR that cannot pass its own gate.
    - **Version bump vs. the ruleset (`TD-231`) — decide before import.** `bump-version-on-merge.yml` pushes a `[skip ci]` `app/VERSION` commit straight to `dev` after every merge. `dev-main.json` has **no bypass actors**, so once you import the ruleset that push is rejected: the bump job fails and VERSION stops moving. Deploys keep working, because they deploy the merge commit itself. The bump job also reads `secrets.AGENT_MERGE_TOKEN` at repository level, which step 2.3 deletes, so it fails from step 2.3 on whatever you choose here. The deploy side is already handled: `scripts/deploy-target.mjs` deploys the bump commit on its parent's green `CI gate`, but only when the commit changes only `app/VERSION`, has one parent, has the bump workflow's identity and subject, and the parent is green on `dev`/`main`. The options:
      - **(A, recommended) A dedicated bump App as a bypass actor.** Create a third GitHub App, e.g. `kc-version-bump`, with Repository permissions Contents **Read and write** and Metadata **Read-only**, and nothing else. Install it on `KC` only. Put its ID and key in a new environment, e.g. `version-bump`, restricted to deployment branch `dev`, with no reviewers. Switch `bump-version-on-merge.yml` to that environment, minting the App's token with `actions/create-github-app-token` instead of using `AGENT_MERGE_TOKEN`. Then add the App as the ruleset's only bypass actor (`"bypass_actors": [{ "actor_id": <App ID>, "actor_type": "Integration", "bypass_mode": "always" }]`). A ruleset bypass covers every branch the ruleset targets, so also split `dev-main.json` into a `dev` copy with the bypass and a `main` copy without it, so the App can never push to `main`. Residual risk: anyone who gets a workflow using `version-bump` onto `dev` can push to `dev` without review. Adding such a workflow is a code-owned `.github/**` change, and only bump-shaped commits inherit a deploy certification; any other pushed commit still needs its own green push CI run.
      - **(B) Bump before the merge, on the PR head.** The merge step (`auto-merge-agent-ready.yml`) commits the bump onto the PR branch and waits for CI before it merges, so no commit is ever pushed straight to `dev` and no bypass or inheritance is needed. The cost: every merge re-runs CI on a new head, and the bot's push dismisses an owner approval under "approval of the most recent push", so code-owned PRs need a second approval. Open PRs also conflict again on `app/VERSION` after each merge, which brings back the problem `TD-196` removed and in practice serializes merges.
      - Recommendation: **A**. It keeps conflict-free per-merge bumps, and the deploy already accepts only the narrow bump shape. Until A is in place, either keep classic branch protection with the token owner allowed to bypass it, or accept that VERSION does not move (bump it by hand in release PRs).
-   - **Import.** Settings → Rules → Rulesets → New ruleset → **Import a ruleset** → upload [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json). For now **delete the `CI verdict` entry** from the required checks in the import form (or the file copy you upload): `ci-verdict.yml` runs only from the default branch `main`, so no verdict exists until the release carrying it reaches `main`, and every PR would wait forever. Review → Create. The ruleset targets `dev` + `main`: pull request with **0** approvals + **Require review from Code Owners** + dismiss stale approvals + approval of the most recent push; required check `CI gate` from GitHub Actions (`integration_id` 15368); no force pushes, no deletions; **no bypass actors**. Then remove the classic branch-protection rules on `dev`/`main`. Import [`.github/rulesets/tags-no-branch-names.json`](../../.github/rulesets/tags-no-branch-names.json) the same way (target: tags; forbids creating, moving or deleting tags named `dev` or `main`, so no tag can pose as a protected branch). Under the ruleset PRs need not be up to date with `dev` (not strict); `auto-update-branches.yml` still refreshes them. When a CI run fails on a flake, use **Re-run all jobs**: a "Re-run failed jobs" attempt keeps old job results and never gets a green `CI verdict`.
+   - **Import.** Settings → Rules → Rulesets → New ruleset → **Import a ruleset** → upload [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json). For now **delete the `CI verdict` entry** from the required checks in the import form (or the file copy you upload): `ci-verdict.yml` runs only from the default branch `main`, so no verdict exists until the release carrying it reaches `main`, and every PR would wait forever. Review → Create. The ruleset targets `dev` + `main`: pull request with **0** approvals + **Require review from Code Owners** + dismiss stale approvals + approval of the most recent push; required check `CI gate` from GitHub Actions (`integration_id` 15368); no force pushes, no deletions; **no bypass actors**. Then remove the classic branch-protection rule on `main`. `dev` already has the live ruleset `dev protection (merge queue)` (admin bypass, merge queue): either add the stricter rules to it and keep its merge queue, or delete it once the imported ruleset carries a merge queue for `dev`. Do not leave two rulesets with different required checks on `dev`. Import [`.github/rulesets/tags-no-branch-names.json`](../../.github/rulesets/tags-no-branch-names.json) the same way (target: tags; forbids creating, moving or deleting tags named `dev` or `main`, so no tag can pose as a protected branch). Under the ruleset PRs need not be up to date with `dev` (not strict); the `dev` merge queue tests each PR on top of the ones ahead of it. When a CI run fails on a flake, use **Re-run all jobs**: a "Re-run failed jobs" attempt keeps old job results and never gets a green `CI verdict`.
    - **Verify right after import** with two throwaway PRs into `dev`: (a) a docs-only change must merge on a green `CI gate` with no review; (b) a one-line comment change in `.github/CODEOWNERS` must ask for your review. GitHub does not document how "approval of the most recent push" behaves with 0 required approvals; if PR (a) also waits for an approval, edit the ruleset and turn that one option off (code-owner review + stale-approval dismissal still cover owned files).
    - **Turn on `CI verdict` after the first release that carries `ci-verdict.yml` reaches `main`.** Open a throwaway PR into `dev` and check that a green **`CI verdict`** check from the CI-verdict App appears on its head commit (the App's name is shown as the check's source). If it is red, its summary says why (e.g. the run's merge reference could not be read) — fix before continuing. Then Settings → Rules → Rulesets → `dev-main gate (D-195)` → Require status checks → add `CI verdict` and pick the **CI-verdict App** as its source (equivalently, re-import the JSON with `"integration_id"` set to the App ID instead of `REPLACE_WITH_CI_VERDICT_APP_ID`). Until this step, `CI gate` alone can be imitated by a workflow on another branch (`TD-224`).
    - Owner overrides: when `CI gate` fails with a "Test integrity" or "ci.yml must keep the base branch's lanes and jobs" error, read the listed reasons; if the change is intended, **approve the PR** — the review re-runs CI and the gate (and then `CI verdict`) turns green for that head SHA. A new push needs a new approval. Overrides do not work through a merge queue.
@@ -374,8 +373,10 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 
 | Environment | `PUBLIC_RESEARCH_ALLOWED_ORIGINS` |
 | ------------- | --------------------------------- |
-| `supabase-dev` | `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006` |
-| `supabase-prod` | `https://karma-community-kc.com` |
+| `supabase-dev` | optional — leave unset unless an extra origin is needed |
+| `supabase-prod` | optional — leave unset unless an extra origin is needed |
+
+`supabase/functions/_shared/cors.ts` always allows the Cloudflare Pages hosts (`https://dev.karma-community.pages.dev`, `https://karma-community-kc.com`, `https://www.karma-community-kc.com`) and the local dev origins. The 2026-05-29 values pointed at the retired Railway hosts; drop those origins if they are still set.
 
 CLI one-liner (from repo root, account token in env):
 
@@ -663,28 +664,27 @@ Then add contributor issues to project #2 and set Status=Todo:
 ```bash
 for n in 704 726 727 728 729 730 731 732 733 734 735; do
   gh project item-add 2 --owner KarmaCummunity \
-    --url "https://github.com/KarmaCummunity/GloWe/issues/$n"
+    --url "https://github.com/KarmaCummunity/KC/issues/$n"
 done
 for n in 708 709 710 712 713; do
   gh project item-add 2 --owner KarmaCummunity \
-    --url "https://github.com/KarmaCummunity/GloWe/issues/$n"
+    --url "https://github.com/KarmaCummunity/KC/issues/$n"
 done
 ```
 
 Size/Area custom fields still require the project UI if GraphQL field APIs are unavailable.
 
-### Scope guard
+### Scope guard (historical)
 
-Workflow `.github/workflows/ci-scope-guard.yml` closes PRs that only touch
-`app/apps/mobile/**` and comments with links to `AGENTS.md` + `CONTRIBUTING.md`.
-Mixed mobile+other PRs get a one-time warning comment.
+The former `ci-scope-guard.yml` workflow, which closed PRs that only touched
+`app/apps/mobile/**`, no longer exists; mobile PRs are gated by `CI gate` like any other.
 
 ### Discussions
 
 Categories: **Q&A**, **Ideas**, **Show and tell**, **Announcements** (maintainer).
 Point newcomers from README / issue-template `config.yml` contact links.
 
-Welcome thread: [Discussion #736](https://github.com/KarmaCummunity/GloWe/discussions/736) — pin manually in the UI (GraphQL pin API unavailable).
+Welcome thread: [Discussion #736](https://github.com/KarmaCummunity/KC/discussions/736) — pin manually in the UI (GraphQL pin API unavailable).
 
 ### Security tooling secrets (INFRA-OSS-4/5/6)
 
@@ -698,8 +698,8 @@ Workflows are committed; scans **skip gracefully** until secrets exist:
 
 Full matrix: [`SECURITY.md`](../../SECURITY.md) at repo root.
 
-After a clean baseline, promote `Snyk dependency scan` / `GitGuardian secret scan` to
-required branch-protection checks and update `ENVIRONMENTS.md` in the same PR.
+After a clean baseline, make a scan blocking by adding it to a lane behind `CI gate`
+(judge-first, see § Adding a CI lane), never as a separate required check.
 
 ### Review SLA
 

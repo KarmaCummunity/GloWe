@@ -1,7 +1,7 @@
 # Environments
 
 > **Canonical source for branch ↔ Supabase ↔ Cloudflare Pages ↔ env-var mapping.**
-> If another doc disagrees, this one wins. Last reviewed: 2026-10-30 (gated deploy pipeline, `INFRA-CI-3`).
+> If another doc disagrees, this one wins. Last reviewed: 2026-10-31 (CI docs drift, `INFRA-CI-5`).
 
 ## TL;DR
 
@@ -21,9 +21,9 @@
 
 1. **`staging` is optional pre-integration.** Feature PRs may target `staging` first, then `staging` → `dev`. It has no automatic deploy since `INFRA-CI-3` (only `dev` and `main` deploy); `staging.karma-community.pages.dev` keeps its last build.
 2. **`dev` is the integration branch.** After a merge passes CI, **Deploy** ships it to kc-dev and `https://dev.karma-community.pages.dev/`.
-3. **`dev` is never behind `main`.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which merges `main` into `dev`. If that workflow fails (merge conflict), resolving it is the operator's first priority.
+3. **`dev` must contain `main`'s history.** Every push to `main` triggers `.github/workflows/sync-main-to-dev.yml`, which opens a zero-diff PR into `dev` (an `-s ours` merge of `main`) so the next release PR does not conflict. That PR must land as a **merge commit**, which the squash-only `dev` merge queue cannot do, so the owner merges it with the admin bypass (`TD-182`).
 4. **`main` is fast-forward only from `dev`.** KC production releases happen by opening a PR from `dev` → `main` and squash-merging.
-5. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). Whenever they happen, the sync workflow brings them into `dev` automatically.
+5. **Direct pushes to `main` are reserved for trivial doc/CI hotfixes** (see `CLAUDE.md` §6 "Change classes"). The sync PR records them in `dev`'s history, but its `-s ours` merge keeps `dev`'s tree, so the change itself must also reach `dev` by its own PR.
 6. **Never force-push to `main`, `dev`, or `staging`.** Never delete any of them. Branch-protection rules in GitHub enforce all three.
 
 ## Required environment variables
@@ -36,11 +36,11 @@ All variables prefixed `EXPO_PUBLIC_*` are exposed to the client bundle by Expo'
 | `EXPO_PUBLIC_SUPABASE_URL` | `https://kdqtbdbzwvlugkhonexg.supabase.co` | `https://enbqriuxvvuontiwslun.supabase.co` | `packages/infrastructure-supabase/src/client.ts` |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | (publishable key for prod project) | (publishable key for dev project) | `packages/infrastructure-supabase/src/client.ts` |
 
-**Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by the Edge Functions stage of **Deploy**). Values: prod → `https://karma-community-kc.com`; dev → `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006`. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
+**Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by the Edge Functions stage of **Deploy**). `supabase/functions/_shared/cors.ts` always allows the Cloudflare Pages hosts (`dev.karma-community.pages.dev`, `karma-community-kc.com`, `www.karma-community-kc.com`) and the local dev origins, so the variable is needed only for extra origins. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
 
 > **Pitfall:** Expo only exposes vars that start with `EXPO_PUBLIC_`. A var named `PUBLIC_ENVIRONMENT` (no `EXPO_` prefix) is invisible to the client bundle.
 >
-> **Docker / Railway web build:** The repo root `Dockerfile` builder stage must declare an `ARG` + `ENV` for each `EXPO_PUBLIC_*` value that must appear in the static web bundle. Service variables in the Railway UI are **not** visible inside `RUN pnpm build:web` unless they are wired through that stage (we ship `EXPO_PUBLIC_SUPABASE_*` and `EXPO_PUBLIC_ENVIRONMENT`). If the dev banner is missing on the hosted URL but variables look correct in Railway, redeploy after a Dockerfile fix or add the missing `ARG`/`ENV` pair.
+> **Cloudflare Pages web build:** `deploy-web.yml` builds the export on the runner with the `EXPO_PUBLIC_*` values of the `cloudflare-dev` / `cloudflare-prod` environment; nothing is configured in the Cloudflare dashboard. A value missing there is missing from the bundle.
 >
 > **Local Metro:** `pnpm ios` / `expo start` runs a `__DEV__` bundle, which shows the dev strip even without `EXPO_PUBLIC_ENVIRONMENT`. That variable is still required for **non-`__DEV__`** builds (e.g. `expo export` on CI) so testers see the strip without a debug client.
 
@@ -53,15 +53,15 @@ git fetch origin main
 git push origin refs/remotes/origin/main:refs/heads/dev
 ```
 
-Then in Railway → service Settings → reconnect the dev environment to the `dev` branch. Then verify branch protection is back in place (Settings → Branches → `dev` → require PRs + disable force-push + disable deletion).
+Then verify the `dev protection (merge queue)` ruleset still targets `dev` (Settings → Rules → Rulesets) and dispatch **Deploy** on `dev` to redeploy kc-dev.
 
 ## Runbook: dev banner not showing on the dev deployment
 
 Checklist in order:
 
 0. If you are on **local Metro** (`expo start`) and still see no strip, you are likely running a **release** build (`__DEV__` off). Use a debug build or set `EXPO_PUBLIC_ENVIRONMENT=development` and rebuild.
-1. **Railway + Docker:** In Railway Variables, confirm `EXPO_PUBLIC_ENVIRONMENT=development` (exact name). Confirm the repo `Dockerfile` builder passes that name into the build stage (`ARG`/`ENV`); without it, `expo export` never sees the variable even if Railway shows it.
-2. Trigger a redeploy — env-var and Dockerfile changes require a **new image build**.
+1. **GitHub environment:** confirm `cloudflare-dev` has `EXPO_PUBLIC_ENVIRONMENT=development` (exact name); `deploy-web.yml` passes it to `expo export`.
+2. Redeploy — dispatch **Deploy** on `dev`; a variable change needs a new build.
 3. Open the dev URL in an incognito window (cached service worker can serve stale bundles).
 4. In DevTools console: `process.env` is not present at runtime in Expo; instead inspect the bundle by searching for `'development'` in the JS bundle source, OR temporarily add `console.log('env', getAppEnvironment())` to verify the value reached the client.
 
@@ -71,8 +71,8 @@ Checklist in order:
 
 - Triggers: every push to `main`, plus manual `workflow_dispatch`.
 - Concurrency: `sync-main-to-dev` group with `cancel-in-progress: false` — back-to-back pushes queue rather than skip.
-- Strategy: `git merge --no-edit origin/main` on `dev`. Fast-forward when possible; merge commit otherwise.
-- Failure mode: merge conflict → workflow fails, operator resolves manually. Do not auto-resolve.
+- Strategy: exits when `dev` already contains `main`; otherwise pushes branch `sync/main-into-dev-<sha>` holding an `-s ours` merge of `main` into `dev` (it fails if that merge changes any file) and opens a PR into `dev`.
+- The PR must be merged as a **merge commit** (a squash drops the ancestry). The `dev` merge queue squashes, so the owner merges it with the admin bypass (`TD-182`).
 
 ## Deploy pipeline (`D-195`, `INFRA-CI-3`)
 
@@ -105,7 +105,7 @@ The Supabase CLI version is pinned once, in `.github/actions/setup-supabase-cli`
 
 ## Dev merge gates (branch protection)
 
-All feature PRs target `dev`. `dev` and `main` are protected by one repository ruleset, committed as [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json) (import steps: [`OPERATOR_RUNBOOK.md` § Owner setup for D-195 CI/CD](./OPERATOR_RUNBOOK.md#owner-setup-ci)):
+All feature PRs target `dev`. **Live today:** `dev` has the ruleset `dev protection (merge queue)` (next section) and `main` still has classic branch protection with eight legacy required checks; both move to the committed ruleset in `INFRA-CI-OWNER`. **Target:** `dev` and `main` are protected by one repository ruleset, committed as [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json) (import steps: [`OPERATOR_RUNBOOK.md` § Owner setup for D-195 CI/CD](./OPERATOR_RUNBOOK.md#owner-setup-ci)):
 
 - Require a pull request before merging, **0 approvals**, **require review from Code Owners**, dismiss stale approvals on push, require approval of the most recent push. [`.github/CODEOWNERS`](../../.github/CODEOWNERS) owns only the gate-critical paths (`.github/**`, CI / guard / deploy scripts, coverage / lint / TypeScript / Turbo configs, process rules, `supabase/config.toml`, `eas.json`), so only a PR touching one of them waits for the owner; app code, migrations and new tests merge on a green gate alone (`INFRA-CI-2`).
 - Block force-push and branch deletion; **no bypass actors** (admins included).
@@ -119,7 +119,7 @@ All feature PRs target `dev`. `dev` and `main` are protected by one repository r
 | --- | --- | --- |
 | Single PR gate | CI | `CI gate` |
 
-**Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
+**Required checks, live state (read back 2026-10-31):** `dev` requires only `CI gate` (ruleset, done). `main` still uses classic branch protection with eight legacy contexts that no workflow reports any more — `typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `PR hygiene`, `SonarCloud quality gate` — plus "require branches to be up to date". **Owner action:** replace them with the single check `CI gate` (source: GitHub Actions) before the next release; until then a `dev` → `main` PR waits on contexts that never report (`INFRA-CI-OWNER`). Add `CI verdict` once it is enabled.
 
 `main` requires the same single check: the release lane runs inside `CI gate` for PRs into `main` (see [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green)). Never require deploy jobs on a PR rule; they run after the merge. A `dev` → `main` release PR that carries changes to code-owned paths also needs the owner's code-owner approval.
 
@@ -198,21 +198,13 @@ Playwright P0 journeys run against the live dev deployment before every `dev` �
 | GitHub | Name | Value / purpose |
 | --- | --- | --- |
 | Variable | `DEV_WEB_URL` | `https://dev.karma-community.pages.dev` |
-| Secret | `E2E_TEST_EMAIL` | Dev-only test user (active, verified) |
-| Secret | `E2E_TEST_PASSWORD` | Matching password |
-| Secret | `E2E_SUPABASE_ANON_KEY_DEV` | Dev project publishable anon key (for `scripts/ensure-e2e-user.mjs` preflight). Dev-scoped name keeps it distinct from prod. Wired to the `E2E_SUPABASE_ANON_KEY` env var the test code reads. |
+
+The suites sign in as the public kc-dev seed users and read the publishable anon key from the deployed bundle ([`tests/e2e/README.md`](../../tests/e2e/README.md)), so no workflow reads an E2E secret. The legacy secrets `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD` and `E2E_SUPABASE_ANON_KEY_DEV` are unused by CI; they remain only for the manual `scripts/ensure-e2e-user.mjs` preflight.
 
 Release gate: the `dev E2E on the release head` job of the release lane (`.github/workflows/ci-release.yml`, inside `CI gate`) — it first waits until `DEV_WEB_URL/version.json` reports the release PR's head SHA, so E2E never runs against an older dev build. The full suite also runs nightly (`.github/workflows/e2e-nightly-dev.yml`).
-
-Create user (once, if needed): `E2E_TEST_EMAIL=… E2E_TEST_PASSWORD=… node scripts/create-e2e-user.mjs` (requires dev `SUPABASE_SERVICE_ROLE_KEY`).
 
 Local run (after deploy on dev):
 
 ```bash
-export DEV_WEB_URL=https://dev.karma-community.pages.dev
-export E2E_TEST_EMAIL=…
-export E2E_TEST_PASSWORD=…
-export E2E_SUPABASE_ANON_KEY=…
-node scripts/ensure-e2e-user.mjs
-cd tests/e2e && npm install && npm run install:browsers && npm test
+cd tests/e2e && npm ci && npm run install:browsers && npm test   # DEV_WEB_URL defaults to the dev site
 ```

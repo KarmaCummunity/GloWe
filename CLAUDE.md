@@ -184,8 +184,8 @@ When you spot tech debt outside the immediate scope:
 
 ## 6. Git & PR workflow
 
-> Repo: `KarmaCummunity/KC` · Default branch: `main` · Merge strategy: **squash** · Auto-merge: **on, after CI passes**.
-> **Working branch: `dev`.** All PRs target `dev`. `main` is updated by squash-merging `dev` → `main`. Full topology in [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md).
+> Repo: `KarmaCummunity/KC` · Default branch: `main` · Merge strategy: **squash** · Auto-merge: **on** — `dev` merges through a merge queue once the single required check **`CI gate`** passes.
+> **Working branch: `dev`.** All PRs target `dev`. `main` is updated by a `dev` → `main` release PR (squash-merged). Full topology in [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md).
 
 ### Pre-flight (once per session)
 
@@ -212,16 +212,16 @@ If any check fails, stop and point the user to `SETUP_GIT_AGENT.md`. Do not impr
 
 When in doubt, open a PR.
 
-### `main` production gates (agent CTO — `D-53`)
+### `main` production gates (`D-195`)
 
-No human reviewers on deploy environments. Before every `dev` → `main` release PR:
+A prod deploy needs one human step: the owner's approval on the `production` environment. Before every `dev` → `main` release PR:
 
-1. All CI jobs green, including **CI — main release guard** (`dev` head branch + migration safety scan).
+1. `CI gate` green, including its **release** lane (`dev` head branch, strict migration scan, `app/VERSION` above the latest tag, dev E2E on the release head).
 2. Migrations must be backward-compatible; destructive SQL (`DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, unqualified `DELETE`) fails CI unless the line includes `migration-safety: allow` with justification in the PR body.
-3. After merge: **DB deploy** dry-runs prod before apply; **Prod smoke** must pass when `PROD_WEB_URL` is set.
-4. Never mutate prod SQL outside `supabase/migrations/` + the `db-deploy` workflow. PM confirmation for ad-hoc SQL (§7) still applies if a human operator runs SQL manually.
+3. After merge: **Deploy** (`deploy.yml`) waits for one owner approval, then backs up prod, dry-runs and applies migrations, deploys functions and web, and smoke-tests.
+4. Never mutate prod SQL outside `supabase/migrations/` + the **Deploy** workflow. PM confirmation for ad-hoc SQL (§7) still applies if a human operator runs SQL manually.
 
-Details: [`docs/SSOT/RELEASE_CHECKLIST.md`](docs/SSOT/RELEASE_CHECKLIST.md), [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md) § DB deploy automation.
+Details: [`docs/SSOT/RELEASE_CHECKLIST.md`](docs/SSOT/RELEASE_CHECKLIST.md), [`docs/SSOT/ENVIRONMENTS.md`](docs/SSOT/ENVIRONMENTS.md) § Deploy pipeline.
 
 ### Branch naming
 
@@ -335,7 +335,7 @@ When two agents are running concurrently:
 - **Shared contract** (`packages/{domain,application}/**`): FE leads domain types, BE leads port signatures. Contract changes ship as their own commit with `(contract)` scope (e.g. `feat(contract): add IPostRepository.list`).
 - Branch naming: `<type>/<FR-id-or-scope>-<be|fe>-<slug>` (e.g. `feat/FR-POST-001-fe-feed-ui`).
 - New tech-debt IDs: BE uses `TD-50..99`, FE uses `TD-100..149`.
-- **Applying dev migrations (BE lane).** Schema changes reach the dev DB ONLY as committed sequential files (`supabase/migrations/NNNN_snake.sql`) applied via `supabase db push` / `supabase migration up` (or the `DB deploy` workflow on push to `dev`). **Never** apply schema changes to dev with the Supabase MCP `apply_migration` tool — it records a TIMESTAMP version (e.g. `20260701130827`) that has no local file, which breaks the next `DB deploy` run ("Remote migration versions not found …"). The MCP `execute_sql` tool is fine for read-only inspection. Drift is caught by the `CI — migration drift` workflow; reconcile with `node scripts/reconcile-migration-drift.mjs`. Full runbook: [`docs/SSOT/OPERATOR_RUNBOOK.md`](docs/SSOT/OPERATOR_RUNBOOK.md) → "Migration application rules".
+- **Applying dev migrations (BE lane).** Schema changes reach the dev DB ONLY as committed sequential files (`supabase/migrations/NNNN_snake.sql`) applied via `supabase db push` / `supabase migration up` (or the **Deploy** workflow after a `dev` push passes CI). **Never** apply schema changes to dev with the Supabase MCP `apply_migration` tool — it records a TIMESTAMP version (e.g. `20260701130827`) that has no local file, which breaks the next `DB deploy` run ("Remote migration versions not found …"). The MCP `execute_sql` tool is fine for read-only inspection. Drift is caught by the `CI — migration drift` workflow; reconcile with `node scripts/reconcile-migration-drift.mjs`. Full runbook: [`docs/SSOT/OPERATOR_RUNBOOK.md`](docs/SSOT/OPERATOR_RUNBOOK.md) → "Migration application rules".
 
 ## 10. How to pick the next task
 
