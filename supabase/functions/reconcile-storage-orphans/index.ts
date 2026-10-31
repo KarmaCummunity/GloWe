@@ -10,7 +10,7 @@
 //               → 500 { ok: false, error: string }
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -26,7 +26,7 @@ function json(body: unknown, status = 200): Response {
 }
 
 async function listAllObjects(
-  client: ReturnType<typeof createClient>,
+  client: SupabaseClient,
   prefix = '',
 ): Promise<string[]> {
   const paths: string[] = [];
