@@ -1,7 +1,7 @@
 /** English About landing — hero, numbers, vision, problems (v1.0 master narrative). */
 export const aboutContentCopyA = {
   title: 'About Karma Community',
-  tagline: 'The capitalist kibbutz — a network of giving, with nothing exchanged between people.',
+  tagline: 'A network of giving, with nothing exchanged between people.',
 
   // Hero
   heroEyebrow: 'Karma Community · KC',

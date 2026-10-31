@@ -22,6 +22,8 @@ export interface MarketplaceBrowseFilters {
   lat?: number | null;
   lng?: number | null;
   radiusKm?: number | null;
+  /** World subcategory (`categories.category_id`, items / food); null = the whole world. KC#1102. */
+  categoryId?: string | null;
   limit?: number;
   /** @deprecated use `cursor` (keyset); honoured by the server only without a cursor. */
   offset?: number;

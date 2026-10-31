@@ -1,6 +1,6 @@
-# 90 — Decisions log D1–D58
+# 90 — Decisions log
 
-Index only — the binding wording lives in the linked spec files. All decided by Nave (PM), 2026-10. `*` = needs further depth.
+Index only — the binding wording lives in the linked spec files. All decided by Nave (PM), 2026-10. `*` = needs further depth. A new row takes a `D` placeholder ID, numbered on merge (`CLAUDE.md` §4 "New registry IDs").
 
 | # | Decision | Lives in | Status |
 |---|---|---|---|
@@ -96,3 +96,4 @@ Index only — the binding wording lives in the linked spec files. All decided b
 | D90 | An organization profile is always public (no private mode, follows need no approval); an organization may follow people and organizations | 08, 07.13 | Approved (PM 2026-10-30) |
 | D91 | Organizations publish in every world with no post cap; a member may post in the organization's name (card shows the org, detail shows the member only by opt-in). No separate directory screen: Search gets an "ארגונים" parent filter whose sub-filters appear only while it is on; hub directories reuse it with the hub's field pre-set | 08, 07.3 | Approved (PM 2026-10-30) |
 | D92 | No custom page layouts or paid design for organizations; one uniform profile template (PRD V2 §3.1.5 stays long-horizon vision) | 08 | Approved (PM 2026-10-30) |
+| D93 | Verbal brand: the Founder-approved master narrative §7.4/§15/§16 voice rules become spec 17 §7 (one voice, dugri register, ktiv maleh, jargon ban, locked key slogan "לתת — זה גם לקבל."); gender-neutral copy uses the infinitive ("ללחוץ", "יש ללחוץ"); CTAs ≤ 4 words; English follows the same voice; enforced by the copy-voice guard in `pnpm test` (ratchet + touched-file rule), which makes FR-RESP-006 AC19/AC20 checkable. **Refines D67** (PM 2026-10-30): "קיבוץ קפיטליסטי" may appear subtly on the About screen and in its FAQ only; it stays forbidden everywhere else | 17 | Approved (PM 2026-10-30) |

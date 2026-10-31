@@ -28,7 +28,7 @@ describe('OwnerAutoRemovedBubble', () => {
       target_id: 't1',
       outcome: 'hidden_pending_review',
     });
-    expect(getByText('moderation.bubble.ownerAutoRemoved.hiddenForReview')).toBeTruthy();
+    expect(getByText('moderation.bubble.ownerHiddenForReview.body')).toBeTruthy();
     expect(queryByText('moderation.bubble.ownerAutoRemoved.body')).toBeNull();
   });
 

@@ -16,6 +16,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders, isAllowedOrigin } from '../_shared/cors.ts';
+import { reportError, withObservability } from '../_shared/observability/mod.ts';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -112,7 +113,7 @@ function mapRpcError(message: string): RpcErrorResult {
 // Handler
 // ---------------------------------------------------------------------------
 
-Deno.serve(async (req) => {
+Deno.serve(withObservability('public-research-submit', async (req) => {
   const origin = req.headers.get('origin');
 
   // Preflight
@@ -147,7 +148,7 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (saltErr || !secretRow) {
-    console.error('[public-research-submit] salt missing', saltErr?.message);
+    await reportError(saltErr ?? new Error('salt_missing'), { fn: 'public-research-submit', req });
     return json({ error: 'salt_missing' }, 500, hdrs);
   }
   const salt: string = secretRow.value;
@@ -206,4 +207,4 @@ Deno.serve(async (req) => {
   }
 
   return json({ responseId }, 200, hdrs);
-});
+}));

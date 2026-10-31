@@ -4,12 +4,13 @@ import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, TextInput, typography } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPostSearch } from '../../../src/hooks/useAdminContentSearch';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
 import { PostSearchRow } from '../../../src/components/admin/content/PostSearchRow';
 import { useLocaleBundle } from '../../../src/i18n/useLocaleBundle';
+import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
 import { KcFlashList } from '../../../src/components/lists/KcFlashList';
 
 const STATUS_OPTIONS = [
@@ -18,6 +19,7 @@ const STATUS_OPTIONS = [
   { value: 'closed_delivered',         key: 'closed' as const },
   { value: 'deleted_no_recipient',     key: 'deletedNoRecipient' as const },
   { value: 'removed_admin',            key: 'removedAdmin' as const },
+  { value: 'hidden_pending_review',    key: 'hiddenForReview' as const },
   { value: 'expired',                  key: 'expired' as const },
 ];
 
@@ -46,7 +48,7 @@ export default function PostsScreen() {
   return (
     <View style={styles.root}>
       <AdminScreenHeader title={L.admin.content.postsTitle} />
-      <TextInput
+      <TextInput // brand-guard-allow: search bar, not a form field (spec 17 §4.1)
         style={styles.search}
         value={query}
         onChangeText={setQuery}
@@ -87,20 +89,20 @@ export default function PostsScreen() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root:        { flex: 1, backgroundColor: colors.background },
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  deniedTitle: { fontSize: 18, fontWeight: '700' },
+  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  deniedTitle: { ...typography.h3, ...typography.bold },
   search: {
-    marginHorizontal: 16, marginBottom: 8, padding: 10,
-    borderRadius: 10, backgroundColor: colors.surface,
+    marginHorizontal: spacing.base, marginBottom: spacing.sm, padding: spacing.md,
+    borderRadius: radius.md, backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-    textAlign: 'right', fontSize: 14,
+    textAlign: rtlTextAlignStart, ...typography.body,
   },
-  chips:          { paddingHorizontal: 16, gap: 8, paddingBottom: 8 },
-  chip:           { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: colors.secondaryLight },
+  chips:          { paddingHorizontal: spacing.base, gap: spacing.sm, paddingBottom: spacing.sm },
+  chip:           { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.lg, backgroundColor: colors.secondaryLight },
   chipActive:     { backgroundColor: colors.primary },
-  chipText:       { fontSize: 12, fontWeight: '600' },
+  chipText:       { ...typography.label },
   chipTextActive: { color: colors.textInverse },
-  totalLabel:     { paddingHorizontal: 16, paddingBottom: 4, fontSize: 11, opacity: 0.6 },
-  empty:          { padding: 32, alignItems: 'center' },
-  emptyText:      { fontSize: 14, opacity: 0.6 },
+  totalLabel:     { paddingHorizontal: spacing.base, paddingBottom: spacing.xs, ...typography.caption, opacity: 0.6 },
+  empty:          { padding: spacing['2xl'], alignItems: 'center' },
+  emptyText:      { ...typography.body, opacity: 0.6 },
 }));

@@ -4,7 +4,7 @@ import { marketplaceMap } from './marketplaceMap';
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
-import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
@@ -13,8 +13,8 @@ export { timeVolunteer } from './donations.timeVolunteer';
 export const donations = {
   tabLabel: 'תרומות',
   hubTitle: 'תרומות של:',
-  hubHeroTitle: 'תן. קבל. תרום מה שיש לך.',
-  hubHeroSubtitle: 'בחר תחום שמדבר אליך והפוך אותו לפעולה.',
+  hubHeroTitle: 'לתת. לקבל. לתרום מה שיש לך.',
+  hubHeroSubtitle: 'לבחור תחום שמדבר אלינו ולהפוך אותו לפעולה.',
   hubItemsFeaturedTitle: 'חפצים',
   hubItemsFeaturedSubtitle: 'תרומה ובקשת חפצים — הפעולה המרכזית באפליקציה',
   hubCategoriesSectionTitle: 'תחומי תרומה נוספים',
@@ -65,7 +65,7 @@ export const donations = {
     title: 'תרומה כספית',
     body:
       'כאן אפשר לתמוך ישירות בקהילת קארמה, למצוא עמותות לתרומה ולשתף קישורים לעמותות שאתם מכירים.',
-    openLink: 'פתח את jgive.com',
+    openLink: 'לפתוח את jgive.com',
     linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
     linkErrorBody: 'נסו דפדפן אחר או הקלידו את הכתובת ידנית.',
   },
@@ -73,12 +73,12 @@ export const donations = {
     title: 'תרומת זמן',
     body:
       'קטגוריית תרומת הזמן תפתח בקרוב.\nועד אז מזמינים אתכם להיכנס ולמצוא הזדמנויות התנדבות בפלטפורמה של ׳לב אחד׳, או בכל אחד מהקישורים פה למטה.',
-    openLink: 'פתח את לב אחד',
+    openLink: 'לפתוח את לב אחד',
     composerHeading: 'ניתן גם להתנדב ישירות בארגון שלנו, ולעזור לקהילה הזאת להפתח! \nהשאירו הודעה ונחזור אליכם.',
     composerPlaceholder: 'הקלידו את ההודעה שלכם — מקצוע, תחום עניין, וזמינות...',
-    sendButton: 'שלח הודעה',
+    sendButton: 'לשלוח הודעה',
     sendError: 'לא נשלח. נסו שוב.',
-    sendRetry: 'נסה שוב',
+    sendRetry: 'לנסות שוב',
     volunteerPrefix: 'התנדבות בארגון: ',
   },
   // FR-DONATE-007/008/009 — community-curated NGO link list.
@@ -92,17 +92,17 @@ export const donations = {
     },
     loading: 'טוען...',
     loadError: 'לא הצלחנו לטעון את הקישורים. נסו שוב.',
-    retry: 'נסה שוב',
+    retry: 'לנסות שוב',
     rowMenu: {
-      open: 'פתח',
-      report: 'דווח על קישור',
-      edit: 'ערוך',
-      remove: 'מחק',
+      open: 'לפתוח',
+      report: 'לדווח על קישור',
+      edit: 'לערוך',
+      remove: 'למחוק',
     },
     reportSent: 'תודה, הדיווח התקבל.',
     confirmRemoveTitle: 'מחיקת קישור',
     confirmRemoveBody: 'הקישור יוסתר מהרשימה. להמשיך?',
-    confirmRemoveOk: 'מחק',
+    confirmRemoveOk: 'למחוק',
     confirmRemoveCancel: 'ביטול',
   },
   // FR-DONATE-010 — platform-support CTA card embedded on About + Settings.
@@ -126,8 +126,8 @@ export const donations = {
     descriptionLabel: 'תיאור (אופציונלי)',
     descriptionPlaceholder: 'מה אפשר למצוא בקישור הזה?',
     cancel: 'ביטול',
-    submit: 'הוסף',
-    save: 'שמור',
+    submit: 'להוסיף',
+    save: 'לשמור',
     submitting: 'מאמת קישור...',
     helperText: 'הקישור יבדק שיהיה תקין לפני ההוספה.',
     editHelperText: 'השינויים יבדקו מול השרת לפני השמירה.',
@@ -149,7 +149,7 @@ export const donations = {
 export const search = {
   tabLabel: 'חיפוש',
   title: 'חיפוש',
-  placeholder: 'חפש אנשים, פוסטים, קישורים...',
+  placeholder: 'לחפש אנשים, פוסטים, קישורים...',
 
   // Category chips
   all: 'הכל',
@@ -174,7 +174,7 @@ export const search = {
   filterMinFollowers: 'מינימום עוקבים',
   filterRadius: 'רדיוס מהעיר',
   radiusKm: 'עד {km} ק"מ',
-  clearFilters: 'נקה סינון',
+  clearFilters: 'לנקות סינון',
   applyFilters: 'החל סינון',
 
   // Results sections
@@ -184,7 +184,7 @@ export const search = {
   sectionOrgs: 'ארגונים',
   sectionHashtags: 'האשטגים',
   suggested: 'חיפושים מומלצים',
-  showAll: 'הצג הכל',
+  showAll: 'להציג הכל',
 
   // Result info
   followers: '{{count}} עוקבים',
@@ -195,7 +195,7 @@ export const search = {
   noResults: 'לא נמצאו תוצאות',
   noResultsDesc: 'נסו מילות חיפוש אחרות או שנו את הסינון.',
   recentSearches: 'חיפושים אחרונים',
-  clearRecent: 'נקה היסטוריה',
+  clearRecent: 'לנקות היסטוריה',
   startSearching: 'התחילו לחפש',
   startSearchingDesc: 'חפשו אנשים, פוסטים וקישורים בכל הקהילה.',
   minChars: 'הקלידו לפחות 2 תווים',
@@ -292,6 +292,7 @@ export const marketplace = {
   myListingsHiddenHint: 'מוסתרת מאחרים עד שהצוות יבדוק את הדיווחים',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
+  browseRefine: marketplaceBrowseRefine,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,
   availability: marketplaceAvailabilityLabels,
