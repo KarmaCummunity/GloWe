@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
+import { TextField } from '../ui/TextField';
 import type { ListingKindOption } from '@kc/domain';
 import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
 import {
@@ -39,13 +40,6 @@ import { trackActivationIfFirst, trackCoreLoop } from '../../lib/analyticsCoreLo
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    color: colors.textPrimary,
-  },
   label: { ...typography.caption, color: colors.textSecondary },
   hint: { ...typography.caption, color: colors.textSecondary },
   btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.primary },
@@ -153,10 +147,14 @@ export function MarketplaceCreateForm({
           disabled={busy}
         />
       ) : null}
-      <Text style={styles.label}>{t('marketplace.fieldTitle')}</Text>
-      <TextInput style={styles.input} value={title} onChangeText={setTitle} />
-      <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
-      <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
+      <TextField testID="listing-title" label={t('marketplace.fieldTitle')} value={title} onChangeText={setTitle} />
+      <TextField
+        testID="listing-summary"
+        label={t('marketplace.fieldSummary')}
+        value={summary}
+        onChangeText={setSummary}
+        multiline
+      />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
       {showRideRoute ? (
         <RideRouteFields
@@ -200,6 +198,7 @@ export function MarketplaceCreateForm({
           <Image key={p.uri} source={{ uri: p.uri }} style={styles.thumb} />
         ))}
         <Pressable
+          testID="listing-add-photo"
           style={chipStyles.chip}
           onPress={async () => {
             const next = await pickListingImages(picked.length);
@@ -213,6 +212,7 @@ export function MarketplaceCreateForm({
       {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
       {validationError ? <Text style={styles.err}>{validationError}</Text> : null}
       <Pressable
+        testID="listing-publish"
         style={styles.btn}
         disabled={busy || title.trim().length < 2 || !userId}
         onPress={async () => {

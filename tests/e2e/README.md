@@ -15,13 +15,15 @@ User journeys against the deployed dev web app (`DEV_WEB_URL`, default
 
 | File | Covers |
 |---|---|
+| `journeys/items.spec.ts` | **two-user items journey (G40):** A publishes → B reserves → A confirms → A hands over (listing closed, karma) → B rates |
+| `journeys/food.spec.ts` | **two-user food journey (G40):** A publishes with expiry → B quick-claims (confirmed at once) → A hands over → B rates |
 | `journeys/qa/auth.spec.ts` | email login with the seeded user, wrong password, sign-up form |
 | `journeys/qa/feed.spec.ts` | feed renders without failed API calls, create a post, like, comment |
-| `journeys/qa/marketplace.spec.ts` | browse, search, listing detail, create item with/without photo, reserve by a second user |
-| `journeys/qa/social.spec.ts` | chat between two users, notifications inbox, donations hub, money world, he/en + RTL |
+| `journeys/qa/marketplace.spec.ts` | browse, search, listing detail, create item with/without photo on the unified create screen (`/create?category=items`), reserve by a second user |
+| `journeys/qa/social.spec.ts` | chat between two users, notifications inbox, donations hub, money world (active hub or portal per `world_money_enabled`), he/en + RTL |
 | `journeys/qa/block-user.spec.ts` | block then unblock `user3@seed.kc.test` from the profile ⋮ menu (Apple 1.2) |
 | `journeys/qa/account-deletion.spec.ts` | **opt-in, destructive**: delete account from Settings (set `E2E_DELETE_ACCOUNT_EMAIL` to a spare seed user) |
-| `journeys/*.spec.ts` | original P0 smoke journeys |
+| `journeys/*.spec.ts` | P0 smoke journeys + the world journeys above (`lib/worldJourney.ts` holds the shared shape; a world is a fixture) |
 
 ## CI
 

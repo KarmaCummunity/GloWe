@@ -17,7 +17,7 @@ import type {
 } from '../../ports/IPostRepository';
 import type { PostActorIdentityRow, UpsertPostActorIdentityInput } from '../../ports/postActorIdentity';
 import { PostError } from '../errors';
-import { clonePost, identityKey, type InMemoryPostStore } from './inMemoryPostStore';
+import { clonePost, identityKey, isPostVisibleTo, type InMemoryPostStore } from './inMemoryPostStore';
 
 const DELETE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const PAGE_MAX = 100;
@@ -68,6 +68,7 @@ export class InMemoryPostRepository implements IPostRepository {
       mediaAssets: input.mediaAssets.map((m) => ({
         mediaAssetId: crypto.randomUUID(),
         postId,
+        bucket: 'post-images' as const,
         path: m.path,
         mimeType: m.mimeType,
         sizeBytes: m.sizeBytes,
@@ -76,6 +77,7 @@ export class InMemoryPostRepository implements IPostRepository {
       recipient: null,
       reopenCount: 0,
       deleteAfter: null,
+      listingId: null,
       createdAt: now,
       updatedAt: now,
       sourceLanguage: null,
@@ -94,6 +96,7 @@ export class InMemoryPostRepository implements IPostRepository {
       post.mediaAssets = mediaAssets.map((m) => ({
         mediaAssetId: crypto.randomUUID(),
         postId,
+        bucket: 'post-images' as const,
         path: m.path,
         mimeType: m.mimeType,
         sizeBytes: m.sizeBytes,
@@ -113,7 +116,7 @@ export class InMemoryPostRepository implements IPostRepository {
     if (!post || post.ownerId !== this.actorId || !(post.status === 'open' || unlinkedClosed)) {
       throw new PostError('post_owner_delete_forbidden', 'delete: no row deleted');
     }
-    this.store.posts.delete(postId);
+    this.store.removePost(postId);
   }
 
   async adminRemove(_postId: string): Promise<void> {
@@ -234,8 +237,8 @@ export class InMemoryPostRepository implements IPostRepository {
     return post;
   }
 
-  /** OnlyMe posts are visible to their owner only; other visibilities are readable here. */
+  /** The store's `is_post_visible_to` slice (owner, hidden statuses, OnlyMe). */
   private visibleTo(post: Post, viewerId: string | null): boolean {
-    return post.visibility !== 'OnlyMe' || viewerId === post.ownerId;
+    return isPostVisibleTo(post, viewerId);
   }
 }
