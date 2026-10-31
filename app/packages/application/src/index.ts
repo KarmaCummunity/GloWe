@@ -131,6 +131,7 @@ export type { IDeviceRepository } from './notifications/IDeviceRepository';
 export { RegisterDeviceUseCase } from './notifications/RegisterDeviceUseCase';
 export { DeactivateDeviceUseCase } from './notifications/DeactivateDeviceUseCase';
 export { UpdateNotificationPreferencesUseCase } from './notifications/UpdateNotificationPreferencesUseCase';
+export { applyNotificationPreferencesPatch } from './notifications/applyNotificationPreferencesPatch';
 export * from './ports/ILegalDocumentRepository';
 export * from './legal/LoadLegalDocumentUseCase';
 export * from './legal/CheckPendingLegalAcksUseCase';
@@ -139,6 +140,7 @@ export * from './admin/IAdminRoleRepository';
 export * from './admin/GetMyAdminRolesUseCase';
 export * from './admin/GrantAdminRoleUseCase';
 export * from './admin/RevokeAdminRoleUseCase';
+export * from './admin/ChangeAdminRoleUseCase';
 export * from './admin/ListAdminsUseCase';
 export * from './admin/IAdminTaskRepository';
 export * from './admin/ListAdminTasksUseCase';
@@ -171,6 +173,7 @@ export * from './admin/DecideOrgApplicationUseCase';
 export * from './admin/IOrgHierarchyRepository';
 export * from './admin/GetOrgTreeUseCase';
 export * from './admin/SetManagerUseCase';
+export * from './admin/GetHierarchySnapshotUseCase';
 
 // A1 — admin reports inbox & case detail
 export * from './reports/IReportsRepository';

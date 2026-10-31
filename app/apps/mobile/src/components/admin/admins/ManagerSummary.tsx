@@ -1,9 +1,9 @@
 // app/apps/mobile/src/components/admin/admins/ManagerSummary.tsx
 // FR-ADMIN-025 — read-only display of a grant's direct manager + subordinates
 // (+ any mutation error). Presentational; mutation lives in GrantManagerSection.
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { OrgTreeMember } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
 

@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import {
   ABOUT_DONATION_PHONE_DISPLAY,
   ABOUT_EMAIL_NAVE,

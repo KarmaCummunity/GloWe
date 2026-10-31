@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { useSearchScreenStyles } from '../../screens/tabs/search.styles';
 import { localizeSuggestedTag } from './localizeSuggestedTag';

@@ -2,10 +2,12 @@
 // Camera button auto-hidden on web (no native camera).
 import React from 'react';
 import {
-  Modal, Text, TouchableOpacity, Pressable,
+  Modal,
+  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius, shadow } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, shadow, Text } from '@kc/ui';
 import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { isCameraAvailable, type AvatarSource } from '../services/avatarUpload';

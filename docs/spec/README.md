@@ -2,7 +2,7 @@
 
 > **Human source of truth:** the Hebrew page "KC – ספר הפרויקט (מקור אמת)" maintained by the PM (Nave) with the KC assistant. This folder is its English, AI-agent-friendly derivation. If the two disagree, the Hebrew page wins and this folder must be updated in the same week (decision **D35**, **D58**).
 >
-> Snapshot date: **2026-10-30**. Decisions **D1–D64** included.
+> Snapshot date: **2026-10-30**. Decisions **D1–D92** included.
 
 ## How to read
 
@@ -24,7 +24,7 @@
 | 05 | [05_giving_worlds.md](./05_giving_worlds.md) | The 8 giving worlds and their user journeys |
 | 06 | [06_domain_hubs.md](./06_domain_hubs.md) | The 11 domains and domain hubs |
 | 07 | [07_cross_cutting_systems.md](./07_cross_cutting_systems.md) | Post, form, feed, card, closing, karma, ratings, chat, engagement, notifications, profile, privacy, trust, moderation |
-| 08 | [08_organizations.md](./08_organizations.md) | Orgs, org verification levels, events, volunteering, jobs, money |
+| 08 | [08_organizations.md](./08_organizations.md) | Orgs, org verification levels, events, volunteering, jobs, money, org finance & transparency (D76–D82), organization profile & accounts (D88–D92) |
 | 09 | [09_emergency_mode.md](./09_emergency_mode.md) | Emergency mode (D42, D51, D56) |
 | 10 | [10_challenges.md](./10_challenges.md) | Challenges layer (D43, D46, D52) |
 | 11 | [11_governance.md](./11_governance.md) | Community governance (D40, D49, D50) |
@@ -33,10 +33,11 @@
 | 14 | [14_roadmap.md](./14_roadmap.md) | Phase map |
 | 15 | [15_risks.md](./15_risks.md) | Risks |
 | 16 | [16_kpis.md](./16_kpis.md) | KPIs |
-| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D64 |
-| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S43 |
+| 17 | [17_brand_and_design_system.md](./17_brand_and_design_system.md) | Brand identity, logo, design tokens, sync to Figma / Claude Design, guardrail tests (D65, D66) |
+| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D92 |
+| 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S51 |
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
-| 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G37 |
+| 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G49 |
 | 95 | [95_reconciliation.md](./95_reconciliation.md) | Book × legacy spec × code verification (2026-10-30), superseded FRs, PM questions Q-1…Q-8, SSOT hygiene notes |
 | 96 | [96_launch_and_first_group_plan.md](./96_launch_and_first_group_plan.md) | Path to store launch and the first WhatsApp group migration: what the PM provides, decisions, run sheet |
 | 94 | [94_glossary_and_naming.md](./94_glossary_and_naming.md) | Glossary + naming conventions |

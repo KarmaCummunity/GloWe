@@ -1,7 +1,7 @@
 // app/apps/mobile/src/components/admin/admins/LevelBadge.tsx
 // FR-ADMIN-025 — depth-from-root badge shown on every org-tree node.
-import { Text, View } from 'react-native';
-import { makeUseStyles } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface LevelBadgeProps {

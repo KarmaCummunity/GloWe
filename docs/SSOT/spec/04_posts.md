@@ -37,8 +37,9 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
 - AC1. The toggle is the most prominent control on the screen and persists the chosen mode locally so the next visit defaults to the previous selection.
 - AC2. Switching the toggle preserves shared fields (title, description, category, address, visibility) and clears type-specific fields (item condition, urgency).
 - AC3. The form is the same screen used for editing an existing post (`FR-POST-008`); the route distinguishes them.
+- AC4. *(KC#1296, 2026-10-30)* For the items and food giving worlds, the listing form offers an optional **world subcategory** (items → books, food → bakery…, `public.categories` children of the world). The choice is stored as the listing's `category_id`; a subcategory of another world is rejected (`category_world_mismatch`, migration `0462`). Matching uses it for its category score.
 
-**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`.
+**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory`.
 
 ---
 

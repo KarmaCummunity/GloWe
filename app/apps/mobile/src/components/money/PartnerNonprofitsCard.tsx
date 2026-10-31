@@ -1,9 +1,8 @@
 // FR-DONATE-003 AC2–AC4 — link-out to the partner donation platform jgive (D37).
 // Opens in the external browser; never an in-app WebView.
 import React, { useCallback } from 'react';
-import { Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Card } from '../ui/Card';
 import { SecondaryButton } from '../ui/Buttons';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

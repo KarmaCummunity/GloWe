@@ -1,9 +1,9 @@
 // Matching v2 — "Matches for you": automatic offer↔request pairs computed in Postgres.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, Text, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../src/navigation/detailStackScreenOptions';
 import { KcFlashList } from '../src/components/lists/KcFlashList';
 import { SimpleRowListSkeleton } from '../src/components/skeletons/SimpleRowListSkeleton';

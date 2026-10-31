@@ -1,7 +1,7 @@
 # ADR-001 — Client state management
 
 - **Status:** Accepted (2026-10-30) · records and tightens what the mobile app already does
-- **Issue:** KC#1015 · **Decision log:** `D-195` in [`../../SSOT/DECISIONS.md`](../../SSOT/DECISIONS.md)
+- **Issue:** KC#1015 · **Decision log:** `D-200` in [`../../SSOT/DECISIONS.md`](../../SSOT/DECISIONS.md)
 - **Related:** [ADR-002 data layer](./ADR-002-data-layer.md) (where server state comes from), PERF-6 / #894 (offline query cache), TD-103 (persisted state leaking across sign-out)
 
 ## Context

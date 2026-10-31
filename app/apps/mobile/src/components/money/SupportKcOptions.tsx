@@ -1,9 +1,9 @@
 // FR-DONATE-011 — the payment choices inside the "support KC" card:
 // one-time channels (Bit / PayBox / card page) and the monthly standing order.
 import React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { hasKcSupportOptions, type KcSupportChannel, type KcSupportOptions as Options } from '@kc/domain';
 import { PrimaryButton, SecondaryButton } from '../ui/Buttons';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

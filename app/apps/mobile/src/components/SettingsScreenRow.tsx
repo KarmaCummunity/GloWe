@@ -1,9 +1,9 @@
 // Shared row for settings list — use `View` when there is no `onPress` so nested
 // controls (e.g. `Switch`) receive touches; `TouchableOpacity` would steal them.
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../lib/webRtlStyle';
 

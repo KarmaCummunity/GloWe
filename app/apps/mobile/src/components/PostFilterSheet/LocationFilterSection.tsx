@@ -1,9 +1,9 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { RADIUS_OPTIONS_KM, type LocationFilter } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { CityPicker } from '../CityPicker';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

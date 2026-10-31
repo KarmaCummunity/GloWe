@@ -9,9 +9,9 @@
 //   chat → hidden/active label (no link — chats are private; we link to
 //          the reporter side from the reporter list instead)
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { AdminReportTargetType } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface CaseTargetCardProps {

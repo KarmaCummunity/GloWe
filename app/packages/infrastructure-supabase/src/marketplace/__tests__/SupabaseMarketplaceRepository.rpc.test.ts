@@ -275,4 +275,12 @@ describe('SupabaseMarketplaceRepository — external bodies', () => {
     await repo.createListing({ kindId: 'k', title: 'Foster', externalBodyId: 'b1' });
     expect(rpcCalls[0]?.args).toMatchObject({ p_external_body_id: 'b1' });
   });
+
+  it('createListing forwards the world subcategory and omits it when none was picked (KC#1296)', async () => {
+    const { repo, rpcCalls } = makeClient({ create_marketplace_listing: ok('id') });
+    await repo.createListing({ kindId: 'k', title: 'Bookshelf', categoryId: 'cat-books' });
+    await repo.createListing({ kindId: 'k', title: 'Chair', categoryId: null });
+    expect(rpcCalls[0]?.args).toMatchObject({ p_category_id: 'cat-books' });
+    expect(rpcCalls[1]?.args).toMatchObject({ p_category_id: undefined });
+  });
 });

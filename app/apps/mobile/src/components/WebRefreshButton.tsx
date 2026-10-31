@@ -53,6 +53,6 @@ export function WebRefreshButton({ onPress, isLoading }: WebRefreshButtonProps) 
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(() => ({
   btn: { padding: spacing.xs },
 }));

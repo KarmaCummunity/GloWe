@@ -13,9 +13,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { Text } from 'react-native';
 import { render } from '@testing-library/react';
-import { spacing } from '@kc/ui';
+import { spacing, Text } from '@kc/ui';
 
 interface DeviceProfile {
   readonly name: string;

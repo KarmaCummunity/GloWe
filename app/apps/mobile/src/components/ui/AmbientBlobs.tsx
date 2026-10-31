@@ -1,6 +1,6 @@
 // Decorative ambient background blobs.
-// Three offset orange disks that pulse slowly. Pulled out of AuthBackground so
-// any "main" screen can mount the same idiom as the welcome / sign-in screens.
+// Three offset orange disks that pulse slowly (paused under reduced motion).
+// Shared by the welcome / sign-in / sign-up screens and any "main" screen.
 //
 // `density` controls how prominent the blobs are:
 //   - 'auth'    — the original auth-screen intensity (opacity 0.05–0.07).
@@ -8,6 +8,7 @@
 //                 where the blobs should feel like a watermark, not a feature.
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from '@kc/ui';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,6 +28,9 @@ const OPACITY_BY_DENSITY = {
 } as const;
 
 export function AmbientBlobs({ density = 'auth' }: AmbientBlobsProps) {
+  // Decoration-only brand orange (spec 17 §4) — the same token in both palettes.
+  const { colors } = useTheme();
+  const fill = { backgroundColor: colors.primaryVivid };
   const reduced = useReducedMotion();
   const scale1 = useSharedValue(1);
   const scale2 = useSharedValue(1);
@@ -64,9 +68,9 @@ export function AmbientBlobs({ density = 'auth' }: AmbientBlobsProps) {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Animated.View style={[styles.blob1, { opacity: opacity.a }, style1]} />
-      <Animated.View style={[styles.blob2, { opacity: opacity.b }, style2]} />
-      <Animated.View style={[styles.blob3, { opacity: opacity.c }, style3]} />
+      <Animated.View style={[styles.blob1, fill, { opacity: opacity.a }, style1]} />
+      <Animated.View style={[styles.blob2, fill, { opacity: opacity.b }, style2]} />
+      <Animated.View style={[styles.blob3, fill, { opacity: opacity.c }, style3]} />
     </View>
   );
 }
@@ -77,7 +81,6 @@ const styles = StyleSheet.create({
     width: 380,
     height: 380,
     borderRadius: 190,
-    backgroundColor: '#F97316',
     top: -110,
     right: -90,
   },
@@ -86,7 +89,6 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: '#F97316',
     bottom: 60,
     left: -70,
   },
@@ -95,7 +97,6 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#FB923C',
     bottom: 220,
     right: 20,
   },

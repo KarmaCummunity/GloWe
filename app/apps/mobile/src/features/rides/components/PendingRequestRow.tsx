@@ -1,10 +1,10 @@
 // FR-RIDE-024 — single pending join-request row inside MyRideRow.
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 import { AvatarInitials } from '../../../components/AvatarInitials';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';

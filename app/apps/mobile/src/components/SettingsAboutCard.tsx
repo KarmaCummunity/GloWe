@@ -1,10 +1,10 @@
 // Prominent About entry on Settings — FR-SETTINGS-001 / About route.
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { warmPromptCardBase } from './warmPromptCardStyles';
 
 const useStyles = makeUseStyles((theme) => {
