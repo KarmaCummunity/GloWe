@@ -1,4 +1,4 @@
--- 0466_rating_given_karma | KC#1306 — spec 07 §7.6 awards 2 karma for "Rating given".
+-- 0510_rating_given_karma | KC#1306 — spec 07 §7.6 awards 2 karma for "Rating given".
 --
 -- Ratings stored nothing on the karma side. Each handoff rating (`rate_giving_handoff`) and each
 -- ride rating (`rpc_ride_rate`) now grants 2 points to the rater through `karma_grant_once`, whose

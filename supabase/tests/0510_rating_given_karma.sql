@@ -1,4 +1,4 @@
--- 0466 (KC#1306) — spec 07 §7.6 "Rating given — 2": a handoff rating awards its rater 2 karma
+-- 0510 (KC#1306) — spec 07 §7.6 "Rating given — 2": a handoff rating awards its rater 2 karma
 -- once; editing the rating or its note does not award again; the ratee gets nothing for it.
 
 begin;
@@ -87,4 +87,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0466_rating_given_karma.sql passed'
+\echo '✓ 0510_rating_given_karma.sql passed'
