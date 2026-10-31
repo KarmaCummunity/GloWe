@@ -2,6 +2,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { withObservability } from '../_shared/observability/mod.ts';
 import { createSenderHandler } from './handler.ts';
 
 const supabase = createClient(
@@ -9,7 +10,7 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
-serve(createSenderHandler({
+serve(withObservability('whatsapp-sender', createSenderHandler({
   rpc: async (fn, args) => {
     const { data, error } = await supabase.rpc(fn, args);
     return { data, error: error ? { message: error.message } : null };
@@ -25,4 +26,4 @@ serve(createSenderHandler({
   token: Deno.env.get('WHATSAPP_CLOUD_API_TOKEN') ?? '',
   phoneNumberId: Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? '',
   graphVersion: Deno.env.get('WHATSAPP_GRAPH_API_VERSION') ?? '',
-}));
+})));

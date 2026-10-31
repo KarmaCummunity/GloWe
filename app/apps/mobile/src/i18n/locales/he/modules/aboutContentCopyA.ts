@@ -1,7 +1,7 @@
 /** Hebrew About landing — hero, numbers, vision, problems (v1.0 master narrative). */
 export const aboutContentCopyA = {
   title: 'אודות קהילת קארמה',
-  tagline: 'הקיבוץ הקפיטליסטי — רשת של נתינה, בלי תמורה בין אנשים.',
+  tagline: 'רשת של נתינה, בלי תמורה בין אנשים.',
 
   // Hero
   heroEyebrow: 'קהילת קארמה · KC',

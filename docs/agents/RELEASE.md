@@ -36,8 +36,7 @@ git log --oneline origin/dev --since='2 weeks ago' --grep=''
 | Preview smoke | [`kc-mobile-eas-preview.yml`](../../.github/workflows/kc-mobile-eas-preview.yml) | EAS `preview` profile build, no store submit | `EXPO_TOKEN` |
 | TestFlight | [`testflight-ios.yml`](../../.github/workflows/testflight-ios.yml) | macOS local EAS `production` IPA → TestFlight | `EXPO_TOKEN`, `ASC_*`, `KC_IOS_TEAM_ID`, `KC_IOS_DIST_P12_*`; vars `KC_ASC_APP_ID`, `KC_EAS_PROJECT_ID`, `KC_IOS_DIST_CERT_ID`; env `mobile-store` |
 | Play internal | [`play-internal.yml`](../../.github/workflows/play-internal.yml) | EAS cloud AAB → Play **internal** track | `EXPO_TOKEN`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; var `KC_EAS_PROJECT_ID`; env `mobile-store` |
-| Web (dev) | `Deploy Web` on push to `dev` | Cloudflare Pages → `dev.karma-community.pages.dev` | (repo env) |
-| DB (kc-dev) | `DB deploy` on push to `dev` | `supabase db push` → supabase-dev | env `supabase-dev` |
+| DB → functions → web → smoke (kc-dev) | [`deploy.yml`](../../.github/workflows/deploy.yml) after the `dev` push's **CI** run passes | `supabase db push` → kc-dev, Edge Functions, Cloudflare Pages → `dev.karma-community.pages.dev` | envs `supabase-dev`, `cloudflare-dev` |
 
 Optional on store builds: `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_URL`. If `SENTRY_AUTH_TOKEN` is empty, workflows export `SENTRY_DISABLE_AUTO_UPLOAD=true` (and `app.config.ts` does the same) so source-map upload is skipped.
 
