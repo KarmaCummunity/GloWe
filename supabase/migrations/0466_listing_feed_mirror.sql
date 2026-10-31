@@ -122,41 +122,6 @@ create trigger posts_after_delete_counters
   for each row when (old.listing_id is null)
   execute function public.posts_after_change_counters();
 
--- ── 5. A mirror may follow its listing when it becomes more private ──────────────────
--- Listing anonymity can only tighten (0242) while post visibility can only open up
--- (FR-POST-009); the mirror sync sets `kc.listing_mirror_sync` for its own update only.
-create or replace function public.posts_visibility_upgrade_check()
-returns trigger language plpgsql as $$
-declare
-  rank_old int;
-  rank_new int;
-begin
-  if old.visibility = new.visibility then
-    return new;
-  end if;
-  if new.listing_id is not null
-     and current_setting('kc.listing_mirror_sync', true) = '1' then
-    return new;
-  end if;
-  -- Lower rank = more private. Allowed: rank_new >= rank_old.
-  rank_old := case old.visibility
-    when 'OnlyMe' then 0
-    when 'FollowersOnly' then 1
-    when 'Public' then 2
-  end;
-  rank_new := case new.visibility
-    when 'OnlyMe' then 0
-    when 'FollowersOnly' then 1
-    when 'Public' then 2
-  end;
-  if rank_new < rank_old then
-    raise exception 'visibility_downgrade_forbidden'
-      using errcode = 'check_violation';
-  end if;
-  return new;
-end;
-$$;
-
 -- ── 6. The posts → listings sync skips mirrors (no second listing per listing) ───────
 create or replace function public.trg_posts_sync_listing()
 returns trigger
@@ -293,7 +258,6 @@ begin
     values (p_listing.listing_id, v_post_id)
     on conflict (listing_id) do nothing;
   else
-    perform set_config('kc.listing_mirror_sync', '1', true);
     update public.posts p
        set type           = v_type,
            status         = v_status,
@@ -307,7 +271,6 @@ begin
        and (p.type, p.status, p.visibility, p.title, p.description, p.category, p.city, p.item_condition)
            is distinct from
            (v_type, v_status, v_visibility, v_title, v_description, v_category, v_city, v_condition);
-    perform set_config('kc.listing_mirror_sync', '', true);
   end if;
 
   perform public.listing_feed_mirror_sync_media(p_listing.listing_id, v_post_id);
