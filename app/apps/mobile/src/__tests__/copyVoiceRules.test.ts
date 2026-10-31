@@ -16,7 +16,7 @@ function he(text: string, key: string | null = 'body'): LocaleString {
 }
 
 describe('extractLocaleStrings', () => {
-  it('reads values with their key, line and end line, and skips comments', () => {
+  it('reads values with their key, lines and closing column, and skips comments', () => {
     const source = [
       '// header comment with a \'quote\'',
       'export const x = {',
@@ -27,9 +27,9 @@ describe('extractLocaleStrings', () => {
       '};',
     ].join('\n');
     expect(extractLocaleStrings(source)).toEqual([
-      { key: 'publishCta', text: 'פרסום', line: 3, endLine: 3 },
-      { key: 'longBody', text: 'שורה ארוכה', line: 5, endLine: 5 },
-      { key: 'title', text: 'כותרת', line: 6, endLine: 6 },
+      { key: 'publishCta', text: 'פרסום', line: 3, endLine: 3, endColumn: 21 },
+      { key: 'longBody', text: 'שורה ארוכה', line: 5, endLine: 5, endColumn: 16 },
+      { key: 'title', text: 'כותרת', line: 6, endLine: 6, endColumn: 26 },
     ]);
   });
 
@@ -40,6 +40,11 @@ describe('extractLocaleStrings', () => {
       { key: 'quoted-key', text: 'ערך' },
       { key: 'esc', text: "a'b" },
     ]);
+  });
+
+  it('decodes \\uXXXX and \\u{…} escapes like JavaScript', () => {
+    const source = "const x = { send: '\\u05e9\\u05dc\\u05d7', mark: '\\u{5d0}!' };";
+    expect(extractLocaleStrings(source).map(({ text }) => text)).toEqual(['שלח', 'א!']);
   });
 
   it('records the end line of a multi-line template literal', () => {
@@ -180,5 +185,15 @@ describe('countCopyFindings', () => {
       '};',
     ].join('\n');
     expect(countCopyFindings(source, 'he')).toEqual({ genderedImperative: 2 });
+  });
+
+  it('ignores marker text inside a string: only a comment after the closing quote exempts it', () => {
+    const source = "export const x = {\n  a: 'שלח // copy-voice-allow: not a comment',\n};";
+    expect(countCopyFindings(source, 'he')).toEqual({ genderedImperative: 1 });
+  });
+
+  it('never lets an allow marker exempt the hidden meaning outside About / FAQ', () => {
+    const source = "export const x = {\n  a: 'קיבוץ קפיטליסטי', // copy-voice-allow: easter egg\n};";
+    expect(countCopyFindings(source, 'he', 'src/i18n/locales/he/modules/feed.ts')).toEqual({ hiddenMeaning: 1 });
   });
 });

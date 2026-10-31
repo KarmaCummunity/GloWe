@@ -201,7 +201,7 @@ English is opt-in and machine-translated from Hebrew (D-167 in `docs/SSOT/DECISI
 | `brandWording` | he, en | a variant of the key slogan; "קומיוניטי"; "Karma Community" with other casing |
 | `hiddenMeaning` | he, en | "קיבוץ קפיטליסטי" / "capitalist kibbutz" in any locale module outside the About screen and FAQ — exempt by an explicit, reviewed file list (`HIDDEN_MEANING_ALLOWED_FILES`: the `aboutContent*` modules, he + en), not by allow markers (D67, D93) |
 
-Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` on the line the string ends, reviewed in the PR.
+Precision over recall: the word lists leave out words that also read as nouns, adjectives or common past tenses (המשך, סגור, מלא, אשר, דחה), and a verb followed by "ב-" or "על-ידי" is read as a report, not a command. A justified exception (e.g. a confirm keyword the user must type) carries an end-of-line comment `copy-voice-allow: <reason>` after the closing quote on the line the string ends, reviewed in the PR. The marker never exempts the hidden meaning: only the About and FAQ modules may carry it.
 
 **Not enforced (manual review):** register and reading test, honesty, unexplained acronyms and loanwords in context, gender in adjectives and future-tense verbs ("תוכל" is also third-person feminine), slash forms ("מחובר/ת", tolerated), title length, and English quality.
 

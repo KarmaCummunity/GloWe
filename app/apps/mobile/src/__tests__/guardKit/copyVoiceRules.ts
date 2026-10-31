@@ -149,9 +149,12 @@ export function checkCopy(entry: LocaleString, locale: CopyLocale): CopyCounts {
   return Object.fromEntries(Object.entries(all).filter(([, found]) => found > 0)) as CopyCounts;
 }
 
-/** Whether the line a literal ends on carries `// copy-voice-allow: <reason>`. */
+/**
+ * Whether the literal is followed, on the line it ends, by `// copy-voice-allow: <reason>`.
+ * Only the text after the closing quote counts, so marker text inside a string exempts nothing.
+ */
 export function isAllowed(entry: LocaleString, lines: readonly string[]): boolean {
-  return ALLOW_COMMENT.test(lines[entry.endLine - 1] ?? '');
+  return ALLOW_COMMENT.test((lines[entry.endLine - 1] ?? '').slice(entry.endColumn ?? 0));
 }
 
 // The only locale modules where `hiddenMeaning` is exempt: the About screen bundle
@@ -174,15 +177,16 @@ export const HIDDEN_MEANING_ALLOWED_FILES: ReadonlySet<string> = new Set(
 );
 
 /**
- * Findings for a whole locale module (`file` is mobile-relative); allowed strings are
- * skipped, and `hiddenMeaning` does not count in the About / FAQ modules.
+ * Findings for a whole locale module (`file` is mobile-relative). An allow marker exempts
+ * every rule except `hiddenMeaning`, which only the About / FAQ modules may carry (D93).
  */
 export function countCopyFindings(source: string, locale: CopyLocale, file = ''): CopyCounts {
   const lines = source.split('\n');
   const totals: CopyCounts = {};
   for (const entry of extractLocaleStrings(source)) {
-    if (isAllowed(entry, lines)) continue;
+    const allowed = isAllowed(entry, lines);
     for (const [rule, found] of Object.entries(checkCopy(entry, locale)) as [CopyRule, number][]) {
+      if (allowed && rule !== 'hiddenMeaning') continue;
       totals[rule] = (totals[rule] ?? 0) + found;
     }
   }

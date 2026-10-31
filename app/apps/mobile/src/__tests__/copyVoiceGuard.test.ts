@@ -120,6 +120,6 @@ describe('key slogan (master narrative §16.1)', () => {
     const hebrew = listLocaleFiles(`${LOCALES_DIR}/he`).flatMap((file) =>
       extractLocaleStrings(readFileSync(path.join(MOBILE_ROOT, file), 'utf8')),
     );
-    expect(hebrew.some((entry) => entry.text.startsWith(KEY_SLOGAN))).toBe(true);
+    expect(hebrew.some((entry) => entry.text === `${KEY_SLOGAN}.`)).toBe(true);
   });
 });
