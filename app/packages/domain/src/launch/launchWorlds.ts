@@ -89,11 +89,13 @@ export const HUB_TILE_LAUNCH_FLAG: Record<string, LaunchWorldFlagKey> = {
   housing: 'world_housing_enabled',
   transport: 'world_rides_enabled',
   knowledge: 'world_knowledge_enabled',
-  animals: 'world_animals_enabled',
-  medical: 'world_medical_enabled',
 };
 
+/** Worlds with no in-app flow yet (phase 2) — always portals, whatever the flags say. */
+export const PORTAL_ONLY_WORLD_TILES: readonly string[] = ['experiences'];
+
 export function hubTileLaunchMode(tileKey: string, remote: RemoteAppFlags | undefined): WorldLaunchMode {
+  if (PORTAL_ONLY_WORLD_TILES.includes(tileKey)) return 'portal';
   const flag = HUB_TILE_LAUNCH_FLAG[tileKey];
   return flag ? launchWorldMode(flag, remote) : 'active';
 }
