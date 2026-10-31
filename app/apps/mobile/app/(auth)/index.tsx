@@ -17,7 +17,7 @@ import Animated, {
   withRepeat,
   withSequence,
 } from 'react-native-reanimated';
-import { useTheme, Text } from '@kc/ui';
+import { useTheme, Text, iconSize } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { useAuthStore } from '../../src/store/authStore';
 import {
@@ -183,7 +183,7 @@ export default function WelcomeScreen() {
             <View key={key} style={styles.valuePropRow}>
               <Text style={styles.valuePropText}>{t(`auth.${key}`)}</Text>
               <View style={styles.valuePropIconWrap}>
-                <Ionicons name={icon} size={22} color={colors.primary} />
+                <Ionicons name={icon} size={iconSize.xl} color={colors.primary} />
               </View>
             </View>
           ))}
@@ -199,7 +199,7 @@ export default function WelcomeScreen() {
               textStyle={styles.appleBtnText}
               onPress={handleApple}
               loading={appleLoading}
-              icon={<Ionicons name="logo-apple" size={20} color="#FFFFFF" />}
+              icon={<Ionicons name="logo-apple" size={20} color="#FFFFFF" />} // brand-guard-allow: Apple's logo keeps its own white on the Apple button
             />
           )}
           <AuthButton
@@ -211,6 +211,7 @@ export default function WelcomeScreen() {
             icon={<Text style={styles.googleGLetter}>G</Text>}
           />
           <TouchableOpacity
+            testID="auth-guest-preview"
             style={styles.guestBtn}
             onPress={() => { setGuest(true); router.replace('/(guest)/feed'); }}
           >

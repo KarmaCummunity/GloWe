@@ -12,7 +12,7 @@ supabase gen types typescript --project-id <ref> \
   > app/packages/infrastructure-supabase/src/database.types.ts
 ```
 
-**GitHub Actions — DB deploy:** Workflow [`.github/workflows/db-deploy.yml`](../../.github/workflows/db-deploy.yml) applies migrations automatically on **push** to `dev` or `main` when migration-related paths change (see `ENVIRONMENTS.md` § DB deploy automation). It also supports **manual** `workflow_dispatch`: pick **target** `supabase-prod` or `supabase-dev` (each GitHub Environment must define the same three secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF`). `SUPABASE_ACCESS_TOKEN` must be an **account** access token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens) (format `sbp_…`), not the project anon/publishable key. For manual runs, use **apply** unchecked first (dry-run), then checked. The workflow passes `--yes` to the CLI so non-interactive runs do not fail on prompts.
+**GitHub Actions — DB deploy:** migrations reach kc-dev and prod only through the **Deploy** workflow ([`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml), database stage [`deploy-db.yml`](../../.github/workflows/deploy-db.yml); see `ENVIRONMENTS.md` § Deploy pipeline): after a `dev` push passes CI it applies them to kc-dev, and after a `main` push passes CI and the owner approves the release it backs up prod (encrypted) and applies them there without `--include-all`. To re-apply kc-dev migrations by hand, dispatch **Deploy** on `dev` (CI-gated; there is no separate DB dispatch). Each GitHub Environment (`supabase-dev`, `supabase-prod`) defines `SUPABASE_ACCESS_TOKEN` (an **account** token from [Account → Access tokens](https://supabase.com/dashboard/account/tokens), `sbp_…`, not a project key), `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`; `scripts/deploy-preflight.mjs` refuses a ref that does not match the target.
 
 ---
 
@@ -20,7 +20,7 @@ supabase gen types typescript --project-id <ref> \
 
 The repo uses **sequential** migration files (`supabase/migrations/NNNN_snake.sql`, e.g. `0212_glowe_event_registration.sql`). The `schema_migrations` ledger on each Supabase project must match those file versions exactly.
 
-**Rule:** apply schema changes to the dev DB ONLY as committed sequential files, via **`supabase db push`** / **`supabase migration up`** — or let the `DB deploy` workflow apply them on push to `dev`.
+**Rule:** apply schema changes to the dev DB ONLY as committed sequential files, via **`supabase db push`** / **`supabase migration up`** — or let the **Deploy** workflow apply them after a `dev` push passes CI.
 
 **Never** apply a dev schema change with the Supabase MCP **`apply_migration`** tool. It records a **TIMESTAMP** version (e.g. `20260701130827`) that has no local file. `supabase db push` then refuses to run — *"Remote migration versions not found in local migrations directory"* — and the next `DB deploy` on `dev` fails until the ledger is repaired. (The MCP **`execute_sql`** tool is fine for read-only inspection; it does not touch the ledger.)
 
@@ -42,12 +42,72 @@ supabase db push --dry-run --include-all --linked --yes   # → "Remote database
 
 ---
 
+## Restore a pre-migration backup (prod) {#restore-backup}
+
+Before a prod release applies migrations, the database stage of **Deploy** (`deploy-db.yml`, job `backup (prod)`) dumps prod when `supabase/migrations` changed since the last `v*` tag. Each dump streams straight into [`age`](https://age-encryption.org), encrypted to the public key in the `supabase-prod` variable `BACKUP_AGE_RECIPIENT`; plaintext never touches the runner disk or the log. The run keeps artifact `prod-db-backup-<sha>-<attempt>` (`roles.sql.age`, `schema.sql.age`, `data.sql.age`) for **14 days**. **Storage objects (avatars, post images) are not included** — only the database; Supabase Storage keeps them, and a restore does not touch them. It holds user PII: only the owner holds the private key, and decrypted files must never be committed, uploaded or kept after the restore.
+
+Policy (`D-195`): the database is **forward-fix only**. Restore only when a forward-fix migration cannot repair the damage (e.g. data destroyed), and only with the PM's typed confirmation (CLAUDE.md §7).
+
+1. Download the artifact from the Deploy run (Actions → run → Artifacts) to a private machine.
+2. Decrypt with the owner's private key: `age -d -i key.txt -o schema.sql schema.sql.age` and the same for `roles.sql.age` and `data.sql.age`.
+3. Prefer restoring into a **new** Supabase project (or a branch) and copying the lost rows back; replaying a full dump over live prod also drops everything written since the backup.
+4. Restore: `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f roles.sql` (custom roles; skip on a Supabase project where they exist), then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -f schema.sql`, then `psql "$TARGET_DB_URL" -v ON_ERROR_STOP=1 -c 'SET session_replication_role = replica' -f data.sql` (triggers off while the data loads).
+5. Delete the decrypted files (`shred -u roles.sql schema.sql data.sql`).
+
+The key pair is created once by the owner: `age-keygen -o key.txt` prints the public key (`age1…`) to put in `BACKUP_AGE_RECIPIENT`; `key.txt` stays offline. Without the variable, the prod preflight fails and nothing deploys.
+
+---
+
+## Owner setup for D-195 CI/CD {#owner-setup-ci}
+
+Repository settings only the owner (admin) can apply. Tracked as `INFRA-CI-OWNER` in [`BACKLOG.md`](./BACKLOG.md); background in [`DECISIONS.md`](./DECISIONS.md) `D-195`, layout in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md). Do the steps **in this order**: each merge assumes the settings before it.
+
+1. **Single required check, then merge #1292.** Settings → Branches (or the ruleset of step 5, if you apply it now) → `dev` and `main`: replace the legacy required checks with exactly **`CI gate`**, source **GitHub Actions** (list in [`ENVIRONMENTS.md` § Dev merge gates](./ENVIRONMENTS.md#dev-merge-gates-branch-protection)). Then merge PR #1292 (unified PR gate).
+2. **Bot identities (`INFRA-CI-6`, `INFRA-CI-2`).**
+   1. **Agent GitHub App** — Settings (your account or the org) → Developer settings → GitHub Apps → New GitHub App. Name e.g. `kc-agent`; webhook off; **Repository permissions:** Contents **Read and write**, Pull requests **Read and write**, Actions **Read-only**, Checks **Read-only**, Metadata **Read-only** (mandatory); everything else **No access** — never Administration. "Where can this app be installed?" → Only on this account. Create it, note the **App ID**, generate a **private key** (`.pem`).
+   2. Install the App → **Only select repositories** → `KC` (no other repository).
+   3. Settings → Environments → New environment **`agent-merge`**: Deployment branches and tags → **Selected branches** → add `dev` only; no reviewers. Add environment secrets `AGENT_APP_ID` = the App ID and `AGENT_APP_PRIVATE_KEY` = the full `.pem` contents. Delete the local `.pem` afterwards, and delete any **repository-level** `AGENT_APP_*` / `AGENT_MERGE_TOKEN` secrets (a repository secret is readable by any workflow pushed on any branch, `TD-223`). `auto-merge-agent-ready.yml` and `auto-update-branches.yml` now act as the App, so merges trigger **CI** → **Deploy** and updated PR heads get fresh CI (`TD-197`); with no credential they fail visibly.
+   4. **Agent machine user** — create a separate GitHub account for Claude / agent sessions (its own e-mail, 2FA on; GitHub's terms allow one machine account per person). Invite it to `KC` with role **Write** — not Maintain, not Admin. Add its login nowhere in `.github/owners.json` or `.github/CODEOWNERS`.
+   5. In Claude Code (claude.ai → Settings → Connectors → GitHub, and any local `gh auth login`), disconnect your personal account and connect **the machine user** instead. From then on agent PRs are authored by the machine user, so **you can approve them** (GitHub never counts an author's own approval) and agents can no longer use your admin rights to bypass rules.
+   6. Optional fallback: a fine-grained PAT of the machine user (this repository only; Contents + Pull requests read/write) as `agent-merge` environment secret `AGENT_MERGE_TOKEN`.
+   7. **CI-verdict GitHub App** (a second, separate App — the ruleset will accept `CI verdict` only from it). New GitHub App, e.g. `kc-ci-verdict`; webhook off; **Repository permissions:** Checks **Read and write**, Actions **Read-only**, Contents **Read-only**, Pull requests **Read-only**, Metadata **Read-only**; nothing else. Only on this account; install on `KC` only. Note its **App ID** (this is the `integration_id` for the ruleset) and generate a private key.
+   8. Settings → Environments → New environment **`ci-verdict`**: Deployment branches → **Selected branches** → `main` only (the default branch, where `workflow_run` jobs run); no reviewers. Environment secrets `CI_VERDICT_APP_ID` and `CI_VERDICT_APP_PRIVATE_KEY`. Never store them at repository level.
+   9. Move the remaining sensitive repository-level secrets into branch-restricted environments when their workflows allow it (store credentials into `mobile-store`, see `TD-223` for the list).
+3. **Prod environments, then merge #1308** (gated prod release, `INFRA-CI-3`). Settings → Environments:
+   - `production` — required reviewer: **you** only; deployment branches: `main` only; no secrets.
+   - `supabase-prod`, `cloudflare-prod` — deployment branches `main` only; no reviewers. `supabase-dev`, `cloudflare-dev` — deployment branches `dev` and `main`; no reviewers.
+   - Variables: `BACKUP_AGE_RECIPIENT` on `supabase-prod` (see [§ Restore a pre-migration backup](#restore-backup) for the key pair); repository variables `KC_PROD_URL` and `DEV_WEB_URL` ([`ENVIRONMENTS.md`](./ENVIRONMENTS.md) table). Delete the legacy `PROD_WEB_URL`.
+   - `EXPO_PUBLIC_ENVIRONMENT` per environment: `production` on `cloudflare-prod`, `development` on `cloudflare-dev`.
+   - The Cloudflare API token in `cloudflare-*` needs **Cloudflare Pages: Edit**.
+   - Then merge PR #1308.
+4. **Mobile store** (nightly mobile, `INFRA-CI-4`; PR #1304 is already merged, so the nightly fails until this is done).
+   - Environment `mobile-store` (deployment branches `dev` + `main`) with secret `MOBILE_SUPABASE_ANON_KEY` = the **kc-dev** publishable key.
+   - EAS → project → Environment variables → `preview`: the Sentry values and the `GOOGLE_SERVICES_JSON` file variable.
+   - Verify the iOS signing secrets are present (`KC_IOS_*`, `ASC_*`).
+   - Allow `mobile/*` tags (if a tag ruleset restricts tag creation, add `mobile/*` to the allowed patterns).
+   - Then dispatch **Mobile nightly** once on `dev` to confirm.
+5. **Bootstrap merge of the gate-integrity PR (#1319), then import the ruleset (`INFRA-CI-2`).**
+   - **One-time bootstrap.** The judges now load only from the base commit, with no fallback to the PR's copy. The PR that introduces a judge module (the test-integrity guard, the run binding) therefore fails its own `static` lane / `CI gate`, because its base does not have them yet. Read the diff, then merge it once with your admin override while classic branch protection is still in place (before the ruleset, which has no bypass actors). Every later PR is judged by the merged copy.
+   - **Version bump vs. the ruleset (`TD-231`) — decide before import.** `bump-version-on-merge.yml` pushes a `[skip ci]` `app/VERSION` commit straight to `dev` after every merge. `dev-main.json` has **no bypass actors**, so once you import the ruleset that push is rejected: the bump job fails and VERSION stops moving. Deploys keep working, because they deploy the merge commit itself. The bump job also reads `secrets.AGENT_MERGE_TOKEN` at repository level, which step 2.3 deletes, so it fails from step 2.3 on whatever you choose here. The deploy side is already handled: `scripts/deploy-target.mjs` deploys the bump commit on its parent's green `CI gate`, but only when the commit changes only `app/VERSION`, has one parent, has the bump workflow's identity and subject, and the parent is green on `dev`/`main`. The options:
+     - **(A, recommended) A dedicated bump App as a bypass actor.** Create a third GitHub App, e.g. `kc-version-bump`, with Repository permissions Contents **Read and write** and Metadata **Read-only**, and nothing else. Install it on `KC` only. Put its ID and key in a new environment, e.g. `version-bump`, restricted to deployment branch `dev`, with no reviewers. Switch `bump-version-on-merge.yml` to that environment, minting the App's token with `actions/create-github-app-token` instead of using `AGENT_MERGE_TOKEN`. Then add the App as the ruleset's only bypass actor (`"bypass_actors": [{ "actor_id": <App ID>, "actor_type": "Integration", "bypass_mode": "always" }]`). A ruleset bypass covers every branch the ruleset targets, so also split `dev-main.json` into a `dev` copy with the bypass and a `main` copy without it, so the App can never push to `main`. Residual risk: anyone who gets a workflow using `version-bump` onto `dev` can push to `dev` without review. Adding such a workflow is a code-owned `.github/**` change, and only bump-shaped commits inherit a deploy certification; any other pushed commit still needs its own green push CI run.
+     - **(B) Bump before the merge, on the PR head.** The merge step (`auto-merge-agent-ready.yml`) commits the bump onto the PR branch and waits for CI before it merges, so no commit is ever pushed straight to `dev` and no bypass or inheritance is needed. The cost: every merge re-runs CI on a new head, and the bot's push dismisses an owner approval under "approval of the most recent push", so code-owned PRs need a second approval. Open PRs also conflict again on `app/VERSION` after each merge, which brings back the problem `TD-196` removed and in practice serializes merges.
+     - Recommendation: **A**. It keeps conflict-free per-merge bumps, and the deploy already accepts only the narrow bump shape. Until A is in place, either keep classic branch protection with the token owner allowed to bypass it, or accept that VERSION does not move (bump it by hand in release PRs).
+   - **Import.** Settings → Rules → Rulesets → New ruleset → **Import a ruleset** → upload [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json). For now **delete the `CI verdict` entry** from the required checks in the import form (or the file copy you upload): `ci-verdict.yml` runs only from the default branch `main`, so no verdict exists until the release carrying it reaches `main`, and every PR would wait forever. Review → Create. The ruleset targets `dev` + `main`: pull request with **0** approvals + **Require review from Code Owners** + dismiss stale approvals + approval of the most recent push; required check `CI gate` from GitHub Actions (`integration_id` 15368); no force pushes, no deletions; **no bypass actors**. Then remove the classic branch-protection rules on `dev`/`main`. Import [`.github/rulesets/tags-no-branch-names.json`](../../.github/rulesets/tags-no-branch-names.json) the same way (target: tags; forbids creating, moving or deleting tags named `dev` or `main`, so no tag can pose as a protected branch). Under the ruleset PRs need not be up to date with `dev` (not strict); `auto-update-branches.yml` still refreshes them. When a CI run fails on a flake, use **Re-run all jobs**: a "Re-run failed jobs" attempt keeps old job results and never gets a green `CI verdict`.
+   - **Verify right after import** with two throwaway PRs into `dev`: (a) a docs-only change must merge on a green `CI gate` with no review; (b) a one-line comment change in `.github/CODEOWNERS` must ask for your review. GitHub does not document how "approval of the most recent push" behaves with 0 required approvals; if PR (a) also waits for an approval, edit the ruleset and turn that one option off (code-owner review + stale-approval dismissal still cover owned files).
+   - **Turn on `CI verdict` after the first release that carries `ci-verdict.yml` reaches `main`.** Open a throwaway PR into `dev` and check that a green **`CI verdict`** check from the CI-verdict App appears on its head commit (the App's name is shown as the check's source). If it is red, its summary says why (e.g. the run's merge reference could not be read) — fix before continuing. Then Settings → Rules → Rulesets → `dev-main gate (D-195)` → Require status checks → add `CI verdict` and pick the **CI-verdict App** as its source (equivalently, re-import the JSON with `"integration_id"` set to the App ID instead of `REPLACE_WITH_CI_VERDICT_APP_ID`). Until this step, `CI gate` alone can be imitated by a workflow on another branch (`TD-224`).
+   - Owner overrides: when `CI gate` fails with a "Test integrity" or "ci.yml must keep the base branch's lanes and jobs" error, read the listed reasons; if the change is intended, **approve the PR** — the review re-runs CI and the gate (and then `CI verdict`) turns green for that head SHA. A new push needs a new approval. Overrides do not work through a merge queue.
+6. **Cleanup.** Delete the `tmp-probe-*` workflows (and any runs you no longer need) and the stale branch `chore/ci-nightly-mobile` (superseded by `chore/ci-nightly-mobile-2`).
+
+---
+
 ## Adding a CI lane needs a judge-first PR {#ci-lane-judge-first}
 
 On pull requests, `ci.yml` runs the gate judges (`scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`) from the **base** branch, so a PR cannot weaken its own gate (`D-195`). The flip side: a PR that adds a lane job to `ci.yml` together with the judge changes fails `CI gate` with `job "<lane>" is not in the change detector's plan`, because the base judges do not know the lane yet. Ship it in two PRs:
 
 1. **Judge-first PR** — teach `ci-changes.mjs` / `ci-gate.mjs` (and `check-required-checks-drift.mjs` if needed) about the lane **without** adding the job to `ci.yml`, in a form the current judges and the current `ci.yml` still pass (e.g. an optional lane that is named in the plan only when needed, like `release`).
 2. **Lane PR** — after the first merges, add the job to `ci.yml`.
+
+**Second instance — the test-integrity judge (INFRA-CI-2, PR #1308).** #1308's static lane runs `.judge/scripts/check-test-integrity.mjs` from the base commit with no fallback, so it could not pass while `dev` lacked the script. The judge-first PR (`chore/ci-integrity-judges`) ships only the base-loaded files — `scripts/check-test-integrity.mjs`, its sole import `scripts/ci-github.mjs`, their tests, and `.github/owners.json` (read at the base commit) — without wiring them into `dev`'s workflows. `scripts/ci-gate.mjs` deliberately stays at `dev`'s version: `dev`'s `ci.yml` copies that one file alone to `$RUNNER_TEMP`, so #1308's multi-module gate (it imports `ci-changes`, `ci-github`, `ci-run-binding`, `ci-run-reuse`, `ci-workflow-diff`) would fail to load there; `dev`'s standalone gate already judges #1308's `pull_request` runs. Until #1308 merges, a review on it re-runs every lane (the base `ci-changes.mjs` does not plan review events from the diff) instead of reusing lane results — slower, still sound.
 
 ---
 
@@ -297,8 +357,7 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 
 ## Edge Functions — CI deploy + prod smoke (2026-05-12)
 
-**Workflow:** `.github/workflows/supabase-functions-deploy.yml`  
-**Triggers:** `push` to `dev` or `main` when `supabase/functions/**` or the workflow file changes (`dev` → `supabase-dev`, `main` → `supabase-prod`); manual **Run workflow** (`workflow_dispatch`) with target choice.
+**Workflow:** the Edge Functions stage of **Deploy** (`.github/workflows/deploy-functions.yml`), after the database stage, for every `dev` push that passes CI (kc-dev) and every approved `main` release (prod). It deploys every function in `supabase/functions` except `_shared` and the local-only `mock-login`; the deploy smoke then sends `OPTIONS` to each and fails on a 5xx or 404. No push or manual trigger of its own — dispatch **Deploy** on `dev` to redeploy kc-dev.
 
 **GitHub:** Repository → Settings → Environments → `supabase-prod` / `supabase-dev` must expose the same secrets as DB deploy:
 
@@ -326,7 +385,7 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
 
-**After merge:** open Actions → latest **Supabase Functions deploy** run → confirm **Deploy all Edge Functions** succeeded. If it failed: fix secrets/permissions, re-run the job or use **Run workflow**.
+**After merge:** open Actions → the **Deploy** run for the commit → confirm the `edge functions` and `smoke` stages succeeded. If a stage failed: fix secrets/permissions, then use **Re-run all jobs** — never **Re-run failed jobs**. Every stage that changes an environment starts with the deploy guard, which refuses an attempt whose release approval or rollback baseline came from an earlier attempt, so a partial re-run fails on prod; **Re-run all jobs** re-resolves the commit (it must still be the `main` tip) and asks the owner to approve again. On prod a failed release has already been rolled back to the previous tag (unless it applied migrations — then it demands a forward-fix).
 
 **One-time catch-up (if prod was behind `main`):** from a machine with the CLI logged in, at repo root:
 
@@ -404,7 +463,7 @@ Re-invoke until every entry's `more` is `false`.
 
 ### Run against prod
 
-Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function is deployed automatically by `.github/workflows/supabase-functions-deploy.yml` when `supabase/functions/**` changes land on `main`.
+Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function ships to prod with every approved release (Edge Functions stage of **Deploy**).
 
 ---
 

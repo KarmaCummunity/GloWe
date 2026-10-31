@@ -179,6 +179,7 @@ When you spot tech debt outside the immediate scope:
 ### Testing protocol
 
 - Any new domain or application code ships with unit tests beside it (`__tests__/` directory inside the package).
+- Mobile UI journeys are covered by Maestro flows on Android (`.maestro/flows/`, CI `ci-maestro-android.yml`). A UI bug fix starts with a failing flow. Runbook: [`docs/process/MAESTRO.md`](docs/process/MAESTRO.md).
 - Tests cover both happy path and at least one boundary / error condition.
 - Test runner: `vitest`. Run with `pnpm --filter @kc/<package> test`.
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text, iconSize } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../lib/webRtlStyle';
 
@@ -14,6 +14,8 @@ export interface SettingsScreenRowProps {
   readonly rightElement?: React.ReactNode;
   readonly destructive?: boolean;
   readonly disabled?: boolean;
+  /** Stable E2E selector (KC#1235). */
+  readonly testID?: string;
 }
 
 export function SettingsScreenRow({
@@ -23,18 +25,19 @@ export function SettingsScreenRow({
   rightElement,
   destructive,
   disabled,
+  testID,
 }: SettingsScreenRowProps) {
   const styles = useRowStyles();
   const { colors } = useTheme();
   const iconColor = destructive ? colors.error : colors.textSecondary;
   const labelStyle = [styles.rowLabel, destructive && { color: colors.error }];
   const trailing = rightElement ?? (
-    <Ionicons name="chevron-back" size={18} color={colors.textDisabled} />
+    <Ionicons name="chevron-back" size={iconSize.md} color={colors.textDisabled} />
   );
 
   const inner = (
     <>
-      <Ionicons name={icon as never} size={20} style={styles.rowIcon} color={iconColor} />
+      <Ionicons name={icon as never} size={iconSize.lg} style={styles.rowIcon} color={iconColor} />
       <Text style={labelStyle}>{label}</Text>
       {trailing}
     </>
@@ -43,6 +46,7 @@ export function SettingsScreenRow({
   if (onPress) {
     return (
       <TouchableOpacity
+        testID={testID}
         style={styles.row}
         onPress={onPress}
         disabled={disabled}
@@ -53,7 +57,7 @@ export function SettingsScreenRow({
     );
   }
 
-  return <View style={styles.row}>{inner}</View>;
+  return <View testID={testID} style={styles.row}>{inner}</View>;
 }
 
 const useRowStyles = makeUseStyles(({ colors }) => ({
