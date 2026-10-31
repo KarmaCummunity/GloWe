@@ -106,11 +106,11 @@ All feature PRs target `dev`. Configure GitHub → Settings → Branches → `de
 
 **Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
 
-### Merge queue (recommended on `dev`)
+### Merge queue (enabled on `dev`)
 
-`ci.yml` already runs on `merge_group`, so the queue needs no workflow change. **Owner action (one-time):** GitHub → Settings → Rules → the `dev` ruleset → enable **Require merge queue** (squash). Keep `CI gate` as the only required check.
+`dev` is protected by the ruleset `dev protection (merge queue)` (not classic branch protection, which cannot host a queue). It requires a PR, the single check `CI gate`, and the merge queue (squash, all-green grouping, up to 5 entries built and merged together). "Require branches to be up to date" is **off**: `ci.yml` runs on `merge_group`, so the queue tests each PR on top of the ones ahead of it. Repository admins can bypass the ruleset (this keeps `bump-version-on-merge.yml` able to push the version bump).
 
-Why: without a queue every merge makes all other PRs "behind" and `auto-update-branches.yml` re-merges `dev` into each, which restarts and cancels their CI. The queue tests PRs one after another on top of each other, so no PR needs updating. After enabling it, switch off "require branches to be up to date" and remove `auto-update-branches.yml` (TD-206). `gh pr merge --auto` then adds the PR to the queue by itself.
+Why: without a queue every merge made all other PRs "behind", and re-merging `dev` into each restarted and cancelled their CI. `gh pr merge --auto` adds the PR to the queue by itself.
 
 Do **not** require **CI — main release guard** on `dev` (prod-only release-source job). Prod-only post-merge jobs (`prod-smoke`, Edge Functions deploy to `supabase-prod`) stay on `main` only.
 
