@@ -77,7 +77,8 @@ docs/SSOT/spec/
 ├── 16_public_research.md         FR-RESEARCH-*
 ├── 17_responsive_desktop.md      FR-RESP-*
 ├── 18_translation.md             FR-TRANSLATE-*
-└── 19_org_finance.md             FR-FIN-*
+├── 19_org_finance.md             FR-FIN-*
+└── 20_organizations.md           FR-ORG-*
 ```
 
 Note: `17_responsive_desktop.md` was formerly `14_responsive_desktop.md` (renamed 2026-10-30 to remove the duplicate `14_` and fill the missing `17_`). FR-RESP-* IDs are unchanged.
