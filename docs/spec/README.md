@@ -33,8 +33,8 @@
 | 14 | [14_roadmap.md](./14_roadmap.md) | Phase map |
 | 15 | [15_risks.md](./15_risks.md) | Risks |
 | 16 | [16_kpis.md](./16_kpis.md) | KPIs |
-| 17 | [17_brand_and_design_system.md](./17_brand_and_design_system.md) | Brand identity, logo, design tokens, sync to Figma / Claude Design, guardrail tests (D65, D66) |
-| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D92 |
+| 17 | [17_brand_and_design_system.md](./17_brand_and_design_system.md) | Brand identity, logo, design tokens, sync to Figma / Claude Design, voice and tone, guardrail tests (D65, D66, D67, D87, D93) |
+| 90 | [90_decisions_log.md](./90_decisions_log.md) | D1–D93 |
 | 91 | [91_kc_fills_pending.md](./91_kc_fills_pending.md) | S1–S51 |
 | 92 | [92_open_questions.md](./92_open_questions.md) | Open questions for the PM |
 | 93 | [93_implementation_gaps.md](./93_implementation_gaps.md) | G1–G49 |
