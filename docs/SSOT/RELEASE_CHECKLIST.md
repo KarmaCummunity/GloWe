@@ -113,20 +113,20 @@ Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once c
 
 # Mobile app store submission (iOS App Store + Google Play)
 
-> **Scope:** the Expo / EAS mobile app at `app/apps/mobile` (bundle id `com.karmacommunity.app`, version from `app.json`).
-> This is separate from the web release flow above. Run it for each native store release.
-> **Do not build or submit while known bugs are open** — the PM gates the first build.
+> **Scope:** the Expo / EAS mobile app at `app/apps/mobile` (bundle id / package `org.karmacommunity.app`; marketing version from `app/VERSION` via `app.config.ts`; iOS build number / Android versionCode from EAS remote `autoIncrement`).
+> This is separate from the web release flow above.
+> **Internal tracks are automatic (`D-195` tier 2):** **Mobile nightly** (`.github/workflows/mobile-nightly.yml`) ships the newest green `dev` commit to TestFlight and Play internal every night, built against the kc-dev backend (eas.json `nightly` profile) — see [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) § Production release. Production store builds (prod backend, App Store review, Play promotion beyond `internal`) are not automated and stay PM-gated.
 
 ## A. One-time account + project setup (needs owner credentials — cannot be automated)
 
-1. **Link the EAS project.** From `app/apps/mobile`: `eas login` then `eas init`. This writes `extra.eas.projectId` into `app.json` — **commit that change**. Closes `TD-121`: until the real projectId is committed, push-token registration is skipped on any non-EAS build (no push notifications).
-2. **Apple Developer.** Membership active. In **App Store Connect**, create the app record (name `KC - קהילת קארמה`, bundle `com.karmacommunity.app`) — this yields the numeric **ASC App ID**. Ensure the App ID has the **Sign in with Apple** capability (EAS can manage this during `eas credentials` / build when signed in with your Apple account).
+1. **EAS project.** Done: `extra.eas.projectId` is committed in `app.json` (`TD-121`, closed); CI also injects it from the `KC_EAS_PROJECT_ID` variable.
+2. **Apple Developer.** Membership active. In **App Store Connect**, create the app record (name `KC - קהילת קארמה`, bundle `org.karmacommunity.app`) — this yields the numeric **ASC App ID**. Ensure the App ID has the **Sign in with Apple** capability (EAS can manage this during `eas credentials` / build when signed in with your Apple account).
 3. **Sign in with Apple → Supabase (required for `FR-AUTH-004`).** In Supabase Auth → Providers → Apple, add the **Services ID**, **Team ID**, **Key ID**, and the **.p8 "Sign in with Apple" key**. Without this the native Apple flow fails at the token exchange. This is the go-live dependency for the Apple SSO that ships in code; the iOS button is otherwise wired and tested.
-4. **Google Play.** Play Console account active. Create the app, then a **Google Cloud service account** with Play release permission; download its JSON to `app/apps/mobile/credentials/google-play-service-account.json` (already gitignored, referenced by `eas.json`).
+4. **Google Play.** Play Console account active. Create the app, then a **Google Cloud service account** with Play release permission; store its JSON as the GitHub secret `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` (CI writes it to `app/apps/mobile/google-play-service-account.json`, gitignored, the path `eas.json` references).
 
 ## B. Fill the config placeholders (after step A yields the values)
 
-- `app/apps/mobile/eas.json` → `submit.production.ios`: `appleId`, `ascAppId`, `appleTeamId`.
+- `app/apps/mobile/eas.json` → `submit.production.ios.ascAppId` stays a placeholder (public repo); `testflight-ios.yml` injects the real id from the `KC_ASC_APP_ID` variable on the runner.
 - `app/apps/mobile/public/.well-known/apple-app-site-association`: replace `REPLACE_WITH_APPLE_TEAM_ID`.
 - `app/apps/mobile/public/.well-known/assetlinks.json`: replace `REPLACE_WITH_ANDROID_RELEASE_SHA256` with the release signing cert SHA-256 (from `eas credentials` after the first Android build). Closes `TD-66` — until filled, universal/app links open the browser chooser instead of the app.
 
@@ -136,9 +136,9 @@ Document the canonical prod URL in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md) once c
 - **Apple App Privacy labels** + **Google Data Safety form**: declare account email/phone, user-generated content, and Sentry diagnostics.
 - **Assets / copy:** screenshots per device class; description, keywords, category (Social), age rating, support email `karmacommunity2.0@gmail.com`. Marketing icons are ready: iOS 1024 is baked from `assets/icon.png`; Google Play 512 listing icon is `assets/play-store-icon-512.png`.
 
-## D. Build — PM-gated, do NOT run until bugs are cleared
+## D. Build
 
-From `app/apps/mobile` (production profile auto-increments build number / versionCode; version string `1.0.0` from `app.json`):
+TestFlight and Play internal builds run nightly from CI (above). Manual equivalent, from `app/apps/mobile` (production profile auto-increments build number / versionCode; version string from `app/VERSION`):
 
 ```bash
 eas build --platform ios     --profile production
@@ -164,7 +164,7 @@ eas submit --platform android --profile production --latest
 
 ## Go-live blockers checklist
 
-- [ ] `eas init` → real `extra.eas.projectId` committed (`TD-121`).
+- [x] Real `extra.eas.projectId` committed (`TD-121`, closed).
 - [ ] Supabase Apple provider configured (`FR-AUTH-004`; closes the go-live half of `TD-24`).
 - [ ] Deep-link fingerprints filled (`TD-66`).
-- [ ] Remaining app bugs resolved (PM-tracked) — first build is gated on this.
+- [ ] Remaining app bugs resolved (PM-tracked) — the first production store submission is gated on this (nightly tester builds are not).

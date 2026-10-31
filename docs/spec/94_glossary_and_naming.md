@@ -31,6 +31,13 @@
 | הזמנת מקום | Seat booking | A passenger's request for seats on a ride offer; approved or declined by the driver (D73) |
 | חוקת ברזל | Iron constitution | Rules core not changeable by vote (D40) |
 | listings | listings (code term) | Legacy table to become `posts` (D19); **not** a product term |
+| סעיף 46א | Section 46(a) | Income Tax Ordinance approval that lets donors claim a tax credit; KC records an org's approval and receipts, never decides eligibility or issues receipts (D77) |
+| גזבר ארגון / רו"ח ארגון | Org treasurer / org accountant | Org-scoped finance roles: treasurer writes the books, accountant reads and exports (D76) |
+| תמונת שקיפות | Transparency snapshot | Frozen yearly financial summary an org publishes on its profile; never live books, never donor names (D81) |
+| פרופיל ארגון | Organization profile | Public page of an organization at `/org/{slug}`; always public (D88, D90) |
+| חשבון ארגוני | Organization account | The organization's own sign-in identity, bound 1:1 to the organization; members with roles act in its name from their own accounts (D88) |
+| פועל בשם | Acting as | The active profile context of a session: the person or one of their organizations, chosen in the profile switcher (D88) |
+| ארגון לא נתבע | Unclaimed organization | Catalog profile imported from open data with no account yet; claimable by the real organization (FR-ORG-017) |
 
 ## Naming rules
 1. Always the precise name: "giving world", "item subcategory", "post type" — **never a bare "categories"**.

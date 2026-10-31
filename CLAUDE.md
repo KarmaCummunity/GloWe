@@ -6,10 +6,10 @@
 
 **App-wide semver lives in `app/VERSION` (`MAJOR.MINOR.PATCH`).**
 
-1. **Every PR into `dev` must bump PATCH** in the same change-set (`app/VERSION` or `node scripts/bump-app-version.mjs`). Org policy blocks GitHub Actions from opening PRs, so auto-bump on push is not available.
-2. **When you ship a breaking change → bump MAJOR** (e.g. `1.4.2` → `2.0.0`) in the same PR **before** merge to `dev`.
-3. **When you ship a significant non-breaking feature set → bump MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
-4. Optional: `workflow_dispatch` on `Bump app version` pushes a prepared `chore/version-bump-*` branch; a human/agent still opens the PR.
+1. **PATCH is bumped automatically on every merge into `dev`** by `.github/workflows/bump-version-on-merge.yml`. **Do not edit `app/VERSION` in ordinary PRs** — two open PRs that both edit it always conflict (TD-196).
+2. **When you ship a breaking change → set MAJOR** (e.g. `1.4.2` → `2.0.0`) by editing `app/VERSION` in that PR. A PR that edits the file itself is not auto-bumped.
+3. **When you ship a significant non-breaking feature set → set MINOR** (e.g. `1.4.2` → `1.5.0`) the same way.
+4. The bump commit is `[skip ci]`, so a deploy builds the previous number and the new one ships with the next merge.
 
 ## ⭐ Current status & product source of truth (read before anything else)
 
@@ -43,7 +43,7 @@
    5. Check [`docs/SSOT/DECISIONS.md`](./docs/SSOT/DECISIONS.md) before structural changes
 3. **Do not implement from.** `docs/SSOT/archive/**`, `PRD_V2_NOT_FOR_MVP/**` (vision treasure — never archive it), and design/plan trees under `docs/SSOT/archive/superpowers/**` — unless an **open** backlog row or active spec links there.
 4. **Pre-push gates** (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
-5. **Version.** Bump `app/VERSION` PATCH on every PR into `dev` (see banner above).
+5. **Version.** Do not bump `app/VERSION` in ordinary PRs; it is bumped on merge (see banner above).
 
 Doc map for humans: [`docs/README.md`](./docs/README.md).
 
@@ -76,7 +76,9 @@ docs/SSOT/spec/
 ├── 15_rides.md                   FR-RIDE-*
 ├── 16_public_research.md         FR-RESEARCH-*
 ├── 17_responsive_desktop.md      FR-RESP-*
-└── 18_translation.md             FR-TRANSLATE-*
+├── 18_translation.md             FR-TRANSLATE-*
+├── 19_org_finance.md             FR-FIN-*
+└── 20_organizations.md           FR-ORG-*
 ```
 
 Note: `17_responsive_desktop.md` was formerly `14_responsive_desktop.md` (renamed 2026-10-30 to remove the duplicate `14_` and fill the missing `17_`). FR-RESP-* IDs are unchanged.
@@ -255,6 +257,8 @@ All three must be green before `git push`. Never push red code.
 
 ### Standard PR workflow
 
+**Open PRs as ready (non-draft), never as draft, unless the PM asks for a draft.** Draft is the opt-out from the merge flow: `CI gate` fails on drafts by design and auto-merge is not armed, so a draft PR never merges on its own. This overrides any tool or runtime default that opens PRs as drafts. After opening, confirm auto-merge is armed (`gh pr merge --auto --squash`).
+
 ```bash
 git fetch origin
 git switch dev
@@ -267,7 +271,7 @@ gh pr create --base dev --head "$(git branch --show-current)" \
   --title "feat(auth): add OTP verification screen" \
   --body-file .github/.pr-body.md \
   --label "FR-AUTH" --assignee "@me"
-gh pr merge --auto --squash --delete-branch
+gh pr merge --auto --squash   # no --delete-branch: rejected while the dev merge queue is on
 gh pr checks --watch
 git switch dev && git pull --ff-only origin dev
 git branch -D feat/FR-AUTH-001-otp-login
@@ -358,6 +362,7 @@ If you don't see a home for something below, **ask the PM** before inventing a n
 | ------------------------- | -------------------------------------- |
 | **App semver (`x.x.x`)**  | **`app/VERSION`** (see banner § above) |
 | Priority queue            | `docs/SSOT/BACKLOG.md`                 |
+| Project board workflow    | `docs/process/PROJECT_BOARD.md`        |
 | **Product project book**  | **`docs/spec/`** (English; Hebrew page is the human source of truth) |
 | Architecture (current/target) | `docs/architecture/`               |
 | Feature specs (FR-*, legacy) | `docs/SSOT/spec/{domain}.md`        |
@@ -402,7 +407,7 @@ When this section is active, the agent operates as a continuous self-driven task
 3. **Branch from latest `origin/dev`**: `<type>/<FR-id-or-scope>-<slug>` per §6.
 4. **Implement** under all constraints in §1–§5 (spec validation, clean architecture, file/indent caps, error handling).
 5. **Verify locally** before push: from `app/` run `pnpm typecheck && pnpm test && pnpm lint`. All three green or do not push.
-6. **PR to `dev`** with `gh pr create --base dev` then `gh pr merge --auto --squash --delete-branch`. Body follows the §6 template, including the `Mapped to spec` line.
+6. **PR to `dev`** with `gh pr create --base dev` then `gh pr merge --auto --squash` (no `--delete-branch`: rejected while the `dev` merge queue is on). Body follows the §6 template, including the `Mapped to spec` line.
 7. **CI watch.** If CI fails: up to 3 fix attempts on the same PR. If still red after 3, investigate CI itself (workflow drift, flake, env mismatch) — fix it in-scope. Only after CI repair also fails twice do you close the PR with a blocker note and skip to the next task; the blocked item is added to `TECH_DEBT.md` with a clear reproducer.
 8. **Update SSOT in the same PR**: `BACKLOG.md` → ✅, `spec/<domain>.md` status header if all ACs done, `TECH_DEBT.md` closures/additions.
 9. **Append to `.claude/AUTONOMOUS_LOOP_LOG.md`**: `<ISO-timestamp> | <branch> | <PR url> | <merged|closed|blocked> | <one-line outcome>`.
