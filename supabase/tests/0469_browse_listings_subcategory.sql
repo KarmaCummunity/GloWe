@@ -1,4 +1,4 @@
--- 0465 (KC#1102 / KC#1111) — browse_listings filters by world subcategory, with and without a
+-- 0469 (KC#1102 / KC#1111) — browse_listings filters by world subcategory, with and without a
 -- distance anchor; no subcategory keeps the whole world.
 
 begin;
@@ -86,4 +86,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0465_browse_listings_subcategory.sql passed'
+\echo '✓ 0469_browse_listings_subcategory.sql passed'

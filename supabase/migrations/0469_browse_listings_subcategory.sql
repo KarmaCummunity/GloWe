@@ -1,4 +1,4 @@
--- 0465_browse_listings_subcategory | KC#1102 / KC#1111 — browse items / food by world subcategory.
+-- 0469_browse_listings_subcategory | KC#1102 / KC#1111 — browse items / food by world subcategory.
 --
 -- The create form stores a world subcategory on items and food listings (`0462`, KC#1296), but the
 -- world hubs could only filter by world, direction, urgency, availability and distance. Adds an
