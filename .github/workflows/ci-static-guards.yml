@@ -35,9 +35,9 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
           ./actionlint -color
 
-      - name: Script self-tests (scripts/*.test.mjs, app/scripts/*.test.mjs)
+      - name: Script self-tests (scripts/*.test.mjs, scripts/ops/*.test.mjs, app/scripts/*.test.mjs)
         if: ${{ !cancelled() }}
-        run: node --test scripts/*.test.mjs app/scripts/*.test.mjs
+        run: node --test scripts/*.test.mjs scripts/ops/*.test.mjs app/scripts/*.test.mjs
 
       - name: Architecture (file size, layers, typed domain errors)
         if: ${{ !cancelled() }}

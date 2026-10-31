@@ -446,6 +446,25 @@ A donor's *Request to cancel a standing order* posts `בקשה לביטול הו
 
 The in-app verified-nonprofit donation flow (#850) is sandbox-only and hidden by default. To exercise it on dev: `update public.app_flags set enabled = true where key = 'money_in_app_org_payments';` — never on prod until a real provider is wired.
 
+## Ops health alerts {#ops-health-alerts}
+
+The hourly **Ops health monitor** (`.github/workflows/ops-health.yml`, G42) reads `ops.run_health_checks()` (migration `0463`) on dev and prod and keeps one GitHub issue per failing check, labelled `ops-alert` + `ops:<env>` + `ops:<severity>` and assigned to the PM (GitHub emails the assignee). The issue updates when the value changes and **closes itself** once the check is ok again. Issues are public: they carry counts and job names only, never user data.
+
+**Tune, don't patch:** thresholds, severity and on/off live in `ops.health_checks` rows. Change them with a migration (e.g. `update ops.health_checks set threshold = 5 where check_key = '…'`). To try the monitor without opening issues: run the workflow manually with **dry_run**.
+
+| Check | Means | First step |
+| --- | --- | --- |
+| `health_report_unavailable` | The monitor could not read the report (token, project ref, network, or migration `0463` missing). | Open the failed workflow run; check the environment's `SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF` and that `0463` is applied. |
+| `scheduled_jobs_failed` | A `pg_cron` job failed in the last 24 h (job names in the detail). | `select * from cron.job_run_details where status = 'failed' order by start_time desc limit 20;` and fix the job's function. |
+| `notifications_backlog` | Notifications waited > 15 min undispatched: the dispatcher is down. | Check `dispatch-notification` logs and the trigger that calls it. |
+| `notifications_push_failures` | More than 10 push sends failed in 24 h (skips like `no_devices` excluded). | Group `notifications_outbox.last_error` for the last day; Expo push credentials are the usual cause. |
+| `matching_errors` | Automatic matching failed for some listings (`match_listing_state.last_error`). | Read the `last_error` values; see `docs/SSOT/MATCHING_V2.md`. |
+| `rides_bookings_unconfirmed` | Seat bookings passed their confirm-by deadline without a driver decision. | Expected until booking expiry ships (S45, G47); otherwise check the confirm flow. |
+| `rides_open_after_departure` | Ride offers still open 6 h after departure. | Expected until per-type expiry ships (D21, G32); otherwise check the expiry job. |
+| `rides_trips_not_completed` | Confirmed seats not completed a day after departure. | Check the completion flow (`complete_ride_trip`); users may need a reminder. |
+
+**Adding a check** (any giving world): a migration with a `stable` function `ops.check_<key>()` returning `ops.health_result` (count + data-free detail) and a row in `ops.health_checks`; extend `supabase/tests/0463_ops_health_registry.sql` or the world's own test.
+
 ## Publishing legal documents (FR-SETTINGS-010)
 
 Editable from Supabase Studio without a frontend deploy. Each publish is an immutable `legal_document_versions` row plus an update to the current-pointer row in `legal_documents`. The trigger computes `content_hash` (SHA-256) automatically.
