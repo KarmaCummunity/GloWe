@@ -10,15 +10,14 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
+import { spacing, useTheme, Text, TextInput } from '@kc/ui';
 import { AvatarInitials } from '../../../src/components/AvatarInitials';
 import { getUserRepo } from '../../../src/services/userComposition';
 import { getListFollowingUseCase } from '../../../src/services/followComposition';
-import { rowDirectionStart } from '../../../src/lib/rtlLayout';
-import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
+import { useFollowListStyles } from '../../../src/screens/followList.styles';
 
 export default function FollowingListScreen() {
-  const styles = useStyles();
+  const styles = useFollowListStyles();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { handle } = useLocalSearchParams<{ handle: string }>();
@@ -83,22 +82,3 @@ export default function FollowingListScreen() {
     </SafeAreaView>
   );
 }
-
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
-  container: { flex: 1, backgroundColor: colors.background },
-  searchRow: {
-    flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.xs,
-    backgroundColor: colors.surface, margin: spacing.base, padding: spacing.sm,
-    borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
-  },
-  searchInput: { flex: 1, ...typography.body, color: colors.textPrimary, textAlign: rtlTextAlignStart },
-  row: {
-    flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm,
-    paddingHorizontal: spacing.base, paddingVertical: spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: colors.border,
-  },
-  rowText: { flex: 1 },
-  name: { ...typography.body, color: colors.textPrimary, textAlign: rtlTextAlignStart },
-  city: { ...typography.caption, color: colors.textSecondary, textAlign: rtlTextAlignStart },
-  empty: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
-}));

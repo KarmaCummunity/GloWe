@@ -14,8 +14,9 @@ for (let i = 0; i < chars.length; i++) {
 }
 
 export function base64ToUint8Array(base64: string): Uint8Array {
+  const len = base64.length;
   let bufferLength = base64.length * 0.75,
-    len = base64.length, i, p = 0,
+    i, p = 0,
     encoded1, encoded2, encoded3, encoded4;
 
   if (base64[base64.length - 1] === "=") {
