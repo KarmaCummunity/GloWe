@@ -47,6 +47,8 @@ export const notificationsHe = {
   systemBody: '{{messagePreview}}',
   postExpiringTitle: 'הפוסט שלך יפוג בעוד 7 ימים',
   postExpiringBody: '{{postTitle}}',
+  postRelevanceTitle: 'הפוסט שלך עדיין רלוונטי?',
+  postRelevanceBody: '{{postTitle}} — אפשר לעדכן או לסגור אותו',
   foodExpiringTitle: 'תוקף האוכל שפרסמת יפוג בעוד פחות מ-24 שעות',
   foodExpiringBody: '{{listingTitle}} — אם כבר נמסר, סמנו אותו כנמסר.',
   foodExpiredTitle: 'פג תוקף האוכל שפרסמת',

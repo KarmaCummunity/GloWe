@@ -39,6 +39,10 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
     const id = requireUuid(d.params?.id);
     return id ? { pathname: '/post/[id]', params: { id } } : null;
   },
+  post_relevance_check: (d) => {
+    const id = requireUuid(d.params?.id);
+    return id ? { pathname: '/post/[id]', params: { id } } : null;
+  },
   mark_recipient: (d) => {
     const id = requireUuid(d.params?.id);
     return id ? { pathname: '/post/[id]', params: { id } } : null;

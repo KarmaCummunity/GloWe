@@ -34,6 +34,15 @@ describe('resolvePushRoute', () => {
     ).toBeNull();
   });
 
+  it('routes a post_relevance_check reminder (D59) to the post, and drops a bad id', () => {
+    expect(
+      resolvePushRoute({ category: 'critical', kind: 'post_relevance_check', notification_id: 'n9', params: { id: UUID } }),
+    ).toEqual({ pathname: '/post/[id]', params: { id: UUID } });
+    expect(
+      resolvePushRoute({ category: 'critical', kind: 'post_relevance_check', notification_id: 'n10', params: { id: 'nope' } }),
+    ).toBeNull();
+  });
+
   it('rejects an unknown kind', () => {
     expect(
       resolvePushRoute({

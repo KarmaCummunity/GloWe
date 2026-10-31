@@ -47,6 +47,8 @@ export const notificationsEn = {
   systemBody: '{{messagePreview}}',
   postExpiringTitle: 'Your post will expire in 7 days',
   postExpiringBody: '{{postTitle}}',
+  postRelevanceTitle: 'Is your post still relevant?',
+  postRelevanceBody: '{{postTitle}} — update it or close it',
   foodExpiringTitle: 'Your food offer expires in under 24 hours',
   foodExpiringBody: '{{listingTitle}} — if it was already handed over, mark it as handed over.',
   foodExpiredTitle: 'Your food offer expired',

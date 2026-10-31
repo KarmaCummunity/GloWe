@@ -24,6 +24,12 @@ export const BASELINE_HEADERS = {
  */
 export const WELL_KNOWN_JSON_PATHS = ['/.well-known/apple-app-site-association', '/.well-known/assetlinks.json'];
 
+/**
+ * Build identity polled by the deploy smoke right after a deploy; a cached
+ * copy would report the previous build's SHA.
+ */
+export const VERSION_PATH = '/version.json';
+
 /** Renders the `_headers` file body. */
 export function renderHeadersFile() {
   const block = (path, headers) =>
@@ -31,6 +37,7 @@ export function renderHeadersFile() {
   const blocks = [
     block('/*', BASELINE_HEADERS),
     ...WELL_KNOWN_JSON_PATHS.map((path) => block(path, { 'Content-Type': 'application/json' })),
+    block(VERSION_PATH, { 'Cache-Control': 'no-store' }),
   ];
   return `${blocks.join('\n\n')}\n`;
 }
