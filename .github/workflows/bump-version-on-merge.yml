@@ -29,9 +29,15 @@ on:
   push:
     branches: [dev]
 
-# One bump at a time and none dropped: each run re-reads the tip of `dev`.
+# One run at a time; each run re-reads the tip of `dev`. GitHub keeps only one
+# pending run per group, so a newer pending run replaces an older one. The run
+# triggered by this workflow's own ID commit is skipped by the job `if` below,
+# so it takes a group of its own and never displaces a merge's pending run.
 concurrency:
-  group: bump-version-on-merge
+  group: >-
+    ${{ startsWith(github.event.head_commit.message, 'chore(release): assign spec ids')
+      && format('bump-version-on-merge-own-{0}', github.run_id)
+      || 'bump-version-on-merge' }}
   cancel-in-progress: false
 
 permissions:
