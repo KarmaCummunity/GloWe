@@ -252,6 +252,26 @@ A *Support KC directly* card at the top of the Money hub lets a donor give to Ka
 
 ---
 
+## FR-DONATE-011 — Medical category: curated life-saving bodies directory
+
+**Description.**
+The `medical` category screen (`/(tabs)/donations/category/medical`) renders a static, app-wide directory of leading Israeli life-saving and medical bodies above the community-curated `DonationLinksList`. Unlike `FR-DONATE-007` links, entries are shipped with the app (not user-submitted) and are not editable by users.
+
+**Source.**
+- Product request 2026-10-30 (PM).
+
+**Acceptance Criteria.**
+- AC1. Entries are grouped into five sections, in order: blood donation, organ & bone marrow donation (ADI card), first aid & rescue, medical equipment loans, patient & family support.
+- AC2. Each entry shows a name, a short description and an `open-outline` affordance; tapping opens the official https URL in the external browser (`Linking.canOpenURL` → `Linking.openURL`). On failure an `Alert` shows `medicalBodies.linkError`.
+- AC3. All visible strings come from `medicalBodies.*` (he + en bundles); URLs and section structure live in `features/donations/medicalBodies.ts`.
+- AC4. Each card has `accessibilityRole="link"`, an `accessibilityLabel` naming the body, and a touch target ≥ 44 px.
+- AC5. The section renders only for slug `medical`; other categories are unchanged. The community `DonationLinksList` remains below it.
+- AC6. No network or storage side-effects.
+
+**Related.** `FR-DONATE-006`, `FR-DONATE-007`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-09 | Initial draft. Reintroduces Donations tab into MVP per `D-16`. Defines `FR-DONATE-001..005`. |
@@ -261,5 +281,6 @@ A *Support KC directly* card at the top of the Money hub lets a donor give to Ka
 | 0.7 | 2026-05-12 | Status banner + `FR-DONATE-008 AC3c` (client edit vs add contract); `FR-DONATE-007 AC1` + `FR-DONATE-009` description clarify DELETE vs Edge update; Hebrew summary in status. |
 | 0.8 | 2026-05-12 | `FR-DONATE-007 AC7` — silent server refetch after add/edit/remove so the list re-renders without manual reload. |
 | 0.9 | 2026-05-18 | Adds `FR-DONATE-010` — platform-support card (Bit + Paybox) embedded on About + Settings. |
+| 0.10 | 2026-10-30 | Adds `FR-DONATE-011` — curated medical / life-saving bodies directory on the `medical` category screen. |
 | 1.0 | 2026-10-30 | Adds `FR-DONATE-011` — direct support for KC (one-time + monthly standing order, legal notice, server-configured channels). `FR-DONATE-003` rewritten to the current Money hub; jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. |
 | 1.1 | 2026-10-30 | `D64` — Bit / PayBox are withdrawn once a one-time clearing page exists; no compiled payment URLs or offline fallback; `FR-DONATE-010` card now wraps the `FR-DONATE-011` card (same channels + legal notice). |
