@@ -1596,6 +1596,14 @@ Owner rules that go with it:
 
 **Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
 
+## D-201 — Realtime: private DB Broadcast by default; realtime never the source of truth (2026-10-30)
+
+**Decision.** Adopt [ADR-003](../architecture/adr/ADR-003-realtime.md): new realtime features use database-sent Broadcast on a private, entity-scoped topic (`<entity>:<uuid>:<facet>`) authorized by an RLS policy on `realtime.messages` in the same migration; Presence only for who-is-here/online (one shared app-level channel for online presence); postgres_changes only for low-fan-out, owner-filtered streams. Adapters own channels behind ports; exact topics open through `openExactTopicChannel`, postgres_changes use a unique topic per mount. Payloads carry ids or pings, and clients re-read through RLS. Every realtime screen also loads by query and has a refetch or polling fallback. Topic registry: `docs/SSOT/social_realtime_conventions.md`.
+
+**Why.** KC#1017. Mechanism choice, auth and lifecycle lived only in migration comments; channel pile-up (#994) and the cost of postgres_changes fan-out (#878 / #879) needed one written rule.
+
+**Affected.** `supabase/migrations/**` (realtime policies + triggers), `app/packages/infrastructure-supabase/src/{realtime,chat,rides,users}/**`, realtime-consuming hooks in `app/apps/mobile/src/hooks/**`.
+
 ## {{ENG:merge-time-registry-ids}} — Registry IDs are assigned on merge, not in the PR (2026-10-31)
 
 **Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in a commit of its own that CI certifies, right before the version bump (which stays a VERSION-only commit so the dev deploy can inherit its parent's gate, TD-231). The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
