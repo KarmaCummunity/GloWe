@@ -181,3 +181,23 @@ test('a review into dev reuses a skipped heavy lane the plan defers', () => {
   const plan = { ...REVIEW_PLAN, bundles: false };
   assert.deepEqual(evaluateGate({ ...REVIEW, baseRef: 'dev', needs: mergeReused(own, reused), plan }), []);
 });
+
+test('a wired heavy lane left out of the plan fails on every event, even when skipped', () => {
+  const { bundles: _plan, ...plan } = FULL;
+  const runs = [
+    { draft: false, event: 'pull_request', ref: 'refs/pull/1/merge', baseRef: 'main' },
+    { draft: false, event: 'pull_request', ref: 'refs/pull/1/merge', baseRef: 'dev' },
+    { draft: false, event: 'merge_group', ref: 'refs/heads/gh-readonly-queue/dev/pr-1', baseRef: 'refs/heads/dev' },
+    { draft: false, event: 'push', ref: 'refs/heads/dev', baseRef: '' },
+  ];
+  for (const run of runs) {
+    const errors = evaluateGate({ ...run, needs: { ...FULL_NEEDS, bundles: skipped }, plan });
+    assert.ok(errors.includes('job "bundles" is not in the change detector\'s plan'), `${run.event} ${run.baseRef}: ${errors.join(' | ')}`);
+  }
+});
+
+test('a PR into dev skips a heavy lane only when the plan says false explicitly', () => {
+  const needs = { ...NEEDS, bundles: skipped };
+  assert.deepEqual(evaluateGate({ ...DEV_PR, needs, plan: { ...PLAN, bundles: false } }), []);
+  assert.deepEqual(evaluateGate({ ...DEV_PR, needs, plan: PLAN }), ['job "bundles" is not in the change detector\'s plan']);
+});

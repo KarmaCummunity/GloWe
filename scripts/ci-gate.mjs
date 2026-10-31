@@ -57,7 +57,9 @@ const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
 // Lanes the change detector names only when needed (scripts/ci-changes.mjs,
 // loaded from the same base commit). Absent from the plan, such a lane is
 // "not needed" and may only have been skipped.
-const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS);
+// A heavy lane is never optional: the plan must name it, and only an explicit
+// `false` (where deferral is allowed) lets it skip.
+const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS.filter((lane) => !HEAVY_LANES.includes(lane)));
 
 /**
  * Errors for lanes this event may not plan as not needed. A PR or review into
@@ -122,7 +124,7 @@ export function evaluateGate({ needs, plan, draft, event, ref, baseRef }) {
 export function mergeReused(needs, reused) {
   const merged = { ...needs };
   for (const lane of [...LANE_JOBS, ...OPTIONAL_LANE_IDS]) {
-    if (REVIEW_LANES.includes(lane) || (OPTIONAL_LANES.has(lane) && !(lane in needs))) continue;
+    if (REVIEW_LANES.includes(lane) || (OPTIONAL_LANE_IDS.includes(lane) && !(lane in needs))) continue;
     merged[lane] = { result: reused[lane] ?? 'missing' };
   }
   return merged;

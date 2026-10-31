@@ -137,7 +137,7 @@ export function plan({ event, draft, actor, ref, baseRef, files }) {
   const heavy = Object.fromEntries(HEAVY_LANES.map((l) => [l, lanes.frontend && !deferHeavy]));
   // SonarCloud's free plan analyses only `main` and pull requests, so neither
   // merge-group commits nor dev pushes can be scanned; with the per-PR scan
-  // gone from PRs into dev (D-195 addendum, TD-236), it gates PRs into main
+  // gone from PRs into dev (D-195 addendum, {{TD:sonar-no-dev-pr-gate}}), it gates PRs into main
   // and main pushes. Dependabot-triggered runs get no secrets.
   const sonarTarget = (isPr && base === 'main' && actor !== 'dependabot[bot]') || (!isPr && event !== 'merge_group' && ref === 'refs/heads/main');
   const needed = { hygiene: isPr, static: true, ...lanes, ...heavy, ...(release ? { release: true } : {}) };
