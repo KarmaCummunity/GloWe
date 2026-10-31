@@ -6818,10 +6818,11 @@ export type Database = {
       survey_answers: {
         Row: {
           answer_text: string | null
+          choice_key: string | null
           created_at: string
           id: string
           question_id: string
-          rating: number
+          rating: number | null
           survey_id: string
           updated_at: string
           user_id: string
@@ -6829,10 +6830,11 @@ export type Database = {
         }
         Insert: {
           answer_text?: string | null
+          choice_key?: string | null
           created_at?: string
           id?: string
           question_id: string
-          rating: number
+          rating?: number | null
           survey_id: string
           updated_at?: string
           user_id: string
@@ -6840,10 +6842,11 @@ export type Database = {
         }
         Update: {
           answer_text?: string | null
+          choice_key?: string | null
           created_at?: string
           id?: string
           question_id?: string
-          rating?: number
+          rating?: number | null
           survey_id?: string
           updated_at?: string
           user_id?: string
@@ -6868,6 +6871,7 @@ export type Database = {
       }
       survey_questions: {
         Row: {
+          choice_options: Json | null
           context_he: string
           id: string
           prompt_he: string
@@ -6880,6 +6884,7 @@ export type Database = {
           text_placeholder_he: string
         }
         Insert: {
+          choice_options?: Json | null
           context_he?: string
           id?: string
           prompt_he: string
@@ -6892,6 +6897,7 @@ export type Database = {
           text_placeholder_he?: string
         }
         Update: {
+          choice_options?: Json | null
           context_he?: string
           id?: string
           prompt_he?: string
@@ -7068,6 +7074,43 @@ export type Database = {
           },
           {
             foreignKeyName: "timesheet_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_active_days: {
+        Row: {
+          active_on: string
+          user_id: string
+        }
+        Insert: {
+          active_on: string
+          user_id: string
+        }
+        Update: {
+          active_on?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_public"
@@ -8792,6 +8835,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_pmf_survey_report: { Args: { p_slug?: string }; Returns: Json }
       admin_remove_listing: {
         Args: { p_listing_id: string }
         Returns: undefined
@@ -11240,6 +11284,7 @@ export type Database = {
         Args: { p_post_id: string }
         Returns: undefined
       }
+      rpc_record_active_day: { Args: never; Returns: undefined }
       rpc_republish_post: { Args: { p_post_id: string }; Returns: string }
       rpc_ride_arrive: {
         Args: { p_reason?: string; p_ride_id: string }
@@ -11847,6 +11892,10 @@ export type Database = {
         Args: { p_answers: Json; p_slug: string }
         Returns: undefined
       }
+      user_active_days_14d: {
+        Args: { p_day: string; p_user_id: string }
+        Returns: number
+      }
       users_get_self_private_fields: { Args: never; Returns: Json }
       users_merge_notification_preferences: {
         Args: { p_merge: Json; p_user_id: string }
@@ -11892,7 +11941,9 @@ export type Database = {
     }
     Enums: {
       legal_doc_type: "terms" | "privacy"
-      survey_question_type: "rating_1_7_with_optional_text"
+      survey_question_type:
+        | "rating_1_7_with_optional_text"
+        | "single_choice_with_optional_text"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -12021,7 +12072,10 @@ export const Constants = {
   public: {
     Enums: {
       legal_doc_type: ["terms", "privacy"],
-      survey_question_type: ["rating_1_7_with_optional_text"],
+      survey_question_type: [
+        "rating_1_7_with_optional_text",
+        "single_choice_with_optional_text",
+      ],
     },
   },
 } as const
