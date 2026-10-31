@@ -215,6 +215,16 @@ test('checkGateWiring flags a job the change detector does not plan', () => {
   assert.ok(errors.some((e) => /job "e2e" is not a lane the change detector plans/.test(e)), errors.join('\n'));
 });
 
+test('checkGateWiring accepts an optional release lane wired into the gate', () => {
+  const withRelease = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:').replace(
+    `    needs: [changes, ${LANES.join(', ')}]`,
+    `    needs: [changes, ${LANES.join(', ')}, release]`,
+  );
+  assert.deepEqual(checkGateWiring(withRelease), []);
+  const unwired = CI_WF.replace('  gate:', '  release:\n    name: release\n    needs: changes\n  gate:');
+  assert.match(checkGateWiring(unwired)[0], /job "release" is missing from the "CI gate" needs: list/);
+});
+
 test('checkGateWiring flags a planned lane with no job', () => {
   const noEdge = CI_WF.replace('  edge:\n    name: edge\n    needs: changes\n', '').replace(', edge]', ']');
   assert.deepEqual(checkGateWiring(noEdge), ['.github/workflows/ci.yml: planned job "edge" does not exist']);
