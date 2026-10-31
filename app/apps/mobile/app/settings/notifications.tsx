@@ -50,7 +50,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.success,
     borderRadius: radius.sm,
   },
-  buttonText: { ...typography.body, color: colors.textInverse, fontSize: 14 },
+  buttonText: { ...typography.body, color: colors.textInverse },
 }));
 
 type PermStatus = 'granted' | 'denied' | 'undetermined';
@@ -78,7 +78,7 @@ export default function NotificationSettingsScreen() {
           headerTitle: t('notifications.settingsTitle'),
         }}
       />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView testID="notification-settings-screen" contentContainerStyle={styles.scrollContent}>
         <NotificationToggleRow
           label={t('notifications.criticalLabel')}
           caption={t('notifications.criticalCaption')}

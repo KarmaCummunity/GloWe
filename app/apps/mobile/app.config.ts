@@ -54,6 +54,14 @@ function resolveGoogleServicesFile(): string | undefined {
   return undefined;
 }
 
+/**
+ * Maestro E2E builds (`KC_E2E_BUILD=1`, KC#1235) must run the JS bundle embedded in the APK
+ * under test; an OTA update from the EAS channel would replace it with older `dev` code.
+ */
+function isE2eBuild(): boolean {
+  return process.env.KC_E2E_BUILD === '1';
+}
+
 export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
   const easProjectId = process.env.EAS_PROJECT_ID?.trim() || config.extra?.eas?.projectId;
   applySentryBuildDefaults();
@@ -75,7 +83,11 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
     android,
     version: readAppVersion(),
     // OTA (expo-updates): the EAS Update channels in eas.json serve this project.
-    updates: { ...config.updates, url: `https://u.expo.dev/${easProjectId}` },
+    updates: {
+      ...config.updates,
+      url: `https://u.expo.dev/${easProjectId}`,
+      ...(isE2eBuild() ? { enabled: false } : {}),
+    },
     extra: {
       ...config.extra,
       gitCommitSha: resolveGitCommitSha(),
