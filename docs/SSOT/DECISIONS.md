@@ -1632,10 +1632,19 @@ Owner rules that go with it:
 
 **Affected.** `app/packages/application/src/contracts/**`, `app/packages/application/src/posts/__tests__/{InMemoryPostRepository,inMemoryPostStore,postRepository.contract.test}.ts`, `app/packages/infrastructure-supabase/src/posts/__tests__/{postContractHarness,SupabasePostRepository.contract.integration.test}.ts`, `.github/workflows/ci-backend.yml`, `docs/SSOT/TESTING.md` § Port contract tests, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G39, BACKLOG `OPS-G39`.
 
+## {{ENG:world-journeys}} — World E2E journeys: one two-user shape, a fixture per world, publish through the RPC, verify over REST (2026-10-31)
+
+**Decision.** The per-world end-to-end test (G40) is one Playwright journey shape in `tests/e2e/lib/worldJourney.ts` run as two seeded users against the dev deployment: A publishes through `create_marketplace_listing` (the RPC the unified create form calls), B claims on the listing page, A confirms when the world requires it, A hands over (the listing closes and the giver's karma ledger row exists), B rates. A world plugs in as a fixture file (`journeys/<world>.spec.ts`: kind slug, claim action and the status it results in, kind details such as food expiry); the first two are `items` and `food`. Every UI step is re-read over REST as the acting user, so RLS is exercised as in the app. Locators prefer stable `giving-handoff-*` / `handoff-rating-*` testIDs and fall back to the Hebrew labels; the suite carries no skip marker. Journeys run nightly, in the mobile P0 gate and in the release lane, not as a PR lane: a PR-time run would exercise the previous deployment, not the PR.
+
+**Why.** Publishing through the RPC keeps the journey about the giving flow (claim → confirm → hand over → rate across two accounts) and off the create form's widgets, which have their own qa spec and change often; the RPC is exactly what the form calls, so the published row is the same. Re-reading over REST as each user turns every click into an RLS assertion. One shape with fixtures matches §5 of the target architecture ("a giving world plugs in by adding a fixture file"). The first run already fixed two wrong assumptions in the test itself (food's quick claim is confirmed at once; Hebrew status labels) — the shape is cheap to correct in one place.
+
+**Affected.** `tests/e2e/lib/worldJourney.ts`, `tests/e2e/journeys/{items,food}.spec.ts`, `tests/e2e/journeys/qa/{marketplace,social}.spec.ts` (unified create route, flag-aware money world), `app/apps/mobile/src/components/marketplace/{GivingHandoffActions,MarketplaceCreateForm}.tsx` (testIDs only), `docs/SSOT/TESTING.md` § Two-user world journeys, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G40, BACKLOG `OPS-G40`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.32 | 2026-10-31 | Added `{{ENG:world-journeys}}` (world E2E journeys: one two-user shape with a fixture per world, publish through the RPC, verify over REST; G40 first slice: items + food). |
 | 4.31 | 2026-10-31 | Added `D-204` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
 | 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
 | 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |

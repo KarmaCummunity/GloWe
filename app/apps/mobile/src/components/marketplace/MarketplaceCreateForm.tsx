@@ -154,9 +154,9 @@ export function MarketplaceCreateForm({
         />
       ) : null}
       <Text style={styles.label}>{t('marketplace.fieldTitle')}</Text>
-      <TextInput style={styles.input} value={title} onChangeText={setTitle} />
+      <TextInput testID="listing-title" style={styles.input} value={title} onChangeText={setTitle} />
       <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
-      <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
+      <TextInput testID="listing-summary" style={styles.input} value={summary} onChangeText={setSummary} multiline />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
       {showRideRoute ? (
         <RideRouteFields
@@ -200,6 +200,7 @@ export function MarketplaceCreateForm({
           <Image key={p.uri} source={{ uri: p.uri }} style={styles.thumb} />
         ))}
         <Pressable
+          testID="listing-add-photo"
           style={chipStyles.chip}
           onPress={async () => {
             const next = await pickListingImages(picked.length);
@@ -213,6 +214,7 @@ export function MarketplaceCreateForm({
       {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
       {validationError ? <Text style={styles.err}>{validationError}</Text> : null}
       <Pressable
+        testID="listing-publish"
         style={styles.btn}
         disabled={busy || title.trim().length < 2 || !userId}
         onPress={async () => {
