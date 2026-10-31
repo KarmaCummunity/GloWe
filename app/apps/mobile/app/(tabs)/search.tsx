@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
-import { useTheme, Text, TextInput } from '@kc/ui';
+import { useTheme, Text, TextInput, iconSize } from '@kc/ui';
 import type { SearchResultType, SearchSortBy } from '@kc/domain';
 import { useTranslation } from 'react-i18next';
 
@@ -141,15 +141,15 @@ export default function SearchScreen() {
   // ── Render ──────────────────────────────────
 
   return (
-    <Screen blobs="content">
+    <Screen blobs="content" testID="search-screen">
       {/* ── Header ──────────────────────────── */}
       <TopBar />
 
       {/* ── Search bar + filter button ──────── */}
       <MotionEntry variant="hero" delay={ENTRY_DELAY.hero} style={styles.searchRow}>
         <View style={styles.searchInput}>
-          <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
-          <TextInput
+          <Ionicons name="search" size={iconSize.md} color={colors.textSecondary} style={styles.searchIcon} />
+          <TextInput // brand-guard-allow: search bar is a non-form input
             style={styles.searchText}
             value={inputText}
             onChangeText={handleTextChange}
@@ -162,7 +162,7 @@ export default function SearchScreen() {
           />
           {inputText ? (
             <TouchableOpacity onPress={handleClear}>
-              <Ionicons name="close-circle" size={18} color={colors.textDisabled} />
+              <Ionicons name="close-circle" size={iconSize.md} color={colors.textDisabled} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -174,7 +174,7 @@ export default function SearchScreen() {
         >
           <Ionicons
             name="options-outline"
-            size={20}
+            size={iconSize.lg}
             color={filterCount > 0 ? colors.textInverse : colors.textPrimary}
           />
           {filterCount > 0 && (
@@ -237,7 +237,7 @@ export default function SearchScreen() {
                 >
                   <Ionicons
                     name="swap-vertical-outline"
-                    size={12}
+                    size={12} // brand-guard-allow: sort chip glyph sits below the 14pt scale floor
                     color={active ? colors.textInverse : colors.textSecondary}
                   />
                   <Text style={[styles.sortChipText, active && styles.sortChipTextActive]}>
@@ -259,7 +259,11 @@ export default function SearchScreen() {
         {/* Min chars message (1 char typed) */}
         {isSingleCharTyped && (
           <View style={styles.emptyState}>
-            <Ionicons name="text-outline" size={40} color={colors.textDisabled} />
+            <Ionicons
+              name="text-outline"
+              size={40} // brand-guard-allow: empty-state hero glyph
+              color={colors.textDisabled}
+            />
             <Text style={styles.emptySubtitle}>{t('search.minChars')}</Text>
           </View>
         )}
@@ -275,7 +279,11 @@ export default function SearchScreen() {
         {/* No results (search mode only — explore always has content) */}
         {isSearchMode && !query.isLoading && results && !hasResults && (
           <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color={colors.textDisabled} />
+            <Ionicons
+              name="search-outline"
+              size={48} // brand-guard-allow: empty-state hero glyph
+              color={colors.textDisabled}
+            />
             <Text style={styles.emptyTitle}>{t('search.noResults')}</Text>
             <Text style={styles.emptySubtitle}>{t('search.noResultsDesc')}</Text>
           </View>

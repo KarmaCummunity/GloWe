@@ -8,7 +8,7 @@ import { Platform, Pressable, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, useTheme } from '@kc/ui';
 import { TABS, resolveActiveTabKey, type IoniconName } from './shell/tabs.config';
 
 // Glassmorphism on web — RN-Web forwards unknown style keys to CSS. RN's
@@ -27,15 +27,18 @@ interface IconBtnProps {
   active: boolean;
   onPress: () => void;
   label: string;
+  /** Stable E2E selector (`tab-<key>`), independent of the UI language (KC#1235). */
+  testID: string;
   iconActive: IoniconName;
   iconInactive: IoniconName;
 }
 
-function IconBtn({ active, onPress, label, iconActive, iconInactive }: IconBtnProps) {
+function IconBtn({ active, onPress, label, testID, iconActive, iconInactive }: IconBtnProps) {
   const styles = useTabBarStyles();
   const { colors } = useTheme();
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
@@ -46,7 +49,7 @@ function IconBtn({ active, onPress, label, iconActive, iconInactive }: IconBtnPr
         <Ionicons
           key={active ? iconActive : iconInactive}
           name={active ? iconActive : iconInactive}
-          size={active ? 28 : 24}
+          size={active ? 28 : 24} // brand-guard-allow: active tab glyph grows past the icon scale
           color={active ? colors.tabActive : colors.tabInactive}
         />
       </View>
@@ -58,20 +61,26 @@ interface PlusBtnProps {
   active: boolean;
   onPress: () => void;
   label: string;
+  testID: string;
 }
 
-function PlusBtn({ active, onPress, label }: PlusBtnProps) {
+function PlusBtn({ active, onPress, label, testID }: PlusBtnProps) {
   const styles = useTabBarStyles();
   const { colors } = useTheme();
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       style={({ pressed }) => [styles.tabBtn, pressed && styles.tabBtnPressed]}
     >
       <View style={[styles.plusCircle, active && styles.plusCircleActive]}>
-        <Ionicons name="add" size={26} color={colors.textInverse} />
+        <Ionicons
+          name="add"
+          size={26} // brand-guard-allow: centre action glyph sized to its 48pt button
+          color={colors.textInverse}
+        />
       </View>
     </Pressable>
   );
@@ -98,7 +107,9 @@ export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> =
         const label = t(tab.labelI18nKey);
         const onPress = () => router.push(tab.route);
         if (tab.isComposer) {
-          return <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} />;
+          return (
+            <PlusBtn key={tab.key} active={isActive} onPress={onPress} label={label} testID={`tab-${tab.key}`} />
+          );
         }
         return (
           <IconBtn
@@ -106,6 +117,7 @@ export function TabBar({ bottomInset = 0 }: Readonly<{ bottomInset?: number }> =
             active={isActive}
             onPress={onPress}
             label={label}
+            testID={`tab-${tab.key}`}
             iconActive={tab.iconActive}
             iconInactive={tab.iconInactive}
           />
@@ -120,23 +132,24 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
     flexDirection: 'row' as const,
     height: TAB_BAR_HEIGHT,
     // Docked flush with the screen bottom (#1213): only top corners rounded.
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 6,
+    borderTopStartRadius: radius.xl,
+    borderTopEndRadius: radius.xl,
+    paddingHorizontal: spacing.xs,
     backgroundColor: colors.tabBarGlass,
     alignItems: 'center' as const,
     width: '100%' as const,
     alignSelf: 'center' as const,
     overflow: 'hidden' as const,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: isDark ? 0.45 : 0.14,
-    shadowRadius: 28,
-    elevation: 12,
+    shadowColor: colors.shadow,
+    // brand-guard-allow: the floating pill has no shared shadow preset (deeper than shadow.modal)
+    shadowOffset: { width: 0, height: 10 }, // brand-guard-allow: floating pill shadow
+    shadowOpacity: isDark ? 0.45 : 0.14, // brand-guard-allow: floating pill shadow
+    shadowRadius: 28, // brand-guard-allow: floating pill shadow
+    elevation: 12, // brand-guard-allow: floating pill shadow
     // Subtle hairline so the pill reads as a distinct surface in dark mode
     // where the underlying background and the glass tint are both dark.
     borderWidth: 1,
-    borderColor: isDark ? colors.border : 'rgba(0,0,0,0.06)',
+    borderColor: colors.border,
     ...webGlass,
   },
   tabBtn: {
@@ -149,7 +162,7 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   iconSlot: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.full,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
@@ -159,15 +172,11 @@ const useTabBarStyles = makeUseStyles(({ colors, isDark }) => ({
   plusCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: radius.full,
     backgroundColor: colors.primary,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    ...shadow.glow,
   },
   plusCircleActive: { backgroundColor: colors.primaryDark },
 }));

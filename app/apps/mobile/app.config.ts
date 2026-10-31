@@ -8,11 +8,14 @@ function readAppVersion(): string {
   return readFileSync(versionPath, 'utf8').trim();
 }
 
+// The explicit EXPO_PUBLIC_GIT_COMMIT_SHA wins over GITHUB_SHA: the deploy
+// pipeline runs on `workflow_run`, where GITHUB_SHA is the default branch tip,
+// not the deployed commit.
 function resolveGitCommitSha(): string {
   const sha =
     process.env.EAS_BUILD_GIT_COMMIT_HASH ??
-    process.env.GITHUB_SHA ??
     process.env.EXPO_PUBLIC_GIT_COMMIT_SHA ??
+    process.env.GITHUB_SHA ??
     '';
   return sha.trim().slice(0, 7);
 }
@@ -25,7 +28,7 @@ function applySentryBuildDefaults(): void {
   }
   delete process.env.SENTRY_DISABLE_AUTO_UPLOAD;
   if (!process.env.SENTRY_ORG?.trim()) {
-    process.env.SENTRY_ORG = 'kupay-hb';
+    process.env.SENTRY_ORG = 'karma-community';
   }
   if (!process.env.SENTRY_URL?.trim()) {
     process.env.SENTRY_URL = 'https://de.sentry.io/';
@@ -51,6 +54,14 @@ function resolveGoogleServicesFile(): string | undefined {
   return undefined;
 }
 
+/**
+ * Maestro E2E builds (`KC_E2E_BUILD=1`, KC#1235) must run the JS bundle embedded in the APK
+ * under test; an OTA update from the EAS channel would replace it with older `dev` code.
+ */
+function isE2eBuild(): boolean {
+  return process.env.KC_E2E_BUILD === '1';
+}
+
 export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
   const easProjectId = process.env.EAS_PROJECT_ID?.trim() || config.extra?.eas?.projectId;
   applySentryBuildDefaults();
@@ -72,7 +83,11 @@ export default function expoAppConfig({ config }: ConfigContext): ExpoConfig {
     android,
     version: readAppVersion(),
     // OTA (expo-updates): the EAS Update channels in eas.json serve this project.
-    updates: { ...config.updates, url: `https://u.expo.dev/${easProjectId}` },
+    updates: {
+      ...config.updates,
+      url: `https://u.expo.dev/${easProjectId}`,
+      ...(isE2eBuild() ? { enabled: false } : {}),
+    },
     extra: {
       ...config.extra,
       gitCommitSha: resolveGitCommitSha(),
