@@ -1,7 +1,7 @@
 // FR-NOTIF-001..015 — notifications strings split from main bundle (TD-35 file-size budget).
 export const notificationsHe = {
   inboxTitle: 'מרכז התראות',
-  inboxMarkAll: 'סמן הכל כנקרא',
+  inboxMarkAll: 'סמנו הכל כנקרא',
   inboxError: 'לא הצלחנו לטעון התראות. לחצו לנסות שוב',
   inboxEmpty: 'אין התראות כרגע',
   inboxGrouped: '{{count}} משתתפים',
@@ -22,7 +22,7 @@ export const notificationsHe = {
   matchSuggestionsCaption: 'כשיש הצעה או בקשה שמתאימה לשלך (גם בוואטסאפ)',
   quietHoursSection: 'שעות שקט',
   quietHoursCaption: 'השהיית התראות חברתיות בלילה (קריטיות עדיין מגיעות)',
-  quietHoursEnabled: 'הפעל שעות שקט',
+  quietHoursEnabled: 'הפעלת שעות שקט',
   quietHoursStart: 'התחלה (HH:MM)',
   quietHoursEnd: 'סיום (HH:MM)',
   deviceStatusSection: 'סטטוס המכשיר',
@@ -30,7 +30,7 @@ export const notificationsHe = {
   permissionDenied: 'הרשאה חסומה בהגדרות המכשיר',
   tokenRegistered: 'המכשיר רשום',
   tokenNotRegistered: 'המכשיר טרם נרשם',
-  openOsSettings: 'פתח הגדרות',
+  openOsSettings: 'פתיחת הגדרות',
 
   enablePushTitle: 'להישאר בקשר?',
   enablePushBodyFromChat: 'נשלח לך התראה כשמישהו עונה לך — גם כשהאפליקציה סגורה.',
@@ -58,9 +58,9 @@ export const notificationsHe = {
   unmarkRecipientTitle: '{{recipientName}}',
   unmarkRecipientBody: 'הסיר את הסימון מ-{{postTitle}}',
   autoRemovedTitle: 'הפוסט שלך הוסר',
-  autoRemovedBody: 'הסיבה: דווח על-ידי מספר משתמשים. למידע נוסף — לחץ.',
+  autoRemovedBody: 'הסיבה: דווח על-ידי מספר משתמשים. למידע נוסף — לחצו.',
   accountSuspendedTitle: 'החשבון שלך הושעה',
-  accountSuspendedBody: 'הסיבה: דווח על-ידי מספר משתמשים. פתח את האפליקציה למידע נוסף.',
+  accountSuspendedBody: 'הסיבה: דווח על-ידי מספר משתמשים. פתחו את האפליקציה למידע נוסף.',
   chatAutoRemovedTitle: 'שיחה הוסרה',
   chatAutoRemovedBody: 'שיחה שלך הוסרה מהמערכת לאחר דיווחים. השיחה לא תופיע יותר בתיבת הדואר.',
   followRequestTitle: '{{requesterName}}',
