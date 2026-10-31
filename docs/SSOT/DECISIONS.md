@@ -1614,7 +1614,7 @@ Owner rules that go with it:
 
 **Affected.** `supabase/functions/_shared/observability/**` (+ tests), all 19 `supabase/functions/*/index.ts`, `.github/workflows/deploy-functions.yml`, `docs/SSOT/OPERATOR_RUNBOOK.md` § Edge Functions, `docs/architecture/target.md` §5.2, `docs/spec/93_implementation_gaps.md` G41.
 
-## {{ENG:merge-time-registry-ids}} — Registry IDs are assigned on merge, not in the PR (2026-10-31)
+## D-203 — Registry IDs are assigned on merge, not in the PR (2026-10-31)
 
 **Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in a commit of its own that CI certifies, right before the version bump (which stays a VERSION-only commit so the dev deploy can inherit its parent's gate, TD-231). The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
 
@@ -1628,7 +1628,7 @@ Owner rules that go with it:
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.30 | 2026-10-31 | Added `{{ENG:merge-time-registry-ids}}` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
+| 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
 | 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
 | 4.27 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, runtime deploy guard (caller, approval attempt, freshness), release lane in `CI gate` (expand/contract justifications), rollback (web + functions only without migrations; DB forward-fix), encrypted 14-day pre-migration backups. |
