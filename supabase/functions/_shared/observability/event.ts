@@ -34,7 +34,8 @@ export interface EventContext {
 export interface SentryEvent {
   event_id: string;
   timestamp: string;
-  platform: 'javascript';
+  /** `node`: a server runtime. Sentry infers a "user IP" for `javascript` events, which here would be the Edge Runtime's egress address. */
+  platform: 'node';
   level: SentryLevel;
   logger: string;
   environment: string;
@@ -118,7 +119,7 @@ function baseEvent(level: SentryLevel, ctx: EventContext, now: Date): SentryEven
   const event: SentryEvent = {
     event_id: newEventId(),
     timestamp: now.toISOString(),
-    platform: 'javascript',
+    platform: 'node',
     level,
     logger: 'edge-functions',
     environment: ctx.environment,

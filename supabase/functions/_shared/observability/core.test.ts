@@ -53,7 +53,8 @@ Deno.test('a throw that escapes the handler → one unhandled exception event + 
   assertStringIncludes(headers['X-Sentry-Auth'], 'sentry_key=pk');
   assertEquals(event.environment, 'test');
   assertEquals(event.release, 'functions@sha');
-  assertEquals(event.tags, { region: 'eu-west-1', function: 'demo', handled: 'false' });
+  assertEquals(event.tags, { region: 'eu-west-1', edge_function: 'demo', handled: 'false' });
+  assertEquals(event.platform, 'node');
   assertEquals(event.request, { method: 'POST', url: 'https://x/functions/v1/demo' });
   assertEquals(event.exception!.values[0].type, 'TypeError');
   assertEquals(event.exception!.values[0].mechanism.handled, false);

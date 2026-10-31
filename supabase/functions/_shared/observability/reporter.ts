@@ -32,7 +32,7 @@ export interface ReporterConfig {
 }
 
 export interface CaptureOptions {
-  /** Edge Function name — becomes the `function` tag. */
+  /** Edge Function name — becomes the `edge_function` tag (`function` is a reserved Sentry tag key and is dropped). */
   fn: string;
   /** False only for a throw that escaped the handler. */
   handled: boolean;
@@ -66,7 +66,7 @@ export function createReporter(config: ReporterConfig): Reporter {
   const context = (opts: CaptureOptions): EventContext => ({
     environment: config.environment,
     release: config.release,
-    tags: { ...config.tags, ...opts.tags, function: opts.fn, handled: String(opts.handled) },
+    tags: { ...config.tags, ...opts.tags, edge_function: opts.fn, handled: String(opts.handled) },
     request: opts.request,
     extra: opts.extra,
   });

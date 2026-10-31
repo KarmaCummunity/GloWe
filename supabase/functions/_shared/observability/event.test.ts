@@ -11,7 +11,7 @@ import {
 const ctx: EventContext = {
   environment: 'test',
   release: 'functions@abc',
-  tags: { function: 'f', handled: 'false' },
+  tags: { edge_function: 'f', handled: 'false' },
   request: { method: 'POST', url: 'https://x/functions/v1/f' },
 };
 const NOW = new Date('2026-10-31T10:00:00.000Z');

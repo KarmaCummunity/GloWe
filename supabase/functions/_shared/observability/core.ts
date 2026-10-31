@@ -22,7 +22,7 @@ import { createReporter, type ReporterConfig } from './reporter.ts';
 export type Handler = (req: Request) => Promise<Response>;
 
 export interface ReportErrorOptions {
-  /** Edge Function name — the Sentry `function` tag and log field. */
+  /** Edge Function name — the Sentry `edge_function` tag and log field. */
   fn: string;
   /** The request being served, when inside a handler: dedupes the wrapper's 5xx report. */
   req?: Request;

@@ -338,7 +338,7 @@ Every function is wrapped by `withObservability` (`supabase/functions/_shared/ob
 
 **One-time setup per environment:**
 
-1. Sentry → the KC organisation → **Create project** (platform: Browser JavaScript is fine; the client sends plain envelopes) named `kc-edge-functions`. Copy its DSN. One project serves both environments; events carry `environment: prod | dev`.
+1. Sentry project: **`kc-z0` / `citov`** (us.sentry.io), client key **"Edge Functions"** (Settings → Client Keys). One key serves both environments; events carry `environment: prod | dev`. A dedicated key keeps rate limits and deactivation separate from any other sender.
 2. GitHub → Settings → Environments → `supabase-prod` and `supabase-dev` → add the secret `EDGE_SENTRY_DSN`.
 3. Trigger **Supabase Functions deploy** (push to the branch or **Run workflow**). The sync step is skipped while the secret is absent.
 
@@ -348,7 +348,7 @@ CLI equivalent (account token in env):
 supabase secrets set SENTRY_DSN="<dsn>" SENTRY_ENVIRONMENT=dev --project-ref <ref>
 ```
 
-**Verify:** Supabase → Edge Functions → Logs: each failure writes one `{"evt":"edge_error","fn":…,"sentry":"sent","event_id":…}` line; the same `event_id` opens in Sentry (filter `function:<name>`). `"sentry":"skipped_no_dsn"` means the secret is not set on that project; `"failed"` means Sentry rejected or timed out the envelope (the function response is unaffected either way).
+**Verify:** Supabase → Edge Functions → Logs: each failure writes one `{"evt":"edge_error","fn":…,"sentry":"sent","event_id":…}` line; the same `event_id` opens in Sentry (filter `edge_function:<name>`; `function` is a reserved Sentry tag key, so the function name is tagged `edge_function`). `"sentry":"skipped_no_dsn"` means the secret is not set on that project; `"failed"` means Sentry rejected or timed out the envelope (the function response is unaffected either way).
 
 **What is never sent:** request bodies, headers, query strings, and free-text error messages from responses — only identifier-shaped `error` codes become tags.
 
