@@ -1130,9 +1130,6 @@
       "spacingLiteral": 2,
       "iconSizeLiteral": 5
     },
-    "src/components/marketplace/GivingHandoffActions.tsx": {
-      "radiusLiteral": 2
-    },
     "src/components/marketplace/ListingSchemaFields.tsx": {
       "radiusLiteral": 2,
       "rawTextInput": 3
