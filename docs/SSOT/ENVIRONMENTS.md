@@ -38,6 +38,8 @@ All variables prefixed `EXPO_PUBLIC_*` are exposed to the client bundle by Expo'
 
 **Edge Function secret (Survey B CORS, not in the client bundle):** set `PUBLIC_RESEARCH_ALLOWED_ORIGINS` on each Supabase project (or as a GitHub Environment **variable** on `supabase-prod` / `supabase-dev` — synced by **Supabase Functions deploy**). Values: prod → `https://karma-community-kc.com`; dev → `https://mvp-2-dev.up.railway.app,https://dev3.karma-community-kc.com,http://localhost:8081,http://localhost:19006`. See [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Functions.
 
+**Edge Function error reporting (G41, `D-200`):** set the GitHub Environment secret `EDGE_SENTRY_DSN` on `supabase-prod` / `supabase-dev`; the functions deploy workflows sync it to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` / `dev`) and `SENTRY_RELEASE`. Until then every Edge Function logs errors only. Setup and verification: [`OPERATOR_RUNBOOK.md`](./OPERATOR_RUNBOOK.md) § Edge Function error reporting.
+
 > **Pitfall:** Expo only exposes vars that start with `EXPO_PUBLIC_`. A var named `PUBLIC_ENVIRONMENT` (no `EXPO_` prefix) is invisible to the client bundle.
 >
 > **Docker / Railway web build:** The repo root `Dockerfile` builder stage must declare an `ARG` + `ENV` for each `EXPO_PUBLIC_*` value that must appear in the static web bundle. Service variables in the Railway UI are **not** visible inside `RUN pnpm build:web` unless they are wired through that stage (we ship `EXPO_PUBLIC_SUPABASE_*` and `EXPO_PUBLIC_ENVIRONMENT`). If the dev banner is missing on the hosted URL but variables look correct in Railway, redeploy after a Dockerfile fix or add the missing `ARG`/`ENV` pair.

@@ -35,6 +35,8 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       KC_DEV_REF: enbqriuxvvuontiwslun
+      # G41: optional Sentry DSN for Edge Function error reporting (log-only when absent).
+      EDGE_SENTRY_DSN: ${{ secrets.EDGE_SENTRY_DSN }}
       # match-rerank no-ops (403 for non-service callers, skipped without GEMINI_API_KEY or with
       # matching_settings.llm_rerank_enabled = false), so deploying it before the key exists is safe.
       FUNCTIONS: ${{ inputs.functions || 'delete-account match-rerank' }}
@@ -63,3 +65,11 @@ jobs:
           for f in $FUNCTIONS; do
             supabase functions deploy "$f" --project-ref "$KC_DEV_REF" --use-api
           done
+
+      # G41: keep kc-dev's error-reporting secrets in sync. Only the functions above were
+      # redeployed, so SENTRY_RELEASE is left to the full deploy workflow.
+      - name: Sync Sentry error-reporting secrets
+        if: env.EDGE_SENTRY_DSN != ''
+        run: |
+          set -euo pipefail
+          supabase secrets set SENTRY_DSN="$EDGE_SENTRY_DSN" SENTRY_ENVIRONMENT=dev --project-ref "$KC_DEV_REF"

@@ -311,6 +311,10 @@ Regenerate `database.types.ts` after applying (or merge the manually added table
 | -------------------------------- | ------- |
 | `PUBLIC_RESEARCH_ALLOWED_ORIGINS` | Comma-separated `Origin` allowlist for `public-research-submit`. Synced on each deploy when set. |
 
+| Secret (optional, recommended) | Purpose |
+| ------------------------------ | ------- |
+| `EDGE_SENTRY_DSN` | DSN of the Sentry project for Edge Functions (G41, `D-200`). Synced on each deploy to the Supabase secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` on `supabase-prod`, `dev` on `supabase-dev`) and `SENTRY_RELEASE` (`functions@<sha>`; full deploys only). Without it every function stays in log-only mode. |
+
 **Survey B CORS values (2026-05-29 catch-up):**
 
 | Environment | `PUBLIC_RESEARCH_ALLOWED_ORIGINS` |
@@ -325,6 +329,26 @@ supabase secrets set PUBLIC_RESEARCH_ALLOWED_ORIGINS="<origins>" --project-ref <
 ```
 
 `SUPABASE_DB_PASSWORD` is **not** required for function deploy.
+
+### Edge Function error reporting (G41, `D-200`)
+
+Every function is wrapped by `withObservability` (`supabase/functions/_shared/observability/`): a throw that escapes the handler and every 5xx response reach Sentry; handled fatal paths and the WhatsApp agent background job call `reportError`. Secrets are referenced by name only.
+
+**One-time setup per environment:**
+
+1. Sentry → the KC organisation → **Create project** (platform: Browser JavaScript is fine; the client sends plain envelopes) named `kc-edge-functions`. Copy its DSN. One project serves both environments; events carry `environment: prod | dev`.
+2. GitHub → Settings → Environments → `supabase-prod` and `supabase-dev` → add the secret `EDGE_SENTRY_DSN`.
+3. Trigger **Supabase Functions deploy** (push to the branch or **Run workflow**). The sync step is skipped while the secret is absent.
+
+CLI equivalent (account token in env):
+
+```bash
+supabase secrets set SENTRY_DSN="<dsn>" SENTRY_ENVIRONMENT=dev --project-ref <ref>
+```
+
+**Verify:** Supabase → Edge Functions → Logs: each failure writes one `{"evt":"edge_error","fn":…,"sentry":"sent","event_id":…}` line; the same `event_id` opens in Sentry (filter `function:<name>`). `"sentry":"skipped_no_dsn"` means the secret is not set on that project; `"failed"` means Sentry rejected or timed out the envelope (the function response is unaffected either way).
+
+**What is never sent:** request bodies, headers, query strings, and free-text error messages from responses — only identifier-shaped `error` codes become tags.
 
 **After merge:** open Actions → latest **Supabase Functions deploy** run → confirm **Deploy all Edge Functions** succeeded. If it failed: fix secrets/permissions, re-run the job or use **Run workflow**.
 
