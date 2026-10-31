@@ -7,6 +7,8 @@ export type NotificationKind =
   | 'support_message'
   | 'system_message'
   | 'post_expiring'
+  // D59 / S3 — "still relevant?" reminder to the owner (replaces expiry for items/requests).
+  | 'post_relevance_check'
   | 'mark_recipient'
   | 'unmark_recipient'
   | 'auto_removed'
