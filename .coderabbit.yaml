@@ -22,7 +22,7 @@ reviews:
     - "!**/coverage/**"
     - "!**/database.types.ts"
   auto_review:
-    enabled: true
+    enabled: false
     drafts: false
     # All PRs target `dev` (CLAUDE.md §6); without this CodeRabbit only
     # auto-reviews PRs into the default branch (`main`).
