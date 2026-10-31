@@ -10,7 +10,7 @@ import { Image, Platform, TouchableOpacity, View, type ViewStyle } from 'react-n
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, iconSize } from '@kc/ui';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationInboxBadge } from '../hooks/useNotificationInboxBadge';
@@ -50,7 +50,7 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
         onPress={() => router.push('/chat/')}
         accessibilityLabel={t('chat.title')}
       >
-        <Ionicons name="chatbubbles-outline" size={24} color={colors.textPrimary} />
+        <Ionicons name="chatbubbles-outline" size={iconSize['2xl']} color={colors.textPrimary} />
         {chatUnread > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{chatDisplay}</Text>
@@ -66,7 +66,7 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
           onPress={() => router.push('/notifications/inbox')}
           accessibilityLabel={t('notifications.inboxTitle')}
         >
-          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+          <Ionicons name="notifications-outline" size={iconSize['2xl']} color={colors.textPrimary} />
           {notifUnread > 0 ? (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{notifDisplay}</Text>
@@ -79,7 +79,7 @@ export function TopBar({ extraIcon }: TopBarProps = {}) {
           onPress={() => router.push('/settings')}
           accessibilityLabel={t('settings.title')}
         >
-          <Ionicons name="settings-outline" size={24} color={colors.textPrimary} />
+          <Ionicons name="settings-outline" size={iconSize['2xl']} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
     </View>

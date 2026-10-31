@@ -3,7 +3,7 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text, iconSize } from '@kc/ui';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../lib/webRtlStyle';
 
@@ -32,12 +32,12 @@ export function SettingsScreenRow({
   const iconColor = destructive ? colors.error : colors.textSecondary;
   const labelStyle = [styles.rowLabel, destructive && { color: colors.error }];
   const trailing = rightElement ?? (
-    <Ionicons name="chevron-back" size={18} color={colors.textDisabled} />
+    <Ionicons name="chevron-back" size={iconSize.md} color={colors.textDisabled} />
   );
 
   const inner = (
     <>
-      <Ionicons name={icon as never} size={20} style={styles.rowIcon} color={iconColor} />
+      <Ionicons name={icon as never} size={iconSize.lg} style={styles.rowIcon} color={iconColor} />
       <Text style={labelStyle}>{label}</Text>
       {trailing}
     </>

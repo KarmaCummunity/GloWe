@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { spacing, useTheme, Text } from '@kc/ui';
+import { spacing, useTheme, Text, iconSize } from '@kc/ui';
 import { EmptyState } from '../../components/EmptyState';
 import { useAuthStore } from '../../store/authStore';
 import { getPostByIdUseCase } from '../../services/postsComposition';
@@ -199,7 +199,7 @@ export function PostDetailScreen() {
               <ActivityIndicator size="small" color={colors.textInverse} />
             ) : (
               <>
-                <Ionicons name="chatbubble-outline" size={18} color={colors.textInverse} />
+                <Ionicons name="chatbubble-outline" size={iconSize.md} color={colors.textInverse} />
                 <Text style={styles.messageBtnText}>{t('post.detail.contactCta')}</Text>
               </>
             )}

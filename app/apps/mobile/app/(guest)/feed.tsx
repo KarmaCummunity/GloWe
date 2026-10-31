@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { selectGuestPreviewPosts } from '@kc/application';
-import { spacing, useTheme, Text } from '@kc/ui';
+import { spacing, useTheme, Text, iconSize } from '@kc/ui';
 import { kcGridCell } from '../../src/components/cards/KcCard.styles';
 import { PostCardGrid } from '../../src/components/PostCardGrid';
 import { GuestJoinModal } from '../../src/components/GuestJoinModal';
@@ -114,7 +114,7 @@ export default function GuestPreviewFeedScreen() {
         >
           <Ionicons
             name={Platform.OS === 'ios' ? 'chevron-forward' : 'arrow-forward'}
-            size={24}
+            size={iconSize['2xl']}
             color={colors.primary}
           />
         </TouchableOpacity>
