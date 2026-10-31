@@ -56,11 +56,23 @@ Last applied on kc-dev when this was written: `0239`.
 | 0450 | G32 / D59 items and requests never expire + owner reminders (#1259) | in progress |
 | 0451 | G3 / D16 listing anonymity both ways (#1254) | in progress |
 | 0452 | G33 / G20 / D61: hide reported posts for review, user suspension 5/30 d, support while suspended | in progress |
-| 0453+ | — | free |
+| 0453 | G34 / D63 listing-handoff karma per the §7.6 table (#1262) | in progress |
+| 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
+| 0454 | #1122 admin match-quality metrics (`admin_match_quality`; moved from 0461, which #1268 uses) | in review |
+| 0455–0458 | #1058 Sean Ellis PMF survey (single-choice questions, `user_active_days`, admin PMF report) | in review |
+| 0459 | #1294 listing expiry from `details.expires_at`, food urgency on the 1–3 scale | in review |
+| 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
+| 0462 | #1296 listing world subcategory must match the listing's world | in review |
+| 0470–0489 | Org finance & transparency — `SSOT/spec/19_org_finance.md` FR-FIN-001..021 (P1 `0470–0479`, P2 `0480–0485`, P3 `0486–0489`) | claimed (spec only, no files yet) |
+| 0463 | G42 / D68 / D69 ops health registry + first platform and rides checks (#1321) | in review |
+| 0464 | — | free |
+| 0465 | FR-ADMIN-030 team management: org-scoped `admin_list_admins` + atomic `admin_change_role` (D-197) | in progress |
+| 0490–0509 | Organization profile & accounts — `SSOT/spec/20_organizations.md` FR-ORG-001..020 (P1 `0490–0499`, P2 `0500–0505`, P3 `0506–0509`) | claimed (spec only, no files yet) |
+| 0466–0469, 0510+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0453+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0464`, `0466–0469`, `0510+`.
 
 ## How to claim
 

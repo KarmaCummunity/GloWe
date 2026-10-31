@@ -1,10 +1,10 @@
 // Home-feed aside — quick links into the giving worlds (FR-RESP-003).
 // Curated subset of the Donations Hub tiles; reuses the hub's i18n keys.
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { AsideCard } from './AsideCard';

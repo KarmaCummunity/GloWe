@@ -1,10 +1,10 @@
 // Own-profile aside — personal stats summary (FR-RESP-003).
 // Reuses the FR-STATS-001 self queries (shared keys with the stats screen).
-import { Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { useAuthStore } from '../../store/authStore';
 import { getUserRepo } from '../../services/userComposition';
 import { useProfileTabCounts } from '../../hooks/useProfileTabCounts';

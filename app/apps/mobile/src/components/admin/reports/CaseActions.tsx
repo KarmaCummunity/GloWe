@@ -3,7 +3,7 @@
 // Buttons are wholly driven by PERMISSION_MATRIX in @kc/domain. Adding a new
 // action in a future iteration is: matrix entry + action id + i18n label.
 import { useState } from 'react';
-import { Alert, Pressable, Text, View, Platform } from 'react-native';
+import { Alert, Pressable, View, Platform } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   type AdminPermission,
@@ -12,7 +12,7 @@ import {
   type AdminReportTargetType,
   hasPermission,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { useAuthStore } from '../../../store/authStore';

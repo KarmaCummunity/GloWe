@@ -2,10 +2,10 @@
 // FR-ADMIN-022 — one card per user carrying all their roles. Tapping it opens
 // the admin-detail screen. Replaces the per-grant row in the list (the per-role
 // rows + revoke action now live on the detail screen).
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { AdminPerson } from '@kc/domain';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, shadow, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, shadow, useTheme, Text } from '@kc/ui';
 import { AvatarInitials } from '../../AvatarInitials';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';

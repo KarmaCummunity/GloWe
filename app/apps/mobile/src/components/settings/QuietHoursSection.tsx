@@ -2,9 +2,9 @@
 // Times are committed on blur after normalising to HH:MM, so partial typing never
 // reaches the server (the server casts them to `time`).
 import React, { useEffect, useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
 import type { NotificationPreferences } from '@kc/domain';
 import { NotificationToggleRow } from '../NotificationToggleRow';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

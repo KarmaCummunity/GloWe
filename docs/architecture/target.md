@@ -46,3 +46,25 @@ Each step = its own migration + contract tests + regression tests; no data loss;
 - Ports/adapters keep Supabase replaceable; domain stays pure.
 - Contract tests for every port change; migration drift check; perf budgets.
 - Feature flags per world/phase (D3) instead of branches.
+
+## 5. Testing and observability (D68, D69) — G38–G43
+Principle: one shared, world-agnostic infrastructure; a giving world plugs in by adding a fixture file, a lifecycle flow, health checks and funnel rows — never a new framework.
+
+### 5.1 Test layers
+| Layer | Where | Runs | Gap |
+|---|---|---|---|
+| Domain / use-case unit | `packages/*/src/**/__tests__` (vitest) | every PR | — |
+| DB harness | `supabase/tests/_harness/` → local-only `kc_test` schema: actors (`act_as`), assertions (`assert_eq`, `assert_raises`, `assert_row_count`), fixtures (`create_user`, `create_listing`), one `20_world_<slug>.sql` per world | installed by `scripts/run-db-tests.sh`; never migrated | G38 |
+| Per-migration regression | `supabase/tests/NNNN_*.sql` | every backend PR | — |
+| Per-world lifecycle flow | `supabase/tests/flows/<world>_lifecycle.sql`: publish → book → confirm → complete → karma → rating + every guard | every backend PR | G38 |
+| Port contract | one shared suite per port, run against an in-memory fake **and** the Supabase adapter (local stack) — the safety net for the listings → posts move (G1) | every PR touching a port/adapter | G39 |
+| Two-user E2E journey | `tests/e2e/journeys/<world>.spec.ts` against dev (Playwright, session injection) | relevant PRs + nightly + release gate | G40 |
+
+### 5.2 Observability
+| Concern | Shape | Gap |
+|---|---|---|
+| Client errors | Sentry (`lib/observability/sentry.ts`), env-tagged | — |
+| Server errors | every Edge Function wrapped by one `_shared/observability` handler that reports to Sentry (secret referenced by name only) | G41 |
+| Health registry | ✅ `0463`: `ops` schema; `ops.health_checks` rows (key, area, severity, threshold, enabled), each pointing at a `stable` check function returning `ops.health_result` (count + data-free detail). `ops.run_health_checks()` runs every check in a read-only subtransaction that is always rolled back (no side effects, one failure never stops the rest). Checks: failed scheduled jobs, notification backlog, push failures, matching errors, rides bookings past confirm-by, rides open after departure, rides seats never completed. Open: WhatsApp outbound checks. Thresholds are rows, not code | G42 |
+| Monitor + alert router | ✅ `ops-health.yml` (hourly, dev + prod via the existing `supabase-*` environments, Supabase Management API) → `scripts/ops/health-monitor.mjs`. The alert policy (`health-alerts.mjs`) plans open / update / resolve per (env, check); channels only execute it (`listOpen` + `apply`). Shipped channel: **GitHub issue** (one per check, deduplicated by a hidden marker, assigned to the PM → email, auto-closed on recovery; an unreadable report is itself a critical alert). Open: **WhatsApp** channel to the PM once the WhatsApp channel is live (D68); a short synthetic web check | G42 |
+| Flow funnel | per-world funnel view over existing handoff timestamps (published → booked → confirmed → completed / cancelled), no client events needed; feeds the KPI dashboards (16) | G43 |

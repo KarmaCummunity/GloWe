@@ -1,0 +1,83 @@
+name: Bump app version on merge
+
+# Bumps `app/VERSION` PATCH once per merge into `dev`, so PRs no longer edit the
+# file themselves (TD-196): two open PRs that both bump it always conflict.
+#
+# A PR that edits `app/VERSION` itself (a MINOR/MAJOR release) is left alone.
+# The bump commit carries `[skip ci]`: it changes one file, and a full CI run
+# per merge would double the cost. Consequence: the deploy for a merge builds the
+# previous version, and the new number first ships with the next merge.
+#
+# Needs AGENT_MERGE_TOKEN whose owner may push to `dev` (branch protection
+# bypass). A push made with GITHUB_TOKEN could not do this either way.
+
+on:
+  push:
+    branches: [dev]
+
+# One bump at a time and none dropped: each run re-reads the tip of `dev`.
+concurrency:
+  group: bump-version-on-merge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    name: bump patch
+    # Skip our own commit, otherwise the push below would trigger this again.
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(release): bump app version') }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require the merge token
+        env:
+          TOKEN: ${{ secrets.AGENT_MERGE_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::AGENT_MERGE_TOKEN is not set; the version cannot be bumped (TD-196)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.AGENT_MERGE_TOKEN }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Bump patch and push to dev
+        run: |
+          set -euo pipefail
+          # An explicit version edit in the merged change wins over the automatic bump.
+          # Captured first: `grep -q` exiting early under pipefail would fail the pipeline.
+          changed="$(git show --name-only --format= HEAD)"
+          if grep -qx 'app/VERSION' <<<"$changed"; then
+            echo "The merged change edits app/VERSION itself; nothing to bump."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # `dev` may move between checkout and push, so retry on a fresh tip.
+          for attempt in 1 2 3; do
+            git fetch --depth=2 origin dev
+            git reset --hard origin/dev
+            node scripts/bump-app-version.mjs
+            version="$(tr -d '[:space:]' < app/VERSION)"
+            git add app/VERSION
+            git commit -m "chore(release): bump app version to ${version} [skip ci]"
+            if git push origin HEAD:dev; then
+              echo "Bumped to ${version}"
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}); retrying on the new tip of dev"
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the version bump to dev. If branch protection rejected it, the owner of AGENT_MERGE_TOKEN needs to be allowed to bypass it (TD-196)."
+          exit 1

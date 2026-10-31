@@ -2,9 +2,9 @@
 // Displays one question card: prompt + rating row + optional text + Q11 contact fields.
 // FR-RESEARCH-001 AC3, FR-RESEARCH-003 AC1.
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text, TextInput } from '@kc/ui';
 import type { SurveyQuestion } from '@kc/domain';
 import { SurveyRatingRow } from '../../components/survey/SurveyRatingRow';
 import {

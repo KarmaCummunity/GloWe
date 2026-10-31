@@ -1,10 +1,10 @@
 // Onboarding step 3 — FR-AUTH-011 (camera+gallery, resize+upload, skip→silhouette).
 import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, Platform, type ViewStyle } from 'react-native';
+import { View, ActivityIndicator, Platform, type ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { isLayoutRtl } from '../../src/lib/rtlLayout';
 
 /**

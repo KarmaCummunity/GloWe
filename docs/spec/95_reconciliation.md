@@ -26,7 +26,7 @@ Security findings are deliberately **not** listed here (README rule: never descr
 | Profile has no "marketplace" tab | 7.12 / D14 | `src/components/profile/ProfileMarketplaceListings.tsx` exists | ❌ confirms **G6** |
 | Auth: Google, Apple, phone, email, guest | architecture/current.md | `SupabaseAuthService.ts` has no phone sign-in (legacy `TD-151`); phone exists only as a **verification** status (`0068`) | ❌ current.md corrected |
 | `dev` is never behind `main` (`sync-main-to-dev.yml`) | architecture/current.md | The sync job force-pushes and is always rejected by `dev` protection (`TD-182`) | ❌ current.md corrected |
-| TestFlight DB (D8 / G7) | architecture | `testflight-ios.yml:132-133` reads **repository-level** secrets `EXPO_PUBLIC_SUPABASE_URL` / `_ANON_KEY` with no GitHub Environment, so the target project cannot be determined from the repo | ❓ still open → **G7**, question **Q-6** |
+| TestFlight DB (D8 / G7) | architecture | `testflight-ios.yml:132-133` reads **repository-level** secrets `EXPO_PUBLIC_SUPABASE_URL` / `_ANON_KEY` with no GitHub Environment, so the target project cannot be determined from the repo | ✅ **Made explicit (2026-10-30, `D-195` Mobile nightly):** tester builds (TestFlight, Play internal) now always use kc-dev, pinned by `scripts/mobile-store-config.mjs` and checked in the built bundle; the historical value is still not readable from the repo |
 
 ## 2. Legacy FRs superseded by the book (book wins, D35)
 
@@ -41,6 +41,7 @@ Each superseded legacy FR now carries a banner in its legacy file pointing here.
 | FR-DONATE-008 (link reachability rules) | D9 — org link goes live only after admin approval | 08 |
 | FR-MOD-005 thresholds (3 reports → auto-removal) | D33 — 3 on a post → hidden for review; 5 on a user → suspended from actions | 7.15 |
 | FR-KARMA visibility | D29 — owner + main admin (legacy said owner only; compatible) | 7.6 |
+| FR-RIDE-002–004, 023–025, 033–034 (legacy `ride_listings` hub, publish sheet, detail, driver dashboard, my requests, active-ride screens) | D70 — one rides flow on posts + handoffs; D71–D75 define places, map, bookings, saved routes, quick publish and feed | 5.3 |
 
 ## 3. New implementation gaps (G32+)
 
@@ -64,7 +65,7 @@ Also added to [93](./93_implementation_gaps.md).
 | Q-3 | **Worlds in code that the book does not have:** `creative` → `experiences` world or `culture` domain? Remove `app_design` (D18)? Map `medical` / `animals` / `environment` listings to domains? | **Answered 2026-10-30 → D62.** Data migration of existing listings |
 | Q-4 | **Chats:** today 3 reports remove a chat. The book does not cover chats in D33 — keep, or align with posts (hide for review)? | Undefined in the book |
 | Q-5 | **Karma for listing handoffs:** apply the §7.6 values (food 20/10, ride 25/10) to the listing handoffs too (currently 5/3)? Retroactively? | **Answered 2026-10-30 → D63** (not retroactive). Changes users' karma totals |
-| Q-6 | **TestFlight database (D8 / G7):** which Supabase project do the repository-level secrets used by `testflight-ios.yml` point to? Recommendation: move them into a dedicated GitHub Environment (`supabase-prod-clean`) so the target is explicit. | Cannot be read from the repo |
+| Q-6 | **TestFlight database (D8 / G7):** which Supabase project do the repository-level secrets used by `testflight-ios.yml` point to? Recommendation: move them into a dedicated GitHub Environment (`supabase-prod-clean`) so the target is explicit. | ✅ Answered by owner decision (`D-195` Mobile nightly): tester builds use kc-dev; prod store builds from `main` come later |
 | Q-7 | **Supabase project refs:** `ENVIRONMENTS.md` and `CLAUDE.md` / `.mcp.json` name **different** projects as dev. Which is canonical? | Agents hold write authority on "dev" |
 |  | ✅ **Q-7 answered by evidence (2026-10-30):** the deployed dev web bundle calls `enbqriuxvvuontiwslun`, matching `ENVIRONMENTS.md` (prod `kdqtbdbzwvlugkhonexg`). `roeefqpdbftlndzsvhfj` (MVP-2) and `slxijdfvinbjmrsfgbzx` (MVP-PROD) are **paused** projects in the older "KC" Supabase org. `DEPLOY_WEB.md` is corrected; `CLAUDE.md` §13 and `.mcp.json` / `app/.mcp.json` now point at kc-dev (PM-approved 2026-10-30). | |
 | Q-8 | **Account deletion and shared chats:** deleting an account now removes the user's chat images. The counterpart keeps the (anonymized) chat, so those images disappear for them too. Confirm that right-to-be-forgotten wins over the counterpart's copy (current behavior), or keep them until the counterpart deletes the chat. | Privacy vs. counterpart experience |

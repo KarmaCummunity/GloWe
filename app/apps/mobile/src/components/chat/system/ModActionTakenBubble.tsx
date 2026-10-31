@@ -2,8 +2,8 @@
 // the trigger (server already substitutes action/time); falls back to the
 // template-with-blanks if the body is empty.
 import React from 'react';
-import { View, Text } from 'react-native';
-import { makeUseStyles, typography } from '@kc/ui';
+import { View } from 'react-native';
+import { makeUseStyles, typography, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import type { SystemMessageBubbleProps } from './SystemMessageBubble';
 

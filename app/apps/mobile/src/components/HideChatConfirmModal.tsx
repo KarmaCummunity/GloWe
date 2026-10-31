@@ -3,12 +3,11 @@ import React from 'react';
 import {
   Modal,
   View,
-  Text,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { useModalHardwareBack } from '../hooks/useModalHardwareBack';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 

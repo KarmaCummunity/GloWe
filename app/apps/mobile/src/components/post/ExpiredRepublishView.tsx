@@ -3,11 +3,11 @@
 // rpc_republish_post via getRepublishPostUseCase() and routes to the new post.
 
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { colors, radius, spacing, typography } from '@kc/ui';
+import { colors, radius, spacing, typography, Text } from '@kc/ui';
 import { isPostError, type PostErrorCode } from '@kc/application';
 import { getRepublishPostUseCase } from '../../services/postsComposition';
 import { ConfirmActionModal } from './ConfirmActionModal';

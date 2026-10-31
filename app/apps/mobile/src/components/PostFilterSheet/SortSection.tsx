@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { FeedSortOrder } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Chip } from './Chip';
 import { CityPicker } from '../CityPicker';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

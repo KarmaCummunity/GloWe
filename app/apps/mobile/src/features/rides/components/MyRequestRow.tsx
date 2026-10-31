@@ -1,7 +1,7 @@
 // FR-RIDE-025 — single passenger-side request row.
 // Fetches the linked ride lazily so we get title + route + departure.
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
 import type { RideParticipant } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 import { Card } from '../../../components/ui/Card';
 import { AvatarInitials } from '../../../components/AvatarInitials';
