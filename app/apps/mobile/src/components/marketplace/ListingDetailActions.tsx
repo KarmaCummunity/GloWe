@@ -1,6 +1,7 @@
 // KC#1310 — the listing detail's action row, shown per viewer role: the owner can share the
-// listing to the feed; anyone else can message the owner and report the listing. Everyone can
-// share the link. Server failures surface as an alert instead of a silent no-op.
+// listing to the feed (unless it is already mirrored there, {{ENG:listing-feed-mirror}}); anyone else can message the
+// owner and report the listing. Everyone can share the link. Server failures surface as an
+// alert instead of a silent no-op.
 import React, { useState } from 'react';
 import { Pressable, Share, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -23,6 +24,9 @@ export function ListingDetailActions({ detail, viewerId, onReport }: Props) {
   const styles = useStyles();
   const [busy, setBusy] = useState(false);
   const isOwner = viewerId !== null && viewerId === detail.ownerId;
+  // Items and food listings are mirrored into the feed on publish; the manual share is for
+  // listings that are not in the feed yet.
+  const canShareToFeed = isOwner && detail.feedPostId === null;
 
   /** Runs a server action once at a time and tells the viewer when it fails. */
   const run = async (action: () => Promise<void>) => {
@@ -70,7 +74,7 @@ export function ListingDetailActions({ detail, viewerId, onReport }: Props) {
       <Pressable testID="listing-action-share-link" style={styles.btn} onPress={() => void shareLink()} accessibilityRole="button">
         <Text style={styles.btnText}>{t('marketplace.shareLink')}</Text>
       </Pressable>
-      {isOwner ? (
+      {canShareToFeed ? (
         <Pressable
           testID="listing-action-share-feed"
           style={styles.btn}

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { spacing } from '@kc/ui';
+import { avatarPalette, spacing } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import type { IdentityRoleForViewedProfile } from '@kc/domain';
 import { TranslatableText, type TranslatableStatus } from './TranslatableText';
@@ -31,7 +31,8 @@ const CATEGORY_ICON: Record<string, IoniconName> = {
   Tools: 'construct-outline',
 }
 
-const OVERLAY_ICON = '#FFFFFF';
+// The menu sits on the image scrim, which is dark in both themes, so the icon is always white.
+const OVERLAY_ICON = avatarPalette.foreground;
 
 interface PostCardGridProps {
   post: PostWithOwner;
@@ -81,22 +82,25 @@ function PostCardGridInner({
     ? post.address.cityName
     : `${post.address.cityName}, ${post.address.street}`;
 
-  const firstImagePath = post.mediaAssets[0]?.path ?? null;
+  const firstImage = post.mediaAssets[0] ?? null;
+  const firstImagePath = firstImage?.path ?? null;
+  // A feed mirror of a listing borrows its photos from the listing-images bucket ({{ENG:listing-feed-mirror}}).
+  const imageBucket = firstImage?.bucket ?? 'post-images';
   // PERF-4: serve the 400px thumb for the grid surface (~25-40KB vs ~300-500KB
   // for the 2048px full). KCImage falls back to the full URL if the thumb is
   // missing (e.g., for posts uploaded before the thumb pipeline shipped — the
   // backfill Edge Function eventually fills these in).
   const thumbUrl = React.useMemo(
     () => firstImagePath
-      ? getSupabaseFeedImageUrl('post-images', firstImagePath, cardWidth)
+      ? getSupabaseFeedImageUrl(imageBucket, firstImagePath, cardWidth)
       : null,
-    [firstImagePath, cardWidth],
+    [imageBucket, firstImagePath, cardWidth],
   );
   const fullUrl = React.useMemo(
     () => firstImagePath
-      ? getSupabasePublicImageUrl({ bucket: 'post-images', path: firstImagePath })
+      ? getSupabasePublicImageUrl({ bucket: imageBucket, path: firstImagePath })
       : null,
-    [firstImagePath],
+    [imageBucket, firstImagePath],
   );
 
   const ownerLabel = postOwnerDisplayLabel(post, t);

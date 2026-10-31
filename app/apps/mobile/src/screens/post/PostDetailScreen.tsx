@@ -23,6 +23,7 @@ import { PostShareButton } from '../../components/post/PostShareButton';
 import { PostDetailScrollContent } from './PostDetailScrollContent';
 import { usePostDetailStyles } from './postDetailScreen.styles';
 import { useShellTabBarVisibility, shellTabBarHeightPx } from '../../navigation/useShellTabBarVisibility';
+import { useListingMirrorRedirect } from '../../hooks/useListingMirrorRedirect';
 import { nativeStackHeaderRightIconOnly } from '../../navigation/nativeHeaderIconOnly';
 
 function normalizeRoutePostId(raw: string | string[] | undefined): string | undefined {
@@ -92,6 +93,8 @@ export function PostDetailScreen() {
 
   const showShellTabBar = useShellTabBarVisibility();
   const tabBarPad = shellTabBarHeightPx(showShellTabBar);
+  // {{ENG:listing-feed-mirror}}: a feed mirror of a listing opens the listing detail instead.
+  const redirectingToListing = useListingMirrorRedirect(query.data?.post);
 
   const exitAfterOwnerMutation = (messageKey: 'closure.detailCloseSuccessToast' | 'closure.detailReopenSuccessToast') => {
     useFeedSessionStore.getState().showEphemeralToast(t(messageKey), 'success', 2200);
@@ -99,7 +102,7 @@ export function PostDetailScreen() {
     else router.replace('/(tabs)');
   };
 
-  if (query.isLoading) {
+  if (query.isLoading || redirectingToListing) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={colors.primary} />

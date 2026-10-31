@@ -51,6 +51,7 @@ const LISTING: MarketplaceListingDetail = {
   maxRadiusKm: null,
   media: [],
   owner: null,
+  feedPostId: null,
 };
 
 function renderCard() {
