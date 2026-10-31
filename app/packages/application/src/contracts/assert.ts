@@ -40,6 +40,17 @@ export function assertDefined<T>(value: T | null | undefined, what: string): ass
   }
 }
 
+/** The promise must reject; used where the port surfaces a refusal without a typed code (RLS, FK). */
+export async function assertRejects(promise: Promise<unknown>, what: string): Promise<void> {
+  let rejected = false;
+  try {
+    await promise;
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new ContractViolation(`${what}: expected a rejection, but it resolved`);
+}
+
 /** The promise must reject with an error carrying `code` (the port's typed error class). */
 export async function assertRejectsWithCode(
   promise: Promise<unknown>,
