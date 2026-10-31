@@ -66,7 +66,7 @@ export function SurveyQuestionPanel({
       <Text style={styles.fieldLabel} accessibilityRole="text">
         {t('survey.textFieldLabel')}
       </Text>
-      <TextInput
+      <TextInput // brand-guard-allow: free-text survey answer; the kit has no TextField yet
         style={[styles.textInput, hebrewSurveyFieldTextStyle()]}
         value={textValue}
         onChangeText={onText}

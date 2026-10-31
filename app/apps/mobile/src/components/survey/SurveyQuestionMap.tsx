@@ -4,7 +4,7 @@ import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, iconSize } from '@kc/ui';
 import type { SurveyQuestion } from '@kc/domain';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
@@ -115,7 +115,7 @@ export function SurveyQuestionMap({
         >
           {q.shortLabelHe}
         </Text>
-        <Ionicons name={statusIcon as never} size={16} color={statusColor} />
+        <Ionicons name={statusIcon as never} size={iconSize.sm} color={statusColor} />
       </Pressable>
     );
   };

@@ -60,7 +60,6 @@ Last applied on kc-dev when this was written: `0239`.
 | 0460 | #1120 per-type notification opt-outs (`kinds`), match-suggestion opt-out in delivery | in review |
 | 0454 | #1122 admin match-quality metrics (`admin_match_quality`; moved from 0461, which #1268 uses) | in review |
 | 0455–0458 | #1058 Sean Ellis PMF survey (single-choice questions, `user_active_days`, admin PMF report) | in review |
-| 0455–0458 | #1058 Sean Ellis PMF survey (single-choice questions, `user_active_days`, admin PMF report) | in review |
 | 0459 | #1294 listing expiry from `details.expires_at`, food urgency on the 1–3 scale | in review |
 | 0461 | FR-ADMIN-028 layered hierarchy census RPC (`admin_hierarchy_census`, #1268) | in progress |
 | 0462 | #1296 listing world subcategory must match the listing's world | in review |

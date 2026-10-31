@@ -3,7 +3,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, iconSize } from '@kc/ui';
 import type { SurveyChoiceOption } from '@kc/domain';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
@@ -34,7 +34,7 @@ export function SurveyChoiceList({ options, value, onChange }: SurveyChoiceListP
           >
             <Ionicons
               name={selected ? 'radio-button-on' : 'radio-button-off'}
-              size={20}
+              size={iconSize.lg}
               color={selected ? colors.primary : colors.textDisabled}
             />
             <Text style={[styles.label, selected && styles.labelSelected]}>{option.labelHe}</Text>

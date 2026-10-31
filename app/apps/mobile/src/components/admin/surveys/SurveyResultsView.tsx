@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AdminSurveyResults } from '@kc/domain';
 import type { PmfSurveyReportView } from '@kc/application';
-import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text, iconSize } from '@kc/ui';
 import { textAlignStart, rowDirectionStart } from '../../../lib/rtlLayout';
 import { AdminListEmpty } from '../AdminListEmpty';
 import { QuestionStatCard } from './QuestionStatCard';
@@ -36,7 +36,7 @@ export function SurveyResultsView({
   return (
     <View style={styles.root}>
       <Pressable onPress={onBack} accessibilityRole="button" style={styles.back}>
-        <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+        <Ionicons name="arrow-forward" size={iconSize.sm} color={colors.primary} />
         <Text style={styles.backText}>{t.backToList}</Text>
       </Pressable>
 
