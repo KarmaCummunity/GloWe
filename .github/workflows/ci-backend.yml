@@ -77,11 +77,14 @@ jobs:
           TURBO_TELEMETRY_DISABLED: '1'
         run: pnpm install --frozen-lockfile
 
-      - name: SQL probe integration tests (against local stack)
+      # sqlProbes: SECURITY DEFINER RPC probes. contract.integration: the port
+      # contract suites (G39) run against the Supabase adapters with RLS; the same
+      # cases run against the in-memory fakes in the frontend lane.
+      - name: SQL probes + port contracts (against local stack)
         working-directory: app
         env:
           CI_LOCAL_SUPABASE: 'true'
-        run: pnpm --filter @kc/infrastructure-supabase test sqlProbes
+        run: pnpm --filter @kc/infrastructure-supabase test sqlProbes contract.integration
 
       - name: Stop Supabase
         if: always()

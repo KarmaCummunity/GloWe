@@ -27,6 +27,8 @@ export * from './stats/GetCommunityStatsSnapshotUseCase';
 export * from './stats/ListMyActivityTimelineUseCase';
 export * from './about/ListAboutTeamMembersUseCase';
 export * from './posts/errors';
+// Port contract tests (G39): run against fakes here and against adapters in infrastructure-supabase.
+export * from './contracts';
 export * from './posts/CreatePostUseCase';
 export * from './posts/UpdatePostUseCase';
 export * from './posts/GetPostByIdUseCase';

@@ -1604,10 +1604,19 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/**` (realtime policies + triggers), `app/packages/infrastructure-supabase/src/{realtime,chat,rides,users}/**`, realtime-consuming hooks in `app/apps/mobile/src/hooks/**`.
 
+## D-203 — Port contracts are framework-agnostic case lists, run against a behavioural fake and the Supabase adapter (2026-10-31)
+
+**Decision.** A port contract (G39) is a module in `@kc/application` (`src/contracts/<port>.contract.ts`) that exports `ContractCase[]`: named behaviours with plain assertions that throw `ContractViolation`. No test-framework import, so the contract is part of the package surface and any adapter package imports it. Two runners map each case to one `it(...)`: the fake leg in `@kc/application` against a behavioural in-memory repository (every `pnpm test`), the adapter leg in `@kc/infrastructure-supabase` (`*.contract.integration.test.ts`) against the real adapter with a client signed in as a seeded user, so RLS applies as in the app; it runs in `ci-backend` on the local stack (`CI_LOCAL_SUPABASE=true`) and skips without one. Each case starts from a fresh actor (user + repository bound to that identity) and covers owner-side behaviour only; viewer visibility, admin flows and feed ranking stay in per-adapter tests. The spy fakes use-case tests rely on (`FakePostRepository`: canned results + call capture) stay as they are; the behavioural fakes are new siblings (`InMemoryPostRepository`).
+
+**Why.** Use-case tests pass against fakes whose behaviour nobody checks against the database, and the listings → posts move (G1) will rewrite adapters under those fakes. One case list that both legs must pass makes a drifting fake fail where the adapter passes, in the lane that already starts a stack. Keeping vitest out of the contract keeps `@kc/application` free of test-runner coupling in its public surface and lets a future adapter (or a Deno Edge Function) reuse the same cases.
+
+**Affected.** `app/packages/application/src/contracts/**`, `app/packages/application/src/posts/__tests__/{InMemoryPostRepository,inMemoryPostStore,postRepository.contract.test}.ts`, `app/packages/infrastructure-supabase/src/posts/__tests__/{postContractHarness,SupabasePostRepository.contract.integration.test}.ts`, `.github/workflows/ci-backend.yml`, `docs/SSOT/TESTING.md` § Port contract tests, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G39, BACKLOG `OPS-G39`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.30 | 2026-10-31 | Added `D-203` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
 | 4.27 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, runtime deploy guard (caller, approval attempt, freshness), release lane in `CI gate` (expand/contract justifications), rollback (web + functions only without migrations; DB forward-fix), encrypted 14-day pre-migration backups. |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
