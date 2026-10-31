@@ -4021,6 +4021,7 @@ export type Database = {
       }
       media_assets: {
         Row: {
+          bucket: string
           created_at: string
           media_asset_id: string
           mime_type: string
@@ -4030,6 +4031,7 @@ export type Database = {
           size_bytes: number
         }
         Insert: {
+          bucket?: string
           created_at?: string
           media_asset_id?: string
           mime_type: string
@@ -4039,6 +4041,7 @@ export type Database = {
           size_bytes: number
         }
         Update: {
+          bucket?: string
           created_at?: string
           media_asset_id?: string
           mime_type?: string
@@ -5444,6 +5447,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -5469,6 +5473,7 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
           location_display_level?: string
           owner_id: string
           post_id?: string
@@ -5494,6 +5499,7 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
           location_display_level?: string
           owner_id?: string
           post_id?: string
@@ -5518,6 +5524,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cities"
             referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -8067,6 +8087,7 @@ export type Database = {
           default_anonymity_level: number
           default_radius_km: number
           default_ttl_hours: number | null
+          feed_mirror: boolean
           geo_decay: number
           geo_mode: string
           geo_weight: number
@@ -8084,6 +8105,7 @@ export type Database = {
           default_anonymity_level?: number
           default_radius_km?: number
           default_ttl_hours?: number | null
+          feed_mirror?: boolean
           geo_decay?: number
           geo_mode?: string
           geo_weight?: number
@@ -8101,6 +8123,7 @@ export type Database = {
           default_anonymity_level?: number
           default_radius_km?: number
           default_ttl_hours?: number | null
+          feed_mirror?: boolean
           geo_decay?: number
           geo_mode?: string
           geo_weight?: number
@@ -10255,6 +10278,18 @@ export type Database = {
         }[]
       }
       listing_details_expires_at: { Args: { p_details: Json }; Returns: string }
+      listing_feed_mirror_status: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: string
+      }
+      listing_feed_mirror_sync_media: {
+        Args: { p_listing_id: string; p_post_id: string }
+        Returns: undefined
+      }
+      listing_feed_mirror_upsert: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: string
+      }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
       listing_upsert_from_post: {
         Args: { p_post: Database["public"]["Tables"]["posts"]["Row"] }

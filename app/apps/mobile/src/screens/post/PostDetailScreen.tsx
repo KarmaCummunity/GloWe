@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { spacing, useTheme, Text } from '@kc/ui';
+import { iconSize, spacing, useTheme, Text } from '@kc/ui';
 import { EmptyState } from '../../components/EmptyState';
 import { useAuthStore } from '../../store/authStore';
 import { getPostByIdUseCase } from '../../services/postsComposition';
@@ -23,6 +23,7 @@ import { PostShareButton } from '../../components/post/PostShareButton';
 import { PostDetailScrollContent } from './PostDetailScrollContent';
 import { usePostDetailStyles } from './postDetailScreen.styles';
 import { useShellTabBarVisibility, shellTabBarHeightPx } from '../../navigation/useShellTabBarVisibility';
+import { useListingMirrorRedirect } from '../../hooks/useListingMirrorRedirect';
 import { nativeStackHeaderRightIconOnly } from '../../navigation/nativeHeaderIconOnly';
 
 function normalizeRoutePostId(raw: string | string[] | undefined): string | undefined {
@@ -92,6 +93,8 @@ export function PostDetailScreen() {
 
   const showShellTabBar = useShellTabBarVisibility();
   const tabBarPad = shellTabBarHeightPx(showShellTabBar);
+  // D-201: a feed mirror of a listing opens the listing detail instead.
+  const redirectingToListing = useListingMirrorRedirect(query.data?.post);
 
   const exitAfterOwnerMutation = (messageKey: 'closure.detailCloseSuccessToast' | 'closure.detailReopenSuccessToast') => {
     useFeedSessionStore.getState().showEphemeralToast(t(messageKey), 'success', 2200);
@@ -99,7 +102,7 @@ export function PostDetailScreen() {
     else router.replace('/(tabs)');
   };
 
-  if (query.isLoading) {
+  if (query.isLoading || redirectingToListing) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -198,7 +201,7 @@ export function PostDetailScreen() {
               <ActivityIndicator size="small" color={colors.textInverse} />
             ) : (
               <>
-                <Ionicons name="chatbubble-outline" size={18} color={colors.textInverse} />
+                <Ionicons name="chatbubble-outline" size={iconSize.md} color={colors.textInverse} />
                 <Text style={styles.messageBtnText}>{t('post.detail.contactCta')}</Text>
               </>
             )}

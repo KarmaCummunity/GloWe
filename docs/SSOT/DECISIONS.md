@@ -1578,10 +1578,19 @@ Owner rules that go with it:
 
 **Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
 
+## D-201 — Native listings reach the main feed as mirror posts, the listing stays the source of truth (2026-10-31)
+
+**Decision.** The main feed keeps reading `posts`. Every published open native listing of a feed-mirrored world (`worlds.feed_mirror`, on for items and food) gets one mirror row in `posts` linked by `posts.listing_id` (migration `0466`). The mirror is written only by the listing triggers and `share_listing_to_feed`: it follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket`), privacy, status and deletion, never counts toward the open-posts cap, is skipped by the posts → listings sync, and its detail screen redirects to the listing. Rejected for now: teaching `feed_ranked_ids` / `feed_open_posts_mv` and the feed client to rank a union of posts and listings (the proper G1 / D19 end state), because it rewrites the ranked feed, its cache and every feed card for a launch-wedge gap that the mirror closes today without a client-visible data model change.
+
+**Why.** KC#1101 / KC#1109 AC4 ("listing appears in feed") was open: items and food listings only reached the feed through a manual one-off copy that drifted from the listing and created a second marketplace listing. The mirror keeps one post entity per published thing (D2 / D19) while the listing tables remain the engine for handoffs and matching.
+
+**Affected.** `supabase/migrations/0466_listing_feed_mirror.sql`, `posts.listing_id`, `media_assets.bucket`, `worlds.feed_mirror`, `app/apps/mobile/src/hooks/useListingMirrorRedirect.ts`, feed cards, `ListingDetailActions`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.27 | 2026-10-31 | Added `D-201` (native items/food listings mirror into `posts` for the main feed; the listing stays the source of truth; migration `0466`). |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
 | 4.25 | 2026-10-30 | Added `D-197` (team management: role-derived permissions, org-run teams, position-gated atomic role change aligned with FR-ADMIN-027; FR-ADMIN-030). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |

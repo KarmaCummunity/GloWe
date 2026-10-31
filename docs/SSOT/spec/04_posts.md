@@ -38,6 +38,7 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
 - AC2. Switching the toggle preserves shared fields (title, description, category, address, visibility) and clears type-specific fields (item condition, urgency).
 - AC3. The form is the same screen used for editing an existing post (`FR-POST-008`); the route distinguishes them.
 - AC4. *(KC#1296, 2026-10-30)* For the items and food giving worlds, the listing form offers an optional **world subcategory** (items → books, food → bakery…, `public.categories` children of the world). The choice is stored as the listing's `category_id`; a subcategory of another world is rejected (`category_world_mismatch`, migration `0462`). Matching uses it for its category score.
+- AC5. *(KC#1101 / KC#1109, D-201, 2026-10-31)* A published open listing of a feed-mirrored world (`worlds.feed_mirror`: items, food) **appears in the main feed** through one mirror row in `posts` (`posts.listing_id`, migration `0466`). The mirror follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket = 'listing-images'`), privacy, status and deletion; opening it from the feed opens the listing detail. Mirrors do not count toward the open-posts cap (FR-POST-011) and are not listed under "my posts". "Share to feed" reuses the same mirror for every world and is hidden once the listing is mirrored.
 
 **Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory`.
 

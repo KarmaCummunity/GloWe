@@ -25,12 +25,19 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const DETAIL = { listingId: 'l_1', ownerId: 'u_owner', worldSlug: 'items', cityId: null, title: 'Bookshelf' } as unknown as MarketplaceListingDetail;
+const DETAIL = {
+  listingId: 'l_1',
+  ownerId: 'u_owner',
+  worldSlug: 'items',
+  cityId: null,
+  title: 'Bookshelf',
+  feedPostId: null,
+} as unknown as MarketplaceListingDetail;
 
-function renderActions(viewerId: string | null, onReport = vi.fn()) {
+function renderActions(viewerId: string | null, onReport = vi.fn(), detail: MarketplaceListingDetail = DETAIL) {
   const view = render(
     <ThemeProvider mode="light" systemScheme="light" setMode={() => {}}>
-      <ListingDetailActions detail={DETAIL} viewerId={viewerId} onReport={onReport} />
+      <ListingDetailActions detail={detail} viewerId={viewerId} onReport={onReport} />
     </ThemeProvider>,
   );
   return { ...view, onReport };
@@ -52,6 +59,14 @@ describe('ListingDetailActions', () => {
     expect(queryByTestId('listing-action-share-feed')).not.toBeNull();
     expect(queryByTestId('listing-action-start-chat')).toBeNull();
     expect(queryByTestId('listing-action-report')).toBeNull();
+  });
+
+  it('hides share to feed from the owner once the listing has a feed mirror (D-201)', () => {
+    const mirrored = { ...DETAIL, feedPostId: 'p_mirror' } as MarketplaceListingDetail;
+    const { queryByTestId } = renderActions('u_owner', vi.fn(), mirrored);
+
+    expect(queryByTestId('listing-action-share-feed')).toBeNull();
+    expect(queryByTestId('listing-action-share-link')).not.toBeNull();
   });
 
   it('opens the chat on success and alerts when the server refuses', async () => {
