@@ -81,6 +81,13 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 | ORG-P2 | **Phase 2 — Team, activity, discovery, inbox.** Team tab (opt-in), activity tabs, impact metrics RPC, Search "ארגונים" parent filter + sub-filters replacing hub directories and `list_verified_nonprofits`, organization inbox (`chats.org_id`), org notifications. Remove `get_nonprofit_public_page` (TD-230). Migrations `0500–0505`. | agent-fullstack | ⏳ Planned | `spec/20_organizations.md` FR-ORG-011..016 |
 | ORG-P3 | **Phase 3 — Claiming, enrichment, badges, transparency.** `org_claims` + admin tab, Registrar open-data mirror + lookup (S35), verification-level badges + admin RPC, transparency tab mounting FR-FIN-020. Needs the organization terms addendum text from the PM (spec O3). Migrations `0506–0509`. | agent-fullstack | ⏳ Planned | `spec/20_organizations.md` FR-ORG-017..020 |
 
+## UI — Shared kit (`docs/spec/17_brand_and_design_system.md` §4.1, epic #1061)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| UI-KIT-1 | **Phase 1 — `Modal`, `BottomSheet`, `Chip`, sized buttons.** Kit components on tokens with tests; brand guard `rawModal` made import-aware and `adHocChip` added; migration inventory in spec 17 §4.1.1. Awaiting PM approval of the screenshots before any screen moves. | agent-fe | 🟡 In progress (PM review) | §4.1 · #1284 #1285 #1286 |
+| UI-KIT-2 | **Phase 2 — migrate screens onto the kit**, one area per PR (sheets, dialogs, chips, CTAs), lowering the brand-guard baseline each time. | agent-fe | ⏳ Planned | §4.1.1 · `{{TD:ui-kit-overlay-chip-button-migration}}` |
+
 ## Deferred (post-MVP, still tracked)
 
 | ID | Task | Status | Spec |

@@ -7,7 +7,7 @@
 /** A line ending in `brand-guard-allow: <reason>` is skipped (reviewed in the PR). */
 export const ALLOW_MARKER = 'brand-guard-allow:';
 
-/** The mobile UI kit: shared components here may wrap raw primitives (TextInput, Modal). */
+/** The mobile UI kit: shared components here may wrap raw primitives (TextInput, Modal) and define `Chip`. */
 export const KIT_DIR = 'src/components/ui/';
 
 /** Rules matched line by line; every match on a non-allowed line counts once. */
@@ -37,19 +37,49 @@ const LINE_RULES = {
   // Spec 17 §4.1: form fields use the kit `TextField`; a non-form input (chat
   // composer, search bar) carries the allow-marker with its reason.
   rawTextInput: /<TextInput\b/g,
-  // Spec 17 §4.1: no shared modal exists yet (GitHub #1284) — this freezes the count.
-  rawModal: /<Modal\b/g,
+  // Spec 17 §4.1: chips use the kit `Chip`. Counts the base style of a
+  // hand-rolled chip — a style key named exactly `chip` holding an object
+  // (`chip: {`). Variants (`chipActive`), containers (`chips`, `chipRow`) and
+  // locale keys never match; a `pill` is not counted because the name also
+  // covers nav tabs and separators.
+  adHocChip: /(?:^|[{,])\s*['"]?chip['"]?\s*:\s*\{/g,
 } as const;
 
 /** Rules that do not apply inside the UI kit, which is where the shared wrappers live. */
-const KIT_EXEMPT_RULES: ReadonlySet<string> = new Set(['rawTextInput', 'rawModal']);
+const KIT_EXEMPT_RULES: ReadonlySet<string> = new Set(['rawTextInput', 'adHocChip']);
 
 type LineRuleName = keyof typeof LINE_RULES;
-export type RuleName = LineRuleName | 'iconSizeLiteral';
+export type RuleName = LineRuleName | 'rawModal' | 'iconSizeLiteral';
 export type FileCounts = Partial<Record<RuleName, number>>;
 
 const LINE_RULE_NAMES = Object.keys(LINE_RULES) as LineRuleName[];
-export const RULE_NAMES: readonly RuleName[] = [...LINE_RULE_NAMES, 'iconSizeLiteral'];
+export const RULE_NAMES: readonly RuleName[] = [...LINE_RULE_NAMES, 'rawModal', 'iconSizeLiteral'];
+
+// `import { …, Modal [as Alias], … } from 'react-native'` (named imports may span lines).
+const RN_NAMED_IMPORTS = /import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"]react-native['"]/g;
+const RN_MODAL_SPECIFIER = /^Modal(?:\s+as\s+(\w+))?$/;
+
+/** Local names under which a file imports React Native's `Modal` (usually just `Modal`). */
+function reactNativeModalNames(source: string): string[] {
+  return [...source.matchAll(RN_NAMED_IMPORTS)].flatMap((block) =>
+    block[1].split(',').flatMap((specifier) => {
+      const match = RN_MODAL_SPECIFIER.exec(specifier.trim());
+      return match ? [match[1] ?? 'Modal'] : [];
+    }),
+  );
+}
+
+/**
+ * `rawModal` (spec 17 §4.1): JSX uses of React Native's own `Modal` — the kit
+ * `Modal` / `BottomSheet` wrap it. Only a file that imports `Modal` from
+ * 'react-native' can match, so `<Modal` of the kit component is never counted.
+ */
+function countRawModals(checkedLines: readonly string[], source: string): number {
+  return reactNativeModalNames(source).reduce(
+    (sum, name) => sum + countMatches(checkedLines, new RegExp(`<${name}\\b`, 'g')),
+    0,
+  );
+}
 
 // An Ionicons size expression `size={…}` (no nested braces) …
 const SIZE_PROP = /\bsize=\{([^{}]*)\}/;
@@ -107,6 +137,10 @@ export function countLiterals(source: string, file = ''): FileCounts {
     const found = countMatches(checkedLines, LINE_RULES[rule]);
     if (found > 0) counts[rule] = found;
   }
+  // Kit-exempt like the line rules above. Counted before the icon sizes so the
+  // baseline keeps its key order (rawModal used to be a line rule).
+  const rawModals = inKit ? 0 : countRawModals(checkedLines, source);
+  if (rawModals > 0) counts.rawModal = rawModals;
   const iconSizes = countIconSizeLiterals(source, lines);
   if (iconSizes > 0) counts.iconSizeLiteral = iconSizes;
   return counts;
