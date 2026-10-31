@@ -1,6 +1,6 @@
-# 91 — KC fills S1–S47 (pending PM approval)
+# 91 — KC fills (pending PM approval)
 
-Gaps filled by context. **Status of every row: pending approval.** Use as the working assumption; flag in the PR when implementing behavior that rests only on an `S#`. When approved, it becomes a `D#`.
+Gaps filled by context. **Status of every row: pending approval.** Use as the working assumption; flag in the PR when implementing behavior that rests only on an `S#`. A new row takes an `S` placeholder ID, numbered on merge (`CLAUDE.md` §4 "New registry IDs"). When approved, it becomes a `D#`.
 
 | # | Fill | Section |
 |---|---|---|

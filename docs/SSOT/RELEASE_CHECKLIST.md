@@ -18,7 +18,7 @@ A release is a PR from `dev` into `main`. CI judges it (`CI gate`, including the
 
 ## Merge gates (automated — must be green)
 
-Required on the release PR (GitHub branch protection on `main`):
+Required on the release PR (GitHub branch protection on `main`; the live rule still lists legacy contexts until the owner switches it, see *GitHub settings* below):
 
 > Machine-validated by `scripts/check-required-checks-drift.mjs` (static-guards lane of **CI**): the table below must reference real workflow/job names and must include `CI gate`. Rename a job → update this table and the branch-protection list together.
 
@@ -50,7 +50,7 @@ The `main` push runs **CI**; when it succeeds, **Deploy** (`deploy.yml`) starts 
 7. **smoke** — `/version.json` reports the SHA, page + JS bundle load, Supabase Auth health, and each function with a side-effect-free probe answers one `OPTIONS` with exactly the status its handler's first check returns (`scripts/edge-functions.mjs`).
 8. **tag release** — annotated `vX.Y.Z` on the commit + a GitHub Release with generated notes.
 
-**Sync main → dev** still runs after the merge and still fails with `GH006` (`TD-182`); leave it alone.
+**Sync main → dev** runs after the merge and opens a zero-diff PR into `dev`. The owner merges it as a **merge commit** with the admin bypass (the `dev` merge queue only squashes, `TD-182`); otherwise the next release PR conflicts.
 
 ### Spot-check after a green deploy (~5 min, optional)
 
@@ -76,7 +76,7 @@ A failed release is never tagged, so the next release's notes and rollback targe
 
 ## Dev branch protection (`dev` — working branch)
 
-Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `dev` — require PR, block force-push/deletion, require the single status check from the **Dev merge gates** table in [`ENVIRONMENTS.md`](./ENVIRONMENTS.md#dev-merge-gates-branch-protection) (`CI gate`).
+Feature PRs merge into `dev` first, through the merge queue of the ruleset `dev protection (merge queue)`: PR required, force-push and deletion blocked, single required check `CI gate` (done; see [`ENVIRONMENTS.md` § Dev merge gates](./ENVIRONMENTS.md#dev-merge-gates-branch-protection)).
 
 ---
 
@@ -84,7 +84,7 @@ Feature PRs merge into `dev` first. One-time setup: Settings → Branches → `d
 
 | Setting | Location | Value |
 | --- | --- | --- |
-| Branch protection on `main` | Settings → Branches → `main` | PR required; block force-push/deletion; required status checks: **only** `CI gate` (remove `release PR source is dev`, `migration destructive-op scan`, `user journeys (P0)`) |
+| Branch protection on `main` | Settings → Branches → `main` | PR required; block force-push/deletion; required status checks: **only** `CI gate`. **Still open:** classic protection on `main` requires eight legacy contexts that no workflow reports (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `PR hygiene`, `SonarCloud quality gate`); replace them with `CI gate`, or the release PR never merges |
 | `production` environment | Settings → Environments → `production` | **Required reviewer: the owner.** Deployment branches: `main` only. No secrets. |
 | `supabase-prod`, `cloudflare-prod` | Settings → Environments | **No** required reviewers (each would add a click). Deployment branches: `main` only. |
 | `supabase-dev`, `cloudflare-dev` | Settings → Environments | No reviewers. Deployment branches: `dev` and `main` (`workflow_run` deploys run on `main`). |
