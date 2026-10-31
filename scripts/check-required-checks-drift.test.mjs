@@ -241,6 +241,16 @@ test('checkGateWiring accepts an optional release lane wired into the gate', () 
   assert.match(checkGateWiring(unwired)[0], /job "release" is missing from the "CI gate" needs: list/);
 });
 
+test('checkGateWiring accepts a heavy bundles lane once wired into the gate', () => {
+  const withBundles = CI_WF.replace('  gate:', '  bundles:\n    name: bundles\n    needs: changes\n  gate:').replace(
+    `    needs: [changes, ${LANES.join(', ')}]`,
+    `    needs: [changes, ${LANES.join(', ')}, bundles]`,
+  );
+  assert.deepEqual(checkGateWiring(withBundles), []);
+  const unwired = CI_WF.replace('  gate:', '  bundles:\n    name: bundles\n    needs: changes\n  gate:');
+  assert.match(checkGateWiring(unwired)[0], /job "bundles" is missing from the "CI gate" needs: list/);
+});
+
 test('checkGateWiring flags a planned lane with no job', () => {
   const noEdge = CI_WF.replace('  edge:\n    name: edge\n    needs: changes\n', '').replace(', edge]', ']');
   assert.deepEqual(checkGateWiring(noEdge), ['.github/workflows/ci.yml: planned job "edge" does not exist']);

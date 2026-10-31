@@ -28,9 +28,6 @@
     "src/i18n/locales/he/modules/adminOrgApprovals.ts": {
       "genderedImperative": 1
     },
-    "src/i18n/locales/he/modules/adminSurveys.ts": {
-      "genderedImperative": 1
-    },
     "src/i18n/locales/he/modules/adminTasks.ts": {
       "genderedImperative": 7
     },
@@ -91,9 +88,6 @@
     "src/i18n/locales/he/modules/settings.ts": {
       "genderedImperative": 15,
       "genderedAddress": 1
-    },
-    "src/i18n/locales/he/modules/survey.ts": {
-      "genderedImperative": 5
     },
     "src/i18n/locales/he/modules/surveyDemo.ts": {
       "genderedAddress": 1,

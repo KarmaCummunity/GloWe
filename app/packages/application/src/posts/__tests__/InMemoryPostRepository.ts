@@ -68,6 +68,7 @@ export class InMemoryPostRepository implements IPostRepository {
       mediaAssets: input.mediaAssets.map((m) => ({
         mediaAssetId: crypto.randomUUID(),
         postId,
+        bucket: 'post-images' as const,
         path: m.path,
         mimeType: m.mimeType,
         sizeBytes: m.sizeBytes,
@@ -76,6 +77,7 @@ export class InMemoryPostRepository implements IPostRepository {
       recipient: null,
       reopenCount: 0,
       deleteAfter: null,
+      listingId: null,
       createdAt: now,
       updatedAt: now,
       sourceLanguage: null,
@@ -94,6 +96,7 @@ export class InMemoryPostRepository implements IPostRepository {
       post.mediaAssets = mediaAssets.map((m) => ({
         mediaAssetId: crypto.randomUUID(),
         postId,
+        bucket: 'post-images' as const,
         path: m.path,
         mimeType: m.mimeType,
         sizeBytes: m.sizeBytes,
