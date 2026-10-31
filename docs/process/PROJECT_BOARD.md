@@ -22,7 +22,7 @@ The `agent-ready` **label** is different: it means "PR is done, auto-merge" (see
 1. Open the **Agent queue** view (Status = Ready, Agent-ready = yes, sorted by Priority). Take the top item nobody owns.
 2. Read its Spec ref (`docs/spec`, then legacy `docs/SSOT/spec`) and run the spec validation gate in CLAUDE.md §2. If the issue contradicts the spec or lacks acceptance criteria, set Agent-ready = no, comment why, pick another.
 3. Move Status to **In progress** and assign yourself.
-4. Branch from `origin/dev`; one issue = one PR to `dev`. Bump `app/VERSION` PATCH.
+4. Branch from `origin/dev`; one issue = one PR to `dev`. Do not edit `app/VERSION`; PATCH is bumped automatically on merge (`TD-196`).
 5. PR body: `Closes #N`, a `Mapped to spec` line, and the test results. Moving the PR in is Status **In review**.
 6. Update in the same PR: the spec (`docs/spec` / `docs/SSOT/spec`), `BACKLOG.md`, `TECH_DEBT.md`, and tests.
 7. Blocked on a decision, credential or dependency: Status **Blocked**, comment with the exact need. Done happens on merge.

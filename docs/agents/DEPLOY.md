@@ -50,10 +50,10 @@ Playwright QA suite against `https://dev.karma-community.pages.dev` + kc-dev: [`
 | `k6-load-dev.yml` | manual | Load test against dev |
 | `mobile-nightly.yml` → `testflight-ios.yml`, `play-internal.yml` | nightly + manual (dev) | Store builds of the newest green dev commit, see [RELEASE.md](./RELEASE.md) |
 | `kc-mobile-eas-preview.yml` | manual | EAS preview build, no store submit |
-| `sync-main-to-dev.yml` | main push | Fails with GH006 (`TD-182`); leave it |
+| `sync-main-to-dev.yml` | main push | Opens a zero-diff PR into `dev`; the owner merges it as a merge commit with the admin bypass (`TD-182`) |
 | `bump-version-on-merge.yml` | dev push | Bumps `app/VERSION` PATCH after each merge (`TD-196`); PRs do not edit VERSION |
 | `auto-merge-agent-ready.yml`, `labeler.yml`, `bump-app-version.yml`, `stale-stack-report.yml` | PR / schedule | Housekeeping |
 
-## Web Dockerfile / Railway (legacy note)
+## Web (Cloudflare Pages)
 
-Historical Railway notes: [docs/DEPLOY_WEB.md](../DEPLOY_WEB.md). Current web path is Cloudflare Pages through `deploy.yml` (dev and prod).
+Runbook: [docs/DEPLOY_WEB.md](../DEPLOY_WEB.md). The only web path is Cloudflare Pages through `deploy.yml` (dev and prod); Railway is retired, and the repo-root `Dockerfile` / `railway.json` are no longer deployed.
