@@ -13,7 +13,7 @@
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { type Handler, withTiming } from '../_shared/withTiming.ts';
+import { type Handler, withObservability } from '../_shared/observability/mod.ts';
 import { denoResolve, resolvesOnlyToPublic } from './dnsGuard.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -346,4 +346,4 @@ const handler: Handler = async (req) => {
   return jsonResponse({ ok: true, link: inserted }, 200);
 };
 
-serve(withTiming('validate-donation-link', handler));
+serve(withObservability('validate-donation-link', handler));
