@@ -1615,6 +1615,13 @@ Owner rules that go with it:
 **Why.** Before this, a server error was visible only to someone reading the Supabase function logs by hand; nothing alerted. A hand-rolled envelope client (≈300 lines with tests) keeps cold start flat — the SDK would be the largest module in most functions — and is unit-tested byte-for-byte with a fake transport, which `@sentry/deno` would not allow without network. Codes-only tags are the PII boundary the mobile client already respects (D-48). Extends D-48: Edge Functions now report to the same Sentry organisation as the app, in a dedicated project.
 
 **Affected.** `supabase/functions/_shared/observability/**` (+ tests), all 19 `supabase/functions/*/index.ts`, `.github/workflows/deploy-functions.yml`, `docs/SSOT/OPERATOR_RUNBOOK.md` § Edge Functions, `docs/architecture/target.md` §5.2, `docs/spec/93_implementation_gaps.md` G41.
+## D-206 — Native listings reach the main feed as mirror posts, the listing stays the source of truth (2026-10-31)
+
+**Decision.** The main feed keeps reading `posts`. Every published open native listing of a feed-mirrored world (`worlds.feed_mirror`, on for items and food) gets one mirror row in `posts` linked by `posts.listing_id` (migration `0466`). The mirror is written only by the listing triggers and `share_listing_to_feed`: it follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket`), privacy, status and deletion, never counts toward the open-posts cap, is skipped by the posts → listings sync, and its detail screen redirects to the listing. Rejected for now: teaching `feed_ranked_ids` / `feed_open_posts_mv` and the feed client to rank a union of posts and listings (the proper G1 / D19 end state), because it rewrites the ranked feed, its cache and every feed card for a launch-wedge gap that the mirror closes today without a client-visible data model change.
+
+**Why.** KC#1101 / KC#1109 AC4 ("listing appears in feed") was open: items and food listings only reached the feed through a manual one-off copy that drifted from the listing and created a second marketplace listing. The mirror keeps one post entity per published thing (D2 / D19) while the listing tables remain the engine for handoffs and matching.
+
+**Affected.** `supabase/migrations/0466_listing_feed_mirror.sql`, `posts.listing_id`, `media_assets.bucket`, `worlds.feed_mirror`, `app/apps/mobile/src/hooks/useListingMirrorRedirect.ts`, feed cards, `ListingDetailActions`.
 
 ## D-203 — Registry IDs are assigned on merge, not in the PR (2026-10-31)
 
@@ -1634,10 +1641,19 @@ Owner rules that go with it:
 
 **Affected.** `app/packages/application/src/contracts/**`, `app/packages/application/src/posts/__tests__/{InMemoryPostRepository,inMemoryPostStore,postRepository.contract.test}.ts`, `app/packages/infrastructure-supabase/src/posts/__tests__/{postContractHarness,SupabasePostRepository.contract.integration.test}.ts`, `.github/workflows/ci-backend.yml`, `docs/SSOT/TESTING.md` § Port contract tests, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G39, BACKLOG `OPS-G39`.
 
+## D-205 — World E2E journeys: one two-user shape, a fixture per world, publish through the RPC, verify over REST (2026-10-31)
+
+**Decision.** The per-world end-to-end test (G40) is one Playwright journey shape in `tests/e2e/lib/worldJourney.ts` run as two seeded users against the dev deployment: A publishes through `create_marketplace_listing` (the RPC the unified create form calls), B claims on the listing page, A confirms when the world requires it, A hands over (the listing closes and the giver's karma ledger row exists), B rates. A world plugs in as a fixture file (`journeys/<world>.spec.ts`: kind slug, claim action and the status it results in, kind details such as food expiry); the first two are `items` and `food`. Every UI step is re-read over REST as the acting user, so RLS is exercised as in the app. Locators prefer stable `giving-handoff-*` / `handoff-rating-*` testIDs and fall back to the Hebrew labels; the suite carries no skip marker. Journeys run nightly, in the mobile P0 gate and in the release lane, not as a PR lane: a PR-time run would exercise the previous deployment, not the PR.
+
+**Why.** Publishing through the RPC keeps the journey about the giving flow (claim → confirm → hand over → rate across two accounts) and off the create form's widgets, which have their own qa spec and change often; the RPC is exactly what the form calls, so the published row is the same. Re-reading over REST as each user turns every click into an RLS assertion. One shape with fixtures matches §5 of the target architecture ("a giving world plugs in by adding a fixture file"). The first run already fixed two wrong assumptions in the test itself (food's quick claim is confirmed at once; Hebrew status labels) — the shape is cheap to correct in one place.
+
+**Affected.** `tests/e2e/lib/worldJourney.ts`, `tests/e2e/journeys/{items,food}.spec.ts`, `tests/e2e/journeys/qa/{marketplace,social}.spec.ts` (unified create route, flag-aware money world), `app/apps/mobile/src/components/marketplace/{GivingHandoffActions,MarketplaceCreateForm}.tsx` (testIDs only), `docs/SSOT/TESTING.md` § Two-user world journeys, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G40, BACKLOG `OPS-G40`.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.33 | 2026-10-31 | Added `D-205` (world E2E journeys: one two-user shape with a fixture per world, publish through the RPC, verify over REST; G40 first slice: items + food). |
 | 4.32 | 2026-10-31 | `D-195` addendum: PR = fast feedback, merge queue = full gate. PRs into `dev` defer the heavy frontend builds (`bundles` lane) to the merge queue; merge groups, pushes and dispatches plan every lane; the gate accepts a deferred heavy lane only on PRs into `dev`; Sonar blocks on PRs into and pushes to `main` only (`TD-236`). |
 | 4.31 | 2026-10-31 | Added `D-204` (port contracts as framework-agnostic case lists run against a behavioural fake and the Supabase adapter; G39 first slice: `IPostRepository`). |
 | 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |

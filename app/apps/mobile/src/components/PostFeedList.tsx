@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { KcRefreshControl } from './lists/KcRefreshControl';
 import type { ViewToken } from 'react-native';
-import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import type { useTranslatedPosts } from '../hooks/useTranslatedPosts';
 import { HOME_FEED_GRID_COLUMNS, usePostGridCardWidth } from '../hooks/useShellContentWidth';
@@ -95,8 +95,8 @@ export function PostFeedList({
     const tail = (data ?? []).slice(-20);
     prefetchImages(
       tail.map((p) => {
-        const path = p.mediaAssets[0]?.path;
-        return path ? getSupabaseFeedImageUrl('post-images', path, cardWidth) : null;
+        const first = p.mediaAssets[0];
+        return first ? getSupabaseFeedImageUrl(first.bucket, first.path, cardWidth) : null;
       }),
     );
   }, [data, cardWidth]);
@@ -167,7 +167,7 @@ const usePostFeedListStyles = makeUseStyles(({ colors }) => ({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
     backgroundColor: colors.primary,
-    borderRadius: 999,
+    borderRadius: radius.full,
   },
   retryText: { ...typography.button, color: colors.textInverse },
   row: { paddingHorizontal: spacing.base, gap: spacing.sm, marginBottom: spacing.sm },

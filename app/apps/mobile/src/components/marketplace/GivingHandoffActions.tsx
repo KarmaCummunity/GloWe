@@ -78,10 +78,10 @@ export function GivingHandoffActions({ detail }: Props) {
   const isRecipient = h != null && userId === h.recipientId;
 
   return (
-    <View style={styles.box}>
+    <View style={styles.box} testID="giving-handoff">
       <Text style={typography.h3}>{t('givingHandoff.sectionTitle')}</Text>
       {h ? (
-        <Text style={styles.status}>
+        <Text style={styles.status} testID="giving-handoff-status">
           {t('givingHandoff.status', { status: t(`givingHandoff.statusLabel.${h.status}`, { defaultValue: h.status }) })}
         </Text>
       ) : null}
@@ -89,6 +89,7 @@ export function GivingHandoffActions({ detail }: Props) {
       {!h && detail.worldSlug === 'items' && !isOwner ? (
         <>
           <Pressable
+            testID="giving-handoff-reserve"
             style={styles.btn}
             disabled={busy}
             onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'pickup'); }, 'match_made')}
@@ -96,6 +97,7 @@ export function GivingHandoffActions({ detail }: Props) {
             <Text style={styles.btnText}>{t('givingHandoff.reserveItem')}</Text>
           </Pressable>
           <Pressable
+            testID="giving-handoff-reserve-delivery"
             style={[styles.btn, styles.btnSecondary]}
             disabled={busy}
             onPress={() => run(async () => { await givingHandoffUseCases.reserveItem().execute(detail.listingId, 'delivery'); }, 'match_made')}
@@ -107,6 +109,7 @@ export function GivingHandoffActions({ detail }: Props) {
 
       {!h && detail.worldSlug === 'food' && !isOwner ? (
         <Pressable
+          testID="giving-handoff-claim"
           style={styles.btn}
           disabled={busy}
           onPress={() => run(async () => { await givingHandoffUseCases.claimFood().execute(detail.listingId); }, 'match_made')}
@@ -117,6 +120,7 @@ export function GivingHandoffActions({ detail }: Props) {
 
       {!h && detail.worldSlug === 'rides' && !isOwner ? (
         <Pressable
+          testID="giving-handoff-book-seat"
           style={styles.btn}
           disabled={busy}
           onPress={() => run(async () => { await ridesKnowledgeRpcs.bookRideSeat(detail.listingId, 1); }, 'match_made')}
@@ -127,6 +131,7 @@ export function GivingHandoffActions({ detail }: Props) {
 
       {!h && detail.worldSlug === 'knowledge' && !isOwner ? (
         <Pressable
+          testID="giving-handoff-book-slot"
           style={styles.btn}
           disabled={busy}
           onPress={() => run(async () => { await ridesKnowledgeRpcs.bookKnowledgeSlot(detail.listingId); }, 'match_made')}
@@ -137,6 +142,7 @@ export function GivingHandoffActions({ detail }: Props) {
 
       {h?.status === 'reserved' && isOwner && detail.worldSlug !== 'knowledge' ? (
         <Pressable
+          testID="giving-handoff-confirm"
           style={styles.btn}
           disabled={busy}
           onPress={() =>
@@ -156,6 +162,7 @@ export function GivingHandoffActions({ detail }: Props) {
       {(h?.status === 'confirmed' || (h?.status === 'reserved' && (detail.worldSlug === 'knowledge'))) && (isOwner || isRecipient) ? (
         <>
           <Pressable
+            testID="giving-handoff-complete"
             style={styles.btn}
             disabled={busy}
             onPress={() =>
@@ -179,6 +186,7 @@ export function GivingHandoffActions({ detail }: Props) {
             </Text>
           </Pressable>
           <Pressable
+            testID="giving-handoff-cancel"
             style={[styles.btn, styles.btnSecondary]}
             disabled={busy}
             onPress={() => run(async () => { await givingHandoffUseCases.cancel().execute(h.handoffId); })}

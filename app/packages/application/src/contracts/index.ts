@@ -4,6 +4,7 @@ export {
   ContractViolation,
   assertDefined,
   assertEqual,
+  assertRejects,
   assertRejectsWithCode,
   assertSameList,
   assertTrue,
@@ -14,3 +15,8 @@ export {
   type PostRepositoryActor,
   type PostRepositoryContractContext,
 } from './postRepository.contract';
+export {
+  savedPostsRepositoryContract,
+  type SavedPostsActor,
+  type SavedPostsContractContext,
+} from './savedPostsRepository.contract';
