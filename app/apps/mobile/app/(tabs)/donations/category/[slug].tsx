@@ -61,7 +61,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
   heroIcon: { marginBottom: spacing.xs },
   heroTitle: {
     ...typography.h1,
-    fontSize: 28,
     color: colors.textPrimary,
     textAlign: 'center' as const,
     letterSpacing: -0.4,

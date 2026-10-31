@@ -2,10 +2,10 @@
 // Presentational only: reads static config from `medicalBodies.ts`, copy from i18n,
 // and opens the official site in the external browser. No network or storage side-effects.
 import React, { useCallback } from 'react';
-import { Alert, Linking, Pressable, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { MEDICAL_SECTIONS, type MedicalBody } from '../features/donations/medicalBodies';
 import { rtlTextAlignStart } from '../lib/rtlTextAlignStart';
 
@@ -29,7 +29,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surface,
   },
   cardPressed: { opacity: 0.85 },
-  cardTexts: { flex: 1, minWidth: 0, gap: 2 },
+  cardTexts: { flex: 1, minWidth: 0, gap: spacing.xs },
   cardName: { ...typography.h3, color: colors.textPrimary, textAlign: rtlTextAlignStart },
   cardDescription: { ...typography.body, color: colors.textSecondary, textAlign: rtlTextAlignStart },
 }));
@@ -58,7 +58,7 @@ export function MedicalBodiesSection() {
       {MEDICAL_SECTIONS.map((section) => (
         <View key={section.id} style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name={section.icon} size={22} color={colors.primary} />
+            <Ionicons name={section.icon} size={iconSize.xl} color={colors.primary} />
             <View style={styles.sectionTexts}>
               <Text style={styles.sectionTitle}>{t(`medicalBodies.sections.${section.id}.title`)}</Text>
               <Text style={styles.sectionSubtitle}>{t(`medicalBodies.sections.${section.id}.subtitle`)}</Text>
@@ -79,7 +79,7 @@ export function MedicalBodiesSection() {
                   <Text style={styles.cardName}>{name}</Text>
                   <Text style={styles.cardDescription}>{t(`medicalBodies.items.${body.id}.description`)}</Text>
                 </View>
-                <Ionicons name="open-outline" size={18} color={colors.textSecondary} />
+                <Ionicons name="open-outline" size={iconSize.md} color={colors.textSecondary} />
               </Pressable>
             );
           })}
