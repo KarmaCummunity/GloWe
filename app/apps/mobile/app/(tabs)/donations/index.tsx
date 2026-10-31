@@ -14,7 +14,7 @@ import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { TopBar } from '../../../src/components/TopBar';
 import { PressableScale } from '../../../src/components/animations/PressableScale';
 import { Screen } from '../../../src/components/ui/Screen';
@@ -28,10 +28,11 @@ import { rtlTextAlignStart } from '../../../src/lib/rtlTextAlignStart';
 import { MatchesForYouCard } from '../../../src/components/matching/MatchesForYouCard';
 import { useRemoteAppFlags } from '../../../src/hooks/useLaunchWorldFlags';
 import { isHubTileLaunchEnabled } from '@kc/domain';
+import { HubTileGrid } from '../../../src/components/donations/HubTileGrid';
 import {
+  DONATIONS_HUB_DOMAIN_TILES,
   DONATIONS_HUB_FEATURED,
   donationsHubTiles,
-  type DonationHubTile,
 } from '../../../src/navigation/donationsHubTiles';
 
 const useStyles = makeUseStyles(({ colors, isDark }) => ({
@@ -55,11 +56,9 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   heroTitle: {
     ...typography.h1,
-    fontSize: 26,
     color: colors.textPrimary,
     letterSpacing: -0.4,
     textAlign: rtlTextAlignStart,
-    lineHeight: 34,
     width: '100%',
   },
   heroSubtitle: {
@@ -90,7 +89,7 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
     ...typography.h2,
     color: colors.textPrimary,
     textAlign: rtlTextAlignStart,
-    marginBottom: 2,
+    marginBottom: spacing.xs,
   },
   featuredSubtitle: {
     ...typography.body,
@@ -98,57 +97,8 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
     textAlign: rtlTextAlignStart,
   },
 
-  // Grid — section heading then 2-col cards.
-  gridHeading: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    textAlign: rtlTextAlignStart,
-    width: '100%',
-    marginTop: spacing.sm,
-    marginBottom: spacing.base,
-  },
   // RN-Web + RTL: nested blocks can shrink-wrap to inline-start without explicit stretch.
   blockStretch: { width: '100%', alignSelf: 'stretch' as const },
-
-  // Fills leftover viewport below hero + featured so category rows share height.
-  categoriesSection: { flex: 1, width: '100%', alignSelf: 'stretch' as const },
-  grid: { flex: 1, gap: spacing.base, width: '100%', alignSelf: 'stretch' as const },
-  gridRowMotion: { flex: 1, minHeight: 0 },
-  row: {
-    flex: 1,
-    flexDirection: 'row' as const,
-    alignItems: 'stretch' as const,
-    gap: spacing.base,
-    minHeight: 112,
-    width: '100%',
-    alignSelf: 'stretch' as const,
-  },
-  gridPressable: { flex: 1, alignSelf: 'stretch' as const },
-  gridCard: {
-    flex: 1,
-    minHeight: 112,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: spacing.xs,
-    paddingTop: spacing.base,
-    paddingBottom: spacing.base,
-    alignSelf: 'stretch' as const,
-  },
-  gridTitle: {
-    ...typography.body,
-    fontWeight: '700' as const,
-    color: colors.textPrimary,
-    textAlign: 'center' as const,
-    fontSize: 16,
-    marginTop: spacing.xs,
-  },
-  gridSubtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    textAlign: 'center' as const,
-    lineHeight: 16,
-  },
-  spacer: { flex: 1 },
 }));
 
 export default function DonationsHubScreen() {
@@ -166,12 +116,6 @@ export default function DonationsHubScreen() {
 
   // Desktop (>=1024) aside — live community snapshot (FR-RESP-003).
   useScreenAside(() => <CommunityStatsAside />, []);
-
-  // Pair grid tiles into rows of 2 — single row when count is odd.
-  const rows: DonationHubTile[][] = [];
-  for (let i = 0; i < visibleTiles.length; i += 2) {
-    rows.push(visibleTiles.slice(i, i + 2));
-  }
 
   return (
     <Screen blobs="content">
@@ -207,7 +151,7 @@ export default function DonationsHubScreen() {
                     {t(DONATIONS_HUB_FEATURED.subtitleKey)}
                   </Text>
                 </View>
-                <Ionicons name="chevron-back" size={22} color={colors.primary} />
+                <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
               </Card>
             </PressableScale>
           </MotionEntry>
@@ -230,51 +174,22 @@ export default function DonationsHubScreen() {
                   {t('donations.marketplaceHubSubtitle')}
                 </Text>
               </View>
-              <Ionicons name="chevron-back" size={22} color={colors.primary} />
+              <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
             </Card>
           </PressableScale>
         </MotionEntry>
 
-        {/* ── Category grid ────────────────── */}
-        <View style={styles.categoriesSection}>
-          <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 80} style={styles.blockStretch}>
-            <Text style={styles.gridHeading}>{t('donations.hubCategoriesSectionTitle')}</Text>
-          </MotionEntry>
-
-          <View style={styles.grid}>
-            {rows.map((pair, rowIdx) => (
-              <MotionEntry
-                key={pair.map((c) => c.key).join('-')}
-                variant="bottom"
-                delay={ENTRY_DELAY.buttons + rowIdx * 80}
-                style={[styles.gridRowMotion, styles.blockStretch]}
-              >
-                <View style={styles.row}>
-                  {pair.map((cat) => (
-                    <PressableScale
-                      key={cat.key}
-                      onPress={() => router.push(cat.href)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${t(cat.titleKey)} — ${t(cat.subtitleKey)}`}
-                      style={styles.gridPressable}
-                    >
-                      <Card padding="md" style={styles.gridCard} testID={cat.testID}>
-                        <IconTile icon={cat.icon} size="lg" />
-                        <Text style={styles.gridTitle} numberOfLines={1}>
-                          {t(cat.titleKey)}
-                        </Text>
-                        <Text style={styles.gridSubtitle} numberOfLines={2}>
-                          {t(cat.subtitleKey)}
-                        </Text>
-                      </Card>
-                    </PressableScale>
-                  ))}
-                  {pair.length === 1 ? <View style={styles.spacer} /> : null}
-                </View>
-              </MotionEntry>
-            ))}
-          </View>
-        </View>
+        {/* ── Giving worlds, then domains (D62) ── */}
+        <HubTileGrid
+          heading={t('donations.hubCategoriesSectionTitle')}
+          tiles={visibleTiles}
+          delay={ENTRY_DELAY.section + 80}
+        />
+        <HubTileGrid
+          heading={t('donations.worldsHub.domainsSectionTitle')}
+          tiles={DONATIONS_HUB_DOMAIN_TILES}
+          delay={ENTRY_DELAY.section + 160}
+        />
       </ScrollView>
     </Screen>
   );

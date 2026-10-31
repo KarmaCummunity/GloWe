@@ -10,6 +10,14 @@ reviews:
   request_changes_workflow: false
   high_level_summary: true
   poem: false
+  # Each status update or edit wakes the Claude session that owns the PR
+  # (.claude/skills/babysit/SKILL.md), so CodeRabbit posts reviews only:
+  # no "review skipped / in progress / rate limited" status comment
+  # (review_status), no commit status (commit_status), no fortune text while
+  # a requested review runs (in_progress_fortune).
+  review_status: false
+  commit_status: false
+  in_progress_fortune: false
   path_filters:
     - "app/**"
     - "supabase/**"
