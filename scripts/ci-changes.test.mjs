@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { LANE_JOBS, changedFiles, classify, plan } from './ci-changes.mjs';
+import { LANE_JOBS, OPTIONAL_LANES, changedFiles, classify, plan } from './ci-changes.mjs';
 
 const PR = { event: 'pull_request', draft: false, actor: 'agent', ref: 'refs/pull/1/merge' };
 const ALL = { hygiene: true, static: true, frontend: true, backend: true, edge: true };
@@ -100,6 +100,26 @@ test('push to main runs every lane and sonar', () => {
 test('the same docs-only diff on a PR stays diff-based', () => {
   const r = plan({ ...PR, files: ['docs/a.md'] });
   assert.deepEqual(r.plan, { hygiene: true, static: true, frontend: false, backend: false, edge: false });
+});
+
+test('a PR into main plans the release lane, even when docs-only', () => {
+  const r = plan({ ...PR, baseRef: 'main', files: ['docs/SSOT/BACKLOG.md'] });
+  assert.deepEqual(r.plan, { hygiene: true, static: true, frontend: false, backend: false, edge: false, release: true });
+});
+
+test('the release lane is left out of the plan, never planned false, unless the base is main', () => {
+  assert.equal('release' in plan({ ...PR, baseRef: 'dev', files: ['app/a.ts'] }).plan, false);
+  assert.equal('release' in plan({ ...PR, files: ['app/a.ts'] }).plan, false);
+  for (const event of ['push', 'workflow_dispatch']) {
+    assert.equal('release' in plan({ event, draft: false, actor: 'x', ref: 'refs/heads/main', baseRef: '', files: [] }).plan, false);
+  }
+  assert.deepEqual(OPTIONAL_LANES, ['release']);
+});
+
+test('a merge group for main plans the release lane; one for dev does not', () => {
+  const group = { event: 'merge_group', draft: false, actor: 'x', ref: 'refs/heads/gh-readonly-queue/main/pr-1', files: [] };
+  assert.equal(plan({ ...group, baseRef: 'refs/heads/main' }).plan.release, true);
+  assert.equal('release' in plan({ ...group, baseRef: 'refs/heads/dev' }).plan, false);
 });
 
 test('manual dispatch runs every heavy lane', () => {

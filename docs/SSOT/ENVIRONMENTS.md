@@ -106,6 +106,12 @@ All feature PRs target `dev`. Configure GitHub → Settings → Branches → `de
 
 **Owner action (one-time, GitHub → Settings → Branches → `dev`):** replace the eleven legacy required checks (`typecheck · test · lint`, `Hebrew source scan (no inline UI copy)`, `web export (production bundle)`, `migration chain lint`, `apply migrations · rls · types · sql probes`, `rpc · table contract`, `coalesce mirror · layer invariants`, `web manifest parity`, `PR hygiene`, `migration destructive-op scan`, `SonarCloud quality gate`) with the single check `CI gate` (source: GitHub Actions). Until then the legacy contexts never report and every PR waits on them.
 
+### Merge queue (recommended on `dev`)
+
+`ci.yml` already runs on `merge_group`, so the queue needs no workflow change. **Owner action (one-time):** GitHub → Settings → Rules → the `dev` ruleset → enable **Require merge queue** (squash). Keep `CI gate` as the only required check.
+
+Why: without a queue every merge makes all other PRs "behind" and `auto-update-branches.yml` re-merges `dev` into each, which restarts and cancels their CI. The queue tests PRs one after another on top of each other, so no PR needs updating. After enabling it, switch off "require branches to be up to date" and remove `auto-update-branches.yml` (TD-206). `gh pr merge --auto` then adds the PR to the queue by itself.
+
 Do **not** require **CI — main release guard** on `dev` (prod-only release-source job). Prod-only post-merge jobs (`prod-smoke`, Edge Functions deploy to `supabase-prod`) stay on `main` only.
 
 ## Production release
@@ -124,7 +130,20 @@ Operator checklist: [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 
 The gate fails closed: every lane must be explicitly planned as needed or not needed, and a needed lane must succeed. A draft PR fails `CI gate` on purpose (nothing ran); `ready_for_review` re-runs the whole workflow. A manual dispatch only produces a passing gate on `dev` or `main`. On PRs, `scripts/ci-changes.mjs` and `scripts/ci-gate.mjs` run from the base branch's copy, so a PR cannot weaken its own judge. A docs-only PR runs only `hygiene` + `static` (about a minute); a full-stack PR is bounded by the slowest lane (web export + smoke or the DB stack; expected 6–8 minutes).
 
-**Store pipelines (manual only):** one TestFlight workflow (`.github/workflows/testflight-ios.yml`) and one Play internal workflow (`.github/workflows/play-internal.yml`). Both are `workflow_dispatch` only — never auto-run on push; prod/release submit stays disabled.
+**Store pipelines (nightly, `D-195` tier 2):** `.github/workflows/mobile-nightly.yml` (**Mobile nightly**, 23:43 UTC + manual dispatch on `dev` with a `force` input) ships the newest `dev` commit whose `CI` push run succeeded — that exact SHA, never the tip — to TestFlight (`testflight-ios.yml`) and Play internal (`play-internal.yml`). Flow: `resolve` (`scripts/mobile-nightly-resolve.mjs`; fails when none of the last 30 `dev` commits is green; builds nothing when the commit already carries a `mobile/v*` tag) → `e2e` (P0 journeys of `e2e-nightly-dev.yml` against the dev deployment) → `ios` ∥ `android` → `record` (tags the commit `mobile/v<VERSION>-ios<buildNumber>-android<versionCode>`, with retries). The schedule runs main's copy of the file, so it starts after the next release. Both store workflows keep `workflow_dispatch`, accepted only on `dev` and only for a commit with a green `CI` push run. Preflights fail closed: a missing secret fails the job with the list of names. App Store review and Play promotion beyond `internal` stay manual. Tooling: eas-cli `24.12.1` in all three mobile workflows (`EAS_CLI_VERSION`), Node from `.nvmrc`. Marketing version = `app/VERSION` (via `app.config.ts`); iOS `buildNumber` / Android `versionCode` = EAS remote `autoIncrement`.
+
+**Mobile store backend: kc-dev.** Tester builds (TestFlight, Play internal) use the dev project `enbqriuxvvuontiwslun` (owner decision, `D-195`). They build with the eas.json `nightly` profile — store distribution, OTA channel `preview`, EAS environment `preview`, `EXPO_PUBLIC_ENVIRONMENT=development` (dev banner on), same bundle id `org.karmacommunity.app`. `scripts/mobile-store-config.mjs pin` writes the kc-dev URL and the key below into that profile's `env` on the runner and refuses a commit whose green run is on `main` (prod store builds are not wired yet); `scripts/mobile-store-config.mjs verify` then checks the built JS bundle (from the IPA / AAB) and blocks the store upload unless it contains the kc-dev URL and no prod ref.
+
+| GitHub (`mobile-store` environment, deployment branches `dev` + `main`) | Name | Value |
+| --- | --- | --- |
+| Secret | `MOBILE_SUPABASE_ANON_KEY` | kc-dev publishable (anon) key; a key of another project or a service-role key fails the job |
+
+| EAS environment `preview` (used by the `nightly` profile) | Needs |
+| --- | --- |
+| Sentry / FCM | `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_URL`, `SENTRY_AUTH_TOKEN` (optional) and the `GOOGLE_SERVICES_JSON` file variable — Android cloud builds take these only from EAS |
+| Supabase | Either no `EXPO_PUBLIC_SUPABASE_*`, or the kc-dev values; a prod value can reach the cloud build and is then caught by `verify` |
+
+Store credentials stay repository-level for now (`TD-227`): secrets `EXPO_TOKEN`, `ASC_API_KEY_ID`, `ASC_API_KEY_ISSUER_ID`, `ASC_API_KEY_P8`, `KC_IOS_TEAM_ID`, `KC_IOS_DIST_P12_B64`, `KC_IOS_DIST_P12_PASSWORD`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`; variables `KC_ASC_APP_ID`, `KC_EAS_PROJECT_ID`, `KC_IOS_DIST_CERT_ID`. The preview workflow (`kc-mobile-eas-preview.yml`, manual) builds on EAS cloud and takes its config from the eas.json `preview` profile + EAS `preview` environment.
 
 Tooling pins: Node version comes from the repo-root `.nvmrc` (all `setup-node` steps use `node-version-file`); pnpm version comes from the `packageManager` field in `app/package.json` (all `pnpm/action-setup` steps use `package_json_file`). Bump either in one place only. **One deliberate exception:** the `ci-backend.yml` db-validate job pins Node 22 — `@supabase/realtime-js` needs the native WebSocket global (Node ≥ 22) for the sqlProbes integration tests; do not align it back to `.nvmrc`.
 
