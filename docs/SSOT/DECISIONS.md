@@ -1578,7 +1578,7 @@ Owner rules that go with it:
 
 **Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
 
-## D-196 — Realtime: private DB Broadcast by default; realtime never the source of truth (2026-10-30)
+## D-201 — Realtime: private DB Broadcast by default; realtime never the source of truth (2026-10-30)
 
 **Decision.** Adopt [ADR-003](../architecture/adr/ADR-003-realtime.md): new realtime features use database-sent Broadcast on a private, entity-scoped topic (`<entity>:<uuid>:<facet>`) authorized by an RLS policy on `realtime.messages` in the same migration; Presence only for who-is-here/online (one shared app-level channel for online presence); postgres_changes only for low-fan-out, owner-filtered streams. Adapters own channels behind ports; exact topics open through `openExactTopicChannel`, postgres_changes use a unique topic per mount. Payloads carry ids or pings, and clients re-read through RLS. Every realtime screen also loads by query and has a refetch or polling fallback. Topic registry: `docs/SSOT/social_realtime_conventions.md`.
 

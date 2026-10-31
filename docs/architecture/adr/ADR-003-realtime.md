@@ -1,7 +1,7 @@
 # ADR-003 — Realtime: Broadcast, Presence, postgres_changes
 
 - **Status:** Accepted (2026-10-30) · records the mechanisms shipped in #885 / #994 and the rules for new ones
-- **Issue:** KC#1017 · **Decision log:** `D-196` in [`../../SSOT/DECISIONS.md`](../../SSOT/DECISIONS.md)
+- **Issue:** KC#1017 · **Decision log:** `D-201` in [`../../SSOT/DECISIONS.md`](../../SSOT/DECISIONS.md)
 - **Related:** [ADR-001 client state](./ADR-001-client-state.md) (realtime patches the query cache), [ADR-002 data layer](./ADR-002-data-layer.md), #879 / #881 (scale and load tests)
 
 ## Context
