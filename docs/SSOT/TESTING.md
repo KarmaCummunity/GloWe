@@ -39,7 +39,7 @@ Adding a port: write `contracts/<port>.contract.ts` (fresh actor per case; owner
 
 Shipped: `IPostRepository`. Queue: BACKLOG `OPS-G39`.
 
-## Two-user world journeys (G40, `{{ENG:world-journeys}}`)
+## Two-user world journeys (G40, `D-205`)
 
 `tests/e2e/journeys/<world>.spec.ts` — one Playwright journey per live giving world, two seeded users, against the dev deployment:
 
