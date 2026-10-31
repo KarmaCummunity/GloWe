@@ -40,7 +40,7 @@ export function MyWorldHandoffsList({ worldSlug }: { readonly worldSlug: 'items'
             placeholderIcon={listingWorldIcon(item.worldSlug)}
             title={cleanDisplayTitle(item.title)}
             meta={[item.role]}
-            statusLabel={item.status}
+            statusLabel={t(`givingHandoff.statusLabel.${item.status}`, { defaultValue: item.status })}
             onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
           />
         )}

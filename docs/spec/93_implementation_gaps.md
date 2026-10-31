@@ -1,6 +1,6 @@
-# 93 — Implementation gaps G1–G49
+# 93 — Implementation gaps
 
-Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test.
+Spec is clear; code does not match yet. These are **tasks, not contradictions**. Every gap = a task with code + spec section + automated test. A new row takes a `G` placeholder ID, numbered on merge (`CLAUDE.md` §4 "New registry IDs").
 
 | # | Gap | Section |
 |---|---|---|

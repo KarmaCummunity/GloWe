@@ -148,10 +148,11 @@
     "app/(tabs)/create.tsx": {
       "iconSizeLiteral": 1
     },
-    "app/(tabs)/donations/marketplace/index.tsx": {
-      "radiusLiteral": 2,
+    "app/(tabs)/donations/index.tsx": {
+      "fontSizeLiteral": 2,
+      "fontWeightLiteral": 1,
       "spacingLiteral": 1,
-      "rawTextInput": 1
+      "iconSizeLiteral": 2
     },
     "app/(tabs)/donations/marketplace/my-listings.tsx": {
       "fontWeightLiteral": 1,
@@ -904,6 +905,9 @@
     "src/components/animations/TourSlidePager.tsx": {
       "radiusLiteral": 1
     },
+    "src/components/aside/GivingWorldsAside.tsx": {
+      "iconSizeLiteral": 2
+    },
     "src/components/aside/RecentSearchesAside.tsx": {
       "iconSizeLiteral": 1
     },
@@ -1120,9 +1124,6 @@
     "src/components/map/MapExplorer.tsx": {
       "spacingLiteral": 2,
       "iconSizeLiteral": 5
-    },
-    "src/components/marketplace/GivingHandoffActions.tsx": {
-      "radiusLiteral": 2
     },
     "src/components/marketplace/ListingSchemaFields.tsx": {
       "radiusLiteral": 2,
