@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // FR-MOD-010 / KC#1298 — the owner's support-thread notice follows the payload outcome:
-// hidden for review (posts 0452, listings 0463) vs removed outright (notices sent before 0452).
+// hidden for review (posts 0452, listings 0468) vs removed outright (notices sent before 0452).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, render } from '@testing-library/react';

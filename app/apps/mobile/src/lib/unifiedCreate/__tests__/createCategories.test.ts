@@ -48,6 +48,15 @@ describe('unified create — category config', () => {
     }
   });
 
+  it('items and food offer a world subcategory on both directions; other worlds do not (KC#1296)', () => {
+    for (const c of CREATE_CATEGORIES.filter((x) => x.engine === 'listing')) {
+      const expected = c.id === 'items' || c.id === 'food';
+      expect(hasCreateField(c, 'give', 'worldSubcategory')).toBe(expected);
+      expect(hasCreateField(c, 'request', 'worldSubcategory')).toBe(expected);
+    }
+    expect(hasCreateField(findCreateCategory(GENERAL_CREATE_CATEGORY), 'give', 'worldSubcategory')).toBe(false);
+  });
+
   it('general post fields adapt to give/request', () => {
     const g = findCreateCategory(GENERAL_CREATE_CATEGORY);
     expect(g.engine).toBe('post');

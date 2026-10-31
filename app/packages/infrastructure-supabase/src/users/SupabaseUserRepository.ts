@@ -200,7 +200,7 @@ export class SupabaseUserRepository implements IUserRepository {
       if (status === 401) throw new DeleteAccountError('unauthenticated', 'no valid session', error);
       if (status === 403) throw new DeleteAccountError('suspended', 'account is suspended', error);
       // Read the body for the auth_delete_failed signal (critical zombie state).
-      let body: { error?: string } | null = null;
+      let body: { error?: string } | null;
       try {
         body = await ctx!.clone().json();
       } catch {

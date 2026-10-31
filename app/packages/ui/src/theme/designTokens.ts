@@ -10,8 +10,10 @@ import { brand } from './brand';
 import { BREAKPOINTS } from './breakpoints';
 import { darkColors, lightColors, type ColorPalette } from './colors';
 import { brandFont } from './fonts';
+import { iconSize } from './iconSize';
 import { radius, shadow, spacing } from './spacing';
 import { typography } from './typography';
+import { zIndex } from './zIndex';
 
 // Design tools know the family by its public name, not the per-weight face names.
 const FONT_STACK = [brandFont.name, 'system-ui'] as const;
@@ -55,6 +57,15 @@ function typographyGroup() {
   );
 }
 
+/** `#RGB` / `#RRGGBB` shadow colour at `opacity`, as the CSS `rgba()` design tools read. */
+function shadowRgba(hex: string, opacity: number): string {
+  const digits = hex.slice(1);
+  // Expand the short form (`#000` → `000000`) so every colour parses the same way.
+  const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join('') : digits;
+  const [r, g, b] = [0, 2, 4].map((offset) => Number.parseInt(full.slice(offset, offset + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 function shadowGroup() {
   return Object.fromEntries(
     Object.entries(shadow).map(([name, preset]) => [
@@ -62,7 +73,7 @@ function shadowGroup() {
       {
         $type: 'shadow' as const,
         $value: {
-          color: `rgba(0, 0, 0, ${preset.shadowOpacity})`,
+          color: shadowRgba(preset.shadowColor, preset.shadowOpacity),
           offsetX: px(preset.shadowOffset.width),
           offsetY: px(preset.shadowOffset.height),
           blur: px(preset.shadowRadius),
@@ -82,6 +93,11 @@ export function buildDesignTokens() {
     },
     spacing: dimensionGroup(spacing),
     radius: dimensionGroup(radius),
+    iconSize: dimensionGroup(iconSize),
+    // Layers are unitless stacking orders, not dimensions.
+    zIndex: Object.fromEntries(
+      Object.entries(zIndex).map(([name, value]) => [name, { $type: 'number' as const, $value: value }]),
+    ),
     breakpoint: dimensionGroup(BREAKPOINTS),
     typography: typographyGroup(),
     shadow: shadowGroup(),

@@ -1,4 +1,4 @@
--- 0463_hide_reported_listings_for_review | KC#1298 — D33 / D61 / G33 for marketplace listings.
+-- 0468_hide_reported_listings_for_review | KC#1298 — D33 / D61 / G33 for marketplace listings.
 -- docs/spec/07_cross_cutting_systems.md §7.15: content reported by 3 distinct reporters within
 -- 14 days is hidden until human review, not removed. `0452` did this for posts; listings still
 -- went straight to `removed_admin` (`0339`), so a falsely reported item or food listing could

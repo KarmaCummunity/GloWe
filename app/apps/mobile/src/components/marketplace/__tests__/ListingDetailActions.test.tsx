@@ -1,0 +1,69 @@
+// @vitest-environment jsdom
+// KC#1310 — listing detail actions per viewer role, and a failed server action alerts instead of
+// failing silently.
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import React from 'react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import { ThemeProvider } from '@kc/ui';
+import type { MarketplaceListingDetail } from '@kc/domain';
+
+const push = vi.fn();
+const startChat = vi.fn();
+const shareToFeed = vi.fn();
+
+vi.mock('expo-router', () => ({ useRouter: () => ({ push }) }));
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k, i18n: { language: 'he' } }) }));
+vi.mock('../../../services/marketplaceComposition', () => ({
+  marketplaceRepository: () => ({ startChat, shareToFeed }),
+}));
+vi.mock('../../../lib/analyticsCoreLoop', () => ({ trackCoreLoop: vi.fn() }));
+
+import { ListingDetailActions } from '../ListingDetailActions';
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+const DETAIL = { listingId: 'l_1', ownerId: 'u_owner', worldSlug: 'items', cityId: null, title: 'Bookshelf' } as unknown as MarketplaceListingDetail;
+
+function renderActions(viewerId: string | null, onReport = vi.fn()) {
+  const view = render(
+    <ThemeProvider mode="light" systemScheme="light" setMode={() => {}}>
+      <ListingDetailActions detail={DETAIL} viewerId={viewerId} onReport={onReport} />
+    </ThemeProvider>,
+  );
+  return { ...view, onReport };
+}
+
+describe('ListingDetailActions', () => {
+  it('shows a viewer message and report, but not share to feed', () => {
+    const { queryByTestId, onReport, getByTestId } = renderActions('u_viewer');
+
+    expect(queryByTestId('listing-action-start-chat')).not.toBeNull();
+    expect(queryByTestId('listing-action-share-feed')).toBeNull();
+    fireEvent.click(getByTestId('listing-action-report'));
+    expect(onReport).toHaveBeenCalled();
+  });
+
+  it('shows the owner share to feed, but not message or report', () => {
+    const { queryByTestId } = renderActions('u_owner');
+
+    expect(queryByTestId('listing-action-share-feed')).not.toBeNull();
+    expect(queryByTestId('listing-action-start-chat')).toBeNull();
+    expect(queryByTestId('listing-action-report')).toBeNull();
+  });
+
+  it('opens the chat on success and alerts when the server refuses', async () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    startChat.mockResolvedValueOnce('c_1').mockRejectedValueOnce(new Error('account_not_active'));
+    const { getByTestId } = renderActions('u_viewer');
+
+    fireEvent.click(getByTestId('listing-action-start-chat'));
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith('/chat/c_1'));
+
+    fireEvent.click(getByTestId('listing-action-start-chat'));
+    await vi.waitFor(() => expect(alert).toHaveBeenCalledWith('marketplace.actionFailed'));
+    alert.mockRestore();
+  });
+});

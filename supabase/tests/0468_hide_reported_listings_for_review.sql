@@ -1,4 +1,4 @@
--- 0463 (KC#1298) — D33 / D61 (docs/spec/07_cross_cutting_systems.md §7.15) for listings:
+-- 0468 (KC#1298) — D33 / D61 (docs/spec/07_cross_cutting_systems.md §7.15) for listings:
 -- a listing can be reported (and is hidden from its reporter); 3 distinct reporters hide it for
 -- review (not remove); the owner still sees it and is told; an admin restores or removes it; only
 -- moderation moves it in or out of review.
@@ -175,4 +175,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0463_hide_reported_listings_for_review.sql passed'
+\echo '✓ 0468_hide_reported_listings_for_review.sql passed'

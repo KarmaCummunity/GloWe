@@ -1,5 +1,5 @@
 // FR-MOD-010 — owner-facing notice when reports took their post off the feed.
-// D33/D61: posts (0452) and listings (0463, KC#1298) are hidden for review rather than removed;
+// D33/D61: posts (0452) and listings (0468, KC#1298) are hidden for review rather than removed;
 // the payload's `outcome` tells which notice applies. Read-only; no admin actions.
 import React from 'react';
 import { View } from 'react-native';
