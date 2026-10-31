@@ -10,6 +10,7 @@ function grant(over: Partial<AdminGrant> & Pick<AdminGrant, 'userId' | 'role'>):
     displayName: over.displayName ?? 'User',
     avatarUrl: over.avatarUrl ?? null,
     role: over.role,
+    scopeOrgId: over.scopeOrgId ?? null,
     grantedAt: over.grantedAt ?? new Date('2026-01-01T00:00:00Z'),
     grantedBy: over.grantedBy ?? null,
     grantedByDisplayName: over.grantedByDisplayName ?? null,

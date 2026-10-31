@@ -80,12 +80,12 @@ Repository settings only the owner (admin) can apply. Tracked as `INFRA-CI-OWNER
    - `EXPO_PUBLIC_ENVIRONMENT` per environment: `production` on `cloudflare-prod`, `development` on `cloudflare-dev`.
    - The Cloudflare API token in `cloudflare-*` needs **Cloudflare Pages: Edit**.
    - Then merge PR #1308.
-4. **Mobile store, then merge #1304** (nightly mobile, `INFRA-CI-4`).
+4. **Mobile store** (nightly mobile, `INFRA-CI-4`; PR #1304 is already merged, so the nightly fails until this is done).
    - Environment `mobile-store` (deployment branches `dev` + `main`) with secret `MOBILE_SUPABASE_ANON_KEY` = the **kc-dev** publishable key.
    - EAS → project → Environment variables → `preview`: the Sentry values and the `GOOGLE_SERVICES_JSON` file variable.
    - Verify the iOS signing secrets are present (`KC_IOS_*`, `ASC_*`).
    - Allow `mobile/*` tags (if a tag ruleset restricts tag creation, add `mobile/*` to the allowed patterns).
-   - Then merge PR #1304.
+   - Then dispatch **Mobile nightly** once on `dev` to confirm.
 5. **Bootstrap merge of the gate-integrity PR (#1319), then import the ruleset (`INFRA-CI-2`).**
    - **One-time bootstrap.** The judges now load only from the base commit, with no fallback to the PR's copy. The PR that introduces a judge module (the test-integrity guard, the run binding) therefore fails its own `static` lane / `CI gate`, because its base does not have them yet. Read the diff, then merge it once with your admin override while classic branch protection is still in place (before the ruleset, which has no bypass actors). Every later PR is judged by the merged copy.
    - **Import.** Settings → Rules → Rulesets → New ruleset → **Import a ruleset** → upload [`.github/rulesets/dev-main.json`](../../.github/rulesets/dev-main.json). For now **delete the `CI verdict` entry** from the required checks in the import form (or the file copy you upload): `ci-verdict.yml` runs only from the default branch `main`, so no verdict exists until the release carrying it reaches `main`, and every PR would wait forever. Review → Create. The ruleset targets `dev` + `main`: pull request with **0** approvals + **Require review from Code Owners** + dismiss stale approvals + approval of the most recent push; required check `CI gate` from GitHub Actions (`integration_id` 15368); no force pushes, no deletions; **no bypass actors**. Then remove the classic branch-protection rules on `dev`/`main`. Import [`.github/rulesets/tags-no-branch-names.json`](../../.github/rulesets/tags-no-branch-names.json) the same way (target: tags; forbids creating, moving or deleting tags named `dev` or `main`, so no tag can pose as a protected branch). Under the ruleset PRs need not be up to date with `dev` (not strict); `auto-update-branches.yml` still refreshes them. When a CI run fails on a flake, use **Re-run all jobs**: a "Re-run failed jobs" attempt keeps old job results and never gets a green `CI verdict`.

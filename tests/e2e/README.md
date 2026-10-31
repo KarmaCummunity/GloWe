@@ -25,7 +25,7 @@ User journeys against the deployed dev web app (`DEV_WEB_URL`, default
 
 ## CI
 
-- `.github/workflows/e2e-nightly-dev.yml`: nightly at 01:00 UTC and on demand; uploads the HTML report.
+- `.github/workflows/e2e-nightly-dev.yml`: nightly at 01:00 UTC and on demand; uploads the HTML report. `mobile-nightly.yml` also calls it with `p0_only` (top-level `journeys/*.spec.ts` only) before the store builds.
 - `.github/workflows/ci-release.yml` (release lane of `CI gate`): on every dev → main PR, waits until dev serves the PR head SHA (`/version.json`), then runs the journeys.
 
 ## Local

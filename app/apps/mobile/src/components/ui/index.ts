@@ -7,3 +7,5 @@ export { IconTile } from './IconTile';
 export { PrimaryButton, SecondaryButton, GhostButton } from './Buttons';
 export { MotionEntry, ENTRY_DELAY } from './MotionEntry';
 export { SectionHeading } from './SectionHeading';
+export { TextField } from './TextField';
+export type { TextFieldProps } from './TextField';

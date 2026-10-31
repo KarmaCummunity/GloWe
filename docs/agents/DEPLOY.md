@@ -48,8 +48,10 @@ Playwright QA suite against `https://dev.karma-community.pages.dev` + kc-dev: [`
 | `seed-kc-dev.yml` | manual | Destructive dev reseed / wipe |
 | `e2e-nightly-dev.yml` | nightly + manual | QA suite against dev |
 | `k6-load-dev.yml` | manual | Load test against dev |
-| `kc-mobile-eas-preview.yml`, `testflight-ios.yml`, `play-internal.yml` | manual | Store builds, see [RELEASE.md](./RELEASE.md) |
+| `mobile-nightly.yml` → `testflight-ios.yml`, `play-internal.yml` | nightly + manual (dev) | Store builds of the newest green dev commit, see [RELEASE.md](./RELEASE.md) |
+| `kc-mobile-eas-preview.yml` | manual | EAS preview build, no store submit |
 | `sync-main-to-dev.yml` | main push | Fails with GH006 (`TD-182`); leave it |
+| `bump-version-on-merge.yml` | dev push | Bumps `app/VERSION` PATCH after each merge (`TD-196`); PRs do not edit VERSION |
 | `auto-merge-agent-ready.yml`, `labeler.yml`, `bump-app-version.yml`, `stale-stack-report.yml` | PR / schedule | Housekeeping |
 
 ## Web Dockerfile / Railway (legacy note)
