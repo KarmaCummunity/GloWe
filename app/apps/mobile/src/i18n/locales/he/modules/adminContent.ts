@@ -8,7 +8,7 @@ export const adminContentHe = {
   systemActor:            'מערכת',
   byOwner:                (name: string) => `מאת ${name}`,
   totalCount:             (n: number) => `סה"כ ${n} תוצאות`,
-  tierLimited:            'אתה רואה רק רישומים שנגעו בך — super_admin רואה הכל.',
+  tierLimited:            'מוצגים רק רישומים שנגעו בך — super_admin רואה הכל.',
 
   usersTitle:             'משתמשים',
   searchUsersPlaceholder: 'חיפוש לפי שם או handle',
@@ -38,8 +38,8 @@ export const adminContentHe = {
   searchPostsPlaceholder: 'חיפוש לפי כותרת או תיאור',
   postsEmpty:             'לא נמצאו פוסטים תואמים.',
   postInline: {
-    remove:          'הסר',
-    restore:         'שחזר',
+    remove:          'הסירו',
+    restore:         'שחזרו',
     confirmRemove:   'להסיר את הפוסט כפעולת אדמין? הפעולה תירשם ביומן.',
     confirmRestore:  'לשחזר את הפוסט? הוא יחזור לפיד.',
   },
@@ -93,7 +93,7 @@ export const adminContentHe = {
   csvExport: {
     action:      'יצוא CSV',
     busy:        'מייצא...',
-    failed:      'הייצוא נכשל. נסה שוב.',
+    failed:      'הייצוא נכשל. נסו שוב.',
     unsupported: 'ייצוא CSV נתמך כרגע רק בדפדפן.',
   },
 } as const;

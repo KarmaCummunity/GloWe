@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { ProfilePostsGrid } from '../../../src/components/profile/ProfilePostsGrid';
 import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -62,7 +62,7 @@ export default function MyProfileRemovedScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.banner}>
-          <Ionicons name="shield-outline" size={18} color={colors.textSecondary} />
+          <Ionicons name="shield-outline" size={iconSize.md} color={colors.textSecondary} />
           <Text style={styles.bannerText}>{t('profile.removedBanner')}</Text>
         </View>
         <Text style={styles.sectionTitle}>{t('profile.removedSectionOpen')}</Text>
@@ -98,7 +98,7 @@ const useStyles = makeUseStyles(({ colors, isDark }) => ({
 
     borderWidth: isDark ? 1 : 0,
     borderColor: isDark ? colors.border : 'transparent',
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderStartWidth: 3,
     borderStartColor: colors.error,
   },

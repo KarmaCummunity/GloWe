@@ -1,10 +1,10 @@
 // D33 / D61 — shown while the signed-in user is suspended: they can still
 // browse and chat with support; posting and other actions are blocked server-side.
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { container } from '../lib/container';
 import { useAuthStore } from '../store/authStore';
 import { useSuspensionStore } from '../store/suspensionStore';
@@ -49,6 +49,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.errorLight,
   },
   text: { ...typography.bodySmall, color: colors.error, flex: 1 },
-  cta: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.md, backgroundColor: colors.error },
+  cta: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.md, backgroundColor: colors.error },
   ctaText: { ...typography.bodySmall, color: colors.textInverse },
 }));

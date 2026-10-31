@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { PostWithOwner } from '@kc/application';
 import { textAlignStart } from '../../lib/rtlLayout';
 
@@ -63,7 +63,7 @@ export function PostDetailNotices({ post }: Readonly<{ post: PostWithOwner }>) {
           accessibilityRole="alert"
           accessibilityLabel={n.text}
         >
-          <Ionicons name={n.icon} size={16} color={toneColor(n.tone)} />
+          <Ionicons name={n.icon} size={iconSize.sm} color={toneColor(n.tone)} />
           <Text style={[styles.text, { color: toneColor(n.tone) }]}>{n.text}</Text>
         </View>
       ))}
@@ -85,7 +85,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
   },
   text: {
     ...typography.caption,
-    fontWeight: '600',
+    ...typography.semiBold,
     flex: 1,
     textAlign: textAlignStart(),
   },

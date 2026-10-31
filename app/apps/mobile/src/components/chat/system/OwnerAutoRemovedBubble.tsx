@@ -2,7 +2,7 @@
 // Read-only; no admin actions.
 import React from 'react';
 import { View } from 'react-native';
-import { makeUseStyles, radius, typography, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { useTranslation } from 'react-i18next';
 import { rtlTextAlignStart } from '../../../lib/rtlTextAlignStart';
 import type { SystemMessageBubbleProps } from './SystemMessageBubble';
@@ -10,10 +10,10 @@ import { ownerModerationBubbleKey } from '../../../lib/moderation/postModeration
 
 const useStyles = makeUseStyles(({ colors }) => ({
   bubble: {
-    padding: 8,
+    padding: spacing.sm,
     backgroundColor: colors.errorLight,
     borderRadius: radius.md,
-    marginVertical: 4,
+    marginVertical: spacing.xs,
     alignSelf: 'center',
     maxWidth: '90%',
   },
