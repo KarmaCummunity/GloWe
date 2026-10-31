@@ -948,6 +948,8 @@ Design spec: `docs/SSOT/archive/superpowers/specs/2026-05-24-closed-post-dual-su
 **Sample rates:** Performance 100% in dev, 25% in prod. Revisit at >1k DAU.
 **Why not Datadog/Honeycomb:** vendor cost + integration overhead exceed value at this scale.
 
+**2026-10-31:** Edge Functions now also report to Sentry — `withTiming` is composed into `withObservability` (`D-202`, G41).
+
 ---
 
 ## D-49 — Server-driven surveys via Supabase Studio publish (mirrors legal-documents pattern)
@@ -1604,10 +1606,19 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/**` (realtime policies + triggers), `app/packages/infrastructure-supabase/src/{realtime,chat,rides,users}/**`, realtime-consuming hooks in `app/apps/mobile/src/hooks/**`.
 
+## D-202 — Edge Function errors reach Sentry through one dependency-free wrapper (2026-10-31)
+
+**Decision.** Every Edge Function entry (`supabase/functions/*/index.ts`) is wrapped by `withObservability(fnName, handler)` from `supabase/functions/_shared/observability/`, the single server-side error sink (G41). The module ships its own minimal Sentry envelope client (`fetch` POST to `/api/<project>/envelope/`, protocol v7) instead of importing `@sentry/deno`. Reported: (1) a throw that escapes the handler — Sentry exception, `handled=false`, the caller gets a generic JSON `500 { ok: false, error: 'internal' }`; (2) any 5xx response — Sentry message tagged with the function (`edge_function`), status and the body's `error` code, forwarded only when it is identifier-shaped so free-text Postgres or provider messages never become tags; (3) handled fatal paths and background jobs (the WhatsApp agent runs under `EdgeRuntime.waitUntil`, outside the request) through `reportError(err, { fn, req?, tags?, extra? })`, deduplicated per request against (2). Every capture also writes one structured `edge_error` log line, so Supabase function logs keep the failure when no DSN is set. Configuration is read from secrets by name only — `SENTRY_DSN`, `SENTRY_ENVIRONMENT` (`prod` / `dev`), `SENTRY_RELEASE` (`functions@<sha>`) — and synced per Supabase project by the Edge Functions stage of the Deploy pipeline (`deploy-functions.yml`, D-195) from the GitHub Environment secret `EDGE_SENTRY_DSN`. Requests contribute method and path only (no query string, headers or body).
+
+**Why.** Before this, a server error was visible only to someone reading the Supabase function logs by hand; nothing alerted. A hand-rolled envelope client (≈300 lines with tests) keeps cold start flat — the SDK would be the largest module in most functions — and is unit-tested byte-for-byte with a fake transport, which `@sentry/deno` would not allow without network. Codes-only tags are the PII boundary the mobile client already respects (D-48). Extends D-48: Edge Functions now report to the same Sentry organisation as the app, in a dedicated project.
+
+**Affected.** `supabase/functions/_shared/observability/**` (+ tests), all 19 `supabase/functions/*/index.ts`, `.github/workflows/deploy-functions.yml`, `docs/SSOT/OPERATOR_RUNBOOK.md` § Edge Functions, `docs/architecture/target.md` §5.2, `docs/spec/93_implementation_gaps.md` G41.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
 | 4.27 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, runtime deploy guard (caller, approval attempt, freshness), release lane in `CI gate` (expand/contract justifications), rollback (web + functions only without migrations; DB forward-fix), encrypted 14-day pre-migration backups. |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
