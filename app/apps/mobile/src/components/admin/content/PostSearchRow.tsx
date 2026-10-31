@@ -12,11 +12,12 @@ import {
   hasPermission,
   type AdminPostSearchResult,
 } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { container } from '../../../lib/container';
 import { confirmAction as platformConfirm } from '../../../services/platformConfirm';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
+import { adminPostActions } from '../../../lib/moderation/postModeration';
 
 export interface PostSearchRowProps {
   readonly row: AdminPostSearchResult;
@@ -26,6 +27,7 @@ function statusTone(status: string): 'good' | 'warn' | 'bad' | 'muted' {
   if (status === 'open') return 'good';
   if (status === 'closed_delivered') return 'muted';
   if (status === 'removed_admin' || status === 'expired') return 'bad';
+  if (status === 'hidden_pending_review') return 'warn';
   return 'warn';
 }
 
@@ -45,8 +47,10 @@ export function PostSearchRow({ row }: PostSearchRowProps) {
   const can = (perm: AdminPermission) => hasPermission(roles as readonly AdminRole[], perm);
   const [busy, setBusy] = useState(false);
 
-  const canRemove  = can('reports.confirm_or_dismiss') && row.status === 'open';
-  const canRestore = can('reports.restore_target')    && row.status === 'removed_admin';
+  const { remove: canRemove, restore: canRestore } = adminPostActions(row.status, {
+    canRemove: can('reports.confirm_or_dismiss'),
+    canRestore: can('reports.restore_target'),
+  });
 
   async function doRemove() {
     const ok = await confirmAction(L.admin.content.postInline.confirmRemove, L);
@@ -121,23 +125,23 @@ export function PostSearchRow({ row }: PostSearchRowProps) {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingVertical: 12, paddingHorizontal: 16,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.md, paddingHorizontal: spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
   },
-  main:       { flex: 1, gap: 4 },
-  title:      { fontSize: 14, fontWeight: '600' },
-  metaRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  meta:       { fontSize: 11, opacity: 0.6, flex: 1 },
-  chip:       { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  main:       { flex: 1, gap: spacing.xs },
+  title:      { ...typography.body, ...typography.semiBold },
+  metaRow:    { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  meta:       { ...typography.caption, opacity: 0.6, flex: 1 },
+  chip:       { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs },
   chip_good:  { backgroundColor: colors.successLight },
   chip_warn:  { backgroundColor: colors.warningLight },
   chip_bad:   { backgroundColor: colors.errorLight },
   chip_muted: { backgroundColor: colors.border },
-  chipText:   { fontSize: 11, fontWeight: '700' },
-  actionBtnRemove:  { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.errorLight },
-  actionTextRemove: { fontSize: 11, fontWeight: '700', color: colors.error },
-  actionBtnRestore:  { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.successLight },
-  actionTextRestore: { fontSize: 11, fontWeight: '700', color: colors.success },
+  chipText:   { ...typography.caption, ...typography.bold },
+  actionBtnRemove:  { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.xs, backgroundColor: colors.errorLight },
+  actionTextRemove: { ...typography.caption, ...typography.bold, color: colors.error },
+  actionBtnRestore:  { paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, borderRadius: radius.xs, backgroundColor: colors.successLight },
+  actionTextRestore: { ...typography.caption, ...typography.bold, color: colors.success },
   actionBtnDisabled: { opacity: 0.5 },
 }));

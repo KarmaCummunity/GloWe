@@ -181,8 +181,9 @@ export class SupabasePostRepository implements IPostRepository {
       .eq('post_id', postId)
       .select('post_id');
     if (error) throw new Error(`delete: ${error.message}`);
-    // RLS allows DELETE only for owner + open (posts_delete_self_open). No row
-    // matched → PostgREST returns 200 with an empty array — treat as failure.
+    // RLS `posts_delete_self_unlinked` (0053): owner, and the post is open or closed
+    // without a recipient row. No row matched → PostgREST returns 200 with an empty
+    // array — treat as failure.
     if (!data?.length) {
       throw new PostError(
         'post_owner_delete_forbidden',

@@ -21,6 +21,7 @@ function makeChat(id: string, lastMessageAt: string | null): ChatWithPreview {
     participantIds: ['u_me', 'u_other'],
     anchorPostId: null,
     anchorRideId: null,
+    anchorListingId: null,
     isSupportThread: false,
     lastMessageAt,
     createdAt: '2026-05-01T00:00:00.000Z',
