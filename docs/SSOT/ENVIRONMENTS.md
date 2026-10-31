@@ -123,11 +123,11 @@ All feature PRs target `dev`. `dev` and `main` are protected by one repository r
 
 `main` requires the same single check: the release lane runs inside `CI gate` for PRs into `main` (see [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md#merge-gates-automated--must-be-green)). Never require deploy jobs on a PR rule; they run after the merge. A `dev` → `main` release PR that carries changes to code-owned paths also needs the owner's code-owner approval.
 
-### Merge queue (recommended on `dev`)
+### Merge queue (enabled on `dev`)
 
-`ci.yml` already runs on `merge_group`, so the queue needs no workflow change. **Owner action (one-time):** GitHub → Settings → Rules → the `dev-main gate (D-195)` ruleset → enable **Require merge queue** (squash) for `dev`. Keep the required checks listed above.
+`dev` is protected by the ruleset `dev protection (merge queue)` (not classic branch protection, which cannot host a queue). It requires a PR, the single check `CI gate`, and the merge queue (squash, all-green grouping, up to 5 entries built and merged together). "Require branches to be up to date" is **off**: `ci.yml` runs on `merge_group`, so the queue tests each PR on top of the ones ahead of it. Repository admins can bypass the ruleset (this keeps `bump-version-on-merge.yml` able to push the version bump). Owner overrides inside `CI gate` (approval on the head SHA) do not apply to merge-group runs. The stricter `.github/rulesets/dev-main.json` (code-owner review, `CI verdict`, no bypass) is still to be merged into this live ruleset by the owner (`INFRA-CI-OWNER`).
 
-Why: without a queue every merge makes all other PRs "behind" and `auto-update-branches.yml` re-merges `dev` into each, which restarts and cancels their CI. The queue tests PRs one after another on top of each other, so no PR needs updating. After enabling it, switch off "require branches to be up to date" and remove `auto-update-branches.yml` (TD-206). `gh pr merge --auto` then adds the PR to the queue by itself. Owner overrides inside `CI gate` (approval on the head SHA) do not work through a merge queue.
+Why: without a queue every merge made all other PRs "behind", and re-merging `dev` into each restarted and cancelled their CI. `gh pr merge --auto` adds the PR to the queue by itself.
 
 ## Agent identity (`INFRA-CI-6`)
 
@@ -135,11 +135,11 @@ Agents must not act as the owner. Two identities replace the owner's personal ac
 
 | Identity | Used for | Permissions |
 | --- | --- | --- |
-| **Agent GitHub App** (secrets `AGENT_APP_ID`, `AGENT_APP_PRIVATE_KEY` in environment `agent-merge`, deployment branch `dev` only) | `auto-merge-agent-ready.yml` (every non-draft PR into `dev`) and `auto-update-branches.yml` mint a short-lived installation token (`actions/create-github-app-token`, scoped to this repository, contents + pull requests write) to enable squash auto-merge and to update behind PR branches, so the merge push to `dev` triggers **CI** → **Deploy** and `close-issues-on-dev-merge`, and updated PR heads get fresh CI (`TD-197`). | App: Contents R/W, Pull requests R/W, Actions R, Checks R, Metadata R. **No** Administration, no Workflows. Installed on this repository only. |
+| **Agent GitHub App** (secrets `AGENT_APP_ID`, `AGENT_APP_PRIVATE_KEY` in environment `agent-merge`, deployment branch `dev` only) | `auto-merge-agent-ready.yml` (every non-draft PR into `dev`) mints a short-lived installation token (`actions/create-github-app-token`, scoped to this repository, contents + pull requests write) to arm squash auto-merge (the PR then enters the merge queue), so the merge push to `dev` triggers **CI** → **Deploy** and `close-issues-on-dev-merge` (`TD-197`). | App: Contents R/W, Pull requests R/W, Actions R, Checks R, Metadata R. **No** Administration, no Workflows. Installed on this repository only. |
 | **CI-verdict GitHub App** (secrets `CI_VERDICT_APP_ID`, `CI_VERDICT_APP_PRIVATE_KEY` in environment `ci-verdict`, deployment branch `main` only) | `ci-verdict.yml` posts the required `CI verdict` check. A separate App, so the ruleset can require checks from it alone. | App: Checks R/W, Actions R, Contents R, Pull requests R, Metadata R. Installed on this repository only. |
 | **Agent machine user** (dedicated GitHub account) | Claude Code / agent sessions: branches, commits, pushes, PRs. | Repository role **Write**, never Admin, so it cannot change rulesets or bypass them, and the owner can approve its PRs (an author cannot approve their own PR). |
 
-`AGENT_MERGE_TOKEN` (fine-grained PAT of the machine user, contents + pull requests write on this repository, also in `agent-merge`) remains a fallback when the App is not configured. Neither workflow ever falls back to `GITHUB_TOKEN`: its pushes start no workflows, so they fail with an explicit error instead. Secrets kept at repository level are readable by any workflow an agent pushes on any branch (`TD-223`); keep sensitive ones in branch-restricted environments.
+`AGENT_MERGE_TOKEN` (fine-grained PAT of the machine user, contents + pull requests write on this repository, also in `agent-merge`) remains a fallback when the App is not configured. The workflow never falls back to `GITHUB_TOKEN`: its pushes start no workflows, so they fail with an explicit error instead. Secrets kept at repository level are readable by any workflow an agent pushes on any branch (`TD-223`); keep sensitive ones in branch-restricted environments.
 
 ## Production release
 

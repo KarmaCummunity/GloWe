@@ -12,7 +12,7 @@ name: Auto-merge PRs
 # agent GitHub App (AGENT_APP_ID + AGENT_APP_PRIVATE_KEY), or else
 # AGENT_MERGE_TOKEN. The merge GitHub performs later is attributed to that
 # identity, so its push to `dev` triggers the push workflows (CI → Deploy,
-# close-issues-on-dev-merge, auto-update-branches). GITHUB_TOKEN is never
+# close-issues-on-dev-merge). GITHUB_TOKEN is never
 # used: its pushes start no workflows, so a merge made with it would skip push
 # CI and every deploy without any error. With no credential the job fails.
 #
@@ -80,9 +80,12 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token || secrets.AGENT_MERGE_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
+        # No --delete-branch: GitHub rejects it while the `dev` merge queue is enabled
+        # ("Cannot use -d or --delete-branch when merge queue enabled"); the queue's
+        # merge removes the head branch per the repository's delete-on-merge setting.
         run: |
           if [ -z "$GH_TOKEN" ]; then
             echo "::error::No agent merge identity: set AGENT_APP_ID + AGENT_APP_PRIVATE_KEY (GitHub App, preferred) or AGENT_MERGE_TOKEN in the agent-merge environment. GITHUB_TOKEN is not used because a merge made with it triggers no push CI and no deploy (TD-197). See docs/SSOT/OPERATOR_RUNBOOK.md § Owner setup for D-195 CI/CD."
             exit 1
           fi
-          gh pr merge "$PR" --repo "$REPO" --auto --squash --delete-branch
+          gh pr merge "$PR" --repo "$REPO" --auto --squash

@@ -14,6 +14,8 @@
 //   • only deploy.yml and the stages may name a prod environment; a templated
 //     environment (${{ … }}) is allowed only in a stage, and only as
 //     supabase-/cloudflare-${{ inputs.target }};
+//   • a listed read-only monitor (MONITORS) may resolve a static matrix to its
+//     allowed Supabase environments, and runs no deploy command;
 //   • each deploy command runs only in its own stage, never in any other
 //     workflow or in a composite action;
 //   • in the stages, every job that holds an environment or can write is a
@@ -58,7 +60,19 @@ export const COMMANDS = [
   { re: /\bpages\s+deploy\b|cloudflare\/wrangler-action/, owner: 'deploy-web.yml', what: 'Cloudflare Pages deploy' },
 ];
 
+/**
+ * Read-only monitors allowed to hold a Supabase environment outside the deploy
+ * pipeline: workflow → its single job, the matrix-listed environments it may
+ * resolve to, and the triggers it may have. The job still may not run any
+ * deploy command (COMMANDS) and may not name `production` or a Cloudflare
+ * environment. Holding prod secrets outside deploy.yml is tracked as TD-232.
+ */
+export const MONITORS = {
+  'ops-health.yml': { job: 'monitor', envs: ['supabase-dev', 'supabase-prod'], triggers: ['schedule', 'workflow_dispatch'] },
+};
+
 const PROD_ENVS = new Set(['production', 'supabase-prod', 'cloudflare-prod']);
+const MONITOR_ENV_TEMPLATE = /^\$\{\{\s*matrix\.target\.environment\s*\}\}$/;
 const STAGE_ENV_TEMPLATE = /^(?:supabase|cloudflare)-\$\{\{\s*inputs\.target\s*\}\}$/;
 const CALLS_DEPLOY = /\.github\/workflows\/deploy[^/]*\.ya?ml/;
 const GUARD_ACTION = './.deploy-guard/.github/actions/deploy-guard';
@@ -86,12 +100,28 @@ function checkTriggers(file, doc) {
   return extra.length ? [`${file}: deploy stages are reusable; trigger ${extra.join(', ')} is not allowed`] : [];
 }
 
-function checkEnvironment(file, id, name) {
+/**
+ * True when `job` in `file` is a listed read-only monitor whose environment is
+ * `${{ matrix.target.environment }}` and every matrix entry resolves to one of
+ * its allowed environments, and the workflow has only the allowed triggers.
+ */
+function isAllowedMonitor(file, id, job, doc, value) {
+  const monitor = Object.hasOwn(MONITORS, file) ? MONITORS[file] : null;
+  if (!monitor || id !== monitor.job || !MONITOR_ENV_TEMPLATE.test(value)) return false;
+  const targets = job?.strategy?.matrix?.target;
+  const envsOk = Array.isArray(targets) && targets.length > 0
+    && targets.every((t) => monitor.envs.includes(t?.environment));
+  const triggersOk = triggers(doc).every((t) => monitor.triggers.includes(t));
+  return envsOk && triggersOk;
+}
+
+function checkEnvironment(file, id, name, job, doc) {
   if (name === undefined || name === null) return [];
   const value = String(name);
   const isStage = Object.hasOwn(STAGES, file);
   if (value.includes('${{')) {
     if (isStage && STAGE_ENV_TEMPLATE.test(value)) return [];
+    if (isAllowedMonitor(file, id, job, doc, value)) return [];
     return [`${file}: job ${id} has a templated environment (${value}); only deploy stages may template it, as supabase-/cloudflare-\${{ inputs.target }}`];
   }
   if (value === 'production' && file !== ORCHESTRATOR) return [`${file}: only ${ORCHESTRATOR} may use the production approval environment`];
@@ -142,7 +172,7 @@ export function checkWorkflow(file, text) {
   }
   const errors = [...checkTriggers(file, doc), ...checkGuards(file, doc)];
   for (const [id, job] of jobsOf(doc)) {
-    errors.push(...checkEnvironment(file, id, envName(job)), ...checkCommands(file, id, job));
+    errors.push(...checkEnvironment(file, id, envName(job), job, doc), ...checkCommands(file, id, job));
   }
   return errors;
 }

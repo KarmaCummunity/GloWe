@@ -13,8 +13,8 @@
 # (bottom of the file) makes a path unowned again.
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# CI and repo automation: workflows (including ci-verdict.yml, auto-merge and
-# auto-update-branches, which hold merge and verdict credentials), composite
+# CI and repo automation: workflows (including ci-verdict.yml and auto-merge,
+# which hold merge and verdict credentials), composite
 # actions, this file, the owner allowlist (.github/owners.json), the ruleset,
 # Dependabot and the labeler.
 /.github/                                   @navesarussi

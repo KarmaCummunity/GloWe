@@ -86,9 +86,9 @@ jobs:
       - name: Install guard-script dependencies
         run: npm ci --prefix scripts --ignore-scripts --no-audit --no-fund
 
-      - name: Script self-tests (scripts/*.test.mjs, app/scripts/*.test.mjs)
+      - name: Script self-tests (scripts/*.test.mjs, scripts/ops/*.test.mjs, app/scripts/*.test.mjs)
         if: ${{ !cancelled() }}
-        run: node --test scripts/*.test.mjs app/scripts/*.test.mjs
+        run: node --test scripts/*.test.mjs scripts/ops/*.test.mjs app/scripts/*.test.mjs
 
       - name: Architecture (file size, layers, typed domain errors)
         if: ${{ !cancelled() }}

@@ -81,3 +81,23 @@ test('deploy commands are confined to their stage and never live in a composite 
 test('invalid YAML fails instead of passing', () => {
   assert.match(checkWorkflow('broken.yml', 'on: [push\n')[0], /not valid YAML/);
 });
+
+/** A read-only monitor workflow: schedule-triggered, matrix over Supabase environments. */
+function monitorYaml({ envs = ['supabase-dev', 'supabase-prod'], on = '  schedule:\n    - cron: "23 * * * *"\n  workflow_dispatch:', run = 'node scripts/ops/health-monitor.mjs', job = 'monitor' } = {}) {
+  const targets = envs.map((e) => `          - { env: x, environment: ${e} }`).join('\n');
+  return `on:\n${on}\njobs:\n  ${job}:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        target:\n${targets}\n    environment: \${{ matrix.target.environment }}\n    steps:\n      - run: ${run}\n`;
+}
+
+test('read-only monitor: ops-health.yml may resolve its matrix to supabase-dev/prod', () => {
+  assert.deepEqual(checkWorkflow('ops-health.yml', monitorYaml()), []);
+});
+
+test('read-only monitor: any other file, job, env, trigger or deploy command is refused', () => {
+  const refused = (file, opts) => checkWorkflow(file, monitorYaml(opts)).length > 0;
+  assert.ok(refused('other-monitor.yml', {}), 'unlisted workflow');
+  assert.ok(refused('ops-health.yml', { job: 'other' }), 'unlisted job');
+  assert.ok(refused('ops-health.yml', { envs: ['supabase-prod', 'cloudflare-prod'] }), 'non-listed environment');
+  assert.ok(refused('ops-health.yml', { envs: ['production'] }), 'approval environment');
+  assert.ok(refused('ops-health.yml', { on: '  push:' }), 'push trigger');
+  assert.ok(refused('ops-health.yml', { run: 'supabase db push --linked' }), 'deploy command');
+});

@@ -50,7 +50,7 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
 | OPS-G38 | **Shared DB test harness + per-world lifecycle flows.** Harness + runner + rides flow shipped; port items, food, knowledge flows onto it. | agent-be | 🟡 In progress | `docs/architecture/target.md` §5.1 · G38 |
-| OPS-G42 | **Health registry + monitor + alert router.** `ops.health_checks`, hourly dev + prod run, GitHub issue / email now, WhatsApp later. | agent-fullstack | ⏳ Planned | §5.2 · G42 |
+| OPS-G42 | **Health registry + monitor + alert router.** Shipped: `ops.health_checks` + 7 checks (`0463`), hourly dev + prod run, GitHub-issue alerts (→ email) with auto-close. Open: WhatsApp channel once live, synthetic web check. | agent-fullstack | 🟡 In progress | §5.2 · G42 |
 | OPS-G41 | **Edge Function error reporting** through one shared wrapper. | agent-be | ⏳ Planned | §5.2 · G41 |
 | OPS-G39 | **Port contract tests** (fake + Supabase adapter, same suite). | agent-fullstack | ⏳ Planned | §5.1 · G39 |
 | OPS-G40 | **Two-user E2E journey per active world** on relevant PRs. | agent-fe | ⏳ Planned | §5.1 · G40 |
