@@ -44,12 +44,14 @@ import { useMeRealtime } from '../src/hooks/useMeRealtime';
 import { useBrandFonts } from '../src/lib/useBrandFonts';
 import { useOnlinePresenceLifecycle } from '../src/hooks/useOnlinePresence';
 import { useCoreLoopReturnVisit } from '../src/hooks/useCoreLoopReturnVisit';
+import { useRecordActiveDay } from '../src/hooks/useRecordActiveDay';
 import * as NavigationBar from 'expo-navigation-bar';
 
 function MeRealtimeMount() {
   useMeRealtime();
   useOnlinePresenceLifecycle();
   useCoreLoopReturnVisit();
+  useRecordActiveDay();
   return null;
 }
 

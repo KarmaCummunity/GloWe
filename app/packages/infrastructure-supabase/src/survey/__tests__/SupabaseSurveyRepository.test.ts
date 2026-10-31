@@ -158,6 +158,7 @@ describe('SupabaseSurveyRepository.getBundle', () => {
     expect(bundle.answers[0]).toEqual({
       questionId: 'q-001',
       rating: 5,
+      choiceKey: null,
       answerText: 'בסדר',
     });
   });
@@ -193,12 +194,12 @@ describe('SupabaseSurveyRepository.upsertAnswers', () => {
     });
     const repo = new SupabaseSurveyRepository(client);
     await repo.upsertAnswers('ux-experience', [
-      { questionId: 'q-001', rating: 5, answerText: 'great' },
+      { questionId: 'q-001', rating: 5, choiceKey: null, answerText: 'great' },
     ]);
 
     expect(client.rpc).toHaveBeenCalledWith('upsert_survey_answers', {
       p_slug: 'ux-experience',
-      p_answers: [{ question_id: 'q-001', rating: 5, answer_text: 'great' }],
+      p_answers: [{ question_id: 'q-001', rating: 5, choice_key: null, answer_text: 'great' }],
     });
   });
 
@@ -208,14 +209,38 @@ describe('SupabaseSurveyRepository.upsertAnswers', () => {
     });
     const repo = new SupabaseSurveyRepository(client);
     await repo.upsertAnswers('ux-experience', [
-      { questionId: 'q-001', rating: 3, answerText: null },
+      { questionId: 'q-001', rating: 3, choiceKey: null, answerText: null },
     ]);
     expect(client.rpc).toHaveBeenCalledWith(
       'upsert_survey_answers',
       expect.objectContaining({
-        p_answers: [{ question_id: 'q-001', rating: 3, answer_text: null }],
+        p_answers: [{ question_id: 'q-001', rating: 3, choice_key: null, answer_text: null }],
       }),
     );
+  });
+
+  it('sends a single-choice answer as choice_key with a null rating (KC#1058)', async () => {
+    const client = makeClient({
+      rpcResults: { upsert_survey_answers: { data: null, error: null } },
+    });
+    const repo = new SupabaseSurveyRepository(client);
+    await repo.upsertAnswers('pmf-sean-ellis', [
+      { questionId: 'q-pmf', rating: null, choiceKey: 'very_disappointed', answerText: null },
+    ]);
+    expect(client.rpc).toHaveBeenCalledWith('upsert_survey_answers', {
+      p_slug: 'pmf-sean-ellis',
+      p_answers: [{ question_id: 'q-pmf', rating: null, choice_key: 'very_disappointed', answer_text: null }],
+    });
+  });
+
+  it('throws SurveyError(validation) for invalid_choice errors', async () => {
+    const client = makeClient({
+      rpcResults: {
+        upsert_survey_answers: { data: null, error: { message: 'invalid_choice for question q-pmf' } },
+      },
+    });
+    const repo = new SupabaseSurveyRepository(client);
+    await expect(repo.upsertAnswers('pmf-sean-ellis', [])).rejects.toMatchObject({ code: 'validation' });
   });
 
   it('throws SurveyError(inactive) for survey_not_found_or_inactive', async () => {
@@ -244,7 +269,9 @@ describe('SupabaseSurveyRepository.upsertAnswers', () => {
     });
     const repo = new SupabaseSurveyRepository(client);
     await expect(
-      repo.upsertAnswers('ux-experience', [{ questionId: 'q-001', rating: 0, answerText: null }]),
+      repo.upsertAnswers('ux-experience', [
+        { questionId: 'q-001', rating: 0, choiceKey: null, answerText: null },
+      ]),
     ).rejects.toMatchObject({ code: 'validation' });
   });
 });
