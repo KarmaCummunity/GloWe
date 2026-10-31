@@ -1,4 +1,4 @@
-// D-203 — a feed mirror of a native listing opens the listing, not the post detail.
+// {{ENG:listing-feed-mirror}} — a feed mirror of a native listing opens the listing, not the post detail.
 // The post detail is the feed's only entry point, so the redirect lives here rather
 // than in every card: the mirror's own detail would show the post closure flow instead
 // of the listing handoff flow.

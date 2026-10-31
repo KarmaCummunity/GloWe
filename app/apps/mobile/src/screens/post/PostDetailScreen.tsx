@@ -93,7 +93,7 @@ export function PostDetailScreen() {
 
   const showShellTabBar = useShellTabBarVisibility();
   const tabBarPad = shellTabBarHeightPx(showShellTabBar);
-  // D-203: a feed mirror of a listing opens the listing detail instead.
+  // {{ENG:listing-feed-mirror}}: a feed mirror of a listing opens the listing detail instead.
   const redirectingToListing = useListingMirrorRedirect(query.data?.post);
 
   const exitAfterOwnerMutation = (messageKey: 'closure.detailCloseSuccessToast' | 'closure.detailReopenSuccessToast') => {

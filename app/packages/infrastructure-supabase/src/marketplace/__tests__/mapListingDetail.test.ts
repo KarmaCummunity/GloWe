@@ -31,7 +31,7 @@ describe('mapListingDetail', () => {
     expect(out?.feedPostId).toBeNull();
   });
 
-  it('maps the feed mirror post id when the listing has one (D-203)', () => {
+  it('maps the feed mirror post id when the listing has one ({{ENG:listing-feed-mirror}})', () => {
     const out = mapListingDetail({
       listing_id: 'l1',
       owner_id: 'u1',

@@ -16,7 +16,7 @@
 - **Status (2026-10-30):** store release is **paused**. Focus: precise spec, architecture, and go-to-market. Development continues in Claude Code against this repo.
 - **Product source of truth:** the PM's Hebrew project book ("KC – ספר הפרויקט (מקור אמת)", product decision D35). Its English, agent-oriented derivation is [`docs/spec/`](./docs/spec/README.md) — start at its README. Where `docs/spec/` and a legacy `docs/SSOT/spec/*` FR conflict, **`docs/spec/` wins**; reconcile the legacy file in the same PR.
 - **Architecture:** [`docs/architecture/`](./docs/architecture/README.md) — current (from code) and target.
-- **ID namespaces:** product decisions are `D1…D66` (in `docs/spec/90_decisions_log.md`); engineering decisions are `D-*` / `EXEC-*` (in `docs/SSOT/DECISIONS.md`). KC fills pending approval are `S#`; implementation gaps are `G#`.
+- **ID namespaces:** product decisions are `D#` (in `docs/spec/90_decisions_log.md`); engineering decisions are `D-*` / `EXEC-*` (in `docs/SSOT/DECISIONS.md`). KC fills pending approval are `S#`; implementation gaps are `G#`. **New entries never pick a number** — they take a merge-time placeholder (§4 "New registry IDs").
 
 ### Working rules (PM-mandated)
 1. **Spec is the source of truth.** Spec first, then task, then code.
@@ -119,8 +119,22 @@ Use `NA` for pure tooling / docs / infra-only changes.
 
 ### While working
 
-- If you discover technical debt outside the immediate scope, append a row to `docs/SSOT/TECH_DEBT.md` under the right Active section (BE: `TD-50..99`, FE: `TD-100..149`). Do **not** refactor inline.
-- If a product/architecture decision is made on the fly, append it to `docs/SSOT/DECISIONS.md`.
+- If you discover technical debt outside the immediate scope, append a row to `docs/SSOT/TECH_DEBT.md` under the right Active section, with a placeholder ID (below). Do **not** refactor inline.
+- If a product/architecture decision is made on the fly, append it to `docs/SSOT/DECISIONS.md`, with a placeholder ID (below).
+
+### New registry IDs (assigned on merge)
+
+Parallel branches that each take "the next free number" collide. So a PR **never writes a new number** for a registry entry; it writes a placeholder `{{KEY:slug}}` (lowercase kebab slug, unique within its registry) in the entry's ID cell or heading, and cites that same placeholder anywhere else (other docs, code comments, the PR body).
+
+| Registry | Placeholder | Becomes |
+| -------- | ----------- | ------- |
+| `docs/spec/90_decisions_log.md` | `{{D:slug}}` | `D93` |
+| `docs/SSOT/TECH_DEBT.md` | `{{TD:slug}}` | `TD-231` |
+| `docs/spec/91_kc_fills_pending.md` | `{{S:slug}}` | `S52` |
+| `docs/spec/93_implementation_gaps.md` | `{{G:slug}}` | `G50` |
+| `docs/SSOT/DECISIONS.md` (`## …` heading) | `{{ENG:slug}}` | `D-200` |
+
+After the merge into `dev`, `bump-version-on-merge.yml` runs `node scripts/spec-ids.mjs assign`: every placeholder becomes the next free number of its registry and every citation is rewritten, in a commit of its own that CI certifies (the version bump stays a separate `app/VERSION`-only commit, TD-231). `node scripts/spec-ids.mjs check` (in `pnpm lint:arch` and CI static guards) fails on a duplicate number or a placeholder without exactly one entry. Existing numbers are never renumbered.
 
 ### Before you call the work done
 
@@ -335,7 +349,7 @@ When two agents are running concurrently:
 - **FE lane** owns `apps/mobile/**` + `packages/ui/**`.
 - **Shared contract** (`packages/{domain,application}/**`): FE leads domain types, BE leads port signatures. Contract changes ship as their own commit with `(contract)` scope (e.g. `feat(contract): add IPostRepository.list`).
 - Branch naming: `<type>/<FR-id-or-scope>-<be|fe>-<slug>` (e.g. `feat/FR-POST-001-fe-feed-ui`).
-- New tech-debt IDs: BE uses `TD-50..99`, FE uses `TD-100..149`.
+- New tech-debt IDs: a `{{TD:slug}}` placeholder, numbered on merge (§4 "New registry IDs").
 - **Applying dev migrations (BE lane).** Schema changes reach the dev DB ONLY as committed sequential files (`supabase/migrations/NNNN_snake.sql`) applied via `supabase db push` / `supabase migration up` (or the **Deploy** workflow after a `dev` push passes CI). **Never** apply schema changes to dev with the Supabase MCP `apply_migration` tool — it records a TIMESTAMP version (e.g. `20260701130827`) that has no local file, which breaks the next `DB deploy` run ("Remote migration versions not found …"). The MCP `execute_sql` tool is fine for read-only inspection. Drift is caught by the `CI — migration drift` workflow; reconcile with `node scripts/reconcile-migration-drift.mjs`. Full runbook: [`docs/SSOT/OPERATOR_RUNBOOK.md`](docs/SSOT/OPERATOR_RUNBOOK.md) → "Migration application rules".
 
 ## 10. How to pick the next task

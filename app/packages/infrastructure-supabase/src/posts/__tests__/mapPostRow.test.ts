@@ -59,12 +59,12 @@ describe('mapPostRow (TD-50)', () => {
     expect(mapPostRow(makeRow()).sourceLanguage).toBeNull();
   });
 
-  it('maps listing_id → listingId for a feed mirror, null for a plain post (D-203)', () => {
+  it('maps listing_id → listingId for a feed mirror, null for a plain post ({{ENG:listing-feed-mirror}})', () => {
     expect(mapPostRow(makeRow({ listing_id: 'l_1' })).listingId).toBe('l_1');
     expect(mapPostRow(makeRow()).listingId).toBeNull();
   });
 
-  it('maps each media asset bucket, defaulting to post-images (D-203)', () => {
+  it('maps each media asset bucket, defaulting to post-images ({{ENG:listing-feed-mirror}})', () => {
     const row = makeRow({
       media_assets: [
         { media_asset_id: 'm_2', post_id: 'p_1', ordinal: 1, path: 'u/b/1.jpg', mime_type: 'image/jpeg', size_bytes: 10, created_at: 'x', bucket: 'listing-images' },

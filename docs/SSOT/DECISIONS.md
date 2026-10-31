@@ -1613,7 +1613,7 @@ Owner rules that go with it:
 **Why.** Before this, a server error was visible only to someone reading the Supabase function logs by hand; nothing alerted. A hand-rolled envelope client (≈300 lines with tests) keeps cold start flat — the SDK would be the largest module in most functions — and is unit-tested byte-for-byte with a fake transport, which `@sentry/deno` would not allow without network. Codes-only tags are the PII boundary the mobile client already respects (D-48). Extends D-48: Edge Functions now report to the same Sentry organisation as the app, in a dedicated project.
 
 **Affected.** `supabase/functions/_shared/observability/**` (+ tests), all 19 `supabase/functions/*/index.ts`, `.github/workflows/deploy-functions.yml`, `docs/SSOT/OPERATOR_RUNBOOK.md` § Edge Functions, `docs/architecture/target.md` §5.2, `docs/spec/93_implementation_gaps.md` G41.
-## D-203 — Native listings reach the main feed as mirror posts, the listing stays the source of truth (2026-10-31)
+## {{ENG:listing-feed-mirror}} — Native listings reach the main feed as mirror posts, the listing stays the source of truth (2026-10-31)
 
 **Decision.** The main feed keeps reading `posts`. Every published open native listing of a feed-mirrored world (`worlds.feed_mirror`, on for items and food) gets one mirror row in `posts` linked by `posts.listing_id` (migration `0466`). The mirror is written only by the listing triggers and `share_listing_to_feed`: it follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket`), privacy, status and deletion, never counts toward the open-posts cap, is skipped by the posts → listings sync, and its detail screen redirects to the listing. Rejected for now: teaching `feed_ranked_ids` / `feed_open_posts_mv` and the feed client to rank a union of posts and listings (the proper G1 / D19 end state), because it rewrites the ranked feed, its cache and every feed card for a launch-wedge gap that the mirror closes today without a client-visible data model change.
 
@@ -1621,11 +1621,22 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0466_listing_feed_mirror.sql`, `posts.listing_id`, `media_assets.bucket`, `worlds.feed_mirror`, `app/apps/mobile/src/hooks/useListingMirrorRedirect.ts`, feed cards, `ListingDetailActions`.
 
+## D-203 — Registry IDs are assigned on merge, not in the PR (2026-10-31)
+
+**Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in a commit of its own that CI certifies, right before the version bump (which stays a VERSION-only commit so the dev deploy can inherit its parent's gate, TD-231). The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
+
+**Why.** Many agent branches append to the same registries in parallel, so a number picked at branch time collided again and again: `TD-200`, `TD-201`, `D-38`, `D-40` and `D-41` are each used twice, and open PRs were renumbered several times before merging. The app version had the same shape and already moved to merge time (TD-196).
+
+**Rejected.** Per-lane number ranges (exhausted, and still collide inside a lane); a reservation file (itself a merge-conflict hotspot); random or date-based IDs (hard to cite and to read).
+
+**Affected.** `scripts/spec-ids.mjs`, `.github/workflows/bump-version-on-merge.yml`, `.github/workflows/ci-static-guards.yml`, `app/package.json` (`lint:arch`), `CLAUDE.md` §4 / §9.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
-| 4.30 | 2026-10-31 | Added `D-203` (native items/food listings mirror into `posts` for the main feed; the listing stays the source of truth; migration `0466`). |
+| 4.31 | 2026-10-31 | Added `{{ENG:listing-feed-mirror}}` (native items/food listings mirror into `posts` for the main feed; the listing stays the source of truth; migration `0466`). |
+| 4.30 | 2026-10-31 | Added `D-203` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
 | 4.29 | 2026-10-31 | Added `D-202` (Edge Function errors reach Sentry through one dependency-free `_shared/observability` wrapper; secrets by name only; closes G41). |
 | 4.28 | 2026-10-30 | `D-195` addendum: gate integrity + bot identity (`INFRA-CI-2`, `INFRA-CI-6`) — CODEOWNERS on gate files only with an importable `dev`/`main` ruleset, test-integrity guard and ci.yml comparison in `CI gate` overridable only by an owner approval on the head SHA, review-triggered re-judging, trusted `CI verdict` from a dedicated App (run binding), agent GitHub App token for auto-merge and branch updates from the `dev`-only `agent-merge` environment. |
 | 4.27 | 2026-10-30 | `D-195` addendum: gated prod release (`INFRA-CI-3`) — single `deploy.yml` after green CI, one `production` approval, runtime deploy guard (caller, approval attempt, freshness), release lane in `CI gate` (expand/contract justifications), rollback (web + functions only without migrations; DB forward-fix), encrypted 14-day pre-migration backups. |

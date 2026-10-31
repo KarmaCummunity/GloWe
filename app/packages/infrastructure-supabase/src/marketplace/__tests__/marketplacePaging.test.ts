@@ -78,6 +78,14 @@ describe('marketplacePaging — browse', () => {
     expect(page.nextCursor).toBeNull(); // short page = last page
   });
 
+  it('forwards the world subcategory and omits it when unset (KC#1102)', async () => {
+    const { c, rpcCalls } = client({ browse_listings: { data: [], error: null } });
+    await fetchBrowsePage(c, { worldSlug: 'items', categoryId: 'cat-books', radiusKm: 10 });
+    await fetchBrowsePage(c, { worldSlug: 'items' });
+    expect(rpcCalls[0]?.args).toMatchObject({ p_world_slug: 'items', p_category_id: 'cat-books', p_radius_km: 10 });
+    expect(rpcCalls[1]?.args).toMatchObject({ p_category_id: undefined });
+  });
+
   it('returns an empty page on error', async () => {
     const { c } = client({ browse_listings: { data: null, error: { message: 'x' } } });
     expect(await fetchBrowsePage(c, {})).toEqual({ rows: [], nextCursor: null });

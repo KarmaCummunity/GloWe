@@ -9,7 +9,7 @@
 > Live execution state lives in [`BACKLOG.md`](./BACKLOG.md). Per-feature status lives in [`spec/*.md`](./spec/). This file is the active debt register.
 
 **Severity**: 🔴 High · 🟠 Med · 🟢 Low
-**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-235+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
+**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items never pick a number: they take a `TD` placeholder, numbered on merge above the highest ever used (`CLAUDE.md` §4 "New registry IDs"). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
 
 ---
 
@@ -19,7 +19,7 @@
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
-| TD-231 | 🟢 | **Feed mirrors of listings keep two links and two notices (D-203, `0466`).** `listing_feed_posts` is still written next to the canonical `posts.listing_id`; fold the table into a compatibility view (or drop it) once no reader is left. A listing removed by moderation also trips the post-side `auto_removed` notice (`tg_posts_enqueue_auto_removed`, route `/help/removed-post`) on its mirror; when #1302 ships the listing-side notice, skip the post notice for rows with `listing_id`. | G1 |
+| {{TD:listing-feed-mirror-links}} | 🟢 | **Feed mirrors of listings keep two links and two notices ({{ENG:listing-feed-mirror}}, `0466`).** `listing_feed_posts` is still written next to the canonical `posts.listing_id`; fold the table into a compatibility view (or drop it) once no reader is left. A listing removed by moderation also trips the post-side `auto_removed` notice (`tg_posts_enqueue_auto_removed`, route `/help/removed-post`) on its mirror; when #1302 ships the listing-side notice, skip the post notice for rows with `listing_id`. | G1 |
 | TD-190 | 🟡 | **Fix shipped 2026-10-30, pending verification on kc-dev** after DB deploy. Security/privacy hardening item (details reported privately to the PM). | P0 security |
 | TD-192 | 🟡 | **Security/privacy hardening item — details reported privately to the PM** (project book rule #6: no public vulnerability descriptions). Tracked privately. | P2 hardening |
 | TD-2 | 🟠 | FR-AUTH-006 AC1 breached-passwords check not implemented (Supabase doesn't expose HIBP OOTB; needs API integration) | P2.x hardening |
