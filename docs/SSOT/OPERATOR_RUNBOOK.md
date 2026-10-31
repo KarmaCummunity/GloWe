@@ -49,6 +49,8 @@ On pull requests, `ci.yml` runs the gate judges (`scripts/ci-changes.mjs`, `scri
 1. **Judge-first PR** — teach `ci-changes.mjs` / `ci-gate.mjs` (and `check-required-checks-drift.mjs` if needed) about the lane **without** adding the job to `ci.yml`, in a form the current judges and the current `ci.yml` still pass (e.g. an optional lane that is named in the plan only when needed, like `release`).
 2. **Lane PR** — after the first merges, add the job to `ci.yml`.
 
+**Second instance — the test-integrity judge (INFRA-CI-2, PR #1308).** #1308's static lane runs `.judge/scripts/check-test-integrity.mjs` from the base commit with no fallback, so it could not pass while `dev` lacked the script. The judge-first PR (`chore/ci-integrity-judges`) ships only the base-loaded files — `scripts/check-test-integrity.mjs`, its sole import `scripts/ci-github.mjs`, their tests, and `.github/owners.json` (read at the base commit) — without wiring them into `dev`'s workflows. `scripts/ci-gate.mjs` deliberately stays at `dev`'s version: `dev`'s `ci.yml` copies that one file alone to `$RUNNER_TEMP`, so #1308's multi-module gate (it imports `ci-changes`, `ci-github`, `ci-run-binding`, `ci-run-reuse`, `ci-workflow-diff`) would fail to load there; `dev`'s standalone gate already judges #1308's `pull_request` runs. Until #1308 merges, a review on it re-runs every lane (the base `ci-changes.mjs` does not plan review events from the diff) instead of reusing lane results — slower, still sound.
+
 ---
 
 ## 0001 — Foundation & Identity {#0001}
