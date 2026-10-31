@@ -8,7 +8,7 @@ if [[ -z "${SENTRY_AUTH_TOKEN:-}" ]]; then
   exit 0
 fi
 
-ORG="${SENTRY_ORG:-kupay-hb}"
+ORG="${SENTRY_ORG:-karma-community}"
 export SENTRY_URL="${SENTRY_URL:-https://de.sentry.io/}"
 PROJECT="${SENTRY_PROJECT:-kc-mobile}"
 
