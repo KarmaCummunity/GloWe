@@ -1,6 +1,7 @@
 export * from './errors';
 export * from './language';
 export * from './survey/SurveyTypes';
+export * from './survey/PmfSurvey';
 export * from './research/PublicResearchTypes';
 export * from './research/PublicResearchError';
 export * from './survey/SurveyError';
