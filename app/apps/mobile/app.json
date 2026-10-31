@@ -160,7 +160,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "org.karmacommunity.app",
-      "predictiveBackGestureEnabled": true,
+      "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.POST_NOTIFICATIONS"
@@ -276,7 +276,7 @@
         "@sentry/react-native/expo",
         {
           "url": "https://de.sentry.io/",
-          "organization": "kupay-hb",
+          "organization": "karma-community",
           "project": "kc-mobile"
         }
       ]

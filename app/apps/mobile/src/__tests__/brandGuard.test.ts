@@ -1,14 +1,21 @@
-import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { brand, lightColors } from '@kc/ui';
 // eslint-disable-next-line no-restricted-imports -- test asserts both bundles' appName match the brand constants
 import en from '../i18n/locales/en';
 // eslint-disable-next-line no-restricted-imports -- test asserts both bundles' appName match the brand constants
 import he from '../i18n/locales/he';
-import { countLiterals, RULE_NAMES, type FileCounts } from './brandGuardRules';
+import { countLiterals, RULE_NAMES, type RuleName } from './brandGuardRules';
+import {
+  MOBILE_ROOT,
+  compareToBaseline,
+  readBaseline as readBaselineFile,
+  touchedBaseRef,
+  touchedFiles,
+  writeBaseline as writeBaselineFile,
+  type Baseline as RatchetBaseline,
+} from './guardKit/ratchet';
 
 // Brand guard — spec 17 §4/§6 (D65, D67, D87), debt TD-199.
 //
@@ -24,13 +31,10 @@ import { countLiterals, RULE_NAMES, type FileCounts } from './brandGuardRules';
 // Touched-file rule (D67): every scanned file the branch changes must be fully
 // clean, whatever its frozen count.
 
-const MOBILE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SCANNED_DIRS = ['src', 'app'] as const;
 const BASELINE_PATH = path.join(MOBILE_ROOT, 'brand-guard.baseline.json');
-const REPO_ROOT = path.resolve(MOBILE_ROOT, '../../..');
-const MOBILE_FROM_REPO = `${path.relative(REPO_ROOT, MOBILE_ROOT).split(path.sep).join('/')}/`;
 
-type Baseline = Record<string, FileCounts>;
+type Baseline = RatchetBaseline<RuleName>;
 
 function isScannedSource(fileName: string): boolean {
   return /\.tsx?$/.test(fileName) && !/\.(test|d)\.tsx?$/.test(fileName);
@@ -54,63 +58,26 @@ function scanApp(): Baseline {
 }
 
 function readBaseline(): Baseline {
-  return (JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) as { files: Baseline }).files;
+  return readBaselineFile<RuleName>(BASELINE_PATH);
 }
 
 function writeBaseline(files: Baseline): void {
-  const body = {
-    $comment: 'Frozen brand-guard findings per file (spec 17 §6, TD-199). Counts may only go down.',
+  writeBaselineFile(
+    BASELINE_PATH,
+    'Frozen brand-guard findings per file (spec 17 §6, TD-199). Counts may only go down.',
     files,
-  };
-  writeFileSync(BASELINE_PATH, `${JSON.stringify(body, null, 2)}\n`);
+  );
 }
 
-/** Base the touched-file rule diffs against: the PR base in CI, else `origin/dev`. */
-function touchedBaseRef(): string {
-  const prBase = process.env.GITHUB_BASE_REF;
-  return process.env.KC_BRAND_BASE_REF ?? (prBase ? `origin/${prBase}` : 'origin/dev');
-}
-
-function git(args: readonly string[]): string {
-  return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
-}
-
-/**
- * Scanned sources (mobile-relative) changed since the merge-base with `baseRef`,
- * committed or not. Deleted files are left out. Null when the ref cannot be resolved.
- */
+/** Scanned sources (mobile-relative) changed since the merge-base with `baseRef`; null when unresolvable. */
 function touchedSources(baseRef: string): string[] | null {
-  let mergeBase: string;
-  try {
-    mergeBase = git(['merge-base', baseRef, 'HEAD']);
-  } catch {
-    return null;
-  }
-  return git(['diff', '--name-only', '--diff-filter=ACMR', mergeBase, '--', MOBILE_FROM_REPO])
-    .split('\n')
-    .filter((file) => file.startsWith(MOBILE_FROM_REPO))
-    .map((file) => file.slice(MOBILE_FROM_REPO.length))
-    .filter(
-      (file) =>
-        SCANNED_DIRS.some((dir) => file.startsWith(`${dir}/`)) &&
-        !file.includes('/__tests__/') &&
-        isScannedSource(path.posix.basename(file)),
-    );
-}
-
-function compare(current: Baseline, baseline: Baseline) {
-  const grew: string[] = [];
-  const shrank: string[] = [];
-  const files = new Set([...Object.keys(current), ...Object.keys(baseline)]);
-  for (const file of files) {
-    for (const rule of RULE_NAMES) {
-      const now = current[file]?.[rule] ?? 0;
-      const allowed = baseline[file]?.[rule] ?? 0;
-      if (now > allowed) grew.push(`${file}: ${rule} ${now} > ${allowed}`);
-      if (now < allowed) shrank.push(`${file}: ${rule} ${now} < ${allowed}`);
-    }
-  }
-  return { grew, shrank };
+  return touchedFiles(
+    baseRef,
+    (file) =>
+      SCANNED_DIRS.some((dir) => file.startsWith(`${dir}/`)) &&
+      !file.includes('/__tests__/') &&
+      isScannedSource(path.posix.basename(file)),
+  );
 }
 
 describe('brand guard', () => {
@@ -124,7 +91,7 @@ describe('brand guard', () => {
     return;
   }
 
-  const { grew, shrank } = compare(current, readBaseline());
+  const { grew, shrank } = compareToBaseline(RULE_NAMES, current, readBaseline());
 
   it('adds no hard-coded style literal or physical side beyond the frozen baseline', () => {
     expect(
