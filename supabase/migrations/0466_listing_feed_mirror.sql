@@ -80,7 +80,7 @@ begin
 end;
 $$;
 
--- ── 4b. Karma, profile counters and closure chat messages stay with the listing ─────
+-- ── 5. Karma, profile counters and closure chat messages stay with the listing ──────
 -- The listing flow is authoritative for its economics (handoff karma, 0453) and its chat
 -- messaging; a mirror only reflects the listing in the feed. Without these guards every
 -- mirror would earn the +5 post_created award, count as a plain post in the profile
