@@ -9531,6 +9531,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10665,6 +10666,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10699,6 +10701,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
