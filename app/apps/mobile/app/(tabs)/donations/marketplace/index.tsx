@@ -95,7 +95,7 @@ export default function MarketplaceBrowseScreen() {
       <Text style={{ ...typography.h2, padding: spacing.md, color: styles.title.color }}>
         {t('marketplace.browseTitle')}
       </Text>
-      <TextInput
+      <TextInput // brand-guard-allow: search bar, not a form field (spec 17 §4.1)
         style={styles.search}
         placeholder={t('marketplace.searchPlaceholder')}
         value={query}
