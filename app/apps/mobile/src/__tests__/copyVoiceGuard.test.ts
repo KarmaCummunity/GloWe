@@ -75,18 +75,17 @@ describe('copy-voice guard', () => {
       );
       expect(readBaseline(BASELINE_PATH)).toEqual(current);
     });
-    return;
+  } else {
+    const { grew, shrank } = compareToBaseline(COPY_RULES, current, readBaseline<CopyRule>(BASELINE_PATH));
+
+    it('adds no copy-voice finding beyond the frozen baseline', () => {
+      expect(grew, 'follow spec 17 §7: neutral infinitive ("ללחוץ"), plain Hebrew, ≤4-word CTAs').toEqual([]);
+    });
+
+    it('keeps the baseline tight after cleanups (rerun with KC_COPY_BASELINE=update)', () => {
+      expect(shrank).toEqual([]);
+    });
   }
-
-  const { grew, shrank } = compareToBaseline(COPY_RULES, current, readBaseline<CopyRule>(BASELINE_PATH));
-
-  it('adds no copy-voice finding beyond the frozen baseline', () => {
-    expect(grew, 'follow spec 17 §7: neutral infinitive ("ללחוץ"), plain Hebrew, ≤4-word CTAs').toEqual([]);
-  });
-
-  it('keeps the baseline tight after cleanups (rerun with KC_COPY_BASELINE=update)', () => {
-    expect(shrank).toEqual([]);
-  });
 
   it('scans both locale bundles', () => {
     const scanned = LOCALES.map((locale) => listLocaleFiles(`${LOCALES_DIR}/${locale}`).length);
@@ -103,16 +102,15 @@ describe('copy-voice touched-file rule (spec 17 §7, D67)', () => {
     it(`resolves the base ref ${baseRef} in CI`, () => {
       expect(process.env.CI, `cannot resolve ${baseRef} — fetch it before running the guard`).toBeFalsy();
     });
-    return;
-  }
-
-  it(`leaves every locale file changed since ${baseRef} with zero findings`, () => {
-    const dirty = touched.flatMap((file) => {
-      const counts = countFile(file);
-      return Object.keys(counts).length > 0 ? [`${file}: ${JSON.stringify(counts)}`] : [];
+  } else {
+    it(`leaves every locale file changed since ${baseRef} with zero findings`, () => {
+      const dirty = touched.flatMap((file) => {
+        const counts = countFile(file);
+        return Object.keys(counts).length > 0 ? [`${file}: ${JSON.stringify(counts)}`] : [];
+      });
+      expect(dirty, 'a locale file you change must follow the voice rules in full, not only your lines').toEqual([]);
     });
-    expect(dirty, 'a locale file you change must follow the voice rules in full, not only your lines').toEqual([]);
-  });
+  }
 });
 
 describe('key slogan (master narrative §16.1)', () => {
