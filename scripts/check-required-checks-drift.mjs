@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Guard: the required-status-check tables in the SSOT docs must reference
-// jobs that actually exist in .github/workflows/**, and the single required
-// check — the `CI gate` job in ci.yml (D-195) — must depend on every other
-// job in that workflow.
+// Guard: the required-status-check tables in the SSOT docs must list exactly
+// the single required check — the `CI gate` job in ci.yml (D-195) — which
+// must exist and depend on every other job in that workflow (including the
+// release lane that judges PRs into main).
 //
 // Why this exists: branch protection on `dev` and `main` enumerates required
 // checks by their exact display names (see docs/SSOT/ENVIRONMENTS.md "Dev
@@ -114,18 +114,28 @@ export function parseRequiredTable(markdown, heading) {
   return { pairs, error: null };
 }
 
+// Split a workflow into the text above `jobs:` (triggers, permissions, env…)
+// and one { id, text } per job, or null without a top-level jobs: block.
+// Regex by indentation, like parseWorkflow: job ids sit at 2 spaces. Also
+// used by scripts/ci-workflow-diff.mjs to compare a PR's ci.yml with base.
+export function splitJobs(content) {
+  const jobsAt = content.search(/^jobs:[ \t]*$/m);
+  if (jobsAt === -1) return null;
+  const body = content.slice(jobsAt);
+  const heads = [...body.matchAll(/^ {2}([A-Za-z0-9_-]+):[ \t]*$/gm)];
+  const jobs = heads.map((m, i) => ({ id: m[1], text: body.slice(m.index, heads[i + 1]?.index ?? body.length) }));
+  return { header: content.slice(0, jobsAt), jobs };
+}
+
 // Validate ci.yml: its jobs are exactly `changes`, the gate and the lane jobs
 // the change detector plans (LANE_JOBS) — a job outside that set would never
 // be judged. The gate must run on `always()` (so a failed or cancelled lane
 // still produces a red verdict instead of a skipped, passing one) and list
-// every other job in `needs:`. Regex by indentation, like parseWorkflow: job
-// ids sit at 2 spaces, job keys at 4.
+// every other job in `needs:`. Job keys sit at 4 spaces.
 export function checkGateWiring(content) {
-  const jobsAt = content.search(/^jobs:[ \t]*$/m);
-  if (jobsAt === -1) return [`${GATE.file}: no top-level jobs: block`];
-  const body = content.slice(jobsAt);
-  const heads = [...body.matchAll(/^ {2}([A-Za-z0-9_-]+):[ \t]*$/gm)];
-  const jobs = heads.map((m, i) => ({ id: m[1], text: body.slice(m.index, heads[i + 1]?.index ?? body.length) }));
+  const split = splitJobs(content);
+  if (!split) return [`${GATE.file}: no top-level jobs: block`];
+  const { jobs } = split;
   const gate = jobs.find((j) => parseWorkflow(`name: x\n${j.text}`).jobs.has(GATE.job));
   if (!gate) return [`${GATE.file}: no job named "${GATE.job}"`];
   const errors = [];
@@ -204,6 +214,11 @@ export function checkRequiredChecksDrift({ repoRoot = DEFAULT_REPO_ROOT } = {}) 
     }
     for (const { workflow, job } of pairs) {
       checked += 1;
+      // dev and main (incl. the release lane) both require only the gate; any
+      // other required context can hang "Expected" or bypass the lane plan.
+      if (workflow !== GATE.workflow || job !== GATE.job) {
+        errors.push(`${src.file}: "${workflow} / ${job}" must not be a required check; "${GATE.job}" is the only one (D-195) — make it a ci.yml lane instead.`);
+      }
       const jobs = workflows.get(workflow);
       if (!jobs) {
         errors.push(
