@@ -49,15 +49,28 @@ end $$;
 
 -- 1) Publishing an items listing puts one mirror post in the feed, with the listing's
 --    title, direction, summary, legacy category and condition, and the Marketplace link.
+--    The mirror is karma-neutral and invisible to the owner's post counters.
 do $$
 declare
   p personas;
   v_listing uuid;
   v_mirror public.posts;
+  v_posts_before integer := (select posts_created_total from public.users where user_id = (select giver from personas));
+  v_karma_before integer := (select karma_points from public.users where user_id = (select giver from personas));
 begin
   select * into p from personas;
   v_listing := pg_temp.create_item(p.giver, 'Wooden bookshelf');
   v_mirror := pg_temp.mirror_of(v_listing);
+
+  perform kc_test.assert_eq(
+    (select posts_created_total from public.users where user_id = p.giver), v_posts_before,
+    'a mirror is not counted as a post the giver created');
+  perform kc_test.assert_eq(
+    (select karma_points from public.users where user_id = p.giver), v_karma_before,
+    'a mirror earns no post_created karma');
+  perform kc_test.assert_row_count(
+    format('select 1 from public.karma_ledger where ref_type = %L and ref_id = %L', 'post', v_mirror.post_id::text),
+    0, 'no karma ledger row references the mirror');
 
   perform kc_test.assert_true(v_mirror.post_id is not null, 'a published items listing gets a mirror post');
   perform kc_test.assert_eq(v_mirror.owner_id, p.giver, 'the mirror belongs to the listing owner');
@@ -106,6 +119,9 @@ begin
   update public.listings set status = 'closed' where listing_id = v_listing;
   v_mirror := pg_temp.mirror_of(v_listing);
   perform kc_test.assert_eq(v_mirror.status, 'closed_delivered', 'a closed listing closes its mirror');
+  perform kc_test.assert_row_count(
+    format('select 1 from public.karma_ledger where ref_type = %L and ref_id = %L', 'post', v_mirror.post_id::text),
+    0, 'closing the mirror awards no post closure karma; the handoff does that');
 end $$;
 
 -- 3) Tightening the listing's anonymity makes the mirror just as private, although a post

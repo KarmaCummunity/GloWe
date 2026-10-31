@@ -80,6 +80,48 @@ begin
 end;
 $$;
 
+-- ── 4b. Karma, profile counters and closure chat messages stay with the listing ─────
+-- The listing flow is authoritative for its economics (handoff karma, 0453) and its chat
+-- messaging; a mirror only reflects the listing in the feed. Without these guards every
+-- mirror would earn the +5 post_created award, count as a plain post in the profile
+-- counters, and a closed listing would trip the closure-message trigger's strict
+-- recipients lookup (0031), which no mirror satisfies.
+drop trigger if exists karma_posts_after_insert on public.posts;
+create trigger karma_posts_after_insert
+  after insert on public.posts
+  for each row when (new.listing_id is null)
+  execute function public.karma_on_post_change();
+
+drop trigger if exists karma_posts_after_status_update on public.posts;
+create trigger karma_posts_after_status_update
+  after update of status on public.posts
+  for each row when (new.listing_id is null)
+  execute function public.karma_on_post_change();
+
+drop trigger if exists posts_after_update_emit_closure_messages on public.posts;
+create trigger posts_after_update_emit_closure_messages
+  after update of status on public.posts
+  for each row when (new.listing_id is null)
+  execute function public.posts_emit_closure_system_messages();
+
+drop trigger if exists posts_after_insert_counters on public.posts;
+create trigger posts_after_insert_counters
+  after insert on public.posts
+  for each row when (new.listing_id is null)
+  execute function public.posts_after_change_counters();
+
+drop trigger if exists posts_after_update_counters on public.posts;
+create trigger posts_after_update_counters
+  after update of status, visibility on public.posts
+  for each row when (new.listing_id is null)
+  execute function public.posts_after_change_counters();
+
+drop trigger if exists posts_after_delete_counters on public.posts;
+create trigger posts_after_delete_counters
+  after delete on public.posts
+  for each row when (old.listing_id is null)
+  execute function public.posts_after_change_counters();
+
 -- ── 5. A mirror may follow its listing when it becomes more private ──────────────────
 -- Listing anonymity can only tighten (0242) while post visibility can only open up
 -- (FR-POST-009); the mirror sync sets `kc.listing_mirror_sync` for its own update only.
