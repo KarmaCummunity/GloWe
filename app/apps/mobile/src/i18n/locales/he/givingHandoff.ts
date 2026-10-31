@@ -21,7 +21,7 @@ export const givingHandoff = {
   ratingSubmit: 'שליחת דירוג',
   // Owner/recipient-facing handoff state (`giving_handoffs.status`).
   statusLabel: {
-    reserved: 'שמור',
+    reserved: 'משוריין',
     confirmed: 'אושר',
     handed_over: 'נמסר',
     cancelled: 'בוטל',

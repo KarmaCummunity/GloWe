@@ -6,6 +6,9 @@ import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { ThemeProvider } from '@kc/ui';
 
+vi.mock('@expo/vector-icons', () => ({
+  Ionicons: ({ name }: { name: string }) => <span data-testid={`icon-${name}`} />,
+}));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k, i18n: { language: 'he' } }) }));
 
 import { HANDOFF_RATING_NOTE_MAX_LENGTH, HandoffRatingForm } from '../HandoffRatingForm';

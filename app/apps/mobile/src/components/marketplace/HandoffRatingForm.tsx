@@ -4,7 +4,8 @@
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
+import { TextField } from '../ui/TextField';
 
 /** Upper bound for the note; long enough for a sentence or two of thanks or context. */
 export const HANDOFF_RATING_NOTE_MAX_LENGTH = 300;
@@ -50,10 +51,9 @@ export function HandoffRatingForm({ busy, onSubmit }: Props) {
           );
         })}
       </View>
-      <Text style={styles.label}>{t('givingHandoff.ratingNoteLabel')}</Text>
-      <TextInput
+      <TextField
         testID="handoff-rating-note"
-        style={styles.input}
+        label={t('givingHandoff.ratingNoteLabel')}
         value={note}
         onChangeText={setNote}
         placeholder={t('givingHandoff.ratingNotePlaceholder')}
@@ -82,18 +82,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
   stars: { flexDirection: 'row' as const, gap: spacing.sm },
   star: { ...typography.h2, color: colors.textSecondary },
   starFilled: { color: colors.primary },
-  label: { ...typography.caption, color: colors.textSecondary },
-  input: {
-    ...typography.body,
-    minHeight: spacing['3xl'],
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    textAlignVertical: 'top' as const,
-  },
   btn: { padding: spacing.md, borderRadius: radius.sm, backgroundColor: colors.primary, alignItems: 'center' as const },
   btnDisabled: { opacity: 0.5 },
   btnText: { ...typography.button, color: colors.textInverse },
