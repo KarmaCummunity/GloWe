@@ -16,7 +16,7 @@ name: Auto-merge PRs
 # used: its pushes start no workflows, so a merge made with it would skip push
 # CI and every deploy without any error. With no credential the job fails.
 #
-# Default branch only ({{TD:pull-request-target-main-only}}): since 2025-12-08 GitHub runs pull_request_target
+# Default branch only (see the pull_request_target row in TECH_DEBT.md): since 2025-12-08 GitHub runs pull_request_target
 # from the DEFAULT branch (`main`): this file's `main` copy is the one that runs
 # (the `dev` copy is ignored), GITHUB_REF is refs/heads/main, and environment
 # branch policies are checked against `main`. Changes here take effect only once
