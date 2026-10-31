@@ -1,6 +1,6 @@
-# 90 — Decisions log D1–D58
+# 90 — Decisions log
 
-Index only — the binding wording lives in the linked spec files. All decided by Nave (PM), 2026-10. `*` = needs further depth.
+Index only — the binding wording lives in the linked spec files. All decided by Nave (PM), 2026-10. `*` = needs further depth. A new row takes a `D` placeholder ID, numbered on merge (`CLAUDE.md` §4 "New registry IDs").
 
 | # | Decision | Lives in | Status |
 |---|---|---|---|

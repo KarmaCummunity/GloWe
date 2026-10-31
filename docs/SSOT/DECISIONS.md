@@ -1570,10 +1570,21 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0490–0509`, `app/packages/domain/src/organizations/**`, `app/packages/application/src/organizations/**`, `app/packages/infrastructure-supabase/src/organizations/**`, `app/apps/mobile/app/org/**`, `app/apps/mobile/src/components/profile/**` (organization variants), `(tabs)/search.tsx`, `(admin)/org-approvals`.
 
+## {{ENG:merge-time-registry-ids}} — Registry IDs are assigned on merge, not in the PR (2026-10-31)
+
+**Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in the same commit as the version bump. The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
+
+**Why.** Many agent branches append to the same registries in parallel, so a number picked at branch time collided again and again: `TD-200`, `TD-201`, `D-38`, `D-40` and `D-41` are each used twice, and open PRs were renumbered several times before merging. The app version had the same shape and already moved to merge time (TD-196).
+
+**Rejected.** Per-lane number ranges (exhausted, and still collide inside a lane); a reservation file (itself a merge-conflict hotspot); random or date-based IDs (hard to cite and to read).
+
+**Affected.** `scripts/spec-ids.mjs`, `.github/workflows/bump-version-on-merge.yml`, `.github/workflows/ci-static-guards.yml`, `app/package.json` (`lint:arch`), `CLAUDE.md` §4 / §9.
+
 ## Change Log
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 4.27 | 2026-10-31 | Added `{{ENG:merge-time-registry-ids}}` (registry IDs are assigned on merge through placeholders; CI rejects duplicate numbers). |
 | 4.26 | 2026-10-30 | Added `D-199` (organizations: one entity, organization accounts on `users`, act-as re-checked server-side, follows generalised; `spec/20_organizations.md`). |
 | 4.25 | 2026-10-30 | Added `D-197` (team management: role-derived permissions, org-run teams, position-gated atomic role change aligned with FR-ADMIN-027; FR-ADMIN-030). |
 | 4.24 | 2026-10-30 | Added `D-196` (org finance: extend `0170` ledger multi-tenant, RPC-only, payment mirroring, transparency snapshots; `spec/19_org_finance.md`). |

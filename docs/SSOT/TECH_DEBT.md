@@ -9,7 +9,7 @@
 > Live execution state lives in [`BACKLOG.md`](./BACKLOG.md). Per-feature status lives in [`spec/*.md`](./spec/). This file is the active debt register.
 
 **Severity**: 🔴 High · 🟠 Med · 🟢 Low
-**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items take the next free number above the highest ever used (`TD-207+`). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
+**ID lanes**: historical BE = `TD-50..99` · FE = `TD-100..149` (both exhausted; legacy `TD-1..43` predate the split). New items never pick a number: they take a `TD` placeholder, numbered on merge above the highest ever used (`CLAUDE.md` §4 "New registry IDs"). **Never reuse an ID** — legacy spec headers still cite old meanings (see `docs/spec/95_reconciliation.md` §5).
 
 ---
 

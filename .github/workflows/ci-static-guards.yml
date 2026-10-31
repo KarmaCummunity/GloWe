@@ -47,6 +47,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node app/scripts/check-ssot-links.mjs
 
+      - name: Spec registry IDs (unique numbers, merge-time placeholders)
+        if: ${{ !cancelled() }}
+        run: node scripts/spec-ids.mjs check
+
       - name: Hebrew source scan (no inline UI copy)
         if: ${{ !cancelled() }}
         run: node scripts/extract-hebrew-text.mjs --check
