@@ -2813,6 +2813,30 @@ export type Database = {
         }
         Relationships: []
       }
+      kc_support_channels: {
+        Row: {
+          channel: string
+          is_active: boolean
+          provider_label: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          channel: string
+          is_active?: boolean
+          provider_label: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          channel?: string
+          is_active?: boolean
+          provider_label?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       legal_document_versions: {
         Row: {
           body_md: string
@@ -7031,6 +7055,55 @@ export type Database = {
           },
         ]
       }
+      user_entitlements: {
+        Row: {
+          active: boolean
+          expires_at: string | null
+          source: string
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          expires_at?: string | null
+          source?: string
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          expires_at?: string | null
+          source?: string
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_feed_cache: {
         Row: {
           post_ids: string[]
@@ -7656,6 +7729,7 @@ export type Database = {
           created_at: string
           identity_id: string
           last_inbound_at: string | null
+          last_upsell_at: string | null
           preferred_language: string
           updated_at: string
           user_id: string | null
@@ -7667,6 +7741,7 @@ export type Database = {
           created_at?: string
           identity_id?: string
           last_inbound_at?: string | null
+          last_upsell_at?: string | null
           preferred_language?: string
           updated_at?: string
           user_id?: string | null
@@ -7678,6 +7753,7 @@ export type Database = {
           created_at?: string
           identity_id?: string
           last_inbound_at?: string | null
+          last_upsell_at?: string | null
           preferred_language?: string
           updated_at?: string
           user_id?: string | null
@@ -7706,6 +7782,79 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      whatsapp_inbound_claims: {
+        Row: {
+          claimed_at: string
+          message_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          message_id: string
+        }
+        Update: {
+          claimed_at?: string
+          message_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_link_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_link_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      whatsapp_link_failures: {
+        Row: {
+          failed_at: string
+          wa_id: string
+        }
+        Insert: {
+          failed_at?: string
+          wa_id: string
+        }
+        Update: {
+          failed_at?: string
+          wa_id?: string
+        }
+        Relationships: []
       }
       whatsapp_match_consent: {
         Row: {
@@ -8417,6 +8566,10 @@ export type Database = {
         Args: { p_owner: string; p_viewer: string }
         Returns: number
       }
+      actor_scope_rank: {
+        Args: { p_actor: string; p_scope: string }
+        Returns: number
+      }
       add_volunteer_shift: {
         Args: {
           p_capacity?: number
@@ -8493,6 +8646,10 @@ export type Database = {
         Args: { p_note: string; p_reason: string; p_target_user_id: string }
         Returns: undefined
       }
+      admin_change_role: {
+        Args: { p_grant_id: string; p_new_role: string }
+        Returns: string
+      }
       admin_confirm_report: {
         Args: { p_report_id: string }
         Returns: undefined
@@ -8524,6 +8681,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_hierarchy_census: { Args: never; Returns: Json }
       admin_list_admins: {
         Args: { p_include_revoked?: boolean }
         Returns: {
@@ -8851,6 +9009,41 @@ export type Database = {
         Args: { p_user_id: string; p_wa_id: string }
         Returns: string
       }
+      api_bot_listing_cards: {
+        Args: { p_ids: string[]; p_viewer_id: string }
+        Returns: {
+          city_id: string
+          created_at: string
+          direction: string
+          listing_id: string
+          summary: string
+          title: string
+          world_slug: string
+        }[]
+      }
+      api_bot_my_listings: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          created_at: string
+          direction: string
+          listing_id: string
+          title: string
+          world_slug: string
+        }[]
+      }
+      api_bot_my_matches: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          candidate_id: string
+          distance_km: number
+          my_listing_title: string
+          other_listing_id: string
+          other_title: string
+          score: number
+          status: string
+          world_slug: string
+        }[]
+      }
       api_bot_open_session: {
         Args: { p_record_id?: string; p_wa_id: string }
         Returns: string
@@ -8907,6 +9100,20 @@ export type Database = {
       api_match_llm_store: {
         Args: { p_candidate_id: string; p_reason: string; p_score: number }
         Returns: boolean
+      }
+      api_my_pro_status: { Args: never; Returns: Json }
+      api_revenuecat_set_pro: {
+        Args: { p_active: boolean; p_expires_at: string; p_user_id: string }
+        Returns: Json
+      }
+      api_set_pro_entitlement: {
+        Args: {
+          p_active: boolean
+          p_expires_at?: string
+          p_source?: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       api_whatsapp_admin_block_user: {
         Args: { p_user_id: string }
@@ -8988,6 +9195,12 @@ export type Database = {
         Args: { p_enabled: boolean }
         Returns: Json
       }
+      api_whatsapp_bot_access: { Args: { p_wa_id: string }; Returns: Json }
+      api_whatsapp_claim_inbound: {
+        Args: { p_message_id: string }
+        Returns: boolean
+      }
+      api_whatsapp_create_link_code: { Args: never; Returns: Json }
       api_whatsapp_handle_keyword: {
         Args: { p_record_id?: string; p_text: string; p_wa_id: string }
         Returns: Json
@@ -9004,6 +9217,7 @@ export type Database = {
         Args: { p_wa_id: string }
         Returns: boolean
       }
+      api_whatsapp_my_link_status: { Args: never; Returns: Json }
       api_whatsapp_outbound_claim: {
         Args: { p_batch?: number; p_visibility_seconds?: number }
         Returns: {
@@ -9064,6 +9278,15 @@ export type Database = {
         Args: { p_older_than?: string }
         Returns: number
       }
+      api_whatsapp_redeem_link_code: {
+        Args: { p_code: string; p_wa_id: string }
+        Returns: Json
+      }
+      api_whatsapp_release_inbound: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
+      api_whatsapp_unlink_me: { Args: never; Returns: undefined }
       attach_listing_media: {
         Args: { p_listing_id: string; p_storage_paths: string[] }
         Returns: undefined
@@ -9167,8 +9390,13 @@ export type Database = {
           world_slug: string
         }[]
       }
+      can_contact_support: { Args: { uid: string }; Returns: boolean }
       can_grant_role: {
         Args: { granter_uid: string; target_role: string; target_scope: string }
+        Returns: boolean
+      }
+      can_manage_grant: {
+        Args: { p_actor: string; p_grant_id: string }
         Returns: boolean
       }
       cancel_giving_handoff: {
@@ -9827,6 +10055,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_pro: { Args: { p_user_id: string }; Returns: boolean }
       karma_apply: {
         Args: {
           p_delta: number
@@ -9834,6 +10063,15 @@ export type Database = {
           p_ref_id: string
           p_ref_type: string
           p_user: string
+        }
+        Returns: undefined
+      }
+      karma_award_handoff: {
+        Args: {
+          p_giver: string
+          p_handoff_id: string
+          p_receiver: string
+          p_world: string
         }
         Returns: undefined
       }
@@ -9846,6 +10084,10 @@ export type Database = {
           p_user: string
         }
         Returns: undefined
+      }
+      karma_handoff_points: {
+        Args: { p_role: string; p_world: string }
+        Returns: number
       }
       karma_recompute_nightly: {
         Args: never
@@ -10038,6 +10280,34 @@ export type Database = {
           sample_listing_id: string
         }[]
       }
+      map_listing_pins: {
+        Args: {
+          p_limit?: number
+          p_ne_lat: number
+          p_ne_lng: number
+          p_sw_lat: number
+          p_sw_lng: number
+          p_world_slug?: string
+        }
+        Returns: {
+          departs_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          direction: string
+          kind_slug: string
+          lat: number
+          listing_id: string
+          lng: number
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          seats: number
+          summary: string
+          title: string
+          world_slug: string
+        }[]
+      }
       mark_giving_handed_over: {
         Args: { p_handoff_id: string }
         Returns: {
@@ -10198,6 +10468,10 @@ export type Database = {
       notification_inbox_world_for_kind: {
         Args: { p_kind: string }
         Returns: string
+      }
+      notification_kind_enabled: {
+        Args: { p_kind: string; p_prefs: Json }
+        Returns: boolean
       }
       notifications_backlog_check: { Args: never; Returns: undefined }
       notifications_bump_attempt: {
@@ -10600,6 +10874,7 @@ export type Database = {
       }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
       ride_templates_materialize: { Args: never; Returns: number }
+      role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {
         Args: { p_chat_id: string }
         Returns: undefined
@@ -11547,6 +11822,7 @@ export type Database = {
         Returns: undefined
       }
       volunteer_shift_reminder_sweep: { Args: never; Returns: number }
+      whatsapp_link_code_hash: { Args: { p_code: string }; Returns: string }
       whatsapp_mask_wa_id: { Args: { p_wa_id: string }; Returns: string }
       whatsapp_outbound_enqueue: {
         Args: { p_delay_seconds?: number; p_outbound_id: string }

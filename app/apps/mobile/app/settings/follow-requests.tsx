@@ -2,13 +2,13 @@
 // FR-FOLLOW-007: pending follow-request inbox. Reachable only when Private.
 
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { FollowRequestWithUser } from '@kc/application';
 import { AvatarInitials } from '../../src/components/AvatarInitials';
 import { NotifyModal } from '../../src/components/NotifyModal';

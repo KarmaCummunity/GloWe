@@ -1,11 +1,12 @@
+import { marketplaceMap } from './marketplaceMap';
 // Hebrew — Donations hub + Search tab (D-16, FR-DONATE-001..009, FR-FEED-016).
 // Locale file under `locales/he/`; composed into the bundle via `locales/he/index.ts`.
-// Rides strings (FR-RIDE-*) live in `donations.rides.ts` to keep file sizes
-// under the architecture cap.
+// Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { worldLaunch } from './donations.worldLaunch';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -17,6 +18,7 @@ export const donations = {
   hubItemsFeaturedTitle: 'חפצים',
   hubItemsFeaturedSubtitle: 'תרומה ובקשת חפצים — הפעולה המרכזית באפליקציה',
   hubCategoriesSectionTitle: 'תחומי תרומה נוספים',
+  worldLaunch,
   items: { title: 'חפצים', subtitle: 'תרומה ובקשת חפצים' },
   time: { title: 'זמן', subtitle: 'התנדבות וזמן פנוי' },
   money: { title: 'כסף', subtitle: 'תרומה כספית' },
@@ -56,13 +58,13 @@ export const donations = {
       title: 'רפואה',
       subtitle: 'תמיכה רפואית וציוד',
       body:
-        'קטגוריית הרפואה תיפתח בהמשך.\nועד אז מזמינים אתכם ללתרום לקהילה עצמה, ולעזור לנו לגדול ולהתפתח.\nלעמותות של ציוד רפואי, טיפול ותמיכה, ותרומת דם ואברים — היכנסו לאחד הקישורים למטה.',
+        'תרומת דם, כרטיס אדי, עזרה ראשונה וציוד רפואי — כאן תמצאו את הגופים המובילים בישראל.\nבחרו גוף, היכנסו לאתר שלו ותצילו חיים.',
     },
   },
   moneyScreen: {
     title: 'תרומה כספית',
     body:
-      'תרומה לעמותות מאומתות באפליקציה (סandbox — ללא חיוב אמיתי). קישורים חיצוניים נשארים למטה.',
+      'כאן אפשר לתמוך ישירות בקהילת קארמה, למצוא עמותות לתרומה ולשתף קישורים לעמותות שאתם מכירים.',
     openLink: 'פתח את jgive.com',
     linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
     linkErrorBody: 'נסו דפדפן אחר או הקלידו את הכתובת ידנית.',
@@ -108,12 +110,6 @@ export const donations = {
     title: 'תורמים באהבה? תרמו גם לקהילה',
     tagline:
       'קארמה היא קהילה חופשית שרצה על האהבה והנדיבות שלכם. כל תרומה עוזרת לנו להמשיך לבנות מקום של נתינה לכולם.',
-    ctaBit: 'תרומה דרך ביט',
-    ctaPaybox: 'תרומה דרך פייבוקס',
-    ctaBitA11y: 'פתח את אפליקציית ביט לתרומה לקהילת קארמה',
-    ctaPayboxA11y: 'פתח את אפליקציית פייבוקס לתרומה לקהילת קארמה',
-    linkErrorTitle: 'לא הצלחנו לפתוח את הקישור',
-    linkErrorBody: 'נסו לעדכן את האפליקציה או לפתוח את הקישור בדפדפן.',
   },
   // FR-RIDE-001..045 — hitchhiking (rides V3.0). Strings live in donations.rides.ts.
   rides,
@@ -239,6 +235,7 @@ export const search = {
 } as const;
 
 export const marketplace = {
+  ...marketplaceMap,
   browseTitle: 'שוק',
   searchPlaceholder: 'חיפוש מודעות…',
   allWorlds: 'כל העולמות',
@@ -246,12 +243,11 @@ export const marketplace = {
   createListing: 'פרסום מודעה',
   loading: 'טוען…',
   empty: 'אין מודעות לפי הסינון.',
-  mapTitle: 'אשכולות במפה',
-  mapEmpty: 'אין מודעות עם מיקום באזור.',
   clusterLabel: '{{count}} מודעות',
   notFound: 'המודעה לא נמצאה.',
   startChat: 'שליחת הודעה',
   shareFeed: 'שיתוף בפיד',
+  actionFailed: 'הפעולה לא הושלמה. נסו שוב.',
   chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
   createTitle: 'מודעה חדשה — {{world}}',
   fieldTitle: 'כותרת',
@@ -261,6 +257,8 @@ export const marketplace = {
   forYouTitle: 'בשבילך',
   createHubTitle: 'בחירת עולם נתינה',
   fieldKind: 'סוג מודעה',
+  fieldWorldSubcategory: 'תת-קטגוריה',
+  fieldWorldSubcategoryHint: 'לא חובה — עוזר למצוא לך התאמות',
   fieldDirection: 'מציע / מבקש',
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
@@ -291,7 +289,6 @@ export const marketplace = {
   myListingsDeleteHint: 'המודעה תימחק לצמיתות.',
   myListingsSave: 'שמירת שינויים',
   myListingsUpdated: 'עודכן {{date}}',
-  mapWebFallback: 'מפה אינטראקטיבית זמינה באפליקציה. האשכולות למטה מגיעים מאותו מקור בשרת.',
   world: marketplaceWorldLabels,
   orgPicker: marketplaceOrgPicker,
   field: marketplaceFieldLabels,

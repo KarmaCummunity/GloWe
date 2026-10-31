@@ -4,9 +4,10 @@
 //   value = 'unassigned'       → only tasks with no assignee
 //   value = '<userId>'         → only tasks assigned to that admin
 import { useQuery } from '@tanstack/react-query';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { adminChipScroll } from '../adminChipScroll';
 import type { AdminGrant } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { container } from '../../../lib/container';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
@@ -37,7 +38,7 @@ export function TaskAssigneeFilter({ value, onChange }: TaskAssigneeFilterProps)
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.row, adminChipScroll.content]}>
       <Chip label={L.admin.tasks.assigneeFilter.all}        active={value === null}              onPress={() => onChange(null)} />
       <Chip label={L.admin.tasks.assigneeFilter.unassigned} active={value === UNASSIGNED_TOKEN}  onPress={() => onChange(UNASSIGNED_TOKEN)} />
       {entries.map((e) => (

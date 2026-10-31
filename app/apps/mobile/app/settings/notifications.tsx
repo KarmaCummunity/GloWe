@@ -1,17 +1,17 @@
-// Settings → notifications screen — FR-NOTIF-014, FR-SETTINGS-005.
+// Settings → notifications screen — FR-NOTIF-014, FR-NOTIF-017, FR-SETTINGS-005.
 import { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   Linking,
   Pressable,
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { isNotificationKindEnabled } from '@kc/domain';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../src/lib/webRtlStyle';
@@ -90,6 +90,13 @@ export default function NotificationSettingsScreen() {
           caption={t('notifications.socialCaption')}
           value={prefs.social}
           onValueChange={(v) => update({ social: v })}
+        />
+        {/* FR-NOTIF-017: per-type opt-out; covers in-app, push and WhatsApp match alerts. */}
+        <NotificationToggleRow
+          label={t('notifications.matchSuggestionsLabel')}
+          caption={t('notifications.matchSuggestionsCaption')}
+          value={isNotificationKindEnabled(prefs, 'match_suggested')}
+          onValueChange={(v) => update({ kinds: { match_suggested: v } })}
         />
 
         <QuietHoursSection value={prefs.quietHours} onChange={(quietHours) => update({ quietHours })} />

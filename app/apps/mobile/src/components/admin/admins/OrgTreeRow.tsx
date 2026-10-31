@@ -1,9 +1,9 @@
 // app/apps/mobile/src/components/admin/admins/OrgTreeRow.tsx
 // FR-ADMIN-025 — a single, indented node row in the org hierarchy tree.
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { OrgTreeNode } from '@kc/domain';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { AvatarInitials } from '../../AvatarInitials';
 import { RoleBadge } from './RoleBadge';
 import { LevelBadge } from './LevelBadge';

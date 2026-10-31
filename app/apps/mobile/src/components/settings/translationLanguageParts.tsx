@@ -1,8 +1,8 @@
 // Sub-component for the Translation-Language settings screen (FR-TRANSLATE-003).
 // Lives under src/ (not app/) so expo-router does not register it as a route.
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { Pressable, View } from 'react-native';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 import { webTextRtl, webViewRtl } from '../../lib/webRtlStyle';
 

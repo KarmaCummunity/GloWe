@@ -10,7 +10,6 @@ import {
   I18nManager,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   type ViewStyle,
@@ -19,7 +18,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { TopBar } from '../TopBar';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileStatsRow } from './ProfileStatsRow';
@@ -116,13 +115,13 @@ export function MyProfileChrome({ activeTab }: Readonly<{ activeTab: ProfilePost
                   enabled={Boolean(user)}
                   onPressFollowers={() =>
                     router.push({
-                      pathname: '/user/[handle]/followers' as never,
+                      pathname: '/user/[handle]/followers',
                       params: { handle: user?.shareHandle ?? '' },
                     })
                   }
                   onPressFollowing={() =>
                     router.push({
-                      pathname: '/user/[handle]/following' as never,
+                      pathname: '/user/[handle]/following',
                       params: { handle: user?.shareHandle ?? '' },
                     })
                   }

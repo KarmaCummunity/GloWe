@@ -2,7 +2,7 @@
 // Renders ride summary + pending-count badge + inline expand of pending
 // participants with approve/reject CTAs + an overflow menu (close/cancel).
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
 import type { RideListingRow } from '@kc/application';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 
 import { Card } from '../../../components/ui/Card';
 import { useRideParticipants } from '../hooks/useRideParticipants';
@@ -86,7 +86,7 @@ export function MyRideRow({ ride, activeRow = true }: Props) {
     <Card padding="base" style={styles.card}>
       <Pressable
         onPress={() =>
-          router.push(`/(tabs)/donations/rides/${ride.rideId}` as Parameters<typeof router.push>[0])
+          router.push(`/(tabs)/donations/rides/${ride.rideId}`)
         }
         accessibilityRole="button"
         accessibilityLabel={ride.title}

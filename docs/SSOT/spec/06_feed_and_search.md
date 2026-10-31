@@ -29,6 +29,8 @@ Non-goals (out of scope):
 
 ## FR-FEED-001 — Default feed composition
 
+> ⚠️ **Superseded by the project book** — D27 — default sort is the recommendation engine ("no algorithm" no longer holds). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.3. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 **Description.**
 The Home Feed shows public posts that the viewer is allowed to see, sorted in reverse-chronological order.
 

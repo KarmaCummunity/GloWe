@@ -71,5 +71,6 @@ export { SupabasePostTranslationReader } from './translations/SupabasePostTransl
 export { SupabaseMarketplaceRepository } from './marketplace/SupabaseMarketplaceRepository';
 export { SupabasePaymentsRepository } from './payments/SupabasePaymentsRepository';
 export { SandboxPaymentProvider } from './payments/SandboxPaymentProvider';
+export { SupabaseKcSupportChannelsRepository } from './payments/SupabaseKcSupportChannelsRepository';
 export { SupabaseVolunteerRepository } from './volunteering/SupabaseVolunteerRepository';
 export * from './admin/SupabaseWhatsAppAdminRepository';

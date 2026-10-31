@@ -6,7 +6,7 @@
 // Mapped to SRS: FR-PROFILE-002, 003, 004; FR-FOLLOW-001..006, 011, 012.
 
 import React from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,8 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useProfileClosedPosts } from '../../../src/hooks/useProfileClosedPosts';
 import { useProfileTabCounts } from '../../../src/hooks/useProfileTabCounts';
-import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { ProfileHeader } from '../../../src/components/profile/ProfileHeader';
 import { ProfileStatsRow } from '../../../src/components/profile/ProfileStatsRow';
 import { ProfileTabs, type ProfilePostsTab } from '../../../src/components/profile/ProfileTabs';
@@ -26,7 +25,10 @@ import { useAuthStore } from '../../../src/store/authStore';
 import { getUserRepo } from '../../../src/services/userComposition';
 import { getMyPostsUseCase } from '../../../src/services/postsComposition';
 import { getGetFollowStateUseCase } from '../../../src/services/followComposition';
-import { useOptimisticFollowAction, type FollowActionError } from '../../../src/hooks/useOptimisticFollowAction';
+import {
+  useOptimisticFollowAction,
+  type FollowActionError,
+} from '../../../src/hooks/useOptimisticFollowAction';
 import { useOtherProfileActions } from '../../../src/hooks/useOtherProfileActions';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
@@ -36,9 +38,13 @@ import { ProfileOverflowMenu } from '../../../src/components/profile/ProfileOver
 import { formatUserLocationLine } from '../../../src/lib/formatUserLocationLine';
 import { profilePostOwnerFromUser } from '../../../src/lib/profilePostOwnerContext';
 import { getRestoredProfileTab, persistProfileTab } from '../../../src/lib/profileTabSession';
-import { useOtherProfileScreenStyles } from '../../../src/components/profile/otherProfileScreen.styles';
+import {
+  useOtherProfileScreenStyles,
+} from '../../../src/components/profile/otherProfileScreen.styles';
 import { nativeStackHeaderRightIconOnly } from '../../../src/navigation/nativeHeaderIconOnly';
-import { ProfileMarketplaceListings } from '../../../src/components/profile/ProfileMarketplaceListings';
+import {
+  ProfileMarketplaceListings,
+} from '../../../src/components/profile/ProfileMarketplaceListings';
 
 export default function OtherProfileScreen() {
   const styles = useOtherProfileScreenStyles();
@@ -179,19 +185,14 @@ export default function OtherProfileScreen() {
             followingCount={u.followingCount}
             postsCount={tabCounts.totalCount ?? 0}
             enabled
-            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers' as never, params: { handle } } as never)}
-            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following' as never, params: { handle } } as never)}
+            onPressFollowers={() => router.push({ pathname: '/user/[handle]/followers', params: { handle } })}
+            onPressFollowing={() => router.push({ pathname: '/user/[handle]/following', params: { handle } })}
           />
-
-          <View style={styles.karmaRow}>
-            <Text style={styles.karmaLabel}>{t('karma.badgeLabel')}</Text>
-            <Text style={styles.karmaValue}>{u.karmaPoints}</Text>
-          </View>
 
           {showAdminLink ? (
             <TouchableOpacity
               style={styles.adminLink}
-              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]' as never, params: { userId: u.userId } } as never)}
+              onPress={() => router.push({ pathname: '/(admin)/admins/[userId]', params: { userId: u.userId } })}
             >
               <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
               <Text style={styles.adminLinkText}>{t('admin.admins.profileLink')}</Text>

@@ -10,11 +10,11 @@
 //   - optional leading icon (rendered on the trailing edge so RTL puts it on the
 //     left like the welcome buttons do).
 import React from 'react';
-import { ActivityIndicator, Platform, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Platform, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { isLayoutRtl } from '../../lib/rtlLayout';
 

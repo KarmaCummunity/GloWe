@@ -39,7 +39,7 @@ jobs:
       # matching_settings.llm_rerank_enabled = false), so deploying it before the key exists is safe.
       FUNCTIONS: ${{ inputs.functions || 'delete-account match-rerank' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Guard – dev project only
         run: |
@@ -52,7 +52,7 @@ jobs:
             test -d "supabase/functions/$f" || { echo "::error::no such function: $f"; exit 1; }
           done
 
-      - uses: supabase/setup-cli@v3
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
         with:
           # Keep in sync with db-deploy.yml — bump both in the same PR.
           version: 2.99.0
@@ -61,5 +61,5 @@ jobs:
         run: |
           set -euo pipefail
           for f in $FUNCTIONS; do
-            supabase functions deploy "$f" --project-ref "$KC_DEV_REF"
+            supabase functions deploy "$f" --project-ref "$KC_DEV_REF" --use-api
           done

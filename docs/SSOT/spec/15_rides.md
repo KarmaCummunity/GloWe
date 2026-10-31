@@ -1,5 +1,7 @@
 # 2.14 Rides (Hitchhiking V2.0 → V3.0 — Carpooling for Good)
 
+> ⚠️ **Superseded in part by the project book** — D70–D75 (one rides flow, official places, map, bookings, saved routes, quick publish and feed; gaps G44–G49). Binding text: `docs/spec/05_giving_worlds.md` §5.3. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 > **Status:** 🟡 V2.0 minimal product shipped 2026-05-26 (FR-RIDE-001..010 ✅); UI temporarily hidden 2026-05-28 (D-51) while backend hardens. FR-RIDE-011 schema ✅ + FR-RIDE-012 application layer ✅. Backend participants (013–022) ✅ shipped. **V3.0 (2026-05-29) — D-55 supersedes D-51**: rides UI is restored alongside FR-RIDE-019 + FR-RIDE-023..045 to cover the full PRD scope (advanced publish, driver dashboard, active-ride lifecycle, emergency button, ratings, business rules, cross-world). Requires migrations `0122`..`0152` (existing) + `0161`..`0170` (new) on dev DB before runtime use.
 
 Prefix: `FR-RIDE-*`
@@ -310,6 +312,8 @@ Prefix: `FR-RIDE-*`
 ---
 
 ## FR-RIDE-038 — Rating aggregation + display
+
+> ⚠️ **Superseded by the project book** — D24 — users never see ratings, not even their own (gap G4). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.7. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
 - AC1. New view `user_ride_rating_summary`: `user_id`, `ratings_count`, `avg_stars` (rounded to 1 decimal), `last_rated_at`.
 - AC2. Profile screen renders the avg + count (`⭐ 4.8 · 27 דירוגי נסיעות`) only when `ratings_count >= 3` (privacy threshold; below 3, show "**עדיין מעט דירוגים**").
 - AC3. Ride detail screen renders the owner's avg under their name.

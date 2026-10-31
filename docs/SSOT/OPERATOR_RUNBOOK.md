@@ -42,6 +42,15 @@ supabase db push --dry-run --include-all --linked --yes   # → "Remote database
 
 ---
 
+## Adding a CI lane needs a judge-first PR {#ci-lane-judge-first}
+
+On pull requests, `ci.yml` runs the gate judges (`scripts/ci-changes.mjs`, `scripts/ci-gate.mjs`) from the **base** branch, so a PR cannot weaken its own gate (`D-195`). The flip side: a PR that adds a lane job to `ci.yml` together with the judge changes fails `CI gate` with `job "<lane>" is not in the change detector's plan`, because the base judges do not know the lane yet. Ship it in two PRs:
+
+1. **Judge-first PR** — teach `ci-changes.mjs` / `ci-gate.mjs` (and `check-required-checks-drift.mjs` if needed) about the lane **without** adding the job to `ci.yml`, in a form the current judges and the current `ci.yml` still pass (e.g. an optional lane that is named in the plan only when needed, like `release`).
+2. **Lane PR** — after the first merges, add the job to `ci.yml`.
+
+---
+
 ## 0001 — Foundation & Identity {#0001}
 
 Verify: sign in with Google → confirm row appears in `public.users` with Google name + avatar → re-sign-in must not create a duplicate row.
@@ -351,7 +360,7 @@ The `backfill-image-thumbs` Edge Function scans `post-images` and `avatars` buck
 From a machine with the Supabase CLI logged in (or a service-role JWT in `$SR`):
 
 ```bash
-SUPABASE_REF=roeefqpdbftlndzsvhfj
+SUPABASE_REF=enbqriuxvvuontiwslun
 SR="$(cat ~/.kc-dev-secrets.env | grep SUPABASE_SERVICE_ROLE_KEY | cut -d= -f2-)"
 
 # Dry-run first to see what would be processed:
@@ -398,6 +407,63 @@ Re-invoke until every entry's `more` is `false`.
 Same flow, swap `SUPABASE_REF` and use the prod service-role bearer. The function is deployed automatically by `.github/workflows/supabase-functions-deploy.yml` when `supabase/functions/**` changes land on `main`.
 
 ---
+
+## KC support channels — donations to KC (FR-DONATE-011, migration `0447`)
+
+The Money hub's *Support KC directly* card reads its payment links from `public.kc_support_channels`. Changing a row changes the app immediately — **no release**. Only super admins can write (RLS); the URL must be `https://` with no credentials (CHECK).
+
+| `channel` | Shown as | Seeded |
+|---|---|---|
+| `bit` | One-time — Bit (interim, D64) | ✅ (FR-DONATE-010 link) |
+| `paybox` | One-time — PayBox (interim, D64) | ✅ (FR-DONATE-010 link) |
+| `card_one_time` | One-time — credit-card hosted page | ❌ add after Grow setup |
+| `card_standing_order` | Monthly standing order — hosted page | ❌ add after Grow setup |
+
+### Add / replace a provider page (e.g. Grow, launch plan A11)
+
+Create two hosted pages in the Grow dashboard (one-time; recurring monthly), then run against **dev first**, check the app, then prod:
+
+```sql
+insert into public.kc_support_channels (channel, url, provider_label)
+values
+  ('card_one_time',       'https://<grow one-time page>', 'Grow'),
+  ('card_standing_order', 'https://<grow recurring page>', 'Grow')
+on conflict (channel) do update
+  set url = excluded.url, provider_label = excluded.provider_label, is_active = true;
+```
+
+As soon as an active `card_one_time` row exists, the app hides Bit / PayBox on its own (D64) — on the Money hub and on the About / Settings card. Once clearing is confirmed working on prod, remove the interim rows for good: `delete from public.kc_support_channels where channel in ('bit', 'paybox');`
+
+The app has **no compiled payment links**: if this table cannot be read, donors see "unavailable" rather than a stale link.
+
+Pause a channel: `update public.kc_support_channels set is_active = false where channel = '<channel>';`
+
+### Standing-order cancellation requests (legal obligation)
+
+A donor's *Request to cancel a standing order* posts `בקשה לביטול הוראת הקבע שלי לתמיכה בקהילת קארמה.` (en: *Request to cancel my standing order…*) to their support thread with the super admin. The app promises cancellation **within 3 business days** (Israeli Consumer Protection Law §13D): cancel the recurring transaction in the provider dashboard, then confirm in the same chat.
+
+### Sandbox org-payments flow
+
+The in-app verified-nonprofit donation flow (#850) is sandbox-only and hidden by default. To exercise it on dev: `update public.app_flags set enabled = true where key = 'money_in_app_org_payments';` — never on prod until a real provider is wired.
+
+## Ops health alerts {#ops-health-alerts}
+
+The hourly **Ops health monitor** (`.github/workflows/ops-health.yml`, G42) reads `ops.run_health_checks()` (migration `0463`) on dev and prod and keeps one GitHub issue per failing check, labelled `ops-alert` + `ops:<env>` + `ops:<severity>` and assigned to the PM (GitHub emails the assignee). The issue updates when the value changes and **closes itself** once the check is ok again. Issues are public: they carry counts and job names only, never user data.
+
+**Tune, don't patch:** thresholds, severity and on/off live in `ops.health_checks` rows. Change them with a migration (e.g. `update ops.health_checks set threshold = 5 where check_key = '…'`). To try the monitor without opening issues: run the workflow manually with **dry_run**.
+
+| Check | Means | First step |
+| --- | --- | --- |
+| `health_report_unavailable` | The monitor could not read the report (token, project ref, network, or migration `0463` missing). | Open the failed workflow run; check the environment's `SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF` and that `0463` is applied. |
+| `scheduled_jobs_failed` | A `pg_cron` job failed in the last 24 h (job names in the detail). | `select * from cron.job_run_details where status = 'failed' order by start_time desc limit 20;` and fix the job's function. |
+| `notifications_backlog` | Notifications waited > 15 min undispatched: the dispatcher is down. | Check `dispatch-notification` logs and the trigger that calls it. |
+| `notifications_push_failures` | More than 10 push sends failed in 24 h (skips like `no_devices` excluded). | Group `notifications_outbox.last_error` for the last day; Expo push credentials are the usual cause. |
+| `matching_errors` | Automatic matching failed for some listings (`match_listing_state.last_error`). | Read the `last_error` values; see `docs/SSOT/MATCHING_V2.md`. |
+| `rides_bookings_unconfirmed` | Seat bookings passed their confirm-by deadline without a driver decision. | Expected until booking expiry ships (S45, G47); otherwise check the confirm flow. |
+| `rides_open_after_departure` | Ride offers still open 6 h after departure. | Expected until per-type expiry ships (D21, G32); otherwise check the expiry job. |
+| `rides_trips_not_completed` | Confirmed seats not completed a day after departure. | Check the completion flow (`complete_ride_trip`); users may need a reminder. |
+
+**Adding a check** (any giving world): a migration with a `stable` function `ops.check_<key>()` returning `ops.health_result` (count + data-free detail) and a row in `ops.health_checks`; extend `supabase/tests/0463_ops_health_registry.sql` or the world's own test.
 
 ## Publishing legal documents (FR-SETTINGS-010)
 

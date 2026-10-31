@@ -2,9 +2,12 @@ import type {
   ExternalBodyOption,
   GivingHandoffSnapshot,
   ListingKindOption,
+  WorldSubcategory,
   MarketplaceBrowseRow,
   MarketplaceListingDetail,
   MarketplaceMapCluster,
+  MarketplaceMapPin,
+  MapBounds,
   MarketplaceSimilarListing,
   MyGivingHandoffRow,
   MyListingRow,
@@ -72,10 +75,14 @@ export interface IMarketplaceRepository {
     neLng: number;
     worldSlug?: string | null;
   }): Promise<MarketplaceMapCluster[]>;
+  /** Individual approximate pins in a viewport (client clusters them). */
+  mapPins(bounds: MapBounds & { worldSlug?: string | null; limit?: number }): Promise<MarketplaceMapPin[]>;
   getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null>;
   getListingDetail(listingId: string): Promise<MarketplaceListingDetail | null>;
   similarListings(listingId: string, limit?: number): Promise<MarketplaceSimilarListing[]>;
   listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]>;
+  /** Active subcategories of a giving world, in display order (KC#1296). */
+  listWorldSubcategories(worldSlug: string): Promise<WorldSubcategory[]>;
   /** Active + verified organisations for a routed world (search_external_bodies). */
   searchExternalBodies(worldSlug: string, query?: string | null, limit?: number): Promise<ExternalBodyOption[]>;
   createListing(input: {
@@ -91,6 +98,8 @@ export interface IMarketplaceRepository {
     mediaPaths?: string[];
     /** Required for routed worlds (medical / animals / environment). */
     externalBodyId?: string | null;
+    /** The giver's world subcategory; must belong to the listing's world (0462). */
+    categoryId?: string | null;
     urgencyLevel?: number;
     availabilityStatus?: string;
   }): Promise<string>;

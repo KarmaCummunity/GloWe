@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 import { expectNoRawI18nKeys, gotoApp, trackApiErrors } from '../../lib/app';
-import { rest, runTag, sessionFor } from '../../lib/api';
+import { cleanupE2eContent, rest, runTag, sessionFor } from '../../lib/api';
 import { STORAGE_B, USER_A } from '../../lib/env';
 
 async function anyOpenItemListing(): Promise<{ listing_id: string; title: string }> {
@@ -101,4 +101,8 @@ test.describe.serial('create + reserve', () => {
     await expect(page.getByText('שריון הפריט', { exact: true })).toHaveCount(0, { timeout: 20_000 });
     await ctx.close();
   });
+});
+
+test.afterAll(async () => {
+  await cleanupE2eContent(USER_A);
 });

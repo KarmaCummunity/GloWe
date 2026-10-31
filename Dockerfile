@@ -35,20 +35,24 @@ ENV EXPO_PUBLIC_WEB_BASE_URL=${EXPO_PUBLIC_WEB_BASE_URL}
 
 RUN pnpm build:web
 
+# Server package (hono + @hono/node-server, pure JS) with production deps at
+# the exact versions in app/pnpm-lock.yaml — the same ones CI tests. A bare
+# `npm install` here resolved whatever was newest at build time.
+RUN pnpm --filter @kc/web-server deploy --prod /repo/web-server-deploy
+
 # ─── Stage 2: Hono server with OG meta + static SPA + SPA fallback ────
 FROM node:20-alpine AS runner
 WORKDIR /srv
 
-# Server package brings hono + @hono/node-server only. Tiny dep surface.
-# Use `npm install` (not `npm ci`): the 2-dep server doesn't need a committed
-# lockfile, and `npm ci` hard-fails the build if the lockfile isn't in the build
-# context (the Railway crash on 2026-06-04). Matches the proven `main` Dockerfile.
-COPY --from=builder /repo/app/apps/mobile/web-server/package.json ./package.json
-RUN npm install --omit=dev
-
-COPY --from=builder /repo/app/apps/mobile/web-server/server.mjs ./server.mjs
-COPY --from=builder /repo/app/apps/mobile/web-server/i18n ./i18n
+COPY --from=builder /repo/web-server-deploy/package.json ./package.json
+COPY --from=builder /repo/web-server-deploy/node_modules ./node_modules
+COPY --from=builder /repo/web-server-deploy/server.mjs ./server.mjs
+COPY --from=builder /repo/web-server-deploy/i18n ./i18n
 COPY --from=builder /repo/app/apps/mobile/dist ./dist
+
+# Run as the image's built-in unprivileged user (node:alpine ships `node`).
+RUN chown -R node:node /srv
+USER node
 
 ENV PORT=3000
 ENV WEB_DIST_DIR=/srv/dist

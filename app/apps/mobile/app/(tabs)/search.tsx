@@ -4,15 +4,13 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import type { SearchResultType, SearchSortBy } from '@kc/domain';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +23,7 @@ import { Screen } from '../../src/components/ui/Screen';
 import { MotionEntry, ENTRY_DELAY } from '../../src/components/ui/MotionEntry';
 import { useSearchScreenAside } from '../../src/components/aside/useSearchScreenAside';
 import { useDebouncedSearchInput } from '../../src/hooks/useDebouncedSearchInput';
-import { useSearchScreenStyles } from './search.styles';
+import { useSearchScreenStyles } from '../../src/screens/tabs/search.styles';
 import { SearchSuggestedQueries } from '../../src/components/search/SearchSuggestedQueries';
 import { SearchRecentSection } from '../../src/components/search/SearchRecentSection';
 import { SearchResultSections } from '../../src/components/search/SearchResultSections';

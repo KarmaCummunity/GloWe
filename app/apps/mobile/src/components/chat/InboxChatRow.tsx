@@ -1,10 +1,10 @@
 // Single inbox row — FR-CHAT-001, FR-CHAT-016.
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { ChatWithPreview } from '@kc/application';
-import { makeUseStyles, typography, spacing, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, useTheme, Text } from '@kc/ui';
 import { AvatarInitials } from '../AvatarInitials';
 import { OnlineDot } from './OnlineDot';
 import { formatRelativeChatTime } from '../../lib/formatRelativeChatTime';
@@ -23,23 +23,27 @@ function InboxChatRowInner({ item, onOpen, onRequestHide }: Props) {
   const { t } = useTranslation();
   const styles = useInboxChatRowStyles();
   const { colors } = useTheme();
+  // Some inbox rows (support/system chats, deleted peers) arrive without a
+  // participant; never dereference it blindly.
+  const other = item.otherParticipant;
+  const otherName = other?.displayName ?? t('common.deletedUser');
   return (
     <View style={styles.chatRow}>
       <TouchableOpacity style={styles.chatRowMain} onPress={() => onOpen(item.chatId)}>
         <View>
           <AvatarInitials
-            name={item.otherParticipant.displayName ?? t('common.deletedUser')}
-            avatarUrl={item.otherParticipant.avatarUrl}
+            name={otherName}
+            avatarUrl={other?.avatarUrl ?? null}
             size={48}
           />
-          <OnlineDot userId={item.otherParticipant.isDeleted ? null : item.otherParticipant.userId} />
+          <OnlineDot userId={!other || other.isDeleted ? null : other.userId} />
         </View>
         <View style={styles.chatInfo}>
           <View style={styles.chatHeader}>
             <Text style={styles.chatTime}>
               {formatRelativeChatTime(item.lastMessage?.createdAt ?? item.lastMessageAt)}
             </Text>
-            <Text style={styles.chatName}>{item.otherParticipant.displayName ?? t('common.deletedUser')}</Text>
+            <Text style={styles.chatName}>{otherName}</Text>
           </View>
           <Text style={styles.chatPreview} numberOfLines={1}>
             {formatInboxPreview(item.lastMessage, t)}
@@ -56,7 +60,7 @@ function InboxChatRowInner({ item, onOpen, onRequestHide }: Props) {
         <View style={{ width: 22 }} />
       )}
       <Pressable
-        onPress={() => onRequestHide(item.chatId, item.otherParticipant.userId)}
+        onPress={() => onRequestHide(item.chatId, other?.userId ?? null)}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         accessibilityRole="button"
         accessibilityLabel={t('chat.hideChatA11y')}

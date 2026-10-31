@@ -4,9 +4,9 @@
 // super admins. Dimmed once a later mod_action_taken bubble references this
 // message.
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { router } from 'expo-router';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import { hasPermission, type AdminRole } from '@kc/domain';
 import { useAdminRoles } from '../../../hooks/useAdminRoles';
 import { useAdminPortalReportsFlag } from '../../../hooks/useAdminPortalReportsFlag';

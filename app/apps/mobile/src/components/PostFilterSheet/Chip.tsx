@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { Pressable } from 'react-native';
+import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 
 interface ChipProps {
   label: string;

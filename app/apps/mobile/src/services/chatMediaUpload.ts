@@ -35,7 +35,8 @@ export async function uploadChatImageAndSend(
   );
   if (!manipulated.base64) throw new Error('chat_media_encode_failed');
   const objectId = Crypto.randomUUID();
-  const path = `${chatId}/${userId}/${objectId}.jpg`;
+  // userId first — matches storage RLS on (storage.foldername(name))[1] like other buckets.
+  const path = `${userId}/${chatId}/${objectId}.jpg`;
   const client = getSupabaseClient();
   const bytes = base64ToUint8Array(manipulated.base64);
   const { error: upErr } = await client.storage.from(BUCKET).upload(path, bytes, {

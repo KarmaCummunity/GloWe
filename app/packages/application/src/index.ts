@@ -18,22 +18,7 @@ export type { IUserRealtime } from './ports/IUserRealtime';
 export type { IRidesRealtime, RidesRealtimeCallbacks } from './ports/IRidesRealtime';
 export type { CommunityStatsSnapshot, IStatsRepository } from './ports/IStatsRepository';
 export type { IAboutRepository } from './ports/IAboutRepository';
-export * from './auth/errors';
-export * from './auth/SignUpWithEmail';
-export { ResendVerificationEmailUseCase, type ResendVerificationEmailInput } from './auth/ResendVerificationEmail';
-export { VerifyEmailUseCase, type VerifyEmailInput, type VerifyEmailOutput } from './auth/VerifyEmail';
-export * from './auth/SignInWithEmail';
-export * from './auth/SignInWithGoogle';
-export * from './auth/SignInWithApple';
-export * from './auth/SignOut';
-export * from './auth/RestoreSession';
-export * from './auth/CompleteBasicInfoUseCase';
-export * from './auth/CompleteOnboardingUseCase';
-export * from './auth/SetAvatarUseCase';
-export * from './auth/UpdateProfileUseCase';
-export * from './auth/assertSessionUser';
-export * from './auth/ReconcileAuthProfileMetadataUseCase';
-export * from './auth/DeleteAccountUseCase';
+export * from './auth';
 export * from './feed/selectGuestPreviewPosts';
 export * from './feed/GetFeedUseCase';
 export * from './feed/GetActivePostsCountUseCase';
@@ -61,7 +46,6 @@ export { ListPostActorIdentityUseCase, type ListPostActorIdentityInput } from '.
 export { UpsertPostActorIdentityUseCase } from './posts/UpsertPostActorIdentityUseCase';
 export * from './posts/AdminRemovePostUseCase';
 export * from './posts/SearchUsersForClosureUseCase';
-export * from './auth/DismissClosureExplainerUseCase';
 
 // Chat use cases
 export { SendMessageUseCase } from './chat/SendMessageUseCase';
@@ -101,7 +85,7 @@ export { UpdateDonationLinkUseCase } from './donations/UpdateDonationLinkUseCase
 export { RemoveDonationLinkUseCase } from './donations/RemoveDonationLinkUseCase';
 export { ReportDonationLinkUseCase } from './donations/ReportDonationLinkUseCase';
 export type { ReportDonationLinkInput } from './donations/ReportDonationLinkUseCase';
-export { DonationLinkError } from './donations/errors';
+export { DonationLinkError, isDonationLinkError } from './donations/errors';
 export type { DonationLinkErrorCode } from './donations/errors';
 
 // Follow use cases (P1.1)
@@ -147,6 +131,7 @@ export type { IDeviceRepository } from './notifications/IDeviceRepository';
 export { RegisterDeviceUseCase } from './notifications/RegisterDeviceUseCase';
 export { DeactivateDeviceUseCase } from './notifications/DeactivateDeviceUseCase';
 export { UpdateNotificationPreferencesUseCase } from './notifications/UpdateNotificationPreferencesUseCase';
+export { applyNotificationPreferencesPatch } from './notifications/applyNotificationPreferencesPatch';
 export * from './ports/ILegalDocumentRepository';
 export * from './legal/LoadLegalDocumentUseCase';
 export * from './legal/CheckPendingLegalAcksUseCase';
@@ -155,6 +140,7 @@ export * from './admin/IAdminRoleRepository';
 export * from './admin/GetMyAdminRolesUseCase';
 export * from './admin/GrantAdminRoleUseCase';
 export * from './admin/RevokeAdminRoleUseCase';
+export * from './admin/ChangeAdminRoleUseCase';
 export * from './admin/ListAdminsUseCase';
 export * from './admin/IAdminTaskRepository';
 export * from './admin/ListAdminTasksUseCase';
@@ -187,6 +173,7 @@ export * from './admin/DecideOrgApplicationUseCase';
 export * from './admin/IOrgHierarchyRepository';
 export * from './admin/GetOrgTreeUseCase';
 export * from './admin/SetManagerUseCase';
+export * from './admin/GetHierarchySnapshotUseCase';
 
 // A1 — admin reports inbox & case detail
 export * from './reports/IReportsRepository';

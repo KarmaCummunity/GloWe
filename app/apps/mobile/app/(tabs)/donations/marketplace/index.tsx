@@ -1,10 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { ListingCard } from '../../../../src/components/cards/ListingCard';
+import { kcGridCell } from '../../../../src/components/cards/KcCard.styles';
 import { KcFlashList } from '../../../../src/components/lists/KcFlashList';
 import { useRouter } from 'expo-router';
+import { createRouteFor } from '../../../../src/lib/unifiedCreate/createCategories';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
-import { MARKETPLACE_WORLD_SLUGS } from '@kc/domain';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
+import { MARKETPLACE_WORLD_SLUGS, isMarketplaceWorldLaunchEnabled } from '@kc/domain';
+import { useRemoteAppFlags } from '../../../../src/hooks/useLaunchWorldFlags';
 import { Screen } from '../../../../src/components/ui/Screen';
 import { EmptyState, EmptyStateActions } from '../../../../src/components/EmptyState';
 import { KcRefreshControl } from '../../../../src/components/lists/KcRefreshControl';
@@ -47,6 +51,10 @@ export default function MarketplaceBrowseScreen() {
   const router = useRouter();
   const styles = useStyles();
   const inset = useShellTabBarScrollInset();
+  const remoteFlags = useRemoteAppFlags();
+  const launchWorldSlugs = MARKETPLACE_WORLD_SLUGS.filter((slug) =>
+    isMarketplaceWorldLaunchEnabled(slug, remoteFlags),
+  );
   const [world, setWorld] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const filters = useMemo(() => ({ worldSlug: world }), [world]);
@@ -84,7 +92,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable style={[styles.chip, world === null && styles.chipActive]} onPress={() => setWorld(null)}>
           <Text style={styles.chipText}>{t('marketplace.allWorlds')}</Text>
         </Pressable>
-        {MARKETPLACE_WORLD_SLUGS.map((slug) => (
+        {launchWorldSlugs.map((slug) => (
           <Pressable
             key={slug}
             style={[styles.chip, world === slug && styles.chipActive]}
@@ -98,7 +106,7 @@ export default function MarketplaceBrowseScreen() {
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/map')}>
           <Text style={styles.link}>{t('marketplace.openMap')}</Text>
         </Pressable>
-        <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/create')}>
+        <Pressable onPress={() => router.push(createRouteFor(world))}>
           <Text style={styles.link}>{t('marketplace.createListing')}</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/(tabs)/donations/marketplace/my-listings')}>
@@ -134,7 +142,7 @@ export default function MarketplaceBrowseScreen() {
                 <EmptyStateActions
                   primary={{
                     label: t('emptyStates.marketplaceCreate'),
-                    onPress: () => router.push('/(tabs)/donations/marketplace/create'),
+                    onPress: () => router.push(createRouteFor(world)),
                     testID: 'marketplace-empty-create',
                   }}
                   secondary={
@@ -147,17 +155,14 @@ export default function MarketplaceBrowseScreen() {
             />
           )
         }
+        numColumns={2}
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.row}
+          <View style={kcGridCell}>
+          <ListingCard
+            item={item}
             onPress={() => router.push(`/(tabs)/donations/marketplace/${item.listingId}`)}
-          >
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.meta}>
-              {t(`marketplace.world.${item.worldSlug}`, { defaultValue: item.worldSlug })} ·{' '}
-              {item.direction === 'request' ? t('search.request') : t('search.give')}
-            </Text>
-          </Pressable>
+          />
+          </View>
         )}
       />
     </Screen>

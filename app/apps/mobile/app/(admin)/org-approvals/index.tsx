@@ -5,14 +5,15 @@
 // out of scope here — it lands in a separate slice when the org world
 // schema is built.
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   hasPermission, isOrgApplicationError,
   type AdminPermission, type AdminRole,
   type OrgApplication, type OrgApplicationStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text, TextInput } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { useLocaleBundle, type LocaleBundle } from '../../../src/i18n/useLocaleBundle';
@@ -84,7 +85,7 @@ export default function OrgApprovalsScreen() {
   return (
     <View style={styles.root}>
       <Text style={styles.title}>{t.title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {STATUS_TABS.map((s) => (
           <Pressable
             key={s}

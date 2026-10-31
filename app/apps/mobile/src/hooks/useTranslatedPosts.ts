@@ -5,8 +5,12 @@
 // (session skip-map) so they never re-fire.
 import { useEffect, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toTranslatableFields, deriveTranslationStatus, type TranslationStatus } from '@kc/application';
-import type { PostWithOwner } from '@kc/application';
+import {
+  toTranslatableFields,
+  deriveTranslationStatus,
+  type TranslationStatus,
+  type PostWithOwner,
+} from '@kc/application';
 import { getTranslatedPostsUseCase, materializePostTranslationsUseCase } from '../services/postsComposition';
 
 type FieldKey = string; // `${postId}:${field}`

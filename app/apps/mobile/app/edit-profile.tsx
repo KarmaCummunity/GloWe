@@ -1,14 +1,18 @@
 // FR-PROFILE-007 — Edit Profile (getEditableProfile + UpdateProfileUseCase).
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView,
-  Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text, TextInput } from '@kc/ui';
 import { EditProfileAddressBlock } from '../src/components/EditProfileAddressBlock';
 import { EditProfileAvatar } from '../src/components/EditProfileAvatar';
 import { NotifyModal } from '../src/components/NotifyModal';
@@ -17,7 +21,7 @@ import { getEditableProfile, getUpdateProfileUseCase } from '../src/services/use
 import { removeUploadedAvatar } from '../src/services/avatarUpload';
 import { mapEditProfileSaveError } from '../src/lib/editProfileSaveErrors';
 import { useUnsavedChangesGuard } from '../src/hooks/useUnsavedChangesGuard';
-import { useEditProfileStyles } from './edit-profile.styles';
+import { useEditProfileStyles } from '../src/screens/edit-profile.styles';
 
 interface InitialState {
   // Nullable after migration 0084 (user still in `pending_basic_info`). The form
@@ -58,7 +62,7 @@ export default function EditProfileScreen() {
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const p = await getEditableProfile(session.userId);
         if (cancelled) return;

@@ -2,7 +2,8 @@
 // FR-ADMIN-018 — admin tasks list screen with chip filters.
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import {
   ADMIN_TASK_CATEGORIES,
   ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
@@ -10,7 +11,7 @@ import {
   hasPermission,
 } from '@kc/domain';
 import type { AdminTaskListFilters } from '@kc/application';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminTasksList } from '../../../src/hooks/useAdminTasks';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -84,7 +85,7 @@ export default function TasksScreen() {
     <View style={styles.filterCard}>
       <Text style={styles.filterTitle}>{L.admin.tasks.filtersTitle}</Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         <FilterChip
           label={L.admin.tasks.filters.all}
           active={statusFilter === null && !overdueOnly}
@@ -110,7 +111,7 @@ export default function TasksScreen() {
         />
       </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         <FilterChip
           label={L.admin.tasks.categoryFilters.all}
           active={categoryFilter === null}
@@ -147,7 +148,7 @@ export default function TasksScreen() {
         right={can('tasks.create') ? (
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.push('/(admin)/tasks/new' as never)}
+            onPress={() => router.push('/(admin)/tasks/new')}
             style={styles.newBtn}
           >
             <Text style={styles.newBtnText}>{L.admin.tasks.newBtn}</Text>

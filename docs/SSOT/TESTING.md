@@ -6,7 +6,7 @@
 ## Pyramid
 
 1. **Unit** — `cd app && pnpm test` (vitest). Required on every PR to `dev`.
-2. **Contract / migrations** — `ci-backend`, `ci-contract`. Required on `dev`.
+2. **Contract / migrations / DB flows** — `ci-backend`, `ci-contract`. Required on `dev`. DB tests run through `scripts/run-db-tests.sh` (shared `kc_test` harness, per-migration tests, per-world lifecycle flows) — see [`supabase/tests/_harness/README.md`](../../supabase/tests/_harness/README.md).
 3. **Bundle smoke** — `scripts/smoke-web-bundle.mjs` on exported dist. Required on `dev`.
 4. **E2E (Web)** — Playwright vs `DEV_WEB_URL`. **Required** on PR `dev` → `main` (P0 journeys).
 5. **Performance** — Lighthouse + k6. Scheduled on `dev` (Wave 4); blocking only after budgets stabilize.
@@ -25,7 +25,7 @@
 
 ## E2E test user (dev only)
 
-**Canonical dev CI user** (Supabase dev `roeefqpdbftlndzsvhfj`):
+**Canonical dev CI user** (Supabase dev `enbqriuxvvuontiwslun`):
 
 | Field | Value |
 | --- | --- |
@@ -47,7 +47,7 @@ Preflight: `set -a && source ~/.kc-dev-secrets.env && set +a && node scripts/ens
 
 ## Agent test users (dev only)
 
-Two canonical "looks-real" users for AI agent testing on Supabase dev `roeefqpdbftlndzsvhfj`.
+Two canonical "looks-real" users for AI agent testing on Supabase dev `enbqriuxvvuontiwslun`.
 Unlike the CI E2E user above, these users have completed onboarding, realistic Hebrew profiles,
 and are used for multi-user interaction tests (chat, post closure, follow flows, etc.).
 

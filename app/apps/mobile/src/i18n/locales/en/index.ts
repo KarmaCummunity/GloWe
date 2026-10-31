@@ -7,7 +7,9 @@
 // Default export: full English resource tree for `react-i18next` (`src/i18n/index.ts`).
 // ─────────────────────────────────────────────
 
+import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
+import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
@@ -33,6 +35,7 @@ import { surveyEn } from './modules/survey';
 import { researchEn } from './modules/research';
 import { adminEn } from './modules/admin';
 import { karmaEn } from './modules/karma';
+import { cardsEn } from './modules/cards';
 import { asideEn } from './modules/aside';
 import { configEn } from './modules/config';
 import { followEn } from './modules/follow';
@@ -55,6 +58,7 @@ const en = {
 
   // Karma points (FR-KARMA-004/007) — see modules/karma.ts
   karma: karmaEn,
+  cards: cardsEn,
 
   // Post — see modules/post.ts
   post: postEn,
@@ -113,7 +117,10 @@ const en = {
 
   marketplace,
   moneyPayments,
+  // Direct support for KC (FR-DONATE-011) — see donations.supportKc.ts
+  supportKc,
   timeVolunteer,
+  medicalBodies,
   givingHandoff,
 
   // Search (D-16, FR-FEED-016) — see donations.ts

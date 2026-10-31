@@ -1,10 +1,15 @@
 import React from 'react';
 import {
-  ActivityIndicator, Image, Platform, Text, TouchableOpacity, View, type ViewStyle,
+  ActivityIndicator,
+  Image,
+  Platform,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { MAX_MEDIA_ASSETS } from '@kc/domain';
 import type { UploadedAsset } from '../../services/imageUpload';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

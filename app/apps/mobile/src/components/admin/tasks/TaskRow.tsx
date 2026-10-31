@@ -1,9 +1,9 @@
 // app/apps/mobile/src/components/admin/tasks/TaskRow.tsx
 // FR-ADMIN-018 — single task row for /admin/tasks list.
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { type AdminTask, isOverdue } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { TaskStatusChip } from './TaskStatusChip';
 import { TaskPriorityChip } from './TaskPriorityChip';
 import { TaskCategoryChip } from './TaskCategoryChip';
@@ -25,7 +25,7 @@ export function TaskRow({ task }: TaskRowProps) {
     <Pressable
       style={styles.root}
       onPress={() =>
-        router.push({ pathname: '/(admin)/tasks/[taskId]', params: { taskId: task.taskId } } as never)
+        router.push({ pathname: '/(admin)/tasks/[taskId]', params: { taskId: task.taskId } })
       }
     >
       <View style={styles.header}>

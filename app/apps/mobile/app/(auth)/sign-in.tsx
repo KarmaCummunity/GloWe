@@ -1,8 +1,12 @@
 // Sign-in with email/password — FR-AUTH-007 (email path)
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Image,
+  View,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,14 +19,14 @@ import Animated, {
   withSpring,
   withDelay,
 } from 'react-native-reanimated';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { mapAuthErrorToHebrew } from '../../src/services/authMessages';
 import { getSignInUseCase } from '../../src/services/authComposition';
 import { useAuthStore } from '../../src/store/authStore';
 import { VerificationPendingPanel } from '../../src/components/auth/VerificationPendingPanel';
 import { NotifyModal } from '../../src/components/NotifyModal';
-import { AuthBackground } from '../../src/components/auth/AuthBackground';
+import { AmbientBlobs } from '../../src/components/ui/AmbientBlobs';
 import { AnimatedAuthInput } from '../../src/components/auth/AnimatedAuthInput';
 import { rtlTextAlignStart } from '../../src/lib/rtlTextAlignStart';
 import { AuthSocialSignInBlock } from '../../src/components/auth/AuthSocialSignInBlock';
@@ -82,7 +86,7 @@ export default function SignInScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AuthBackground />
+      <AmbientBlobs density="auth" />
       <Animated.View style={[{ flex: 1 }, screenStyle]}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={styles.content}>
@@ -90,7 +94,7 @@ export default function SignInScreen() {
             {/* Header */}
             <Animated.View style={[styles.header, headerStyle]}>
               <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                <Ionicons name="arrow-forward" size={22} color="#F97316" />
+                <Ionicons name="arrow-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
               <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
             </Animated.View>
@@ -125,7 +129,11 @@ export default function SignInScreen() {
                   secureTextEntry
                   editable={!loading}
                 />
-                <TouchableOpacity disabled={loading}>
+                <TouchableOpacity
+                  testID="auth-forgot-password"
+                  disabled={loading}
+                  onPress={() => router.push({ pathname: '/(auth)/forgot-password', params: { email } })}
+                >
                   <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
                 </TouchableOpacity>
                 <SubmitButton label={t('auth.signIn')} loading={loading} onPress={handleSignIn} />

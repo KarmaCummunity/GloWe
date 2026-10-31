@@ -1,9 +1,9 @@
 // FR-AUTH-006 — verification-pending state shown inside sign-up and sign-in screens.
 // Renders email-icon header, three actions: open mail, resend (60s cooldown), change email.
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { isAuthError } from '@kc/application';
 import { mapAuthErrorToHebrew } from '../../services/authMessages';
 import {

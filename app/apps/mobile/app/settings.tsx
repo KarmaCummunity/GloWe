@@ -1,11 +1,11 @@
 // Settings screen stub — SRS §3.5, FR-AUTH-017 (logout)
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { PlatformSwitch, spacing, useTheme } from '@kc/ui';
+import { PlatformSwitch, spacing, useTheme, Text } from '@kc/ui';
 import { BackButton } from '../src/components/BackButton';
 import { useIsSuperAdmin } from '../src/hooks/useIsSuperAdmin';
 import { useAdminRoles } from '../src/hooks/useAdminRoles';
@@ -21,7 +21,7 @@ import { SettingsScreenRow } from '../src/components/SettingsScreenRow';
 import { ConfirmActionModal } from '../src/components/post/ConfirmActionModal';
 import { usePrivateProfileToggle } from '../src/hooks/usePrivateProfileToggle';
 import { useActiveStatusSetting } from '../src/hooks/useActiveStatusSetting';
-import { useSettingsScreenStyles } from './settings.styles';
+import { useSettingsScreenStyles } from '../src/screens/settings.styles';
 import { getUserRepo } from '../src/services/userComposition';
 /** Metro `__DEV__` is false in release; set `EXPO_PUBLIC_DEV_SETTINGS_TOOLS=1` for internal builds only. */
 const SHOW_SETTINGS_DEBUG_TOOLS =
@@ -106,7 +106,7 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.appearance')}
             icon="contrast-outline"
-            onPress={() => router.push('/settings/appearance' as never)}
+            onPress={() => router.push('/settings/appearance')}
           />
         </View>
 
@@ -115,7 +115,12 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.language')}
             icon="globe-outline"
-            onPress={() => router.push('/settings/language' as never)}
+            onPress={() => router.push('/settings/language')}
+          />
+          <SettingsScreenRow
+            label={t('settings.whatsappRow')}
+            icon="logo-whatsapp"
+            onPress={() => router.push('/settings/whatsapp')}
           />
         </View>
 
@@ -124,7 +129,7 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.translationLanguage')}
             icon="language-outline"
-            onPress={() => router.push('/settings/translation-language' as never)}
+            onPress={() => router.push('/settings/translation-language')}
           />
         </View>
 
@@ -133,12 +138,12 @@ export default function SettingsScreen() {
           <SettingsScreenRow
             label={t('settings.notifications')}
             icon="notifications-outline"
-            onPress={() => router.push('/settings/notifications' as never)}
+            onPress={() => router.push('/settings/notifications')}
           />
           <SettingsScreenRow
             label={t('feedSettings.settingsRow')}
             icon="options-outline"
-            onPress={() => router.push('/settings/feed' as never)}
+            onPress={() => router.push('/settings/feed')}
           />
         </View>
 
@@ -171,7 +176,7 @@ export default function SettingsScreen() {
             <SettingsScreenRow
               label={t('settings.followRequests')}
               icon="people-outline"
-              onPress={() => router.push('/settings/follow-requests' as never)}
+              onPress={() => router.push('/settings/follow-requests')}
             />
           ) : null}
         </View>
@@ -205,7 +210,7 @@ export default function SettingsScreen() {
             <SettingsScreenRow
               label={t('audit.title')}
               icon="document-text-outline"
-              onPress={() => router.push('/settings/audit' as never)}
+              onPress={() => router.push('/settings/audit')}
             />
           ) : null}
           {adminRoles.length > 0 ? (

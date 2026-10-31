@@ -1,10 +1,10 @@
 // app/apps/mobile/src/components/admin/admins/ManagerPickerModal.tsx
-// FR-ADMIN-025 — pick a direct manager for a grant from the same org (or detach
-// to a tree root). Cycle/scope rules are enforced server-side; this list only
-// excludes the grant itself.
-import { Modal, Pressable, Text, View } from 'react-native';
+// FR-ADMIN-025 / FR-ADMIN-030 — pick a direct manager for a grant, or detach
+// it to a tree root. The caller passes only candidates the viewer may choose
+// (GrantAuthority `managerCandidatesFor`, FR-ADMIN-027); the server re-checks.
+import { Modal, Pressable } from 'react-native';
 import type { OrgTreeMember } from '@kc/domain';
-import { makeUseStyles, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { AvatarInitials } from '../../AvatarInitials';
 import { RoleBadge } from './RoleBadge';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
@@ -15,14 +15,15 @@ export interface ManagerPickerModalProps {
   readonly visible: boolean;
   readonly candidates: readonly OrgTreeMember[];
   readonly busy?: boolean;
+  /** Detaching to a root is offered only to the platform super_admin. */
+  readonly allowDetach: boolean;
   readonly onPick: (managerGrantId: string | null) => void;
   readonly onClose: () => void;
 }
 
 export function ManagerPickerModal(props: ManagerPickerModalProps) {
-  const { visible, candidates, busy, onPick, onClose } = props;
+  const { visible, candidates, busy, allowDetach, onPick, onClose } = props;
   const styles = useStyles();
-  const { colors } = useTheme();
   const L = useLocaleBundle();
 
   return (
@@ -32,14 +33,16 @@ export function ManagerPickerModal(props: ManagerPickerModalProps) {
           <Text style={styles.title}>{L.admin.admins.managerPicker.title}</Text>
           <Text style={styles.hint}>{L.admin.admins.managerPicker.hint}</Text>
 
-          <Pressable
-            accessibilityRole="button"
-            disabled={busy}
-            onPress={() => onPick(null)}
-            style={styles.detach}
-          >
-            <Text style={styles.detachText}>{L.admin.admins.managerPicker.detach}</Text>
-          </Pressable>
+          {allowDetach && (
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy}
+              onPress={() => onPick(null)}
+              style={styles.detach}
+            >
+              <Text style={styles.detachText}>{L.admin.admins.managerPicker.detach}</Text>
+            </Pressable>
+          )}
 
           <KcFlashList
             data={candidates}
@@ -69,7 +72,7 @@ export function ManagerPickerModal(props: ManagerPickerModalProps) {
           />
 
           <Pressable accessibilityRole="button" onPress={onClose} style={styles.cancel}>
-            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
+            <Text style={styles.cancelText}>
               {L.admin.admins.managerPicker.cancel}
             </Text>
           </Pressable>
@@ -80,25 +83,25 @@ export function ManagerPickerModal(props: ManagerPickerModalProps) {
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
+  backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.lg },
   sheet: {
-    backgroundColor: colors.background, borderRadius: radius.lg, padding: 16, gap: 8,
+    backgroundColor: colors.background, borderRadius: radius.lg, padding: spacing.base, gap: spacing.sm,
     width: '100%', maxWidth: 480, alignSelf: 'center', maxHeight: '80%',
   },
-  title: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  hint:  { fontSize: 12, color: colors.textSecondary, textAlign: textAlignStart() },
+  title: { ...typography.body, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  hint:  { ...typography.caption, color: colors.textSecondary, textAlign: textAlignStart() },
   detach: {
-    paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10,
+    paddingVertical: spacing.md, paddingHorizontal: spacing.md, borderRadius: radius.md,
     backgroundColor: colors.surface,
   },
-  detachText: { fontSize: 13, fontWeight: '700', color: colors.primary, textAlign: textAlignStart() },
+  detachText: { ...typography.bodySmall, ...typography.bold, color: colors.primary, textAlign: textAlignStart() },
   list: { flexGrow: 0 },
   row: {
-    flexDirection: rowDirectionStart, alignItems: 'center', gap: 10,
-    paddingVertical: 8, paddingHorizontal: 4,
+    flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.md,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.xs,
   },
-  name: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.textPrimary, textAlign: textAlignStart() },
-  empty: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', padding: 16 },
-  cancel: { paddingVertical: 10, alignItems: 'center' },
-  cancelText: { fontSize: 14, fontWeight: '700' },
+  name: { ...typography.body, ...typography.semiBold, flex: 1, color: colors.textPrimary, textAlign: textAlignStart() },
+  empty: { ...typography.bodySmall, color: colors.textSecondary, textAlign: 'center', padding: spacing.base },
+  cancel: { paddingVertical: spacing.md, alignItems: 'center' },
+  cancelText: { ...typography.body, ...typography.bold, color: colors.textSecondary },
 }));

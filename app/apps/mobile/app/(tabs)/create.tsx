@@ -1,14 +1,16 @@
+// Unified Create — ONE form for every domain (feed post + marketplace worlds).
+// Category picker + request/offer toggle on top; fields adapt via lib/unifiedCreate config.
 // Create Post — wired to IPostRepository (P0.4-FE).
 // Mapped to: FR-POST-001..006 (incl. FR-POST-003 visibility + FR-POST-006 followers publish confirm), FR-POST-021 (D-31 partner-surface mask + collapsible exposure settings), FR-POST-007 (local draft autosave + resume), FR-POST-010 (delete) lives elsewhere.
 // FR-AUTH-015 soft-gate preserved from #12 — Publish wraps publish.mutate() with requestSoftGate.
 // FR-NOTIF-015 AC1: push pre-prompt fires after first post published.
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { Screen } from '../../src/components/ui/Screen';
 import { useAuthStore } from '../../src/store/authStore';
 import { useSoftGate } from '../../src/components/OnboardingSoftGate';
@@ -26,9 +28,11 @@ import { NotifyModal } from '../../src/components/NotifyModal';
 import { ConfirmActionModal } from '../../src/components/post/ConfirmActionModal';
 import { DraftResumeModal } from '../../src/components/post/DraftResumeModal';
 import { getUserRepo } from '../../src/services/userComposition';
-import { useCreatePostStyles } from './create.styles';
+import { useCreatePostStyles } from '../../src/screens/tabs/create.styles';
 import { useCreatePostPublish } from '../../src/hooks/useCreatePostPublish';
 import { CreatePostFormScrollContent } from '../../src/components/CreatePostForm/CreatePostFormScrollContent';
+import { useUnifiedCreateCategory } from '../../src/hooks/useUnifiedCreateCategory';
+import { MarketplaceCreateForm } from '../../src/components/marketplace/MarketplaceCreateForm';
 
 export default function CreatePostScreen() {
   const { t } = useTranslation();
@@ -50,6 +54,8 @@ export default function CreatePostScreen() {
   } = useCreatePostAddressPrefill(ownerId);
 
   const form = useCreatePostFormState();
+  const { activeCategory, direction, header } = useUnifiedCreateCategory(form.type, form.setType);
+
 
   const draftHydration = usePostDraftHydration(ownerId);
 
@@ -166,6 +172,7 @@ export default function CreatePostScreen() {
           <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('tabs.newPost')}</Text>
+        {activeCategory.engine === 'post' ? (
         <TouchableOpacity
           style={styles.publishBtn}
           onPress={tryPublish}
@@ -178,11 +185,26 @@ export default function CreatePostScreen() {
             <Text style={styles.publishBtnText}>{t('post.publish')}</Text>
           )}
         </TouchableOpacity>
+        ) : (
+          <View style={styles.headerClose} />
+        )}
       </View>
 
+      {activeCategory.engine === 'listing' && activeCategory.worldSlug ? (
+        <MarketplaceCreateForm
+          key={activeCategory.worldSlug}
+          worldSlug={activeCategory.worldSlug}
+          header={header}
+          direction={direction}
+          title={form.title}
+          onTitleChange={form.setTitle}
+          summary={form.description}
+          onSummaryChange={form.setDescription}
+          onPublished={(id) => router.replace(`/(tabs)/donations/marketplace/${id}`)}
+        />
+      ) : (
       <CreatePostFormScrollContent
-        type={form.type}
-        onTypeChange={form.setType}
+        header={header}
         title={form.title}
         onTitleChange={form.setTitle}
         city={city}
@@ -219,6 +241,7 @@ export default function CreatePostScreen() {
         onRemovePhoto={handleRemove}
         onPublishPress={tryPublish}
       />
+      )}
 
       <DraftResumeModal
         visible={draftHydration.status.phase === 'ready'}

@@ -6,10 +6,10 @@
 //   deleted_no_recipient (past grace) → no CTA (post is on its way out)
 //   removed_admin / expired           → no CTA
 import { useEffect, useState } from 'react';
-import { View, Pressable, Text, ActivityIndicator } from 'react-native';
+import { View, Pressable, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { makeUseStyles, radius, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import type { Post } from '@kc/domain';
 import { isPostError, type PostErrorCode } from '@kc/application';
 import { useClosureStore } from '../../store/closureStore';
@@ -21,6 +21,7 @@ import { ClosureSheet } from './ClosureSheet';
 import { ClosureExplainerSheet } from './ClosureExplainerSheet';
 import { ReopenConfirmModal } from './ReopenConfirmModal';
 import { hapticSuccess } from '../../lib/haptics';
+import { trackSocialHandoverCompleted } from '../../lib/trackSocialHandoverCompleted';
 
 interface Props {
   post: Post;
@@ -61,6 +62,7 @@ export function OwnerActionsBar(props: Readonly<Props>) {
   useEffect(() => {
     if (closureStep !== 'done' || closureInitiator === 'chat') return;
     hapticSuccess();
+    trackSocialHandoverCompleted(post);
     const closedPostId = post.postId;
     resetClosure();
     void (async () => {

@@ -1,22 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, Text, TextInput } from '@kc/ui';
 import type { ListingKindOption } from '@kc/domain';
-import { RIDE_ROUTE_DETAIL_KEYS, ROUTED_WORLDS, validateListingDetails } from '@kc/domain';
+import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
+import {
+  findCreateCategory,
+  hasCreateField,
+  type CreateDirection,
+} from '../../lib/unifiedCreate/createCategories';
+import { buildListingCreatePayload } from '../../lib/unifiedCreate/unifiedCreatePayload';
 import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
 import { RideRouteFields } from '../giving/RideRouteFields';
 import { ExternalBodyPicker } from './ExternalBodyPicker';
+import { WorldSubcategoryPicker } from './WorldSubcategoryPicker';
+import { useListingChipStyles } from './listingChipStyles';
 import {
   pickListingImages,
   uploadListingImages,
@@ -29,55 +35,62 @@ import {
   marketplaceServerErrorKey,
   type MarketplaceRuleFieldError,
 } from '../../lib/marketplaceCreateErrors';
-import { track } from '../../lib/analytics';
+import { trackActivationIfFirst, trackCoreLoop } from '../../lib/analyticsCoreLoop';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   body: { padding: spacing.lg, gap: spacing.md },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
     color: colors.textPrimary,
   },
   label: { ...typography.caption, color: colors.textSecondary },
   hint: { ...typography.caption, color: colors.textSecondary },
-  chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 999,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.caption, color: colors.textPrimary },
-  btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: 12, backgroundColor: colors.primary },
+  btn: { marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.primary },
   btnText: { ...typography.body, color: colors.textInverse, textAlign: 'center' as const },
   err: { ...typography.caption, color: colors.error },
-  thumb: { width: 72, height: 72, borderRadius: 8 },
+  thumb: { width: 72, height: 72, borderRadius: radius.sm },
 }));
 
 interface Props {
   worldSlug: string;
   onPublished: (listingId: string) => void;
+  /** Unified create header (category picker + give/request toggle). */
+  header: ReactNode;
+  direction: CreateDirection;
+  title: string;
+  onTitleChange: (v: string) => void;
+  summary: string;
+  onSummaryChange: (v: string) => void;
 }
 
-export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
+export function MarketplaceCreateForm({
+  worldSlug,
+  onPublished,
+  header,
+  direction,
+  title,
+  onTitleChange: setTitle,
+  summary,
+  onSummaryChange: setSummary,
+}: Props) {
   const { t, i18n } = useTranslation();
   const styles = useStyles();
+  const chipStyles = useListingChipStyles();
   const userId = useAuthStore((s) => s.session?.userId ?? null);
   const [kinds, setKinds] = useState<ListingKindOption[]>([]);
   const [kindId, setKindId] = useState<string | null>(null);
-  const [direction, setDirection] = useState<'give' | 'request'>('give');
-  const [title, setTitle] = useState('');
-  const [summary, setSummary] = useState('');
   const [details, setDetails] = useState<Record<string, unknown>>({});
   const [city, setCity] = useState<{ id: string; name: string } | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
   const [org, setOrg] = useState<{ id: string; name: string } | null>(null);
-  const routedWorld = (ROUTED_WORLDS as readonly string[]).includes(worldSlug);
+  const config = findCreateCategory(worldSlug);
+  const routedWorld = hasCreateField(config, direction, 'externalBody');
+  const showWorldSubcategory = hasCreateField(config, direction, 'worldSubcategory');
+  const [worldSubcategoryId, setWorldSubcategoryId] = useState<string | null>(null);
+  const showRideRoute = hasCreateField(config, direction, 'rideRoute');
   const [picked, setPicked] = useState<PickedImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -86,70 +99,66 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
   useEffect(() => {
     void marketplaceRepository()
       .listKindsForWorld(worldSlug)
-      .then((rows) => {
-        setKinds(rows);
-        setKindId(rows[0]?.kindId ?? null);
-        const d = rows[0]?.direction;
-        if (d === 'request' || d === 'give') setDirection(d);
-      });
+      .then(setKinds);
   }, [worldSlug]);
 
-  const activeKind = useMemo(() => kinds.find((k) => k.kindId === kindId) ?? null, [kinds, kindId]);
+  const directionKinds = useMemo(
+    () => kinds.filter((k) => k.direction === 'either' || k.direction === direction),
+    [kinds, direction],
+  );
+  const activeKind = useMemo(
+    () => directionKinds.find((k) => k.kindId === kindId) ?? directionKinds[0] ?? null,
+    [directionKinds, kindId],
+  );
 
   useEffect(() => {
     setDetails({});
     setRuleError(null);
-    if (activeKind?.direction === 'give' || activeKind?.direction === 'request') {
-      setDirection(activeKind.direction);
-    }
   }, [activeKind?.kindId]);
 
-  if (!activeKind || !kindId) {
-    return <ActivityIndicator style={{ marginTop: spacing.xl }} />;
+  if (!activeKind) {
+    return (
+      <ScrollView contentContainerStyle={styles.body}>
+        {header}
+        {kinds.length === 0 ? <ActivityIndicator style={{ marginTop: spacing.xl }} /> : null}
+      </ScrollView>
+    );
   }
 
   const kindLabel = i18n.language.startsWith('he') ? activeKind.labelHe : activeKind.labelEn;
 
   return (
     <ScrollView contentContainerStyle={styles.body}>
-      <Text style={typography.h2}>{t('marketplace.createTitle', { world: t(`marketplace.world.${worldSlug}`, { defaultValue: worldSlug }) })}</Text>
+      {header}
       <Text style={styles.label}>{t('marketplace.fieldKind')}</Text>
-      <View style={styles.chipRow}>
-        {kinds.map((k) => {
+      <View style={chipStyles.chipRow}>
+        {directionKinds.map((k) => {
           const label = i18n.language.startsWith('he') ? k.labelHe : k.labelEn;
           return (
             <Pressable
               key={k.kindId}
-              style={[styles.chip, kindId === k.kindId && styles.chipOn]}
+              style={[chipStyles.chip, activeKind.kindId === k.kindId && chipStyles.chipOn]}
               onPress={() => setKindId(k.kindId)}
             >
-              <Text style={styles.chipText}>{label}</Text>
+              <Text style={chipStyles.chipText}>{label}</Text>
             </Pressable>
           );
         })}
       </View>
-      {activeKind.direction === 'either' ? (
-        <>
-          <Text style={styles.label}>{t('marketplace.fieldDirection')}</Text>
-          <View style={styles.chipRow}>
-            {(['give', 'request'] as const).map((d) => (
-              <Pressable
-                key={d}
-                style={[styles.chip, direction === d && styles.chipOn]}
-                onPress={() => setDirection(d)}
-              >
-                <Text style={styles.chipText}>{d}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </>
+      {showWorldSubcategory ? (
+        <WorldSubcategoryPicker
+          worldSlug={worldSlug}
+          value={worldSubcategoryId}
+          onChange={setWorldSubcategoryId}
+          disabled={busy}
+        />
       ) : null}
       <Text style={styles.label}>{t('marketplace.fieldTitle')}</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} />
       <Text style={styles.label}>{t('marketplace.fieldSummary')}</Text>
       <TextInput style={styles.input} value={summary} onChangeText={setSummary} multiline />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
-      {worldSlug === 'rides' ? (
+      {showRideRoute ? (
         <RideRouteFields
           key={activeKind.kindId}
           details={details}
@@ -162,7 +171,7 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
         schema={activeKind.detailSchema}
         values={details}
         onChange={setDetails}
-        hiddenKeys={worldSlug === 'rides' ? RIDE_ROUTE_DETAIL_KEYS : undefined}
+        hiddenKeys={showRideRoute ? RIDE_ROUTE_DETAIL_KEYS : undefined}
       />
       {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       {routedWorld ? (
@@ -191,14 +200,14 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
           <Image key={p.uri} source={{ uri: p.uri }} style={styles.thumb} />
         ))}
         <Pressable
-          style={styles.chip}
+          style={chipStyles.chip}
           onPress={async () => {
             const next = await pickListingImages(picked.length);
             if (!next.length) return;
             setPicked((prev) => [...prev, ...next]);
           }}
         >
-          <Text style={styles.chipText}>+</Text>
+          <Text style={chipStyles.chipText}>+</Text>
         </Pressable>
       </View>
       {picked.length === 0 ? <Text style={styles.hint}>{t('marketplace.fieldPhotosHint')}</Text> : null}
@@ -241,20 +250,30 @@ export function MarketplaceCreateForm({ worldSlug, onPublished }: Props) {
               }
             }
             const mediaPaths = picked.length > 0 ? await uploadListingImages(userId, picked) : [];
-            const id = await marketplaceRepository().createListing({
-              kindId,
-              title: title.trim(),
-              summary: summary.trim() || null,
-              details,
-              direction: activeKind.direction === 'either' ? direction : null,
+            const id = await marketplaceRepository().createListing(
+              buildListingCreatePayload({
+                kindId: activeKind.kindId,
+                kindDirection: activeKind.direction,
+                direction,
+                title,
+                summary,
+                details,
+                cityId: city?.id ?? null,
+                lat,
+                lng,
+                radiusKm,
+                mediaPaths,
+                routedWorld,
+                externalBodyId: org?.id ?? null,
+                worldSubcategoryId: showWorldSubcategory ? worldSubcategoryId : null,
+              }),
+            );
+            trackCoreLoop('listing_created', { world: worldSlug, cityId: city?.id ?? null });
+            void trackActivationIfFirst({
+              world: worldSlug,
               cityId: city?.id ?? null,
-              lat,
-              lng,
-              maxRadiusKm: radiusKm,
-              mediaPaths,
-              externalBodyId: routedWorld ? (org?.id ?? null) : null,
+              accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt,
             });
-            track('listing_created', { world: worldSlug });
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

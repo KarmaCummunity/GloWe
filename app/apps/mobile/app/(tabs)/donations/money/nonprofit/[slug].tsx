@@ -1,9 +1,9 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Screen } from '../../../../../src/components/ui/Screen';
 import { CampaignProgressBar } from '../../../../../src/components/money/CampaignProgressBar';
 import { paymentsUseCases } from '../../../../../src/services/paymentsComposition';

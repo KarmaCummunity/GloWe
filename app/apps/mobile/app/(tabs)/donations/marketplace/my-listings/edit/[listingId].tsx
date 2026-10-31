@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
 import { Screen } from '../../../../../../src/components/ui/Screen';
 import { marketplaceRepository } from '../../../../../../src/services/marketplaceComposition';
 import { useInvalidateMyListings } from '../../../../../../src/hooks/useMyMarketplaceListings';

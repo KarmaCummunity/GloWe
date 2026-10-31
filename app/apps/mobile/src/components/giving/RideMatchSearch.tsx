@@ -1,15 +1,17 @@
 // Rides hub: pick from/to cities → PostGIS corridor match (find_ride_listing_matches, 0392).
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { RideEndpoint } from '@kc/domain';
 import { CityPicker } from '../CityPicker';
 import { worldHubBaseStyles } from './worldHubStyles';
 import { cityToRideEndpoint, ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
 import { hapticLightTap } from '../../lib/haptics';
+import { cleanDisplayTitle } from '../../lib/displayTitle';
+import { KcRowCard } from '../cards/KcRowCard';
 
 const useStyles = makeUseStyles(({ colors }) => ({
   ...worldHubBaseStyles(colors),
@@ -59,23 +61,23 @@ export function RideMatchSearch() {
         <View style={styles.results}>
           {matches.data.length === 0 ? <Text style={styles.label}>{t('donations.rides.empty')}</Text> : null}
           {matches.data.map((m) => (
-            <Pressable
+            <KcRowCard
               key={m.listing_id}
-              style={styles.row}
               testID={`ride-match-${m.listing_id}`}
+              tone="give"
+              badgeLabel={t('cards.rideOffer')}
+              placeholderIcon="car-outline"
+              title={cleanDisplayTitle(m.title)}
+              meta={[
+                `${[m.origin_label, m.dest_label].filter(Boolean).join(' → ')} · ${fmt(m.departs_at)} · ${t('donations.rides.seats', { count: m.seats_left })}`,
+              ]}
               onPress={() =>
                 router.push({
                   pathname: '/(tabs)/donations/marketplace/[listingId]',
                   params: { listingId: m.listing_id },
                 } as never)
               }
-            >
-              <Text style={styles.rowTitle}>{m.title}</Text>
-              <Text style={styles.rowMeta}>
-                {[m.origin_label, m.dest_label].filter(Boolean).join(' → ')} · {fmt(m.departs_at)} ·{' '}
-                {t('donations.rides.seats', { count: m.seats_left })}
-              </Text>
-            </Pressable>
+            />
           ))}
         </View>
       ) : null}

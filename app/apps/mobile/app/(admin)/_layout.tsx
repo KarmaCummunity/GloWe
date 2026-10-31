@@ -10,6 +10,8 @@ import { AdminGate } from '../../src/components/admin/AdminGate';
 import { rowDirectionStart } from '../../src/lib/rtlLayout';
 import { SimpleRowListSkeleton } from '../../src/components/skeletons/SimpleRowListSkeleton';
 
+export { RouteErrorBoundary as ErrorBoundary } from '../../src/components/RouteErrorBoundary';
+
 const AdminNav = lazy(async () => {
   const mod = await import('../../src/components/admin/AdminNav');
   return { default: mod.AdminNav };

@@ -37,8 +37,9 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
 - AC1. The toggle is the most prominent control on the screen and persists the chosen mode locally so the next visit defaults to the previous selection.
 - AC2. Switching the toggle preserves shared fields (title, description, category, address, visibility) and clears type-specific fields (item condition, urgency).
 - AC3. The form is the same screen used for editing an existing post (`FR-POST-008`); the route distinguishes them.
+- AC4. *(KC#1296, 2026-10-30)* For the items and food giving worlds, the listing form offers an optional **world subcategory** (items → books, food → bakery…, `public.categories` children of the world). The choice is stored as the listing's `category_id`; a subcategory of another world is rejected (`category_world_mismatch`, migration `0462`). Matching uses it for its category score.
 
-**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`.
+**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory`.
 
 ---
 
@@ -251,6 +252,8 @@ A user cannot have more than 20 posts in `open` status simultaneously, including
 
 ## FR-POST-012 — Post lifecycle states
 
+> ⚠️ **Superseded by the project book** — D21 (expiry per post type) and S1 (state machine incl. `hidden_pending_review`). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.1. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
+
 **Description.**
 A post moves through a finite state machine.
 
@@ -275,6 +278,8 @@ A post moves through a finite state machine.
 ---
 
 ## FR-POST-013 — Post expiry (300 days)
+
+> ⚠️ **Superseded by the project book** — D21 — expiry per post type; items and all requests never expire (gap G32). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.1. Evidence and status: `docs/spec/95_reconciliation.md` §2. The text below is kept as history (D35).
 
 **Description.**
 A post that has remained `open` for 300 days transitions to `expired` automatically.

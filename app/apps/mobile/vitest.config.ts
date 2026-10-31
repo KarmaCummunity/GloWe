@@ -32,6 +32,8 @@ export default defineConfig({
         // UI surfaces — covered (or not) via RNTL slice TD-150
         'src/components/**',
         'src/features/**',
+        // Screen bodies / styles moved out of expo-router `app/` (TD-195); `app/` itself is not measured.
+        'src/screens/**',
         'src/navigation/**/*.tsx',
         'src/navigation/useShellTabBarVisibility.ts',
         // React-bound hooks need RNTL infra — out of scope until TD-150
@@ -43,7 +45,6 @@ export default defineConfig({
         'src/services/devAutoSignIn.ts',
         'src/services/avatarUpload.ts',
         'src/services/imageUpload.ts',
-        'src/services/mediaEncoding.ts',
         'src/services/postMessages.ts',
         'src/services/authMessages.ts',
         'src/services/postFormConfirm.ts',
@@ -62,6 +63,8 @@ export default defineConfig({
         // pure routing logic lives in tapRouting.ts and IS unit-tested.
         'src/lib/notifications/tapHandler.ts',
         'src/lib/permissionGate.ts',
+        // Brand font loader: expo-font wiring around @kc/ui brandFont (unit-tested there).
+        'src/lib/useBrandFonts.ts',
       ],
       thresholds: {
         lines: 60,

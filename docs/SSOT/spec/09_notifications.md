@@ -266,6 +266,8 @@ Devices register and unregister push tokens.
 
 ## FR-NOTIF-016 — Quiet hours (out of scope MVP)
 
+> ⚠️ **Superseded by the project book** — D26 — quiet hours are in scope (default 22:00–08:00) and shipped in `0256` (Settings → Notifications → Quiet hours; matching honors them in `0422`). Binding text: `docs/spec/07_cross_cutting_systems.md` §7.11. The text below is kept as history (D35).
+
 **Description.**
 Quiet hours / Do-Not-Disturb scheduling is **not** in MVP. Documented to prevent accidental implementation.
 
@@ -278,6 +280,25 @@ Quiet hours / Do-Not-Disturb scheduling is **not** in MVP. Documented to prevent
 
 ---
 
+## FR-NOTIF-017 — Per-type opt-out: match suggestions
+
+> **Status (2026-10-30):** ✅ Implemented — KC#1120. Book §7.11 (D26) "per-type and per-channel preferences"; this FR covers the first type, `match_suggested`.
+
+**Description.**
+Besides the two category toggles (FR-NOTIF-014), the user can turn off a single notification type. The first one exposed in Settings is **Match suggestions** (matching engine v2, `docs/SSOT/MATCHING_V2.md`).
+
+**Acceptance Criteria.**
+- AC1. Preferences carry an optional `kinds` map (`{ <notification kind>: false }`). Opt-out model: a missing key means "on", so existing users keep every notification (no backfill).
+- AC2. Updating one kind keeps the other kinds (`users_merge_notification_preferences` merges `kinds` per key; a non-object `kinds` is rejected with `22023`). Only the caller's own row is written.
+- AC3. Settings → Notifications shows a "Match suggestions" toggle (he + en), default on, applied optimistically.
+- AC4. With `match_suggested` off, `match_deliver_pending` sends no in-app, push or WhatsApp match alert to that user; their side is settled (`delivery.<side>.opted_out = true`) and does not count toward the daily cap (§7.11: 3/day).
+- AC5. Opting out of alerts does not hide the match itself: it stays in "Matches for you" (`rpc_my_matches`).
+
+**Related.** Migration `0460` · Domain `isNotificationKindEnabled` · Application `applyNotificationPreferencesPatch` · Tests `supabase/tests/0460_notification_kind_preferences.sql`, `packages/domain/src/__tests__/notifications.test.ts`, `packages/application/src/notifications/__tests__/`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-05 | Initial draft. Master list synthesized from PRD flows + Decisions D-5, D-6, D-7. |
+| 0.2 | 2026-10-30 | FR-NOTIF-017 per-type opt-out (match suggestions); FR-NOTIF-016 marked superseded by D26. |

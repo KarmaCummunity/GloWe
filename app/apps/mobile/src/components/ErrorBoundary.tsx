@@ -1,15 +1,29 @@
 // Top-level error boundary. Mapped to TD-33 (AUDIT-P2-10).
 // Catches unexpected throws from descendant components so the app shell
 // renders a recoverable fallback instead of unmounting to a white screen.
+// Route segments have their own boundary (RouteErrorBoundary) that shares
+// this fallback and report.
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
+import { getSentryIfInit } from '../lib/observability/sentry';
 
 type Props = { children: React.ReactNode };
 type State = { error: Error | null };
 
-function ErrorBoundaryFallback({ error, onRetry }: { error: Error; onRetry: () => void }) {
+/** Report a caught render error to Sentry. Never throws. */
+export function reportRenderError(error: Error, context: { tags?: Record<string, string>; componentStack?: string | null }): void {
+  if (__DEV__) console.error('ErrorBoundary caught:', error, context.componentStack ?? '');
+  try {
+    getSentryIfInit()?.captureException(error, {
+      tags: context.tags,
+      extra: { componentStack: context.componentStack ?? null },
+    });
+  } catch { /* never crash the boundary */ }
+}
+
+export function ErrorBoundaryFallback({ error, onRetry }: { error: Error; onRetry: () => void }) {
   const styles = useStyles();
   const { t } = useTranslation();
   return (
@@ -32,15 +46,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    if (__DEV__) console.error('ErrorBoundary caught:', error, info.componentStack);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getSentryIfInit } = require('../lib/observability/sentry');
-      const Sentry = getSentryIfInit();
-      if (Sentry) {
-        Sentry.captureException(error, { extra: { componentStack: info.componentStack ?? null } });
-      }
-    } catch { /* never crash the boundary */ }
+    reportRenderError(error, { tags: { boundary: 'root' }, componentStack: info.componentStack });
   }
 
   reset = (): void => this.setState({ error: null });
@@ -52,7 +58,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: {
     flex: 1,
     backgroundColor: colors.surface,

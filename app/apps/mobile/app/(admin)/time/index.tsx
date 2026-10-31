@@ -1,13 +1,18 @@
 // app/apps/mobile/app/(admin)/time/index.tsx
 // V2-ADMIN-TIME-10 — V2 §13.10 Admin Time (timesheets).
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, RefreshControl, ScrollView, View } from 'react-native';
+import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  hasPermission, isTimesheetError,
-  type AdminPermission, type AdminRole, type TimesheetEntry, type TimesheetStatus,
+  hasPermission,
+  isTimesheetError,
+  type AdminPermission,
+  type AdminRole,
+  type TimesheetEntry,
+  type TimesheetStatus,
 } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
@@ -76,7 +81,7 @@ export default function TimeScreen() {
     <View style={styles.root}>
       <AdminScreenHeader title={t.title} newLabel={t.newBtn} onNew={() => setCreating(true)} />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
         {(['mine', 'pending', 'all'] as readonly Tab[]).map((value) => (
           <AdminFilterChip
             key={value}

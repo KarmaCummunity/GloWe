@@ -22,7 +22,7 @@
 // Runbook entry: docs/SSOT/OPERATOR_RUNBOOK.md → "Backfill image thumbs".
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { Jimp } from 'https://esm.sh/jimp@1.6.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -63,7 +63,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-type AdminClient = ReturnType<typeof createClient>;
+type AdminClient = SupabaseClient;
 
 /** `a/b/c.jpg` → `a/b/c-thumb.jpg`. Mirrors the FE helper in `apps/mobile/src/lib/imageUrl.ts`. */
 function deriveThumbPath(path: string): string {

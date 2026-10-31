@@ -4,9 +4,9 @@
 // indented by level. Trees are small (a single org's management chain), so a
 // plain mapped list is sufficient — no nested virtualisation.
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { OrgTreeNode } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { OrgTreeRow } from './OrgTreeRow';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
