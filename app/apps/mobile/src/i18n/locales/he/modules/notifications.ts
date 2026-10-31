@@ -47,6 +47,8 @@ export const notificationsHe = {
   systemBody: '{{messagePreview}}',
   postExpiringTitle: 'הפוסט שלך יפוג בעוד 7 ימים',
   postExpiringBody: '{{postTitle}}',
+  postRelevanceTitle: 'הפוסט שלך עדיין רלוונטי?',
+  postRelevanceBody: '{{postTitle}} — אפשר לעדכן או לסגור אותו',
   markRecipientTitle: '{{ownerName}}',
   markRecipientBody: 'סימן אותך כמקבל של {{postTitle}}',
   unmarkRecipientTitle: '{{recipientName}}',

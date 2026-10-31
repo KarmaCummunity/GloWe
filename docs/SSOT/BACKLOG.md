@@ -18,12 +18,12 @@
 |----|------|-------|--------|------|
 | P1.7 | FR-RESEARCH-001..003 — Public market research form | agent-be + agent-fe | 🟡 In progress (post-merge QA) | `spec/16_public_research.md` |
 | P1.8 | FR-RESEARCH-004 — Share affordance for public research survey | agent-fe | 🟡 Code complete, post-merge QA pending | `spec/16_public_research.md` |
-| INFRA-QA-W1 | Playwright P0 E2E gate on dev + release (`ci-e2e-dev.yml`, `tests/e2e/`) | infra | 🟡 In progress | Wave 1 |
+| INFRA-QA-W1 | Playwright P0 E2E gate on dev + release (release lane `ci-release.yml`, `tests/e2e/`) | infra | 🟡 In progress | Wave 1 |
 | INFRA-QA-W2 | E2E domain expansion (posts, chat send, donations, research) | infra | ⏳ Planned | Wave 2 |
 | INFRA-QA-W3 | RLS persona integration suite | infra | ⏳ Planned | Wave 3 |
 | INFRA-QA-W4 | Performance budgets (Lighthouse + k6) | infra | ⏳ Planned | Wave 4 |
 | INFRA-QA-W5 | Accessibility axe gate | infra | ⏳ Planned | Wave 5 |
-| INFRA-QA-W7 | Expanded prod synthetic monitoring | infra | 🟡 In progress | Wave 7 — KC `prod-smoke.yml` |
+| INFRA-QA-W7 | Expanded prod synthetic monitoring | infra | 🟡 In progress | Wave 7 — KC deploy smoke (`deploy-smoke.yml`) |
 | INFRA-OSS-4 | **Snyk PR scan** | infra | 🟡 In progress | `SECURITY.md` |
 | INFRA-OSS-6 | **GitGuardian** | infra | 🟡 In progress | `SECURITY.md` |
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
@@ -31,15 +31,13 @@
 
 ## INFRA — CI/CD hardening (`D-195`)
 
-Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md). Rows that change CI files need owner approval (`D-195`).
+Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity, `INFRA-CI-3` gated prod release, `INFRA-CI-6` agent bot identity) are done in code — see [`archive/BACKLOG-history.md`](./archive/BACKLOG-history.md); stage 4 (`INFRA-CI-4` nightly mobile) is done too (row below); their repository settings are `INFRA-CI-OWNER`. Rows that change CI files need owner approval (`D-195`).
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| INFRA-CI-2 | **Gate integrity.** CODEOWNERS on `.github/**` and the gate scripts with "require review from code owners" on `dev`/`main`, so an agent PR cannot weaken `CI gate` without the owner (the gate scripts already run from the base branch; `ci.yml` itself is still PR-controlled, `TD-203`). | infra | ⏳ Planned | `D-195` |
-| INFRA-CI-3 | **Gated prod release pipeline.** One owner approval (GitHub Environment) before `main` deploys (Railway, `supabase-prod` DB deploy, Edge Functions); fold the main release guard + dev E2E into the release flow. | infra | ⏳ Planned | `D-195`, `RELEASE_CHECKLIST.md` |
+| INFRA-CI-OWNER | **Owner settings for the D-195 pipeline (owner action).** Ordered checklist: required check `CI gate` → merge #1292; agent GitHub App in the `dev`-only `agent-merge` environment + Write-role machine user, Claude Code reconnected to it; CI-verdict GitHub App in the `main`-only `ci-verdict` environment; move sensitive repository secrets into environments (`TD-223`); prod environments, variables, Cloudflare token → merge #1308; `mobile-store` + EAS `preview` + iOS signing + `mobile/*` tags for the nightly (#1304, merged); bootstrap-merge #1319, import `.github/rulesets/dev-main.json` and verify, then require `CI verdict` from the CI-verdict App once `ci-verdict.yml` is on `main`; delete `tmp-probe-*` workflows and branch `chore/ci-nightly-mobile`. | owner | ⏳ Planned | [`OPERATOR_RUNBOOK.md` § Owner setup for D-195 CI/CD](./OPERATOR_RUNBOOK.md#owner-setup-ci) |
 | INFRA-CI-4 | **Nightly mobile pipeline.** Scheduled TestFlight + Play internal builds from the last `dev` SHA whose `CI gate` passed (`mobile-nightly.yml`; kc-dev backend via the eas.json `nightly` profile, verified in the built bundle). Owner setup: `ENVIRONMENTS.md` § Production release. | infra | ✅ Done | `D-195`, `D-192` |
 | INFRA-CI-5 | **CI docs drift cleanup.** Bring `docs/dev/**`, `TESTING.md`, `SECURITY.md`, `OPERATOR_RUNBOOK.md` and agent docs in line with the single-gate layout; drop references to removed workflows. | infra | ⏳ Planned | `D-195` |
-| INFRA-CI-6 | **Agent bot identity.** Move agent pushes, PRs and merges off the owner's personal GitHub account to a bot / GitHub App identity (also closes `TD-197`). | infra | ⏳ Planned | `D-195` |
 
 ## DONATE — Money hub
 
@@ -53,7 +51,6 @@ Stage 1 (`INFRA-CI-1`, unified PR gate) is done — see [`archive/BACKLOG-histor
 |----|------|-------|--------|------|
 | OPS-G38 | **Shared DB test harness + per-world lifecycle flows.** Harness + runner + rides flow shipped; port items, food, knowledge flows onto it. | agent-be | 🟡 In progress | `docs/architecture/target.md` §5.1 · G38 |
 | OPS-G42 | **Health registry + monitor + alert router.** Shipped: `ops.health_checks` + 7 checks (`0463`), hourly dev + prod run, GitHub-issue alerts (→ email) with auto-close. Open: WhatsApp channel once live, synthetic web check. | agent-fullstack | 🟡 In progress | §5.2 · G42 |
-| OPS-G41 | **Edge Function error reporting** through one shared wrapper. | agent-be | ⏳ Planned | §5.2 · G41 |
 | OPS-G39 | **Port contract tests** (fake + Supabase adapter, same suite). | agent-fullstack | ⏳ Planned | §5.1 · G39 |
 | OPS-G40 | **Two-user E2E journey per active world** on relevant PRs. | agent-fe | ⏳ Planned | §5.1 · G40 |
 | OPS-G43 | **Per-world flow funnel** from handoff timestamps. | agent-be | ⏳ Planned | §5.2 · G43 |

@@ -48,8 +48,8 @@ Dependency direction is strictly inward: `apps/mobile → application → domain
 | `staging` | optional pre-integration | Cloudflare Pages (staging) | kc-dev |
 
 - `dev` is meant never to be behind `main` (`sync-main-to-dev.yml`), but that job force-pushes and is rejected by `dev` branch protection (legacy `TD-182`), so `main`-only commits must reach `dev` by PR. `main` advances only via PR `dev → main`. No force-push, no branch deletion.
-- **PR CI:** `ci-pr`, `ci-frontend`, `ci-backend`, `ci-contract`, `ci-e2e-dev`, `ci-perf-budgets`, `ci-migration-drift`, `ci-actionlint`, security scanners (GitGuardian, Snyk, Sonar), `ci-required-checks` aggregator, guards on `dev`/`main`.
-- **Deploy:** `db-deploy`, `supabase-functions-deploy(-dev)`, `deploy-web`, `prod-smoke`.
+- **PR CI:** `ci` — one required check, `CI gate` (`D-195`), over the lanes `ci-pr`, `ci-static-guards`, `ci-frontend` (+ `ci-sonar`), `ci-backend`, `ci-edge-functions` and, for PRs into `main`, `ci-release`; plus `ci-migration-drift` and security scanners (GitGuardian, Snyk).
+- **Deploy:** `deploy` only (after a green push CI run; prod behind one owner approval), with stages `deploy-db`, `deploy-functions`, `deploy-web`, `deploy-smoke`, `deploy-tag`, `deploy-rollback` (`D-195`).
 - **Mobile:** `kc-mobile-eas-preview`; Android `play-internal`; **iOS TestFlight via `testflight-ios.yml`, triggered by pushing to the `ci/testflight-run` branch.** The build reads repository-level secrets `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` (no GitHub Environment), so which DB TestFlight builds hit cannot be read from the repo and must be verified against D8 (clean prod) — G7, question Q-6 in [`../spec/95_reconciliation.md`](../spec/95_reconciliation.md). Store release is currently paused.
 - Nightly/ops: `e2e-nightly-dev`, `k6-load-dev`, `db-explain-dev`, `seed-kc-dev`, `stale-stack-report`.
 
