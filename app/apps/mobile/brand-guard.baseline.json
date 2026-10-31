@@ -155,9 +155,6 @@
     "app/(tabs)/create.tsx": {
       "iconSizeLiteral": 1
     },
-    "app/(tabs)/donations/category/[slug].tsx": {
-      "fontSizeLiteral": 1
-    },
     "app/(tabs)/donations/index.tsx": {
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 1,
