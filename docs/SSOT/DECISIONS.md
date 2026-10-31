@@ -1570,6 +1570,14 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0490–0509`, `app/packages/domain/src/organizations/**`, `app/packages/application/src/organizations/**`, `app/packages/infrastructure-supabase/src/organizations/**`, `app/apps/mobile/app/org/**`, `app/apps/mobile/src/components/profile/**` (organization variants), `(tabs)/search.tsx`, `(admin)/org-approvals`.
 
+## D-200 — Client state: TanStack Query for server state, Zustand for client state (2026-10-30)
+
+**Decision.** Adopt [ADR-001](../architecture/adr/ADR-001-client-state.md): server data lives only in the TanStack Query cache (query functions call use cases / repositories); Zustand stores hold optimistic, realtime-lifecycle and client-only cross-screen state, read through selectors; screen-local state stays in `useState`; persisted stores use `kc-*` AsyncStorage keys and must be registered in `clearAllPersistedStores()` when user-specific; the offline query cache persists only `PERSISTABLE_ROOTS`; secrets only in `expo-secure-store`. Redux Toolkit and Context-only were rejected; MMKV deferred until cold-start measurements justify a native module.
+
+**Why.** KC#1015. Agents had no rule for query vs store vs persisted state, and TD-103 showed persisted state leaking across users on sign-out.
+
+**Affected.** `app/apps/mobile/src/{hooks,store,lib/queryPersist*.ts,services/authSecureStorage.ts}`.
+
 ## {{ENG:merge-time-registry-ids}} — Registry IDs are assigned on merge, not in the PR (2026-10-31)
 
 **Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in the same commit as the version bump. The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.
