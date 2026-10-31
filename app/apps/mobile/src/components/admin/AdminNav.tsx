@@ -10,7 +10,7 @@ import { adminChipScroll } from './adminChipScroll';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname, type Href } from 'expo-router';
 import { type AdminPermission, type AdminRole, hasPermission } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, typography, useTheme, Text, iconSize } from '@kc/ui';
 import { useAdminRoles } from '../../hooks/useAdminRoles';
 import { rowDirectionStart, textAlignStart } from '../../lib/rtlLayout';
 import { useLocaleBundle, type LocaleBundle } from '../../i18n/useLocaleBundle';
@@ -70,7 +70,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
       >
         <Ionicons
           name={it.icon}
-          size={variant === 'sidebar' ? 20 : 18}
+          size={variant === 'sidebar' ? iconSize.lg : iconSize.md}
           color={active ? colors.primary : colors.textSecondary}
         />
         <Text
@@ -88,7 +88,7 @@ export function AdminNav({ variant }: { variant: 'sidebar' | 'topbar' }): ReactE
       <View style={styles.sidebar}>
         <View style={styles.brand}>
           <View style={styles.brandMark}>
-            <Ionicons name="shield-checkmark" size={18} color={colors.textInverse} />
+            <Ionicons name="shield-checkmark" size={iconSize.md} color={colors.textInverse} />
           </View>
           <Text style={styles.brandText} numberOfLines={1}>
             {L.admin.portalTitle}
