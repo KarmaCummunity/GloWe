@@ -7,6 +7,7 @@ import { marketplaceErrors } from './donations.marketplaceErrors';
 import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
+import { worldsHub } from './donations.worldsHub';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
 
@@ -19,6 +20,7 @@ export const donations = {
   hubItemsFeaturedSubtitle: 'Donate and request items — the core action in the app',
   hubCategoriesSectionTitle: 'More donation categories',
   worldLaunch,
+  worldsHub,
   items: { title: 'Items', subtitle: 'Donate and request items' },
   time: { title: 'Time', subtitle: 'Volunteering and free time' },
   money: { title: 'Money', subtitle: 'Monetary donation' },
