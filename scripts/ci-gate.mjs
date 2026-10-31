@@ -64,10 +64,9 @@ const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS);
  * dev may defer anything its diff does not need, heavy lanes included: the dev
  * merge queue runs every lane before the PR lands. A PR into main has no queue
  * after it, so a heavy lane must be needed whenever `frontend` is. A merge
- * group, push or dispatch runs every lane but the PR-only ones; a heavy lane
- * counts once ci.yml wires it (it is then in `needs`).
+ * group, push or dispatch runs every lane but the PR-only ones.
  */
-export function deferralErrors({ needs, plan, event, baseRef }) {
+export function deferralErrors({ plan, event, baseRef }) {
   const base = baseRef?.replace(/^refs\/heads\//, '');
   if (PR_EVENTS.has(event)) {
     if (base === 'dev') return [];
@@ -75,8 +74,7 @@ export function deferralErrors({ needs, plan, event, baseRef }) {
       (lane) => `job "${lane}" is planned as not needed on a PR into ${base || 'an unknown base'}; only PRs into dev may leave it to the merge queue`,
     );
   }
-  const lanes = new Set([...LANE_JOBS, ...HEAVY_LANES.filter((lane) => lane in needs)]);
-  return [...lanes]
+  return LANE_JOBS
     .filter((lane) => !PR_ONLY_LANES.includes(lane) && plan[lane] !== true)
     .map((lane) => `job "${lane}" must run on every ${event} run, but the plan ${lane in plan ? 'marks it not needed' : 'leaves it out'}`);
 }
@@ -111,7 +109,7 @@ export function evaluateGate({ needs, plan, draft, event, ref, baseRef }) {
       errors.push(`job "${job}" is needed for this change but ended ${result}`);
     }
   }
-  errors.push(...deferralErrors({ needs, plan, event, baseRef }));
+  errors.push(...deferralErrors({ plan, event, baseRef }));
   return errors;
 }
 
