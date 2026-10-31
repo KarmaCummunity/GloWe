@@ -38,7 +38,9 @@ export type PostStatus =
   | 'closed_delivered'
   | 'deleted_no_recipient'
   | 'expired'
-  | 'removed_admin';
+  | 'removed_admin'
+  // D33/D61 — 3 reports hide a post until an admin restores or removes it.
+  | 'hidden_pending_review';
 
 export type PostVisibility = 'Public' | 'FollowersOnly' | 'OnlyMe';
 

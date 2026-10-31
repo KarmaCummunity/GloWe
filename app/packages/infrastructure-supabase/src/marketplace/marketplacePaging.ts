@@ -73,6 +73,7 @@ export async function fetchBrowsePage(
     p_lat: filters.lat ?? undefined,
     p_lng: filters.lng ?? undefined,
     p_radius_km: filters.radiusKm ?? undefined,
+    p_category_id: filters.categoryId ?? undefined,
     p_limit: limit,
     p_offset: c ? 0 : (filters.offset ?? 0),
     p_cursor_sort: c?.sortKey,

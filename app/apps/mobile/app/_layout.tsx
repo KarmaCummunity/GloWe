@@ -37,6 +37,7 @@ import { rootStackGestureEnabled, rootStackScreenAnimation } from '../src/naviga
 import { ConfigErrorScreen } from '../src/components/ConfigErrorScreen';
 import { isSupabaseConfigured } from '../src/lib/supabasePublicConfig';
 import { DevBanner } from '../src/components/DevBanner';
+import { SuspensionBanner } from '../src/components/SuspensionBanner';
 import { LegalConsentGate } from '../src/components/legal/LegalConsentGate';
 import { ModalStackProvider } from '../src/components/legal/useActiveModalStack';
 import { useMeRealtime } from '../src/hooks/useMeRealtime';
@@ -81,6 +82,7 @@ function ThemedRootShell() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <DevBanner />
+      <SuspensionBanner />
       <NotificationsBridge />
       <AuthGate>
         <ModalStackProvider>
