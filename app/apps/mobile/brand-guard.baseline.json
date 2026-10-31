@@ -1095,9 +1095,6 @@
       "radiusLiteral": 2,
       "rawTextInput": 3
     },
-    "src/components/marketplace/MarketplaceCreateForm.tsx": {
-      "rawTextInput": 2
-    },
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
     },
