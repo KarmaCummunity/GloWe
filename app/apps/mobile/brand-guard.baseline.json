@@ -53,12 +53,6 @@
       "fontWeightLiteral": 1,
       "spacingLiteral": 2
     },
-    "app/(admin)/surveys/index.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "spacingLiteral": 10
-    },
     "app/(admin)/tasks/[taskId]/index.tsx": {
       "colorLiteral": 1,
       "fontSizeLiteral": 10,
@@ -305,9 +299,6 @@
       "radiusLiteral": 1,
       "rawTextInput": 1
     },
-    "app/settings/survey/[slug].tsx": {
-      "fontWeightLiteral": 1
-    },
     "app/settings/surveys.tsx": {
       "fontWeightLiteral": 3,
       "spacingLiteral": 2,
@@ -508,12 +499,6 @@
       "fontWeightLiteral": 5,
       "spacingLiteral": 13,
       "shadowLiteral": 4
-    },
-    "src/components/PostCardGrid.tsx": {
-      "colorLiteral": 1
-    },
-    "src/components/PostFeedList.tsx": {
-      "radiusLiteral": 1
     },
     "src/components/PostFilterSheet/Chip.tsx": {
       "fontWeightLiteral": 1
@@ -772,29 +757,11 @@
       "radiusLiteral": 2,
       "spacingLiteral": 5
     },
-    "src/components/admin/surveys/QuestionStatCard.tsx": {
-      "fontSizeLiteral": 8,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 4,
-      "spacingLiteral": 8
-    },
-    "src/components/admin/surveys/RespondentCard.tsx": {
-      "fontSizeLiteral": 7,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 3,
-      "spacingLiteral": 10
-    },
     "src/components/admin/surveys/SurveyOverviewCard.tsx": {
       "fontSizeLiteral": 5,
       "fontWeightLiteral": 4,
       "radiusLiteral": 3,
       "spacingLiteral": 8,
-      "iconSizeLiteral": 1
-    },
-    "src/components/admin/surveys/SurveyResultsView.tsx": {
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 3,
-      "spacingLiteral": 6,
       "iconSizeLiteral": 1
     },
     "src/components/admin/tasks/AssigneePicker.tsx": {
@@ -1088,9 +1055,6 @@
       "radiusLiteral": 2,
       "rawTextInput": 3
     },
-    "src/components/marketplace/MarketplaceCreateForm.tsx": {
-      "rawTextInput": 2
-    },
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
     },
@@ -1327,13 +1291,6 @@
     "src/components/survey/SurveyPromptBanner.tsx": {
       "fontWeightLiteral": 2,
       "spacingLiteral": 1
-    },
-    "src/components/survey/SurveyQuestionMap.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5,
-      "iconSizeLiteral": 1
     },
     "src/components/survey/SurveyRatingRow.tsx": {
       "fontWeightLiteral": 1
@@ -1584,12 +1541,6 @@
       "radiusLiteral": 2,
       "spacingLiteral": 2,
       "iconSizeLiteral": 1
-    },
-    "src/screens/settings/survey/SurveyQuestionPanel.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "rawTextInput": 1
     },
     "src/screens/tabs/create.styles.ts": {
       "fontSizeLiteral": 2,

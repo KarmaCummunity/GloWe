@@ -4021,6 +4021,7 @@ export type Database = {
       }
       media_assets: {
         Row: {
+          bucket: string
           created_at: string
           media_asset_id: string
           mime_type: string
@@ -4030,6 +4031,7 @@ export type Database = {
           size_bytes: number
         }
         Insert: {
+          bucket?: string
           created_at?: string
           media_asset_id?: string
           mime_type: string
@@ -4039,6 +4041,7 @@ export type Database = {
           size_bytes: number
         }
         Update: {
+          bucket?: string
           created_at?: string
           media_asset_id?: string
           mime_type?: string
@@ -5444,6 +5447,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -5469,6 +5473,7 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
           location_display_level?: string
           owner_id: string
           post_id?: string
@@ -5494,6 +5499,7 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
           location_display_level?: string
           owner_id?: string
           post_id?: string
@@ -5518,6 +5524,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cities"
             referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -6798,10 +6818,11 @@ export type Database = {
       survey_answers: {
         Row: {
           answer_text: string | null
+          choice_key: string | null
           created_at: string
           id: string
           question_id: string
-          rating: number
+          rating: number | null
           survey_id: string
           updated_at: string
           user_id: string
@@ -6809,10 +6830,11 @@ export type Database = {
         }
         Insert: {
           answer_text?: string | null
+          choice_key?: string | null
           created_at?: string
           id?: string
           question_id: string
-          rating: number
+          rating?: number | null
           survey_id: string
           updated_at?: string
           user_id: string
@@ -6820,10 +6842,11 @@ export type Database = {
         }
         Update: {
           answer_text?: string | null
+          choice_key?: string | null
           created_at?: string
           id?: string
           question_id?: string
-          rating?: number
+          rating?: number | null
           survey_id?: string
           updated_at?: string
           user_id?: string
@@ -6848,6 +6871,7 @@ export type Database = {
       }
       survey_questions: {
         Row: {
+          choice_options: Json | null
           context_he: string
           id: string
           prompt_he: string
@@ -6860,6 +6884,7 @@ export type Database = {
           text_placeholder_he: string
         }
         Insert: {
+          choice_options?: Json | null
           context_he?: string
           id?: string
           prompt_he: string
@@ -6872,6 +6897,7 @@ export type Database = {
           text_placeholder_he?: string
         }
         Update: {
+          choice_options?: Json | null
           context_he?: string
           id?: string
           prompt_he?: string
@@ -7048,6 +7074,43 @@ export type Database = {
           },
           {
             foreignKeyName: "timesheet_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_active_days: {
+        Row: {
+          active_on: string
+          user_id: string
+        }
+        Insert: {
+          active_on: string
+          user_id: string
+        }
+        Update: {
+          active_on?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_active_days_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_public"
@@ -8067,6 +8130,7 @@ export type Database = {
           default_anonymity_level: number
           default_radius_km: number
           default_ttl_hours: number | null
+          feed_mirror: boolean
           geo_decay: number
           geo_mode: string
           geo_weight: number
@@ -8084,6 +8148,7 @@ export type Database = {
           default_anonymity_level?: number
           default_radius_km?: number
           default_ttl_hours?: number | null
+          feed_mirror?: boolean
           geo_decay?: number
           geo_mode?: string
           geo_weight?: number
@@ -8101,6 +8166,7 @@ export type Database = {
           default_anonymity_level?: number
           default_radius_km?: number
           default_ttl_hours?: number | null
+          feed_mirror?: boolean
           geo_decay?: number
           geo_mode?: string
           geo_weight?: number
@@ -8785,6 +8851,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_pmf_survey_report: { Args: { p_slug?: string }; Returns: Json }
       admin_remove_listing: {
         Args: { p_listing_id: string }
         Returns: undefined
@@ -9524,6 +9591,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10272,6 +10340,18 @@ export type Database = {
         }[]
       }
       listing_details_expires_at: { Args: { p_details: Json }; Returns: string }
+      listing_feed_mirror_status: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: string
+      }
+      listing_feed_mirror_sync_media: {
+        Args: { p_listing_id: string; p_post_id: string }
+        Returns: undefined
+      }
+      listing_feed_mirror_upsert: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: string
+      }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
       listing_upsert_from_post: {
         Args: { p_post: Database["public"]["Tables"]["posts"]["Row"] }
@@ -10646,6 +10726,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10680,6 +10761,7 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -11218,6 +11300,7 @@ export type Database = {
         Args: { p_post_id: string }
         Returns: undefined
       }
+      rpc_record_active_day: { Args: never; Returns: undefined }
       rpc_republish_post: { Args: { p_post_id: string }; Returns: string }
       rpc_ride_arrive: {
         Args: { p_reason?: string; p_ride_id: string }
@@ -11825,6 +11908,10 @@ export type Database = {
         Args: { p_answers: Json; p_slug: string }
         Returns: undefined
       }
+      user_active_days_14d: {
+        Args: { p_day: string; p_user_id: string }
+        Returns: number
+      }
       users_get_self_private_fields: { Args: never; Returns: Json }
       users_merge_notification_preferences: {
         Args: { p_merge: Json; p_user_id: string }
@@ -11870,7 +11957,9 @@ export type Database = {
     }
     Enums: {
       legal_doc_type: "terms" | "privacy"
-      survey_question_type: "rating_1_7_with_optional_text"
+      survey_question_type:
+        | "rating_1_7_with_optional_text"
+        | "single_choice_with_optional_text"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -11999,7 +12088,10 @@ export const Constants = {
   public: {
     Enums: {
       legal_doc_type: ["terms", "privacy"],
-      survey_question_type: ["rating_1_7_with_optional_text"],
+      survey_question_type: [
+        "rating_1_7_with_optional_text",
+        "single_choice_with_optional_text",
+      ],
     },
   },
 } as const

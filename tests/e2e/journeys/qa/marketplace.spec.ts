@@ -18,12 +18,17 @@ async function anyOpenItemListing(): Promise<{ listing_id: string; title: string
   return row;
 }
 
+/** The unified create screen (`/create?category=<world>`) replaced the per-world create routes. */
 async function fillItemForm(page: Page, title: string) {
-  await gotoApp(page, '/donations/marketplace/create/items');
+  await gotoApp(page, '/create?category=items');
+  await page.getByTestId('create-direction-give').click();
   await page.getByText('מסירת חפץ', { exact: true }).first().click();
-  const inputs = page.locator('input[type="text"], input:not([type]), textarea');
-  await inputs.first().fill(title);
+  const titleInput = page.getByTestId('listing-title').or(page.locator('input[type="text"], input:not([type])').first());
+  await titleInput.first().fill(title);
 }
+
+const publishButton = (page: Page) => page.getByTestId('listing-publish').or(page.getByText('פרסום', { exact: true }).last()).first();
+const addPhotoButton = (page: Page) => page.getByTestId('listing-add-photo').or(page.getByText('+', { exact: true }).last()).first();
 
 test('browse: marketplace lists open listings with translated labels', async ({ page }) => {
   const errors = trackApiErrors(page);
@@ -57,7 +62,9 @@ test('listing detail opens for an existing listing', async ({ page }) => {
 });
 
 test('create item form shows human labels (no raw schema keys)', async ({ page }) => {
-  await gotoApp(page, '/donations/marketplace/create/items');
+  await gotoApp(page, '/create?category=items');
+  await expect(page.getByTestId('unified-create-header')).toBeVisible();
+  await page.getByTestId('create-direction-give').click();
   await expect(page.getByText('מסירת חפץ', { exact: true }).first()).toBeVisible();
   const body = await page.locator('body').innerText();
   expect(body).not.toMatch(/\b(?:image url|image path|pickup mode|fulfillment mode|owner_approval|fcfs|items)\b/);
@@ -69,7 +76,7 @@ test.describe.serial('create + reserve', () => {
   test('create an item listing WITHOUT a photo', async ({ page }) => {
     const title = `${runTag()} כיסא ללא תמונה`;
     await fillItemForm(page, title);
-    await page.getByText('פרסום', { exact: true }).last().click();
+    await publishButton(page).click();
     await expect(page).toHaveURL(/\/donations\/marketplace\/[0-9a-f-]{36}$/, { timeout: 30_000 });
     await expect(page.getByText(title).first()).toBeVisible();
   });
@@ -78,10 +85,10 @@ test.describe.serial('create + reserve', () => {
     listingTitle = `${runTag()} שולחן עם תמונה`;
     await fillItemForm(page, listingTitle);
     const chooser = page.waitForEvent('filechooser');
-    await page.getByText('+', { exact: true }).last().click();
+    await addPhotoButton(page).click();
     await (await chooser).setFiles(path.join(HERE, '../../fixtures/item.png'));
     await expect(page.locator('img').last()).toBeVisible();
-    await page.getByText('פרסום', { exact: true }).last().click();
+    await publishButton(page).click();
     await expect(page).toHaveURL(/\/donations\/marketplace\/[0-9a-f-]{36}$/, { timeout: 45_000 });
     await expect(page.getByText(listingTitle).first()).toBeVisible();
   });
@@ -97,8 +104,9 @@ test.describe.serial('create + reserve', () => {
     const ctx = await browser.newContext({ storageState: STORAGE_B, locale: 'he-IL' });
     const page = await ctx.newPage();
     await gotoApp(page, `/donations/marketplace/${row!.listing_id}`);
-    await page.getByText('שריון הפריט', { exact: true }).click();
-    await expect(page.getByText('שריון הפריט', { exact: true })).toHaveCount(0, { timeout: 20_000 });
+    const reserve = page.getByTestId('giving-handoff-reserve').or(page.getByText('שריון הפריט', { exact: true })).first();
+    await reserve.click();
+    await expect(reserve).toHaveCount(0, { timeout: 20_000 });
     await ctx.close();
   });
 });

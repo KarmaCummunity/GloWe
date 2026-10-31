@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { LANE_JOBS, OPTIONAL_LANES, REVIEW_LANES, changedFiles, classify, plan } from './ci-changes.mjs';
+import { HEAVY_LANES, LANE_JOBS, OPTIONAL_LANES, REVIEW_LANES, changedFiles, classify, plan, wiredLanes } from './ci-changes.mjs';
 
 const PR = { event: 'pull_request', draft: false, actor: 'agent', ref: 'refs/pull/1/merge' };
 const ALL = { hygiene: true, static: true, frontend: true, backend: true, edge: true };
@@ -80,6 +80,11 @@ test('merge queue runs no hygiene and no sonar', () => {
   assert.equal(r.sonar, false);
 });
 
+test('a merge group runs every lane even for a docs-only diff', () => {
+  const group = { event: 'merge_group', draft: false, actor: 'x', ref: 'refs/heads/gh-readonly-queue/dev/pr-1', baseRef: 'refs/heads/dev' };
+  assert.deepEqual(plan({ ...group, files: ['docs/a.md'] }).plan, { ...ALL, hygiene: false });
+});
+
 test('push runs sonar on main only', () => {
   const files = ['app/a.ts'];
   assert.equal(plan({ event: 'push', draft: false, actor: 'x', ref: 'refs/heads/main', files }).sonar, true);
@@ -113,7 +118,7 @@ test('the release lane is left out of the plan, never planned false, unless the 
   for (const event of ['push', 'workflow_dispatch']) {
     assert.equal('release' in plan({ event, draft: false, actor: 'x', ref: 'refs/heads/main', baseRef: '', files: [] }).plan, false);
   }
-  assert.deepEqual(OPTIONAL_LANES, ['release']);
+  assert.deepEqual(OPTIONAL_LANES, ['release', ...HEAVY_LANES]);
 });
 
 test('a merge group for main plans the release lane; one for dev does not', () => {
@@ -127,7 +132,7 @@ test('a review event plans like its PR but runs only the review lanes', () => {
   const review = plan({ ...PR, event: 'pull_request_review', files });
   assert.deepEqual(review.plan, plan({ ...PR, files }).plan);
   assert.deepEqual(REVIEW_LANES, ['static']);
-  assert.deepEqual(review.run, { hygiene: false, static: true, release: false, frontend: false, backend: false, edge: false });
+  assert.deepEqual(review.run, { hygiene: false, static: true, release: false, bundles: false, frontend: false, backend: false, edge: false });
   assert.equal(review.sonar, false);
 });
 
@@ -153,6 +158,62 @@ test('every non-review event runs exactly what it plans', () => {
 test('manual dispatch runs every heavy lane', () => {
   const r = plan({ event: 'workflow_dispatch', draft: false, actor: 'x', ref: 'refs/heads/dev', files: [] });
   assert.deepEqual(r.plan, { ...ALL, hygiene: false });
+});
+
+// ── heavy lanes (D-195 addendum: PR = fast feedback, merge queue = full gate)
+
+const WIRED = new Set(['bundles']);
+const APP = ['app/apps/mobile/src/lib/x.ts'];
+
+test('wiredLanes finds only top-level heavy jobs in ci.yml', () => {
+  assert.deepEqual([...wiredLanes('jobs:\n  changes:\n    outputs:\n      bundles: x\n  bundles:\n    name: bundles\n')], ['bundles']);
+  assert.deepEqual([...wiredLanes('jobs:\n  changes:\n    outputs:\n      bundles: ${{ x }}\n')], []);
+  assert.deepEqual(HEAVY_LANES, ['bundles']);
+});
+
+test('wiredLanes fails closed on a bundles job line it cannot read', () => {
+  for (const line of ['  bundles: # web + native', "  'bundles':", '  "bundles":', '  bundles: { uses: x }', ' bundles:', 'bundles:']) {
+    assert.throws(() => wiredLanes(`jobs:\n${line}\n    name: bundles\n`), /cannot read the "bundles" job line/, line);
+  }
+  assert.deepEqual([...wiredLanes('jobs:\n  bundles:  \n    name: bundles\n')], ['bundles']);
+});
+
+test('a heavy lane stays out of the plan until ci.yml wires it', () => {
+  for (const event of ['pull_request', 'merge_group', 'push']) {
+    assert.equal('bundles' in plan({ ...PR, event, baseRef: 'dev', files: APP }).plan, false, event);
+  }
+});
+
+test('a PR into dev plans the heavy lanes as not needed, even for an app change', () => {
+  const r = plan({ ...PR, baseRef: 'dev', files: APP, wired: WIRED });
+  assert.deepEqual(r.plan, { hygiene: true, static: true, frontend: true, backend: false, edge: false, bundles: false });
+  assert.equal(r.run.bundles, false);
+});
+
+test('a review into dev plans the heavy lanes as not needed and runs none', () => {
+  const r = plan({ ...PR, event: 'pull_request_review', baseRef: 'dev', files: APP, wired: WIRED });
+  assert.equal(r.plan.bundles, false);
+  assert.equal(r.run.bundles, false);
+});
+
+test('a PR into main needs the heavy lanes whenever it needs frontend', () => {
+  assert.equal(plan({ ...PR, baseRef: 'main', files: APP, wired: WIRED }).plan.bundles, true);
+  assert.equal(plan({ ...PR, baseRef: 'main', files: ['docs/a.md'], wired: WIRED }).plan.bundles, false);
+});
+
+test('merge groups, pushes and dispatches run the heavy lanes, whatever the diff', () => {
+  const runs = [
+    { event: 'merge_group', ref: 'refs/heads/gh-readonly-queue/dev/pr-1', baseRef: 'refs/heads/dev' },
+    { event: 'merge_group', ref: 'refs/heads/gh-readonly-queue/main/pr-1', baseRef: 'refs/heads/main' },
+    { event: 'push', ref: 'refs/heads/dev' },
+    { event: 'push', ref: 'refs/heads/main' },
+    { event: 'workflow_dispatch', ref: 'refs/heads/dev' },
+  ];
+  for (const r of runs) {
+    const result = plan({ draft: false, actor: 'x', files: ['docs/a.md'], wired: WIRED, ...r });
+    assert.equal(result.plan.bundles, true, `${r.event} ${r.ref}`);
+    assert.equal(result.run.bundles, true, `${r.event} ${r.ref}`);
+  }
 });
 
 // ── changedFiles against a real repository ───────────────────────────────

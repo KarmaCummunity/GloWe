@@ -43,7 +43,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G37 | ✅ 2026-10-30 — Launch flags no longer hide worlds: every world tile is shown; a world whose flag is off opens as a portal (links + knowledge) instead of "coming soon" (D3, D60; `launchWorldMode`, `WorldPortalScreen`) | 04 |
 | G38 | 🟡 2026-10-30 — Shared DB test harness (`supabase/tests/_harness`, `scripts/run-db-tests.sh`) + rides lifecycle flow. Open: items, food, knowledge flows on the harness | architecture §5.1 |
 | G39 | 🟡 2026-10-31 — Port contract tests: contract kit + `IPostRepository` suite run against the in-memory fake (every `pnpm test`) and the Supabase adapter (local stack, `ci-backend`); remaining ports listed in BACKLOG `OPS-G39` (`D-204`) | architecture §5.1 |
-| G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
+| G40 | 🟡 2026-10-31 — Two-user E2E journey per active world: shared journey + fixtures for `items` and `food` (`tests/e2e/journeys/<world>.spec.ts`), run nightly, in the mobile P0 gate and in the release lane; `time` / `rides` follow their launch flags (`D-205`) | architecture §5.1 |
 | G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-202`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
 | G42 | 🟡 2026-10-30 — Health registry (`ops`, migration `0463`) + hourly monitor on dev + prod + GitHub-issue alerts (→ email) with auto-close (D68, D69). Open: WhatsApp channel once live, synthetic web check, WhatsApp outbound checks | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |

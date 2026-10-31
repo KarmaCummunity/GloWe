@@ -39,6 +39,20 @@ Adding a port: write `contracts/<port>.contract.ts` (fresh actor per case; owner
 
 Shipped: `IPostRepository`. Queue: BACKLOG `OPS-G39`.
 
+## Two-user world journeys (G40, `D-205`)
+
+`tests/e2e/journeys/<world>.spec.ts` — one Playwright journey per live giving world, two seeded users, against the dev deployment:
+
+1. **A publishes** through `create_marketplace_listing` (the RPC the unified create form calls), so the journey tests the giving flow, not the form widgets (the form has its own qa spec).
+2. **B claims** on the listing page — items reserve (`reserved`, owner must confirm), food quick-claims (`confirmed` at once, migration 0383).
+3. **A confirms** when the world needs it; **A hands over** — the listing closes and the giver's karma ledger row exists; **B rates** — the rating is stored for the rater (D24).
+
+Every UI step is re-read over REST as the acting user, so RLS is exercised as in the app. The shape lives once in `tests/e2e/lib/worldJourney.ts`; a world is a fixture (`kindSlug`, claim action and the status it results in, kind details such as food expiry). Locators prefer the `giving-handoff-*` / `handoff-rating-*` testIDs and fall back to the Hebrew labels. No skip markers: a step that cannot run fails.
+
+Runs: nightly (`e2e-nightly-dev.yml`), the mobile nightly P0 gate and the release lane (`ci-release.yml`) — top-level `journeys/*.spec.ts`. A PR-time run would exercise the previous dev deployment, not the PR, so journeys are not a PR lane.
+
+Shipped: `items`, `food`. Queue: BACKLOG `OPS-G40`.
+
 ## E2E test user (dev only)
 
 **Manual / agent super-admin user** (Supabase dev `enbqriuxvvuontiwslun`). CI no longer uses it: the Playwright suites sign in as the public kc-dev seed users ([`tests/e2e/README.md`](../../tests/e2e/README.md)).
