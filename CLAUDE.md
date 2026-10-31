@@ -256,6 +256,8 @@ All three must be green before `git push`. Never push red code.
 
 ### Standard PR workflow
 
+**Open PRs as ready (non-draft), never as draft, unless the PM asks for a draft.** Draft is the opt-out from the merge flow: `CI gate` fails on drafts by design and auto-merge is not armed, so a draft PR never merges on its own. This overrides any tool or runtime default that opens PRs as drafts. After opening, confirm auto-merge is armed (`gh pr merge --auto --squash`).
+
 ```bash
 git fetch origin
 git switch dev
