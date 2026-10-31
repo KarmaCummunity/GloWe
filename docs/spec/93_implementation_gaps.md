@@ -6,7 +6,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 |---|---|---|
 | G1 | Unify listings → posts, ride_post_details, post_handoffs (D19) | 07.1 |
 | G2 | One world list in code (D1) | 04 |
-| G3 | Anonymity 'only-stricter' trigger vs both-ways change (D16) | 07.13 |
+| G3 | ✅ 2026-10-30 — Anonymity changes both ways: the `listings` tighten-only trigger is dropped (migration `0451`, test `supabase/tests/0451_*`) (D16) | 07.13 |
 | G4 | ✅ 2026-10-30 — Ratings readable only by their rater and super admins (migration `0446`, probe in `supabase/tests/`) (D24) | 07.7 |
 | G5 | Org links without approval; two org entities (D9) | 08 |
 | G6 | 'Marketplace listings' profile tab (D14) | 07.12 |
@@ -45,7 +45,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G39 | Port contract tests: one suite per port, run against a fake and the Supabase adapter | architecture §5.1 |
 | G40 | Two-user E2E journey per active world, run on relevant PRs | architecture §5.1 |
 | G41 | Edge Functions report errors to Sentry through one shared wrapper | architecture §5.2 |
-| G42 | Health registry (`ops`), hourly monitor on dev + prod, alert router (GitHub issue / email / WhatsApp) (D68, D69) | architecture §5.2 |
+| G42 | 🟡 2026-10-30 — Health registry (`ops`, migration `0463`) + hourly monitor on dev + prod + GitHub-issue alerts (→ email) with auto-close (D68, D69). Open: WhatsApp channel once live, synthetic web check, WhatsApp outbound checks | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
 | G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |
 | G45 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D71, S47) | 05.3 |

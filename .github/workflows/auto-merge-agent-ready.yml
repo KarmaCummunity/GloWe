@@ -41,4 +41,7 @@ jobs:
           GH_TOKEN: ${{ secrets.AGENT_MERGE_TOKEN || github.token }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-        run: gh pr merge "$PR" --repo "$REPO" --auto --squash --delete-branch
+        # No --delete-branch: GitHub rejects it while the `dev` merge queue is enabled
+        # ("Cannot use -d or --delete-branch when merge queue enabled"); the queue's
+        # merge removes the head branch per the repository's delete-on-merge setting.
+        run: gh pr merge "$PR" --repo "$REPO" --auto --squash
