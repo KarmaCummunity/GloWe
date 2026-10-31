@@ -35,9 +35,9 @@ One suite per application port, written once and run twice:
 
 The cases live in `app/packages/application/src/contracts/<port>.contract.ts` as a plain `ContractCase[]` with framework-agnostic assertions (`ContractViolation`), so the module ships in `@kc/application` without a vitest import and any adapter package can import it. A fake that drifts from the adapter fails the same case the adapter passes.
 
-Adding a port: write `contracts/<port>.contract.ts` (fresh actor per case; owner-side behaviour only — viewer visibility, admin flows and ranking stay in per-adapter tests), a behavioural in-memory fake beside the use-case tests, the two runners, and export the contract from `contracts/index.ts`. Run the adapter leg locally: `supabase start`, then `eval "$(supabase status -o env)"` and `SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY pnpm --filter @kc/infrastructure-supabase test contract.integration`. No stack key is ever written in the repo (GitGuardian scans every PR), and the suite files carry no skip marker (the test-integrity judge rejects added ones).
+Adding a port: write `contracts/<port>.contract.ts` (fresh actors per case; a second actor only where the port's behaviour is two-sided, as a bookmark on another user's post is — admin flows and ranking stay in per-adapter tests), a behavioural in-memory fake beside the use-case tests, the two runners, and export the contract from `contracts/index.ts`. Run the adapter leg locally: `supabase start`, then `eval "$(supabase status -o env)"` and `SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY pnpm --filter @kc/infrastructure-supabase test contract.integration`. No stack key is ever written in the repo (GitGuardian scans every PR), and the suite files carry no skip marker (the test-integrity judge rejects added ones).
 
-Shipped: `IPostRepository`. Queue: BACKLOG `OPS-G39`.
+Shipped: `IPostRepository`, `ISavedPostsRepository` (the posts-area fakes share one `InMemoryPostStore`, whose `isPostVisibleTo` models the owner / hidden-status / OnlyMe slice of `is_post_visible_to`). Queue: BACKLOG `OPS-G39`.
 
 ## Two-user world journeys (G40, `D-205`)
 
