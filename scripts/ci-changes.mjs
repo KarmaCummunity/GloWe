@@ -93,9 +93,25 @@ export const HEAVY_LANES = ['bundles'];
  */
 export const OPTIONAL_LANES = ['release', ...HEAVY_LANES];
 
-/** The heavy lanes `ciYml` (the text of ci.yml) defines as top-level jobs. */
+/**
+ * The heavy lanes `ciYml` (the text of ci.yml) defines as top-level jobs.
+ * ci.yml runs this file alone, without the YAML parser, so it accepts only
+ * the canonical `  <lane>:` job line and throws (failing the detector, hence
+ * the gate) on any other key line for the lane at job depth, such as a
+ * trailing comment, quotes or a flow value, instead of reading it as unwired.
+ */
 export function wiredLanes(ciYml) {
-  return new Set(HEAVY_LANES.filter((lane) => new RegExp(`^ {2}${lane}:[ \\t]*$`, 'm').test(ciYml)));
+  const wired = new Set();
+  for (const lane of HEAVY_LANES) {
+    const keyLines = ciYml.split('\n').filter((line) => new RegExp(`^ {0,3}["']?${lane}["']?[ \\t]*:`).test(line));
+    for (const line of keyLines) {
+      if (!new RegExp(`^ {2}${lane}:[ \\t]*$`).test(line)) {
+        throw new Error(`ci.yml: cannot read the "${lane}" job line ${JSON.stringify(line)}; write it as "  ${lane}:"`);
+      }
+      wired.add(lane);
+    }
+  }
+  return wired;
 }
 
 /** Map changed paths to the heavy lanes they need. */

@@ -171,6 +171,13 @@ test('wiredLanes finds only top-level heavy jobs in ci.yml', () => {
   assert.deepEqual(HEAVY_LANES, ['bundles']);
 });
 
+test('wiredLanes fails closed on a bundles job line it cannot read', () => {
+  for (const line of ['  bundles: # web + native', "  'bundles':", '  "bundles":', '  bundles: { uses: x }', ' bundles:', 'bundles:']) {
+    assert.throws(() => wiredLanes(`jobs:\n${line}\n    name: bundles\n`), /cannot read the "bundles" job line/, line);
+  }
+  assert.deepEqual([...wiredLanes('jobs:\n  bundles:  \n    name: bundles\n')], ['bundles']);
+});
+
 test('a heavy lane stays out of the plan until ci.yml wires it', () => {
   for (const event of ['pull_request', 'merge_group', 'push']) {
     assert.equal('bundles' in plan({ ...PR, event, baseRef: 'dev', files: APP }).plan, false, event);
