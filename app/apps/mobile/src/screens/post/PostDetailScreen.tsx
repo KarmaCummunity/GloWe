@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { iconSize, spacing, useTheme, Text } from '@kc/ui';
+import { spacing, useTheme, Text, iconSize } from '@kc/ui';
 import { EmptyState } from '../../components/EmptyState';
 import { useAuthStore } from '../../store/authStore';
 import { getPostByIdUseCase } from '../../services/postsComposition';
@@ -93,7 +93,7 @@ export function PostDetailScreen() {
 
   const showShellTabBar = useShellTabBarVisibility();
   const tabBarPad = shellTabBarHeightPx(showShellTabBar);
-  // D-201: a feed mirror of a listing opens the listing detail instead.
+  // D-203: a feed mirror of a listing opens the listing detail instead.
   const redirectingToListing = useListingMirrorRedirect(query.data?.post);
 
   const exitAfterOwnerMutation = (messageKey: 'closure.detailCloseSuccessToast' | 'closure.detailReopenSuccessToast') => {
@@ -146,7 +146,8 @@ export function PostDetailScreen() {
   const ownerLabel = postOwnerDisplayLabel(post, t);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    // testID: stable E2E anchor for "the loaded post opened" (Maestro flow 06, KC#1235).
+    <SafeAreaView style={styles.container} edges={['bottom']} testID="post-detail-screen">
       <Stack.Screen
         options={{
           // Under forceRTL=true, the inner row visually flips so the *first*

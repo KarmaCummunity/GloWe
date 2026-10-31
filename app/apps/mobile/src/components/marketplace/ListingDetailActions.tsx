@@ -1,5 +1,5 @@
 // KC#1310 — the listing detail's action row, shown per viewer role: the owner can share the
-// listing to the feed (unless it is already mirrored there, D-201); anyone else can message the
+// listing to the feed (unless it is already mirrored there, D-203); anyone else can message the
 // owner and report the listing. Everyone can share the link. Server failures surface as an
 // alert instead of a silent no-op.
 import React, { useState } from 'react';

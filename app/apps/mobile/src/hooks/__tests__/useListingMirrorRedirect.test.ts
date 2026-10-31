@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// D-201 — a feed mirror of a listing redirects the post detail to the listing detail.
+// D-203 — a feed mirror of a listing redirects the post detail to the listing detail.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 

@@ -84,7 +84,7 @@ function PostCardGridInner({
 
   const firstImage = post.mediaAssets[0] ?? null;
   const firstImagePath = firstImage?.path ?? null;
-  // A feed mirror of a listing borrows its photos from the listing-images bucket (D-201).
+  // A feed mirror of a listing borrows its photos from the listing-images bucket (D-203).
   const imageBucket = firstImage?.bucket ?? 'post-images';
   // PERF-4: serve the 400px thumb for the grid surface (~25-40KB vs ~300-500KB
   // for the 2048px full). KCImage falls back to the full URL if the thumb is

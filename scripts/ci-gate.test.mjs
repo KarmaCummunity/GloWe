@@ -1,7 +1,7 @@
 // Unit tests for scripts/ci-gate.mjs. Run: node --test scripts/ci-gate.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateGate } from './ci-gate.mjs';
+import { evaluateGate, mergeReused } from './ci-gate.mjs';
 
 const ok = { result: 'success' };
 const skipped = { result: 'skipped' };
@@ -76,4 +76,41 @@ test('manual dispatch gates only dev and main', () => {
   assert.deepEqual(evaluateGate({ needs, plan: all, draft: false, event: 'workflow_dispatch', ref: 'refs/heads/dev' }), []);
   const errors = evaluateGate({ needs, plan: all, draft: false, event: 'workflow_dispatch', ref: 'refs/heads/feat/x' });
   assert.match(errors[0], /Manual runs gate only dev or main/);
+});
+
+// Review events re-run only the static lane and reuse the rest. `release` is
+// an optional lane: omitted from the plan, it is reused as skipped.
+const REVIEW_PLAN = { hygiene: true, static: true, frontend: true, backend: false, edge: false };
+const REVIEW_OWN = { changes: ok, hygiene: skipped, static: ok, release: skipped, frontend: skipped, backend: skipped, edge: skipped };
+const REVIEW = { ...PR, event: 'pull_request_review' };
+
+test('a review event judges reused lane results but keeps its own static result', () => {
+  const reused = { hygiene: 'success', static: 'failure', release: 'skipped', frontend: 'success', backend: 'skipped', edge: 'skipped' };
+  const merged = mergeReused(REVIEW_OWN, reused);
+  assert.deepEqual(merged.static, ok);
+  assert.deepEqual(merged.frontend, ok);
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: merged, plan: REVIEW_PLAN }), []);
+});
+
+test('a review event fails when the reused run lacks or failed a needed lane', () => {
+  const missing = mergeReused(REVIEW_OWN, { hygiene: 'success', release: 'skipped', backend: 'skipped', edge: 'skipped' });
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: missing, plan: REVIEW_PLAN }), [
+    'job "frontend" is needed for this change but ended missing',
+  ]);
+  const failed = mergeReused(REVIEW_OWN, { hygiene: 'success', release: 'skipped', frontend: 'failure', backend: 'skipped', edge: 'skipped' });
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: failed, plan: REVIEW_PLAN }), ['job "frontend" failure']);
+});
+
+test('a review on a release PR needs the reused release lane to have passed', () => {
+  const plan = { ...REVIEW_PLAN, release: true };
+  const reused = { hygiene: 'success', frontend: 'success', backend: 'skipped', edge: 'skipped' };
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: mergeReused(REVIEW_OWN, { ...reused, release: 'success' }), plan }), []);
+  assert.deepEqual(evaluateGate({ ...REVIEW, needs: mergeReused(REVIEW_OWN, { ...reused, release: 'skipped' }), plan }), [
+    'job "release" is needed for this change but was skipped',
+  ]);
+});
+
+test('mergeReused leaves an optional lane alone when this ci.yml has no such job', () => {
+  const { release: _release, ...own } = REVIEW_OWN;
+  assert.equal('release' in mergeReused(own, { release: 'success' }), false);
 });

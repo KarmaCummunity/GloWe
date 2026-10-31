@@ -1,4 +1,4 @@
--- 0466_listing_feed_mirror | KC#1101 / KC#1109 AC "listing appears in feed" · D-201
+-- 0466_listing_feed_mirror | KC#1101 / KC#1109 AC "listing appears in feed" · D-203
 --
 -- Native items and food listings never reached the main feed: the feed reads `posts`
 -- (`feed_ranked_ids` / `feed_open_posts_mv`) and a listing only got there when its owner
@@ -23,7 +23,7 @@ alter table public.worlds
   add column if not exists feed_mirror boolean not null default false;
 
 comment on column public.worlds.feed_mirror is
-  'When true, every published open native listing of this world keeps a mirror row in public.posts so it shows in the main feed (D-201).';
+  'When true, every published open native listing of this world keeps a mirror row in public.posts so it shows in the main feed (D-203).';
 
 update public.worlds set feed_mirror = true where slug in ('items', 'food');
 
@@ -33,7 +33,7 @@ alter table public.posts
     references public.listings(listing_id) on delete cascade;
 
 comment on column public.posts.listing_id is
-  'Set on a feed mirror of a native listing (D-201). The listing is the source of truth: title, status, visibility and photos follow it; the detail screen opens the listing.';
+  'Set on a feed mirror of a native listing (D-203). The listing is the source of truth: title, status, visibility and photos follow it; the detail screen opens the listing.';
 
 create unique index if not exists posts_listing_id_key
   on public.posts (listing_id) where listing_id is not null;
@@ -51,7 +51,7 @@ alter table public.media_assets
     check (bucket in ('post-images', 'listing-images'));
 
 comment on column public.media_assets.bucket is
-  'Storage bucket the path lives in. post-images for uploads; listing-images for the photos a feed mirror borrows from its listing (D-201).';
+  'Storage bucket the path lives in. post-images for uploads; listing-images for the photos a feed mirror borrows from its listing (D-203).';
 
 -- ── 4. Mirror posts never count toward the open-posts cap (FR-POST-011) ─────────────
 create or replace function public.posts_enforce_active_cap()

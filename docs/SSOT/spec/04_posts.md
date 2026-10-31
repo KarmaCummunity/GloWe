@@ -38,7 +38,7 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
 - AC2. Switching the toggle preserves shared fields (title, description, category, address, visibility) and clears type-specific fields (item condition, urgency).
 - AC3. The form is the same screen used for editing an existing post (`FR-POST-008`); the route distinguishes them.
 - AC4. *(KC#1296, 2026-10-30)* For the items and food giving worlds, the listing form offers an optional **world subcategory** (items → books, food → bakery…, `public.categories` children of the world). The choice is stored as the listing's `category_id`; a subcategory of another world is rejected (`category_world_mismatch`, migration `0462`). Matching uses it for its category score.
-- AC5. *(KC#1101 / KC#1109, D-201, 2026-10-31)* A published open listing of a feed-mirrored world (`worlds.feed_mirror`: items, food) **appears in the main feed** through one mirror row in `posts` (`posts.listing_id`, migration `0466`). The mirror follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket = 'listing-images'`), privacy, status and deletion; opening it from the feed opens the listing detail. Mirrors do not count toward the open-posts cap (FR-POST-011) and are not listed under "my posts". "Share to feed" reuses the same mirror for every world and is hidden once the listing is mirrored.
+- AC5. *(KC#1101 / KC#1109, D-203, 2026-10-31)* A published open listing of a feed-mirrored world (`worlds.feed_mirror`: items, food) **appears in the main feed** through one mirror row in `posts` (`posts.listing_id`, migration `0466`). The mirror follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket = 'listing-images'`), privacy, status and deletion; opening it from the feed opens the listing detail. Mirrors do not count toward the open-posts cap (FR-POST-011) and are not listed under "my posts". "Share to feed" reuses the same mirror for every world and is hidden once the listing is mirrored.
 
 **Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory`.
 
@@ -484,6 +484,8 @@ A signed-in user may bookmark any post they can currently read (their own or ano
 ## FR-POST-023 — Share post via link with image preview
 
 > **Status:** 🟡 In progress — ships under BACKLOG P2.33. Replaces the v0.9–v0.12 architecture (Supabase Edge Function) with a Hono web server on the same Railway service that serves the SPA — one canonical URL on `karma-community-kc.com`.
+>
+> **Hosting note (2026-10-31, historical context for AC4–AC5):** Railway is retired; the web app now ships as a static export on Cloudflare Pages (`deploy-web.yml`), which does not run the Hono server in `app/apps/mobile/web-server/`. AC4's crawler OG card is therefore not served until the route is ported (`TD-234`); AC5 holds through the Pages SPA fallback.
 
 **Description.**
 A signed-in viewer of a `Public` post that is `open` or `closed_delivered` may share a link to that post from the post-detail screen. The link is browsable to anyone (signed-in or not); social-media crawlers see an Open Graph card with the first post image, the post title, and the description; non-authenticated humans landing in the app are routed to the sign-in screen and, after sign-in, deep-linked back to the original post.

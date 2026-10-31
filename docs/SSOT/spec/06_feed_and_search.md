@@ -45,7 +45,7 @@ The Home Feed shows public posts that the viewer is allowed to see, sorted in re
 - AC2. Default ordering: `created_at DESC`.
 - AC3. There is **no** algorithmic boost based on follow relationships, popularity, or category in MVP.
 - AC4. Pagination: 20 posts per page; infinite scroll on mobile, "Load more" button on Web.
-- AC5. *(D-201, 2026-10-31)* Native items and food listings are part of the feed through their mirror posts (`posts.listing_id`, migration `0466`; FR-POST-001 AC5). The feed card shows the listing's photo from the `listing-images` bucket and opens the listing detail.
+- AC5. *(D-203, 2026-10-31)* Native items and food listings are part of the feed through their mirror posts (`posts.listing_id`, migration `0466`; FR-POST-001 AC5). The feed card shows the listing's photo from the `listing-images` bucket and opens the listing detail.
 
 **Related.** Screens: 2.1 · Domain: `Post`, `FollowEdge`.
 

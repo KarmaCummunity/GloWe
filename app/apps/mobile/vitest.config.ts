@@ -43,18 +43,9 @@ export default defineConfig({
         // Composition roots — exercised end-to-end, not unit-tested
         'src/services/*Composition.ts',
         'src/services/devAutoSignIn.ts',
-        'src/services/avatarUpload.ts',
-        'src/services/imageUpload.ts',
-        'src/services/postMessages.ts',
-        'src/services/authMessages.ts',
-        'src/services/postFormConfirm.ts',
-        'src/services/hostPostSession.ts',
-        // Zustand stores that are just facades over services
-        'src/store/authStore.ts',
+        // Type-only module (no runtime statements)
         'src/store/chatStoreTypes.ts',
-        'src/store/allStoresReset.ts',
-        // Misc one-liners
-        'src/utils/openExternalUrl.ts',
+        // DI container — composition root
         'src/lib/container.ts',
         // Query-cache persistence wiring (singleton QueryClient + AsyncStorage
         // persister) — composition root, exercised end-to-end like container.ts

@@ -10,7 +10,7 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 | [`docs/agents/ARCHITECTURE.md`](docs/agents/ARCHITECTURE.md) | Apps / packages / supabase / workflows map |
 | [`docs/agents/DEPLOY.md`](docs/agents/DEPLOY.md) | **Deploy runbooks**: DB, web, seeding, types drift, E2E, all workflows |
 | [`docs/agents/RELEASE.md`](docs/agents/RELEASE.md) | Versioning, TestFlight / Play internal, rollback |
-| [`docs/architecture/adr/`](docs/architecture/adr/) | **ADRs**: client state (ADR-001), data layer + new-RPC checklist (ADR-002) |
+| [`docs/architecture/adr/`](docs/architecture/adr/) | **ADRs**: client state (ADR-001), data layer + new-RPC checklist (ADR-002), realtime (ADR-003) |
 | [`CLAUDE.md`](./CLAUDE.md) | Architecture, gates, PR template, prohibitions |
 
 ## Product focus
@@ -35,14 +35,14 @@ KC (Karma Community) is built largely by AI agents. This is the short entry poin
 
 - [ ] Gates green locally (from `app/`): `pnpm typecheck && pnpm test && pnpm lint`
 - [ ] New or changed behavior has tests
-- [ ] Migrations, if any: numbered inside your claimed range, apply cleanly on a fresh stack (`./scripts/dev-up.sh`), RLS plus policy tests, no destructive ops (`CI — dev guard`)
+- [ ] Migrations, if any: numbered inside your claimed range, apply cleanly on a fresh stack (`./scripts/dev-up.sh`), RLS plus policy tests, no destructive ops (migration safety scan in the `static` lane of `CI gate`)
 - [ ] DB types regenerated and committed if the API surface changed
 - [ ] PR body: `Closes #N` and `Mapped to spec: …`, following the CLAUDE.md §6 template
-- [ ] All required CI checks green, then label `agent-ready` to auto-merge
+- [ ] `CI gate` green, then label `agent-ready` to auto-merge
 - [ ] After merge: verified on kc-dev / dev.karma-community.pages.dev
 
 Store builds (TestFlight / Play internal): see [`app/apps/mobile/README.md`](app/apps/mobile/README.md).
 
 ## Migrations rule
 
-Every schema change must be a committed file in `supabase/migrations/NNNN_snake.sql`, applied only via `supabase db push` / the `DB deploy` workflow. **Never** use the Supabase MCP `apply_migration` tool on any KC project (dev or prod). The `CI — migration drift` workflow scans the dev ledger against the **dev** branch's files (pinned with `ref: dev`, since scheduled runs execute from `main`). See `CLAUDE.md` §9 and `docs/SSOT/OPERATOR_RUNBOOK.md` → "Migration application rules".
+Every schema change must be a committed file in `supabase/migrations/NNNN_snake.sql`, applied only via `supabase db push` / the **Deploy** workflow. **Never** use the Supabase MCP `apply_migration` tool on any KC project (dev or prod). The `CI — migration drift` workflow scans the dev ledger against the **dev** branch's files (pinned with `ref: dev`, since scheduled runs execute from `main`). See `CLAUDE.md` §9 and `docs/SSOT/OPERATOR_RUNBOOK.md` → "Migration application rules".

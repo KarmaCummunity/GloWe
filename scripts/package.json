@@ -1,0 +1,9 @@
+{
+  "name": "@kc/repo-scripts",
+  "private": true,
+  "description": "Dependencies of the repo-root guard scripts (scripts/*.mjs). Install with `npm ci --prefix scripts`.",
+  "type": "module",
+  "dependencies": {
+    "yaml": "2.9.1"
+  }
+}

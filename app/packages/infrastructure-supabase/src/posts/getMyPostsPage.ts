@@ -26,7 +26,7 @@ export async function getMyPostsPage(
     .from('posts')
     .select(POST_SELECT_BARE)
     .eq('owner_id', userId)
-    // Feed mirrors of listings are listed with the listings, not here (D-201).
+    // Feed mirrors of listings are listed with the listings, not here (D-203).
     .is('listing_id', null)
     .in('status', status)
     .order('created_at', { ascending: false })
