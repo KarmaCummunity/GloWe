@@ -3,9 +3,8 @@
 // (short preview + "open full post" link, never the post body).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import { Text } from 'react-native';
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import { ThemeProvider } from '@kc/ui';
+import { ThemeProvider, Text } from '@kc/ui';
 
 vi.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 vi.mock('../../ui/KCImage', () => ({ KCImage: () => <span data-testid="thumb-image" /> }));

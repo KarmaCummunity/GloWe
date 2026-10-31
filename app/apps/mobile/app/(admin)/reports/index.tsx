@@ -2,7 +2,8 @@
 // FR-ADMIN-012 — admin reports inbox screen. Cursor-paginated KcFlashList of
 // open reports with chip filters and reporter-id search.
 import { useState } from 'react';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
+import { Text } from '@kc/ui';
 import type { ListOpenReportsFilters } from '@kc/application';
 import { useReportsInbox } from '../../../src/hooks/useReportsInbox';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';

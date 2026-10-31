@@ -4,9 +4,9 @@
 // Used for list rows (shifts, my-listings, handoffs, ride search) and chat previews —
 // it never renders a post body, only a short preview.
 import React from 'react';
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 import { KCImage } from '../ui/KCImage';
 import { useKcRowCardStyles } from './KcRowCard.styles';
 

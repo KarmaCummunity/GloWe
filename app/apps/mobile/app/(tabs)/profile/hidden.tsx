@@ -1,12 +1,12 @@
 // My Profile — OnlyMe (hidden) posts. Stack header + title from `profile/_layout.tsx`.
 // Mapped to: FR-PROFILE-001 AC4 (Hidden overflow entry).
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
 import { ProfilePostsGrid } from '../../../src/components/profile/ProfilePostsGrid';
 import { ProfileClosedPostsGrid } from '../../../src/components/profile/ProfileClosedPostsGrid';
 import { useShellTabBarScrollInset } from '../../../src/navigation/useShellTabBarVisibility';

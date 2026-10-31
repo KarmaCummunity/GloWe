@@ -8566,6 +8566,10 @@ export type Database = {
         Args: { p_owner: string; p_viewer: string }
         Returns: number
       }
+      actor_scope_rank: {
+        Args: { p_actor: string; p_scope: string }
+        Returns: number
+      }
       add_volunteer_shift: {
         Args: {
           p_capacity?: number
@@ -8642,6 +8646,10 @@ export type Database = {
         Args: { p_note: string; p_reason: string; p_target_user_id: string }
         Returns: undefined
       }
+      admin_change_role: {
+        Args: { p_grant_id: string; p_new_role: string }
+        Returns: string
+      }
       admin_confirm_report: {
         Args: { p_report_id: string }
         Returns: undefined
@@ -8673,6 +8681,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_hierarchy_census: { Args: never; Returns: Json }
       admin_list_admins: {
         Args: { p_include_revoked?: boolean }
         Returns: {
@@ -9386,6 +9395,10 @@ export type Database = {
         Args: { granter_uid: string; target_role: string; target_scope: string }
         Returns: boolean
       }
+      can_manage_grant: {
+        Args: { p_actor: string; p_grant_id: string }
+        Returns: boolean
+      }
       cancel_giving_handoff: {
         Args: { p_handoff_id: string }
         Returns: undefined
@@ -10053,6 +10066,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      karma_award_handoff: {
+        Args: {
+          p_giver: string
+          p_handoff_id: string
+          p_receiver: string
+          p_world: string
+        }
+        Returns: undefined
+      }
       karma_grant_once: {
         Args: {
           p_delta: number
@@ -10062,6 +10084,10 @@ export type Database = {
           p_user: string
         }
         Returns: undefined
+      }
+      karma_handoff_points: {
+        Args: { p_role: string; p_world: string }
+        Returns: number
       }
       karma_recompute_nightly: {
         Args: never
@@ -10848,6 +10874,7 @@ export type Database = {
       }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
       ride_templates_materialize: { Args: never; Returns: number }
+      role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {
         Args: { p_chat_id: string }
         Returns: undefined

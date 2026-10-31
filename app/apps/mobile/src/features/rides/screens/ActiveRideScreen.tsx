@@ -8,7 +8,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@kc/ui';
+import { useTheme, Text } from '@kc/ui';
 
 import { TopBar } from '../../../components/TopBar';
 import { Screen } from '../../../components/ui/Screen';

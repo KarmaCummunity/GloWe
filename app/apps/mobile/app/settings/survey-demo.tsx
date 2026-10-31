@@ -6,14 +6,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { makeUseStyles, spacing, typography, useBreakpoint, useTheme } from '@kc/ui';
+import { makeUseStyles, spacing, typography, useBreakpoint, useTheme, Text, TextInput } from '@kc/ui';
 import { useDetailStackScreenOptions } from '../../src/navigation/detailStackScreenOptions';
 import {
   shellTabBarHeightPx,

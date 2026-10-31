@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   ALL_CATEGORIES,
@@ -8,7 +8,7 @@ import {
   type ItemCondition,
   type PostType,
 } from '@kc/domain';
-import { makeUseStyles, spacing, typography } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { Chip } from './Chip';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 

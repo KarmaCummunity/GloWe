@@ -1,8 +1,8 @@
 // app/apps/mobile/src/components/admin/tasks/TaskCategoryChip.tsx
 // V2-ADMIN-TASKS-2 — category badge for task row + detail.
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import type { AdminTaskCategory } from '@kc/domain';
-import { makeUseStyles } from '@kc/ui';
+import { makeUseStyles, Text } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface TaskCategoryChipProps {

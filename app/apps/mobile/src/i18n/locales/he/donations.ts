@@ -60,7 +60,7 @@ export const donations = {
       title: 'רפואה',
       subtitle: 'תמיכה רפואית וציוד',
       body:
-        'קטגוריית הרפואה תיפתח בהמשך.\nועד אז מזמינים אתכם ללתרום לקהילה עצמה, ולעזור לנו לגדול ולהתפתח.\nלעמותות של ציוד רפואי, טיפול ותמיכה, ותרומת דם ואברים — היכנסו לאחד הקישורים למטה.',
+        'תרומת דם, כרטיס אדי, עזרה ראשונה וציוד רפואי — כאן תמצאו את הגופים המובילים בישראל.\nבחרו גוף, היכנסו לאתר שלו ותצילו חיים.',
     },
   },
   moneyScreen: {
@@ -249,6 +249,7 @@ export const marketplace = {
   notFound: 'המודעה לא נמצאה.',
   startChat: 'שליחת הודעה',
   shareFeed: 'שיתוף בפיד',
+  actionFailed: 'הפעולה לא הושלמה. נסו שוב.',
   chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
   createTitle: 'מודעה חדשה — {{world}}',
   fieldTitle: 'כותרת',
@@ -258,6 +259,8 @@ export const marketplace = {
   forYouTitle: 'בשבילך',
   createHubTitle: 'בחירת עולם נתינה',
   fieldKind: 'סוג מודעה',
+  fieldWorldSubcategory: 'תת-קטגוריה',
+  fieldWorldSubcategoryHint: 'לא חובה — עוזר למצוא לך התאמות',
   fieldDirection: 'מציע / מבקש',
   fieldCity: 'עיר / אזור',
   fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',

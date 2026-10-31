@@ -1,11 +1,11 @@
 // Onboarding step 1 of 4 — FR-AUTH-018 (mini about before FR-AUTH-010)
 import React from 'react';
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, typography, spacing, radius, useTheme } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, useTheme, Text } from '@kc/ui';
 import { AnimatedEntry } from '../../src/components/animations/AnimatedEntry';
 import { HeroHalo } from '../../src/components/animations/HeroHalo';
 import { OnboardingStepHeader } from '../../src/components/OnboardingStepHeader';

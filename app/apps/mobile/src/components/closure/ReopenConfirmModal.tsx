@@ -2,9 +2,9 @@
 // Copy varies on TWO axes:
 //   1. status:  closed_delivered (with consequences) vs deleted_no_recipient (cancel cleanup)
 //   2. type:    Give (owner gave / marked received) vs Request (owner received / marked gave)
-import { Modal, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { Modal, View, Pressable, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, useTheme } from '@kc/ui';
+import { makeUseStyles, useTheme, Text } from '@kc/ui';
 import type { PostType } from '@kc/domain';
 import { rowDirectionStart } from '../../lib/rtlLayout';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';

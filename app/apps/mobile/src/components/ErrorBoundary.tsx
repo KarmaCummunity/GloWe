@@ -4,9 +4,9 @@
 // Route segments have their own boundary (RouteErrorBoundary) that shares
 // this fallback and report.
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, typography, spacing, radius } from '@kc/ui';
+import { makeUseStyles, typography, spacing, radius, Text } from '@kc/ui';
 import { getSentryIfInit } from '../lib/observability/sentry';
 
 type Props = { children: React.ReactNode };
@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
+const useStyles = makeUseStyles(({ colors }) => ({
   container: {
     flex: 1,
     backgroundColor: colors.surface,
