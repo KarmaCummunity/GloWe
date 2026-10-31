@@ -10298,6 +10298,7 @@ export type Database = {
           title: string
         }[]
       }
+      listing_details_expires_at: { Args: { p_details: Json }; Returns: string }
       listing_geo_from_city: { Args: { p_city_id: string }; Returns: unknown }
       listing_upsert_from_post: {
         Args: { p_post: Database["public"]["Tables"]["posts"]["Row"] }
@@ -10522,7 +10523,7 @@ export type Database = {
         Args: { p_error: string; p_id: string }
         Returns: undefined
       }
-      notifications_post_expiry_check: { Args: never; Returns: undefined }
+      notifications_post_relevance_check: { Args: never; Returns: number }
       organizer_message_shift_volunteers: {
         Args: { p_message: string; p_shift_id: string }
         Returns: number
@@ -10563,6 +10564,10 @@ export type Database = {
         Args: { p_idempotency_key: string; p_lines: Json; p_txn_id: string }
         Returns: undefined
       }
+      post_relevance_reminder_due: {
+        Args: { p_age_days: number }
+        Returns: boolean
+      }
       post_stats_bump: {
         Args: {
           p_comment_delta?: number
@@ -10572,7 +10577,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      posts_expiry_transition: { Args: never; Returns: number }
       profile_closed_posts: {
         Args: {
           p_cursor?: string
