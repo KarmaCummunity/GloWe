@@ -36,6 +36,10 @@ export const moderationEn = {
     confirmCopy: 'This action is permanent and cannot be undone. Continue?',
     successToast: 'User banned.',
   },
+  suspendedBanner: {
+    body: 'Your account is suspended: you can browse, but not post or send messages. You can contact support.',
+    contactSupport: 'Contact support',
+  },
   bubble: {
     reportReceived: {
       title: 'Report received',
@@ -47,6 +51,9 @@ export const moderationEn = {
     },
     modActionTaken: {
       body: '✅ Handled by admin · {action} · {time}',
+    },
+    ownerHiddenForReview: {
+      body: 'Your post was hidden after repeated reports and is waiting for a team review. We will update you here.',
     },
     ownerAutoRemoved: {
       body: 'Your post was automatically removed following repeated reports. If this is a mistake, you can appeal via the support address.',

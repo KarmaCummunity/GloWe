@@ -43,14 +43,6 @@
       "spacingLiteral": 31,
       "rawTextInput": 1
     },
-    "app/(admin)/posts/index.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 12,
-      "physicalSide": 1,
-      "rawTextInput": 1
-    },
     "app/(admin)/reports/[caseId]/index.tsx": {
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 2,
@@ -148,12 +140,6 @@
     "app/(tabs)/create.tsx": {
       "iconSizeLiteral": 1
     },
-    "app/(tabs)/donations/index.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 1,
-      "iconSizeLiteral": 2
-    },
     "app/(tabs)/donations/marketplace/my-listings.tsx": {
       "fontWeightLiteral": 1,
       "radiusLiteral": 1
@@ -228,10 +214,6 @@
       "radiusLiteral": 1,
       "iconSizeLiteral": 1
     },
-    "app/(tabs)/profile/removed.tsx": {
-      "radiusLiteral": 1,
-      "iconSizeLiteral": 1
-    },
     "app/(tabs)/profile/saved.tsx": {
       "radiusLiteral": 1,
       "iconSizeLiteral": 1
@@ -241,10 +223,6 @@
     },
     "app/auth/verify.tsx": {
       "radiusLiteral": 1
-    },
-    "app/chat/[id].tsx": {
-      "rawTextInput": 1,
-      "iconSizeLiteral": 2
     },
     "app/chat/index.tsx": {
       "rawTextInput": 1
@@ -722,12 +700,6 @@
       "fontFamilyLiteral": 1,
       "spacingLiteral": 3
     },
-    "src/components/admin/content/PostSearchRow.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 3,
-      "spacingLiteral": 11
-    },
     "src/components/admin/crm/ContactCard.tsx": {
       "fontSizeLiteral": 8,
       "fontWeightLiteral": 5,
@@ -899,9 +871,6 @@
     "src/components/animations/TourSlidePager.tsx": {
       "radiusLiteral": 1
     },
-    "src/components/aside/GivingWorldsAside.tsx": {
-      "iconSizeLiteral": 2
-    },
     "src/components/aside/RecentSearchesAside.tsx": {
       "iconSizeLiteral": 1
     },
@@ -994,9 +963,6 @@
     },
     "src/components/chat/system/ModActionTakenBubble.tsx": {
       "spacingLiteral": 1
-    },
-    "src/components/chat/system/OwnerAutoRemovedBubble.tsx": {
-      "spacingLiteral": 2
     },
     "src/components/chat/system/ReportReceivedBubble.tsx": {
       "fontSizeLiteral": 5,
@@ -1159,18 +1125,6 @@
       "fontWeightLiteral": 1,
       "radiusLiteral": 2,
       "spacingLiteral": 1
-    },
-    "src/components/post-detail/PostDetailNotices.tsx": {
-      "fontWeightLiteral": 1,
-      "iconSizeLiteral": 1
-    },
-    "src/components/post-detail/PostDetailStatusBadge.tsx": {
-      "colorLiteral": 16,
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 2,
-      "spacingLiteral": 3,
-      "iconSizeLiteral": 4
     },
     "src/components/post-detail/PostEngagementSection.tsx": {
       "fontWeightLiteral": 2,
