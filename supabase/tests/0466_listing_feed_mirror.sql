@@ -137,15 +137,16 @@ begin
   v_mirror := pg_temp.mirror_of(v_listing);
   perform kc_test.assert_eq(v_mirror.visibility, 'Public', 'an items listing is public by default');
 
+  -- A direct write on the mirror is an ordinary post write: it may not go more private.
+  perform kc_test.assert_raises(
+    format('update public.posts set visibility = %L where post_id = %L', 'OnlyMe', v_mirror.post_id),
+    'visibility_downgrade_forbidden',
+    'outside the mirror sync, post visibility still never downgrades');
+
   update public.listings set anonymity_level = 1 where listing_id = v_listing;
   v_mirror := pg_temp.mirror_of(v_listing);
   perform kc_test.assert_eq(v_mirror.visibility, 'OnlyMe', 'the mirror follows the listing into privacy');
   perform kc_test.assert_true(not pg_temp.in_feed(p.viewer, v_mirror.post_id), 'a private mirror is hidden from others');
-
-  perform kc_test.assert_raises(
-    format('update public.posts set visibility = %L where post_id = %L', 'FollowersOnly', v_mirror.post_id),
-    'visibility_downgrade_forbidden',
-    'outside the mirror sync, post visibility still never downgrades');
 end $$;
 
 -- 4) The listing's photos are the mirror's photos, from the listing-images bucket, in order;
