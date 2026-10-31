@@ -268,7 +268,7 @@ gh pr create --base dev --head "$(git branch --show-current)" \
   --title "feat(auth): add OTP verification screen" \
   --body-file .github/.pr-body.md \
   --label "FR-AUTH" --assignee "@me"
-gh pr merge --auto --squash --delete-branch
+gh pr merge --auto --squash   # no --delete-branch: rejected while the dev merge queue is on
 gh pr checks --watch
 git switch dev && git pull --ff-only origin dev
 git branch -D feat/FR-AUTH-001-otp-login
@@ -404,7 +404,7 @@ When this section is active, the agent operates as a continuous self-driven task
 3. **Branch from latest `origin/dev`**: `<type>/<FR-id-or-scope>-<slug>` per §6.
 4. **Implement** under all constraints in §1–§5 (spec validation, clean architecture, file/indent caps, error handling).
 5. **Verify locally** before push: from `app/` run `pnpm typecheck && pnpm test && pnpm lint`. All three green or do not push.
-6. **PR to `dev`** with `gh pr create --base dev` then `gh pr merge --auto --squash --delete-branch`. Body follows the §6 template, including the `Mapped to spec` line.
+6. **PR to `dev`** with `gh pr create --base dev` then `gh pr merge --auto --squash` (no `--delete-branch`: rejected while the `dev` merge queue is on). Body follows the §6 template, including the `Mapped to spec` line.
 7. **CI watch.** If CI fails: up to 3 fix attempts on the same PR. If still red after 3, investigate CI itself (workflow drift, flake, env mismatch) — fix it in-scope. Only after CI repair also fails twice do you close the PR with a blocker note and skip to the next task; the blocked item is added to `TECH_DEBT.md` with a clear reproducer.
 8. **Update SSOT in the same PR**: `BACKLOG.md` → ✅, `spec/<domain>.md` status header if all ACs done, `TECH_DEBT.md` closures/additions.
 9. **Append to `.claude/AUTONOMOUS_LOOP_LOG.md`**: `<ISO-timestamp> | <branch> | <PR url> | <merged|closed|blocked> | <one-line outcome>`.
