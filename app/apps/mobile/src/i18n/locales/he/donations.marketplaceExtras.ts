@@ -26,3 +26,11 @@ export const marketplaceOrgPicker = {
   error: 'טעינת הארגונים נכשלה.',
   required: 'יש לבחור ארגון מאומת לפני הפרסום.',
 } as const;
+
+/** Hub browse refinements (KC#1102 / KC#1111): world subcategory and distance from home. */
+export const marketplaceBrowseRefine = {
+  subcategoryRowA11y: 'סינון לפי קטגוריה',
+  allSubcategories: 'כל הקטגוריות',
+  radiusRowA11y: 'מרחק מהבית',
+  radius: 'עד {{km}} ק״מ',
+} as const;

@@ -9404,6 +9404,7 @@ export type Database = {
       browse_listings: {
         Args: {
           p_availability?: string
+          p_category_id?: string
           p_cursor_created_at?: string
           p_cursor_id?: string
           p_cursor_sort?: number
