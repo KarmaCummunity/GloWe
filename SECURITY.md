@@ -16,13 +16,13 @@ GitHub/org integrations on every PR.
 
 | # | Tool | Status | Blocks merge? | Notes |
 | - | ---- | ------ | ------------- | ----- |
-| 1 | **SonarCloud** (SonarQube SaaS) | ✅ Active | **Yes** (`SonarCloud quality gate`) | Workflow: `.github/workflows/ci-sonar.yml`. Setup: `docs/dev/SONAR.md`. |
+| 1 | **SonarCloud** (SonarQube SaaS) | ✅ Active | **Yes** (inside `CI gate`, `frontend` lane) | Workflow: `.github/workflows/ci-sonar.yml`. Setup: `docs/dev/SONAR.md`. |
 | 2 | **Snyk** | ✅ Active (`SNYK_TOKEN` set) | No (promote later) | Workflow: `.github/workflows/ci-snyk.yml`. |
 | 3 | **CodeRabbit** | ✅ Active (org App installed) | No (review comments only) | `.coderabbit.yaml` reviews `app/**`, `supabase/**`, `scripts/**` and `docs/spec/**`. |
 | 4 | **GitHub Dependabot** | ✅ Active | N/A (opens fix PRs) | Config: `.github/dependabot.yml`. Security updates: **enabled**. |
 | 5 | **GitGuardian** (ggshield) | ✅ Active (`GITGUARDIAN_API_KEY` set) | No (promote later) | Workflow: `.github/workflows/ci-gitguardian.yml`. |
 | 6 | **Secret Scanning** | ✅ Active | Push-time block | Enabled + push protection on the public repo. |
-| 7 | **Automated tests** | ✅ Active | **Yes** | Unit: `typecheck · test · lint` (Vitest). Integration: `apply migrations · rls · types · sql probes`, `rpc · table contract`. E2E on `main` release: `CI — E2E dev`. |
+| 7 | **Automated tests** | ✅ Active | **Yes** (`CI gate`) | Unit: Vitest in the `frontend` lane. Integration: the `backend` lane (migrations, RLS, types, SQL probes) and the RPC contract check in the `static` lane. E2E on `main` release: the `release` lane's P0 journeys. |
 
 Contributors should run locally before opening a PR (from `app/`):
 
