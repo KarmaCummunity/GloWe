@@ -24,7 +24,7 @@ All PR checks run behind the single required check `CI gate` (`.github/workflows
 | push → `dev` / `main` | every lane, then **Deploy** (kc-dev automatically; prod after the owner's approval) with its smoke stage | none |
 | nightly | — | QA suite (`e2e-nightly-dev.yml`); P0 journeys before the mobile store builds (`mobile-nightly.yml`) |
 
-## Port contract tests (G39, `D-203`)
+## Port contract tests (G39, `{{ENG:port-contracts}}`)
 
 One suite per application port, written once and run twice:
 
