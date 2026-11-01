@@ -49,3 +49,13 @@ export const rideRoutes = {
   remove: 'הסרה',
   removeError: 'לא הצלחנו להסיר את המסלול. נסו שוב.',
 } as const;
+
+// Ride safety (D70): the emergency call during a ride and the no-profit cost cap.
+export const rideSafety = {
+  emergency: 'קריאת חירום',
+  emergencyConfirm: 'לשלוח קריאת חירום לכל מי שבנסיעה ולצוות קארמה?',
+  emergencySend: 'כן, לשלוח עכשיו',
+  emergencyCancel: 'ביטול',
+  emergencySent: 'קריאת החירום נשלחה. בסכנה מיידית חייגו 100.',
+  costCapHint: 'השתתפות בהוצאות עד ₪{{cap}} — בלי רווח.',
+} as const;

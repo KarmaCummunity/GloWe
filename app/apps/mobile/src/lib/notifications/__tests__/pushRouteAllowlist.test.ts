@@ -34,7 +34,8 @@ describe('resolvePushRoute', () => {
     'ride_booking_expired',
     'ride_booking_cancelled',
     'ride_route_match',
-  ] as const)('routes %s to the listing (KC#1316, D73, D74)', (kind) => {
+    'ride_listing_emergency',
+  ] as const)('routes %s to the listing (KC#1316, D70, D73, D74)', (kind) => {
     expect(
       resolvePushRoute({ category: 'critical', kind, notification_id: 'n9', params: { listingId: UUID } }),
     ).toEqual({ pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId: UUID } });

@@ -55,6 +55,9 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   // D74 (0516) — saved routes: at most 10, and a route must go somewhere.
   'saved_routes_limit',
   'same_route',
+  // D70 (0517) — the emergency button works only during the ride, once per 5 minutes.
+  'ride_not_active',
+  'emergency_throttled',
 ] as const;
 
 export type MarketplaceServerErrorCode = (typeof MARKETPLACE_SERVER_ERROR_CODES)[number];

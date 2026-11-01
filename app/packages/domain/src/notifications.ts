@@ -44,7 +44,9 @@ export type NotificationKind =
   | 'ride_booking_expired'
   | 'ride_booking_cancelled'
   // D74 (0516) — a new ride on a route the user follows.
-  | 'ride_route_match';
+  | 'ride_route_match'
+  // D70 (0517) — an emergency raised on a ride of the one rides flow.
+  | 'ride_listing_emergency';
 
 /** Payload attached to every Expo push under `data`. The client reads this on tap. */
 export interface PushData {
