@@ -147,7 +147,7 @@ describe('PersonRolesSection', () => {
     ));
     fireEvent.click(screen.getByRole('button', { name: team.changeRole }));
     // An org manager may move a volunteer up to a volunteer manager (strictly below them).
-    fireEvent.click(screen.getByRole('button', { name: L.admin.roles.volunteer_manager }));
+    fireEvent.click(screen.getByRole('checkbox', { name: L.admin.roles.volunteer_manager }));
     fireEvent.click(screen.getByRole('button', { name: team.changeModal.submit }));
     await vi.waitFor(() => expect(changeMutate).toHaveBeenCalledWith({ grantId: 'g1', newRole: 'volunteer_manager' }));
   });
@@ -158,7 +158,7 @@ describe('PersonRolesSection', () => {
     render(withTheme(<PersonRolesSection userId="u-person" personName="Dana" grants={[]} />));
     expect(screen.getByText(team.rolesNone)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: team.addRole }));
-    fireEvent.click(screen.getByRole('button', { name: L.admin.roles.org_manager }));
+    fireEvent.click(screen.getByRole('checkbox', { name: L.admin.roles.org_manager }));
     fireEvent.click(screen.getByRole('button', { name: L.admin.admins.grantModal.submit }));
     await vi.waitFor(() => expect(grantMutate).toHaveBeenCalledWith({
       targetUserId: 'u-person', role: 'org_manager', scopeOrgId: 'org-a',

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 // Sheets on the kit `BottomSheet` (spec 17 §4.1.1, TD-243): the feed filter
 // (FR-FEED-004), the search filter (FR-FEED-017) and the photo source picker
-// (FR-AUTH-011) render their content and actions and dismiss through `onClose`.
+// (FR-AUTH-011) render their content and actions and dismiss through `onClose`;
+// the feed filter's chips are kit `Chip` checkboxes.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
@@ -32,6 +33,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 vi.mock('../CityPicker', () => ({ CityPicker: () => <span data-testid="city-picker" /> }));
 vi.mock('../../services/avatarUpload', () => ({ isCameraAvailable: true }));
 
+import { RADIUS_OPTIONS_KM } from '@kc/domain';
 import { PostFilterSheet, type PostFilterValue } from '../PostFilterSheet';
 import { SearchFilterSheet } from '../SearchFilterSheet';
 import { PhotoSourceSheet } from '../PhotoSourceSheet';
@@ -59,9 +61,9 @@ const FEED_FILTER: PostFilterValue = {
 };
 
 describe('PostFilterSheet', () => {
-  function renderSheet(visible = true) {
+  function renderSheet(visible = true, value: PostFilterValue = FEED_FILTER) {
     const handlers = { onPatch: vi.fn(), onClear: vi.fn(), onClose: vi.fn() };
-    const view = withTheme(<PostFilterSheet visible={visible} value={FEED_FILTER} {...handlers} />);
+    const view = withTheme(<PostFilterSheet visible={visible} value={value} {...handlers} />);
     return { ...view, ...handlers };
   }
 
@@ -80,6 +82,25 @@ describe('PostFilterSheet', () => {
     const { getByText, onPatch } = renderSheet();
     fireEvent.click(getByText('filters.statusClosedOnly'));
     expect(onPatch).toHaveBeenCalledWith({ statusFilter: 'closed' });
+  });
+
+  it('shows the applied filters as checked kit chips', () => {
+    const { getByRole } = renderSheet();
+    expect(getByRole('checkbox', { name: 'filters.statusOpenOnly' }).getAttribute('aria-checked')).toBe('true');
+    expect(getByRole('checkbox', { name: 'filters.statusClosedOnly' }).getAttribute('aria-checked')).toBe('false');
+    expect(getByRole('checkbox', { name: 'filters.sortNewest' }).getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('checks the current radius and commits a new one from the radius chips', () => {
+    const locationFilter = { centerCity: 'haifa', centerCityName: 'Haifa', radiusKm: RADIUS_OPTIONS_KM[0] };
+    const { getAllByRole, onPatch } = renderSheet(true, { ...FEED_FILTER, locationFilter });
+    // The mocked `t` drops the {{km}} value, so the radius chips share one name; order follows RADIUS_OPTIONS_KM.
+    const radiusChips = getAllByRole('checkbox', { name: 'filters.radiusKm' });
+    expect(radiusChips.map((chip) => chip.getAttribute('aria-checked'))).toEqual(
+      RADIUS_OPTIONS_KM.map((km) => String(km === RADIUS_OPTIONS_KM[0])),
+    );
+    fireEvent.click(radiusChips[1]);
+    expect(onPatch).toHaveBeenCalledWith({ locationFilter: { ...locationFilter, radiusKm: RADIUS_OPTIONS_KM[1] } });
   });
 
   it('dismisses through onClose from the close control', () => {
