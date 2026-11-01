@@ -20,3 +20,14 @@ export const dateTimeField = {
   done: 'Done',
   cancel: 'Cancel',
 } as const;
+
+// The rides feed on the hub (D75): offers and requests by departure, grouped by day.
+export const rideFeed = {
+  group: { today: 'Today', tomorrow: 'Tomorrow', later: 'Later' },
+  seatsLeft: 'Free seats: {{count}}',
+  full: 'No free seats',
+  passengers: 'Passengers: {{count}}',
+  meetingPoints: 'Pickup points: {{count}}',
+  empty: 'No upcoming rides right now. You can publish a ride or a request.',
+  error: "We couldn't load the rides. Pull down to try again.",
+} as const;
