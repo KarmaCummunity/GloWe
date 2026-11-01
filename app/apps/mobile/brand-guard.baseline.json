@@ -19,19 +19,6 @@
       "rawTextInput": 1,
       "adHocChip": 1
     },
-    "app/(admin)/index.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 4,
-      "spacingLiteral": 12,
-      "iconSizeLiteral": 1
-    },
-    "app/(admin)/money/index.tsx": {
-      "fontSizeLiteral": 10,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 2,
-      "spacingLiteral": 16
-    },
     "app/(admin)/org-approvals/index.tsx": {
       "fontSizeLiteral": 15,
       "fontWeightLiteral": 9,
@@ -60,10 +47,6 @@
       "physicalSide": 1,
       "rawTextInput": 3
     },
-    "app/(admin)/time/index.tsx": {
-      "fontSizeLiteral": 1,
-      "spacingLiteral": 5
-    },
     "app/(admin)/users/index.tsx": {
       "fontSizeLiteral": 5,
       "fontWeightLiteral": 2,
@@ -72,12 +55,6 @@
       "physicalSide": 1,
       "rawTextInput": 1,
       "adHocChip": 1
-    },
-    "app/(admin)/whatsapp/index.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 8,
-      "radiusLiteral": 4,
-      "spacingLiteral": 20
     },
     "app/(tabs)/donations/marketplace/my-listings/edit/[listingId].tsx": {
       "fontWeightLiteral": 1,
@@ -425,12 +402,6 @@
     "src/components/admin/content/UserSearchRow.tsx": {
       "adHocChip": 1
     },
-    "src/components/admin/crm/ContactCard.tsx": {
-      "fontSizeLiteral": 8,
-      "fontWeightLiteral": 5,
-      "radiusLiteral": 3,
-      "spacingLiteral": 12
-    },
     "src/components/admin/crm/ContactFormModal.tsx": {
       "colorLiteral": 1,
       "fontSizeLiteral": 7,
@@ -471,19 +442,6 @@
       "rawTextInput": 1,
       "adHocChip": 1
     },
-    "src/components/admin/surveys/FeedbackCard.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 5
-    },
-    "src/components/admin/surveys/SurveyOverviewCard.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 3,
-      "spacingLiteral": 8,
-      "iconSizeLiteral": 1
-    },
     "src/components/admin/tasks/AssigneePicker.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
@@ -505,12 +463,6 @@
       "spacingLiteral": 10,
       "physicalSide": 1,
       "rawTextInput": 2
-    },
-    "src/components/admin/time/TimesheetEntryCard.tsx": {
-      "fontSizeLiteral": 9,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 4,
-      "spacingLiteral": 14
     },
     "src/components/admin/time/TimesheetFormModal.tsx": {
       "colorLiteral": 1,

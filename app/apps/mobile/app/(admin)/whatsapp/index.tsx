@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { hasPermission, isWhatsAppAdminError, type AdminPermission, type AdminRole } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { AdminFilterChip } from '../../../src/components/admin/AdminFilterChip';
@@ -254,35 +254,35 @@ export default function WhatsAppAdminScreen() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 48, gap: 8 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  content: { padding: spacing.base, paddingBottom: spacing['3xl'], gap: spacing.sm },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   forbidden: { color: colors.error, textAlign: 'center' },
-  title: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
-  section: { marginTop: 16, marginBottom: 6, fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  title: { fontSize: typography.h2.fontSize, ...typography.bold, color: colors.textPrimary, marginBottom: spacing.sm },
+  section: { marginTop: spacing.base, marginBottom: spacing.xs, fontSize: typography.bodyLarge.fontSize, ...typography.bold, color: colors.textPrimary },
   card: {
-    backgroundColor: colors.surface, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 8,
+    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.sm,
   },
-  cardTitle: { fontWeight: '700', color: colors.textPrimary },
-  muted: { color: colors.textSecondary, fontSize: 13 },
-  error: { color: colors.error, fontSize: 12 },
-  btn: { marginTop: 4, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, alignSelf: 'flex-start' },
+  cardTitle: { ...typography.bold, color: colors.textPrimary },
+  muted: { color: colors.textSecondary, fontSize: typography.bodySmall.fontSize },
+  error: { color: colors.error, fontSize: typography.bodySmall.fontSize },
+  btn: { marginTop: spacing.xs, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.sm, alignSelf: 'flex-start' },
   btnPrimary: { backgroundColor: colors.primary },
   btnDanger: { backgroundColor: colors.error },
-  btnText: { color: colors.textInverse, fontWeight: '700' },
-  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  btnText: { color: colors.textInverse, ...typography.bold },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   kpi: {
-    width: '30%', minWidth: 96, backgroundColor: colors.surface, borderRadius: 10, padding: 10,
+    width: '30%', minWidth: 96, backgroundColor: colors.surface, borderRadius: radius.sm, padding: spacing.sm,
     borderWidth: 1, borderColor: colors.border,
   },
-  kpiValue: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
-  kpiLabel: { fontSize: 11, color: colors.textSecondary },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
+  kpiValue: { fontSize: typography.h3.fontSize, ...typography.bold, color: colors.textPrimary },
+  kpiLabel: { fontSize: typography.caption.fontSize, color: colors.textSecondary },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.xs },
   row: {
-    backgroundColor: colors.surface, borderRadius: 10, padding: 12, marginBottom: 6,
-    borderWidth: 1, borderColor: colors.border, gap: 4,
+    backgroundColor: colors.surface, borderRadius: radius.sm, padding: spacing.md, marginBottom: spacing.xs,
+    borderWidth: 1, borderColor: colors.border, gap: spacing.xs,
   },
-  rowTitle: { fontWeight: '600', color: colors.textPrimary },
-  linkBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
-  link: { color: colors.primary, fontWeight: '600' },
-  linkDanger: { color: colors.error, fontWeight: '600' },
+  rowTitle: { ...typography.semiBold, color: colors.textPrimary },
+  linkBtn: { alignSelf: 'flex-start', paddingVertical: spacing.xs },
+  link: { color: colors.primary, ...typography.semiBold },
+  linkDanger: { color: colors.error, ...typography.semiBold },
 }));
