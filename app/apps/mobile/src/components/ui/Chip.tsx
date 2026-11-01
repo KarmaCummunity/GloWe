@@ -74,8 +74,18 @@ export function Chip(props: ChipProps) {
   return <FilterChip {...props} />;
 }
 
+/** Props of the chip body shared by every variant. */
+interface ChipContentProps {
+  readonly label: string;
+  /** Optional leading glyph; `undefined` renders the label alone. */
+  readonly icon: ChipBaseProps['icon'];
+  readonly size: ChipSize;
+  /** Foreground colour for both the glyph and the label. */
+  readonly color: string;
+}
+
 /** Leading icon + one-line label, shared by every variant. */
-function ChipContent({ label, icon, size, color }: { label: string; icon?: ChipBaseProps['icon']; size: ChipSize; color: string }) {
+function ChipContent({ label, icon, size, color }: ChipContentProps) {
   const styles = useChipStyles();
   return (
     <>
