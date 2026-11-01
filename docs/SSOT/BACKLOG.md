@@ -28,6 +28,7 @@
 | INFRA-OSS-6 | **GitGuardian** | infra | 🟡 In progress | `SECURITY.md` |
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
 | PERF-5 | **DB consolidation — per-chat unread count RPC** | agent-fullstack | 🟡 In progress | Migration `0133` |
+| SEC-1063 | **DB function privileges (#1063).** `EXECUTE` is an explicit decision of each migration: new functions private by default, SECURITY DEFINER triggers and internal helpers service-role only, anon limited to the reviewed public-read list (`0520`); guarded by `supabase/tests/0520_*` and `scripts/check-rpc-grants.mjs` (CI backend lane). Remaining: verify on kc-dev after the Deploy run. | agent-be | 🟡 Code complete — kc-dev verification pending | [ADR-002 §2](../architecture/adr/ADR-002-data-layer.md) |
 
 ## INFRA — CI/CD hardening (`D-195`)
 
