@@ -53,7 +53,7 @@ export const notificationsEn = {
   foodExpiringBody: '{{listingTitle}} — if it was already handed over, mark it as handed over.',
   foodExpiredTitle: 'Your food offer expired',
   foodExpiredBody: '{{listingTitle}} was taken off the list because no one collected it in time.',
-  // D73 / {{D:ride-booking-expiry}} — ride booking changes, one push to the other side (0511).
+  // D73 / D96 — ride booking changes, one push to the other side (0511).
   rideBookingRequestedTitle: 'New request to join your ride',
   rideBookingRequestedBody: '{{name}} wants to join "{{rideTitle}}" (seats: {{seats}}). Approve or decline.',
   rideBookingConfirmedTitle: 'Your seat is confirmed',

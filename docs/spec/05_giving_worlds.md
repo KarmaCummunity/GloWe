@@ -25,8 +25,8 @@ One rides flow (D70): ride offers and requests are posts with a ride extension; 
 
 1. Driver posts (quick publish, D75) — origin, destination, up to 3 meeting points, departure, estimated end, seats. The last route is remembered and a past ride can be published again. Anyone may drive; verification is shown (D23).
 2. Places — origin, destination and meeting points are picked **only** from official catalogs: cities, streets, and named junctions & interchanges. No free-text places (D71).
-3. Passenger books a seat or posts a ride request. The driver sees every booking on the ride and approves or declines each; both sides get a push on every change (D73). Chat per pair (D13). An unapproved booking expires 12 hours after it was made or at departure, whichever is earlier, and frees its seats ({{D:ride-booking-expiry}}).
-4. Saved route (D74) — a user follows a route (from → to, optional days and hours) and is notified of new rides along it; the rides form of the saved filter (D10). Urgent rides notifications bypass quiet hours ({{D:rides-urgency-rule}}).
+3. Passenger books a seat or posts a ride request. The driver sees every booking on the ride and approves or declines each; both sides get a push on every change (D73). Chat per pair (D13). An unapproved booking expires 12 hours after it was made or at departure, whichever is earlier, and frees its seats (D96).
+4. Saved route (D74) — a user follows a route (from → to, optional days and hours) and is notified of new rides along it; the rides form of the saved filter (D10). Urgent rides notifications bypass quiet hours (D95).
 5. Map (D72) — the ride's route (origin → meeting points → destination) is shown on the map; every place has "navigate" to Waze, Google Maps or Apple Maps.
 6. Ride — emergency button during an active ride.
 7. "Ride completed" — karma, internal rating; offer auto-closes 30 min after estimated end (D21).

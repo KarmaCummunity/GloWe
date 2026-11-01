@@ -1,5 +1,5 @@
 // Passenger view of a ride offer: ask to join with a seat count, then follow the booking —
-// waiting (with its auto-cancel deadline, {{D:ride-booking-expiry}}), approved, completed and rated
+// waiting (with its auto-cancel deadline, D96), approved, completed and rated
 // (docs/spec/05_giving_worlds.md §5.3 step 3, D73; spec 07 §7.7).
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';

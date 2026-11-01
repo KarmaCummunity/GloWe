@@ -1,5 +1,5 @@
 // Hebrew — ride seat bookings on the ride screen: the driver's passenger list and the
-// passenger's own booking (docs/spec/05_giving_worlds.md §5.3 step 3, D73, {{D:ride-booking-expiry}}).
+// passenger's own booking (docs/spec/05_giving_worlds.md §5.3 step 3, D73, D96).
 export const rideBooking = {
   driverTitle: 'הנוסעים בנסיעה',
   seatSummary: 'פנויים {{free}} מתוך {{capacity}} מקומות',

@@ -1,6 +1,6 @@
 // A seat booking on a ride offer (rides world on the generic handoff stage).
 // Spec: docs/spec/05_giving_worlds.md §5.3 step 3 — the driver sees every booking and
-// approves or declines each (D73); unapproved bookings expire ({{D:ride-booking-expiry}}). Gap G47.
+// approves or declines each (D73); unapproved bookings expire (D96). Gap G47.
 
 /** Booking states the driver manages; cancelled bookings are history and are not listed. */
 export const RIDE_BOOKING_STATUSES = ['reserved', 'confirmed', 'handed_over'] as const;
@@ -17,7 +17,7 @@ export interface RideBooking {
   readonly seats: number;
   readonly status: RideBookingStatus;
   readonly reservedAt: string;
-  /** Approval deadline: 12 hours after booking or departure, whichever is earlier ({{D:ride-booking-expiry}}). */
+  /** Approval deadline: 12 hours after booking or departure, whichever is earlier (D96). */
   readonly confirmBy: string | null;
   /** True once the driver rated this passenger after the trip (spec 07 §7.7). */
   readonly ratedByMe: boolean;
