@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 
 export interface AdminFormActionsProps {
   readonly cancelLabel:    string;
@@ -35,11 +35,11 @@ export function AdminFormActions({
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  errorText:      { color: colors.error, fontSize: 12 },
-  row:            { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 8 },
-  cancel:         { paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8 },
-  cancelText:     { fontSize: 13, fontWeight: '500' },
-  submit:         { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, backgroundColor: colors.primary },
+  errorText:      { color: colors.error, fontSize: typography.bodySmall.fontSize },
+  row:            { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
+  cancel:         { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm },
+  cancelText:     { fontSize: typography.bodySmall.fontSize, ...typography.medium },
+  submit:         { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.primary },
   submitDisabled: { opacity: 0.5 },
-  submitText:     { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
+  submitText:     { color: colors.textInverse, fontSize: typography.bodySmall.fontSize, ...typography.bold },
 }));

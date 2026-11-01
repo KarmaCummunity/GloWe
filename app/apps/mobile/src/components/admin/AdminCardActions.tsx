@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 
 export interface AdminCardActionsProps {
   readonly editLabel:   string;
@@ -23,10 +23,10 @@ export function AdminCardActions({ editLabel, deleteLabel, onEdit, onDelete }: A
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  row:                { flexDirection: 'row', gap: 8, marginTop: 6 },
-  action:             { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+  row:                { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  action:             { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm },
   actionPrimary:      { backgroundColor: colors.primary },
-  actionPrimaryText:  { color: colors.textInverse, fontSize: 12, fontWeight: '700' },
+  actionPrimaryText:  { color: colors.textInverse, fontSize: typography.bodySmall.fontSize, ...typography.bold },
   actionDanger:       { backgroundColor: colors.error },
-  actionDangerText:   { color: colors.textInverse, fontSize: 12, fontWeight: '700' },
+  actionDangerText:   { color: colors.textInverse, fontSize: typography.bodySmall.fontSize, ...typography.bold },
 }));
