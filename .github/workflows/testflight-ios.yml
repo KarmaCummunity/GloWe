@@ -89,6 +89,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
           LOOKBACK: '30'
+        working-directory: .
         run: node .store-target/scripts/mobile-store-target.mjs
 
       - name: Preflight secrets (fail closed)
