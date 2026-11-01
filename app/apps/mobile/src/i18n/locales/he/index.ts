@@ -9,6 +9,7 @@ import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
+import { rideBooking } from './rideBooking';
 import { ridePlaces } from './ridePlaces';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
@@ -121,6 +122,8 @@ const he = {
   timeVolunteer,
   medicalBodies,
   givingHandoff,
+  // Ride seat bookings (D73) — see rideBooking.ts
+  rideBooking,
   // Ride places (D71) — see ridePlaces.ts
   ridePlaces,
 

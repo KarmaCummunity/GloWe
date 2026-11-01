@@ -7,9 +7,7 @@ export const givingHandoff = {
   confirmReservation: 'Confirm reservation',
   markHandedOver: 'Mark handed over',
   cancel: 'Cancel handoff',
-  bookRideSeat: 'Book a seat',
   bookKnowledgeSlot: 'Book this slot',
-  completeTrip: 'Mark trip completed',
   completeSession: 'Mark session completed',
   ratingThanks: 'Thanks — your rating builds community trust.',
   // Rating step after a handoff (spec 07 §7.7): 1–5 stars plus an optional note, seen only by the KC team.
