@@ -5451,6 +5451,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -5477,6 +5478,7 @@ export type Database = {
           estimated_value?: number | null
           item_condition?: string | null
           listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string
           owner_id: string
           post_id?: string
@@ -5503,6 +5505,7 @@ export type Database = {
           estimated_value?: number | null
           item_condition?: string | null
           listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string
           owner_id?: string
           post_id?: string
@@ -5541,6 +5544,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_world_slug_fkey"
+            columns: ["listing_world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -8512,6 +8522,8 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string | null
           owner_id: string | null
           post_id: string | null
@@ -8537,6 +8549,8 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string | null
           owner_id?: string | null
           post_id?: string | null
@@ -8562,6 +8576,8 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string | null
           owner_id?: string | null
           post_id?: string | null
@@ -8586,6 +8602,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cities"
             referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_world_slug_fkey"
+            columns: ["listing_world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -9875,6 +9912,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -11085,6 +11123,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -11120,6 +11159,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string

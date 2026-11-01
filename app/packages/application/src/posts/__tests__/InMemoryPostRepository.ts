@@ -78,6 +78,7 @@ export class InMemoryPostRepository implements IPostRepository {
       reopenCount: 0,
       deleteAfter: null,
       listingId: null,
+      listingWorldSlug: null,
       createdAt: now,
       updatedAt: now,
       sourceLanguage: null,
