@@ -4,15 +4,9 @@
 // FR-FEED-020 (followers-only scope).
 //
 // All controls commit immediately to the parent store; the feed refetches in place.
+// The frame, dismissal and motion come from the kit `BottomSheet` (spec 17 §4.1).
 
 import React, { useCallback } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type {
   Category,
@@ -22,12 +16,18 @@ import type {
   LocationFilter,
   PostType,
 } from '@kc/domain';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
-import { useModalHardwareBack } from '../../hooks/useModalHardwareBack';
+import { BottomSheet } from '../ui/BottomSheet';
+import { GhostButton } from '../ui/Buttons';
 import { SortSection } from './SortSection';
 import { FiltersSection } from './FiltersSection';
 import { LocationFilterSection } from './LocationFilterSection';
 import { SearchSection } from './SearchSection';
+
+/**
+ * Compact cap so the feed stays visible behind the sheet (FR-FEED-004 AC3:
+ * "maxHeight ~55–60%"). A share of the screen height, not a design token.
+ */
+const FILTER_SHEET_MAX_HEIGHT = '58%';
 
 export interface PostFilterValue {
   type: PostType | null;
@@ -43,11 +43,11 @@ export interface PostFilterValue {
 }
 
 interface PostFilterSheetProps {
-  visible: boolean;
-  value: PostFilterValue;
-  onPatch: (patch: Partial<PostFilterValue>) => void;
-  onClear: () => void;
-  onClose: () => void;
+  readonly visible: boolean;
+  readonly value: PostFilterValue;
+  readonly onPatch: (patch: Partial<PostFilterValue>) => void;
+  readonly onClear: () => void;
+  readonly onClose: () => void;
 }
 
 export function PostFilterSheet({
@@ -58,8 +58,6 @@ export function PostFilterSheet({
   onClose,
 }: PostFilterSheetProps) {
   const { t } = useTranslation();
-  const styles = usePostFilterSheetStyles();
-  const { colors } = useTheme();
 
   const handleSearchQueryChange = useCallback(
     (q: string) => onPatch({ searchQuery: q }),
@@ -71,90 +69,52 @@ export function PostFilterSheet({
     onClose();
   };
 
-  useModalHardwareBack(visible, onClose);
-
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </Pressable>
-            <Text style={styles.headerTitle}>{t('filters.header')}</Text>
-            <Pressable onPress={handleClear} hitSlop={8}>
-              <Text style={styles.clearText}>{t('filters.clearAll')}</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-            {visible ? (
-              <SearchSection
-                searchQuery={value.searchQuery}
-                sheetVisible={visible}
-                onSearchQueryChange={handleSearchQueryChange}
-              />
-            ) : null}
-            <SortSection
-              sortOrder={value.sortOrder}
-              proximitySortCity={
-                value.proximitySortCity && value.proximitySortCityName
-                  ? { id: value.proximitySortCity, name: value.proximitySortCityName }
-                  : null
-              }
-              onSortOrderChange={(s) => onPatch({ sortOrder: s })}
-              onProximitySortCityChange={(c) =>
-                onPatch({
-                  proximitySortCity: c?.id ?? null,
-                  proximitySortCityName: c?.name ?? null,
-                })
-              }
-            />
-            <FiltersSection
-              type={value.type}
-              categories={value.categories}
-              itemConditions={value.itemConditions}
-              statusFilter={value.statusFilter}
-              followersOnly={value.followersOnly}
-              onTypeChange={(type) => onPatch({ type })}
-              onCategoriesChange={(categories) => onPatch({ categories })}
-              onItemConditionsChange={(itemConditions) => onPatch({ itemConditions })}
-              onStatusFilterChange={(statusFilter) => onPatch({ statusFilter })}
-              onFollowersOnlyChange={(followersOnly) => onPatch({ followersOnly })}
-            />
-            <LocationFilterSection
-              value={value.locationFilter}
-              onChange={(locationFilter) => onPatch({ locationFilter })}
-            />
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    <BottomSheet
+      visible={visible}
+      onDismiss={onClose}
+      title={t('filters.header')}
+      maxHeight={FILTER_SHEET_MAX_HEIGHT}
+      footer={<GhostButton label={t('filters.clearAll')} size="md" fullWidth onPress={handleClear} />}
+    >
+      {visible ? (
+        <SearchSection
+          searchQuery={value.searchQuery}
+          sheetVisible={visible}
+          onSearchQueryChange={handleSearchQueryChange}
+        />
+      ) : null}
+      <SortSection
+        sortOrder={value.sortOrder}
+        proximitySortCity={
+          value.proximitySortCity && value.proximitySortCityName
+            ? { id: value.proximitySortCity, name: value.proximitySortCityName }
+            : null
+        }
+        onSortOrderChange={(s) => onPatch({ sortOrder: s })}
+        onProximitySortCityChange={(c) =>
+          onPatch({
+            proximitySortCity: c?.id ?? null,
+            proximitySortCityName: c?.name ?? null,
+          })
+        }
+      />
+      <FiltersSection
+        type={value.type}
+        categories={value.categories}
+        itemConditions={value.itemConditions}
+        statusFilter={value.statusFilter}
+        followersOnly={value.followersOnly}
+        onTypeChange={(type) => onPatch({ type })}
+        onCategoriesChange={(categories) => onPatch({ categories })}
+        onItemConditionsChange={(itemConditions) => onPatch({ itemConditions })}
+        onStatusFilterChange={(statusFilter) => onPatch({ statusFilter })}
+        onFollowersOnlyChange={(followersOnly) => onPatch({ followersOnly })}
+      />
+      <LocationFilterSection
+        value={value.locationFilter}
+        onChange={(locationFilter) => onPatch({ locationFilter })}
+      />
+    </BottomSheet>
   );
 }
-
-const usePostFilterSheetStyles = makeUseStyles(({ colors }) => ({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: colors.overlay },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    maxHeight: '58%',
-    paddingBottom: spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.base,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTitle: { ...typography.h3, color: colors.textPrimary },
-  clearText: { ...typography.caption, color: colors.error, fontWeight: '600' as const },
-  body: { flexGrow: 0 },
-  bodyContent: { padding: spacing.sm, paddingBottom: spacing.md },
-}));

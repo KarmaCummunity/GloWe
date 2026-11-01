@@ -110,6 +110,7 @@ describe('countLiterals — zIndexLiteral and shadowLiteral', () => {
 
 describe('countLiterals — rawTextInput and rawModal (spec 17 §4.1)', () => {
   const source = [
+    "import { Modal, Pressable } from 'react-native';",
     '<TextInput value={draft} onChangeText={setDraft} />',
     '<Modal visible={open} transparent>',
     '<ModalHeader title={title} />',
@@ -127,5 +128,42 @@ describe('countLiterals — rawTextInput and rawModal (spec 17 §4.1)', () => {
   it('skips a non-form input carrying the allow-marker', () => {
     const composer = '<TextInput // brand-guard-allow: chat composer, not a form field';
     expect(countLiterals(composer, 'app/chat/[id].tsx')).toEqual({});
+  });
+
+  it('counts an aliased React Native Modal imported across lines', () => {
+    const aliased = ['import {', '  Modal as NativeModal,', '  View,', "} from 'react-native';", '<NativeModal visible />'];
+    expect(countLiterals(aliased.join('\n'), 'src/components/Sheet.tsx')).toEqual({ rawModal: 1 });
+  });
+
+  it('does not count the kit Modal, which is not imported from react-native', () => {
+    const kit = ["import { Modal } from '../components/ui';", '<Modal visible={open} onDismiss={close} title={title} />'];
+    expect(countLiterals(kit.join('\n'), 'src/components/ReportChatModal.tsx')).toEqual({});
+  });
+});
+
+describe('countLiterals — adHocChip (spec 17 §4.1)', () => {
+  it('counts the base style of a hand-rolled chip, on its own line or inline', () => {
+    const source = [
+      'const useStyles = makeUseStyles(({ colors }) => ({',
+      '  chip: {',
+      '  chipActive: { backgroundColor: colors.primary },',
+      '}));',
+      "const s = StyleSheet.create({ row: { flex: 1 }, 'chip': { flex: 1 } });",
+    ].join('\n');
+    expect(countLiterals(source, 'app/(admin)/users/index.tsx')).toEqual({ adHocChip: 2 });
+  });
+
+  it('ignores chip variants, chip containers, locale keys, pills, plain objects and the kit', () => {
+    const source = [
+      'chips: { flexDirection: rowDirectionStart },',
+      'chipRow: { gap: spacing.sm },',
+      'chipText: { ...typography.caption },',
+      "chips: { all: 'All' },",
+      'pill: { borderRadius: radius.full },',
+      'const chip = { bg: colors.infoLight };',
+      '<Chip label={label} onPress={toggle} />',
+    ].join('\n');
+    expect(countLiterals(source, 'src/components/search/SearchChip.tsx')).toEqual({});
+    expect(countLiterals('  chip: {', 'src/components/ui/chipStyles.ts')).toEqual({});
   });
 });

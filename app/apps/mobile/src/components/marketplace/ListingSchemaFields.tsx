@@ -1,8 +1,9 @@
 import React from 'react';
-import { Switch, View, Pressable } from 'react-native';
+import { Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import { TextField } from '../ui/TextField';
+import { Chip } from '../ui/Chip';
 import { DateTimeField } from '../ui/DateTimeField';
 
 type SchemaProp = {
@@ -17,16 +18,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
   field: { gap: spacing.xs, marginBottom: spacing.md },
   label: { ...typography.caption, color: colors.textSecondary },
   chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.caption, color: colors.textPrimary },
   row: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
 }));
 
@@ -73,13 +64,7 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
               <Text style={styles.label}>{fieldLabel(key)}</Text>
               <View style={styles.chipRow}>
                 {prop.enum.map((opt) => (
-                  <Pressable
-                    key={opt}
-                    style={[styles.chip, selected === opt && styles.chipOn]}
-                    onPress={() => setVal(key, opt)}
-                  >
-                    <Text style={styles.chipText}>{optionLabel(opt)}</Text>
-                  </Pressable>
+                  <Chip key={opt} label={optionLabel(opt)} selected={selected === opt} onPress={() => setVal(key, opt)} />
                 ))}
               </View>
             </View>
