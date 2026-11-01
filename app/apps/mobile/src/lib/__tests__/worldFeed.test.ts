@@ -3,7 +3,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MarketplaceBrowseRow } from '@kc/domain';
 import {
-  WORLD_FEED_DIRECTIONS,
   WORLD_FEED_MIN_QUERY,
   browseDirection,
   filterRowsByDirection,
@@ -16,10 +15,6 @@ const row = (listingId: string, direction: 'give' | 'request') =>
 const ROWS = [row('l1', 'give'), row('l2', 'request'), row('l3', 'give')];
 
 describe('world feed rules', () => {
-  it('offers all, offers and requests, in that order', () => {
-    expect(WORLD_FEED_DIRECTIONS).toEqual(['all', 'give', 'request']);
-  });
-
   it('asks the browse RPC for both directions on "all", else for the chosen one', () => {
     expect(browseDirection('all')).toBeNull();
     expect(browseDirection('give')).toBe('give');

@@ -7,9 +7,6 @@ import type { CreateDirection } from './unifiedCreate/createCategories';
 /** Direction filter of a world feed: both directions, or only offers / requests. */
 export type WorldFeedDirection = 'all' | CreateDirection;
 
-/** Filter chips in display order. */
-export const WORLD_FEED_DIRECTIONS: readonly WorldFeedDirection[] = ['all', 'give', 'request'];
-
 /** Fewer characters than this browse instead of searching (one hybrid search per query). */
 export const WORLD_FEED_MIN_QUERY = 2;
 

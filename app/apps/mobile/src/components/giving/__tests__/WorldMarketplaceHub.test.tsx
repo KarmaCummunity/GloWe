@@ -109,6 +109,9 @@ describe('WorldMarketplaceHub — the world feed', () => {
     expect(screen.getByTestId('card-request-1')).toBeTruthy();
     expect(lastBrowseFilters()).toMatchObject({ worldSlug: 'food', direction: null, categoryId: null, radiusKm: 25 });
     expect(screen.getByTestId('world-feed-direction-all').getAttribute('aria-checked')).toBe('true');
+    expect(
+      screen.getAllByRole('checkbox').map((c) => c.getAttribute('data-testid')).filter((id) => id?.startsWith('world-feed-direction-')),
+    ).toEqual(['world-feed-direction-all', 'world-feed-direction-give', 'world-feed-direction-request']);
 
     fireEvent.click(screen.getByTestId('world-feed-direction-request'));
     await waitFor(() => expect(lastBrowseFilters()).toMatchObject({ worldSlug: 'food', direction: 'request' }));

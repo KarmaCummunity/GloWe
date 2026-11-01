@@ -7,7 +7,7 @@ import { makeUseStyles, spacing } from '@kc/ui';
 import { TextField } from '../ui/TextField';
 import { Chip } from '../ui/Chip';
 import { BrowseRefineChips } from '../marketplace/BrowseRefineChips';
-import { WORLD_FEED_DIRECTIONS, type WorldFeedDirection } from '../../lib/worldFeed';
+import type { WorldFeedDirection } from '../../lib/worldFeed';
 import type { WorldFeedState } from '../../hooks/useWorldFeed';
 
 const useStyles = makeUseStyles(() => ({
@@ -15,11 +15,12 @@ const useStyles = makeUseStyles(() => ({
   row: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
 }));
 
-const DIRECTION_LABEL_KEY: Readonly<Record<WorldFeedDirection, string>> = {
-  all: 'donations.worldFeed.directionAll',
-  give: 'donations.worldFeed.directionGive',
-  request: 'donations.worldFeed.directionRequest',
-};
+/** Direction chips in display order; literal testIDs keep the Maestro contract checkable. */
+const DIRECTION_CHIPS: ReadonlyArray<{ direction: WorldFeedDirection; labelKey: string; testID: string }> = [
+  { direction: 'all', labelKey: 'donations.worldFeed.directionAll', testID: 'world-feed-direction-all' },
+  { direction: 'give', labelKey: 'donations.worldFeed.directionGive', testID: 'world-feed-direction-give' },
+  { direction: 'request', labelKey: 'donations.worldFeed.directionRequest', testID: 'world-feed-direction-request' },
+];
 
 interface Props {
   readonly worldSlug: string;
@@ -42,12 +43,12 @@ export function WorldFeedControls({ worldSlug, feed }: Props) {
         autoCorrect={false}
       />
       <View style={styles.row} accessibilityLabel={t('donations.worldFeed.directionRowA11y')}>
-        {WORLD_FEED_DIRECTIONS.map((direction) => (
+        {DIRECTION_CHIPS.map(({ direction, labelKey, testID }) => (
           <Chip
             key={direction}
-            testID={`world-feed-direction-${direction}`}
+            testID={testID}
             size="sm"
-            label={t(DIRECTION_LABEL_KEY[direction])}
+            label={t(labelKey)}
             selected={feed.direction === direction}
             onPress={() => feed.setDirection(direction)}
           />
