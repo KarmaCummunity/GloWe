@@ -2,7 +2,7 @@
 // FR-ADMIN-028 — headline numbers above the layered hierarchy.
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import type { LayerIconName } from './layerVisuals';
 import { rowDirectionStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
@@ -36,7 +36,7 @@ export function HierarchyStatsStrip({ communityTotal, roleHolders, orgCount, aff
     <View style={styles.strip}>
       {stats.map((s) => (
         <View key={s.key} style={styles.tile} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
-          <Ionicons name={s.icon} size={16} color={colors.primary} />
+          <Ionicons name={s.icon} size={iconSize.sm} color={colors.primary} />
           <Text style={styles.value}>{s.value}</Text>
           <Text style={styles.label} numberOfLines={2}>{s.label}</Text>
         </View>
