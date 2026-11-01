@@ -1024,17 +1024,6 @@
       "radiusLiteral": 1,
       "physicalSide": 2
     },
-    "src/components/map/KcMap.native.tsx": {
-      "colorLiteral": 4,
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 2,
-      "spacingLiteral": 1,
-      "shadowLiteral": 5
-    },
-    "src/components/map/KcMap.web.tsx": {
-      "colorLiteral": 3
-    },
     "src/components/map/MapExplorer.styles.ts": {
       "colorLiteral": 3,
       "fontWeightLiteral": 4,
@@ -1059,12 +1048,6 @@
       "physicalSide": 2,
       "rawTextInput": 1,
       "rawModal": 1
-    },
-    "src/components/marketplace/RideRouteCard.tsx": {
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 4,
-      "iconSizeLiteral": 3
     },
     "src/components/money/CampaignProgressBar.tsx": {
       "radiusLiteral": 2,

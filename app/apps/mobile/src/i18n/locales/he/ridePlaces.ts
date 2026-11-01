@@ -12,4 +12,10 @@ export const ridePlaces = {
   meetingPointLabel: 'נקודת איסוף {{n}}',
   addMeetingPoint: 'הוספת נקודת איסוף',
   removeMeetingPoint: 'הסרת נקודת האיסוף',
+  // D72 — the ride detail: places in order, each with "navigate", and the route on a map.
+  meetingPoint: 'נקודת איסוף',
+  navigate: 'ניווט',
+  navigateTo: 'ניווט אל {{place}}',
+  navigationApp: { waze: 'Waze', google: 'Google Maps', apple: 'Apple Maps' },
+  mapA11y: 'מפת המסלול של הנסיעה',
 } as const;

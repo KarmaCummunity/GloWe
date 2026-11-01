@@ -12,4 +12,10 @@ export const ridePlaces = {
   meetingPointLabel: 'Pickup point {{n}}',
   addMeetingPoint: 'Add a pickup point',
   removeMeetingPoint: 'Remove pickup point',
+  // D72 — the ride detail: places in order, each with "navigate", and the route on a map.
+  meetingPoint: 'Pickup point',
+  navigate: 'Navigate',
+  navigateTo: 'Navigate to {{place}}',
+  navigationApp: { waze: 'Waze', google: 'Google Maps', apple: 'Apple Maps' },
+  mapA11y: 'Map of the ride route',
 } as const;
