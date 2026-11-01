@@ -43,11 +43,11 @@ export interface PostFilterValue {
 }
 
 interface PostFilterSheetProps {
-  visible: boolean;
-  value: PostFilterValue;
-  onPatch: (patch: Partial<PostFilterValue>) => void;
-  onClear: () => void;
-  onClose: () => void;
+  readonly visible: boolean;
+  readonly value: PostFilterValue;
+  readonly onPatch: (patch: Partial<PostFilterValue>) => void;
+  readonly onClear: () => void;
+  readonly onClose: () => void;
 }
 
 export function PostFilterSheet({

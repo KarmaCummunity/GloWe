@@ -19,12 +19,12 @@ import { ChatsPane, ModeTabs, SearchPane } from './ClosureRecipientPanes';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 interface Props {
-  ownerId: string;
-  isBusy: boolean;
-  errorMessage: string | null;
-  onMarkAndClose: () => void;
-  onCloseWithoutMarking: () => void;
-  onCancel: () => void;
+  readonly ownerId: string;
+  readonly isBusy: boolean;
+  readonly errorMessage: string | null;
+  readonly onMarkAndClose: () => void;
+  readonly onCloseWithoutMarking: () => void;
+  readonly onCancel: () => void;
 }
 
 export function ClosureStep2({

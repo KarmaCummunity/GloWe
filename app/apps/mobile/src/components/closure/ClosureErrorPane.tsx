@@ -9,8 +9,8 @@ import { PrimaryButton } from '../ui/Buttons';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 interface Props {
-  errorMessage: string | null;
-  onClose: () => void;
+  readonly errorMessage: string | null;
+  readonly onClose: () => void;
 }
 
 export function ClosureErrorPane({ errorMessage, onClose }: Props) {

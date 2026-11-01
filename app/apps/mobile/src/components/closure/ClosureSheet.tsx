@@ -77,12 +77,12 @@ function Step1({
   onCancel,
   isBusy,
   postType,
-}: {
+}: Readonly<{
   onConfirm: () => void;
   onCancel: () => void;
   isBusy: boolean;
   postType: PostType;
-}) {
+}>) {
   // Direction flips by post.type. The "physical handoff" wording matters either
   // way — both sides need to be reminded that closure is for AFTER pickup, not
   // after scheduling it.

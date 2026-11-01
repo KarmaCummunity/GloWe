@@ -23,18 +23,18 @@ import { hapticLightTap } from '../../lib/haptics';
 import { useFeedSessionStore } from '../../store/feedSessionStore';
 
 interface Props {
-  visible: boolean;
-  onClose: () => void;
-  post: PostWithOwner;
+  readonly visible: boolean;
+  readonly onClose: () => void;
+  readonly post: PostWithOwner;
   /** When false, share row is omitted (e.g. post detail has a header share button). */
-  showShareInMenu?: boolean;
-  viewerId: string | null;
-  isSuperAdmin: boolean;
-  isSaved: boolean;
-  saveBusy: boolean;
-  onToggleSave: () => void;
-  onAfterRemoval: () => void;
-  onEdit: () => void;
+  readonly showShareInMenu?: boolean;
+  readonly viewerId: string | null;
+  readonly isSuperAdmin: boolean;
+  readonly isSaved: boolean;
+  readonly saveBusy: boolean;
+  readonly onToggleSave: () => void;
+  readonly onAfterRemoval: () => void;
+  readonly onEdit: () => void;
 }
 
 type ActiveModal = null | 'delete-owner' | 'admin-remove' | 'report';
@@ -205,13 +205,13 @@ export function PostMenuSheet({
 }
 
 interface MenuItemProps {
-  icon?: IoniconName;
-  label: string;
-  iconColor?: string;
-  labelColor?: string;
-  destructive?: boolean;
-  disabled?: boolean;
-  onPress: () => void;
+  readonly icon?: IoniconName;
+  readonly label: string;
+  readonly iconColor?: string;
+  readonly labelColor?: string;
+  readonly destructive?: boolean;
+  readonly disabled?: boolean;
+  readonly onPress: () => void;
 }
 
 function MenuItem({

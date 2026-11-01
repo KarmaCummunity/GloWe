@@ -3,9 +3,9 @@
 import { Chip } from '../ui/Chip';
 
 interface Props {
-  label: string;
-  active: boolean;
-  onPress: () => void;
+  readonly label: string;
+  readonly active: boolean;
+  readonly onPress: () => void;
 }
 
 export function SearchChip({ label, active, onPress }: Props) {

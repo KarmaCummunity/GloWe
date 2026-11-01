@@ -94,11 +94,11 @@ function DeclarationRow({
   checked,
   onToggle,
   label,
-}: {
+}: Readonly<{
   checked: boolean;
   onToggle: () => void;
   label: string;
-}) {
+}>) {
   const { colors } = useTheme();
   const styles = useStyles();
   return (

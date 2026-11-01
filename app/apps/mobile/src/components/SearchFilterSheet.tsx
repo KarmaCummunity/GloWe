@@ -18,8 +18,8 @@ import { GhostButton, PrimaryButton } from './ui/Buttons';
 const DEFAULT_RADIUS_KM = 5;
 
 interface Props {
-  visible: boolean;
-  onClose: () => void;
+  readonly visible: boolean;
+  readonly onClose: () => void;
 }
 
 export function SearchFilterSheet({ visible, onClose }: Props) {
