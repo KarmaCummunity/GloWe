@@ -226,8 +226,11 @@ declare
   v_i integer;
 begin
   select * into p from personas;
+  -- Since 0522 every create world mirrors automatically; switch time off here (the whole file
+  -- rolls back) to keep testing a world without the automatic mirror.
+  update public.worlds set feed_mirror = false where slug = 'time';
   v_listing := kc_test.create_listing(p.giver, 'time', 'volunteer_shift', 'give', 'Tutoring hour', '{"duration_minutes": 60}'::jsonb);
-  perform kc_test.assert_true(pg_temp.mirror_of(v_listing) is null, 'a time listing is not mirrored automatically');
+  perform kc_test.assert_true(pg_temp.mirror_of(v_listing) is null, 'a listing of a world without feed_mirror is not mirrored automatically');
 
   perform kc_test.act_as(p.giver);
   v_shared := public.share_listing_to_feed(v_listing);
