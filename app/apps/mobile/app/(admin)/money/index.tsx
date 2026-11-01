@@ -9,7 +9,7 @@ import {
   type AdminPermission, type AdminRole,
   type FinanceDirection, type FinanceEntry,
 } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
 import { FinanceEntryCard } from '../../../src/components/admin/money/FinanceEntryCard';
@@ -170,27 +170,27 @@ export default function MoneyScreen() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root:        { flex: 1, backgroundColor: colors.background },
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  deniedTitle: { fontSize: 18, fontWeight: '700' },
-  header:      { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8,
+  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  deniedTitle: { fontSize: typography.h3.fontSize, ...typography.bold },
+  header:      { paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing.sm,
                  flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title:       { fontSize: 22, fontWeight: '700' },
-  newBtn:      { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.primary },
-  newBtnText:  { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
+  title:       { fontSize: typography.h2.fontSize, ...typography.bold },
+  newBtn:      { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.primary },
+  newBtnText:  { color: colors.textInverse, fontSize: typography.bodySmall.fontSize, ...typography.bold },
 
-  summaryBox: { marginHorizontal: 16, marginBottom: 8, padding: 12, borderRadius: 10,
+  summaryBox: { marginHorizontal: spacing.base, marginBottom: spacing.sm, padding: spacing.md, borderRadius: radius.sm,
                 backgroundColor: colors.surface,
-                borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, gap: 6 },
-  summaryHeading: { fontSize: 11, fontWeight: '700', opacity: 0.65 },
-  summaryEmpty:   { fontSize: 12, opacity: 0.55 },
-  summaryRow:     { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  summaryCurrency:{ fontSize: 12, fontWeight: '700' },
-  summaryIncome:  { fontSize: 12, color: colors.success },
-  summaryExpense: { fontSize: 12, color: colors.error },
-  summaryNet:     { fontSize: 12, fontWeight: '700' },
+                borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, gap: spacing.xs },
+  summaryHeading: { fontSize: typography.caption.fontSize, ...typography.bold, opacity: 0.65 },
+  summaryEmpty:   { fontSize: typography.bodySmall.fontSize, opacity: 0.55 },
+  summaryRow:     { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  summaryCurrency:{ fontSize: typography.bodySmall.fontSize, ...typography.bold },
+  summaryIncome:  { fontSize: typography.bodySmall.fontSize, color: colors.success },
+  summaryExpense: { fontSize: typography.bodySmall.fontSize, color: colors.error },
+  summaryNet:     { fontSize: typography.bodySmall.fontSize, ...typography.bold },
   netPositive:    { color: colors.success },
   netNegative:    { color: colors.error },
 
-  chips:          { paddingHorizontal: 16, gap: 8, paddingBottom: 8 },
-  totalLabel:     { paddingHorizontal: 16, paddingBottom: 8, fontSize: 11, opacity: 0.6 },
+  chips:          { paddingHorizontal: spacing.base, gap: spacing.sm, paddingBottom: spacing.sm },
+  totalLabel:     { paddingHorizontal: spacing.base, paddingBottom: spacing.sm, fontSize: typography.caption.fontSize, opacity: 0.6 },
 }));
