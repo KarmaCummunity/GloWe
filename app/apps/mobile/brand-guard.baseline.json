@@ -501,10 +501,6 @@
     "src/components/OnboardingStepHeader.tsx": {
       "iconSizeLiteral": 1
     },
-    "src/components/PhotoSourceSheet.tsx": {
-      "physicalSide": 2,
-      "rawModal": 1
-    },
     "src/components/PostCardGrid.styles.ts": {
       "colorLiteral": 4,
       "fontSizeLiteral": 12,
@@ -523,12 +519,6 @@
     "src/components/PostFilterSheet/SearchSection.tsx": {
       "rawTextInput": 1,
       "iconSizeLiteral": 2
-    },
-    "src/components/PostFilterSheet/index.tsx": {
-      "fontWeightLiteral": 1,
-      "physicalSide": 2,
-      "rawModal": 1,
-      "iconSizeLiteral": 1
     },
     "src/components/PostImageCarousel.tsx": {
       "colorLiteral": 2,
@@ -553,10 +543,6 @@
       "physicalSide": 2,
       "rawTextInput": 1,
       "rawModal": 1
-    },
-    "src/components/SearchFilterSheet.tsx": {
-      "rawModal": 1,
-      "iconSizeLiteral": 1
     },
     "src/components/SearchablePicker/SearchablePicker.tsx": {
       "rawTextInput": 2,
@@ -988,12 +974,6 @@
       "spacingLiteral": 5,
       "iconSizeLiteral": 1
     },
-    "src/components/closure/ClosureErrorPane.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5
-    },
     "src/components/closure/ClosureExplainerSheet.tsx": {
       "fontSizeLiteral": 6,
       "fontWeightLiteral": 3,
@@ -1007,20 +987,6 @@
       "radiusLiteral": 3,
       "spacingLiteral": 10,
       "rawTextInput": 1
-    },
-    "src/components/closure/ClosureSheet.tsx": {
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 3,
-      "spacingLiteral": 6,
-      "physicalSide": 2,
-      "rawModal": 1
-    },
-    "src/components/closure/ClosureStep2.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 1,
-      "spacingLiteral": 6
     },
     "src/components/closure/OwnerActionsBar.tsx": {
       "fontSizeLiteral": 2,
@@ -1176,12 +1142,6 @@
     "src/components/post/PostMenuExposureBlock.tsx": {
       "fontSizeLiteral": 1
     },
-    "src/components/post/PostMenuSheet.tsx": {
-      "radiusLiteral": 1,
-      "physicalSide": 2,
-      "rawModal": 1,
-      "iconSizeLiteral": 1
-    },
     "src/components/post/PostShareButton.tsx": {
       "spacingLiteral": 4,
       "iconSizeLiteral": 1
@@ -1285,11 +1245,6 @@
     },
     "src/components/search/UserResultCard.tsx": {
       "iconSizeLiteral": 3
-    },
-    "src/components/search/searchFilterSheet.styles.ts": {
-      "fontWeightLiteral": 3,
-      "physicalSide": 2,
-      "adHocChip": 1
     },
     "src/components/search/searchResultCard.styles.ts": {
       "fontSizeLiteral": 4,
@@ -1519,21 +1474,6 @@
       "radiusLiteral": 2,
       "spacingLiteral": 3,
       "shadowLiteral": 8
-    },
-    "src/features/rides/sheets/DriverDeclarationSheet.tsx": {
-      "fontWeightLiteral": 1,
-      "physicalSide": 2,
-      "rawModal": 1,
-      "iconSizeLiteral": 2
-    },
-    "src/features/rides/sheets/RideFilterSheet.tsx": {
-      "rawModal": 1,
-      "iconSizeLiteral": 1
-    },
-    "src/features/rides/sheets/RideTransportLinksSheet.tsx": {
-      "physicalSide": 2,
-      "rawModal": 1,
-      "iconSizeLiteral": 1
     },
     "src/navigation/nativeHeaderIconOnly.tsx": {
       "spacingLiteral": 1,

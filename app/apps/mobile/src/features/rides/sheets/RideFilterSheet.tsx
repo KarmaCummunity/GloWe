@@ -1,14 +1,16 @@
 // FR-RIDE-002 — ride hub filter bottom sheet (mirrors SearchFilterSheet).
+// The frame, dismissal and motion come from the kit `BottomSheet` (spec 17 §4.1).
 import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 import { endOfDay, startOfDay } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import type { RideMode } from '@kc/domain';
-import { useTheme, Text } from '@kc/ui';
+import { Text } from '@kc/ui';
 import { CityPicker } from '../../../components/CityPicker';
 import { SearchChip } from '../../../components/search/SearchChip';
 import { useSearchFilterSheetStyles } from '../../../components/search/searchFilterSheet.styles';
+import { BottomSheet } from '../../../components/ui/BottomSheet';
+import { GhostButton, PrimaryButton } from '../../../components/ui/Buttons';
 import { useRidesFilterStore } from '../store/ridesFilterStore';
 
 interface Props {
@@ -19,7 +21,6 @@ interface Props {
 export function RideFilterSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const styles = useSearchFilterSheetStyles();
-  const { colors } = useTheme();
   const store = useRidesFilterStore();
 
   const [originCity, setOriginCity] = useState<{ id: string; name: string } | null>(
@@ -54,62 +55,46 @@ export function RideFilterSheet({ visible, onClose }: Props) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </Pressable>
-            <Text style={styles.headerTitle}>{t('donations.rides.filtersTitle')}</Text>
-            <Pressable onPress={handleClear}>
-              <Text style={styles.clearText}>{t('donations.rides.clearFilters')}</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-            <Text style={styles.sectionTitle}>{t('donations.rides.filterMode')}</Text>
-            <View style={styles.chipRow}>
-              <SearchChip label={t('donations.rides.modeAll')} active={!mode} onPress={() => setMode(null)} />
-              <SearchChip
-                label={t('donations.rides.modeOffer')}
-                active={mode === 'offer'}
-                onPress={() => setMode(mode === 'offer' ? null : 'offer')}
-              />
-              <SearchChip
-                label={t('donations.rides.modeRequest')}
-                active={mode === 'request'}
-                onPress={() => setMode(mode === 'request' ? null : 'request')}
-              />
-            </View>
-
-            <Text style={styles.sectionTitle}>{t('donations.rides.filterOrigin')}</Text>
-            <CityPicker value={originCity} onChange={setOriginCity} />
-
-            <Text style={styles.sectionTitle}>{t('donations.rides.filterDest')}</Text>
-            <CityPicker value={destCity} onChange={setDestCity} />
-
-            <Text style={styles.sectionTitle}>{t('donations.rides.filterDepart')}</Text>
-            <View style={styles.chipRow}>
-              <SearchChip
-                label={t('donations.rides.departToday')}
-                active={dateToday}
-                onPress={() => setDateToday(!dateToday)}
-              />
-            </View>
-          </ScrollView>
-
-          <View style={styles.footer}>
-            <Pressable
-              style={({ pressed }) => [styles.applyBtn, pressed && styles.applyBtnPressed]}
-              onPress={handleApply}
-            >
-              <Text style={styles.applyBtnText}>{t('donations.rides.applyFilters')}</Text>
-            </Pressable>
-          </View>
-        </View>
+    <BottomSheet
+      visible={visible}
+      onDismiss={onClose}
+      title={t('donations.rides.filtersTitle')}
+      footer={
+        <>
+          <PrimaryButton label={t('donations.rides.applyFilters')} size="md" fullWidth onPress={handleApply} />
+          <GhostButton label={t('donations.rides.clearFilters')} size="md" fullWidth onPress={handleClear} />
+        </>
+      }
+    >
+      <Text style={styles.sectionTitle}>{t('donations.rides.filterMode')}</Text>
+      <View style={styles.chipRow}>
+        <SearchChip label={t('donations.rides.modeAll')} active={!mode} onPress={() => setMode(null)} />
+        <SearchChip
+          label={t('donations.rides.modeOffer')}
+          active={mode === 'offer'}
+          onPress={() => setMode(mode === 'offer' ? null : 'offer')}
+        />
+        <SearchChip
+          label={t('donations.rides.modeRequest')}
+          active={mode === 'request'}
+          onPress={() => setMode(mode === 'request' ? null : 'request')}
+        />
       </View>
-    </Modal>
+
+      <Text style={styles.sectionTitle}>{t('donations.rides.filterOrigin')}</Text>
+      <CityPicker value={originCity} onChange={setOriginCity} />
+
+      <Text style={styles.sectionTitle}>{t('donations.rides.filterDest')}</Text>
+      <CityPicker value={destCity} onChange={setDestCity} />
+
+      <Text style={styles.sectionTitle}>{t('donations.rides.filterDepart')}</Text>
+      <View style={styles.chipRow}>
+        <SearchChip
+          label={t('donations.rides.departToday')}
+          active={dateToday}
+          onPress={() => setDateToday(!dateToday)}
+        />
+      </View>
+    </BottomSheet>
   );
 }
