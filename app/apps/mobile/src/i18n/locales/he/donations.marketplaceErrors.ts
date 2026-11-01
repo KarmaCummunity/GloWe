@@ -40,5 +40,7 @@ export const marketplaceErrors = {
   ride_time_invalid: 'אחד הזמנים בנסיעה אינו תקין. בחרו אותו מחדש.',
   saved_routes_limit: 'אפשר לעקוב אחרי עד 10 מסלולים. הסירו מסלול כדי להוסיף חדש.',
   same_route: 'המוצא והיעד הם אותו מקום.',
+  ride_not_active: 'אפשר לקרוא לעזרה רק במהלך הנסיעה.',
+  emergency_throttled: 'הקריאה כבר נשלחה. אפשר לשלוח שוב בעוד כמה דקות.',
   generic: 'הפרסום נכשל. נסו שוב.',
 } as const;

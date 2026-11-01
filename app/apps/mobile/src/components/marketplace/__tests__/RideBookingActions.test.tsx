@@ -34,6 +34,7 @@ vi.mock('../../../services/givingHandoffComposition', () => ({
   givingHandoffUseCases: { getForListing: () => ({ execute: getForListing }), rate: () => ({ execute: vi.fn() }) },
 }));
 vi.mock('../../../lib/analytics', () => ({ track: vi.fn() }));
+vi.mock('../../../services/rideSafetyComposition', () => ({ raiseRideEmergency: vi.fn() }));
 vi.mock('../../../lib/analyticsCoreLoop', () => ({ trackCoreLoop: vi.fn() }));
 vi.mock('../../../lib/haptics', () => ({ hapticSuccess: vi.fn() }));
 // The card module pulls in native image/icon modules; only its time formatter is used here.

@@ -1,7 +1,9 @@
 // The rides part of the create form: route (official places, D71) and schedule (D75), started
 // from "publish again" or the last route this device published (spec 05 §5.3 step 1; G49).
 import React, { useEffect, type Dispatch, type SetStateAction } from 'react';
-import { RIDE_ROUTE_DETAIL_KEYS } from '@kc/domain';
+import { RIDE_ROUTE_DETAIL_KEYS, rideCostShareCap } from '@kc/domain';
+import { useTranslation } from 'react-i18next';
+import { makeUseStyles, typography, Text } from '@kc/ui';
 import { takeRideStartDetails } from '../../lib/rides/rideStartDetails';
 import { RideRouteFields } from './RideRouteFields';
 import { RIDE_SCHEDULE_DETAIL_KEYS, RideScheduleFields } from './RideScheduleFields';
@@ -19,6 +21,8 @@ interface Props {
 }
 
 export function RideCreateSection({ details, setDetails, onOriginCity, isOffer, disabled }: Props) {
+  const { t } = useTranslation();
+  const styles = useStyles();
   // Start from the queued "publish again" ride or the remembered route, once per form.
   // What the user already typed wins over the seed.
   useEffect(() => {
@@ -35,6 +39,12 @@ export function RideCreateSection({ details, setDetails, onOriginCity, isOffer, 
     <>
       <RideRouteFields details={details} onChange={setDetails} onOriginCity={onOriginCity} disabled={disabled} />
       <RideScheduleFields details={details} onChange={setDetails} withSeats={isOffer} disabled={disabled} />
+      {/* No profit (spec 05 §5.3 Rules): the cap follows the route — urban or intercity. */}
+      {isOffer ? <Text style={styles.hint}>{t('rideSafety.costCapHint', { cap: rideCostShareCap(details) })}</Text> : null}
     </>
   );
 }
+
+const useStyles = makeUseStyles(({ colors }) => ({
+  hint: { ...typography.caption, color: colors.textSecondary },
+}));

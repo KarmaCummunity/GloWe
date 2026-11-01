@@ -6042,6 +6042,93 @@ export type Database = {
           },
         ]
       }
+      ride_listing_emergencies: {
+        Row: {
+          event_id: string
+          listing_id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          triggered_at: string
+          triggered_by: string
+        }
+        Insert: {
+          event_id?: string
+          listing_id: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          triggered_at?: string
+          triggered_by: string
+        }
+        Update: {
+          event_id?: string
+          listing_id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          triggered_at?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_listing_emergencies_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ride_listings: {
         Row: {
           arrive_reason: string | null
@@ -11143,11 +11230,34 @@ export type Database = {
       ride_booking_copy_key: { Args: { p_kind: string }; Returns: string }
       ride_bookings_expire_sweep: { Args: never; Returns: number }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
+      ride_cost_share_cap: { Args: { p_details: Json }; Returns: number }
       ride_details_with_place: {
         Args: { p_details: Json; p_end: string }
         Returns: Json
       }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
+      ride_listing_emergency: {
+        Args: { p_listing_id: string; p_note?: string }
+        Returns: {
+          event_id: string
+          listing_id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          triggered_at: string
+          triggered_by: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ride_listing_emergencies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ride_listing_participants: {
+        Args: { p_listing_id: string }
+        Returns: string[]
+      }
       ride_listings_expire_check: { Args: never; Returns: number }
       ride_listings_find_matches: {
         Args: { p_limit?: number; p_ride_id: string; p_window_hours?: number }

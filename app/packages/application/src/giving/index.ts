@@ -23,3 +23,5 @@ export { ListRidesFeedUseCase } from './ListRidesFeedUseCase';
 export type { IRidesFeedRepository } from '../ports/IRidesFeedRepository';
 export { ListMyRideRoutesUseCase, SaveRideRouteUseCase, RemoveRideRouteUseCase } from './rideSavedRouteUseCases';
 export type { IRideSavedRoutesRepository } from '../ports/IRideSavedRoutesRepository';
+export { RaiseRideEmergencyUseCase } from './RaiseRideEmergencyUseCase';
+export type { IRideSafetyRepository } from '../ports/IRideSafetyRepository';

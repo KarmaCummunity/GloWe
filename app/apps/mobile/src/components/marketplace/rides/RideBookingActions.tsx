@@ -6,6 +6,7 @@ import type { MarketplaceListingDetail } from '@kc/domain';
 import { useAuthStore } from '../../../store/authStore';
 import { RideBookingsPanel } from './RideBookingsPanel';
 import { RidePassengerBooking } from './RidePassengerBooking';
+import { RideEmergencyButton } from './RideEmergencyButton';
 
 interface Props {
   readonly detail: MarketplaceListingDetail;
@@ -23,8 +24,12 @@ export function RideBookingActions({ detail }: Props) {
 
   const capacity = rideCapacity(detail.details);
   return userId === detail.ownerId ? (
-    <RideBookingsPanel listingId={detail.listingId} cityId={detail.cityId} capacity={capacity} />
+    <>
+      {/* The driver is always on the ride: the emergency call shows while it is under way. */}
+      <RideEmergencyButton listingId={detail.listingId} details={detail.details} />
+      <RideBookingsPanel listingId={detail.listingId} cityId={detail.cityId} capacity={capacity} />
+    </>
   ) : (
-    <RidePassengerBooking listingId={detail.listingId} cityId={detail.cityId} capacity={capacity} />
+    <RidePassengerBooking listingId={detail.listingId} cityId={detail.cityId} capacity={capacity} details={detail.details} />
   );
 }

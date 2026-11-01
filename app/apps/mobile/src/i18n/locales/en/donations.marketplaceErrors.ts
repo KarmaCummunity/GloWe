@@ -40,5 +40,7 @@ export const marketplaceErrors = {
   ride_time_invalid: 'One of the ride times is not valid. Please pick it again.',
   saved_routes_limit: 'You can follow up to 10 routes. Remove one to add another.',
   same_route: 'The origin and the destination are the same place.',
+  ride_not_active: 'You can call for help only during the ride.',
+  emergency_throttled: 'Your call was already sent. You can send another in a few minutes.',
   generic: 'Publishing failed. Please try again.',
 } as const;

@@ -12,6 +12,7 @@ import { rideBookingUseCases } from '../../../services/rideBookingComposition';
 import { HandoffRatingForm } from '../HandoffRatingForm';
 import { formatRideTime } from '../../cards/ListingCard';
 import { ActionButton } from './RideBookingRow';
+import { RideEmergencyButton } from './RideEmergencyButton';
 import { useRideBookingAction } from './useRideBookingAction';
 import { useRideBookingStyles } from './rideBookingStyles';
 
@@ -20,9 +21,11 @@ interface Props {
   readonly cityId: string | null;
   /** Seats the driver offered; caps the seat picker (the server re-checks what is left). */
   readonly capacity: number;
+  /** The ride's details, for the emergency call window. */
+  readonly details: Record<string, unknown>;
 }
 
-export function RidePassengerBooking({ listingId, cityId, capacity }: Props) {
+export function RidePassengerBooking({ listingId, cityId, capacity, details }: Props) {
   const { t } = useTranslation();
   const styles = useRideBookingStyles();
   const { busy, run } = useRideBookingAction(listingId, cityId);
@@ -79,6 +82,8 @@ export function RidePassengerBooking({ listingId, cityId, capacity }: Props) {
       {h?.status === 'confirmed' ? (
         <>
           <Text style={styles.caption} testID="ride-booking-confirmed">{t('rideBooking.confirmed')}</Text>
+          {/* An approved passenger is on the ride: the emergency call shows while it is under way. */}
+          <RideEmergencyButton listingId={listingId} details={details} />
           <View style={styles.actions}>
             <ActionButton
               testID="giving-handoff-complete"

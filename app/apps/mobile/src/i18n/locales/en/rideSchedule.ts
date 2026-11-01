@@ -49,3 +49,13 @@ export const rideRoutes = {
   remove: 'Remove',
   removeError: "We couldn't remove the route. Please try again.",
 } as const;
+
+// Ride safety (D70): the emergency call during a ride and the no-profit cost cap.
+export const rideSafety = {
+  emergency: 'Emergency call',
+  emergencyConfirm: 'Send an emergency call to everyone on the ride and to the KC team?',
+  emergencySend: 'Yes, send now',
+  emergencyCancel: 'Cancel',
+  emergencySent: 'Your emergency call was sent. In immediate danger, call 100.',
+  costCapHint: 'Cost sharing up to ₪{{cap}} — no profit.',
+} as const;
