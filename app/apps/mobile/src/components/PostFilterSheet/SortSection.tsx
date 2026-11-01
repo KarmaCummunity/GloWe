@@ -37,6 +37,7 @@ export function SortSection({
       <View style={styles.row}>
         {SORT_ORDER_ENTRIES.map((s) => (
           <Chip
+            size="sm"
             key={s}
             label={t(SORT_KEYS[s])}
             selected={sortOrder === s}

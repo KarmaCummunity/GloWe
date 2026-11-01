@@ -64,9 +64,9 @@ export function FiltersSection({
       <View style={styles.section}>
         <Text style={styles.title}>{t('filters.sectionType')}</Text>
         <View style={styles.row}>
-          <Chip label={t('filters.all')} selected={type === null} onPress={() => onTypeChange(null)} />
-          <Chip label={t('filters.typeGive')} selected={type === 'Give'} onPress={() => onTypeChange('Give')} />
-          <Chip label={t('filters.typeRequest')} selected={type === 'Request'} onPress={() => onTypeChange('Request')} />
+          <Chip size="sm" label={t('filters.all')} selected={type === null} onPress={() => onTypeChange(null)} />
+          <Chip size="sm" label={t('filters.typeGive')} selected={type === 'Give'} onPress={() => onTypeChange('Give')} />
+          <Chip size="sm" label={t('filters.typeRequest')} selected={type === 'Request'} onPress={() => onTypeChange('Request')} />
         </View>
       </View>
 
@@ -74,12 +74,14 @@ export function FiltersSection({
         <Text style={styles.title}>{t('filters.sectionCategory')}</Text>
         <View style={styles.row}>
           <Chip
+            size="sm"
             label={t('filters.all')}
             selected={categories.length === 0}
             onPress={() => onCategoriesChange([])}
           />
           {ALL_CATEGORIES.map((c) => (
             <Chip
+              size="sm"
               key={c}
               label={t(`post.category.${c}`)}
               selected={categories.includes(c)}
@@ -94,12 +96,14 @@ export function FiltersSection({
           <Text style={styles.title}>{t('filters.sectionCondition')}</Text>
           <View style={styles.row}>
             <Chip
+              size="sm"
               label={t('filters.all')}
               selected={itemConditions.length === 0}
               onPress={() => onItemConditionsChange([])}
             />
             {ITEM_CONDITIONS.map((i) => (
               <Chip
+                size="sm"
                 key={i}
                 label={t(ITEM_CONDITION_KEYS[i])}
                 selected={itemConditions.includes(i)}
@@ -115,6 +119,7 @@ export function FiltersSection({
         <View style={styles.row}>
           {(['all', 'open', 'closed'] as FeedStatusFilter[]).map((s) => (
             <Chip
+              size="sm"
               key={s}
               label={t(STATUS_KEYS[s])}
               selected={statusFilter === s}
@@ -128,11 +133,13 @@ export function FiltersSection({
         <Text style={styles.title}>{t('filters.sectionSource')}</Text>
         <View style={styles.row}>
           <Chip
+            size="sm"
             label={t('filters.all')}
             selected={!followersOnly}
             onPress={() => onFollowersOnlyChange(false)}
           />
           <Chip
+            size="sm"
             label={t('filters.followersOnly')}
             selected={followersOnly}
             onPress={() => onFollowersOnlyChange(true)}

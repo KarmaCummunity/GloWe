@@ -56,6 +56,7 @@ export function LocationFilterSection({ value, onChange }: LocationFilterSection
           <View style={styles.row}>
             {RADIUS_OPTIONS_KM.map((km) => (
               <Chip
+                size="sm"
                 key={km}
                 label={t('filters.radiusKm', { km })}
                 selected={radiusKm === km}

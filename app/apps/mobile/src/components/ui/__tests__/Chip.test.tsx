@@ -3,14 +3,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import { ThemeProvider, darkColors, lightColors } from '@kc/ui';
+import { ThemeProvider, contrastRatio, darkColors, lightColors, type ColorPalette } from '@kc/ui';
 
 vi.mock('@expo/vector-icons', () => ({
   Ionicons: ({ name }: { name: string }) => <span data-testid={`icon-${name}`} />,
 }));
 
 import { Chip } from '../Chip';
-import { toneColors } from '../chipStyles';
+import { toneColors, type ChipTone } from '../chipStyles';
 
 afterEach(cleanup);
 
@@ -94,6 +94,26 @@ describe('Chip — tag', () => {
     });
     const { getByTestId } = withTheme(<Chip variant="tag" label="Open" testID="neutral" />);
     expect(getComputedStyle(getByTestId('neutral')).backgroundColor).toBe(rgb(lightColors.secondaryLight));
+  });
+
+  it('draws the muted tone as an outline with secondary text on whatever it sits on', () => {
+    expect(toneColors('muted', darkColors)).toEqual({
+      background: 'transparent',
+      border: darkColors.borderStrong,
+      foreground: darkColors.textSecondary,
+    });
+  });
+
+  it('keeps every tone AA (4.5:1) in both palettes, the muted one on every page surface', () => {
+    const tones: readonly ChipTone[] = ['neutral', 'brand', 'info', 'success', 'warning', 'error', 'muted'];
+    const palettes: readonly ColorPalette[] = [lightColors, darkColors];
+    for (const colors of palettes) {
+      for (const tone of tones) {
+        const { background, foreground } = toneColors(tone, colors);
+        const fills = background === 'transparent' ? [colors.background, colors.surface, colors.surfaceRaised] : [background];
+        for (const fill of fills) expect(contrastRatio(foreground, fill)).toBeGreaterThanOrEqual(4.5);
+      }
+    }
   });
 });
 
