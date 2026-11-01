@@ -56,6 +56,7 @@ Archive of rows moved out of [`../TECH_DEBT.md`](../TECH_DEBT.md), which lists *
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-219 | ✅ | **Closed 2026-11-01** (#1067). Security hardening item found while designing the Edge Function smoke; details shared privately. Every deployable function now has a smoke probe. | — |
 | TD-196 | ✅ | **Closed 2026-10-30.** `app/VERSION` is bumped on every merge into `dev` by `.github/workflows/bump-version-on-merge.yml` (first run: 1.5.11 → 1.5.12), so PRs no longer edit it and stop conflicting on that line. A PR that edits the file itself (MINOR/MAJOR) is not auto-bumped. The bump commit is `[skip ci]`, so a deploy shows the previous number until the next merge. | Closed |
 | TD-197 | ✅ | **Closed 2026-10-30.** `AGENT_MERGE_TOKEN` is now set: merges made by agent auto-merge trigger `dev` push workflows (confirmed: `Auto-update PR branches` fired on the push of #1264). Original description: agent auto-merges fell back to `GITHUB_TOKEN`, whose pushes trigger no workflows, so `DB deploy`, `Deploy Web` and `close-issues-on-dev-merge` did not run after an agent merge. | Closed |
 
