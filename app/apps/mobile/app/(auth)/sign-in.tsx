@@ -36,7 +36,6 @@ export default function SignInScreen() {
       passwordLabel={t('auth.password')}
       passwordPlaceholder={t('auth.passwordPlaceholder')}
       submitLabel={t('auth.signIn')}
-      submitTestID="auth-submit"
       beforeSubmit={
         <GhostButton
           testID="auth-forgot-password"

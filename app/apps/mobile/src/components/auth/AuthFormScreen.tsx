@@ -35,7 +35,6 @@ export interface AuthFormScreenProps {
   readonly passwordLabel: string;
   readonly passwordPlaceholder: string;
   readonly submitLabel: string;
-  readonly submitTestID?: string;
   /** Extra action between the fields and the submit (e.g. "forgot password"). */
   readonly beforeSubmit?: React.ReactNode;
   /** Shown under the form while no address is pending (the "switch screen" link). */
@@ -115,7 +114,7 @@ export function AuthFormScreen(props: AuthFormScreenProps) {
 
 /** Address and password inputs, the optional extra action and the submit. */
 function AuthCredentialFields(props: AuthFormScreenProps) {
-  const { form, passwordLabel, passwordPlaceholder, submitLabel, submitTestID, beforeSubmit } = props;
+  const { form, passwordLabel, passwordPlaceholder, submitLabel, beforeSubmit } = props;
   const { t } = useTranslation();
   return (
     <>
@@ -139,7 +138,8 @@ function AuthCredentialFields(props: AuthFormScreenProps) {
         editable={!form.loading}
       />
       {beforeSubmit}
-      <PrimaryButton testID={submitTestID} label={submitLabel} loading={form.loading} onPress={form.handleSubmit} />
+      {/* Literal id: the Maestro flows (and their testID checker) target the submit by it. */}
+      <PrimaryButton testID="auth-submit" label={submitLabel} loading={form.loading} onPress={form.handleSubmit} />
     </>
   );
 }
