@@ -4,7 +4,7 @@ export { Screen } from './Screen';
 export { AmbientBlobs } from './AmbientBlobs';
 export { Card } from './Card';
 export { IconTile } from './IconTile';
-export { PrimaryButton, SecondaryButton, GhostButton } from './Buttons';
+export { PrimaryButton, SecondaryButton, GhostButton, DangerButton } from './Buttons';
 export type { ButtonProps, ButtonSize } from './Buttons';
 export { Chip } from './Chip';
 export type { ChipProps, ChipSize, ChipTone } from './Chip';

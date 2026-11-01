@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import { ThemeProvider } from '@kc/ui';
+import { ThemeProvider, darkColors, lightColors } from '@kc/ui';
 
 // Reanimated does not transform under Vitest; the press scale is not under test here.
 vi.mock('react-native-reanimated', async () => {
@@ -23,14 +23,20 @@ vi.mock('@expo/vector-icons', () => ({
 }));
 vi.mock('../../../hooks/useReducedMotion', () => ({ useReducedMotion: () => false }));
 
-import { GhostButton, PrimaryButton, SecondaryButton } from '../Buttons';
+import { DangerButton, GhostButton, PrimaryButton, SecondaryButton } from '../Buttons';
 import { MIN_TAP_TARGET, tapTargetHitSlop } from '../kitMetrics';
 
 afterEach(cleanup);
 beforeEach(() => impactAsync.mockClear());
 
-const withTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider mode="light" systemScheme="light" setMode={() => {}}>{ui}</ThemeProvider>);
+const withTheme = (ui: React.ReactElement, scheme: 'light' | 'dark' = 'light') =>
+  render(<ThemeProvider mode={scheme} systemScheme={scheme} setMode={() => {}}>{ui}</ThemeProvider>);
+
+/** jsdom reports colours as `rgb(r, g, b)`; convert a token hex to compare. */
+function rgb(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+}
 
 describe('kit buttons', () => {
   it('names the button with its label, presses through and plays a light haptic', () => {
@@ -94,6 +100,40 @@ describe('kit buttons', () => {
     );
     expect(getByTestId('icon-arrow-back')).toBeTruthy();
     expect(getByTestId('brand-logo')).toBeTruthy();
+  });
+});
+
+describe('DangerButton ({{D:destructive-button}})', () => {
+  it('fills with the error token and labels in textInverse, in both palettes', () => {
+    for (const [scheme, palette] of [['light', lightColors], ['dark', darkColors]] as const) {
+      const onPress = vi.fn();
+      const { getByRole, getByText, unmount } = withTheme(<DangerButton label="Delete" onPress={onPress} />, scheme);
+      const button = getByRole('button', { name: 'Delete' });
+      expect(getComputedStyle(button).backgroundColor).toBe(rgb(palette.error));
+      expect(getComputedStyle(getByText('Delete')).color).toBe(rgb(palette.textInverse));
+      fireEvent.click(button);
+      expect(onPress).toHaveBeenCalledTimes(1);
+      unmount();
+    }
+  });
+
+  it('blocks presses and reports the state while disabled', () => {
+    const onPress = vi.fn();
+    const { getByRole } = withTheme(<DangerButton label="Block" size="sm" disabled onPress={onPress} />);
+    const button = getByRole('button', { name: 'Block' });
+    fireEvent.click(button);
+    expect(onPress).not.toHaveBeenCalled();
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('shows a spinner, announces busy and blocks presses while loading', () => {
+    const onPress = vi.fn();
+    const { getByRole } = withTheme(<DangerButton label="Remove" size="md" loading onPress={onPress} />);
+    const button = getByRole('button', { name: 'Remove' });
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    expect(getByRole('progressbar')).toBeTruthy();
+    fireEvent.click(button);
+    expect(onPress).not.toHaveBeenCalled();
   });
 });
 

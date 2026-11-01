@@ -3,11 +3,14 @@
 //   <PrimaryButton label="..." onPress={submit} loading={busy} disabled={!valid} fullWidth />
 //   <SecondaryButton label="..." size="md" icon="open-outline" onPress={open} />
 //   <GhostButton label="..." size="sm" onPress={edit} />           // compact admin size
+//   <DangerButton label="..." onPress={confirmDelete} loading={busy} />
 //
 // Variants:
 //   PrimaryButton   — solid brand orange, inverse text.
 //   SecondaryButton — surface card with a light border and the neutral card lift.
 //   GhostButton     — text only, brand-coloured, no fill.
+//   DangerButton    — solid `error` red, inverse text; only for destructive
+//                     actions (delete, block, remove) — {{D:destructive-button}}.
 //
 // Sizes (`size`, default `lg` so existing callers keep their look):
 //   lg 56pt · md 48pt · sm 36pt (compact, admin). Every size keeps a 44pt touch
@@ -33,7 +36,7 @@ import { BUTTON_HEIGHT, BUTTON_ICON_SIZE, useButtonStyles, type ButtonSize } fro
 
 export type { ButtonSize } from './buttonStyles';
 
-type Variant = 'primary' | 'secondary' | 'ghost';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 export interface ButtonProps {
   /** Visible text; also the accessible name unless `accessibilityLabel` is set. */
@@ -70,9 +73,13 @@ function useButtonPress(reduced: boolean) {
   return { onIn, onOut, style };
 }
 
-/** Label, icon and spinner colour for a variant. */
+/**
+ * Label, icon and spinner colour for a variant. The solid variants use
+ * `textInverse`: white on the light palette's fills, near-black on the dark
+ * palette's lighter fills, so both stay AA (spec 17 §5).
+ */
 function foregroundColor(variant: Variant, colors: ColorPalette): string {
-  if (variant === 'primary') return colors.textInverse;
+  if (variant === 'primary' || variant === 'danger') return colors.textInverse;
   return variant === 'ghost' ? colors.primary : colors.textPrimary;
 }
 
@@ -111,7 +118,7 @@ function Button({
   ];
   const textStyle = [
     styles[`text_${size}`],
-    variant === 'primary' && styles.textOnPrimary,
+    (variant === 'primary' || variant === 'danger') && styles.textOnFill,
     variant === 'secondary' && styles.textOnSurface,
     variant === 'ghost' && styles.textOnGhost,
     loading && styles.hidden,
@@ -162,4 +169,13 @@ export function SecondaryButton(props: ButtonProps) {
 /** Text-only button for low-emphasis actions (cancel, "view all", inline edits). */
 export function GhostButton(props: ButtonProps) {
   return <Button {...props} variant="ghost" />;
+}
+
+/**
+ * Solid red button for a destructive action (delete, block, remove), usually
+ * the confirm action of a dialog. Everything else uses `PrimaryButton`
+ * ({{D:destructive-button}}).
+ */
+export function DangerButton(props: ButtonProps) {
+  return <Button {...props} variant="danger" />;
 }

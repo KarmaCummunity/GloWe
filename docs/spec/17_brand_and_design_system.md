@@ -86,7 +86,7 @@ Screens are composed from shared components, not restyled per screen. Use these 
 | Loading placeholder | `Skeleton` | `@kc/ui` |
 | Desktop side column | `AsidePanel`, `useAside` | `@kc/ui` |
 | Screen frame | `Screen` | `apps/mobile/src/components/ui/` |
-| Buttons | `PrimaryButton`, `SecondaryButton`, `GhostButton` | `apps/mobile/src/components/ui/Buttons.tsx` |
+| Buttons | `PrimaryButton`, `SecondaryButton`, `GhostButton`, `DangerButton` | `apps/mobile/src/components/ui/Buttons.tsx` |
 | Chip (filter, status tag, applied value) | `Chip` | `apps/mobile/src/components/ui/Chip.tsx` |
 | Centred dialog | `Modal` | `apps/mobile/src/components/ui/Modal.tsx` |
 | Bottom sheet (menus, pickers, short forms) | `BottomSheet` | `apps/mobile/src/components/ui/BottomSheet.tsx` |
@@ -100,7 +100,7 @@ Rules for the kit controls (all on tokens; every interactive control keeps a **4
 
 | Component | Variants | Sizes | States and behaviour |
 |---|---|---|---|
-| Buttons (#1286) | `PrimaryButton` (solid `primary`), `SecondaryButton` (surface, border, `shadow.card` lift in light), `GhostButton` (text only) | `size`: `lg` 56pt (default, the full-width CTA), `md` 48pt (cards, dialogs), `sm` 36pt (compact, admin §4.3) | `disabled` and `loading` block presses and fade the button; `loading` keeps the button's width, shows a spinner and is announced as busy. Optional trailing Ionicons glyph (pinned to the edge on `lg`, beside the label on `md` / `sm`). One primary button per screen area. |
+| Buttons (#1286) | `PrimaryButton` (solid `primary`), `SecondaryButton` (surface, border, `shadow.card` lift in light), `GhostButton` (text only), `DangerButton` (solid `error`, `textInverse` label — **only** for destructive actions: delete, block, remove; {{D:destructive-button}}) | `size`: `lg` 56pt (default, the full-width CTA), `md` 48pt (cards, dialogs), `sm` 36pt (compact, admin §4.3) | `disabled` and `loading` block presses and fade the button; `loading` keeps the button's width, shows a spinner and is announced as busy. Optional trailing Ionicons glyph (pinned to the edge on `lg`, beside the label on `md` / `sm`). One primary button per screen area; a destructive confirm uses `DangerButton` in its place. |
 | `Chip` (#1285) | `filter` (default: outlined, solid `primary` when `selected`; a checkbox for assistive tech), `tag` (read-only status tinted by `tone`: neutral · brand · info · success · warning · error, squarer `radius.sm` corners), `removable` (applied value in the brand tint with a trailing ✕; the whole chip removes it, named by `removeAccessibilityLabel`) | `md` 36pt, `sm` 28pt (compact) | `selected`, `disabled`; interactive chips are pills at least 44pt wide. Tag text is `textPrimary` on the semantic `*Light` fills (`primary` on `primarySurface` for brand), so status never depends on a low-contrast tinted text. |
 | `Modal` (#1284) | Centred dialog: `surfaceRaised`, `radius.xl`, `shadow.modal` (outlined in dark mode), max 440pt wide | — | Header = title on the reading-start side + ✕ (named "close", 44pt) on the end side; optional `footer` for actions. |
 | `BottomSheet` (#1284) | Bottom-docked sheet: top corners `radius.xl`, grab handle, scrolling body (`scrollable={false}` for a body with its own list), pinned `footer`; max 640pt wide on tablets / desktop web | — | Pads above the home indicator, lifts with the keyboard on iOS, slides up (instant under reduced motion). |

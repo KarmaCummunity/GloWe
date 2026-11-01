@@ -48,6 +48,8 @@ export const useButtonStyles = makeUseStyles(({ colors, isDark }) => ({
   size_sm: { height: BUTTON_HEIGHT.sm, borderRadius: radius.md, paddingHorizontal: spacing.md, gap: spacing.xs },
   fullWidth: { width: '100%' },
   primary: { backgroundColor: colors.primary },
+  // Destructive actions only ({{D:destructive-button}}).
+  danger: { backgroundColor: colors.error },
   secondary: {
     backgroundColor: colors.surface,
     borderWidth: 1.5,
@@ -66,7 +68,8 @@ export const useButtonStyles = makeUseStyles(({ colors, isDark }) => ({
   text_lg: { ...typography.button, fontSize: typography.bodyLarge.fontSize, textAlign: 'center' },
   text_md: { ...typography.button, textAlign: 'center' },
   text_sm: { ...typography.body, ...typography.semiBold, textAlign: 'center' },
-  textOnPrimary: { color: colors.textInverse },
+  // Text on the solid fills (primary, danger).
+  textOnFill: { color: colors.textInverse },
   textOnSurface: { color: colors.textPrimary },
   textOnGhost: { color: colors.primary },
   // While loading, the label and icon keep their space (so the button does not resize) but are not drawn.
