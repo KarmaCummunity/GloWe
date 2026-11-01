@@ -39,6 +39,7 @@ export * from './rides/RideBooking';
 export * from './rides/RidePlace';
 export * from './rides/rideNavigation';
 export * from './rides/rideSchedule';
+export * from './rides/RideFeedItem';
 export * from './translations/TranslationTypes';
 export * from './translations/TranslationError';
 export * from './translations/TranslationRequest';

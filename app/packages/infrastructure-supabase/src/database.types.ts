@@ -10403,6 +10403,20 @@ export type Database = {
           place_kind: string
         }[]
       }
+      list_rides_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          departs_at: string
+          dest_label: string
+          direction: string
+          listing_id: string
+          meeting_points: number
+          origin_label: string
+          passengers: number
+          seats_left: number
+          title: string
+        }[]
+      }
       list_shift_volunteers: {
         Args: { p_shift_id: string }
         Returns: {
