@@ -12,6 +12,7 @@ import { donations, marketplace, moneyPayments, search, timeVolunteer } from './
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { ridePlaces } from './ridePlaces';
+import { dateTimeField, rideSchedule } from './rideSchedule';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -125,6 +126,9 @@ const en = {
   givingHandoff,
   // Ride places (D71) — see ridePlaces.ts
   ridePlaces,
+  // Ride quick publish (D75) and the shared date-time field — see rideSchedule.ts
+  rideSchedule,
+  dateTimeField,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

@@ -1036,10 +1036,6 @@
       "spacingLiteral": 2,
       "iconSizeLiteral": 5
     },
-    "src/components/marketplace/ListingSchemaFields.tsx": {
-      "radiusLiteral": 2,
-      "rawTextInput": 3
-    },
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
     },
@@ -1290,13 +1286,6 @@
     },
     "src/components/ui/Card.tsx": {
       "shadowLiteral": 4
-    },
-    "src/components/ui/DateTimeField.tsx": {
-      "fontSizeLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 1,
-      "physicalSide": 3,
-      "iconSizeLiteral": 1
     },
     "src/components/ui/FormFieldLabel.tsx": {
       "fontSizeLiteral": 1,

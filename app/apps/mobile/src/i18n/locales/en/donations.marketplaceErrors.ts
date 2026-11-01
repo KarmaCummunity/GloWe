@@ -32,5 +32,7 @@ export const marketplaceErrors = {
   kind_not_found: 'This listing type is no longer available. Please choose another.',
   ride_place_invalid: 'One of the ride places is not recognised. Pick a city, street or junction from the list.',
   too_many_meeting_points: 'You can add up to 3 pickup points.',
+  ride_arrival_before_departure: 'The estimated end must come after the departure.',
+  ride_time_invalid: 'One of the ride times is not valid. Please pick it again.',
   generic: 'Publishing failed. Please try again.',
 } as const;

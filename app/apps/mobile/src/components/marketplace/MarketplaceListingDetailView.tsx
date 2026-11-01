@@ -10,6 +10,7 @@ import { useSimilarListings } from '../../hooks/useMarketplaceListingDetail';
 import { ReportListingModal } from './ReportListingModal';
 import { GivingHandoffActions } from './GivingHandoffActions';
 import { RideRouteCard } from './RideRouteCard';
+import { RidePublishAgainButton } from './RidePublishAgainButton';
 import { isTestListingTitle } from '../../lib/displayTitle';
 import { PostDetailHeader } from '../cards/PostDetailHeader';
 import { SimilarListingCard } from '../cards/SimilarListingCard';
@@ -74,6 +75,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
           chip={worldLabel}
         />
         {detail.worldSlug === 'rides' ? <RideRouteCard details={detail.details} direction={detail.direction} /> : null}
+        {detail.worldSlug === 'rides' && viewerId === detail.ownerId ? <RidePublishAgainButton details={detail.details} /> : null}
         {detail.summary ? <Text style={styles.summary}>{detail.summary}</Text> : null}
         <Text style={styles.summary}>
           {kindLabel}

@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { makeUseStyles, radius, spacing, typography, Text } from '@kc/ui';
 import { TextField } from '../ui/TextField';
 import type { ListingKindOption } from '@kc/domain';
-import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
+import { validateListingDetails } from '@kc/domain';
 import {
   findCreateCategory,
   hasCreateField,
@@ -20,7 +20,8 @@ import {
 import { buildListingCreatePayload } from '../../lib/unifiedCreate/unifiedCreatePayload';
 import { CityPicker } from '../CityPicker';
 import { ListingSchemaFields } from './ListingSchemaFields';
-import { RideRouteFields } from '../giving/RideRouteFields';
+import { RIDE_CREATE_DETAIL_KEYS, RideCreateSection } from '../giving/RideCreateSection';
+import { rememberRideRoute } from '../../lib/rides/rideStartDetails';
 import { ExternalBodyPicker } from './ExternalBodyPicker';
 import { WorldSubcategoryPicker } from './WorldSubcategoryPicker';
 import { useListingChipStyles } from './listingChipStyles';
@@ -157,11 +158,12 @@ export function MarketplaceCreateForm({
       />
       <Text style={typography.bodySmall}>{kindLabel}</Text>
       {showRideRoute ? (
-        <RideRouteFields
+        <RideCreateSection
           key={activeKind.kindId}
           details={details}
-          onChange={setDetails}
+          setDetails={setDetails}
           onOriginCity={(c) => setCity((prev) => prev ?? c)}
+          isOffer={direction === 'give'}
           disabled={busy}
         />
       ) : null}
@@ -169,7 +171,7 @@ export function MarketplaceCreateForm({
         schema={activeKind.detailSchema}
         values={details}
         onChange={setDetails}
-        hiddenKeys={showRideRoute ? RIDE_ROUTE_DETAIL_KEYS : undefined}
+        hiddenKeys={showRideRoute ? RIDE_CREATE_DETAIL_KEYS : undefined}
       />
       {ruleError?.field === 'details' ? <Text style={styles.err}>{t(ruleError.key)}</Text> : null}
       {routedWorld ? (
@@ -274,6 +276,8 @@ export function MarketplaceCreateForm({
               cityId: city?.id ?? null,
               accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt,
             });
+            // The next ride from this device starts from this route (D75).
+            if (showRideRoute) void rememberRideRoute(details);
             onPublished(id);
           } catch (err) {
             setValidationError(t(marketplaceServerErrorKey(err)));

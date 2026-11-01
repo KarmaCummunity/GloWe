@@ -39,6 +39,8 @@ Tech (G45 ✅): `road_junctions` catalog (449 existing Ministry of Transport jun
 
 Tech (G46 ✅): the ride detail lists origin → meeting points → destination with "navigate" per place (`rideNavigationUrl`: Waze / Google Maps everywhere, Apple Maps on iOS; cities and junctions by coordinates, a street by address) and draws the route through the meeting points on the map (`RideRouteMap` over `KcMap.routeStops`).
 
+Tech (G49 🟡, quick publish): `RideCreateSection` = place route + `RideScheduleFields` (departure shortcuts in 30 min / in 1 hour / tomorrow 07:00, `arrives_at` suggested by `suggestRideArrival` until edited, seats 3 within 1–8); the form starts from "publish again" or the device's last route (`rideStartDetails`); `listings_ride_schedule` sets an offer's expiry to estimated end + 30 min and `rides_expired_listings_sweep` closes it (`0514`). `DateTimeField` is cross-platform (Android date → time dialogs, web `datetime-local`) and replaces the raw picker in every world's form.
+
 ## 5.4 Time & volunteering (`time`) — MVP, live
 Anyone can give an hour (D22). One-off, person-to-person, and org events.
 1. Offer or request with estimated duration (D32).

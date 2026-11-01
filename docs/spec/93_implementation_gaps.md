@@ -52,4 +52,4 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G46 | ✅ 2026-11-01 — Every ride shows its route on the map (origin → meeting points → destination) and every place has "navigate" to Waze / Google Maps / Apple Maps; a street navigates by address (`RideRouteCard`, `RideRouteStops`, `RideRouteMap`, `rideNavigationUrl`) (D72) | 05.3 |
 | G47 | Driver sees every booking (today `get_listing_handoff` returns one row) + approve/decline + booking push notifications (none sent today) (D73, S45) | 05.3, 07.11 |
 | G48 | Saved routes + rides urgency rule (D74, S44) | 05.3, 07.11 |
-| G49 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D75, S46) | 05.3 |
+| G49 | 🟡 2026-11-01 — Quick publish shipped: cross-platform date-time field (Android date → time, web input), departure shortcuts, estimated end suggested from the route, seats 3 (1–8), remembered route, "publish again", offers close 30 min after their estimated end (`0514`). Remaining: the rides feed (offers + requests by departure, grouped, departed hidden) (D75, S46) | 05.3 |
