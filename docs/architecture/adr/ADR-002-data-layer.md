@@ -37,6 +37,7 @@ Rules for every function:
 
 - `security definer` + `set search_path = public` (+ `pg_temp` when it creates temp objects). Derive the actor from `auth.uid()`; never trust a caller-supplied user id for authorization (the id parameter is only checked against `auth.uid()`).
 - Functions are private by default (`0520`): a new function is executable by its owner and `service_role` only, so internal helpers need no grant. A client RPC grants itself in the same migration: `grant execute … to authenticated`, plus `to anon` for a public read or an RLS predicate guests evaluate (and add it to the anon list in `supabase/tests/0520_*`). An RLS predicate needs the grant for every role its policy applies to.
+- An Edge Function that acts with the service role for pg_cron or an operator (not for the app) accepts only the service-role key: it calls `isServiceRoleRequest` from `supabase/functions/_shared/serviceRoleGuard.ts` right after its method guard and is listed in `SERVICE_ROLE_ONLY_FUNCTIONS`, whose regression test checks that the guard runs before any work.
 - Guards: `supabase/tests/0161_*`, `0198_*`, `0520_*` (defaults, trigger functions, internal helpers, the anon list, RLS predicates) and `scripts/check-rpc-grants.mjs` (CI backend lane: every RPC the app calls is executable by a client role).
 - Clamp every caller-controlled limit or window (e.g. `least(greatest(p_limit, 1), 50)`).
 - `create or replace` keeps grants. Changing the return type needs `drop function` first, which is destructive: avoid it, or follow the migration-safety rule.

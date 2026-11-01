@@ -213,6 +213,7 @@ Deno.test('e2e: signed free-text → ingest; START → consent; match → outbou
     return Promise.resolve(new Response(JSON.stringify({ messages: [{ id: 'wamid.out' }] }), { status: 200 }));
   };
   const sender = createSenderHandler({
+    serviceKey: 'service-role-key-for-tests',
     rpc,
     loadChannelConfig: () => Promise.resolve({
       is_enabled: true, phone_number_id: 'pnid-1', graph_api_version: 'v21.0',
@@ -223,7 +224,9 @@ Deno.test('e2e: signed free-text → ingest; START → consent; match → outbou
     fetchFn,
   });
   const sendRes = await sender(new Request('https://x/functions/v1/whatsapp-sender', {
-    method: 'POST', body: JSON.stringify({ batch: 10 }),
+    method: 'POST',
+    headers: { Authorization: 'Bearer service-role-key-for-tests' },
+    body: JSON.stringify({ batch: 10 }),
   }));
   assertEquals(sendRes.status, 200);
   const summary = await sendRes.json();
