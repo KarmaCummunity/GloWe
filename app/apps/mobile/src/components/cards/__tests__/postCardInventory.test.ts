@@ -63,7 +63,7 @@ describe('post card inventory', () => {
     ['src/components/marketplace/MarketplaceListingDetailView.tsx', 'PostDetailHeader'],
     ['app/(guest)/feed.tsx', 'PostCardGrid'],
     ['app/(tabs)/donations/time/my-shifts.tsx', 'KcRowCard'],
-    ['app/(tabs)/donations/time/index.tsx', 'KcRowCard'],
+    ['app/(tabs)/donations/time/opportunities.tsx', 'KcRowCard'],
     ['app/(tabs)/donations/time/organizer/index.tsx', 'KcRowCard'],
     ['app/(tabs)/donations/marketplace/my-listings.tsx', 'KcRowCard'],
     ['src/components/giving/MyWorldHandoffsList.tsx', 'KcRowCard'],

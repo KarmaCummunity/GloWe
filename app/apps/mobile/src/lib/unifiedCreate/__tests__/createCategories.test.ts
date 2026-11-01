@@ -9,6 +9,7 @@ import {
   createRouteFor,
   findCreateCategory,
   isCreateCategoryId,
+  isCreateDirection,
 } from '../createCategories';
 // eslint-disable-next-line no-restricted-imports -- test asserts every category label key exists in the Hebrew bundle
 import he from '../../../i18n/locales/he';
@@ -81,5 +82,20 @@ describe('unified create — category config', () => {
     expect(createRouteFor('knowledge')).toBe('/(tabs)/create');
     expect(createRouteFor('rides')).toBe('/(tabs)/create?category=rides');
     expect(createRouteFor('items')).toBe('/(tabs)/create?category=items');
+  });
+
+  // FR-POST-001 AC7: a world screen's "publish request" / "publish offer" presets the direction.
+  it('adds the direction to a known category, never to the bare route', () => {
+    expect(createRouteFor('food', 'request')).toBe('/(tabs)/create?category=food&direction=request');
+    expect(createRouteFor('time', 'give')).toBe('/(tabs)/create?category=time&direction=give');
+    expect(createRouteFor('food', null)).toBe('/(tabs)/create?category=food');
+    expect(createRouteFor(null, 'give')).toBe('/(tabs)/create');
+  });
+
+  it('isCreateDirection accepts only give and request', () => {
+    expect(isCreateDirection('give')).toBe(true);
+    expect(isCreateDirection('request')).toBe(true);
+    expect(isCreateDirection('offer')).toBe(false);
+    expect(isCreateDirection(undefined)).toBe(false);
   });
 });

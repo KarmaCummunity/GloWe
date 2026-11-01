@@ -35,6 +35,7 @@ vi.mock('../../../services/marketplaceComposition', () => ({
     listKindsForWorld: mocks.listKindsForWorld,
     createListing: mocks.createListing,
     listWorldSubcategories: async () => [],
+    canPublishInWorld: async () => true,
   }),
 }));
 vi.mock('../../../lib/rides/rideStartDetails', () => ({ rememberRideRoute: mocks.rememberRideRoute }));

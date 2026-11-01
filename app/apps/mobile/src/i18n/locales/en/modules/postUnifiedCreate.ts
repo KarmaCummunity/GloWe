@@ -23,6 +23,16 @@ export const postUnifiedCreateEn = {
       housing: 'e.g. Spare room for the weekend',
       time: 'e.g. Help with groceries',
     },
+    noPermission: {
+      housing: {
+        title: 'Housing posts need ID verification',
+        body: 'To keep hosts and guests safe, a hosting offer or request is published only after both sides verify their ID. Verification is coming soon — meanwhile you can browse the housing world’s info and links.',
+      },
+      default: {
+        title: 'You cannot post here right now',
+        body: 'Your account cannot publish in this world yet. If you think this is a mistake, contact us from Settings.',
+      },
+    },
     errors: {
       titleRequired: 'Please write a title (at least 2 characters)',
       fieldRequired: 'Please fill in: {{field}}',

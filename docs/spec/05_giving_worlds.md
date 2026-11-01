@@ -64,6 +64,7 @@ Two tracks: (a) community hosting à la Couchsurfing; (b) housing for at-risk po
 3. Chat before approval — exact address revealed only after approval.
 4. "Hosting done" — karma, internal rating. At-risk track: confidential request via org, not in the public feed.
 Always free. Minors only with a parent; at-risk youth only via an org (S16). Emergency: evacuee hosting (D42).
+Until ID verification ships (G13), the create form shows housing but tells a member who may not publish there that housing needs ID verification, instead of its fields; the world stays a portal ({{D:housing-gated-until-id}}).
 
 ## 5.7 Knowledge, rights & legal aid (`knowledge`) — phase 2
 Content exists (Kol Zchut, Campus IL); the missing piece is personal connection. Lessons and mentoring for free, plus rights and legal aid (D40): a pro-bono "consulting hour" post by lawyers, accountants, advisors (S36). No binding legal advice in posts — refer to an authorized party.

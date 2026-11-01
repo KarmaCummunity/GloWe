@@ -17,6 +17,7 @@ import { RideCreateSection } from '../giving/RideCreateSection';
 import { WorldSubcategoryPicker } from '../marketplace/WorldSubcategoryPicker';
 import { ListingDetailFields } from './ListingDetailFields';
 import { PhotoPicker } from './PhotoPicker';
+import { WorldPermissionGate } from './WorldPermissionGate';
 
 const TITLE_MAX = 80;
 const SUMMARY_MAX = 500;
@@ -62,98 +63,100 @@ export function ListingCreateForm({
       testID="listing-create-form"
     >
       {header}
-      <KindGate
-        loading={form.kindsQuery.isPending}
-        missing={!form.kind}
-        onRetry={() => void form.kindsQuery.refetch()}
-      >
-        <PhotoPicker
-          uploads={form.photos.map((p) => ({ path: p.uri, previewUri: p.uri }))}
-          isUploading={false}
-          uploadingCount={0}
-          required={false}
-          onAdd={() => void addPhotos()}
-          onRemove={(uri) => form.setPhotos((prev) => prev.filter((p) => p.uri !== uri))}
-        />
-
-        <View style={styles.section}>
-          <TextField
-            testID="listing-title"
-            label={`${t('post.title')} *`}
-            value={title}
-            onChangeText={onTitleChange}
-            placeholder={t(`post.unifiedCreate.titlePlaceholder.${worldSlug}`)}
-            maxLength={TITLE_MAX}
-            editable={!form.busy}
-          />
-          <Text style={styles.charCount}>{title.length}/{TITLE_MAX}</Text>
-        </View>
-
-        {form.isRides ? (
-          <RideCreateSection
-            details={form.details}
-            setDetails={form.setDetails}
-            onOriginCity={form.setCity}
-            isOffer={direction === 'give'}
-            disabled={form.busy}
-          />
-        ) : null}
-
-        {form.showSubcategory ? (
-          <WorldSubcategoryPicker
-            worldSlug={worldSlug}
-            value={form.subcategoryId}
-            onChange={form.setSubcategoryId}
-            disabled={form.busy}
-          />
-        ) : null}
-
-        <ListingDetailFields specs={form.specs} details={form.details} onChange={form.setDetail} disabled={form.busy} />
-
-        <View style={styles.section}>
-          <TextField
-            testID="listing-summary"
-            label={t('post.description')}
-            value={summary}
-            onChangeText={onSummaryChange}
-            placeholder={t('post.descPlaceholder')}
-            multiline
-            maxLength={SUMMARY_MAX}
-            editable={!form.busy}
-          />
-          <Text style={styles.charCount}>{summary.length}/{SUMMARY_MAX}</Text>
-        </View>
-
-        {form.isRides ? null : (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>
-              {t('post.unifiedCreate.cityLabel')} <Text style={styles.required}>*</Text>
-            </Text>
-            <CityPicker value={form.city} onChange={form.setCity} disabled={form.busy} />
-          </View>
-        )}
-
-        {form.error ? (
-          <Text style={styles.sectionHint} accessibilityRole="alert" testID="listing-error">
-            {form.error}
-          </Text>
-        ) : null}
-
-        <TouchableOpacity
-          testID="listing-publish"
-          style={[styles.publishBtn, styles.publishBtnFooter]}
-          onPress={() => void form.publish()}
-          disabled={!form.canPublish}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !form.canPublish }}
+      <WorldPermissionGate worldSlug={worldSlug}>
+        <KindGate
+          loading={form.kindsQuery.isPending}
+          missing={!form.kind}
+          onRetry={() => void form.kindsQuery.refetch()}
         >
-          {form.busy ? (
-            <ActivityIndicator color={colors.textInverse} size="small" />
-          ) : (
-            <Text style={styles.publishBtnText}>{t('post.publish')}</Text>
+          <PhotoPicker
+            uploads={form.photos.map((p) => ({ path: p.uri, previewUri: p.uri }))}
+            isUploading={false}
+            uploadingCount={0}
+            required={false}
+            onAdd={() => void addPhotos()}
+            onRemove={(uri) => form.setPhotos((prev) => prev.filter((p) => p.uri !== uri))}
+          />
+
+          <View style={styles.section}>
+            <TextField
+              testID="listing-title"
+              label={`${t('post.title')} *`}
+              value={title}
+              onChangeText={onTitleChange}
+              placeholder={t(`post.unifiedCreate.titlePlaceholder.${worldSlug}`)}
+              maxLength={TITLE_MAX}
+              editable={!form.busy}
+            />
+            <Text style={styles.charCount}>{title.length}/{TITLE_MAX}</Text>
+          </View>
+
+          {form.isRides ? (
+            <RideCreateSection
+              details={form.details}
+              setDetails={form.setDetails}
+              onOriginCity={form.setCity}
+              isOffer={direction === 'give'}
+              disabled={form.busy}
+            />
+          ) : null}
+
+          {form.showSubcategory ? (
+            <WorldSubcategoryPicker
+              worldSlug={worldSlug}
+              value={form.subcategoryId}
+              onChange={form.setSubcategoryId}
+              disabled={form.busy}
+            />
+          ) : null}
+
+          <ListingDetailFields specs={form.specs} details={form.details} onChange={form.setDetail} disabled={form.busy} />
+
+          <View style={styles.section}>
+            <TextField
+              testID="listing-summary"
+              label={t('post.description')}
+              value={summary}
+              onChangeText={onSummaryChange}
+              placeholder={t('post.descPlaceholder')}
+              multiline
+              maxLength={SUMMARY_MAX}
+              editable={!form.busy}
+            />
+            <Text style={styles.charCount}>{summary.length}/{SUMMARY_MAX}</Text>
+          </View>
+
+          {form.isRides ? null : (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>
+                {t('post.unifiedCreate.cityLabel')} <Text style={styles.required}>*</Text>
+              </Text>
+              <CityPicker value={form.city} onChange={form.setCity} disabled={form.busy} />
+            </View>
           )}
-        </TouchableOpacity>
-      </KindGate>
+
+          {form.error ? (
+            <Text style={styles.sectionHint} accessibilityRole="alert" testID="listing-error">
+              {form.error}
+            </Text>
+          ) : null}
+
+          <TouchableOpacity
+            testID="listing-publish"
+            style={[styles.publishBtn, styles.publishBtnFooter]}
+            onPress={() => void form.publish()}
+            disabled={!form.canPublish}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !form.canPublish }}
+          >
+            {form.busy ? (
+              <ActivityIndicator color={colors.textInverse} size="small" />
+            ) : (
+              <Text style={styles.publishBtnText}>{t('post.publish')}</Text>
+            )}
+          </TouchableOpacity>
+        </KindGate>
+      </WorldPermissionGate>
     </ScrollView>
   );
 }

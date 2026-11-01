@@ -47,6 +47,7 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
   - *Time* — offer: duration; request: support type (companionship, practical help, escort — emotional support goes to a hotline, §5.4) + duration.
   - Every listing category also has photos (optional), title, description and city. The kind is derived from the direction (one kind per direction per world), so members never pick a "listing type"; internal schema keys (linked ids, org slugs) are never shown.
   - The form reopens on the category **and** direction the member last used (per user, on the device); a `?category=` deep link wins. A missing required field blocks publish with a message naming it. Date fields open in a sheet (iOS) or the system dialogs (Android) — never an inline native picker (TestFlight 1.6.x crash).
+- AC7. *(2026-11-01, `{{D:world-feed-seeker-offerer}}`, `{{D:housing-gated-until-id}}`)* The form opens preset to a direction when the link carries one (`?category=<world>&direction=give|request`, from a world screen's "publish request" / "publish offer"); the link's direction wins over the remembered one. While housing is picked and the member may not publish there (`has_world_permission(…, 'housing', 'publish')` false — no ID verification yet, D30), the form shows a "publishing housing requires ID verification — coming soon" notice instead of the housing fields.
 
 **Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory` · Code: `app/(tabs)/create.tsx`, `src/lib/unifiedCreate/`, `src/components/CreatePostForm/`.
 
@@ -537,6 +538,7 @@ A signed-in viewer of a `Public` post that is `open` or `closed_delivered` may s
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 0.17 | 2026-11-01 | `FR-POST-001` AC7 — direction preset from a world screen link; housing shows an ID-verification notice instead of its fields until verification ships. |
 | 0.16 | 2026-11-01 | `FR-POST-001` AC6 — five create categories (items, rides, food, housing, time) with the last used category + direction remembered; request / offer under the picker; curated per-category fields; no inline native date picker or slider (TestFlight crash). |
 | 0.15 | 2026-05-24 | `FR-POST-023` AC2 — share body adds `*מפרסם:*` (owner identity per `postOwnerDisplayLabel`) and `*שותף/ה:*` on closed posts with a marked recipient (`postRecipientDisplayLabel`). |
 | 0.15 | 2026-05-28 | `FR-POST-021` — `upsert_post_actor_identity` RPC (`0160`) replaces PostgREST `.upsert()` after TD-85 column-scoped UPDATE grants (fixes 403 on hide / exposure sync). |
