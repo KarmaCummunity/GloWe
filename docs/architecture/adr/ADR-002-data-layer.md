@@ -36,7 +36,8 @@ apps/mobile (composition root) → application (use case + I*Repository port) �
 Rules for every function:
 
 - `security definer` + `set search_path = public` (+ `pg_temp` when it creates temp objects). Derive the actor from `auth.uid()`; never trust a caller-supplied user id for authorization (the id parameter is only checked against `auth.uid()`).
-- Grants are explicit in the same migration: `revoke all … from public, anon;` then `grant execute … to authenticated` (client RPC) **or** `to service_role` (internal / `api_*`). Lockdowns are guarded by `supabase/tests/0161_*`, `0198_*` and `0436_tighten_function_grants.sql`.
+- Functions are private by default (`0520`): a new function is executable by its owner and `service_role` only, so internal helpers need no grant. A client RPC grants itself in the same migration: `grant execute … to authenticated`, plus `to anon` for a public read or an RLS predicate guests evaluate (and add it to the anon list in `supabase/tests/0520_*`). An RLS predicate needs the grant for every role its policy applies to.
+- Guards: `supabase/tests/0161_*`, `0198_*`, `0520_*` (defaults, trigger functions, internal helpers, the anon list, RLS predicates) and `scripts/check-rpc-grants.mjs` (CI backend lane: every RPC the app calls is executable by a client role).
 - Clamp every caller-controlled limit or window (e.g. `least(greatest(p_limit, 1), 50)`).
 - `create or replace` keeps grants. Changing the return type needs `drop function` first, which is destructive: avoid it, or follow the migration-safety rule.
 
@@ -68,7 +69,7 @@ Rules for every function:
 ## Checklist — adding an RPC
 
 1. Port method in `@kc/application` (or a composition-only read, §1), named in domain terms.
-2. Migration (claimed number): `security definer`, `search_path`, actor from `auth.uid()`, role gate for `admin_*`, clamped inputs, `revoke … from public, anon` + the single correct `grant`, `comment on function`.
+2. Migration (claimed number): `security definer`, `search_path`, actor from `auth.uid()`, role gate for `admin_*`, clamped inputs, the client grant (`to authenticated`, `to anon` only for public reads; none for internal helpers), `comment on function`.
 3. New table? RLS on, a policy for each access path, `(select auth.uid())`.
 4. SQL test in `supabase/tests/NNNN_*.sql`: happy path, refusal (`42501` / not callable by `anon`), at least one boundary, all inside `begin; … rollback;`.
 5. Regenerate `database.types.ts` from the local DB; no other diff should appear.

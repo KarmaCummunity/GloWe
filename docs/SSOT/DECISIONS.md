@@ -1657,6 +1657,16 @@ Owner rules that go with it:
 
 **Affected.** `tests/e2e/lib/worldJourney.ts`, `tests/e2e/journeys/{items,food}.spec.ts`, `tests/e2e/journeys/qa/{marketplace,social}.spec.ts` (unified create route, flag-aware money world), `app/apps/mobile/src/components/marketplace/{GivingHandoffActions,MarketplaceCreateForm}.tsx` (testIDs only), `docs/SSOT/TESTING.md` § Two-user world journeys, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G40, BACKLOG `OPS-G40`.
 
+## {{ENG:function-execute-explicit-grants}} — Functions are private by default; each migration grants its client RPCs (2026-11-01)
+
+**Decision.** A function created by `postgres` is executable by its owner and `service_role` only: migration `0520` revokes `EXECUTE` from PUBLIC in the global default privileges (a schema-scoped default can only add to the global one) and from `authenticated` in the `public` schema default. A client RPC grants `authenticated` in its own migration, and `anon` only for a public read or an RLS predicate guests evaluate. Internal helpers (triggers, pg_cron jobs, functions called only by other SECURITY DEFINER functions) need no grant. Three guards hold it: `supabase/tests/0520_*` (defaults, SECURITY DEFINER triggers, internal helpers, the reviewed anon list, every RLS predicate executable by `authenticated`), and `scripts/check-rpc-grants.mjs` in the CI backend lane (every RPC the app calls is executable by a client role).
+
+**Why.** Least privilege should not depend on each migration remembering a revoke. Default-deny turns a forgotten grant into a CI failure with the fix in the message, instead of a forgotten revoke that nothing detects.
+
+**Rejected.** Keeping the defaults and listing every internal helper in a guard (the list goes stale with each new helper); moving internal helpers to a non-exposed schema (a large rename across every migration and caller, tracked as `TD-68` option c for the RLS predicates).
+
+**Affected.** `supabase/migrations/0520_function_execute_explicit_grants.sql`, `supabase/tests/0520_function_execute_explicit_grants.sql` (+ explicit `pg_temp` helper grants in seven older tests), `scripts/check-rpc-grants.mjs`, `.github/workflows/ci-backend.yml`, `docs/architecture/adr/ADR-002-data-layer.md` §2, BACKLOG `SEC-1063`.
+
 ## Change Log
 
 | Version | Date | Summary |

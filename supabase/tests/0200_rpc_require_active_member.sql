@@ -43,6 +43,8 @@ begin
     raise exception 'ASSERT FAILED: should have been blocked: %', p_sql;
   end if;
 end $$;
+-- Called below under `set local role`: new functions are owner-only by default (0520).
+grant execute on function pg_temp.expect_blocked(text, text) to public;
 
 -- Seed: active A + active B + suspended S; S owns an open post; A owns a
 -- closed_delivered post (B is its recipient) + a public open post; A-B chat.
