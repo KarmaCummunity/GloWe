@@ -78,6 +78,7 @@ jobs:
           node-version-file: .nvmrc
       - name: Verify the commit passed CI on dev
         id: target
+        working-directory: .
         env:
           GITHUB_TOKEN: ${{ github.token }}
           INPUT_REF: ${{ inputs.ref }}
