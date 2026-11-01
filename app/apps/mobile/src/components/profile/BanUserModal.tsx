@@ -62,6 +62,8 @@ export function BanUserModal({ targetUserId, visible, onClose }: Props) {
         setSubmitting(false);
         showAdminToast(msg);
       },
+      // TD-251 — backing out of the confirm frees the sheet again.
+      onCancel: () => setSubmitting(false),
     });
   };
 
