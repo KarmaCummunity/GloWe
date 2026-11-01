@@ -65,6 +65,12 @@ export interface RemovableChipProps extends ChipBaseProps {
 export type ChipProps = FilterChipProps | TagChipProps | RemovableChipProps;
 
 /**
+ * Props a variant renderer receives. `variant` is only the discriminant `Chip`
+ * switches on, so the renderers never see it.
+ */
+type VariantProps<P extends ChipProps> = Omit<P, 'variant'>;
+
+/**
  * Chip in the brand style. The `variant` decides the role: a toggle (`filter`),
  * a read-only status (`tag`) or an applied value with a remove action (`removable`).
  */
@@ -97,7 +103,7 @@ function ChipContent({ label, icon, size, color }: ChipContentProps) {
   );
 }
 
-function FilterChip({ label, size = 'md', icon, style, testID, selected = false, disabled = false, onPress, accessibilityLabel }: FilterChipProps) {
+function FilterChip({ label, size = 'md', icon, style, testID, selected = false, disabled = false, onPress, accessibilityLabel }: VariantProps<FilterChipProps>) {
   const styles = useChipStyles();
   const { colors } = useTheme();
   const foreground = selected ? colors.textInverse : colors.textPrimary;
@@ -127,7 +133,7 @@ function FilterChip({ label, size = 'md', icon, style, testID, selected = false,
   );
 }
 
-function TagChip({ label, size = 'md', icon, style, testID, tone = 'neutral' }: TagChipProps) {
+function TagChip({ label, size = 'md', icon, style, testID, tone = 'neutral' }: VariantProps<TagChipProps>) {
   const styles = useChipStyles();
   const { colors } = useTheme();
   const { background, border, foreground } = toneColors(tone, colors);
@@ -141,7 +147,7 @@ function TagChip({ label, size = 'md', icon, style, testID, tone = 'neutral' }: 
   );
 }
 
-function RemovableChip({ label, size = 'md', icon, style, testID, disabled = false, onRemove, removeAccessibilityLabel }: RemovableChipProps) {
+function RemovableChip({ label, size = 'md', icon, style, testID, disabled = false, onRemove, removeAccessibilityLabel }: VariantProps<RemovableChipProps>) {
   const styles = useChipStyles();
   const { colors } = useTheme();
   return (
