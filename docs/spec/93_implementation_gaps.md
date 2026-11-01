@@ -17,7 +17,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G11 | Expiry & reminders (D21) | 07.1 |
 | G12 | Like & reply on comments (D25) | 07.9 |
 | G13 | ID verification, blue check, provider choice (D23) | 07.14 |
-| G14 | Form per type without 'general' (D28) | 07.2 |
+| G14 | 🟡 2026-11-01 — Form per type without 'general' (D28): the create form offers items, rides, food, housing and time, each with its own field set (FR-POST-001 AC6, `listingFieldSpecs.ts`). Open: domain auto-suggest (S39), forms for knowledge / experiences / events | 07.2 |
 | G15 | Recommendation engine & toggle (D27, D34) | 07.3 |
 | G16 | Karma values config (D29) | 07.6 |
 | G17 | 🟡 2026-10-30 — Notification preferences & emergency group (D26, D42). Done: per-type opt-out model `kinds` + "Match suggestions" toggle (FR-NOTIF-017, `0460`). Open: other per-type toggles, per-channel preferences, `emergency` group | 07.11 |

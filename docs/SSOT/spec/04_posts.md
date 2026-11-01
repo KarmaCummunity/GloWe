@@ -39,8 +39,16 @@ Tapping the "+" tab opens one form whose top control toggles between `🎁 Give`
 - AC3. The form is the same screen used for editing an existing post (`FR-POST-008`); the route distinguishes them.
 - AC4. *(KC#1296, 2026-10-30)* For the items and food giving worlds, the listing form offers an optional **world subcategory** (items → books, food → bakery…, `public.categories` children of the world). The choice is stored as the listing's `category_id`; a subcategory of another world is rejected (`category_world_mismatch`, migration `0462`). Matching uses it for its category score.
 - AC5. *(KC#1101 / KC#1109, D-206, 2026-10-31)* A published open listing of a feed-mirrored world (`worlds.feed_mirror`: items, food) **appears in the main feed** through one mirror row in `posts` (`posts.listing_id`, migration `0466`). The mirror follows the listing's title, summary, subcategory, condition, photos (`media_assets.bucket = 'listing-images'`), privacy, status and deletion; opening it from the feed opens the listing detail. Mirrors do not count toward the open-posts cap (FR-POST-011) and are not listed under "my posts". "Share to feed" reuses the same mirror for every world and is hidden once the listing is mirrored.
+- AC6. *(2026-11-01, `{{ENG:create-form-five-categories}}`)* **Category first, then request / offer, then the category's own fields.** The top of the form is a category picker with exactly five categories, in this order: **חפצים** (items), **טרמפים** (rides), **אוכל** (food), **דיור** (housing), **זמן** (time); there is no "general" category. Under it sits the request / offer toggle (*לבקש* / *להציע*), and under that only the fields of the chosen category and direction (product book `docs/spec/07` §7.2):
+  - *Items* — the post form of AC1–AC3 (photos, title, address + display level, item subcategory, condition + estimated value on offer, urgency on request, description, exposure). Items posts reach the items world through the posts → listings sync (migration `0243`).
+  - *Rides* — origin and destination (official city catalog), departure (required), seats + cost model on offer, passengers + luggage on request.
+  - *Food* — offer: food type + expiry (both required), allergens, kosher, pickup / delivery, optional food subcategory; request: household size, dietary needs.
+  - *Housing* — offer: place type, guests, house rules; request: party size. Publishing needs a verified identity (D30, `world_permission_denied`).
+  - *Time* — offer: duration; request: support type (companionship, practical help, escort — emotional support goes to a hotline, §5.4) + duration.
+  - Every listing category also has photos (optional), title, description and city. The kind is derived from the direction (one kind per direction per world), so members never pick a "listing type"; internal schema keys (linked ids, org slugs) are never shown.
+  - The form reopens on the category **and** direction the member last used (per user, on the device); a `?category=` deep link wins. A missing required field blocks publish with a message naming it. Date fields open in a sheet (iOS) or the system dialogs (Android) — never an inline native picker (TestFlight 1.6.x crash).
 
-**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory`.
+**Related.** Screens: 2.4 · Domain: `Post.type`, `Post.status`, `WorldSubcategory` · Code: `app/(tabs)/create.tsx`, `src/lib/unifiedCreate/`, `src/components/CreatePostForm/`.
 
 ---
 
@@ -529,6 +537,7 @@ A signed-in viewer of a `Public` post that is `open` or `closed_delivered` may s
 
 | Version | Date | Summary |
 | ------- | ---- | ------- |
+| 0.16 | 2026-11-01 | `FR-POST-001` AC6 — five create categories (items, rides, food, housing, time) with the last used category + direction remembered; request / offer under the picker; curated per-category fields; no inline native date picker or slider (TestFlight crash). |
 | 0.15 | 2026-05-24 | `FR-POST-023` AC2 — share body adds `*מפרסם:*` (owner identity per `postOwnerDisplayLabel`) and `*שותף/ה:*` on closed posts with a marked recipient (`postRecipientDisplayLabel`). |
 | 0.15 | 2026-05-28 | `FR-POST-021` — `upsert_post_actor_identity` RPC (`0160`) replaces PostgREST `.upsert()` after TD-85 column-scoped UPDATE grants (fixes 403 on hide / exposure sync). |
 | 0.14 | 2026-05-24 | `FR-POST-021` AC3/AC4 + `FR-POST-009` AC5 — dual-surface closed-post privacy (`D-39`). Hidden-screen routing now keys on effective participant `surface_visibility` (migration `0107`); `posts.visibility` fan-out removed from the closed-post Hide control. Counterparty always sees the actor's full identity on post chrome (`D-26` legacy owner-OnlyMe counterparty mask removed). `surface_visibility = OnlyMe` always implies third-party mask on the partner's surface even when `hide_from_counterparty = false`. Migration `0106` (recipients RLS for third-party post detail) shipped in the same set. |

@@ -35,7 +35,14 @@ describe('unified create — route inventory', () => {
   });
 
   it('listing/post create forms are only mounted by the unified screen', () => {
-    const mounts = files.filter((p) => /<(MarketplaceCreateForm|CreatePostFormScrollContent|RideCreateSheet)\b/.test(readFileSync(p, 'utf8')));
+    const mounts = files.filter((p) => /<(ListingCreateForm|MarketplaceCreateForm|CreatePostFormScrollContent|RideCreateSheet)\b/.test(readFileSync(p, 'utf8')));
     expect(mounts.map((p) => relative(MOBILE, p))).toEqual(['app/(tabs)/create.tsx']);
+  });
+
+  // FR-DONATE-001 AC6: the marketplace browse screen is gone; nothing may link to it again.
+  it('nothing navigates to the removed marketplace browse screen', () => {
+    const browseLink = /['"`]\/\(tabs\)\/donations\/marketplace['"`]/;
+    const offenders = files.filter((p) => browseLink.test(readFileSync(p, 'utf8')));
+    expect(offenders.map((p) => relative(MOBILE, p))).toEqual([]);
   });
 });

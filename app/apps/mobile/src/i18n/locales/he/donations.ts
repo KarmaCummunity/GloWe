@@ -4,7 +4,7 @@ import { marketplaceMap } from './marketplaceMap';
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
-import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceBrowseRefine, marketplaceWorldLabels } from './donations.marketplaceExtras';
 import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
 import { marketplaceMyListings } from './donations.myListings';
@@ -145,8 +145,6 @@ export const donations = {
       unknown: 'שגיאה לא צפויה. נסו שוב.',
     },
   },
-  marketplaceHubTitle: 'שוק התרומות',
-  marketplaceHubSubtitle: 'כל עולמות הנתינה במקום אחד',
 } as const;
 
 export const search = {
@@ -239,10 +237,7 @@ export const search = {
 
 export const marketplace = {
   ...marketplaceMap,
-  browseTitle: 'שוק',
-  searchPlaceholder: 'חיפוש מודעות…',
   allWorlds: 'כל העולמות',
-  openMap: 'תצוגת מפה',
   createListing: 'פרסום מודעה',
   loading: 'טוען…',
   empty: 'אין מודעות לפי הסינון.',
@@ -252,21 +247,12 @@ export const marketplace = {
   shareFeed: 'שיתוף בפיד',
   actionFailed: 'הפעולה לא הושלמה. נסו שוב.',
   chatOpener: 'היי — ראיתי את המודעה שלך בשוק.',
-  createTitle: 'מודעה חדשה — {{world}}',
   fieldTitle: 'כותרת',
   fieldSummary: 'תקציר',
-  publish: 'פרסום',
   publishing: 'מפרסם…',
   forYouTitle: 'בשבילך',
-  createHubTitle: 'בחירת עולם נתינה',
-  fieldKind: 'סוג מודעה',
   fieldWorldSubcategory: 'תת-קטגוריה',
   fieldWorldSubcategoryHint: 'לא חובה — עוזר למצוא לך התאמות',
-  fieldDirection: 'מציע / מבקש',
-  fieldCity: 'עיר / אזור',
-  fieldRadius: 'רדיוס חיפוש: {{km}} ק״מ',
-  fieldPhotos: 'תמונות',
-  fieldPhotosHint: 'מודעות עם תמונה מקבלות יותר תגובות.',
   validationFailed: 'בדקו את הטופס ({{code}}).',
   errors: marketplaceErrors,
   shareLink: 'שיתוף קישור',
@@ -279,7 +265,6 @@ export const marketplace = {
   statusClosed: 'הושלם',
   ...marketplaceMyListings,
   world: marketplaceWorldLabels,
-  orgPicker: marketplaceOrgPicker,
   browseRefine: marketplaceBrowseRefine,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,

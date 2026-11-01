@@ -1,14 +1,14 @@
+// FR-POST-001 AC6 — the create form offers exactly five categories, in a fixed order, each
+// with an engine, an icon and a Hebrew label; one route serves every create button.
 import { describe, expect, it } from 'vitest';
-import { MARKETPLACE_CREATE_WORLD_SLUGS, ROUTED_WORLDS } from '@kc/domain';
 import {
   CREATE_CATEGORIES,
-  GENERAL_CREATE_CATEGORY,
-  SHARED_CREATE_FIELDS,
-  createFieldsFor,
+  CREATE_CATEGORY_IDS,
+  DEFAULT_CREATE_CATEGORY,
+  WORLDS_WITH_SUBCATEGORY_PICKER,
   createRouteFor,
   findCreateCategory,
-  hasCreateField,
-  visibleCreateCategories,
+  isCreateCategoryId,
 } from '../createCategories';
 // eslint-disable-next-line no-restricted-imports -- test asserts every category label key exists in the Hebrew bundle
 import he from '../../../i18n/locales/he';
@@ -18,68 +18,68 @@ function resolveKey(bundle: unknown, key: string): unknown {
 }
 
 describe('unified create — category config', () => {
-  it('every create domain (general + all marketplace worlds) is in the config', () => {
+  it('offers items, rides, food, housing, time — in that order, without duplicates', () => {
     const ids = CREATE_CATEGORIES.map((c) => c.id);
-    expect(ids).toContain(GENERAL_CREATE_CATEGORY);
-    for (const slug of MARKETPLACE_CREATE_WORLD_SLUGS) expect(ids).toContain(slug);
+    expect(ids).toEqual(['items', 'rides', 'food', 'housing', 'time']);
+    expect(ids).toEqual([...CREATE_CATEGORY_IDS]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it.each(CREATE_CATEGORIES.map((c) => [c.id, c] as const))(
-    '%s renders shared fields + its own fields with a Hebrew label',
-    (_id, c) => {
-      for (const d of ['give', 'request'] as const) {
-        const fields = createFieldsFor(c, d);
-        for (const f of SHARED_CREATE_FIELDS) expect(fields).toContain(f);
-        expect(fields.length).toBeGreaterThan(SHARED_CREATE_FIELDS.length);
-      }
-      expect(typeof resolveKey(he, c.labelKey)).toBe('string');
-    },
-  );
+  it('has no "general" or marketplace-only category any more', () => {
+    for (const removed of ['general', 'money', 'knowledge', 'medical', 'animals', 'environment']) {
+      expect(isCreateCategoryId(removed)).toBe(false);
+    }
+  });
 
-  it('listing categories carry their world and adapt fields per world', () => {
-    for (const c of CREATE_CATEGORIES.filter((x) => x.engine === 'listing')) {
+  it.each(CREATE_CATEGORIES.map((c) => [c.id, c] as const))('%s has a Hebrew label and an icon', (_id, c) => {
+    expect(typeof resolveKey(he, c.labelKey)).toBe('string');
+    expect(c.icon).toMatch(/-outline$/);
+  });
+
+  it('uses the user-facing Hebrew names', () => {
+    const label = (id: string) => resolveKey(he, findCreateCategory(id).labelKey);
+    expect(label('items')).toBe('חפצים');
+    expect(label('rides')).toBe('טרמפים');
+    expect(label('food')).toBe('אוכל');
+    expect(label('housing')).toBe('דיור');
+    expect(label('time')).toBe('זמן');
+  });
+
+  it('items keep the post engine; every other category writes a listing of its own world', () => {
+    const items = findCreateCategory('items');
+    expect(items.engine).toBe('post');
+    expect(items.worldSlug).toBeNull();
+    for (const c of CREATE_CATEGORIES.filter((x) => x.id !== 'items')) {
+      expect(c.engine).toBe('listing');
       expect(c.worldSlug).toBe(c.id);
-      expect(hasCreateField(c, 'give', 'listingDetails')).toBe(true);
-      expect(hasCreateField(c, 'give', 'rideRoute')).toBe(c.id === 'rides');
-      expect(hasCreateField(c, 'give', 'externalBody')).toBe(
-        (ROUTED_WORLDS as readonly string[]).includes(c.id),
-      );
     }
   });
 
-  it('items and food offer a world subcategory on both directions; other worlds do not (KC#1296)', () => {
-    for (const c of CREATE_CATEGORIES.filter((x) => x.engine === 'listing')) {
-      const expected = c.id === 'items' || c.id === 'food';
-      expect(hasCreateField(c, 'give', 'worldSubcategory')).toBe(expected);
-      expect(hasCreateField(c, 'request', 'worldSubcategory')).toBe(expected);
-    }
-    expect(hasCreateField(findCreateCategory(GENERAL_CREATE_CATEGORY), 'give', 'worldSubcategory')).toBe(false);
+  it('food is the only listing category with a world subcategory picker (KC#1296)', () => {
+    const listingIds = CREATE_CATEGORIES.filter((c) => c.engine === 'listing').map((c) => c.id);
+    expect(listingIds.filter((id) => WORLDS_WITH_SUBCATEGORY_PICKER.includes(id))).toEqual(['food']);
   });
 
-  it('general post fields adapt to give/request', () => {
-    const g = findCreateCategory(GENERAL_CREATE_CATEGORY);
-    expect(g.engine).toBe('post');
-    expect(hasCreateField(g, 'give', 'condition')).toBe(true);
-    expect(hasCreateField(g, 'give', 'urgency')).toBe(false);
-    expect(hasCreateField(g, 'request', 'urgency')).toBe(true);
-    expect(hasCreateField(g, 'request', 'estimatedValue')).toBe(false);
+  it('unknown, missing or removed ids fall back to the default category (items)', () => {
+    expect(DEFAULT_CREATE_CATEGORY).toBe('items');
+    expect(findCreateCategory('nope').id).toBe('items');
+    expect(findCreateCategory(undefined).id).toBe('items');
+    expect(findCreateCategory(null).id).toBe('items');
+    expect(findCreateCategory('general').id).toBe('items');
   });
 
-  it('unknown category falls back to general', () => {
-    expect(findCreateCategory('nope').id).toBe(GENERAL_CREATE_CATEGORY);
-    expect(findCreateCategory(undefined).id).toBe(GENERAL_CREATE_CATEGORY);
+  it('isCreateCategoryId accepts only the configured ids', () => {
+    expect(isCreateCategoryId('rides')).toBe(true);
+    expect(isCreateCategoryId('')).toBe(false);
+    expect(isCreateCategoryId(42)).toBe(false);
+    expect(isCreateCategoryId(undefined)).toBe(false);
   });
 
-  it('picker hides worlds whose launch flag is off, never general', () => {
-    const visible = visibleCreateCategories((slug) => slug === 'food');
-    expect(visible.map((c) => c.id)).toEqual([GENERAL_CREATE_CATEGORY, 'food']);
-  });
-
-  it('every entry point uses one route, preselecting the category', () => {
+  it('every entry point uses one route, preselecting a known category only', () => {
     expect(createRouteFor()).toBe('/(tabs)/create');
     expect(createRouteFor(null)).toBe('/(tabs)/create');
-    expect(createRouteFor(GENERAL_CREATE_CATEGORY)).toBe('/(tabs)/create');
+    expect(createRouteFor('knowledge')).toBe('/(tabs)/create');
     expect(createRouteFor('rides')).toBe('/(tabs)/create?category=rides');
+    expect(createRouteFor('items')).toBe('/(tabs)/create?category=items');
   });
 });

@@ -157,28 +157,6 @@ export default function DonationsHubScreen() {
           </MotionEntry>
         ) : null}
 
-        <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40} style={styles.blockStretch}>
-          <PressableScale
-            onPress={() => router.push('/(tabs)/donations/marketplace')}
-            accessibilityRole="button"
-            accessibilityLabel={t('donations.marketplaceHubTitle')}
-            style={styles.blockStretch}
-          >
-            <Card padding="base" style={styles.featuredCard} testID="donation-tile-marketplace">
-              <IconTile icon="storefront-outline" size="lg" />
-              <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle} numberOfLines={1}>
-                  {t('donations.marketplaceHubTitle')}
-                </Text>
-                <Text style={styles.featuredSubtitle} numberOfLines={2}>
-                  {t('donations.marketplaceHubSubtitle')}
-                </Text>
-              </View>
-              <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
-            </Card>
-          </PressableScale>
-        </MotionEntry>
-
         {/* ── Giving worlds, then domains (D62) ── */}
         <HubTileGrid
           heading={t('donations.hubCategoriesSectionTitle')}
