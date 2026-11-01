@@ -56,12 +56,14 @@ jobs:
         # per-migration tests and the per-world lifecycle flows (G44).
         run: scripts/run-db-tests.sh
 
+      # Monthly partition children are created relative to now(), so they are
+      # stripped before the diff; otherwise the check breaks on every 1st of the month.
       - name: Check database.types.ts drift
         run: |
           set -euo pipefail
-          supabase gen types typescript --local > /tmp/database.types.ts
+          supabase gen types typescript --local | node scripts/strip-partition-types.mjs > /tmp/database.types.ts
           if ! diff -u app/packages/infrastructure-supabase/src/database.types.ts /tmp/database.types.ts; then
-            echo "::error::database.types.ts is out of date. Run: supabase gen types typescript --local > app/packages/infrastructure-supabase/src/database.types.ts"
+            echo "::error::database.types.ts is out of date. Run: supabase gen types typescript --local | node scripts/strip-partition-types.mjs > app/packages/infrastructure-supabase/src/database.types.ts"
             exit 1
           fi
 
