@@ -29,6 +29,7 @@
 | PERF-4 | **Image delivery — upload-time thumbs + backfill** | agent-fullstack | 🟡 In progress | TD-11 |
 | PERF-5 | **DB consolidation — per-chat unread count RPC** | agent-fullstack | 🟡 In progress | Migration `0133` |
 | SEC-1063 | **DB function privileges (#1063).** `EXECUTE` is an explicit decision of each migration: new functions private by default, SECURITY DEFINER triggers and internal helpers service-role only, anon limited to the reviewed public-read list (`0520`); guarded by `supabase/tests/0520_*` and `scripts/check-rpc-grants.mjs` (CI backend lane). Remaining: verify on kc-dev after the Deploy run. | agent-be | 🟡 Code complete — kc-dev verification pending | [ADR-002 §2](../architecture/adr/ADR-002-data-layer.md) |
+| SEC-1065 | **Account deletion removes all of the user's media (#1065, FR-SETTINGS-012 AC2).** `delete-account` purges the user's folder in every user-owned bucket (`avatars`, `post-images`, `chat-media`, `listing-images`); a failing bucket is reported and the others still run. Remaining: verify on kc-dev after the Deploy run. | agent-be | 🟡 Code complete — kc-dev verification pending | [`spec/11_settings.md`](./spec/11_settings.md) FR-SETTINGS-012 |
 
 ## INFRA — CI/CD hardening (`D-195`)
 

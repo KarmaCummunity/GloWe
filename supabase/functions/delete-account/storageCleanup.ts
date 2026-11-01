@@ -47,3 +47,42 @@ export function chunkPaths(paths: readonly string[], size: number = LIST_PAGE_SI
   for (let i = 0; i < paths.length; i += size) chunks.push(paths.slice(i, i + size));
   return chunks;
 }
+
+/**
+ * Buckets whose storage insert policies require every client upload to sit under
+ * `<user_id>/`, so that folder holds everything the user owns there: the avatar and
+ * its thumb, post images with their thumbs (attached or not), chat images and
+ * listing images. Server-side rewrites (EXIF strip, thumb backfill) stay in it too.
+ */
+export const USER_FOLDER_BUCKETS = ['avatars', 'chat-media', 'listing-images', 'post-images'] as const;
+
+/** The two Storage calls the purge needs; both reject on a Storage error. */
+export interface StorageGateway {
+  list(bucket: string, prefix: string, offset: number, limit: number): Promise<StorageListEntry[]>;
+  remove(bucket: string, paths: string[]): Promise<void>;
+}
+
+/** Receives a Storage failure; the purge itself never throws. */
+export type PurgeErrorReporter = (error: unknown, bucket: string) => Promise<void>;
+
+/**
+ * Removes every object under `<userId>/` in each user-folder bucket (R-MVP-Privacy-6).
+ * A bucket that fails is reported and skipped, so one Storage error never leaves the
+ * other buckets untouched.
+ */
+export async function purgeUserFolders(
+  gateway: StorageGateway,
+  userId: string,
+  onError: PurgeErrorReporter,
+): Promise<void> {
+  for (const bucket of USER_FOLDER_BUCKETS) {
+    try {
+      const listPage: ListPage = (prefix, offset, limit) => gateway.list(bucket, prefix, offset, limit);
+      for (const chunk of chunkPaths(await collectObjectPaths(listPage, userId))) {
+        await gateway.remove(bucket, chunk);
+      }
+    } catch (error) {
+      await onError(error, bucket);
+    }
+  }
+}
