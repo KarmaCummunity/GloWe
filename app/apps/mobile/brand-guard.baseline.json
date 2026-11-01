@@ -385,17 +385,6 @@
       "adHocChip": 1,
       "iconSizeLiteral": 1
     },
-    "src/components/DeleteAccountConfirmModal.styles.ts": {
-      "fontSizeLiteral": 11,
-      "fontWeightLiteral": 6,
-      "radiusLiteral": 6,
-      "spacingLiteral": 18
-    },
-    "src/components/DeleteAccountConfirmModal.tsx": {
-      "colorLiteral": 1,
-      "rawTextInput": 1,
-      "rawModal": 1
-    },
     "src/components/DeleteAccountSuccessOverlay.tsx": {
       "rawModal": 1
     },
@@ -437,13 +426,6 @@
       "fontWeightLiteral": 2,
       "iconSizeLiteral": 1
     },
-    "src/components/EnablePushModal.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 6,
-      "rawModal": 1
-    },
     "src/components/EphemeralToast.tsx": {
       "fontWeightLiteral": 1,
       "zIndexLiteral": 1,
@@ -467,9 +449,6 @@
       "physicalSide": 2,
       "rawModal": 1
     },
-    "src/components/HideChatConfirmModal.tsx": {
-      "rawModal": 1
-    },
     "src/components/MessageBubble.tsx": {
       "fontSizeLiteral": 1,
       "radiusLiteral": 2,
@@ -485,18 +464,6 @@
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 1,
       "spacingLiteral": 1
-    },
-    "src/components/NotifyModal.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 5,
-      "rawModal": 1
-    },
-    "src/components/OnboardingSoftGateModal.tsx": {
-      "colorLiteral": 1,
-      "rawTextInput": 2,
-      "rawModal": 1
     },
     "src/components/OnboardingStepHeader.tsx": {
       "iconSizeLiteral": 1
@@ -628,23 +595,14 @@
     "src/components/admin/admins/AdminsTreeView.tsx": {
       "spacingLiteral": 1
     },
-    "src/components/admin/admins/ChangeRoleModal.tsx": {
-      "rawModal": 1
-    },
     "src/components/admin/admins/ChoiceChips.tsx": {
       "adHocChip": 1
-    },
-    "src/components/admin/admins/GrantRoleModal.tsx": {
-      "rawModal": 1
     },
     "src/components/admin/admins/LevelBadge.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
       "spacingLiteral": 2
-    },
-    "src/components/admin/admins/ManagerPickerModal.tsx": {
-      "rawModal": 1
     },
     "src/components/admin/admins/ManagerSummary.tsx": {
       "colorLiteral": 1,
@@ -974,13 +932,6 @@
       "spacingLiteral": 5,
       "iconSizeLiteral": 1
     },
-    "src/components/closure/ClosureExplainerSheet.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 3,
-      "spacingLiteral": 8,
-      "rawModal": 1
-    },
     "src/components/closure/ClosureRecipientPanes.tsx": {
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 2,
@@ -997,13 +948,6 @@
       "fontWeightLiteral": 2,
       "radiusLiteral": 3,
       "spacingLiteral": 4
-    },
-    "src/components/closure/ReopenConfirmModal.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 2,
-      "spacingLiteral": 9,
-      "rawModal": 1
     },
     "src/components/giving/worldHubStyles.ts": {
       "fontWeightLiteral": 1,
@@ -1115,13 +1059,6 @@
     "src/components/post-detail/RecipientUnmarkBar.tsx": {
       "fontWeightLiteral": 1
     },
-    "src/components/post/ConfirmActionModal.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 2,
-      "spacingLiteral": 6,
-      "rawModal": 1
-    },
     "src/components/post/CounterpartyIdentityCard.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1
@@ -1173,12 +1110,6 @@
     "src/components/profile/FollowButton.tsx": {
       "fontWeightLiteral": 1,
       "spacingLiteral": 1
-    },
-    "src/components/profile/KarmaBadge.tsx": {
-      "colorLiteral": 1,
-      "physicalSide": 3,
-      "rawModal": 1,
-      "iconSizeLiteral": 2
     },
     "src/components/profile/MyProfileChrome.tsx": {
       "zIndexLiteral": 1,
@@ -1296,12 +1227,6 @@
     },
     "src/components/survey/SurveyRatingRow.tsx": {
       "fontWeightLiteral": 1
-    },
-    "src/components/survey/SurveyThankYouModal.tsx": {
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 4,
-      "rawModal": 1,
-      "iconSizeLiteral": 2
     },
     "src/components/ui/AmbientBlobs.tsx": {
       "radiusLiteral": 3
