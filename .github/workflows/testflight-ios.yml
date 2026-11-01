@@ -115,6 +115,12 @@ jobs:
           fi
           echo "All TestFlight secrets present."
 
+      # The target step used a sparse checkout; restore the full tree so the
+      # build checkout below is not left sparse (app/package.json etc.).
+      - name: Disable sparse checkout
+        working-directory: .
+        run: git sparse-checkout disable
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.target.outputs.sha }}
