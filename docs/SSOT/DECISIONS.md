@@ -1657,7 +1657,7 @@ Owner rules that go with it:
 
 **Affected.** `tests/e2e/lib/worldJourney.ts`, `tests/e2e/journeys/{items,food}.spec.ts`, `tests/e2e/journeys/qa/{marketplace,social}.spec.ts` (unified create route, flag-aware money world), `app/apps/mobile/src/components/marketplace/{GivingHandoffActions,MarketplaceCreateForm}.tsx` (testIDs only), `docs/SSOT/TESTING.md` § Two-user world journeys, `docs/architecture/target.md` §5.1, `docs/spec/93_implementation_gaps.md` G40, BACKLOG `OPS-G40`.
 
-## {{ENG:function-execute-explicit-grants}} — Functions are private by default; each migration grants its client RPCs (2026-11-01)
+## D-208 — Functions are private by default; each migration grants its client RPCs (2026-11-01)
 
 **Decision.** A function created by `postgres` is executable by its owner and `service_role` only: migration `0520` revokes `EXECUTE` from PUBLIC in the global default privileges (a schema-scoped default can only add to the global one) and from `authenticated` in the `public` schema default. A client RPC grants `authenticated` in its own migration, and `anon` only for a public read or an RLS predicate guests evaluate. Internal helpers (triggers, pg_cron jobs, functions called only by other SECURITY DEFINER functions) need no grant. Three guards hold it: `supabase/tests/0520_*` (defaults, SECURITY DEFINER triggers, internal helpers, the reviewed anon list, every RLS predicate executable by `authenticated`), and `scripts/check-rpc-grants.mjs` in the CI backend lane (every RPC the app calls is executable by a client role).
 
