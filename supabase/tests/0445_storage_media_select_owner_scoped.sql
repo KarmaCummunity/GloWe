@@ -1,7 +1,8 @@
 -- 0445 — `chat-media` / `post-images` object SELECT is owner-scoped.
 -- Asserts the policy shape: no SELECT/ALL policy on these buckets grants
 -- `anon`, and every remaining SELECT policy is restricted to the owner's
--- first path segment.
+-- first path segment. Since 0521 `chat-media` also has one policy gated by
+-- chat visibility (participants read the chat's images, #1064).
 
 create or replace function pg_temp.assert(p_cond boolean, p_msg text)
 returns void language plpgsql as $$
@@ -35,7 +36,8 @@ begin
        and tablename  = 'objects'
        and cmd in ('SELECT', 'ALL')
        and qual like '%' || v_bucket || '%'
-       and qual not like '%foldername%auth.uid()%';
+       and qual not like '%foldername%auth.uid()%'
+       and not (v_bucket = 'chat-media' and qual like '%is_chat_visible_to%auth.uid()%');
     perform pg_temp.assert(v_open = 0,
       format('%s: SELECT policy not scoped to the owner path (%s found)', v_bucket, v_open));
 

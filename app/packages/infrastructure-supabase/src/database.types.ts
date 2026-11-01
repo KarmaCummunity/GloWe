@@ -9824,6 +9824,7 @@ export type Database = {
         Args: { p_signup_id: string }
         Returns: undefined
       }
+      chat_media_path_chat_ids: { Args: { p_name: string }; Returns: string[] }
       check_in_volunteer_shift: { Args: { p_signup_id: string }; Returns: Json }
       check_survey_prompt_eligibility: {
         Args: { p_session_count: number; p_slug: string }
