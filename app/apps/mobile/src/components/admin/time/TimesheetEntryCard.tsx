@@ -1,7 +1,7 @@
 // V2-ADMIN-TIME-10 — single timesheet entry row.
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { TimesheetEntry } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface TimesheetEntryCardProps {
@@ -97,30 +97,30 @@ export function TimesheetEntryCard(props: TimesheetEntryCardProps) {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   card: {
-    margin: 12, padding: 14, gap: 4,
-    borderRadius: 10, backgroundColor: colors.surface,
+    margin: spacing.md, padding: spacing.md, gap: spacing.xs,
+    borderRadius: radius.sm, backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
   },
   head:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  workDate:    { fontSize: 14, fontWeight: '700' },
-  headRight:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  hoursChip:   { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: colors.primarySurface },
-  hoursChipText: { fontSize: 11, fontWeight: '700', color: colors.primary },
-  statusChip:  { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  workDate:    { fontSize: typography.body.fontSize, ...typography.bold },
+  headRight:   { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  hoursChip:   { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs, backgroundColor: colors.primarySurface },
+  hoursChipText: { fontSize: typography.caption.fontSize, ...typography.bold, color: colors.primary },
+  statusChip:  { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs },
   status_draft:     { backgroundColor: colors.secondaryLight },
   status_submitted: { backgroundColor: colors.warningLight },
   status_approved:  { backgroundColor: colors.successLight },
   status_rejected:  { backgroundColor: colors.errorLight },
-  statusChipText:   { fontSize: 11, fontWeight: '700' },
-  meta:        { fontSize: 12, opacity: 0.7 },
-  metaSubtle:  { fontSize: 11, opacity: 0.6, marginTop: 2 },
-  description: { fontSize: 12, marginTop: 4, opacity: 0.85 },
-  actions:     { flexDirection: 'row', gap: 6, marginTop: 8, justifyContent: 'flex-end' },
-  btn:         { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  statusChipText:   { fontSize: typography.caption.fontSize, ...typography.bold },
+  meta:        { fontSize: typography.bodySmall.fontSize, opacity: 0.7 },
+  metaSubtle:  { fontSize: typography.caption.fontSize, opacity: 0.6, marginTop: spacing.xs },
+  description: { fontSize: typography.bodySmall.fontSize, marginTop: spacing.xs, opacity: 0.85 },
+  actions:     { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm, justifyContent: 'flex-end' },
+  btn:         { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs },
   btnMuted:    { backgroundColor: colors.secondaryLight },
-  btnText:     { fontSize: 12, fontWeight: '600' },
+  btnText:     { fontSize: typography.bodySmall.fontSize, ...typography.semiBold },
   btnPrimary:  { backgroundColor: colors.primary },
-  btnPrimaryText: { fontSize: 12, fontWeight: '700', color: colors.textInverse },
+  btnPrimaryText: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.textInverse },
   btnDanger:   { backgroundColor: colors.errorLight },
-  btnDangerText: { fontSize: 12, fontWeight: '700', color: colors.error },
+  btnDangerText: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.error },
 }));

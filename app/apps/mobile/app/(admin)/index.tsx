@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import type { AdminRole } from '@kc/domain';
 import { hasPermission } from '@kc/domain';
-import { makeUseStyles, shadow, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, shadow, spacing, Text, typography, useTheme } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../src/lib/rtlLayout';
 import { useAdminRoles } from '../../src/hooks/useAdminRoles';
 import { useAdminsList } from '../../src/hooks/useAdminsList';
@@ -120,7 +120,7 @@ export default function AdminDashboard(): ReactElement {
           >
             <View style={styles.cardTop}>
               <View style={[styles.iconWrap, { backgroundColor: c.accentBg }]}>
-                <Ionicons name={c.icon} size={20} color={c.accent} />
+                <Ionicons name={c.icon} size={iconSize.lg} color={c.accent} />
               </View>
               <Text style={styles.cardValue}>{c.value}</Text>
             </View>
@@ -134,31 +134,31 @@ export default function AdminDashboard(): ReactElement {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   screen: { flex: 1, backgroundColor: colors.background },
-  root: { padding: 16, gap: 16, paddingBottom: 96, width: '100%', maxWidth: 900, alignSelf: 'center' },
+  root: { padding: spacing.base, gap: spacing.base, paddingBottom: spacing['4xl'] + spacing['2xl'], width: '100%', maxWidth: 900, alignSelf: 'center' },
 
   hero: {
     backgroundColor: colors.primarySurface,
     borderWidth: 1,
     borderColor: colors.primaryLight,
-    borderRadius: 20,
-    padding: 20,
-    gap: 12,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
-  heroEyebrow: { fontSize: 12, fontWeight: '700', color: colors.primary, letterSpacing: 0.5, textAlign: textAlignStart() },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  badges: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: 6 },
+  heroEyebrow: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.primary, letterSpacing: 0.5, textAlign: textAlignStart() },
+  heroTitle: { fontSize: typography.h2.fontSize, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  badges: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: spacing.xs },
   badge: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
   },
-  badgeText: { fontSize: 12, fontWeight: '700', color: colors.primaryDark },
+  badgeText: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.primaryDark },
 
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: colors.textSecondary, textAlign: textAlignStart(), marginTop: 4 },
-  grid: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: 12 },
+  sectionTitle: { fontSize: typography.body.fontSize, ...typography.bold, color: colors.textSecondary, textAlign: textAlignStart(), marginTop: spacing.xs },
+  grid: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: spacing.md },
   card: {
     flexGrow: 1,
     flexBasis: 150,
@@ -166,14 +166,14 @@ const useStyles = makeUseStyles(({ colors }) => ({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
+    borderRadius: radius.lg,
+    padding: spacing.base,
+    gap: spacing.md,
     ...shadow.card,
   },
   cardPressed: { opacity: 0.7 },
   cardTop: { flexDirection: rowDirectionStart, alignItems: 'center', justifyContent: 'space-between' },
-  iconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  cardValue: { fontSize: 24, fontWeight: '800', color: colors.textPrimary },
-  cardLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, textAlign: textAlignStart() },
+  iconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  cardValue: { fontSize: typography.h2.fontSize, ...typography.extraBold, color: colors.textPrimary },
+  cardLabel: { fontSize: typography.bodySmall.fontSize, ...typography.semiBold, color: colors.textSecondary, textAlign: textAlignStart() },
 }));
