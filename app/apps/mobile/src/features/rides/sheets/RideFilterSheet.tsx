@@ -1,5 +1,5 @@
 // FR-RIDE-002 — ride hub filter bottom sheet (mirrors SearchFilterSheet).
-// The frame, dismissal and motion come from the kit `BottomSheet` (spec 17 §4.1).
+// The frame, footer and dismissal come from `FilterSheetFrame` (kit `BottomSheet`, spec 17 §4.1).
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { endOfDay, startOfDay } from 'date-fns';
@@ -8,9 +8,8 @@ import type { RideMode } from '@kc/domain';
 import { Text } from '@kc/ui';
 import { CityPicker } from '../../../components/CityPicker';
 import { SearchChip } from '../../../components/search/SearchChip';
+import { FilterSheetFrame } from '../../../components/search/FilterSheetFrame';
 import { useSearchFilterSheetStyles } from '../../../components/search/searchFilterSheet.styles';
-import { BottomSheet } from '../../../components/ui/BottomSheet';
-import { GhostButton, PrimaryButton } from '../../../components/ui/Buttons';
 import { useRidesFilterStore } from '../store/ridesFilterStore';
 
 interface Props {
@@ -55,16 +54,14 @@ export function RideFilterSheet({ visible, onClose }: Props) {
   };
 
   return (
-    <BottomSheet
+    <FilterSheetFrame
       visible={visible}
       onDismiss={onClose}
       title={t('donations.rides.filtersTitle')}
-      footer={
-        <>
-          <PrimaryButton label={t('donations.rides.applyFilters')} size="md" fullWidth onPress={handleApply} />
-          <GhostButton label={t('donations.rides.clearFilters')} size="md" fullWidth onPress={handleClear} />
-        </>
-      }
+      applyLabel={t('donations.rides.applyFilters')}
+      onApply={handleApply}
+      clearLabel={t('donations.rides.clearFilters')}
+      onClear={handleClear}
     >
       <Text style={styles.sectionTitle}>{t('donations.rides.filterMode')}</Text>
       <View style={styles.chipRow}>
@@ -95,6 +92,6 @@ export function RideFilterSheet({ visible, onClose }: Props) {
           onPress={() => setDateToday(!dateToday)}
         />
       </View>
-    </BottomSheet>
+    </FilterSheetFrame>
   );
 }

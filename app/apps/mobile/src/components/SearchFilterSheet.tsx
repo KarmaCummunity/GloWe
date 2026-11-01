@@ -1,6 +1,6 @@
 // Bottom sheet for advanced search filters (FR-FEED-017+).
 // Local state mirrors store so the user can preview before applying.
-// The frame, dismissal and motion come from the kit `BottomSheet` (spec 17 §4.1).
+// The frame, footer and dismissal come from `FilterSheetFrame` (kit `BottomSheet`, spec 17 §4.1).
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@kc/ui';
@@ -11,9 +11,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useSearchStore } from '../store/searchStore';
 import { CityPicker } from './CityPicker';
 import { SearchChip } from './search/SearchChip';
+import { FilterSheetFrame } from './search/FilterSheetFrame';
 import { useSearchFilterSheetStyles } from './search/searchFilterSheet.styles';
-import { BottomSheet } from './ui/BottomSheet';
-import { GhostButton, PrimaryButton } from './ui/Buttons';
 
 const DEFAULT_RADIUS_KM = 5;
 
@@ -92,16 +91,14 @@ export function SearchFilterSheet({ visible, onClose }: Props) {
   };
 
   return (
-    <BottomSheet
+    <FilterSheetFrame
       visible={visible}
       onDismiss={onClose}
       title={t('search.filters')}
-      footer={
-        <>
-          <PrimaryButton label={t('search.applyFilters')} size="md" fullWidth onPress={handleApply} />
-          <GhostButton label={t('search.clearFilters')} size="md" fullWidth onPress={handleClear} />
-        </>
-      }
+      applyLabel={t('search.applyFilters')}
+      onApply={handleApply}
+      clearLabel={t('search.clearFilters')}
+      onClear={handleClear}
     >
       <Text style={styles.sectionTitle}>{t('search.sortBy')}</Text>
       <View style={styles.chipRow}>
@@ -166,6 +163,6 @@ export function SearchFilterSheet({ visible, onClose }: Props) {
           </View>
         </>
       )}
-    </BottomSheet>
+    </FilterSheetFrame>
   );
 }
