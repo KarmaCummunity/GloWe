@@ -2,7 +2,7 @@
 // Sheets on the kit `BottomSheet` (spec 17 §4.1.1, TD-243): the feed filter
 // (FR-FEED-004), the search filter (FR-FEED-017) and the photo source picker
 // (FR-AUTH-011) render their content and actions and dismiss through `onClose`;
-// the feed filter's chips are kit `Chip` checkboxes.
+// the filter chips are compact (`sm`) kit `Chip` checkboxes (D99).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
@@ -46,6 +46,12 @@ afterEach(() => {
 
 const withTheme = (ui: React.ReactElement) =>
   render(<ThemeProvider mode="light" systemScheme="light" setMode={() => {}}>{ui}</ThemeProvider>);
+
+/** Filter-sheet chips use the kit's compact `sm` size: 28pt tall (44pt touch target via `hitSlop`). */
+function expectCompactChips(chips: HTMLElement[]) {
+  expect(chips.length).toBeGreaterThan(0);
+  for (const chip of chips) expect(getComputedStyle(chip).minHeight).toBe('28px');
+}
 
 const FEED_FILTER: PostFilterValue = {
   type: null,
@@ -103,6 +109,12 @@ describe('PostFilterSheet', () => {
     expect(onPatch).toHaveBeenCalledWith({ locationFilter: { ...locationFilter, radiusKm: RADIUS_OPTIONS_KM[1] } });
   });
 
+  it('renders every filter chip, radius included, in the compact size', () => {
+    const locationFilter = { centerCity: 'haifa', centerCityName: 'Haifa', radiusKm: RADIUS_OPTIONS_KM[0] };
+    const { getAllByRole } = renderSheet(true, { ...FEED_FILTER, type: 'Give', locationFilter });
+    expectCompactChips(getAllByRole('checkbox'));
+  });
+
   it('dismisses through onClose from the close control', () => {
     const { getByRole, onClose, onClear } = renderSheet();
     fireEvent.click(getByRole('button', { name: 'general.close' }));
@@ -119,6 +131,12 @@ describe('PostFilterSheet', () => {
 });
 
 describe('SearchFilterSheet', () => {
+  it('renders its filter chips in the compact size', () => {
+    useSearchStore.getState().clearFilters();
+    const { getAllByRole } = withTheme(<SearchFilterSheet visible onClose={vi.fn()} />);
+    expectCompactChips(getAllByRole('checkbox'));
+  });
+
   it('applies the previewed filters to the store, then closes', () => {
     useSearchStore.getState().clearFilters();
     const onClose = vi.fn();

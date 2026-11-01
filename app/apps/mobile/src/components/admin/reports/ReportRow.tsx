@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { ReportInboxRow } from '@kc/domain';
 import { thresholdProgress } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { useLocaleBundle, type LocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface ReportRowProps {
@@ -55,8 +55,8 @@ export function ReportRow({ row }: ReportRowProps) {
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  root:      { padding: 16, gap: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-  preview:   { fontSize: 14, fontWeight: '500' },
-  meta:      { flexDirection: 'row', gap: 12 },
-  metaText:  { fontSize: 12, opacity: 0.6 },
+  root:      { padding: spacing.base, gap: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  preview:   { fontSize: typography.body.fontSize, ...typography.medium },
+  meta:      { flexDirection: 'row', gap: spacing.md },
+  metaText:  { fontSize: typography.bodySmall.fontSize, opacity: 0.6 },
 }));

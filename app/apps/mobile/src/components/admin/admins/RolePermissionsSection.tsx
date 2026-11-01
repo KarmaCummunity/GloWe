@@ -5,7 +5,7 @@
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { permissionsOfRole, type AdminRole } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { RoleBadge } from './RoleBadge';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
@@ -36,7 +36,7 @@ export function RolePermissionsSection({ roles }: RolePermissionsSectionProps) {
             ) : (
               permissions.map((permission) => (
                 <View key={permission} style={styles.item}>
-                  <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+                  <Ionicons name="checkmark-circle" size={iconSize.xs} color={colors.primary} />
                   <Text style={styles.itemText}>{L.admin.admins.permissions[permission]}</Text>
                 </View>
               ))

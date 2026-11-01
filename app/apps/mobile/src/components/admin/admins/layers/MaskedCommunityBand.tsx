@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CommunityBase } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../../i18n/useLocaleBundle';
 
@@ -56,7 +56,7 @@ export function MaskedCommunityBand({ base }: MaskedCommunityBandProps) {
 
       <View style={styles.header}>
         <View style={styles.lockBubble}>
-          <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
+          <Ionicons name="lock-closed" size={iconSize.sm} color={colors.textSecondary} />
         </View>
         <View style={styles.texts}>
           <Text style={styles.title}>{copy.title}</Text>
