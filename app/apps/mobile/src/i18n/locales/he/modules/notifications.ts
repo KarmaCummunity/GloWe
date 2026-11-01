@@ -53,7 +53,7 @@ export const notificationsHe = {
   foodExpiringBody: '{{listingTitle}} — אם כבר נמסר, סמנו אותו כנמסר.',
   foodExpiredTitle: 'פג תוקף האוכל שפרסמת',
   foodExpiredBody: '{{listingTitle}} הוסר מהרשימה כי לא נאסף בזמן.',
-  // D73 / {{D:ride-booking-expiry}} — ride booking changes, one push to the other side (0510).
+  // D73 / {{D:ride-booking-expiry}} — ride booking changes, one push to the other side (0511).
   rideBookingRequestedTitle: 'בקשה חדשה להצטרף לטרמפ',
   rideBookingRequestedBody: '{{name}} רוצה להצטרף ל"{{rideTitle}}" (מקומות: {{seats}}). אשרו או דחו.',
   rideBookingConfirmedTitle: 'המקום שלך בטרמפ אושר',

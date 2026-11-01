@@ -1,4 +1,4 @@
--- 0510_ride_bookings_driver_flow | Driver manages every booking; both sides hear every change
+-- 0511_ride_bookings_driver_flow | Driver manages every booking; both sides hear every change
 -- (docs/spec/05_giving_worlds.md §5.3, D73; approved fills S44 + S45; gap G47).
 --
 --   1. giving_handoffs.cancel_reason records why a booking ended (declined, expired, …).
@@ -22,7 +22,7 @@ alter table public.giving_handoffs
     check (cancel_reason in ('declined', 'expired', 'passenger_cancelled', 'driver_cancelled', 'system'));
 
 comment on column public.giving_handoffs.cancel_reason is
-  'Why a cancelled handoff ended. Filled by trigger from the caller when a path does not set it (0510).';
+  'Why a cancelled handoff ended. Filled by trigger from the caller when a path does not set it (0511).';
 
 -- The caller decides the reason unless the path already set one (decline / expiry).
 create or replace function public.giving_handoffs_set_cancel_reason()

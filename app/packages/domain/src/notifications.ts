@@ -37,7 +37,7 @@ export type NotificationKind =
   // KC#1316 — food offer expiring within 24 h / expired unclaimed (spec 05 §5.1, S4).
   | 'listing_expiring'
   | 'listing_expired'
-  // D73 / {{D:ride-booking-expiry}} (0510) — rides on the listing flow: every booking change reaches the other side.
+  // D73 / {{D:ride-booking-expiry}} (0511) — rides on the listing flow: every booking change reaches the other side.
   | 'ride_booking_requested'
   | 'ride_booking_confirmed'
   | 'ride_booking_declined'

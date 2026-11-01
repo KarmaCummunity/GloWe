@@ -8,7 +8,7 @@ type BookingRow = Database['public']['Functions']['list_ride_bookings']['Returns
 type HandoffRpc = 'confirm_ride_booking' | 'decline_ride_booking' | 'cancel_ride_booking' | 'complete_ride_trip';
 
 /**
- * Ride seat bookings over the 0393/0453/0510 RPCs (docs/spec/05_giving_worlds.md §5.3, D73).
+ * Ride seat bookings over the 0393/0453/0511 RPCs (docs/spec/05_giving_worlds.md §5.3, D73).
  * Server errors keep their message (an error code such as `owner_only`) so the UI can map
  * it to copy; the server also queues the push to the other side on every change.
  */

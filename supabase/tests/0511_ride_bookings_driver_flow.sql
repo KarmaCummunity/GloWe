@@ -1,4 +1,4 @@
--- 0510_ride_bookings_driver_flow.sql | Driver booking management contract (G47, D73, S44, S45):
+-- 0511_ride_bookings_driver_flow.sql | Driver booking management contract (G47, D73, S44, S45):
 -- approval deadline, the driver's bookings list, decline, expiry and one notification to the
 -- other side for every booking change.
 
@@ -136,4 +136,4 @@ select kc_test.assert_eq(
 
 rollback;
 
-\echo '✓ 0510_ride_bookings_driver_flow.sql passed'
+\echo '✓ 0511_ride_bookings_driver_flow.sql passed'

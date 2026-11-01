@@ -18,7 +18,7 @@ Huge market already exists in WhatsApp/Facebook/Yad2 "giveaway" without trust or
 4. No expiry; relevance reminder after 14 days (D21, S3).
 Item subcategories (D18): furniture, kitchen, clothing, books, toys, baby, sport, electronics, tools, other. Baby-product safety warning.
 
-## 5.3 Rides (`rides`) — MVP (flag on since `0510`)
+## 5.3 Rides (`rides`) — MVP (flag on since `0511`)
 Rides live in WhatsApp groups; dedicated apps failed on critical mass. This world is the main growth engine: WhatsApp group import (D38, D47) and fixed routes. The bar is the WhatsApp ride group: publishing a ride is as fast as sending a message, and everyone who cares about that route hears about it at once (D70–D75).
 
 One rides flow (D70): ride offers and requests are posts with a ride extension; bookings use the generic handoff stage. The separate legacy ride screens are retired; their emergency button and cost-sharing caps attach to this flow.
@@ -35,7 +35,7 @@ Feed (D75): offers and requests together, sorted by departure, grouped today / t
 Rules: no profit — cost-sharing caps (₪70 intercity / ₪20 urban). Secondary use: moving items/food.
 Gaps: G44–G46, G48, G49 (G47 ✅).
 
-Tech (G47 ✅): driver bookings list + approve / decline / expiry sweep / one `important` push per booking change (`0510`; `list_ride_bookings`, `decline_ride_booking`, `ride_bookings_expire_sweep` every 10 min, `giving_handoffs.cancel_reason`); app: `RideBookingActions` (driver `RideBookingsPanel`, passenger `RidePassengerBooking` with seat count) over `IRideBookingRepository`.
+Tech (G47 ✅): driver bookings list + approve / decline / expiry sweep / one `important` push per booking change (`0511`; `list_ride_bookings`, `decline_ride_booking`, `ride_bookings_expire_sweep` every 10 min, `giving_handoffs.cancel_reason`); app: `RideBookingActions` (driver `RideBookingsPanel`, passenger `RidePassengerBooking` with seat count) over `IRideBookingRepository`.
 
 ## 5.4 Time & volunteering (`time`) — MVP, live
 Anyone can give an hour (D22). One-off, person-to-person, and org events.

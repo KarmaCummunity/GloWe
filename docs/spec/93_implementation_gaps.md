@@ -50,6 +50,6 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |
 | G45 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D71, {{D:junctions-catalog}}) | 05.3 |
 | G46 | Ride route on the map + "navigate" links (D72) | 05.3 |
-| G47 | ✅ 2026-11-01 — Driver sees every booking and approves or declines each; unapproved bookings expire; every booking change is a push to the other side (migration `0510`, tests `supabase/tests/0510_*`, `RideBookingActions.test.tsx`) (D73, {{D:ride-booking-expiry}}) | 05.3, 07.11 |
+| G47 | ✅ 2026-11-01 — Driver sees every booking and approves or declines each; unapproved bookings expire; every booking change is a push to the other side (migration `0511`, tests `supabase/tests/0511_*`, `RideBookingActions.test.tsx`) (D73, {{D:ride-booking-expiry}}) | 05.3, 07.11 |
 | G48 | Saved routes + rides urgency rule (D74, {{D:rides-urgency-rule}}) | 05.3, 07.11 |
 | G49 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D75, {{D:rides-quick-publish-defaults}}) | 05.3 |
