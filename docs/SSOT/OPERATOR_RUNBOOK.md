@@ -9,6 +9,7 @@
 ```bash
 supabase db push
 supabase gen types typescript --project-id <ref> \
+  | node scripts/strip-partition-types.mjs \
   > app/packages/infrastructure-supabase/src/database.types.ts
 ```
 
