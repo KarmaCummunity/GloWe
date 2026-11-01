@@ -3,7 +3,7 @@
 // open reports with chip filters and reporter-id search.
 import { useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
-import { Text } from '@kc/ui';
+import { spacing, Text, typography } from '@kc/ui';
 import type { ListOpenReportsFilters } from '@kc/application';
 import { useReportsInbox } from '../../../src/hooks/useReportsInbox';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -53,7 +53,7 @@ export default function ReportsInbox() {
 
 const styles = StyleSheet.create({
   root:       { flex: 1 },
-  empty:      { padding: 32, alignItems: 'center', gap: 8 },
-  emptyTitle: { fontSize: 16, fontWeight: '600' },
-  emptyHint:  { fontSize: 13, opacity: 0.6, textAlign: 'center' },
+  empty:      { padding: spacing['2xl'], alignItems: 'center', gap: spacing.sm },
+  emptyTitle: { fontSize: typography.bodyLarge.fontSize, ...typography.semiBold },
+  emptyHint:  { fontSize: typography.bodySmall.fontSize, opacity: 0.6, textAlign: 'center' },
 });

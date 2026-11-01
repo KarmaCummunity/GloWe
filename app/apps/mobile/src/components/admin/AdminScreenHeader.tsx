@@ -8,7 +8,7 @@
 //   2. `newLabel` + `onNew` — renders the default primary "new" button.
 import type { ReactElement, ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
-import { makeUseStyles, typography, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { rowDirectionStart, textAlignStart } from '../../lib/rtlLayout';
 
 export interface AdminScreenHeaderProps {
@@ -48,15 +48,15 @@ export function AdminScreenHeader({
 
 const useStyles = makeUseStyles(({ colors }) => ({
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 12,
-    gap: 2,
+    paddingHorizontal: spacing.base,
+    paddingTop: spacing.base,
+    paddingBottom: spacing.md,
+    gap: spacing.xs,
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  row: { flexDirection: rowDirectionStart, alignItems: 'center', gap: 12 },
+  row: { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.md },
   title: {
     flex: 1,
     ...typography.h2,
@@ -69,6 +69,6 @@ const useStyles = makeUseStyles(({ colors }) => ({
     color: colors.textSecondary,
     textAlign: textAlignStart(),
   },
-  newBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.primary },
-  newBtnText: { color: colors.textInverse, fontSize: 13, fontWeight: '700' },
+  newBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.primary },
+  newBtnText: { color: colors.textInverse, fontSize: typography.bodySmall.fontSize, ...typography.bold },
 }));
