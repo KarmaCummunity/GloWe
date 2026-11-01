@@ -41,6 +41,11 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   'member_inactive',
   'auth_required',
   'kind_not_found',
+  // D73 (0510) — ride booking management: wrong side, stale state or a vanished booking.
+  'owner_only',
+  'not_participant',
+  'invalid_status',
+  'handoff_not_found',
 ] as const;
 
 export type MarketplaceServerErrorCode = (typeof MARKETPLACE_SERVER_ERROR_CODES)[number];

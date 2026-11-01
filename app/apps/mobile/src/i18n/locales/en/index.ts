@@ -11,6 +11,7 @@ import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
+import { rideBooking } from './rideBooking';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -122,6 +123,8 @@ const en = {
   timeVolunteer,
   medicalBodies,
   givingHandoff,
+  // Ride seat bookings (D73) — see rideBooking.ts
+  rideBooking,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

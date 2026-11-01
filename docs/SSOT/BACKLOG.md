@@ -58,11 +58,11 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled; unapproved bookings expire (S45). | agent-fullstack | ⏳ Planned | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
-| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (S47); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. | agent-fullstack | ⏳ Planned | §5.3 · G45 |
+| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled / expired; unapproved bookings expire ({{D:ride-booking-expiry}}). Shipped: `0510` + `RideBookingActions`; rides world flag on. | agent-fullstack | ✅ Done | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
+| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges ({{D:junctions-catalog}}); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. | agent-fullstack | ⏳ Planned | §5.3 · G45 |
 | RIDES-G46 | **Map + navigate.** Ride route on the map; "navigate" to Waze / Google Maps / Apple Maps for every ride place. | agent-fe | ⏳ Planned | §5.3 · G46 |
-| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (S46); feed of offers + requests by departure, departed hidden. | agent-fullstack | ⏳ Planned | §5.3 · G49 |
-| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (S44). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
+| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" ({{D:rides-quick-publish-defaults}}); feed of offers + requests by departure, departed hidden. | agent-fullstack | ⏳ Planned | §5.3 · G49 |
+| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap ({{D:rides-urgency-rule}}). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
 | RIDES-G44 | **One rides flow.** Retire legacy `ride_listings` screens; move emergency button + cost caps onto the one flow. | agent-fullstack | ⏳ Planned | §5.3 · G44 |
 
 ## FINANCE — Org finance & transparency (`spec/19_org_finance.md`)

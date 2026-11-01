@@ -40,28 +40,6 @@ export const ridesKnowledgeRpcs = {
     if (error) throw error;
     return (data ?? []);
   },
-  async bookRideSeat(listingId: string, seats = 1) {
-    const { data, error } = await getMarketplaceSupabaseClient().rpc('book_ride_seat', {
-      p_listing_id: listingId,
-      p_seats: seats,
-    });
-    if (error) throw error;
-    return data;
-  },
-  async confirmRideBooking(handoffId: string) {
-    const { data, error } = await getMarketplaceSupabaseClient().rpc('confirm_ride_booking', {
-      p_handoff_id: handoffId,
-    });
-    if (error) throw error;
-    return data;
-  },
-  async completeRideTrip(handoffId: string) {
-    const { data, error } = await getMarketplaceSupabaseClient().rpc('complete_ride_trip', {
-      p_handoff_id: handoffId,
-    });
-    if (error) throw error;
-    return data;
-  },
   async bookKnowledgeSlot(listingId: string) {
     const { data, error } = await getMarketplaceSupabaseClient().rpc('book_knowledge_slot', {
       p_listing_id: listingId,

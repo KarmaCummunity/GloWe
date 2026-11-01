@@ -30,5 +30,9 @@ export const marketplaceErrors = {
   member_inactive: 'החשבון שלך אינו פעיל, ולכן אי אפשר לפרסם.',
   auth_required: 'יש להתחבר כדי לפרסם.',
   kind_not_found: 'סוג המודעה אינו זמין יותר. בחרו סוג אחר.',
+  owner_only: 'רק מי שפרסם את הנסיעה יכול לעשות את זה.',
+  not_participant: 'רק הנהג/ת והנוסע/ת בהזמנה יכולים לעשות את זה.',
+  invalid_status: 'ההזמנה כבר עודכנה. רעננו את המסך ונסו שוב.',
+  handoff_not_found: 'ההזמנה הזו כבר לא קיימת.',
   generic: 'הפרסום נכשל. נסו שוב.',
 } as const;
