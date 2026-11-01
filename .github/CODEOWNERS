@@ -34,6 +34,7 @@
 /scripts/*-guard*                           @navesarussi
 /scripts/mobile-*                           @navesarussi
 /scripts/release-version.mjs                @navesarussi
+/scripts/resolve-green-dev-sha.mjs           @navesarussi
 /scripts/edge-functions.mjs                 @navesarussi
 /scripts/cloudflare-pages.mjs               @navesarussi
 /scripts/extract-hebrew-text.mjs            @navesarussi
