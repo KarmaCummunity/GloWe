@@ -40,7 +40,7 @@ The Donations tab opens to a Hub screen showing three vertically stacked tiles f
 - AC3. Each tile is `accessibilityRole="button"` with `accessibilityLabel` = title + subtitle.
 - AC4. The Hub screen is reachable from the bottom-tab `💝 תרומות` icon and from any screen that has a global TabBar.
 - AC5. Hub layout is responsive: tiles stack vertically on all breakpoints; on Tablet/Desktop the container max-width is 480px and remains centered.
-- AC6. *(2026-11-01, `{{ENG:create-form-five-categories}}`)* The hub has **no "donations marketplace" (שוק התרומות) entry** and the marketplace browse screen is gone: listings are found in the main feed and in each giving world's screen (`06_feed_and_search.md`). The old URL `/donations/marketplace` redirects to the hub; single-listing pages (`/donations/marketplace/<id>`), the listings map and "my listings" (profile menu → *המודעות שלי*) stay.
+- AC6. *(2026-11-01, `D-207`)* The hub has **no "donations marketplace" (שוק התרומות) entry** and the marketplace browse screen is gone: listings are found in the main feed and in each giving world's screen (`06_feed_and_search.md`). The old URL `/donations/marketplace` redirects to the hub; single-listing pages (`/donations/marketplace/<id>`), the listings map and "my listings" (profile menu → *המודעות שלי*) stay.
 
 **Related.** Screens: 2.6 · `FR-DONATE-002`, `FR-DONATE-003`, `FR-DONATE-004`.
 
