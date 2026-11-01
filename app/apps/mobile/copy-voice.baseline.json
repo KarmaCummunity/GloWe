@@ -10,9 +10,6 @@
     "src/i18n/locales/he/modules/aboutContentUxRefreshPartA.ts": {
       "brandWording": 1
     },
-    "src/i18n/locales/he/modules/admin.ts": {
-      "genderedImperative": 6
-    },
     "src/i18n/locales/he/modules/adminAdmins.ts": {
       "genderedImperative": 10
     },
@@ -26,9 +23,6 @@
       "genderedImperative": 6
     },
     "src/i18n/locales/he/modules/adminOrgApprovals.ts": {
-      "genderedImperative": 1
-    },
-    "src/i18n/locales/he/modules/adminSurveys.ts": {
       "genderedImperative": 1
     },
     "src/i18n/locales/he/modules/adminTasks.ts": {
@@ -67,9 +61,6 @@
     "src/i18n/locales/he/modules/legal.ts": {
       "genderedImperative": 4
     },
-    "src/i18n/locales/he/modules/notifications.ts": {
-      "genderedImperative": 5
-    },
     "src/i18n/locales/he/modules/onboarding.ts": {
       "genderedImperative": 13,
       "genderedAddress": 3
@@ -94,9 +85,6 @@
     "src/i18n/locales/he/modules/settings.ts": {
       "genderedImperative": 15,
       "genderedAddress": 1
-    },
-    "src/i18n/locales/he/modules/survey.ts": {
-      "genderedImperative": 5
     },
     "src/i18n/locales/he/modules/surveyDemo.ts": {
       "genderedAddress": 1,

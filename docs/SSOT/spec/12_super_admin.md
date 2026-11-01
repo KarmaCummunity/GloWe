@@ -422,8 +422,10 @@ Migration: `0149_admin_content_search.sql`. Mobile routes: `(admin)/users`, `(ad
 - AC4. The same survey view lists every respondent with their per-question rating **and** free-text answer (or an explicit "no comment" marker), most-recent submission first.
 - AC5. The Free feedback tab lists `user_feedback` rows (optional 1–7 rating + body) with the submitter's display name and date, newest first, paginated.
 - AC6. All reads go through SECURITY DEFINER RPCs gated by `admin_assert_role(auth.uid(), ARRAY['super_admin','moderator'])`; no direct table reads bypass RLS for non-admins.
+- AC7. *(KC#1058, 2026-10-30)* A single-choice question (FR-SETTINGS-016 AC9) shows its answer count per option instead of the 1–7 chart, and each respondent's chosen option instead of a rating (`admin_survey_results`, `0458`).
+- AC8. *(KC#1058)* The Sean Ellis survey (`pmf-sean-ellis`) also shows a **PMF score card** (`admin_pmf_survey_report`, `0458`). Only *qualified* respondents count: active on ≥ `min_active_days_14d` (2) days in the 14 days ending on the day they first answered. The card shows the share of "very disappointed" with its 95% margin of error (1.96·√(p(1−p)/n)), the 40% target, the sample size n next to everyone who answered, a warning while n < 40, and per option its share and a retention cross-check: of those who answered ≥ 7 days ago, the share active again on a day ≥ 7 days after answering. Missing rates render as "—", never 0%.
 
-**Related.** RPCs (migration `0194_admin_survey_results.sql`): `admin_survey_overview()`, `admin_survey_results(p_slug)`, `admin_user_feedback_list(p_limit, p_offset)`. Domain: `AdminSurveyOverviewItem`, `AdminSurveyResults`, `AdminSurveyQuestionStat`, `AdminSurveyRespondent`, `AdminFeedbackEntry`, `surveys.view` permission. Application: `ISurveyAdminRepository` + `GetAdminSurveyOverviewUseCase` / `GetAdminSurveyResultsUseCase` / `ListUserFeedbackUseCase`. Infra: `SupabaseSurveyAdminRepository`. Mobile: `useAdminSurveys`, `(admin)/surveys`, `SurveyOverviewCard` / `QuestionStatCard` / `RespondentCard` / `FeedbackCard` / `SurveyResultsView`.
+**Related.** RPCs (migration `0194_admin_survey_results.sql`; PMF report and choice counts in `0458`): `admin_survey_overview()`, `admin_survey_results(p_slug)`, `admin_user_feedback_list(p_limit, p_offset)`. Domain: `AdminSurveyOverviewItem`, `AdminSurveyResults`, `AdminSurveyQuestionStat`, `AdminSurveyRespondent`, `AdminFeedbackEntry`, `surveys.view` permission. Application: `ISurveyAdminRepository` + `GetAdminSurveyOverviewUseCase` / `GetAdminSurveyResultsUseCase` / `ListUserFeedbackUseCase`. Infra: `SupabaseSurveyAdminRepository`. Mobile: `useAdminSurveys`, `(admin)/surveys`, `SurveyOverviewCard` / `QuestionStatCard` / `RespondentCard` / `FeedbackCard` / `SurveyResultsView`.
 
 ---
 
@@ -559,6 +561,25 @@ From any person in the hierarchy (or any user from the search), a team manager c
 
 ---
 
+## §18 Admin Portal — Match quality dashboard (KC#1122)
+
+## FR-ADMIN-029 — Match quality per world
+
+> **Status (2026-10-30):** ✅ Implemented — migration `0454`, screen `(admin)/matching`, permission `matching.view_quality`.
+
+**Description.**
+The team sees how well matching v2 works per world, to tune `matching_settings` (`docs/SSOT/MATCHING_V2.md`).
+
+**Acceptance Criteria.**
+- AC1. Admin → Match quality lists every world with alerted pairs in the window (7 / 30 / 90 days, default 30; server clamps 1..365), each with: alerted pairs, **precision proxy** (accepted answers / all answers), **notification→chat rate** (pairs whose owners exchanged a user message after the first alert / alerted pairs), **completion rate** (pairs with a handed-over giving handoff between the two owners / alerted pairs).
+- AC2. A pair counts from its first real alert; sides that opted out of match alerts (FR-NOTIF-017) do not make a pair "alerted".
+- AC3. Completion is shown only for worlds that hand off through `giving_handoffs` (items, food, rides, knowledge); other worlds show "not tracked". A rate with a zero denominator renders as "—", never 0%.
+- AC4. Only super admin and moderator can open the screen or call `admin_match_quality` (`42501` otherwise; anon has no execute).
+
+**Related.** `supabase/tests/0454_admin_match_quality.sql` · `SupabaseMatchRepository.qualityByWorld` · `formatRate`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-05 | Initial draft from PRD §2.2 and Flow 9. |
@@ -575,3 +596,5 @@ From any person in the hierarchy (or any user from the search), a team manager c
 | 0.12 | 2026-10-29 | Added FR-ADMIN-027 — hierarchy-based permissions (`role_rank`, `actor_scope_rank`, `can_manage_grant`; strict-lower grants; subtree-only moves; group re-parent on removal; `admin` role restored). Migration `0442`. |
 | 0.13 | 2026-10-30 | Added §17 Admin Portal — Layered hierarchy view (P3.A-Layers). FR-ADMIN-028: layered view of the management chain across every visible org — one band per reporting level, unlimited depth — on a masked community base (suspended users count as members, D84); `admin_hierarchy_census` RPC (counts only, RBAC-scoped like `admin_org_tree`); org colour keys + focus chips; default view of `(admin)/admins`; grant/revoke now refresh the tree. Migration `0461`; decision `D-198`. |
 | 0.14 | 2026-10-30 | Added §18 Admin Portal — End-to-end team management (P3.A-Team). FR-ADMIN-030: the person screen manages anyone end to end — roles with org, grant in a chosen place, change role in place (`admin_change_role`, keeps manager and reports), revoke, role-derived permissions list, direct manager; org admins and managers run their own org's team (D86) with a scoped roster (`admin_list_admins`); permissions stay role-derived (D85). Migration `0465`; decision `D-197`. |
+| 0.15 | 2026-10-30 | FR-ADMIN-021 AC7–AC8 (KC#1058): single-choice stats and the Sean Ellis PMF score card (`admin_pmf_survey_report`, `0458`). |
+| 0.16 | 2026-10-30 | Added §18 / FR-ADMIN-029 — match quality dashboard (KC#1122): `admin_match_quality` (`0454`), `(admin)/matching`, `matching.view_quality`. |

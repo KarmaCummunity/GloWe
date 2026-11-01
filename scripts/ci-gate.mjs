@@ -14,13 +14,18 @@
 //   • a lane job is not in the plan, or a planned lane is missing from the
 //     gate's `needs:`;
 //   • a lane the plan marks as needed did not succeed (e.g. it was skipped);
+//   • a merge group, push or dispatch plans any lane but `hygiene` as not
+//     needed (they run every lane), or a PR into main plans a heavy lane as
+//     not needed while its frontend lane is (only dev has a merge queue that
+//     runs heavy lanes later) — see `deferralErrors`;
 //   • the PR changed ci.yml's jobs or header (scripts/ci-workflow-diff.mjs)
 //     and no owner approved its head SHA (TD-203);
 //   • a PR or review run targets a base other than dev/main;
 //   • on a review event, the PR's latest `pull_request` run for the head SHA
 //     is missing, unfinished after a wait, or cannot be bound to this PR and
 //     base (scripts/ci-run-binding.mjs), so there are no lane results to reuse.
-// A lane may be skipped only when the plan explicitly marks it not needed.
+// A lane may be skipped only when the plan explicitly marks it not needed,
+// and only a PR into dev may mark a heavy lane not needed for a frontend change.
 //
 // Review events (`pull_request_review`) exist so an owner approval can flip a
 // gate the test-integrity guard or the ci.yml check turned red. They re-run
@@ -40,7 +45,7 @@
 
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { LANE_JOBS, OPTIONAL_LANES as OPTIONAL_LANE_IDS, REVIEW_LANES } from './ci-changes.mjs';
+import { HEAVY_LANES, LANE_JOBS, OPTIONAL_LANES as OPTIONAL_LANE_IDS, PR_ONLY_LANES, REVIEW_LANES } from './ci-changes.mjs';
 import { findOwnerOverride } from './ci-github.mjs';
 import { PROTECTED } from './ci-run-binding.mjs';
 import { reusedLaneResults } from './ci-run-reuse.mjs';
@@ -52,10 +57,34 @@ const PR_EVENTS = new Set(['pull_request', 'pull_request_review']);
 // Lanes the change detector names only when needed (scripts/ci-changes.mjs,
 // loaded from the same base commit). Absent from the plan, such a lane is
 // "not needed" and may only have been skipped.
-const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS);
+// A heavy lane is optional only while ci.yml lacks its job: once the job is in
+// `needs`, the plan must name it, and only an explicit `false` lets it skip.
+const OPTIONAL_LANES = new Set(OPTIONAL_LANE_IDS.filter((lane) => !HEAVY_LANES.includes(lane)));
+
+/**
+ * Errors for lanes this event may not plan as not needed. A PR or review into
+ * dev may defer anything its diff does not need, heavy lanes included: the dev
+ * merge queue runs every lane before the PR lands. A PR into main has no queue
+ * after it, so a heavy lane must be needed whenever `frontend` is. A merge
+ * group, push or dispatch runs every lane but the PR-only ones; a heavy lane
+ * counts once ci.yml wires it (it is then in `needs`).
+ */
+export function deferralErrors({ needs, plan, event, baseRef }) {
+  const base = baseRef?.replace(/^refs\/heads\//, '');
+  if (PR_EVENTS.has(event)) {
+    if (base === 'dev') return [];
+    return HEAVY_LANES.filter((lane) => plan[lane] === false && plan.frontend === true).map(
+      (lane) => `job "${lane}" is planned as not needed on a PR into ${base || 'an unknown base'}; only PRs into dev may leave it to the merge queue`,
+    );
+  }
+  const lanes = new Set([...LANE_JOBS, ...HEAVY_LANES.filter((lane) => lane in needs)]);
+  return [...lanes]
+    .filter((lane) => !PR_ONLY_LANES.includes(lane) && plan[lane] !== true)
+    .map((lane) => `job "${lane}" must run on every ${event} run, but the plan ${lane in plan ? 'marks it not needed' : 'leaves it out'}`);
+}
 
 /** Return the list of reasons the gate must fail (empty = pass). */
-export function evaluateGate({ needs, plan, draft, event, ref }) {
+export function evaluateGate({ needs, plan, draft, event, ref, baseRef }) {
   if (draft) {
     return ['Draft PR: CI does not run on drafts. Mark the PR ready for review to run the full gate.'];
   }
@@ -84,6 +113,7 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
       errors.push(`job "${job}" is needed for this change but ended ${result}`);
     }
   }
+  errors.push(...deferralErrors({ needs, plan, event, baseRef }));
   return errors;
 }
 
@@ -96,7 +126,7 @@ export function evaluateGate({ needs, plan, draft, event, ref }) {
 export function mergeReused(needs, reused) {
   const merged = { ...needs };
   for (const lane of [...LANE_JOBS, ...OPTIONAL_LANE_IDS]) {
-    if (REVIEW_LANES.includes(lane) || (OPTIONAL_LANES.has(lane) && !(lane in needs))) continue;
+    if (REVIEW_LANES.includes(lane) || (OPTIONAL_LANE_IDS.includes(lane) && !(lane in needs))) continue;
     merged[lane] = { result: reused[lane] ?? 'missing' };
   }
   return merged;
@@ -139,7 +169,7 @@ async function judge(env, needs, plan) {
       errors.push(`review re-evaluation has no lane results to reuse: ${err.message}`);
     }
   }
-  errors.push(...evaluateGate({ needs: judged, plan, draft, event: env.EVENT_NAME, ref: env.REF }));
+  errors.push(...evaluateGate({ needs: judged, plan, draft, event: env.EVENT_NAME, ref: env.REF, baseRef: env.BASE_REF }));
   if (!draft) {
     try {
       errors.push(...(await ciWorkflowErrors(env)));

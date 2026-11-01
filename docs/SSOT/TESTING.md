@@ -35,9 +35,23 @@ One suite per application port, written once and run twice:
 
 The cases live in `app/packages/application/src/contracts/<port>.contract.ts` as a plain `ContractCase[]` with framework-agnostic assertions (`ContractViolation`), so the module ships in `@kc/application` without a vitest import and any adapter package can import it. A fake that drifts from the adapter fails the same case the adapter passes.
 
-Adding a port: write `contracts/<port>.contract.ts` (fresh actor per case; owner-side behaviour only — viewer visibility, admin flows and ranking stay in per-adapter tests), a behavioural in-memory fake beside the use-case tests, the two runners, and export the contract from `contracts/index.ts`. Run the adapter leg locally: `supabase start`, then `eval "$(supabase status -o env)"` and `SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY pnpm --filter @kc/infrastructure-supabase test contract.integration`. No stack key is ever written in the repo (GitGuardian scans every PR), and the suite files carry no skip marker (the test-integrity judge rejects added ones).
+Adding a port: write `contracts/<port>.contract.ts` (fresh actors per case; a second actor only where the port's behaviour is two-sided, as a bookmark on another user's post is — admin flows and ranking stay in per-adapter tests), a behavioural in-memory fake beside the use-case tests, the two runners, and export the contract from `contracts/index.ts`. Run the adapter leg locally: `supabase start`, then `eval "$(supabase status -o env)"` and `SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY pnpm --filter @kc/infrastructure-supabase test contract.integration`. No stack key is ever written in the repo (GitGuardian scans every PR), and the suite files carry no skip marker (the test-integrity judge rejects added ones).
 
-Shipped: `IPostRepository`. Queue: BACKLOG `OPS-G39`.
+Shipped: `IPostRepository`, `ISavedPostsRepository` (the posts-area fakes share one `InMemoryPostStore`, whose `isPostVisibleTo` models the owner / hidden-status / OnlyMe slice of `is_post_visible_to`). Queue: BACKLOG `OPS-G39`.
+
+## Two-user world journeys (G40, `D-205`)
+
+`tests/e2e/journeys/<world>.spec.ts` — one Playwright journey per live giving world, two seeded users, against the dev deployment:
+
+1. **A publishes** through `create_marketplace_listing` (the RPC the unified create form calls), so the journey tests the giving flow, not the form widgets (the form has its own qa spec).
+2. **B claims** on the listing page — items reserve (`reserved`, owner must confirm), food quick-claims (`confirmed` at once, migration 0383).
+3. **A confirms** when the world needs it; **A hands over** — the listing closes and the giver's karma ledger row exists; **B rates** — the rating is stored for the rater (D24).
+
+Every UI step is re-read over REST as the acting user, so RLS is exercised as in the app. The shape lives once in `tests/e2e/lib/worldJourney.ts`; a world is a fixture (`kindSlug`, claim action and the status it results in, kind details such as food expiry). Locators prefer the `giving-handoff-*` / `handoff-rating-*` testIDs and fall back to the Hebrew labels. No skip markers: a step that cannot run fails.
+
+Runs: nightly (`e2e-nightly-dev.yml`), the mobile nightly P0 gate and the release lane (`ci-release.yml`) — top-level `journeys/*.spec.ts`. A PR-time run would exercise the previous dev deployment, not the PR, so journeys are not a PR lane.
+
+Shipped: `items`, `food`. Queue: BACKLOG `OPS-G40`.
 
 ## E2E test user (dev only)
 
