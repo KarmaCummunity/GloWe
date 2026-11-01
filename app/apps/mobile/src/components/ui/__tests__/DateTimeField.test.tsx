@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// FR-POST-001 AC6 — the tap-to-open date field: empty state, the date sheet (web input),
-// confirm / cancel, shortcuts, and the `datetime-local` value helpers.
+// FR-POST-001 AC6 / G49 — the tap-to-open date field: empty state, the date sheet (web input),
+// done / cancel, shortcuts, and the `datetime-local` value helpers.
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +21,7 @@ function renderField(value: Date | null, onChange = vi.fn()) {
         onChange={onChange}
         label="מועד"
         placeholder="בחירת תאריך"
-        shortcuts={[{ label: '+30', offsetMinutes: 30 }]}
+        shortcuts={[{ key: 'plus30', label: '+30', at: () => new Date(Date.now() + 30 * 60_000) }]}
       />
     </ThemeProvider>,
   );
@@ -38,17 +38,17 @@ describe('DateTimeField', () => {
 
   it('confirms the picked moment from the sheet', () => {
     const onChange = renderField(null);
-    fireEvent.click(screen.getByTestId('when'));
+    fireEvent.click(screen.getByLabelText('מועד'));
     const input = document.querySelector('input[type="datetime-local"]') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '2031-05-04T09:15' } });
-    fireEvent.click(screen.getByTestId('when-confirm'));
+    fireEvent.click(screen.getByTestId('when-done'));
     expect(onChange).toHaveBeenCalledWith(new Date('2031-05-04T09:15'));
   });
 
   it('cancel keeps the value untouched', () => {
     const onChange = renderField(new Date('2031-05-04T09:15'));
-    fireEvent.click(screen.getByTestId('when'));
-    fireEvent.click(screen.getByText('general.cancel'));
+    fireEvent.click(screen.getByLabelText('מועד'));
+    fireEvent.click(screen.getByText('dateTimeField.cancel'));
     expect(onChange).not.toHaveBeenCalled();
   });
 

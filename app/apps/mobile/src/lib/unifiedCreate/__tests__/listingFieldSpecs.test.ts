@@ -43,8 +43,9 @@ describe('listing field specs — per kind', () => {
   it('renders the purpose-built fields of each category (docs/spec/07 §7.2)', () => {
     expect(keysOf('give_food')).toEqual(['food_type', 'expires_at', 'allergens', 'kosher', 'pickup_mode']);
     expect(keysOf('request_food')).toEqual(['household_size', 'dietary_needs']);
-    expect(keysOf('ride_offer')).toEqual(['departs_at', 'seats_available', 'reward_model', 'cost_share_ils']);
-    expect(keysOf('ride_request')).toEqual(['departs_at', 'passengers', 'luggage']);
+    // Route, departure, estimated end and seats are rendered by RideCreateSection (D71, D75).
+    expect(keysOf('ride_offer')).toEqual(['reward_model', 'cost_share_ils']);
+    expect(keysOf('ride_request')).toEqual(['passengers', 'luggage']);
     expect(keysOf('host_offer')).toEqual(['place_type', 'capacity', 'house_rules']);
     expect(keysOf('stay_request')).toEqual(['party_size']);
     expect(keysOf('volunteer_shift')).toEqual(['duration_minutes']);
@@ -83,7 +84,7 @@ describe('listing field specs — values', () => {
   const foodOffer = fieldsForKind(KINDS_BY_WORLD.food![0]!);
 
   it('starts from the field defaults', () => {
-    expect(initialDetailsFor(rideOffer)).toEqual({ seats_available: 3, reward_model: 'free' });
+    expect(initialDetailsFor(rideOffer)).toEqual({ reward_model: 'free' });
     expect(initialDetailsFor(foodOffer)).toEqual({ pickup_mode: 'pickup' });
   });
 
@@ -106,8 +107,9 @@ describe('listing field specs — values', () => {
       seats_available: 2,
       origin_lat: 31.9,
       luggage: undefined,
-      departs_at: '',
+      arrives_at: '',
     });
+    // Keys owned by RideCreateSection (seats, route) pass through untouched.
     expect(submitted).toEqual({ reward_model: 'free', seats_available: 2, origin_lat: 31.9 });
   });
 

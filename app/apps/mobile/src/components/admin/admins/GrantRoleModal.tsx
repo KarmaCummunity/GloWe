@@ -6,16 +6,18 @@
 // are offered. Opened from the team screen (user lookup) or from a person's
 // screen (user fixed via `presetUser`).
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { grantableRolesIn, isAdminRoleError, type GrantableAdminRole } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { useGrantAdminRole } from '../../../hooks/useAdminRoleMutations';
 import { useGrantAuthority } from '../../../hooks/useGrantAuthority';
 import { ChoiceChips } from './ChoiceChips';
 import { UserLookupField, type PickedUser } from './UserLookupField';
 import { roleScopeErrorText } from './roleErrors';
-import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
+import { textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
+import { GhostButton, PrimaryButton } from '../../ui/Buttons';
+import { Modal } from '../../ui/Modal';
 
 export interface GrantRoleModalProps {
   readonly visible: boolean;
@@ -71,79 +73,64 @@ export function GrantRoleModal({ visible, onClose, presetUser }: GrantRoleModalP
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <ScrollView contentContainerStyle={styles.body}>
-            <Text style={styles.title}>{copy.title}</Text>
+    <Modal
+      visible={visible}
+      title={copy.title}
+      onDismiss={onClose}
+      footer={
+        <>
+          <PrimaryButton
+            label={copy.submit}
+            size="md"
+            fullWidth
+            disabled={!canSubmit}
+            loading={grant.isPending}
+            onPress={() => { void submit(); }}
+          />
+          <GhostButton label={copy.cancel} size="md" fullWidth onPress={onClose} />
+        </>
+      }
+    >
+      {/* The user lookup and both choice lists can outgrow a phone screen: scroll them, keep the actions pinned. */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
+        <Text style={styles.label}>{copy.searchLabel}</Text>
+        <UserLookupField selected={user} onSelect={setUser} changeable={presetUser === undefined} />
 
-            <Text style={styles.label}>{copy.searchLabel}</Text>
-            <UserLookupField selected={user} onSelect={setUser} changeable={presetUser === undefined} />
+        <Text style={styles.label}>{team.scope.label}</Text>
+        {scopes.length === 0 ? (
+          <Text style={styles.hint}>{team.scope.none}</Text>
+        ) : (
+          <ChoiceChips
+            options={scopeOptions}
+            selected={activeScope}
+            onSelect={(key) => { setScope(key); setRole(null); }}
+          />
+        )}
 
-            <Text style={styles.label}>{team.scope.label}</Text>
-            {scopes.length === 0 ? (
-              <Text style={styles.hint}>{team.scope.none}</Text>
-            ) : (
-              <ChoiceChips
-                options={scopeOptions}
-                selected={activeScope}
-                onSelect={(key) => { setScope(key); setRole(null); }}
-              />
-            )}
+        {activeScope !== undefined && (
+          <>
+            <Text style={styles.label}>{copy.roleLabel}</Text>
+            <ChoiceChips
+              options={roles.map((r) => ({ key: r, label: L.admin.roles[r] }))}
+              selected={role ?? undefined}
+              onSelect={setRole}
+            />
+          </>
+        )}
 
-            {activeScope !== undefined && (
-              <>
-                <Text style={styles.label}>{copy.roleLabel}</Text>
-                <ChoiceChips
-                  options={roles.map((r) => ({ key: r, label: L.admin.roles[r] }))}
-                  selected={role ?? undefined}
-                  onSelect={setRole}
-                />
-              </>
-            )}
-
-            {errorCode !== null && <Text style={styles.errorText}>{roleScopeErrorText(L, errorCode)}</Text>}
-          </ScrollView>
-
-          <View style={styles.actions}>
-            <Pressable accessibilityRole="button" style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelBtnText}>{copy.cancel}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
-              disabled={!canSubmit}
-              onPress={() => { void submit(); }}
-            >
-              <Text style={styles.submitBtnText}>{copy.submit}</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
+        {errorCode !== null && <Text style={styles.errorText}>{roleScopeErrorText(L, errorCode)}</Text>}
+      </ScrollView>
     </Modal>
   );
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  overlay:   { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.base },
-  sheet: {
-    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.base,
-    maxHeight: '85%', width: '100%', maxWidth: 520, alignSelf: 'center',
-  },
+  // Shrink inside the dialog's height cap so the footer stays on screen.
+  scroll:    { flexGrow: 0, flexShrink: 1 },
   body:      { gap: spacing.sm },
-  title:     { ...typography.h4, ...typography.bold, color: colors.textPrimary, textAlign: textAlignStart() },
   label: {
     ...typography.caption, color: colors.textSecondary, marginTop: spacing.sm, textAlign: textAlignStart(),
   },
   hint:      { ...typography.bodySmall, color: colors.textSecondary, textAlign: textAlignStart() },
   errorText: { ...typography.bodySmall, color: colors.error, marginTop: spacing.sm, textAlign: textAlignStart() },
-  actions:   { flexDirection: rowDirectionStart, justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.base },
-  cancelBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderRadius: radius.sm },
-  cancelBtnText: { ...typography.body, ...typography.medium, color: colors.textPrimary },
-  submitBtn: {
-    paddingHorizontal: spacing.base, paddingVertical: spacing.md, borderRadius: radius.sm,
-    backgroundColor: colors.primary,
-  },
-  submitBtnDisabled: { opacity: 0.5 },
-  submitBtnText: { ...typography.body, ...typography.bold, color: colors.textInverse },
 }));

@@ -3,7 +3,7 @@
 // Curated, typed field set per listing kind. The create form renders exactly these fields
 // instead of every key of the kind's JSON schema, so members never see internal keys
 // (linked ids, org slugs) and every field gets a purpose-built control.
-import type { ListingKindOption } from '@kc/domain';
+import { RIDE_COST_CAP_INTERCITY_ILS, type ListingKindOption } from '@kc/domain';
 import type { CreateDirection } from './createCategories';
 
 /** Shows a field only while another detail holds a given value. */
@@ -44,15 +44,14 @@ const SPECS_BY_KIND: Readonly<Record<string, readonly ListingFieldSpec[]>> = {
     { key: 'household_size', type: 'count', min: 1, max: 12, defaultValue: 1 },
     { key: 'dietary_needs', type: 'text', maxLength: 200 },
   ],
+  // Route, departure, estimated end and seats belong to RideCreateSection (D71, D75); these are
+  // the remaining ride fields.
   ride_offer: [
-    { key: 'departs_at', type: 'dateTime', required: true },
-    { key: 'seats_available', type: 'count', min: 1, max: 8, defaultValue: 3 },
     { key: 'reward_model', type: 'choice', options: ['free', 'expense_share'], defaultValue: 'free' },
-    // Cost-sharing caps are enforced server-side (`ride_cost_share_cap_exceeded`).
-    { key: 'cost_share_ils', type: 'amount', max: 70, visibleWhen: { key: 'reward_model', equals: 'expense_share' } },
+    // Clamped to the intercity cap; the urban cap is enforced server-side (`ride_cost_share_cap_exceeded`).
+    { key: 'cost_share_ils', type: 'amount', max: RIDE_COST_CAP_INTERCITY_ILS, visibleWhen: { key: 'reward_model', equals: 'expense_share' } },
   ],
   ride_request: [
-    { key: 'departs_at', type: 'dateTime', required: true },
     { key: 'passengers', type: 'count', min: 1, max: 8, defaultValue: 1 },
     { key: 'luggage', type: 'toggle' },
   ],

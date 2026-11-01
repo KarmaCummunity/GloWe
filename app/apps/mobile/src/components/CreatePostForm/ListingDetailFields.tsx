@@ -2,7 +2,7 @@
 // Renders the curated field set of one listing kind (lib/unifiedCreate/listingFieldSpecs)
 // with a purpose-built control per field type, styled like the rest of the create form.
 import React from 'react';
-import { Switch, TouchableOpacity, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@kc/ui';
 import { TextField } from '../ui/TextField';
@@ -10,6 +10,7 @@ import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import { DateTimeField } from '../ui/DateTimeField';
 import { isFieldVisible, type ListingFieldSpec } from '../../lib/unifiedCreate/listingFieldSpecs';
 import { CountStepper } from './CountStepper';
+import { Chip } from '../ui/Chip';
 
 type Details = Readonly<Record<string, unknown>>;
 
@@ -22,9 +23,6 @@ interface Props {
 
 /** Field types whose control (the kit TextField) renders its own label. */
 const SELF_LABELLED: ReadonlySet<ListingFieldSpec['type']> = new Set(['text', 'amount']);
-
-/** Departure presets: most rides are published shortly before leaving (docs/spec/05 §5.3). */
-const DEPARTURE_SHORTCUTS_MIN = [30, 60] as const;
 
 export function ListingDetailFields({ specs, details, onChange, disabled = false }: Props) {
   const styles = useCreatePostStyles();
@@ -120,11 +118,6 @@ function FieldControl({ spec, value, onChange, disabled }: ControlProps) {
           label={t(`marketplace.field.${spec.key}`)}
           placeholder={t('post.unifiedCreate.pickDate')}
           minimumDate={new Date()}
-          shortcuts={
-            spec.key === 'departs_at'
-              ? DEPARTURE_SHORTCUTS_MIN.map((m) => ({ label: t(`post.unifiedCreate.inMinutes.${m}`), offsetMinutes: m }))
-              : undefined
-          }
           disabled={disabled}
         />
       );
@@ -166,26 +159,14 @@ interface ChipRowProps<T extends string | number> {
   readonly disabled: boolean;
 }
 
-/** Wrapping row of selectable chips, same look as the post form's category chips. */
+/** Wrapping row of kit filter chips, the same chips as the items form's subcategory row. */
 function ChipRow<T extends string | number>({ options, isOn, onPress, label, disabled }: ChipRowProps<T>) {
   const styles = useCreatePostStyles();
   return (
     <View style={styles.chipWrap}>
-      {options.map((o) => {
-        const on = isOn(o);
-        return (
-          <TouchableOpacity
-            key={String(o)}
-            style={[styles.chip, on && styles.chipActive]}
-            onPress={() => onPress(o)}
-            disabled={disabled}
-            accessibilityRole="button"
-            accessibilityState={{ selected: on, disabled }}
-          >
-            <Text style={[styles.chipText, on && styles.chipTextActive]}>{label(o)}</Text>
-          </TouchableOpacity>
-        );
-      })}
+      {options.map((o) => (
+        <Chip key={String(o)} label={label(o)} selected={isOn(o)} onPress={() => onPress(o)} disabled={disabled} />
+      ))}
     </View>
   );
 }

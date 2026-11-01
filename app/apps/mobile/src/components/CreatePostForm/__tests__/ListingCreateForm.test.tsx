@@ -14,7 +14,7 @@ import { KINDS_BY_WORLD } from '../../../lib/unifiedCreate/__tests__/listingKind
 const mocks = vi.hoisted(() => ({
   listKindsForWorld: vi.fn(),
   createListing: vi.fn(),
-  cityToRideEndpoint: vi.fn(),
+  rememberRideRoute: vi.fn(),
   nativeDatePicker: vi.fn(() => null),
 }));
 
@@ -37,7 +37,27 @@ vi.mock('../../../services/marketplaceComposition', () => ({
     listWorldSubcategories: async () => [],
   }),
 }));
-vi.mock('../../../services/ridesKnowledgeComposition', () => ({ cityToRideEndpoint: mocks.cityToRideEndpoint }));
+vi.mock('../../../lib/rides/rideStartDetails', () => ({ rememberRideRoute: mocks.rememberRideRoute }));
+// Ride section stand-in (route + schedule are tested in RideRouteFields / RideScheduleFields):
+// one tap fills a full route and departure through the form's state setter.
+vi.mock('../../giving/RideCreateSection', () => ({
+  RIDE_CREATE_DETAIL_KEYS: ['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng', 'origin_city_id', 'dest_city_id', 'departs_at', 'arrives_at', 'seats_available'],
+  RideCreateSection: (p: {
+    setDetails: (u: (prev: Record<string, unknown>) => Record<string, unknown>) => void;
+    onOriginCity: (c: { id: string; name: string }) => void;
+  }) => (
+    <button
+      type="button"
+      data-testid="ride-section-fill"
+      onClick={() => {
+        p.setDetails((prev) => ({ ...prev, ...RIDE_FILL }));
+        p.onOriginCity({ id: '7000', name: 'לוד' });
+      }}
+    >
+      <span data-testid="ride-section" />
+    </button>
+  ),
+}));
 vi.mock('../../../services/listingImageUpload', () => ({ pickListingImages: vi.fn(async () => []), uploadListingImages: vi.fn() }));
 vi.mock('../../../lib/analyticsCoreLoop', () => ({ trackCoreLoop: vi.fn(), trackActivationIfFirst: vi.fn() }));
 vi.mock('../../../lib/haptics', () => ({ hapticLightTap: () => {} }));
@@ -57,7 +77,15 @@ vi.mock('../../CityPicker', () => ({
 
 import { ListingCreateForm } from '../ListingCreateForm';
 
-const LOD = { cityId: '7000', label: 'לוד', lat: 31.95, lng: 34.89 };
+const RIDE_FILL = vi.hoisted(() => ({
+  origin_lat: 31.95,
+  origin_lng: 34.89,
+  origin_city_id: '7000',
+  dest_lat: 32.08,
+  dest_lng: 34.78,
+  dest_city_id: '5000',
+  departs_at: '2030-01-01T08:30:00.000Z',
+}));
 
 function renderForm(worldSlug: string, direction: 'give' | 'request', title = 'כותרת') {
   const onPublished = vi.fn();
@@ -85,7 +113,6 @@ function renderForm(worldSlug: string, direction: 'give' | 'request', title = '�
 beforeEach(() => {
   mocks.listKindsForWorld.mockImplementation(async (world: string) => KINDS_BY_WORLD[world] ?? []);
   mocks.createListing.mockResolvedValue('listing-1');
-  mocks.cityToRideEndpoint.mockResolvedValue(LOD);
 });
 
 // Vitest config sets `globals: false`, so testing-library's automatic cleanup is not wired.
@@ -146,7 +173,7 @@ describe('ListingCreateForm — publish', () => {
     expect((await screen.findByTestId('listing-error')).textContent).toBe('post.unifiedCreate.errors.cityRequired');
   });
 
-  it('publishes a time offer with its default duration and the city coordinates', async () => {
+  it('publishes a time offer with its default duration and city (the server places it)', async () => {
     const { onPublished } = renderForm('time', 'give');
     fireEvent.click(await screen.findByTestId('city-picker'));
     await act(async () => {
@@ -159,8 +186,8 @@ describe('ListingCreateForm — publish', () => {
         title: 'כותרת',
         details: { duration_minutes: 60 },
         cityId: '7000',
-        lat: LOD.lat,
-        lng: LOD.lng,
+        lat: null,
+        lng: null,
         externalBodyId: null,
       }),
     );
@@ -169,42 +196,37 @@ describe('ListingCreateForm — publish', () => {
   it('a ride needs its route before it can publish', async () => {
     renderForm('rides', 'give');
     await screen.findByTestId('listing-publish');
-    // A ride has exactly the two route pickers (origin, destination) and no separate city.
-    expect(screen.getAllByTestId('city-picker').length).toBe(2);
+    // The ride section owns the route and the departure; there is no separate city picker.
+    expect(screen.getByTestId('ride-section')).toBeTruthy();
+    expect(screen.queryByTestId('city-picker')).toBeNull();
     fireEvent.click(screen.getByTestId('listing-publish'));
-    expect((await screen.findByTestId('listing-error')).textContent).toBe(
-      'post.unifiedCreate.errors.fieldRequired:marketplace.field.departs_at',
-    );
+    expect((await screen.findByTestId('listing-error')).textContent).toBe('marketplace.errors.ride_route_required');
     expect(mocks.createListing).not.toHaveBeenCalled();
   });
 
-  it('publishes a ride with its route, departure and seats', async () => {
+  it('publishes a ride with its route, departure and seats, and remembers the route', async () => {
     const { onPublished } = renderForm('rides', 'give');
-    await screen.findByTestId('listing-publish');
-    // Departure through the date sheet (web branch: a datetime-local input).
-    fireEvent.click(screen.getByTestId('listing-date-departs_at'));
-    const input = document.querySelector('input[type="datetime-local"]') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: '2030-01-01T08:30' } });
-    fireEvent.click(screen.getByTestId('listing-date-departs_at-confirm'));
-    // Origin and destination resolve asynchronously; both must land in the details.
-    const [origin, dest] = screen.getAllByTestId('city-picker');
-    await act(async () => {
-      fireEvent.click(origin!);
-      fireEvent.click(dest!);
-    });
+    fireEvent.click(await screen.findByTestId('ride-section-fill'));
     await act(async () => {
       fireEvent.click(screen.getByTestId('listing-publish'));
     });
     await waitFor(() => expect(onPublished).toHaveBeenCalledWith('listing-1'));
     const payload = mocks.createListing.mock.calls[0]![0] as { details: Record<string, unknown>; cityId: string };
     expect(payload.cityId).toBe('7000');
-    expect(payload.details).toMatchObject({
-      seats_available: 3,
-      reward_model: 'free',
-      origin_lat: LOD.lat,
-      dest_lat: LOD.lat,
-      departs_at: new Date('2030-01-01T08:30').toISOString(),
-    });
+    expect(payload.details).toMatchObject({ ...RIDE_FILL, reward_model: 'free' });
     expect(payload.details).not.toHaveProperty('cost_share_ils');
+    expect(mocks.rememberRideRoute).toHaveBeenCalledWith(expect.objectContaining(RIDE_FILL));
+  });
+
+  it('keeps the ride route and departure when the direction switches', async () => {
+    const { rerender } = renderForm('rides', 'give');
+    fireEvent.click(await screen.findByTestId('ride-section-fill'));
+    rerender('request');
+    await act(async () => {
+      fireEvent.click(await screen.findByTestId('listing-publish'));
+    });
+    const payload = mocks.createListing.mock.calls[0]![0] as { details: Record<string, unknown>; kindId: string };
+    expect(payload.kindId).toBe('k-ride_request');
+    expect(payload.details).toMatchObject({ origin_lat: RIDE_FILL.origin_lat, departs_at: RIDE_FILL.departs_at, passengers: 1 });
   });
 });

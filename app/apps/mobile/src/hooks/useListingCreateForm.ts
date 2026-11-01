@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { RIDE_ROUTE_DETAIL_KEYS, validateListingDetails } from '@kc/domain';
+import { validateListingDetails } from '@kc/domain';
 import type { CreateDirection } from '../lib/unifiedCreate/createCategories';
 import { WORLDS_WITH_SUBCATEGORY_PICKER } from '../lib/unifiedCreate/createCategories';
 import { buildListingCreatePayload } from '../lib/unifiedCreate/unifiedCreatePayload';
@@ -17,10 +17,11 @@ import {
 } from '../lib/unifiedCreate/listingFieldSpecs';
 import { marketplaceRuleFieldError, marketplaceServerErrorKey } from '../lib/marketplaceCreateErrors';
 import { marketplaceRepository } from '../services/marketplaceComposition';
-import { cityToRideEndpoint } from '../services/ridesKnowledgeComposition';
 import { uploadListingImages, type PickedImage } from '../services/listingImageUpload';
 import { useAuthStore } from '../store/authStore';
 import { trackActivationIfFirst, trackCoreLoop } from '../lib/analyticsCoreLoop';
+import { rememberRideRoute } from '../lib/rides/rideStartDetails';
+import { RIDE_CREATE_DETAIL_KEYS } from '../components/giving/RideCreateSection';
 
 /** Matching radius sent with every listing; the world rules refine reach server-side. */
 const DEFAULT_RADIUS_KM = 25;
@@ -28,10 +29,10 @@ const TITLE_MIN = 2;
 
 type City = { id: string; name: string };
 
-/** The ride route endpoints of `details` (empty for every other world). */
-function pickRouteDetails(details: Readonly<Record<string, unknown>>): Record<string, unknown> {
+/** The ride route + schedule of `details` (empty for every other world). */
+function pickRideDetails(details: Readonly<Record<string, unknown>>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const key of RIDE_ROUTE_DETAIL_KEYS) if (key in details) out[key] = details[key];
+  for (const key of RIDE_CREATE_DETAIL_KEYS) if (key in details) out[key] = details[key];
   return out;
 }
 
@@ -61,10 +62,10 @@ export function useListingCreateForm({ worldSlug, direction, title, summary, onP
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // A new kind (direction switch) starts from its own defaults. The ride route is shared by
-  // both ride kinds, so it survives the switch (RideRouteFields keeps showing it).
+  // A new kind (direction switch) starts from its own defaults. The ride route and schedule are
+  // shared by both ride kinds, so they survive the switch (RideCreateSection keeps showing them).
   useEffect(() => {
-    setDetails((prev) => ({ ...pickRouteDetails(prev), ...initialDetailsFor(specs) }));
+    setDetails((prev) => ({ ...pickRideDetails(prev), ...initialDetailsFor(specs) }));
     setError(null);
   }, [specs]);
 
@@ -92,8 +93,6 @@ export function useListingCreateForm({ worldSlug, direction, title, summary, onP
     if (problem) return;
     setBusy(true);
     try {
-      // Rides take their listing city from the route origin (RideRouteFields → onOriginCity).
-      const point = city ? await cityToRideEndpoint(city).catch(() => null) : null;
       const mediaPaths = photos.length > 0 ? await uploadListingImages(userId, photos) : [];
       const id = await marketplaceRepository().createListing(
         buildListingCreatePayload({
@@ -104,8 +103,9 @@ export function useListingCreateForm({ worldSlug, direction, title, summary, onP
           summary,
           details: submitted,
           cityId: city?.id ?? null,
-          lat: point?.lat ?? null,
-          lng: point?.lng ?? null,
+          // The server places the listing at its city when no coordinates are sent (0353).
+          lat: null,
+          lng: null,
           radiusKm: DEFAULT_RADIUS_KM,
           mediaPaths,
           worldSubcategoryId: showSubcategory ? subcategoryId : null,
@@ -117,6 +117,8 @@ export function useListingCreateForm({ worldSlug, direction, title, summary, onP
         cityId: city?.id ?? null,
         accountCreatedAt: useAuthStore.getState().session?.accountCreatedAt,
       });
+      // The next ride from this device starts from this route (D75).
+      if (isRides) void rememberRideRoute(submitted);
       onPublished(id);
     } catch (err) {
       setError(t(marketplaceServerErrorKey(err)));

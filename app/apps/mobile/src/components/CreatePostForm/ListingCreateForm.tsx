@@ -13,7 +13,7 @@ import { pickListingImages } from '../../services/listingImageUpload';
 import type { CreateDirection } from '../../lib/unifiedCreate/createCategories';
 import { useListingCreateForm } from '../../hooks/useListingCreateForm';
 import { CityPicker } from '../CityPicker';
-import { RideRouteFields } from '../giving/RideRouteFields';
+import { RideCreateSection } from '../giving/RideCreateSection';
 import { WorldSubcategoryPicker } from '../marketplace/WorldSubcategoryPicker';
 import { ListingDetailFields } from './ListingDetailFields';
 import { PhotoPicker } from './PhotoPicker';
@@ -90,7 +90,13 @@ export function ListingCreateForm({
         </View>
 
         {form.isRides ? (
-          <RideRouteFields onChange={form.setDetails} onOriginCity={form.setCity} disabled={form.busy} />
+          <RideCreateSection
+            details={form.details}
+            setDetails={form.setDetails}
+            onOriginCity={form.setCity}
+            isOffer={direction === 'give'}
+            disabled={form.busy}
+          />
         ) : null}
 
         {form.showSubcategory ? (

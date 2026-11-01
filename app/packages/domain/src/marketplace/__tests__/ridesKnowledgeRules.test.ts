@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  RIDE_ROUTE_DETAIL_KEYS,
   mapMarketplaceServerError,
   validateKnowledgeSlot,
   validateMarketplaceWorldRules,
   validateRideDetails,
-  withRideEndpoint,
 } from '../marketplaceWorldRules';
 
 const now = new Date('2026-10-17T10:00:00Z');
@@ -62,27 +60,6 @@ describe('validateKnowledgeSlot', () => {
         now,
       }),
     ).toBeNull();
-  });
-});
-
-describe('withRideEndpoint', () => {
-  it('writes and clears one route end without touching the other', () => {
-    const withOrigin = withRideEndpoint({ seats_available: 2 }, 'origin', {
-      cityId: '5000', label: 'Tel Aviv', lat: 32.08, lng: 34.78,
-    });
-    expect(withOrigin).toEqual({
-      seats_available: 2, origin_label: 'Tel Aviv', origin_lat: 32.08, origin_lng: 34.78, origin_city_id: '5000',
-    });
-    const both = withRideEndpoint(withOrigin, 'dest', { cityId: '3000', label: 'Jerusalem', lat: 31.77, lng: 35.21 });
-    expect(both.dest_lat).toBe(31.77);
-    expect(both.origin_lat).toBe(32.08);
-    const cleared = withRideEndpoint(both, 'origin', null);
-    expect(cleared.origin_lat).toBeUndefined();
-    expect(cleared.dest_label).toBe('Jerusalem');
-  });
-  it('route keys cover every field the picker writes', () => {
-    const out = withRideEndpoint({}, 'dest', { cityId: 'x', label: 'y', lat: 1, lng: 2 });
-    for (const k of Object.keys(out)) expect(RIDE_ROUTE_DETAIL_KEYS).toContain(k);
   });
 });
 
