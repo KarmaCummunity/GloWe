@@ -11094,6 +11094,7 @@ export type Database = {
         }[]
       }
       ride_templates_materialize: { Args: never; Returns: number }
+      rides_expired_listings_sweep: { Args: never; Returns: number }
       role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {
         Args: { p_chat_id: string }

@@ -49,6 +49,9 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   // D71 (0512) — ride places come only from official catalogs; at most 3 meeting points.
   'ride_place_invalid',
   'too_many_meeting_points',
+  // D21 / D75 (0514) — the estimated end must follow the departure.
+  'ride_arrival_before_departure',
+  'ride_time_invalid',
 ] as const;
 
 export type MarketplaceServerErrorCode = (typeof MARKETPLACE_SERVER_ERROR_CODES)[number];

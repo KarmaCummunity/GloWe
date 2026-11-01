@@ -36,5 +36,7 @@ export const marketplaceErrors = {
   handoff_not_found: 'ההזמנה הזו כבר לא קיימת.',
   ride_place_invalid: 'אחד המקומות בנסיעה אינו מוכר. בחרו עיר, רחוב או צומת מהרשימה.',
   too_many_meeting_points: 'אפשר להוסיף עד 3 נקודות איסוף.',
+  ride_arrival_before_departure: 'הסיום המשוער צריך להיות אחרי שעת היציאה.',
+  ride_time_invalid: 'אחד הזמנים בנסיעה אינו תקין. בחרו אותו מחדש.',
   generic: 'הפרסום נכשל. נסו שוב.',
 } as const;

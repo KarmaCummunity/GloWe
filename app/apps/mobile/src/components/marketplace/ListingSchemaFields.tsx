@@ -1,8 +1,10 @@
 import React from 'react';
-import { Switch, View, Pressable, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Switch, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, spacing, typography, Text, TextInput } from '@kc/ui';
+import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
+import { TextField } from '../ui/TextField';
+import { Chip } from '../ui/Chip';
+import { DateTimeField } from '../ui/DateTimeField';
 
 type SchemaProp = {
   type?: string | string[];
@@ -15,24 +17,7 @@ type SchemaProp = {
 const useStyles = makeUseStyles(({ colors }) => ({
   field: { gap: spacing.xs, marginBottom: spacing.md },
   label: { ...typography.caption, color: colors.textSecondary },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: spacing.md,
-    color: colors.textPrimary,
-  },
   chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 999,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.caption, color: colors.textPrimary },
   row: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
 }));
 
@@ -79,13 +64,7 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
               <Text style={styles.label}>{fieldLabel(key)}</Text>
               <View style={styles.chipRow}>
                 {prop.enum.map((opt) => (
-                  <Pressable
-                    key={opt}
-                    style={[styles.chip, selected === opt && styles.chipOn]}
-                    onPress={() => setVal(key, opt)}
-                  >
-                    <Text style={styles.chipText}>{optionLabel(opt)}</Text>
-                  </Pressable>
+                  <Chip key={opt} label={optionLabel(opt)} selected={selected === opt} onPress={() => setVal(key, opt)} />
                 ))}
               </View>
             </View>
@@ -102,18 +81,12 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
         }
 
         if (prop.format === 'date-time') {
-          const date = typeof val === 'string' && val ? new Date(val) : new Date();
+          // Cross-platform: the raw native picker cannot pick date + time on Android or web (G49).
+          const date = typeof val === 'string' && val ? new Date(val) : null;
           return (
             <View key={key} style={styles.field}>
               <Text style={styles.label}>{fieldLabel(key)}</Text>
-              <DateTimePicker
-                value={date}
-                mode="datetime"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(_, d) => {
-                  if (d) setVal(key, d.toISOString());
-                }}
-              />
+              <DateTimeField label={fieldLabel(key)} value={date} onChange={(d) => setVal(key, d.toISOString())} />
             </View>
           );
         }
@@ -121,9 +94,8 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
         if (prop.type === 'integer' || prop.type === 'number') {
           return (
             <View key={key} style={styles.field}>
-              <Text style={styles.label}>{fieldLabel(key)}</Text>
-              <TextInput
-                style={styles.input}
+              <TextField
+                label={fieldLabel(key)}
                 keyboardType="numeric"
                 value={val != null ? String(val) : ''}
                 onChangeText={(t) => {
@@ -139,9 +111,8 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
           const text = Array.isArray(val) ? val.join(', ') : '';
           return (
             <View key={key} style={styles.field}>
-              <Text style={styles.label}>{fieldLabel(key)} (comma-separated)</Text>
-              <TextInput
-                style={styles.input}
+              <TextField
+                label={`${fieldLabel(key)} (comma-separated)`}
                 value={text}
                 onChangeText={(t) =>
                   setVal(
@@ -159,9 +130,8 @@ export function ListingSchemaFields({ schema, values, onChange, hiddenKeys }: Pr
 
         return (
           <View key={key} style={styles.field}>
-            <Text style={styles.label}>{fieldLabel(key)}</Text>
-            <TextInput
-              style={styles.input}
+            <TextField
+              label={fieldLabel(key)}
               value={typeof val === 'string' ? val : ''}
               onChangeText={(t) => setVal(key, t)}
               multiline={key.includes('note') || key.includes('summary')}
