@@ -50,6 +50,11 @@ export const marketplaceFieldLabels = {
   age_min: 'Minimum age',
   age_max: 'Maximum age',
   radius_km: 'Radius (km)',
+  departs_at: 'Departure',
+  reward_model: 'Ride cost',
+  cost_share_ils: 'Cost sharing (₪)',
+  place_type: 'Place type',
+  house_rules: 'House rules',
 } as const;
 
 export const marketplaceOptionLabels = {
@@ -89,6 +94,17 @@ export const marketplaceOptionLabels = {
   emotional: 'Emotional support',
   practical: 'Practical help',
   escort: 'Escort',
+  room: 'Room',
+  couch: 'Couch',
+  apartment: 'Whole apartment',
+  gluten: 'Gluten',
+  milk: 'Milk',
+  eggs: 'Eggs',
+  nuts: 'Nuts',
+  peanuts: 'Peanuts',
+  soy: 'Soy',
+  fish: 'Fish',
+  sesame: 'Sesame',
 } as const;
 
 export const marketplaceAvailabilityLabels = {

@@ -40,6 +40,7 @@ The Donations tab opens to a Hub screen showing three vertically stacked tiles f
 - AC3. Each tile is `accessibilityRole="button"` with `accessibilityLabel` = title + subtitle.
 - AC4. The Hub screen is reachable from the bottom-tab `💝 תרומות` icon and from any screen that has a global TabBar.
 - AC5. Hub layout is responsive: tiles stack vertically on all breakpoints; on Tablet/Desktop the container max-width is 480px and remains centered.
+- AC6. *(2026-11-01, `{{ENG:create-form-five-categories}}`)* The hub has **no "donations marketplace" (שוק התרומות) entry** and the marketplace browse screen is gone: listings are found in the main feed and in each giving world's screen (`06_feed_and_search.md`). The old URL `/donations/marketplace` redirects to the hub; single-listing pages (`/donations/marketplace/<id>`), the listings map and "my listings" (profile menu → *המודעות שלי*) stay.
 
 **Related.** Screens: 2.6 · `FR-DONATE-002`, `FR-DONATE-003`, `FR-DONATE-004`.
 
@@ -284,3 +285,4 @@ The `medical` category screen (`/(tabs)/donations/category/medical`) renders a s
 | 0.10 | 2026-10-30 | Adds `FR-DONATE-011` — curated medical / life-saving bodies directory on the `medical` category screen. |
 | 1.0 | 2026-10-30 | Adds `FR-DONATE-011` — direct support for KC (one-time + monthly standing order, legal notice, server-configured channels). `FR-DONATE-003` rewritten to the current Money hub; jgive CTA + community links restored; sandbox org flow behind `money_in_app_org_payments`. |
 | 1.1 | 2026-10-30 | `D64` — Bit / PayBox are withdrawn once a one-time clearing page exists; no compiled payment URLs or offline fallback; `FR-DONATE-010` card now wraps the `FR-DONATE-011` card (same channels + legal notice). |
+| 1.2 | 2026-11-01 | `FR-DONATE-001` AC6 — the "donations marketplace" hub card and browse screen are removed; `/donations/marketplace` redirects to the hub, listing pages / map / my listings stay. |

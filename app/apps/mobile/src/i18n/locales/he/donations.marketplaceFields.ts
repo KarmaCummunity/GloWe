@@ -50,6 +50,11 @@ export const marketplaceFieldLabels = {
   age_min: 'גיל מינימלי',
   age_max: 'גיל מקסימלי',
   radius_km: 'רדיוס (ק״מ)',
+  departs_at: 'מועד יציאה',
+  reward_model: 'עלות הנסיעה',
+  cost_share_ils: 'השתתפות בהוצאות (₪)',
+  place_type: 'סוג המקום',
+  house_rules: 'כללי הבית',
 } as const;
 
 export const marketplaceOptionLabels = {
@@ -89,6 +94,17 @@ export const marketplaceOptionLabels = {
   emotional: 'תמיכה רגשית',
   practical: 'עזרה מעשית',
   escort: 'ליווי',
+  room: 'חדר',
+  couch: 'ספה',
+  apartment: 'דירה שלמה',
+  gluten: 'גלוטן',
+  milk: 'חלב',
+  eggs: 'ביצים',
+  nuts: 'אגוזים',
+  peanuts: 'בוטנים',
+  soy: 'סויה',
+  fish: 'דגים',
+  sesame: 'שומשום',
 } as const;
 
 export const marketplaceAvailabilityLabels = {

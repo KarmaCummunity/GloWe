@@ -1,110 +1,81 @@
-// FR-POST-001 + marketplace create — one create form for every domain.
-// Mapped to spec: FR-POST-001 (single create surface, category-adaptive fields).
-// Category config drives which fields the unified create form renders and which
-// write path (legacy post vs marketplace listing) is used on submit.
-import { MARKETPLACE_CREATE_WORLD_SLUGS, ROUTED_WORLDS } from '@kc/domain';
+// Mapped to spec: FR-POST-001 (one create form; category first, then request/offer, then
+// category-specific fields).
+// Category config for the unified create form: which categories the picker offers, in which
+// order, and which write path each one uses on submit (legacy post vs marketplace listing).
 import type { Href } from 'expo-router';
 
 export type CreateEngine = 'post' | 'listing';
 export type CreateDirection = 'give' | 'request';
 
-/** Fields every category shares (kept when switching category). */
-export const SHARED_CREATE_FIELDS = ['title', 'description', 'location', 'images'] as const;
-
-export type SharedCreateField = (typeof SHARED_CREATE_FIELDS)[number];
-export type SpecificCreateField =
-  | 'postCategory'
-  | 'condition'
-  | 'estimatedValue'
-  | 'urgency'
-  | 'exposure'
-  | 'listingKind'
-  | 'worldSubcategory'
-  | 'listingDetails'
-  | 'rideRoute'
-  | 'externalBody'
-  | 'radius';
-export type CreateField = SharedCreateField | SpecificCreateField;
+/** Ionicons glyphs used by the category picker (kept as a closed union for type safety). */
+export type CreateCategoryIcon =
+  | 'cube-outline'
+  | 'car-outline'
+  | 'restaurant-outline'
+  | 'home-outline'
+  | 'time-outline';
 
 export interface CreateCategoryConfig {
-  readonly id: string;
+  /** Stable id; equals the giving-world slug (also used by the `?category=` deep link). */
+  readonly id: CreateCategoryId;
   readonly engine: CreateEngine;
-  /** i18n key for the chip label. */
+  /** i18n key for the picker label. */
   readonly labelKey: string;
-  /** Marketplace world slug for listing categories. */
+  readonly icon: CreateCategoryIcon;
+  /**
+   * Marketplace world the listing is written to; null for the post engine. Items posts reach
+   * the items world through the posts → listings sync (migration 0243), so they need none.
+   */
   readonly worldSlug: string | null;
-  readonly specificFields: readonly SpecificCreateField[];
 }
 
-export const GENERAL_CREATE_CATEGORY = 'general';
+/** Categories with a create form, in picker order (FR-POST-001 AC6). */
+export const CREATE_CATEGORY_IDS = ['items', 'rides', 'food', 'housing', 'time'] as const;
+export type CreateCategoryId = (typeof CREATE_CATEGORY_IDS)[number];
 
-const POST_CATEGORY: CreateCategoryConfig = {
-  id: GENERAL_CREATE_CATEGORY,
-  engine: 'post',
-  labelKey: 'post.unifiedCreate.general',
-  worldSlug: null,
-  specificFields: ['postCategory', 'condition', 'estimatedValue', 'urgency', 'exposure'],
-};
+/** Category the form opens on when there is no deep link and no remembered choice. */
+export const DEFAULT_CREATE_CATEGORY: CreateCategoryId = 'items';
 
-/** Worlds whose giver picks a world subcategory (items → books, food → bakery…), KC#1296. */
+/** Worlds whose giver picks a world subcategory in the listing form (food → bakery…), KC#1296. */
 export const WORLDS_WITH_SUBCATEGORY_PICKER: readonly string[] = ['items', 'food'];
 
-function listingCategory(slug: string): CreateCategoryConfig {
-  const specific: SpecificCreateField[] = ['listingKind'];
-  if (WORLDS_WITH_SUBCATEGORY_PICKER.includes(slug)) specific.push('worldSubcategory');
-  if (slug === 'rides') specific.push('rideRoute');
-  specific.push('listingDetails');
-  if ((ROUTED_WORLDS as readonly string[]).includes(slug)) specific.push('externalBody');
-  specific.push('radius');
+const ICON_BY_ID: Readonly<Record<CreateCategoryId, CreateCategoryIcon>> = {
+  items: 'cube-outline',
+  rides: 'car-outline',
+  food: 'restaurant-outline',
+  housing: 'home-outline',
+  time: 'time-outline',
+};
+
+function toConfig(id: CreateCategoryId): CreateCategoryConfig {
+  // Items keep the mature post form (drafts, address display level, visibility, karma value).
+  const isPost = id === 'items';
   return {
-    id: slug,
-    engine: 'listing',
-    labelKey: `marketplace.world.${slug}`,
-    worldSlug: slug,
-    specificFields: specific,
+    id,
+    engine: isPost ? 'post' : 'listing',
+    labelKey: `post.unifiedCreate.categories.${id}`,
+    icon: ICON_BY_ID[id],
+    worldSlug: isPost ? null : id,
   };
 }
 
-export const CREATE_CATEGORIES: readonly CreateCategoryConfig[] = [
-  POST_CATEGORY,
-  ...MARKETPLACE_CREATE_WORLD_SLUGS.map(listingCategory),
-];
+export const CREATE_CATEGORIES: readonly CreateCategoryConfig[] = CREATE_CATEGORY_IDS.map(toConfig);
 
+/** Type guard: is `id` a category the create form offers? */
+export function isCreateCategoryId(id: unknown): id is CreateCategoryId {
+  return typeof id === 'string' && (CREATE_CATEGORY_IDS as readonly string[]).includes(id);
+}
+
+/** Config for `id`; unknown or missing ids fall back to the default category. */
 export function findCreateCategory(id: string | null | undefined): CreateCategoryConfig {
-  return CREATE_CATEGORIES.find((c) => c.id === id) ?? POST_CATEGORY;
+  const resolved = isCreateCategoryId(id) ? id : DEFAULT_CREATE_CATEGORY;
+  // Non-null: every id in CREATE_CATEGORY_IDS has a config built from it above.
+  return CREATE_CATEGORIES.find((c) => c.id === resolved)!;
 }
 
-/** Fields rendered for a category + direction, in render order. */
-export function createFieldsFor(
-  category: CreateCategoryConfig,
-  direction: CreateDirection,
-): readonly CreateField[] {
-  const specific = category.specificFields.filter((f) => {
-    if (f === 'condition' || f === 'estimatedValue') return direction === 'give';
-    if (f === 'urgency') return direction === 'request';
-    return true;
-  });
-  return [...SHARED_CREATE_FIELDS, ...specific];
-}
-
-export function hasCreateField(
-  category: CreateCategoryConfig,
-  direction: CreateDirection,
-  field: CreateField,
-): boolean {
-  return createFieldsFor(category, direction).includes(field);
-}
-
-/** Categories visible in the picker (listing worlds respect launch flags). */
-export function visibleCreateCategories(
-  isWorldEnabled: (slug: string) => boolean,
-): readonly CreateCategoryConfig[] {
-  return CREATE_CATEGORIES.filter((c) => c.worldSlug === null || isWorldEnabled(c.worldSlug));
-}
-
-/** Single entry route for every create button; preselects a category. */
+/** Single entry route for every create button; preselects a category when one is given. */
 export function createRouteFor(categoryId?: string | null): Href {
   const base = '/(tabs)/create';
-  if (!categoryId || categoryId === GENERAL_CREATE_CATEGORY) return base;
+  if (!isCreateCategoryId(categoryId)) return base;
   return `${base}?category=${encodeURIComponent(categoryId)}`;
 }

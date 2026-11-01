@@ -2,7 +2,7 @@
 //
 // #1042 / #1055 — every publish path of the unified create form feeds the core-loop funnel:
 // `listing_created` on each publish and `activation` (with the account creation time, sent as
-// `seconds_since_signup`) on the first one. The post engine ("general" category) used to emit
+// `seconds_since_signup`) on the first one. The post engine (items category) used to emit
 // neither, so first posts made from the default form were never measured.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -11,7 +11,7 @@ import { join } from 'node:path';
 const SRC = join(__dirname, '..', '..');
 const PUBLISH_PATHS = {
   'post engine': join(SRC, 'hooks', 'useCreatePostPublish.ts'),
-  'listing engine': join(SRC, 'components', 'marketplace', 'MarketplaceCreateForm.tsx'),
+  'listing engine': join(SRC, 'hooks', 'useListingCreateForm.ts'),
 } as const;
 
 describe('core-loop funnel on publish', () => {
