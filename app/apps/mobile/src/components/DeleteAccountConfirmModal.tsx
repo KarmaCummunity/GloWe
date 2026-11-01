@@ -36,6 +36,11 @@ type LocalState =
 
 const BULLET_KEYS = ['posts', 'follows', 'moderation', 'donations', 'devices'] as const;
 
+/** Locale key of one "what gets deleted" bullet. */
+function bulletCopyKey(key: (typeof BULLET_KEYS)[number]) {
+  return `settings.deleteAccountModal.bullets.${key}` as const;
+}
+
 export function DeleteAccountConfirmModal(props: DeleteAccountConfirmModalProps) {
   const { t } = useTranslation();
   const styles = useDeleteAccountConfirmModalStyles();
@@ -130,7 +135,7 @@ export function DeleteAccountConfirmModal(props: DeleteAccountConfirmModalProps)
         >
           <View style={styles.bulletList}>
             {BULLET_KEYS.map((key) => (
-              <Text key={key} style={styles.bullet}>{`• ${t(`settings.deleteAccountModal.bullets.${key}`)}`}</Text>
+              <Text key={key} style={styles.bullet}>{`• ${t(bulletCopyKey(key))}`}</Text>
             ))}
           </View>
 
