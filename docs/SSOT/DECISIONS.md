@@ -1631,6 +1631,8 @@ Owner rules that go with it:
 
 **Affected.** `supabase/migrations/0466_listing_feed_mirror.sql`, `posts.listing_id`, `media_assets.bucket`, `worlds.feed_mirror`, `app/apps/mobile/src/hooks/useListingMirrorRedirect.ts`, feed cards, `ListingDetailActions`.
 
+**Update (2026-11-01, FR-FEED-020 AC1).** `feed_mirror` is on for every create category (items, rides, food, housing, time; `0522`). A mirror also records its listing's world in `posts.listing_world_slug` (set exactly when `listing_id` is, `posts_listing_world_slug_chk`), which the feed card shows instead of the legacy post category. The world mute (`feed_mute_filters` kind `world`) still matches the legacy post category, unchanged. Launch flags (`app_flags.world_*_enabled`) pick active vs portal worlds (D60) and never gate the main feed.
+
 ## D-203 — Registry IDs are assigned on merge, not in the PR (2026-10-31)
 
 **Decision.** A PR never picks the number of a new decision, tech-debt, KC-fill, implementation-gap or engineering-decision entry. It writes a placeholder ID and cites that placeholder elsewhere (syntax: `CLAUDE.md` §4 "New registry IDs"). After the merge into `dev`, `scripts/spec-ids.mjs assign` (run by `bump-version-on-merge.yml`) gives each placeholder the next free number of its registry and rewrites every citation, in a commit of its own that CI certifies, right before the version bump (which stays a VERSION-only commit so the dev deploy can inherit its parent's gate, TD-231). The CI static guards run `scripts/spec-ids.mjs check`, which fails a PR on a new duplicate number or a placeholder without exactly one entry.

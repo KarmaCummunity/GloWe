@@ -501,7 +501,7 @@ The main feed shows open posts of **every** create category (items, rides, food,
 **Source.** PM request 2026-11-01 (create-form cleanup); `docs/spec/07_cross_cutting_systems.md` §7.3; `D-206` (feed mirror).
 
 **Acceptance Criteria.**
-- AC1. ⏳ A published open listing of rides, housing or time appears in the main feed like items and food do today (`worlds.feed_mirror`, migration `0466`), and opening it from the feed opens the listing detail.
+- AC1. ✅ A published open listing of rides, housing or time appears in the main feed like items and food do today (`worlds.feed_mirror`, migration `0466`), and opening it from the feed opens the listing detail. Shipped in `0522`: `feed_mirror` on for every create category; the mirror records `posts.listing_world_slug`, so the feed card shows the world chip and icon (rides / food / housing / time) instead of "Other" (`feedCardCategory`); the mirror keeps the listing's privacy (housing and time default to followers-only, `worlds.default_anonymity_level`); launch flags never hide listings from the main feed (D60). `feed_visible_posts` re-created so the signed-in feed returns `listing_id` and the world. Tests: `supabase/tests/0522_feed_mirror_every_world.sql`, `feedCardCategory.test.ts`, `PostCardGrid.world.test.tsx`.
 - AC2. ⏳ Each active world screen (items, rides, food, housing, time) shows: search within the world, a "request" and an "offer" button that open the create form preset to that category and direction, and the world's feed of open offers and requests (subcategory + distance refinements where the world has them, `BrowseRefineChips`), plus the world's own sub-screens (my handoffs, my rides, shifts…).
 - AC3. ⏳ A world whose launch flag is off stays a portal (D60) and shows no feed.
 
@@ -515,3 +515,4 @@ The main feed shows open posts of **every** create category (items, rides, food,
 | 0.2 | 2026-05-09 | Added `FR-FEED-016` (Search hub placeholder) per `D-16`. |
 | 0.3 | 2026-05-11 | P1.2 sweep: deprecated `FR-FEED-003, 007, 013`; reworked `FR-FEED-004, 006, 015`; extended `FR-FEED-005, 008, 014`; superseded `FR-FEED-016` (now Universal Search engine); added `FR-FEED-018` (shared filter vocabulary) and `FR-FEED-019` (cities-geo lookup). |
 | 0.4 | 2026-11-01 | Added `FR-FEED-020` (main feed of every create category + a feed, search and request / offer entry per giving world) — planned. |
+| 0.5 | 2026-11-01 | `FR-FEED-020` AC1 done: rides, housing and time listings mirror into the main feed with their world on the card (`0522`). |
