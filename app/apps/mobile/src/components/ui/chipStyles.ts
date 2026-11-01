@@ -5,7 +5,7 @@
 import { iconSize, makeUseStyles, radius, spacing, typography, type ColorPalette } from '@kc/ui';
 import { DISABLED_OPACITY, MIN_TAP_TARGET } from './kitMetrics';
 
-/** `md` for filter rows and forms; `sm` (compact) for dense lists, cards and admin tables. */
+/** `md` for forms; `sm` (compact) for filter sheets, dense lists, cards and admin tables. */
 export type ChipSize = 'md' | 'sm';
 
 /**
@@ -13,9 +13,11 @@ export type ChipSize = 'md' | 'sm';
  * (AA in both palettes): the semantic `*Light` fills carry `textPrimary`, and
  * `brand` uses the give-tag pair (`primary` on `primarySurface`) with a
  * `primaryLight` outline, because its fill is too close to the cream page to
- * show an edge on its own.
+ * show an edge on its own. `muted` is the one unfilled tone, for an inactive
+ * value (archived, low, other): a `borderStrong` outline with `textSecondary`
+ * text on whatever surface the tag sits on.
  */
-export type ChipTone = 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'error';
+export type ChipTone = 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'error' | 'muted';
 
 /** Visual height per size, in points. Interactive chips reach 44pt through `hitSlop`. */
 export const CHIP_HEIGHT: Readonly<Record<ChipSize, number>> = { md: 36, sm: 28 };
@@ -48,6 +50,8 @@ export function toneColors(tone: ChipTone, colors: ColorPalette): ToneColors {
       return semanticTone(colors.warningLight, colors);
     case 'error':
       return semanticTone(colors.errorLight, colors);
+    case 'muted':
+      return { background: 'transparent', border: colors.borderStrong, foreground: colors.textSecondary };
     default:
       return semanticTone(colors.secondaryLight, colors);
   }
