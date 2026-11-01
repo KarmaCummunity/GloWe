@@ -12,6 +12,7 @@ import { donations, marketplace, moneyPayments, search, timeVolunteer } from './
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { rideBooking } from './rideBooking';
+import { ridePlaces } from './ridePlaces';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -125,6 +126,8 @@ const en = {
   givingHandoff,
   // Ride seat bookings (D73) — see rideBooking.ts
   rideBooking,
+  // Ride places (D71) — see ridePlaces.ts
+  ridePlaces,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

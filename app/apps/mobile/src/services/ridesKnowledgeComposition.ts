@@ -1,4 +1,3 @@
-import type { RideEndpoint } from '@kc/domain';
 import { getMarketplaceSupabaseClient } from './marketplaceComposition';
 
 export interface RideMatchRow {
@@ -10,18 +9,6 @@ export interface RideMatchRow {
   origin_label: string | null;
   dest_label: string | null;
   distance_m: number;
-}
-
-/** Resolves a picked city to a route endpoint (lat/lng from public.cities); null if it has no coordinates. */
-export async function cityToRideEndpoint(city: { id: string; name: string }): Promise<RideEndpoint | null> {
-  const { data, error } = await getMarketplaceSupabaseClient()
-    .from('cities')
-    .select('lat, lon')
-    .eq('city_id', city.id)
-    .maybeSingle();
-  if (error) throw error;
-  if (data?.lat == null || data.lon == null) return null;
-  return { cityId: city.id, label: city.name, lat: Number(data.lat), lng: Number(data.lon) };
 }
 
 export const ridesKnowledgeRpcs = {

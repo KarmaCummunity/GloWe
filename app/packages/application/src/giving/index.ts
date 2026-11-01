@@ -17,3 +17,5 @@ export {
   CompleteRideTripUseCase,
 } from './rideBookingUseCases';
 export type { IRideBookingRepository } from '../ports/IRideBookingRepository';
+export { ListRidePlacesUseCase } from './ListRidePlacesUseCase';
+export type { IRidePlaceRepository } from '../ports/IRidePlaceRepository';

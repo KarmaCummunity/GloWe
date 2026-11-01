@@ -34,5 +34,7 @@ export const marketplaceErrors = {
   not_participant: 'רק הנהג/ת והנוסע/ת בהזמנה יכולים לעשות את זה.',
   invalid_status: 'ההזמנה כבר עודכנה. רעננו את המסך ונסו שוב.',
   handoff_not_found: 'ההזמנה הזו כבר לא קיימת.',
+  ride_place_invalid: 'אחד המקומות בנסיעה אינו מוכר. בחרו עיר, רחוב או צומת מהרשימה.',
+  too_many_meeting_points: 'אפשר להוסיף עד 3 נקודות איסוף.',
   generic: 'הפרסום נכשל. נסו שוב.',
 } as const;

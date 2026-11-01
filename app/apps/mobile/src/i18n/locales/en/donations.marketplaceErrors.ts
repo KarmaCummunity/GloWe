@@ -34,5 +34,7 @@ export const marketplaceErrors = {
   not_participant: 'Only the driver and passenger of this booking can do that.',
   invalid_status: 'This booking was already updated. Refresh and try again.',
   handoff_not_found: 'This booking no longer exists.',
+  ride_place_invalid: 'One of the ride places is not recognised. Pick a city, street or junction from the list.',
+  too_many_meeting_points: 'You can add up to 3 pickup points.',
   generic: 'Publishing failed. Please try again.',
 } as const;

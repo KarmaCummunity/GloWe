@@ -36,6 +36,7 @@ export * from './rides/validateRideTemplateDraft';
 export * from './rides/RideEmergencyEvent';
 export * from './rides/RideRating';
 export * from './rides/RideBooking';
+export * from './rides/RidePlace';
 export * from './translations/TranslationTypes';
 export * from './translations/TranslationError';
 export * from './translations/TranslationRequest';

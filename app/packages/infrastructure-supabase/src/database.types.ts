@@ -6529,6 +6529,39 @@ export type Database = {
           },
         ]
       }
+      road_junctions: {
+        Row: {
+          junction_id: number
+          kind: string
+          lat: number
+          lng: number
+          name_ar: string | null
+          name_en: string | null
+          name_he: string
+          roads: string | null
+        }
+        Insert: {
+          junction_id: number
+          kind: string
+          lat: number
+          lng: number
+          name_ar?: string | null
+          name_en?: string | null
+          name_he: string
+          roads?: string | null
+        }
+        Update: {
+          junction_id?: number
+          kind?: string
+          lat?: number
+          lng?: number
+          name_ar?: string | null
+          name_en?: string | null
+          name_he?: string
+          roads?: string | null
+        }
+        Relationships: []
+      }
       saved_posts: {
         Row: {
           post_id: string
@@ -10359,6 +10392,17 @@ export type Database = {
           status: string
         }[]
       }
+      list_ride_places: {
+        Args: never
+        Returns: {
+          city_id: string
+          label: string
+          lat: number
+          lng: number
+          place_id: string
+          place_kind: string
+        }[]
+      }
       list_shift_volunteers: {
         Args: { p_shift_id: string }
         Returns: {
@@ -10930,6 +10974,10 @@ export type Database = {
       ride_booking_copy_key: { Args: { p_kind: string }; Returns: string }
       ride_bookings_expire_sweep: { Args: never; Returns: number }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
+      ride_details_with_place: {
+        Args: { p_details: Json; p_end: string }
+        Returns: Json
+      }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
       ride_listings_expire_check: { Args: never; Returns: number }
       ride_listings_find_matches: {
@@ -11036,6 +11084,15 @@ export type Database = {
         }
       }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
+      ride_place_lookup: {
+        Args: { p_id: string; p_kind: string }
+        Returns: {
+          city_id: string
+          label: string
+          lat: number
+          lng: number
+        }[]
+      }
       ride_templates_materialize: { Args: never; Returns: number }
       role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {

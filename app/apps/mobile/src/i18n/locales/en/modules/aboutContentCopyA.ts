@@ -12,6 +12,8 @@ export const aboutContentCopyA = {
 
   footerVersion: 'Version 0.1.0',
   footerRights: '© 2026 Karma Community',
+  // D71 / S47 — the junctions catalog is CC BY: its source is credited here.
+  footerDataCredit: 'Junction and interchange names: Israel Ministry of Transport, data.gov.il (CC BY)',
 
   // Numbers — "the community in numbers" (live + permanent principles)
   numbersTitle: 'The Community in Numbers',
