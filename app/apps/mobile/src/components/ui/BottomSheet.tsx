@@ -27,6 +27,7 @@ import {
   Easing,
   KeyboardAvoidingView,
   Modal as RNModal,
+  type DimensionValue,
   Platform,
   ScrollView,
   View,
@@ -58,6 +59,12 @@ export interface BottomSheetProps {
    * its own virtualized list (FlatList / SectionList), which must not nest in a ScrollView.
    */
   readonly scrollable?: boolean;
+  /**
+   * Cap on the surface height, as a share of the screen (e.g. `'60%'`) for a
+   * compact sheet that keeps the screen behind it in view. Defaults to the
+   * full height under the status-bar gap.
+   */
+  readonly maxHeight?: DimensionValue;
   /** Actions pinned under the body (they do not scroll away). */
   readonly footer?: React.ReactNode;
   readonly children?: React.ReactNode;
@@ -99,6 +106,7 @@ export function BottomSheet({
   dismissible = true,
   closeAccessibilityLabel,
   scrollable = true,
+  maxHeight,
   footer,
   children,
   testID,
@@ -137,6 +145,7 @@ export function BottomSheet({
           accessibilityViewIsModal
           style={[
             styles.surface,
+            maxHeight !== undefined && { maxHeight },
             // Clear the home indicator / gesture bar, with at least the base gutter.
             { paddingBottom: insets.bottom + spacing.base, transform: [{ translateY }] },
           ]}

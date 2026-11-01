@@ -134,6 +134,16 @@ describe('BottomSheet — layout and motion', () => {
     expect(getComputedStyle(getByTestId('overlay')).transform).toBe('translateY(0px)');
   });
 
+  it('caps a compact sheet at the given share of the screen', () => {
+    const { getByTestId } = renderOverlay(OVERLAYS[1][1], { maxHeight: '58%' } as Partial<OverlayProps>);
+    expect(getComputedStyle(getByTestId('overlay')).maxHeight).toBe('58%');
+  });
+
+  it('grows to the full height under the status-bar gap by default', () => {
+    const { getByTestId } = renderOverlay(OVERLAYS[1][1]);
+    expect(getComputedStyle(getByTestId('overlay')).maxHeight).toBe('100%');
+  });
+
   it('renders a body that brings its own list without the scroll wrapper', () => {
     const { getByText } = renderOverlay(OVERLAYS[1][1], { scrollable: false } as Partial<OverlayProps>);
     expect(getByText('Body copy')).toBeTruthy();
