@@ -9,7 +9,7 @@ tags: [donations]
     id: tab-donations
 - extendedWaitUntil:
     visible:
-      id: donation-tile-items
+      id: donations-hub
     timeout: 15000
 - assertVisible:
     id: shell-tab-bar

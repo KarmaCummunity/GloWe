@@ -121,6 +121,7 @@ export default function DonationsHubScreen() {
     <Screen blobs="content">
       <TopBar />
       <ScrollView
+        testID="donations-hub"
         style={styles.scrollView}
         // RN-Web + `dir=rtl`: content can shrink-wrap and hug the inline-start
         // edge (visual right), leaving empty space on the left — stretch to viewport.
