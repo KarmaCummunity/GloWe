@@ -30,5 +30,7 @@ export const marketplaceErrors = {
   member_inactive: 'Your account is not active, so you cannot publish.',
   auth_required: 'Please sign in to publish.',
   kind_not_found: 'This listing type is no longer available. Please choose another.',
+  ride_place_invalid: 'One of the ride places is not recognised. Pick a city, street or junction from the list.',
+  too_many_meeting_points: 'You can add up to 3 pickup points.',
   generic: 'Publishing failed. Please try again.',
 } as const;

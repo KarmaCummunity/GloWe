@@ -64,6 +64,7 @@ export { SupabaseRideEmergencyRepository } from './rides/SupabaseRideEmergencyRe
 export { SupabaseRideRatingRepository } from './rides/SupabaseRideRatingRepository';
 export { SupabaseDriverDeclarationRepository } from './rides/SupabaseDriverDeclarationRepository';
 export { SupabaseRidesRealtime } from './rides/SupabaseRidesRealtime';
+export { SupabaseRidePlaceRepository } from './rides/SupabaseRidePlaceRepository';
 export { SupabaseSurveyRepository } from './survey/SupabaseSurveyRepository';
 export { SupabaseSurveyAdminRepository } from './survey/SupabaseSurveyAdminRepository';
 export { SupabaseUserActivityRepository } from './survey/SupabaseUserActivityRepository';
