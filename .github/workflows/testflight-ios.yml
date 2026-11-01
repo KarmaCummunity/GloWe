@@ -66,26 +66,30 @@ jobs:
       run:
         working-directory: app/apps/mobile
     steps:
+      # Sparse checkout only under .store-target so the full build checkout
+      # below never inherits sparse state (pnpm/action-setup needs app/package.json).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.workflow_sha }}
+          path: .store-target
           sparse-checkout: |
             .nvmrc
             scripts/resolve-green-dev-sha.mjs
             scripts/mobile-store-target.mjs
           sparse-checkout-cone-mode: false
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: .store-target/.nvmrc
       - name: Verify the commit passed CI on dev
         id: target
-        working-directory: .
         env:
           GITHUB_TOKEN: ${{ github.token }}
           INPUT_REF: ${{ inputs.ref }}
           EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
           LOOKBACK: '30'
-        run: node scripts/mobile-store-target.mjs
+        run: node .store-target/scripts/mobile-store-target.mjs
 
       - name: Preflight secrets (fail closed)
         working-directory: .
@@ -114,12 +118,6 @@ jobs:
             exit 1
           fi
           echo "All TestFlight secrets present."
-
-      # The target step used a sparse checkout; restore the full tree so the
-      # build checkout below is not left sparse (app/package.json etc.).
-      - name: Disable sparse checkout
-        working-directory: .
-        run: git sparse-checkout disable
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
