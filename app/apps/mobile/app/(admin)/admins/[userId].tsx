@@ -9,7 +9,7 @@ import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { hasPermission } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminPerson } from '../../../src/hooks/useAdminPerson';
 import { useUserBasics } from '../../../src/hooks/useUserBasics';
@@ -61,7 +61,7 @@ export default function AdminPersonScreen() {
           onPress={() => router.push(`/user/${userId}`)}
           style={styles.profileBtn}
         >
-          <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
+          <Ionicons name="person-circle-outline" size={iconSize.md} color={colors.primary} />
           <Text style={styles.profileBtnText}>{L.admin.admins.detail.viewProfile}</Text>
         </Pressable>
       </View>

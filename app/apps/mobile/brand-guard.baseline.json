@@ -1,12 +1,6 @@
 {
   "$comment": "Frozen brand-guard findings per file (spec 17 §6, TD-199). Counts may only go down.",
   "files": {
-    "app/(admin)/_layout.tsx": {
-      "spacingLiteral": 1
-    },
-    "app/(admin)/admins/[userId].tsx": {
-      "iconSizeLiteral": 1
-    },
     "app/(admin)/audit/index.tsx": {
       "fontSizeLiteral": 9,
       "fontWeightLiteral": 3,
@@ -48,16 +42,6 @@
     },
     "app/(admin)/posts/index.tsx": {
       "adHocChip": 1
-    },
-    "app/(admin)/reports/[caseId]/index.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 2,
-      "spacingLiteral": 4
-    },
-    "app/(admin)/reports/index.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 2
     },
     "app/(admin)/tasks/[taskId]/index.tsx": {
       "colorLiteral": 1,
@@ -483,47 +467,12 @@
     "src/components/WebRefreshButton.tsx": {
       "iconSizeLiteral": 1
     },
-    "src/components/admin/AdminCardActions.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "spacingLiteral": 4
-    },
-    "src/components/admin/AdminFormActions.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 2,
-      "spacingLiteral": 6
-    },
     "src/components/admin/AdminFormField.tsx": {
       "fontSizeLiteral": 2,
       "radiusLiteral": 1,
       "spacingLiteral": 2,
       "physicalSide": 1,
       "rawTextInput": 1
-    },
-    "src/components/admin/AdminListEmpty.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 2
-    },
-    "src/components/admin/AdminScreenGuard.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 1
-    },
-    "src/components/admin/AdminScreenHeader.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 7
-    },
-    "src/components/admin/ComingSoon.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5
     },
     "src/components/admin/admins/OrgSwitcher.tsx": {
       "adHocChip": 1
@@ -583,24 +532,6 @@
       "radiusLiteral": 1,
       "spacingLiteral": 4
     },
-    "src/components/admin/reports/CaseAuditTimeline.tsx": {
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 4
-    },
-    "src/components/admin/reports/CaseReporterList.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 4
-    },
-    "src/components/admin/reports/CaseTargetCard.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 3,
-      "spacingLiteral": 8
-    },
     "src/components/admin/reports/ReportFilters.tsx": {
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 1,
@@ -609,11 +540,6 @@
       "physicalSide": 1,
       "rawTextInput": 1,
       "adHocChip": 1
-    },
-    "src/components/admin/reports/ReportRow.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 3
     },
     "src/components/admin/surveys/FeedbackCard.tsx": {
       "fontSizeLiteral": 5,
@@ -635,11 +561,6 @@
       "spacingLiteral": 4,
       "adHocChip": 1
     },
-    "src/components/admin/tasks/TaskActivityTimeline.tsx": {
-      "fontSizeLiteral": 3,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5
-    },
     "src/components/admin/tasks/TaskCategoryPicker.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
@@ -654,12 +575,6 @@
       "spacingLiteral": 10,
       "physicalSide": 1,
       "rawTextInput": 2
-    },
-    "src/components/admin/tasks/TaskRow.tsx": {
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "spacingLiteral": 6
     },
     "src/components/admin/time/TimesheetEntryCard.tsx": {
       "fontSizeLiteral": 9,

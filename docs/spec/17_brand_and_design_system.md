@@ -137,7 +137,7 @@ Screens move onto the kit one area per PR, after the PM approves the look; track
 
 Admin and team-only screens use the **same** colours, type, radius, components and rules as the rest of the app. They may be denser: one spacing step tighter, smaller type presets (`bodySmall`, `label`) and tables instead of cards. They never introduce their own colours (role badges included).
 
-**Cleanup progress (#1287).** ✅ `components/admin/admins` (13 files, incl. the hierarchy layer bands; role badges already use `avatarPalette`). Left: 47 admin files with 765 frozen findings in the brand-guard baseline, which may only shrink; the next slices go one area per PR (`tasks`, `reports`, `org-approvals`, `crm`, `time`, …). `admins/{OrgSwitcher, UserLookupField}` and `layers/LayerPersonChip` move with the kit `Chip` / `TextField` migrations.
+**Cleanup progress (#1287).** ✅ `components/admin/admins` (13 files, incl. the hierarchy layer bands; role badges already use `avatarPalette`); ✅ shared admin components (`AdminScreenHeader`, `AdminCardActions`, `AdminFormActions`, `AdminListEmpty`, `AdminScreenGuard`, `ComingSoon`), `reports` (list, case screen, `CaseAuditTimeline`, `CaseReporterList`, `CaseTargetCard`, `ReportRow`), `tasks/{TaskRow, TaskActivityTimeline}`, the admin layout and the admin detail screen (16 files). Left: 31 admin files with 630 frozen findings in the brand-guard baseline, which may only shrink; next slices one area per PR (`money`, `whatsapp`, `crm`, `time`, `surveys`, the admin home). `reports/CaseActions` waits for an on-`errorLight` text token (TD-130). `admins/{OrgSwitcher, UserLookupField}`, `layers/LayerPersonChip` and the task forms move with the kit `Chip` / `TextField` migrations.
 
 ### 4.4 Appearance
 
