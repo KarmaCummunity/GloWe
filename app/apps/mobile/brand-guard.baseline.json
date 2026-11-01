@@ -13,7 +13,8 @@
       "radiusLiteral": 4,
       "spacingLiteral": 21,
       "physicalSide": 2,
-      "rawTextInput": 3
+      "rawTextInput": 3,
+      "adHocChip": 1
     },
     "app/(admin)/crm/index.tsx": {
       "fontSizeLiteral": 8,
@@ -21,7 +22,8 @@
       "radiusLiteral": 3,
       "spacingLiteral": 18,
       "physicalSide": 1,
-      "rawTextInput": 1
+      "rawTextInput": 1,
+      "adHocChip": 1
     },
     "app/(admin)/index.tsx": {
       "fontSizeLiteral": 6,
@@ -41,7 +43,11 @@
       "fontWeightLiteral": 9,
       "radiusLiteral": 6,
       "spacingLiteral": 31,
-      "rawTextInput": 1
+      "rawTextInput": 1,
+      "adHocChip": 1
+    },
+    "app/(admin)/posts/index.tsx": {
+      "adHocChip": 1
     },
     "app/(admin)/reports/[caseId]/index.tsx": {
       "fontSizeLiteral": 2,
@@ -66,7 +72,8 @@
       "fontSizeLiteral": 6,
       "fontWeightLiteral": 5,
       "radiusLiteral": 3,
-      "spacingLiteral": 17
+      "spacingLiteral": 17,
+      "adHocChip": 1
     },
     "app/(admin)/tasks/new.tsx": {
       "fontSizeLiteral": 9,
@@ -86,7 +93,8 @@
       "radiusLiteral": 2,
       "spacingLiteral": 12,
       "physicalSide": 1,
-      "rawTextInput": 1
+      "rawTextInput": 1,
+      "adHocChip": 1
     },
     "app/(admin)/whatsapp/index.tsx": {
       "fontSizeLiteral": 6,
@@ -134,6 +142,9 @@
     "app/(tabs)/create.tsx": {
       "iconSizeLiteral": 1
     },
+    "app/(tabs)/donations/marketplace/index.tsx": {
+      "adHocChip": 1
+    },
     "app/(tabs)/donations/marketplace/my-listings/edit/[listingId].tsx": {
       "fontWeightLiteral": 1,
       "radiusLiteral": 2,
@@ -145,7 +156,8 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 3,
-      "rawTextInput": 1
+      "rawTextInput": 1,
+      "adHocChip": 1
     },
     "app/(tabs)/donations/money/history.tsx": {
       "spacingLiteral": 1
@@ -269,6 +281,7 @@
       "radiusLiteral": 1,
       "spacingLiteral": 1,
       "rawTextInput": 1,
+      "adHocChip": 1,
       "iconSizeLiteral": 2
     },
     "app/settings/feedback.tsx": {
@@ -287,6 +300,7 @@
     "app/settings/report-issue.tsx": {
       "fontWeightLiteral": 3,
       "rawTextInput": 1,
+      "adHocChip": 1,
       "iconSizeLiteral": 1
     },
     "app/settings/survey-demo.tsx": {
@@ -298,6 +312,7 @@
     "app/settings/surveys.tsx": {
       "fontWeightLiteral": 3,
       "spacingLiteral": 2,
+      "adHocChip": 1,
       "iconSizeLiteral": 4
     },
     "app/settings/translation-language.tsx": {
@@ -367,6 +382,7 @@
       "iconSizeLiteral": 2
     },
     "src/components/CreatePostForm/UnifiedCreateHeader.tsx": {
+      "adHocChip": 1,
       "iconSizeLiteral": 1
     },
     "src/components/DeleteAccountConfirmModal.styles.ts": {
@@ -497,10 +513,12 @@
       "shadowLiteral": 4
     },
     "src/components/PostFilterSheet/Chip.tsx": {
-      "fontWeightLiteral": 1
+      "fontWeightLiteral": 1,
+      "adHocChip": 1
     },
     "src/components/PostFilterSheet/LocationFilterSection.tsx": {
-      "fontWeightLiteral": 2
+      "fontWeightLiteral": 2,
+      "adHocChip": 1
     },
     "src/components/PostFilterSheet/SearchSection.tsx": {
       "rawTextInput": 1,
@@ -565,7 +583,8 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 2
+      "spacingLiteral": 2,
+      "adHocChip": 1
     },
     "src/components/admin/AdminFormActions.tsx": {
       "fontSizeLiteral": 3,
@@ -626,6 +645,9 @@
     "src/components/admin/admins/ChangeRoleModal.tsx": {
       "rawModal": 1
     },
+    "src/components/admin/admins/ChoiceChips.tsx": {
+      "adHocChip": 1
+    },
     "src/components/admin/admins/GrantRoleModal.tsx": {
       "rawModal": 1
     },
@@ -643,6 +665,9 @@
       "fontSizeLiteral": 3,
       "fontWeightLiteral": 1,
       "spacingLiteral": 2
+    },
+    "src/components/admin/admins/OrgSwitcher.tsx": {
+      "adHocChip": 1
     },
     "src/components/admin/admins/OrgTree.tsx": {
       "fontSizeLiteral": 1,
@@ -671,6 +696,9 @@
     "src/components/admin/admins/layers/HierarchyStatsStrip.tsx": {
       "iconSizeLiteral": 1
     },
+    "src/components/admin/admins/layers/LayerPersonChip.tsx": {
+      "adHocChip": 1
+    },
     "src/components/admin/admins/layers/MaskedCommunityBand.tsx": {
       "iconSizeLiteral": 1
     },
@@ -679,6 +707,12 @@
       "fontWeightLiteral": 1,
       "fontFamilyLiteral": 1,
       "spacingLiteral": 3
+    },
+    "src/components/admin/content/PostSearchRow.tsx": {
+      "adHocChip": 1
+    },
+    "src/components/admin/content/UserSearchRow.tsx": {
+      "adHocChip": 1
     },
     "src/components/admin/crm/ContactCard.tsx": {
       "fontSizeLiteral": 8,
@@ -699,7 +733,8 @@
       "fontSizeLiteral": 5,
       "fontWeightLiteral": 2,
       "radiusLiteral": 2,
-      "spacingLiteral": 8
+      "spacingLiteral": 8,
+      "adHocChip": 1
     },
     "src/components/admin/money/FinanceEntryFormModal.tsx": {
       "colorLiteral": 1,
@@ -740,7 +775,8 @@
       "radiusLiteral": 2,
       "spacingLiteral": 8,
       "physicalSide": 1,
-      "rawTextInput": 1
+      "rawTextInput": 1,
+      "adHocChip": 1
     },
     "src/components/admin/reports/ReportRow.tsx": {
       "fontSizeLiteral": 2,
@@ -764,7 +800,8 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 4
+      "spacingLiteral": 4,
+      "adHocChip": 1
     },
     "src/components/admin/tasks/TaskActivityTimeline.tsx": {
       "fontSizeLiteral": 3,
@@ -775,19 +812,22 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 5
+      "spacingLiteral": 5,
+      "adHocChip": 1
     },
     "src/components/admin/tasks/TaskCategoryChip.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 2
+      "spacingLiteral": 2,
+      "adHocChip": 1
     },
     "src/components/admin/tasks/TaskCategoryPicker.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 3
+      "spacingLiteral": 3,
+      "adHocChip": 1
     },
     "src/components/admin/tasks/TaskDueRangeFilter.tsx": {
       "fontSizeLiteral": 4,
@@ -801,7 +841,8 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 2
+      "spacingLiteral": 2,
+      "adHocChip": 1
     },
     "src/components/admin/tasks/TaskRow.tsx": {
       "fontSizeLiteral": 3,
@@ -813,7 +854,8 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
-      "spacingLiteral": 2
+      "spacingLiteral": 2,
+      "adHocChip": 1
     },
     "src/components/admin/time/TimesheetEntryCard.tsx": {
       "fontSizeLiteral": 9,
@@ -883,7 +925,8 @@
     "src/components/cards/PostDetailHeader.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
-      "spacingLiteral": 1
+      "spacingLiteral": 1,
+      "adHocChip": 1
     },
     "src/components/chat/AnchoredPostCard.tsx": {
       "fontSizeLiteral": 1,
@@ -896,7 +939,8 @@
     },
     "src/components/chat/ChatReactionChips.tsx": {
       "radiusLiteral": 1,
-      "spacingLiteral": 1
+      "spacingLiteral": 1,
+      "adHocChip": 1
     },
     "src/components/chat/InboxChatRow.tsx": {
       "fontSizeLiteral": 1,
@@ -1041,7 +1085,8 @@
       "radiusLiteral": 10,
       "spacingLiteral": 16,
       "physicalSide": 2,
-      "shadowLiteral": 12
+      "shadowLiteral": 12,
+      "adHocChip": 1
     },
     "src/components/map/MapExplorer.tsx": {
       "spacingLiteral": 2,
@@ -1049,7 +1094,8 @@
     },
     "src/components/marketplace/ListingSchemaFields.tsx": {
       "radiusLiteral": 2,
-      "rawTextInput": 3
+      "rawTextInput": 3,
+      "adHocChip": 1
     },
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
@@ -1064,7 +1110,11 @@
       "fontWeightLiteral": 1,
       "radiusLiteral": 1,
       "spacingLiteral": 4,
+      "adHocChip": 1,
       "iconSizeLiteral": 3
+    },
+    "src/components/marketplace/listingChipStyles.ts": {
+      "adHocChip": 1
     },
     "src/components/money/CampaignProgressBar.tsx": {
       "radiusLiteral": 2,
@@ -1238,7 +1288,8 @@
     },
     "src/components/search/searchFilterSheet.styles.ts": {
       "fontWeightLiteral": 3,
-      "physicalSide": 2
+      "physicalSide": 2,
+      "adHocChip": 1
     },
     "src/components/search/searchResultCard.styles.ts": {
       "fontSizeLiteral": 4,
@@ -1299,11 +1350,6 @@
     },
     "src/components/ui/AmbientBlobs.tsx": {
       "radiusLiteral": 3
-    },
-    "src/components/ui/Buttons.tsx": {
-      "fontSizeLiteral": 1,
-      "shadowLiteral": 4,
-      "iconSizeLiteral": 1
     },
     "src/components/ui/Card.tsx": {
       "shadowLiteral": 4
@@ -1407,6 +1453,7 @@
     "src/features/about-landing/AboutValuesGrid.tsx": {
       "fontWeightLiteral": 1,
       "shadowLiteral": 4,
+      "adHocChip": 1,
       "iconSizeLiteral": 1
     },
     "src/features/about-landing/AboutVisionSection.tsx": {
@@ -1435,6 +1482,7 @@
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
       "spacingLiteral": 4,
+      "adHocChip": 1,
       "iconSizeLiteral": 1
     },
     "src/features/rides/components/RideCard.tsx": {
@@ -1498,7 +1546,8 @@
     "src/screens/edit-post/editPostScreen.styles.ts": {
       "radiusLiteral": 2,
       "spacingLiteral": 1,
-      "physicalSide": 2
+      "physicalSide": 2,
+      "adHocChip": 1
     },
     "src/screens/edit-profile.styles.ts": {
       "physicalSide": 1
@@ -1537,7 +1586,8 @@
       "fontSizeLiteral": 2,
       "fontWeightLiteral": 2,
       "physicalSide": 2,
-      "shadowLiteral": 4
+      "shadowLiteral": 4,
+      "adHocChip": 1
     },
     "src/screens/tabs/search.styles.ts": {
       "fontSizeLiteral": 2,
@@ -1545,7 +1595,8 @@
       "radiusLiteral": 1,
       "spacingLiteral": 1,
       "physicalSide": 1,
-      "shadowLiteral": 8
+      "shadowLiteral": 8,
+      "adHocChip": 1
     }
   }
 }
