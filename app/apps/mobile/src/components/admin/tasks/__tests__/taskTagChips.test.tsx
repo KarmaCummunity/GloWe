@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Admin task tags (FR-ADMIN-018, spec 17 §4.1 / §4.1.1, TD-243): the status,
 // priority and category chips are kit `Chip` tags whose tone follows the value,
-// and every value looks different from the others in its group ({{D:design-lead-delegation}}).
+// and every value looks different from the others in its group (D99).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, render } from '@testing-library/react';

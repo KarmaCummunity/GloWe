@@ -78,7 +78,7 @@ describe('RideFilterSheet', () => {
     const onClose = vi.fn();
     const { getByRole } = withTheme(<RideFilterSheet visible onClose={onClose} />);
     expect(getByRole('heading').textContent).toBe('donations.rides.filtersTitle');
-    // Compact filter chips ({{D:design-lead-delegation}}): 28pt tall, 44pt touch target via `hitSlop`.
+    // Compact filter chips (D99): 28pt tall, 44pt touch target via `hitSlop`.
     expect(getComputedStyle(getByRole('checkbox', { name: 'donations.rides.modeOffer' })).minHeight).toBe('28px');
     fireEvent.click(getByRole('checkbox', { name: 'donations.rides.modeOffer' }));
     fireEvent.click(getByRole('button', { name: 'donations.rides.applyFilters' }));

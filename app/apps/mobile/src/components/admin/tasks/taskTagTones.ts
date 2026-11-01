@@ -1,6 +1,6 @@
 // Kit `Chip` tag looks for the admin task status, priority and category tags
 // (spec 17 §4.1 / §4.3, TD-243). Every value within a group has its own look
-// (design-lead call, {{D:design-lead-delegation}}): status and priority use a
+// (design-lead call, D99): status and priority use a
 // different tone per value; category has eight values for seven tones, so
 // finance and operations share `neutral` and every category also carries its
 // own leading icon, which tells those two apart without relying on colour.

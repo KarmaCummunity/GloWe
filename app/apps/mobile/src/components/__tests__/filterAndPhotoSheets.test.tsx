@@ -2,7 +2,7 @@
 // Sheets on the kit `BottomSheet` (spec 17 §4.1.1, TD-243): the feed filter
 // (FR-FEED-004), the search filter (FR-FEED-017) and the photo source picker
 // (FR-AUTH-011) render their content and actions and dismiss through `onClose`;
-// the filter chips are compact (`sm`) kit `Chip` checkboxes ({{D:design-lead-delegation}}).
+// the filter chips are compact (`sm`) kit `Chip` checkboxes (D99).
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
