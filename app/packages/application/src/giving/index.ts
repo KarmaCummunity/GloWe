@@ -25,3 +25,5 @@ export { ListMyRideRoutesUseCase, SaveRideRouteUseCase, RemoveRideRouteUseCase }
 export type { IRideSavedRoutesRepository } from '../ports/IRideSavedRoutesRepository';
 export { RaiseRideEmergencyUseCase } from './RaiseRideEmergencyUseCase';
 export type { IRideSafetyRepository } from '../ports/IRideSafetyRepository';
+export { FindListingForLegacyRideUseCase } from './FindListingForLegacyRideUseCase';
+export type { IRideLegacyLinkRepository } from '../ports/IRideLegacyLinkRepository';

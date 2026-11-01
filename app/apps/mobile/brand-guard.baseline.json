@@ -1257,66 +1257,6 @@
       "fontWeightLiteral": 4,
       "iconSizeLiteral": 1
     },
-    "src/features/rides/components/MyRequestRow.tsx": {
-      "fontWeightLiteral": 3,
-      "spacingLiteral": 3,
-      "iconSizeLiteral": 1
-    },
-    "src/features/rides/components/MyRideRow.tsx": {
-      "iconSizeLiteral": 5
-    },
-    "src/features/rides/components/PendingRequestRow.tsx": {
-      "fontWeightLiteral": 2,
-      "spacingLiteral": 2,
-      "iconSizeLiteral": 2
-    },
-    "src/features/rides/components/RateeCard.tsx": {
-      "fontWeightLiteral": 2,
-      "rawTextInput": 1,
-      "iconSizeLiteral": 2
-    },
-    "src/features/rides/components/RideAdvancedChips.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 4,
-      "adHocChip": 1,
-      "iconSizeLiteral": 1
-    },
-    "src/features/rides/components/RideCard.tsx": {
-      "fontWeightLiteral": 3,
-      "spacingLiteral": 1
-    },
-    "src/features/rides/components/myRideRow.styles.ts": {
-      "fontWeightLiteral": 4,
-      "spacingLiteral": 4
-    },
-    "src/features/rides/screens/ActiveRideScreen.tsx": {
-      "iconSizeLiteral": 7
-    },
-    "src/features/rides/screens/RateRideScreen.tsx": {
-      "spacingLiteral": 1,
-      "iconSizeLiteral": 1
-    },
-    "src/features/rides/screens/RideDetailScreen.tsx": {
-      "fontWeightLiteral": 2,
-      "spacingLiteral": 1
-    },
-    "src/features/rides/screens/RideListScreen.tsx": {
-      "fontWeightLiteral": 2,
-      "radiusLiteral": 1,
-      "iconSizeLiteral": 2
-    },
-    "src/features/rides/screens/activeRideScreen.styles.ts": {
-      "fontWeightLiteral": 5,
-      "shadowLiteral": 4
-    },
-    "src/features/rides/screens/ridesHubScreen.styles.ts": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 4,
-      "radiusLiteral": 2,
-      "spacingLiteral": 3,
-      "shadowLiteral": 8
-    },
     "src/navigation/nativeHeaderIconOnly.tsx": {
       "spacingLiteral": 1,
       "iconSizeLiteral": 1
