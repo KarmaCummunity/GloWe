@@ -10,6 +10,7 @@ import {
   CREATE_CATEGORIES,
   findCreateCategory,
   isCreateCategoryId,
+  isCreateDirection,
   type CreateCategoryId,
   type CreateDirection,
 } from '../lib/unifiedCreate/createCategories';
@@ -33,8 +34,10 @@ export function useUnifiedCreateCategory(
   type: PostType,
   setType: (t: PostType) => void,
 ) {
-  const params = useLocalSearchParams<{ category?: string | string[] }>();
+  const params = useLocalSearchParams<{ category?: string | string[]; direction?: string | string[] }>();
   const deepLink = firstParam(params.category);
+  // A world screen's "publish request" / "publish offer" also presets the direction (AC7).
+  const deepLinkDirection = firstParam(params.direction);
   const [categoryId, setCategoryId] = useState<CreateCategoryId>(
     isCreateCategoryId(deepLink) ? deepLink : DEFAULT_CREATE_PREFERENCES.categoryId,
   );
@@ -62,12 +65,14 @@ export function useUnifiedCreateCategory(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  // A deep link that arrives while the tab is already mounted switches the category.
+  // A deep link (also one that arrives while the tab is already mounted) switches the
+  // category, and the direction when the link carries one.
   useEffect(() => {
     if (!isCreateCategoryId(deepLink)) return;
     setCategoryId(deepLink);
+    if (isCreateDirection(deepLinkDirection)) setTypeRef.current(directionToPostType(deepLinkDirection));
     setReady(true);
-  }, [deepLink]);
+  }, [deepLink, deepLinkDirection]);
 
   const direction = postTypeToDirection(type);
 

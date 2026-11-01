@@ -1,0 +1,27 @@
+# A giving world's screen: the מחפש / מציע toggle switches the feed and its publish button,
+# and the button opens the create form preset to the world and direction.
+# Spec: docs/SSOT/spec/06_feed_and_search.md FR-FEED-020 AC2; docs/spec/04_product_structure.md "World hub template".
+appId: org.karmacommunity.app
+name: Worlds — world feed toggle and publish
+tags: [worlds]
+---
+- runFlow: ../subflows/sign-in.yaml
+- openLink: karmacommunity://donations/items
+- extendedWaitUntil:
+    visible:
+      id: world-feed-mode-seeker
+    timeout: 20000
+- assertVisible:
+    id: world-feed-search
+- assertVisible: "פרסום בקשה"
+- tapOn:
+    id: world-feed-mode-offerer
+- assertVisible: "פרסום הצעה"
+- tapOn:
+    id: world-feed-publish
+- extendedWaitUntil:
+    visible:
+      id: unified-create-header
+    timeout: 15000
+- assertVisible:
+    id: create-post-screen

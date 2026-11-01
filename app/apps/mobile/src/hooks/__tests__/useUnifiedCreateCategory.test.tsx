@@ -8,7 +8,7 @@ import type { PostType } from '@kc/domain';
 import { ThemeProvider } from '@kc/ui';
 
 const mocks = vi.hoisted(() => ({
-  params: {} as { category?: string | string[] },
+  params: {} as { category?: string | string[]; direction?: string | string[] },
   load: vi.fn(),
   save: vi.fn(),
 }));
@@ -99,5 +99,19 @@ describe('useUnifiedCreateCategory', () => {
       'create-category-time',
     ]);
     expect(screen.getByTestId('create-category-rides').getAttribute('aria-checked')).toBe('true');
+  });
+
+  // FR-POST-001 AC7: a world screen link presets the direction, winning over the stored one.
+  it('a deep link with a direction opens on that direction', async () => {
+    mocks.params = { category: 'food', direction: 'request' };
+    await renderHarness();
+    expect(state()).toBe('food/request');
+    expect(mocks.load).not.toHaveBeenCalled();
+  });
+
+  it('ignores an unknown direction in the link', async () => {
+    mocks.params = { category: 'time', direction: 'sideways' };
+    await renderHarness();
+    expect(state()).toBe('time/give');
   });
 });

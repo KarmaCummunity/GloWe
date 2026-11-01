@@ -501,11 +501,12 @@ The main feed shows open posts of **every** create category (items, rides, food,
 **Source.** PM request 2026-11-01 (create-form cleanup); `docs/spec/07_cross_cutting_systems.md` §7.3; `D-206` (feed mirror).
 
 **Acceptance Criteria.**
-- AC1. ⏳ A published open listing of rides, housing or time appears in the main feed like items and food do today (`worlds.feed_mirror`, migration `0466`), and opening it from the feed opens the listing detail.
-- AC2. ⏳ Each active world screen (items, rides, food, housing, time) shows: search within the world, a "request" and an "offer" button that open the create form preset to that category and direction, and the world's feed of open offers and requests (subcategory + distance refinements where the world has them, `BrowseRefineChips`), plus the world's own sub-screens (my handoffs, my rides, shifts…).
-- AC3. ⏳ A world whose launch flag is off stays a portal (D60) and shows no feed.
+- AC1. A published open listing of rides, housing or time appears in the main feed like items and food (`worlds.feed_mirror`, migrations `0466` + `0522`), and opening it from the feed opens the listing detail.
+- AC2. *({{D:world-feed-seeker-offerer}})* The screen of each active world with a create form (items, food, time) opens with search within the world and a **מחפש / מציע** toggle over the world's feed. *מחפש* lists the world's open offers and shows "publish request"; *מציע* lists its open requests and shows "publish offer". Each button opens the create form preset to the world and direction (`createRouteFor(world, direction)`). Items and food add the subcategory + distance refinements (`BrowseRefineChips`). The world's own sub-screens stay one tap away (my handoffs; time: my shifts, organisation opportunities, organiser tools, contact).
+- AC3. Rides keep their single feed of offers and requests sorted by departure (D75) and show both "publish request" and "publish offer".
+- AC4. A world whose launch flag is off stays a portal (D60) and shows no feed. Time is switched on (`0522`; product book §5.4 "MVP, live"); housing stays a portal until ID verification ships ({{D:housing-gated-until-id}}).
 
-**Related.** `FR-POST-001` AC6, `FR-DONATE-001` AC6, `FR-RIDE-*`, backlog `FEED-WORLDS`.
+**Related.** `FR-POST-001` AC6–AC7, `FR-DONATE-001` AC6, `FR-RIDE-*`, backlog `FEED-WORLDS`.
 
 ---
 
@@ -514,4 +515,5 @@ The main feed shows open posts of **every** create category (items, rides, food,
 | 0.1 | 2026-05-05 | Initial draft from PRD §3.3.1–§3.3.2 and Decisions D-8, D-9, D-15. |
 | 0.2 | 2026-05-09 | Added `FR-FEED-016` (Search hub placeholder) per `D-16`. |
 | 0.3 | 2026-05-11 | P1.2 sweep: deprecated `FR-FEED-003, 007, 013`; reworked `FR-FEED-004, 006, 015`; extended `FR-FEED-005, 008, 014`; superseded `FR-FEED-016` (now Universal Search engine); added `FR-FEED-018` (shared filter vocabulary) and `FR-FEED-019` (cities-geo lookup). |
+| 0.5 | 2026-11-01 | `FR-FEED-020` specified: feed mirror for rides / time / housing, the world screen's search + מחפש / מציע toggle, rides keep D75 with both buttons, time switched on, housing stays a portal. |
 | 0.4 | 2026-11-01 | Added `FR-FEED-020` (main feed of every create category + a feed, search and request / offer entry per giving world) — planned. |

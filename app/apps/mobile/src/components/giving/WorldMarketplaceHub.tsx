@@ -24,11 +24,11 @@ const useStyles = makeUseStyles(({ colors }) => ({
   empty: { ...worldHubBaseStyles(colors).rowMeta, padding: spacing.lg, textAlign: 'center' as const },
 }));
 
-export type HubWorldSlug = 'rides' | 'knowledge' | 'items' | 'food';
+export type HubWorldSlug = 'rides' | 'knowledge' | 'items' | 'food' | 'time';
 
 export type WorldMarketplaceHubProps = {
   worldSlug: HubWorldSlug;
-  icon: 'car-outline' | 'school-outline' | 'gift-outline' | 'restaurant-outline';
+  icon: 'car-outline' | 'school-outline' | 'gift-outline' | 'restaurant-outline' | 'time-outline';
   introKey: string;
   /** i18n key for the create link (default `marketplace.createListing`). */
   createLabelKey?: string;
@@ -90,11 +90,14 @@ export function WorldMarketplaceHub({
   );
 }
 
-export type WorldHubHeaderProps = Omit<WorldMarketplaceHubProps, 'rowMeta'>;
+export type WorldHubHeaderProps = Omit<WorldMarketplaceHubProps, 'rowMeta'> & {
+  /** False inside a world feed, whose own publish buttons replace the create link (FR-FEED-020). */
+  readonly showCreateLink?: boolean;
+};
 
 /** The hub's top: intro, my-handoffs and create links, optional extra content, curated links. */
 export function WorldHubHeader({
-  worldSlug, icon, introKey, createLabelKey, linksCategory, handoffsPath, headerExtra,
+  worldSlug, icon, introKey, createLabelKey, linksCategory, handoffsPath, headerExtra, showCreateLink = true,
 }: WorldHubHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -111,9 +114,11 @@ export function WorldHubHeader({
             <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
           </Pressable>
         ) : null}
-        <Pressable onPress={() => router.push(createRouteFor(worldSlug))}>
-          <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
-        </Pressable>
+        {showCreateLink ? (
+          <Pressable onPress={() => router.push(createRouteFor(worldSlug))}>
+            <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
+          </Pressable>
+        ) : null}
       </View>
       {headerExtra}
       {linksCategory ? (

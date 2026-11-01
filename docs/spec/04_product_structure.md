@@ -50,7 +50,7 @@ Every world is a deep hub, not just a feed. One infrastructure; each world defin
 
 | Block | Contents |
 |---|---|
-| 1. World feed | Same feed & controls as main (D5, D27) |
+| 1. World feed | Same feed & controls as main (D5, D27). On top: search within the world and the **מחפש / מציע** toggle — *מחפש* lists the world's offers with a "publish request" button, *מציע* lists its requests with a "publish offer" button, each opening the create form preset to the world and direction ({{D:world-feed-seeker-offerer}}) |
 | 2. Knowledge screens | Guides, professional content |
 | 3. Org directory | Search/filter/sort; proper-management badge (S35); link approval (D9) |
 | 4. Practical info | Points, phones, services |

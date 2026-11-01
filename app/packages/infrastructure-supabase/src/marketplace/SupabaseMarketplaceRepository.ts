@@ -20,6 +20,7 @@ import type { Database } from '../database.types';
 import { mapListingDetail } from './mapListingDetail';
 import { searchExternalBodies } from './mapExternalBody';
 import { listWorldSubcategories } from './listWorldSubcategories';
+import { canPublishInWorld } from './canPublishInWorld';
 import * as handoffs from './givingHandoffs';
 import * as paging from './marketplacePaging';
 import { mapPinRow } from './mapPinRow';
@@ -140,6 +141,8 @@ export class SupabaseMarketplaceRepository implements IMarketplaceRepository {
     searchExternalBodies(this.client, worldSlug, query, limit);
 
   listWorldSubcategories = (worldSlug: string) => listWorldSubcategories(this.client, worldSlug);
+
+  canPublishInWorld = (worldSlug: string) => canPublishInWorld(this.client, worldSlug);
 
   async getListingCard(listingId: string): Promise<MarketplaceBrowseRow | null> {
     const { data, error } = await this.client

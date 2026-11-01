@@ -85,6 +85,11 @@ export interface IMarketplaceRepository {
   listKindsForWorld(worldSlug: string): Promise<ListingKindOption[]>;
   /** Active subcategories of a giving world, in display order (KC#1296). */
   listWorldSubcategories(worldSlug: string): Promise<WorldSubcategory[]>;
+  /**
+   * Whether the signed-in member may publish in the world (server rule: world permission,
+   * ID verification for housing — D30). True when unknown; the server still enforces it.
+   */
+  canPublishInWorld(worldSlug: string): Promise<boolean>;
   /** Active + verified organisations for a routed world (search_external_bodies). */
   searchExternalBodies(worldSlug: string, query?: string | null, limit?: number): Promise<ExternalBodyOption[]>;
   createListing(input: {
