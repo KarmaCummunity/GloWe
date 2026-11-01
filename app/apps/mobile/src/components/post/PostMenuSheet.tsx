@@ -1,17 +1,15 @@
 // FR-POST-014 AC4 + FR-POST-015 AC1 + FR-ADMIN-006 + FR-ADMIN-009.
 // Bottom-sheet menu opened from PostMenuButton on PostDetail.
 // The frame, dismissal and motion come from the kit `BottomSheet` (spec 17 §4.1).
-import { useState, type ComponentProps } from 'react';
+import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { container } from '../../lib/container';
-import { Pressable, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { PostWithOwner } from '@kc/application';
-import { iconSize, makeUseStyles, spacing, typography, useTheme, Text } from '@kc/ui';
-import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
-import { webTextRtl } from '../../lib/webRtlStyle';
+import { makeUseStyles, spacing } from '@kc/ui';
 import { BottomSheet } from '../ui/BottomSheet';
+import { SheetActionRow } from '../ui/SheetActionRow';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { ReportPostModal } from './ReportPostModal';
 import { usePostMenuActions } from '../../hooks/usePostMenuActions';
@@ -38,7 +36,6 @@ interface Props {
 }
 
 type ActiveModal = null | 'delete-owner' | 'admin-remove' | 'report';
-type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 export function PostMenuSheet({
   visible,
@@ -56,7 +53,6 @@ export function PostMenuSheet({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const showToast = useFeedSessionStore((st) => st.showEphemeralToast);
-  const { colors } = useTheme();
   const styles = usePostMenuSheetStyles();
   const [active, setActive] = useState<ActiveModal>(null);
   const { busy, error, clearError, handleOwnerDelete, handleAdminRemove } =
@@ -84,7 +80,7 @@ export function PostMenuSheet({
       <BottomSheet visible={visible} onDismiss={onClose}>
         <View style={[styles.actionsGroup, showExposureBlock && styles.actionsGroupBordered]}>
           {showShareInMenu && canShare ? (
-            <MenuItem
+            <SheetActionRow
               icon="share-outline"
               label={t('post.menuShare')}
               disabled={shareBusy}
@@ -96,7 +92,7 @@ export function PostMenuSheet({
             />
           ) : null}
           {!isOwner ? (
-            <MenuItem
+            <SheetActionRow
               icon="eye-off-outline"
               label={t('post.menuHideFromFeed')}
               onPress={() => {
@@ -108,7 +104,7 @@ export function PostMenuSheet({
             />
           ) : null}
           {!isOwner && viewerId ? (
-            <MenuItem
+            <SheetActionRow
               icon="volume-mute-outline"
               label={t('feedSettings.menuMuteUser')}
               onPress={() => {
@@ -122,15 +118,14 @@ export function PostMenuSheet({
             />
           ) : null}
           {isOwner ? null : (
-            <MenuItem
+            <SheetActionRow
               icon="flag-outline"
-              iconColor={colors.error}
               label={t('post.report')}
-              labelColor={colors.error}
+              destructive
               onPress={() => openModal('report')}
             />
           )}
-          <MenuItem
+          <SheetActionRow
             icon={isSaved ? 'bookmark' : 'bookmark-outline'}
             label={isSaved ? t('post.menuUnsave') : t('post.menuSave')}
             disabled={saveBusy}
@@ -141,7 +136,7 @@ export function PostMenuSheet({
             }}
           />
           {canEditPost ? (
-            <MenuItem
+            <SheetActionRow
               icon="create-outline"
               label={t('post.menuEdit')}
               onPress={() => {
@@ -151,20 +146,18 @@ export function PostMenuSheet({
             />
           ) : null}
           {isOwner ? (
-            <MenuItem
+            <SheetActionRow
               icon="trash-outline"
-              iconColor={colors.error}
               label={t('post.menuDelete')}
-              labelColor={colors.error}
+              destructive
               onPress={() => openModal('delete-owner')}
             />
           ) : null}
           {isSuperAdmin ? (
-            <MenuItem
+            <SheetActionRow
               icon="shield-outline"
-              iconColor={colors.error}
               label={t('post.menuAdminRemove')}
-              labelColor={colors.error}
+              destructive
               onPress={() => openModal('admin-remove')}
             />
           ) : null}
@@ -204,46 +197,6 @@ export function PostMenuSheet({
   );
 }
 
-interface MenuItemProps {
-  readonly icon?: IoniconName;
-  readonly label: string;
-  readonly iconColor?: string;
-  readonly labelColor?: string;
-  readonly destructive?: boolean;
-  readonly disabled?: boolean;
-  readonly onPress: () => void;
-}
-
-function MenuItem({
-  icon,
-  label,
-  iconColor,
-  labelColor,
-  destructive,
-  disabled,
-  onPress,
-}: MenuItemProps) {
-  const { colors } = useTheme();
-  const styles = usePostMenuSheetStyles();
-  const resolvedIconColor = iconColor ?? colors.textPrimary;
-  let resolvedLabelColor = colors.textPrimary;
-  if (labelColor) resolvedLabelColor = labelColor;
-  else if (destructive) resolvedLabelColor = colors.error;
-
-  return (
-    <Pressable
-      style={[styles.item, disabled && styles.itemDisabled]}
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: Boolean(disabled) }}
-    >
-      <Text style={[styles.itemLabel, { color: resolvedLabelColor }]}>{label}</Text>
-      {icon ? <Ionicons name={icon} size={iconSize.xl} color={resolvedIconColor} /> : null}
-    </Pressable>
-  );
-}
-
 const usePostMenuSheetStyles = makeUseStyles(({ colors }) => ({
   actionsGroup: {
     paddingTop: spacing.xs,
@@ -251,20 +204,5 @@ const usePostMenuSheetStyles = makeUseStyles(({ colors }) => ({
   actionsGroupBordered: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // No side padding: the sheet surface already holds the gutter.
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
-    minHeight: 48,
-  },
-  itemDisabled: { opacity: 0.5 },
-  itemLabel: {
-    ...typography.body,
-    textAlign: rtlTextAlignStart,
-    flex: 1,
-    ...webTextRtl,
   },
 }));
