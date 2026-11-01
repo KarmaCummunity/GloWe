@@ -84,6 +84,7 @@ export function mapPostRow(row: PostJoinedRow): Post {
       : null,
     reopenCount: row.reopen_count,
     listingId: row.listing_id ?? null,
+    listingWorldSlug: row.listing_world_slug ?? null,
     deleteAfter: row.delete_after,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

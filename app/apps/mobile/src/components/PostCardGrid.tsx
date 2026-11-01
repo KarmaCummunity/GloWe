@@ -1,7 +1,6 @@
 // app/apps/mobile/src/components/PostCardGrid.tsx
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import { he as dateFnsHe } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -17,19 +16,7 @@ import { KcCard } from './cards/KcCard';
 import { usePostCardGridStyles } from './PostCardGrid.styles';
 import { finishMark } from '../lib/observability/perfMarks';
 import { cleanDisplayTitle } from '../lib/displayTitle';
-
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
-const CATEGORY_ICON: Record<string, IoniconName> = {
-  Furniture: 'bed-outline',
-  Clothing: 'shirt-outline',
-  Books: 'book-outline',
-  Toys: 'game-controller-outline',
-  BabyGear: 'happy-outline',
-  Kitchen: 'restaurant-outline',
-  Sports: 'football-outline',
-  Electronics: 'phone-portrait-outline',
-  Tools: 'construct-outline',
-}
+import { feedCardCategory } from '../lib/feedCardCategory';
 
 // The menu sits on the image scrim, which is dark in both themes, so the icon is always white.
 const OVERLAY_ICON = avatarPalette.foreground;
@@ -72,6 +59,8 @@ function PostCardGridInner({
   const cardWidth = usePostGridCardWidth(columns, gap);
   const isProfileGrid = columns === PROFILE_GRID_COLUMNS;
   const isGive = post.type === 'Give';
+  // A rides / food / housing / time listing shows its world rather than the "Other" category.
+  const cardCategory = feedCardCategory(post);
 
   const timeAgo = React.useMemo(
     () => formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateFnsHe }),
@@ -139,7 +128,7 @@ function PostCardGridInner({
       imageUri={thumbUrl}
       fallbackUri={fullUrl}
       onImageLoad={onImageLoadOnce}
-      placeholderIcon={CATEGORY_ICON[post.category] ?? (isGive ? 'gift-outline' : 'hand-left-outline')}
+      placeholderIcon={cardCategory.icon}
       tone={isGive ? 'give' : 'request'}
       badgeLabel={isGive ? t('feed.giveTypeShort') : t('feed.requestTypeShort')}
       roleBadgeLabel={roleBadgeLabel}
@@ -155,7 +144,7 @@ function PostCardGridInner({
           indicatorStyle={styles.translatingIndicator}
         />
       }
-      chip={t(`post.category.${post.category}`)}
+      chip={t(cardCategory.chipKey)}
       location={locationText}
       timeAgo={timeAgo}
       closed={post.status !== 'open'}

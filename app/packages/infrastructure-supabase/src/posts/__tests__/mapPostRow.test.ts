@@ -64,6 +64,11 @@ describe('mapPostRow (TD-50)', () => {
     expect(mapPostRow(makeRow()).listingId).toBeNull();
   });
 
+  it('maps listing_world_slug → listingWorldSlug, null when absent (FR-FEED-020)', () => {
+    expect(mapPostRow(makeRow({ listing_id: 'l_1', listing_world_slug: 'rides' })).listingWorldSlug).toBe('rides');
+    expect(mapPostRow(makeRow()).listingWorldSlug).toBeNull();
+  });
+
   it('maps each media asset bucket, defaulting to post-images (D-206)', () => {
     const row = makeRow({
       media_assets: [
