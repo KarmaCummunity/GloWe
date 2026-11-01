@@ -25,7 +25,15 @@ describe('resolvePushRoute', () => {
     ).toEqual({ pathname: '/settings/follow-requests', params: {} });
   });
 
-  it.each(['listing_expiring', 'listing_expired'] as const)('routes %s to the listing (KC#1316)', (kind) => {
+  it.each([
+    'listing_expiring',
+    'listing_expired',
+    'ride_booking_requested',
+    'ride_booking_confirmed',
+    'ride_booking_declined',
+    'ride_booking_expired',
+    'ride_booking_cancelled',
+  ] as const)('routes %s to the listing (KC#1316, D73)', (kind) => {
     expect(
       resolvePushRoute({ category: 'critical', kind, notification_id: 'n9', params: { listingId: UUID } }),
     ).toEqual({ pathname: '/(tabs)/donations/marketplace/[listingId]', params: { listingId: UUID } });

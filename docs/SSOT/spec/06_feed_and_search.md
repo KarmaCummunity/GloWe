@@ -128,8 +128,9 @@ of active filters when >0; the old in-feed "X filters active" chip
 - AC2. Filters compose with AND semantics. Sort is independent of filters.
 - AC3. Changes **auto-commit** to the persisted store on every control change
    (chips immediately; search text after `FR-FEED-003` debounce). There is
-   **no** Apply button. "Clear all" resets and immediately commits the cleared
-   state. Sheet `maxHeight` is ~55–60% (compact density pass).
+   **no** Apply button. "Clear all" (the sheet footer action) resets and
+   immediately commits the cleared state. Sheet `maxHeight` is ~55–60%
+   (compact density pass; the kit `BottomSheet` `maxHeight`, spec 17 §4.1).
 - AC4. The same filter vocabulary (post-shape) is available on the Universal
    Search tab via the shared design (`FR-FEED-018`). The Search tab keeps its
    additional dimensions (`resultType`, `donationCategory`, etc.) in its own
@@ -327,7 +328,7 @@ The original AC contract is preserved in the TopBar badge:
 - visibility: shown when `activeCount > 0` (AC1 equivalent)
 - discoverability: tapping opens the filter sheet (AC2 equivalent)
 - count: rendered numerically up to 9, then `9+` (AC3 equivalent;
-  "Clear all" moves inside the sheet header).
+  "Clear all" moves inside the filter sheet, in its footer — spec 17 §4.1).
 
 ---
 

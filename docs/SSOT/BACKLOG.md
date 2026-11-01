@@ -58,11 +58,11 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled; unapproved bookings expire (S45). | agent-fullstack | ⏳ Planned | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
-| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (S47); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. Shipped: `0512`/`0513`, `RidePlaceField`, server-side place guard. | agent-fullstack | ✅ Done | §5.3 · G45 |
+| RIDES-G47 | **Driver bookings + push.** Driver sees and approves/declines every booking on a ride; push on booked / approved / declined / cancelled / expired; unapproved bookings expire (D96). Shipped: `0511` + `RideBookingActions`; rides world flag on. | agent-fullstack | ✅ Done | `docs/spec/05_giving_worlds.md` §5.3 · G47 |
+| RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (D98); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. Shipped: `0512`/`0513`, `RidePlaceField`, server-side place guard. | agent-fullstack | ✅ Done | §5.3 · G45 |
 | RIDES-G46 | **Map + navigate.** Ride route on the map; "navigate" to Waze / Google Maps / Apple Maps for every ride place. | agent-fe | ✅ Done | §5.3 · G46 |
-| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (S46); feed of offers + requests by departure, departed hidden. | agent-fullstack | 🟡 In progress | §5.3 · G49 |
-| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (S44). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
+| RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (D97); feed of offers + requests by departure, departed hidden. | agent-fullstack | 🟡 In progress | §5.3 · G49 |
+| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (D95). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
 | RIDES-G44 | **One rides flow.** Retire legacy `ride_listings` screens; move emergency button + cost caps onto the one flow. | agent-fullstack | ⏳ Planned | §5.3 · G44 |
 
 ## FINANCE — Org finance & transparency (`spec/19_org_finance.md`)
@@ -80,6 +80,13 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 | ORG-P1 | **Phase 1 — One entity, registration, public profile, act-as.** Extend `organizations` + `users.account_type/org_id`; fold `org_applications` → `org_registrations` and `external_bodies` → unclaimed organizations (compat view, TD-229); registration wizard + admin approval creating the organization account; `/org/[slug]` profile + edit + slug redirects; follows for/by organizations; profile switcher + `can_act_as_org`; `listings.author_org_id`; money nonprofit page folded into the Donate tab. Migrations `0490–0499`. | agent-fullstack | ⏳ Planned | `spec/20_organizations.md` FR-ORG-001..010 |
 | ORG-P2 | **Phase 2 — Team, activity, discovery, inbox.** Team tab (opt-in), activity tabs, impact metrics RPC, Search "ארגונים" parent filter + sub-filters replacing hub directories and `list_verified_nonprofits`, organization inbox (`chats.org_id`), org notifications. Remove `get_nonprofit_public_page` (TD-230). Migrations `0500–0505`. | agent-fullstack | ⏳ Planned | `spec/20_organizations.md` FR-ORG-011..016 |
 | ORG-P3 | **Phase 3 — Claiming, enrichment, badges, transparency.** `org_claims` + admin tab, Registrar open-data mirror + lookup (S35), verification-level badges + admin RPC, transparency tab mounting FR-FIN-020. Needs the organization terms addendum text from the PM (spec O3). Migrations `0506–0509`. | agent-fullstack | ⏳ Planned | `spec/20_organizations.md` FR-ORG-017..020 |
+
+## UI — Shared kit (`docs/spec/17_brand_and_design_system.md` §4.1, epic #1061)
+
+| ID | Task | Owner | Status | Spec |
+|----|------|-------|--------|------|
+| UI-KIT-1 | **Phase 1 — `Modal`, `BottomSheet`, `Chip`, sized buttons.** Kit components on tokens with tests; brand guard `rawModal` made import-aware and `adHocChip` added; migration inventory in spec 17 §4.1.1. Adds `DangerButton` for destructive actions (D94). PM approved the look 2026-11-01. | agent-fe | ✅ Done | §4.1 · #1284 #1285 #1286 |
+| UI-KIT-2 | **Phase 2 — migrate screens onto the kit**, one area per PR (sheets, dialogs, chips, CTAs), lowering the brand-guard baseline each time. Sheets: 8 of 9 sheet components on `BottomSheet` (`SearchablePicker` deferred). Dialogs: 13 of 14 centred dialogs on `Modal` (`LegalConsentScreen` exit confirm waits for `LegalConsentGate`). Chips: 7 of 8 exported and all 3 local chip components on `Chip` (`ChatReactionChips` kept: a reaction counter, not a kit chip). See `TD-243`. | agent-fe | 🟡 In progress | §4.1.1 · `TD-243` |
 
 ## Deferred (post-MVP, still tracked)
 
