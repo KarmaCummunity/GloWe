@@ -59,7 +59,7 @@ export function useFocusTitleOnOpen(visible: boolean, titleRef: React.RefObject<
  * Dimmed layer behind the surface. Tapping it dismisses (when allowed). It is
  * hidden from assistive tech: the close control is the accessible way out.
  */
-export function OverlayBackdrop({ onPress, testID }: { onPress: () => void; testID?: string }) {
+export function OverlayBackdrop({ onPress, testID }: Readonly<{ onPress: () => void; testID?: string }>) {
   const styles = useOverlayStyles();
   return (
     <Pressable
