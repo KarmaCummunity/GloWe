@@ -103,7 +103,7 @@ describe('kit buttons', () => {
   });
 });
 
-describe('DangerButton ({{D:destructive-button}})', () => {
+describe('DangerButton (D94)', () => {
   it('fills with the error token and labels in textInverse, in both palettes', () => {
     for (const [scheme, palette] of [['light', lightColors], ['dark', darkColors]] as const) {
       const onPress = vi.fn();

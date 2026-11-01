@@ -48,7 +48,7 @@ export const useButtonStyles = makeUseStyles(({ colors, isDark }) => ({
   size_sm: { height: BUTTON_HEIGHT.sm, borderRadius: radius.md, paddingHorizontal: spacing.md, gap: spacing.xs },
   fullWidth: { width: '100%' },
   primary: { backgroundColor: colors.primary },
-  // Destructive actions only ({{D:destructive-button}}).
+  // Destructive actions only (D94).
   danger: { backgroundColor: colors.error },
   secondary: {
     backgroundColor: colors.surface,

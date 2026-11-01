@@ -85,8 +85,8 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 
 | ID | Task | Owner | Status | Spec |
 |----|------|-------|--------|------|
-| UI-KIT-1 | **Phase 1 — `Modal`, `BottomSheet`, `Chip`, sized buttons.** Kit components on tokens with tests; brand guard `rawModal` made import-aware and `adHocChip` added; migration inventory in spec 17 §4.1.1. Adds `DangerButton` for destructive actions ({{D:destructive-button}}). PM approved the look 2026-11-01. | agent-fe | ✅ Done | §4.1 · #1284 #1285 #1286 |
-| UI-KIT-2 | **Phase 2 — migrate screens onto the kit**, one area per PR (sheets, dialogs, chips, CTAs), lowering the brand-guard baseline each time. | agent-fe | ⏳ Planned | §4.1.1 · `{{TD:ui-kit-overlay-chip-button-migration}}` |
+| UI-KIT-1 | **Phase 1 — `Modal`, `BottomSheet`, `Chip`, sized buttons.** Kit components on tokens with tests; brand guard `rawModal` made import-aware and `adHocChip` added; migration inventory in spec 17 §4.1.1. Adds `DangerButton` for destructive actions (D94). PM approved the look 2026-11-01. | agent-fe | ✅ Done | §4.1 · #1284 #1285 #1286 |
+| UI-KIT-2 | **Phase 2 — migrate screens onto the kit**, one area per PR (sheets, dialogs, chips, CTAs), lowering the brand-guard baseline each time. | agent-fe | ⏳ Planned | §4.1.1 · `TD-243` |
 
 ## Deferred (post-MVP, still tracked)
 

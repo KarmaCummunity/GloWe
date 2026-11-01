@@ -10,7 +10,7 @@
 //   SecondaryButton — surface card with a light border and the neutral card lift.
 //   GhostButton     — text only, brand-coloured, no fill.
 //   DangerButton    — solid `error` red, inverse text; only for destructive
-//                     actions (delete, block, remove) — {{D:destructive-button}}.
+//                     actions (delete, block, remove) — D94.
 //
 // Sizes (`size`, default `lg` so existing callers keep their look):
 //   lg 56pt · md 48pt · sm 36pt (compact, admin). Every size keeps a 44pt touch
@@ -174,7 +174,7 @@ export function GhostButton(props: ButtonProps) {
 /**
  * Solid red button for a destructive action (delete, block, remove), usually
  * the confirm action of a dialog. Everything else uses `PrimaryButton`
- * ({{D:destructive-button}}).
+ * (D94).
  */
 export function DangerButton(props: ButtonProps) {
   return <Button {...props} variant="danger" />;
