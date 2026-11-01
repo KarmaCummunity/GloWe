@@ -1,7 +1,7 @@
 // A ride place — origin, destination or meeting point — picked only from official catalogs:
 // a city, a street inside a city, or a named junction / interchange
 // (docs/spec/05_giving_worlds.md §5.3 step 2, D71; gap G45). The server re-resolves every
-// place on write (0511), so these helpers only shape what the form sends and reads back.
+// place on write (0512), so these helpers only shape what the form sends and reads back.
 
 export const RIDE_PLACE_KINDS = ['city', 'street', 'junction'] as const;
 export type RidePlaceKind = (typeof RIDE_PLACE_KINDS)[number];

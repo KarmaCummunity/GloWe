@@ -1,4 +1,4 @@
--- 0511_ride_places_catalog.sql | Ride places come only from official catalogs (G45, D71, S47):
+-- 0512_ride_places_catalog.sql | Ride places come only from official catalogs (G45, D71, S47):
 -- the junctions catalog, the picker list, and the canonical-places guard on every ride write.
 -- Names are read from the catalogs (no Hebrew literals outside locale files). Places used:
 -- Tel Aviv 5000, Jerusalem 3000, Ramat Gan 8600, Hadera 6500, Dizengoff St. 5000:404,
@@ -132,7 +132,7 @@ begin
     'too_many_meeting_points', 'a fourth meeting point is refused');
 end $$;
 
--- 6) A build from before 0511 sends only city ids; they are official places too.
+-- 6) A build from before 0512 sends only city ids; they are official places too.
 do $$
 declare
   v_details jsonb;
@@ -146,4 +146,4 @@ end $$;
 
 rollback;
 
-\echo '✓ 0511_ride_places_catalog.sql passed'
+\echo '✓ 0512_ride_places_catalog.sql passed'

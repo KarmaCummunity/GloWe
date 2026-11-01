@@ -6,7 +6,7 @@ import type { Database } from '../database.types';
 type Client = SupabaseClient<Database>;
 type PlaceRow = Database['public']['Functions']['list_ride_places']['Returns'][number];
 
-/** Official ride places over `list_ride_places` (0511; docs/spec/05_giving_worlds.md §5.3, D71). */
+/** Official ride places over `list_ride_places` (0512; docs/spec/05_giving_worlds.md §5.3, D71). */
 export class SupabaseRidePlaceRepository implements IRidePlaceRepository {
   constructor(private readonly client: Client) {}
 

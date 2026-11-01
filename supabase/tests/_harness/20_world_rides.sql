@@ -2,7 +2,7 @@
 -- the ride_offer detail shape the native create form stores (0391 detail schema).
 
 -- Fixed reference route used across rides tests: Tel Aviv → Jerusalem, as official city
--- places (D71, 0511). The canonical-places trigger fills label / lat / lng / city from
+-- places (D71, 0512). The canonical-places trigger fills label / lat / lng / city from
 -- public.cities; the labels here only name the listing title.
 create function kc_test.ride_route_tlv_jlm()
 returns jsonb

@@ -364,7 +364,7 @@ begin
     return;
   end if;
   perform pg_temp.mk_user('00000000-0000-0000-0000-0000004200a7', 'mv2_gil');
-  -- Ride places are official cities (D71, 0511): Tel Aviv 5000, Ramat Gan 8600, Haifa 4000.
+  -- Ride places are official cities (D71, 0512): Tel Aviv 5000, Ramat Gan 8600, Haifa 4000.
   insert into public.listings (owner_id, world_slug, kind_id, direction, title, details, anonymity_level)
   values ('00000000-0000-0000-0000-0000004200a7', 'rides', v_kind_r, 'request', 'Ride Tel Aviv to Haifa',
           jsonb_build_object('origin_place_kind', 'city', 'origin_place_id', '5000', 'dest_place_kind', 'city', 'dest_place_id', '4000',

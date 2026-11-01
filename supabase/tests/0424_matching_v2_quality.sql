@@ -54,7 +54,7 @@ begin
           (select kind_id from public.listing_kinds where world_slug = 'rides'
              and slug = case when p_dir = 'give' then 'ride_offer' else 'ride_request' end),
           p_dir, p_title,
-          -- Ride places must be official (D71, 0511): each end is the city nearest the given point,
+          -- Ride places must be official (D71, 0512): each end is the city nearest the given point,
           -- and the canonical-places trigger stores that city's own coordinates.
           jsonb_strip_nulls(jsonb_build_object(
                              'origin_place_kind', 'city', 'origin_place_id', pg_temp.nearest_city(o_lat, o_lng),
