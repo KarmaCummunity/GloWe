@@ -33,6 +33,7 @@ Archive of rows moved out of [`../TECH_DEBT.md`](../TECH_DEBT.md), which lists *
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-251 | ✅ | **Closed 2026-11-01.** Cancelling the ban confirmation left the ban sheet busy (FR-ADMIN-004). `confirmAndRun` (`components/chat/system/adminActions.ts`) now takes an optional `onCancel`, called when the admin declines the web `confirm`, taps the native cancel button or dismisses the Android alert from outside; `BanUserModal` resets `submitting` there. Regression tests: `kitReportSheets.test.tsx` (ban sheet is enabled again after a cancelled confirm) and `chat/system/__tests__/adminActions.test.ts`. The other callers (chat system bubbles, admin message delete) hold no busy state. | Closed |
 | TD-128 | ✅ | **Closed 2026-10-30.** `SupabaseUserRepository.ts` is 288 lines (under the 300 cap) and no longer allowlisted. The optional `SupabaseUserFollowFacade` extraction is not tracked. Original: file-size allowlist at max:270 with the follow surface ~50% of the file. | Closed |
 | TD-127 | ✅ | **Closed 2026-10-30.** Routing / cold-start cluster. (1) Casts on static route literals removed, route configs typed as `Href`, guard `typedRouteCasts.test.ts` (#1255). (2) Cold-start race: a late restore failure no longer overwrites a live session from the auth subscription; logic extracted to `src/services/coldStartSession.ts` with tests. | Closed |
 | TD-148 | ✅ | **Closed 2026-10-30.** Post-closure system messages (0031 trigger) were shown with their stored Hebrew body. The client now renders them from `system_payload` (`src/lib/chat/systemMessageText.ts`) in the bubble and the inbox preview; the Hebrew body stays only as the fallback for other clients. | Closed |
@@ -56,6 +57,7 @@ Archive of rows moved out of [`../TECH_DEBT.md`](../TECH_DEBT.md), which lists *
 
 | ID | Sev | Item | Closing slice |
 | -- | -- | ---- | ------- |
+| TD-219 | ✅ | **Closed 2026-11-01** (#1067). Security hardening item found while designing the Edge Function smoke; details shared privately. Every deployable function now has a smoke probe. | — |
 | TD-196 | ✅ | **Closed 2026-10-30.** `app/VERSION` is bumped on every merge into `dev` by `.github/workflows/bump-version-on-merge.yml` (first run: 1.5.11 → 1.5.12), so PRs no longer edit it and stop conflicting on that line. A PR that edits the file itself (MINOR/MAJOR) is not auto-bumped. The bump commit is `[skip ci]`, so a deploy shows the previous number until the next merge. | Closed |
 | TD-197 | ✅ | **Closed 2026-10-30.** `AGENT_MERGE_TOKEN` is now set: merges made by agent auto-merge trigger `dev` push workflows (confirmed: `Auto-update PR branches` fired on the push of #1264). Original description: agent auto-merges fell back to `GITHUB_TOKEN`, whose pushes trigger no workflows, so `DB deploy`, `Deploy Web` and `close-issues-on-dev-merge` did not run after an agent merge. | Closed |
 

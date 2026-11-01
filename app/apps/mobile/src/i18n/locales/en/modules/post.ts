@@ -4,11 +4,13 @@
 import { postMenuEn } from './postMenu';
 import { postReportEn } from './postReport';
 import { postEditEn } from './postEdit';
+import { postUnifiedCreateEn } from './postUnifiedCreate';
 
 export const postEn = {
   ...postMenuEn,
   ...postReportEn,
   ...postEditEn,
+  ...postUnifiedCreateEn,
   give: 'Give an item',
   request: 'Request an item',
   title: 'Title',
@@ -212,11 +214,5 @@ export const postEn = {
       support: 'Support',
       thanks: 'Thanks',
     },
-  },
-
-  unifiedCreate: {
-    categoryLabel: 'Category',
-    general: 'General',
-    headline: 'What would you like to post?',
   },
 } as const;

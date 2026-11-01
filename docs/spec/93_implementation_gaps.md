@@ -17,7 +17,7 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G11 | Expiry & reminders (D21) | 07.1 |
 | G12 | Like & reply on comments (D25) | 07.9 |
 | G13 | ID verification, blue check, provider choice (D23) | 07.14 |
-| G14 | Form per type without 'general' (D28) | 07.2 |
+| G14 | 🟡 2026-11-01 — Form per type without 'general' (D28): the create form offers items, rides, food, housing and time, each with its own field set (FR-POST-001 AC6, `listingFieldSpecs.ts`). Open: domain auto-suggest (S39), forms for knowledge / experiences / events | 07.2 |
 | G15 | Recommendation engine & toggle (D27, D34) | 07.3 |
 | G16 | Karma values config (D29) | 07.6 |
 | G17 | 🟡 2026-10-30 — Notification preferences & emergency group (D26, D42). Done: per-type opt-out model `kinds` + "Match suggestions" toggle (FR-NOTIF-017, `0460`). Open: other per-type toggles, per-channel preferences, `emergency` group | 07.11 |
@@ -47,9 +47,9 @@ Spec is clear; code does not match yet. These are **tasks, not contradictions**.
 | G41 | ✅ 2026-10-31 — Edge Functions report errors to Sentry through one shared wrapper (`_shared/observability`, all 19 functions; `D-202`). Operator: set `EDGE_SENTRY_DSN` per environment | architecture §5.2 |
 | G42 | 🟡 2026-10-30 — Health registry (`ops`, migration `0463`) + hourly monitor on dev + prod + GitHub-issue alerts (→ email) with auto-close (D68, D69). Open: WhatsApp channel once live, synthetic web check, WhatsApp outbound checks | architecture §5.2 |
 | G43 | Per-world flow funnel from handoff timestamps | architecture §5.2 |
-| G44 | One rides flow: retire the legacy `ride_listings` screens/routes; move emergency button and cost caps onto the post-based flow (D70) | 05.3 |
-| G45 | Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and meeting points (D71, S47) | 05.3 |
-| G46 | Ride route on the map + "navigate" links (D72) | 05.3 |
-| G47 | Driver sees every booking (today `get_listing_handoff` returns one row) + approve/decline + booking push notifications (none sent today) (D73, S45) | 05.3, 07.11 |
-| G48 | Saved routes + rides urgency rule (D74, S44) | 05.3, 07.11 |
-| G49 | Rides quick publish + rides feed; the form's date-time field uses the native picker in `datetime` mode, which Android and web do not support (D75, S46) | 05.3 |
+| G44 | ✅ 2026-11-01 — One rides flow: cost-sharing caps and the emergency call live on the post-based flow (`0517`); the legacy `ride_listings` screens are retired — old ride links redirect to the ride's listing (`listings.legacy_ride_id`) or the rides hub, old "my rides" lists to my listings (`LegacyRideRedirect`). Leftover legacy layers are tracked in TD-244 (D70) | 05.3 |
+| G45 | ✅ 2026-11-01 — Official places catalog (cities, streets, junctions & interchanges) and one place picker for origin, destination and ≤ 3 meeting points; the server refuses any other place (migrations `0512`/`0513`, tests `supabase/tests/0512_*`, `RidePlaceField`/`RideRouteFields` tests) (D71, D98) | 05.3 |
+| G46 | ✅ 2026-11-01 — Every ride shows its route on the map (origin → meeting points → destination) and every place has "navigate" to Waze / Google Maps / Apple Maps; a street navigates by address (`RideRouteCard`, `RideRouteStops`, `RideRouteMap`, `rideNavigationUrl`) (D72) | 05.3 |
+| G47 | ✅ 2026-11-01 — Driver sees every booking and approves or declines each; unapproved bookings expire; every booking change is a push to the other side (migration `0511`, tests `supabase/tests/0511_*`, `RideBookingActions.test.tsx`) (D73, D96) | 05.3, 07.11 |
+| G48 | ✅ 2026-11-01 — Saved routes (official places, offers or requests, optional weekdays and hours, ≤ 10 per user) and alerts on new rides — origin or a pickup point and destination within the route radius; one alert per person per ride; ≤ 10 a day; held during quiet hours unless the ride leaves before they end (`0516`, tests `supabase/tests/0516_*`, `RideRouteFollow`) (D74, D95) | 05.3, 07.11 |
+| G49 | ✅ 2026-11-01 — Rides quick publish (cross-platform date-time field, departure shortcuts, suggested estimated end, seats 3 within 1–8, remembered route, "publish again", offers close 30 min after their estimated end — `0514`) and the rides feed (offers + requests by departure, grouped today / tomorrow / later, departed hidden — `0515`, `RidesFeedList`) (D75, D97) | 05.3 |

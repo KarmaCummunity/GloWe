@@ -3,16 +3,18 @@
 // grant's org, direct manager and reports (atomic `admin_change_role`), so
 // the person keeps their place in the hierarchy.
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import {
   changeTargetsFor, isAdminRoleError, type AdminGrant, type GrantableAdminRole, type ViewerAuthority,
 } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { useChangeAdminRole } from '../../../hooks/useAdminRoleMutations';
 import { ChoiceChips } from './ChoiceChips';
 import { roleScopeErrorText } from './roleErrors';
-import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
+import { textAlignStart } from '../../../lib/rtlLayout';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
+import { GhostButton, PrimaryButton } from '../../ui/Buttons';
+import { Modal } from '../../ui/Modal';
 
 export interface ChangeRoleModalProps {
   /** The grant being changed; null hides the modal. */
@@ -52,65 +54,51 @@ export function ChangeRoleModal({ grant, orgName, authority, onClose }: ChangeRo
   }
 
   return (
-    <Modal visible={grant !== null} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <Text style={styles.title}>{copy.title}</Text>
-          {grant && <Text style={styles.current}>{copy.current(L.admin.roles[grant.role], orgName)}</Text>}
-          <Text style={styles.hint}>{copy.hint}</Text>
+    <Modal
+      visible={grant !== null}
+      title={copy.title}
+      onDismiss={onClose}
+      footer={
+        <>
+          <PrimaryButton
+            label={copy.submit}
+            size="md"
+            fullWidth
+            disabled={!canSubmit}
+            loading={change.isPending}
+            onPress={() => { void submit(); }}
+          />
+          <GhostButton label={copy.cancel} size="md" fullWidth onPress={onClose} />
+        </>
+      }
+    >
+      <View style={styles.body}>
+        {grant && <Text style={styles.current}>{copy.current(L.admin.roles[grant.role], orgName)}</Text>}
+        <Text style={styles.hint}>{copy.hint}</Text>
 
-          <Text style={styles.label}>{copy.roleLabel}</Text>
-          {targets.length === 0 ? (
-            <Text style={styles.hint}>{copy.noTargets}</Text>
-          ) : (
-            <ChoiceChips
-              options={targets.map((r) => ({ key: r, label: L.admin.roles[r] }))}
-              selected={role ?? undefined}
-              onSelect={setRole}
-            />
-          )}
+        <Text style={styles.label}>{copy.roleLabel}</Text>
+        {targets.length === 0 ? (
+          <Text style={styles.hint}>{copy.noTargets}</Text>
+        ) : (
+          <ChoiceChips
+            options={targets.map((r) => ({ key: r, label: L.admin.roles[r] }))}
+            selected={role ?? undefined}
+            onSelect={setRole}
+          />
+        )}
 
-          {errorCode !== null && <Text style={styles.errorText}>{roleScopeErrorText(L, errorCode)}</Text>}
-
-          <View style={styles.actions}>
-            <Pressable accessibilityRole="button" style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelBtnText}>{copy.cancel}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
-              disabled={!canSubmit}
-              onPress={() => { void submit(); }}
-            >
-              <Text style={styles.submitBtnText}>{copy.submit}</Text>
-            </Pressable>
-          </View>
-        </View>
+        {errorCode !== null && <Text style={styles.errorText}>{roleScopeErrorText(L, errorCode)}</Text>}
       </View>
     </Modal>
   );
 }
 
 const useStyles = makeUseStyles(({ colors }) => ({
-  overlay:   { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.base },
-  sheet: {
-    backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.base, gap: spacing.sm,
-    width: '100%', maxWidth: 520, alignSelf: 'center',
-  },
-  title:     { ...typography.h4, ...typography.bold, color: colors.textPrimary, textAlign: textAlignStart() },
+  body:      { gap: spacing.sm },
   current:   { ...typography.body, ...typography.semiBold, color: colors.textPrimary, textAlign: textAlignStart() },
   hint:      { ...typography.bodySmall, color: colors.textSecondary, textAlign: textAlignStart() },
   label: {
     ...typography.caption, color: colors.textSecondary, marginTop: spacing.sm, textAlign: textAlignStart(),
   },
   errorText: { ...typography.bodySmall, color: colors.error, textAlign: textAlignStart() },
-  actions:   { flexDirection: rowDirectionStart, justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
-  cancelBtn: { paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderRadius: radius.sm },
-  cancelBtnText: { ...typography.body, ...typography.medium, color: colors.textPrimary },
-  submitBtn: {
-    paddingHorizontal: spacing.base, paddingVertical: spacing.md, borderRadius: radius.sm,
-    backgroundColor: colors.primary,
-  },
-  submitBtnDisabled: { opacity: 0.5 },
-  submitBtnText: { ...typography.body, ...typography.bold, color: colors.textInverse },
 }));

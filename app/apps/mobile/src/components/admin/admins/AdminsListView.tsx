@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { RefreshControl, Switch, View } from 'react-native';
 import { type AdminPerson, groupGrantsByUser } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { useAdminsList } from '../../../hooks/useAdminsList';
 import { rowDirectionStart, textAlignStart } from '../../../lib/rtlLayout';
 import { AdminPersonCard } from './AdminPersonCard';
@@ -68,17 +68,17 @@ function EmptyState() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   fill:        { flex: 1 },
-  toggleRow:   { flexDirection: rowDirectionStart, alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
-  toggleLabel: { fontSize: 13, color: colors.textSecondary },
-  listContent:     { paddingBottom: 24 },
+  toggleRow:   { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.base, paddingBottom: spacing.sm },
+  toggleLabel: { fontSize: typography.bodySmall.fontSize, color: colors.textSecondary },
+  listContent:     { paddingBottom: spacing.xl },
   listContentWide: { width: '100%', maxWidth: 760, alignSelf: 'center' },
   sectionHeader: {
     flexDirection: rowDirectionStart, justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6,
+    paddingHorizontal: spacing.base, paddingTop: spacing.base, paddingBottom: spacing.xs,
   },
-  sectionHeaderText:  { fontSize: 14, fontWeight: '800', color: colors.textPrimary, textAlign: textAlignStart() },
-  sectionHeaderCount: { fontSize: 12, color: colors.textSecondary },
-  empty:      { padding: 32, alignItems: 'center', gap: 8 },
-  emptyTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  emptyHint:  { fontSize: 13, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
+  sectionHeaderText:  { fontSize: typography.body.fontSize, ...typography.extraBold, color: colors.textPrimary, textAlign: textAlignStart() },
+  sectionHeaderCount: { fontSize: typography.bodySmall.fontSize, color: colors.textSecondary },
+  empty:      { padding: spacing['2xl'], alignItems: 'center', gap: spacing.sm },
+  emptyTitle: { fontSize: typography.bodyLarge.fontSize, ...typography.semiBold, color: colors.textPrimary },
+  emptyHint:  { fontSize: typography.bodySmall.fontSize, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
 }));

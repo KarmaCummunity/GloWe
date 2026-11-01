@@ -4,9 +4,10 @@ import { marketplaceMap } from './marketplaceMap';
 // Rides strings (FR-RIDE-*) live in `donations.rides.ts` (architecture file-size cap).
 import { rides } from './donations.rides';
 import { marketplaceErrors } from './donations.marketplaceErrors';
-import { marketplaceBrowseRefine, marketplaceOrgPicker, marketplaceWorldLabels } from './donations.marketplaceExtras';
-import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
+import { marketplaceBrowseRefine, marketplaceWorldLabels } from './donations.marketplaceExtras';
+import { marketplaceAvailabilityLabels, marketplaceFieldLabels, marketplaceListingStatusLabels, marketplaceOptionLabels } from './donations.marketplaceFields';
 import { worldLaunch } from './donations.worldLaunch';
+import { marketplaceMyListings } from './donations.myListings';
 import { worldsHub } from './donations.worldsHub';
 export { moneyPayments } from './donations.moneyPayments';
 export { timeVolunteer } from './donations.timeVolunteer';
@@ -144,8 +145,6 @@ export const donations = {
       unknown: 'Unexpected error. Try again.',
     },
   },
-  marketplaceHubTitle: 'Unified marketplace',
-  marketplaceHubSubtitle: 'Browse all giving worlds in one place',
 } as const;
 
 export const search = {
@@ -238,10 +237,7 @@ export const search = {
 
 export const marketplace = {
   ...marketplaceMap,
-  browseTitle: 'Marketplace',
-  searchPlaceholder: 'Search listings…',
   allWorlds: 'All worlds',
-  openMap: 'Map view',
   createListing: 'Create listing',
   loading: 'Loading…',
   empty: 'No listings match your filters.',
@@ -251,21 +247,12 @@ export const marketplace = {
   shareFeed: 'Share to feed',
   actionFailed: 'That did not go through. Please try again.',
   chatOpener: 'Hi — I saw your listing on the marketplace.',
-  createTitle: 'New {{world}} listing',
   fieldTitle: 'Title',
   fieldSummary: 'Summary',
-  publish: 'Publish',
   publishing: 'Publishing…',
   forYouTitle: 'For you',
-  createHubTitle: 'Choose a giving world',
-  fieldKind: 'Listing type',
   fieldWorldSubcategory: 'Subcategory',
   fieldWorldSubcategoryHint: 'Optional — helps us find matches for you',
-  fieldDirection: 'Give or request',
-  fieldCity: 'City / area',
-  fieldRadius: 'Search radius: {{km}} km',
-  fieldPhotos: 'Photos',
-  fieldPhotosHint: 'Listings with a photo get more responses.',
   validationFailed: 'Please check the form ({{code}}).',
   errors: marketplaceErrors,
   shareLink: 'Share link',
@@ -276,25 +263,11 @@ export const marketplace = {
   profileListingsTitle: 'Marketplace listings',
   profileListingsEmpty: 'No public listings yet.',
   statusClosed: 'Fulfilled',
-  myListingsNav: 'My listings',
-  myListingsTitle: 'My listings',
-  myListingsSubtitle: 'Edit, pause, mark fulfilled, or delete your marketplace posts. Fulfilling earns karma.',
-  myListingsEmpty: 'You have no listings yet.',
-  myListingsEdit: 'Edit',
-  myListingsPause: 'Pause',
-  myListingsResume: 'Resume',
-  myListingsFulfill: 'Mark fulfilled',
-  myListingsFulfillTitle: 'Mark as fulfilled?',
-  myListingsFulfillHint: 'This closes the listing and awards karma for completing a give/request.',
-  myListingsDelete: 'Delete',
-  myListingsDeleteTitle: 'Delete listing?',
-  myListingsDeleteHint: 'This permanently removes the listing.',
-  myListingsSave: 'Save changes',
-  myListingsUpdated: 'Updated {{date}}',
+  ...marketplaceMyListings,
   world: marketplaceWorldLabels,
-  orgPicker: marketplaceOrgPicker,
   browseRefine: marketplaceBrowseRefine,
   field: marketplaceFieldLabels,
   option: marketplaceOptionLabels,
   availability: marketplaceAvailabilityLabels,
+  listingStatus: marketplaceListingStatusLabels,
 } as const;

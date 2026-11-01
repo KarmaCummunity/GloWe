@@ -27,8 +27,8 @@ export const LOCAL_ONLY = new Set(['mock-login']);
  * verifying the JWT (observed on kc-dev 2026-10-30: a GET without auth gets
  * 401 from the gateway, the same OPTIONS reaches the handler), so each status
  * below comes from the handler's own first check — before it reads a body,
- * queries the database or calls anything. `null` = not probed by the smoke
- * (TD-219); its deploy is verified only by `--verify-active`. A new function
+ * queries the database or calls anything. `null` = not probed by the smoke;
+ * its deploy is verified only by `--verify-active`. A new function
  * must be added here (a test enforces it).
  */
 export const SMOKE_PROBES = {
@@ -39,12 +39,12 @@ export const SMOKE_PROBES = {
   'match-rerank': { expect: [405], why: 'method guard (POST only) runs first' },
   'payments-webhook': { expect: [405], why: 'method guard (POST only) runs first' },
   'public-research-submit': { expect: [200], why: 'answers the preflight for the deployed web origin (403 = origin not allowlisted)' },
-  'receipts-issuer': { expect: [400], why: 'empty body has no payment_id; returns before any query' },
+  'receipts-issuer': { expect: [405], why: 'method guard (POST only) runs first' },
   'reconcile-storage-orphans': { expect: [405], why: 'method guard (POST only) runs first' },
   'revenuecat-webhook': { expect: [405], why: 'method guard (POST only) runs first' },
   'rotate-research-salt': { expect: [405], why: 'method guard (POST only) runs first' },
   'strip-exif': { expect: [405], why: 'method guard (POST only) runs first' },
-  'subscriptions-charger': null,
+  'subscriptions-charger': { expect: [405], why: 'method guard (POST only) runs first' },
   translate: { expect: [200], why: 'answers the preflight for the deployed web origin' },
   'validate-donation-link': { expect: [200], why: 'answers the CORS preflight' },
   'whatsapp-intake-worker': { expect: [405], why: 'method guard (POST only) runs first' },

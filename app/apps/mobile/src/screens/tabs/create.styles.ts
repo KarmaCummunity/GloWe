@@ -1,17 +1,10 @@
-import { makeUseStyles, radius, spacing, typography } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, typography } from '@kc/ui';
 import { crossAxisAlignStart, layoutDirectionStyle, layoutWritingDirectionStyle, textAlignStart } from '../../lib/rtlLayout';
-import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
+import { rtlTextAlignEnd, rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
+/** Brand card shadow in light mode; dark mode separates surfaces with borders instead. */
 const cardShadow = (isDark: boolean, shadowColor: string) =>
-  isDark
-    ? { shadowOpacity: 0, elevation: 0 }
-    : {
-        shadowColor,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 1,
-      };
+  isDark ? { shadowOpacity: 0, elevation: 0 } : { ...shadow.card, shadowColor };
 
 export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
   container: { flex: 1, backgroundColor: colors.surfaceCream },
@@ -24,7 +17,7 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
     backgroundColor: 'transparent',
   },
   headerClose: { padding: spacing.xs },
-  headerTitle: { ...typography.h3, color: colors.textPrimary, fontSize: 20, letterSpacing: -0.3 },
+  headerTitle: { ...typography.h3, color: colors.textPrimary, letterSpacing: -0.3 },
   publishBtn: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
@@ -75,7 +68,7 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
     minHeight: 52,
   },
   textarea: { minHeight: 100, textAlignVertical: 'top' as const, paddingTop: spacing.md },
-  charCount: { ...typography.caption, color: colors.textDisabled, textAlign: 'left' as const },
+  charCount: { ...typography.caption, color: colors.textDisabled, textAlign: rtlTextAlignEnd },
   sectionHint: {
     ...typography.caption,
     color: colors.error,
@@ -87,18 +80,10 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
   streetInputStreet: { flex: 2, minWidth: 0 },
   streetInputHouse: { flex: 1, minWidth: 0, maxWidth: 120 },
   chips: { flexDirection: 'row' as const },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: isDark ? 1 : 1.5,
-    borderColor: colors.border,
-    marginLeft: spacing.sm,
-    backgroundColor: colors.surface,
-  },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { ...typography.label, color: colors.textSecondary },
-  chipTextActive: { color: colors.textInverse },
+  /** Wrapping chip row of the listing form. */
+  chipWrap: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.sm },
+  /** Space between the items form's horizontally scrolling subcategory chips. */
+  chipGap: { marginEnd: spacing.sm },
   conditionRow: { flexDirection: 'row' as const, gap: spacing.sm },
   conditionBtn: {
     flex: 1,
@@ -129,7 +114,7 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   exposureAccordionTitle: {
     ...typography.caption,
-    fontWeight: '600' as const,
+    ...typography.semiBold,
     color: colors.textPrimary,
     textAlign: textAlignStart(),
     flex: 1,
@@ -160,7 +145,7 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
   counterpartyPrivacyHeader: { alignItems: crossAxisAlignStart },
   counterpartyPrivacyTitle: {
     ...typography.caption,
-    fontWeight: '600' as const,
+    ...typography.semiBold,
     color: colors.textSecondary,
     textAlign: textAlignStart(),
     ...layoutWritingDirectionStyle(),
@@ -179,7 +164,6 @@ export const useCreatePostStyles = makeUseStyles(({ colors, isDark }) => ({
   },
   counterpartyPrivacyHint: {
     ...typography.caption,
-    fontSize: 11,
     color: colors.textSecondary,
     textAlign: textAlignStart(),
     lineHeight: 16,

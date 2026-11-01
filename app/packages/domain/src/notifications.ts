@@ -36,7 +36,17 @@ export type NotificationKind =
   | 'match_accepted'
   // KC#1316 — food offer expiring within 24 h / expired unclaimed (spec 05 §5.1, S4).
   | 'listing_expiring'
-  | 'listing_expired';
+  | 'listing_expired'
+  // D73 / D96 (0511) — rides on the listing flow: every booking change reaches the other side.
+  | 'ride_booking_requested'
+  | 'ride_booking_confirmed'
+  | 'ride_booking_declined'
+  | 'ride_booking_expired'
+  | 'ride_booking_cancelled'
+  // D74 (0516) — a new ride on a route the user follows.
+  | 'ride_route_match'
+  // D70 (0517) — an emergency raised on a ride of the one rides flow.
+  | 'ride_listing_emergency';
 
 /** Payload attached to every Expo push under `data`. The client reads this on tap. */
 export interface PushData {

@@ -19,6 +19,7 @@ const REQUIRED_PAIRS: readonly RequiredPair[] = [
   { foreground: 'textSecondary', background: 'background', minimum: AA_TEXT, usage: 'secondary text on the backdrop' },
   { foreground: 'textSecondary', background: 'surface', minimum: AA_TEXT, usage: 'secondary text on cards' },
   { foreground: 'textInverse', background: 'primary', minimum: AA_TEXT, usage: 'primary button label' },
+  { foreground: 'textInverse', background: 'error', minimum: AA_TEXT, usage: 'danger button label' },
   { foreground: 'primary', background: 'surface', minimum: AA_LARGE_TEXT_OR_UI, usage: 'brand icons and links on cards' },
   { foreground: 'primary', background: 'background', minimum: AA_LARGE_TEXT_OR_UI, usage: 'brand icons and links on the backdrop' },
   { foreground: 'tabActive', background: 'surface', minimum: AA_LARGE_TEXT_OR_UI, usage: 'active tab glyph' },

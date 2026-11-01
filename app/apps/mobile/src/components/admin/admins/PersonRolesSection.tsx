@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { canRevokeGrant, isAdminRoleError, type AdminGrant } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
 import { useRevokeAdminRole } from '../../../hooks/useAdminRoleMutations';
 import { useGrantAuthority } from '../../../hooks/useGrantAuthority';
 import { useHierarchyPyramid } from '../../../hooks/useHierarchyPyramid';
@@ -64,7 +64,7 @@ export function PersonRolesSection({ userId, personName, grants }: PersonRolesSe
         <Text style={styles.title}>{L.admin.admins.detail.rolesSection}</Text>
         {scopes.length > 0 && (
           <Pressable accessibilityRole="button" onPress={() => setAdding(true)} style={styles.addBtn}>
-            <Ionicons name="add" size={16} color={colors.textInverse} />
+            <Ionicons name="add" size={iconSize.sm} color={colors.textInverse} />
             <Text style={styles.addText}>{team.addRole}</Text>
           </Pressable>
         )}

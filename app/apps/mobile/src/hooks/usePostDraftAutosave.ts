@@ -46,6 +46,7 @@ export function usePostDraftAutosave(input: PostDraftAutosaveInput): void {
     input.ownerId,
     input.isHydrating,
     input.isResumePending,
+    input.isPostCategory,
     input.type,
     input.title,
     input.description,

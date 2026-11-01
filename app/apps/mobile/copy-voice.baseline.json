@@ -4,14 +4,8 @@
     "src/i18n/locales/he/donations.rides.ts": {
       "genderedImperative": 16
     },
-    "src/i18n/locales/he/index.ts": {
-      "genderedImperative": 3
-    },
     "src/i18n/locales/he/modules/aboutContentUxRefreshPartA.ts": {
       "brandWording": 1
-    },
-    "src/i18n/locales/he/modules/admin.ts": {
-      "genderedImperative": 6
     },
     "src/i18n/locales/he/modules/adminAdmins.ts": {
       "genderedImperative": 10

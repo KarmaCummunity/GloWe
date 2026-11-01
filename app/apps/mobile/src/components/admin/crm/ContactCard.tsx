@@ -1,7 +1,7 @@
 // V2-ADMIN-CRM-8 — single CRM contact card.
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { CrmContact } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useLocaleBundle } from '../../../i18n/useLocaleBundle';
 
 export interface ContactCardProps {
@@ -60,28 +60,28 @@ export function ContactCard({ contact, onEdit, onMarkContacted, onDelete }: Cont
 
 const useStyles = makeUseStyles(({ colors }) => ({
   card: {
-    margin: 12, padding: 14, gap: 4,
-    borderRadius: 10, backgroundColor: colors.surface,
+    margin: spacing.md, padding: spacing.md, gap: spacing.xs,
+    borderRadius: radius.sm, backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
   },
   cardHead:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  contactName:  { fontSize: 15, fontWeight: '700', flex: 1, paddingEnd: 8 },
-  statusChip:   { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  contactName:  { fontSize: typography.button.fontSize, ...typography.bold, flex: 1, paddingEnd: spacing.sm },
+  statusChip:   { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs },
   statusChip_cold:     { backgroundColor: colors.secondaryLight },
   statusChip_warm:     { backgroundColor: colors.warningLight },
   statusChip_active:   { backgroundColor: colors.successLight },
   statusChip_inactive: { backgroundColor: colors.border },
-  statusChipText:      { fontSize: 11, fontWeight: '700' },
-  meta:        { fontSize: 12, opacity: 0.7 },
-  notes:       { fontSize: 12, marginTop: 4, opacity: 0.85 },
-  metaRow:     { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  metaSubtle:  { fontSize: 10, opacity: 0.55 },
-  actions:     { flexDirection: 'row', gap: 6, marginTop: 8, justifyContent: 'flex-end' },
-  action:      { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  statusChipText:      { fontSize: typography.caption.fontSize, ...typography.bold },
+  meta:        { fontSize: typography.bodySmall.fontSize, opacity: 0.7 },
+  notes:       { fontSize: typography.bodySmall.fontSize, marginTop: spacing.xs, opacity: 0.85 },
+  metaRow:     { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
+  metaSubtle:  { fontSize: typography.caption.fontSize, opacity: 0.55 },
+  actions:     { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm, justifyContent: 'flex-end' },
+  action:      { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.xs },
   actionMuted: { backgroundColor: colors.secondaryLight },
-  actionText:  { fontSize: 12, fontWeight: '600' },
+  actionText:  { fontSize: typography.bodySmall.fontSize, ...typography.semiBold },
   actionPrimary: { backgroundColor: colors.primary },
-  actionPrimaryText: { fontSize: 12, fontWeight: '700', color: colors.textInverse },
+  actionPrimaryText: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.textInverse },
   actionDanger:  { backgroundColor: colors.errorLight },
-  actionDangerText: { fontSize: 12, fontWeight: '700', color: colors.error },
+  actionDangerText: { fontSize: typography.bodySmall.fontSize, ...typography.bold, color: colors.error },
 }));

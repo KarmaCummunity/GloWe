@@ -1948,7 +1948,7 @@ export type Database = {
         }
         Relationships: []
       }
-      feed_impressions_y2026m10: {
+      feed_impressions_y2026m11: {
         Row: {
           impression_id: string
           post_id: string
@@ -1969,7 +1969,7 @@ export type Database = {
         }
         Relationships: []
       }
-      feed_impressions_y2026m11: {
+      feed_impressions_y2026m12: {
         Row: {
           impression_id: string
           post_id: string
@@ -2501,6 +2501,7 @@ export type Database = {
       }
       giving_handoffs: {
         Row: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -2521,6 +2522,7 @@ export type Database = {
           world_slug: string
         }
         Insert: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           confirm_by?: string | null
           confirmed_at?: string | null
@@ -2541,6 +2543,7 @@ export type Database = {
           world_slug: string
         }
         Update: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           confirm_by?: string | null
           confirmed_at?: string | null
@@ -5448,6 +5451,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -5474,6 +5478,7 @@ export type Database = {
           estimated_value?: number | null
           item_condition?: string | null
           listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string
           owner_id: string
           post_id?: string
@@ -5500,6 +5505,7 @@ export type Database = {
           estimated_value?: number | null
           item_condition?: string | null
           listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string
           owner_id?: string
           post_id?: string
@@ -5538,6 +5544,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_listing_card"
             referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_world_slug_fkey"
+            columns: ["listing_world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -6039,6 +6052,93 @@ export type Database = {
           },
         ]
       }
+      ride_listing_emergencies: {
+        Row: {
+          event_id: string
+          listing_id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          triggered_at: string
+          triggered_by: string
+        }
+        Insert: {
+          event_id?: string
+          listing_id: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          triggered_at?: string
+          triggered_by: string
+        }
+        Update: {
+          event_id?: string
+          listing_id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          triggered_at?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_listing_emergencies_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_listing_emergencies_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ride_listings: {
         Row: {
           arrive_reason: string | null
@@ -6382,6 +6482,161 @@ export type Database = {
           },
         ]
       }
+      ride_route_alerts: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          listing_id: string
+          route_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          listing_id: string
+          route_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          listing_id?: string
+          route_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_route_alerts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "ride_saved_routes"
+            referencedColumns: ["route_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      ride_saved_routes: {
+        Row: {
+          created_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km: number
+          route_id: string
+          time_from: string | null
+          time_to: string | null
+          user_id: string
+          wants: string
+          weekdays: number | null
+        }
+        Insert: {
+          created_at?: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km?: number
+          route_id?: string
+          time_from?: string | null
+          time_to?: string | null
+          user_id?: string
+          wants?: string
+          weekdays?: number | null
+        }
+        Update: {
+          created_at?: string
+          dest_label?: string
+          dest_lat?: number
+          dest_lng?: number
+          dest_place_id?: string
+          dest_place_kind?: string
+          origin_label?: string
+          origin_lat?: number
+          origin_lng?: number
+          origin_place_id?: string
+          origin_place_kind?: string
+          radius_km?: number
+          route_id?: string
+          time_from?: string | null
+          time_to?: string | null
+          user_id?: string
+          wants?: string
+          weekdays?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ride_stops: {
         Row: {
           city_id: string
@@ -6525,6 +6780,39 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      road_junctions: {
+        Row: {
+          junction_id: number
+          kind: string
+          lat: number
+          lng: number
+          name_ar: string | null
+          name_en: string | null
+          name_he: string
+          roads: string | null
+        }
+        Insert: {
+          junction_id: number
+          kind: string
+          lat: number
+          lng: number
+          name_ar?: string | null
+          name_en?: string | null
+          name_he: string
+          roads?: string | null
+        }
+        Update: {
+          junction_id?: number
+          kind?: string
+          lat?: number
+          lng?: number
+          name_ar?: string | null
+          name_en?: string | null
+          name_he?: string
+          roads?: string | null
+        }
+        Relationships: []
       }
       saved_posts: {
         Row: {
@@ -8234,6 +8522,8 @@ export type Database = {
           description: string | null
           estimated_value: number | null
           item_condition: string | null
+          listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string | null
           owner_id: string | null
           post_id: string | null
@@ -8259,6 +8549,8 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string | null
           owner_id?: string | null
           post_id?: string | null
@@ -8284,6 +8576,8 @@ export type Database = {
           description?: string | null
           estimated_value?: number | null
           item_condition?: string | null
+          listing_id?: string | null
+          listing_world_slug?: string | null
           location_display_level?: string | null
           owner_id?: string | null
           post_id?: string | null
@@ -8308,6 +8602,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cities"
             referencedColumns: ["city_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_world_slug_fkey"
+            columns: ["listing_world_slug"]
+            isOneToOne: false
+            referencedRelation: "worlds"
+            referencedColumns: ["slug"]
           },
           {
             foreignKeyName: "posts_owner_id_fkey"
@@ -8786,6 +9101,22 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      admin_match_quality: {
+        Args: { p_days?: number }
+        Returns: {
+          accepted: number
+          chat_pairs: number
+          chat_rate: number
+          completed_pairs: number
+          completion_rate: number
+          notified_pairs: number
+          precision_proxy: number
+          responses: number
+          world_label_en: string
+          world_label_he: string
+          world_slug: string
+        }[]
       }
       admin_org_application_approve: {
         Args: { p_application_id: string; p_note?: string }
@@ -9369,6 +9700,7 @@ export type Database = {
       book_knowledge_slot: {
         Args: { p_listing_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9398,6 +9730,7 @@ export type Database = {
       book_ride_seat: {
         Args: { p_listing_id: string; p_seats?: number }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9474,6 +9807,7 @@ export type Database = {
       cancel_ride_booking: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9527,6 +9861,7 @@ export type Database = {
         Args: { p_signup_id: string }
         Returns: undefined
       }
+      chat_media_path_chat_ids: { Args: { p_name: string }; Returns: string[] }
       check_in_volunteer_shift: { Args: { p_signup_id: string }; Returns: Json }
       check_survey_prompt_eligibility: {
         Args: { p_session_count: number; p_slug: string }
@@ -9539,6 +9874,7 @@ export type Database = {
           p_pickup_window_start?: string
         }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9576,6 +9912,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -9609,6 +9946,7 @@ export type Database = {
       complete_knowledge_session: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9638,6 +9976,7 @@ export type Database = {
       complete_ride_trip: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9671,6 +10010,7 @@ export type Database = {
       confirm_item_handoff: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9700,6 +10040,7 @@ export type Database = {
       confirm_ride_booking: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9857,6 +10198,36 @@ export type Database = {
       }
       cron_feed_cache_worker: { Args: never; Returns: number }
       cron_refresh_feed_open_posts_mv_if_dirty: { Args: never; Returns: number }
+      decline_ride_booking: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancel_reason: string | null
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_account_data: { Args: never; Returns: Json }
       delete_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       drop_feed_impressions_partitions_older_than: {
@@ -10288,6 +10659,45 @@ export type Database = {
           world_slug: string
         }[]
       }
+      list_ride_bookings: {
+        Args: { p_listing_id: string }
+        Returns: {
+          avatar_url: string
+          confirm_by: string
+          handoff_id: string
+          passenger_name: string
+          rated_by_me: boolean
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          status: string
+        }[]
+      }
+      list_ride_places: {
+        Args: never
+        Returns: {
+          city_id: string
+          label: string
+          lat: number
+          lng: number
+          place_id: string
+          place_kind: string
+        }[]
+      }
+      list_rides_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          departs_at: string
+          dest_label: string
+          direction: string
+          listing_id: string
+          meeting_points: number
+          origin_label: string
+          passengers: number
+          seats_left: number
+          title: string
+        }[]
+      }
       list_shift_volunteers: {
         Args: { p_shift_id: string }
         Returns: {
@@ -10393,6 +10803,7 @@ export type Database = {
       mark_giving_handed_over: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -10712,6 +11123,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10747,6 +11159,7 @@ export type Database = {
           estimated_value: number | null
           item_condition: string | null
           listing_id: string | null
+          listing_world_slug: string | null
           location_display_level: string
           owner_id: string
           post_id: string
@@ -10794,6 +11207,7 @@ export type Database = {
           p_pickup_window_start?: string
         }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -10854,8 +11268,37 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ride_booking_copy_key: { Args: { p_kind: string }; Returns: string }
+      ride_bookings_expire_sweep: { Args: never; Returns: number }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
+      ride_cost_share_cap: { Args: { p_details: Json }; Returns: number }
+      ride_details_with_place: {
+        Args: { p_details: Json; p_end: string }
+        Returns: Json
+      }
       ride_food_overdue_alert: { Args: never; Returns: undefined }
+      ride_listing_emergency: {
+        Args: { p_listing_id: string; p_note?: string }
+        Returns: {
+          event_id: string
+          listing_id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          triggered_at: string
+          triggered_by: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ride_listing_emergencies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ride_listing_participants: {
+        Args: { p_listing_id: string }
+        Returns: string[]
+      }
       ride_listings_expire_check: { Args: never; Returns: number }
       ride_listings_find_matches: {
         Args: { p_limit?: number; p_ride_id: string; p_window_hours?: number }
@@ -10960,8 +11403,66 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      ride_matching_routes: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: {
+          created_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km: number
+          route_id: string
+          time_from: string | null
+          time_to: string | null
+          user_id: string
+          wants: string
+          weekdays: number | null
+        }[]
+        SetofOptions: {
+          from: "listings"
+          to: "ride_saved_routes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
+      ride_place_lookup: {
+        Args: { p_id: string; p_kind: string }
+        Returns: {
+          city_id: string
+          label: string
+          lat: number
+          lng: number
+        }[]
+      }
+      ride_point_within: {
+        Args: {
+          p_km: number
+          p_lat: number
+          p_lat2: number
+          p_lng: number
+          p_lng2: number
+        }
+        Returns: boolean
+      }
+      ride_quiet_window_end: {
+        Args: { p_at?: string; p_user: string }
+        Returns: string
+      }
+      ride_route_alert_deliver: {
+        Args: { p_listing_id: string; p_route_id: string }
+        Returns: string
+      }
+      ride_route_alerts_sweep: { Args: never; Returns: number }
       ride_templates_materialize: { Args: never; Returns: number }
+      rides_expired_listings_sweep: { Args: never; Returns: number }
       role_rank: { Args: { p_role: string }; Returns: number }
       rpc_chat_hide_for_viewer: {
         Args: { p_chat_id: string }

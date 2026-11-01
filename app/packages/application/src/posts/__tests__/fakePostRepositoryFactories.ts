@@ -27,6 +27,7 @@ export function makePostWithOwner(overrides: Partial<PostWithOwner> = {}): PostW
     distanceKm: null,
     reopenCount: 0,
     listingId: null,
+    listingWorldSlug: null,
     deleteAfter: null,
     createdAt: '2026-05-08T10:00:00.000Z',
     updatedAt: '2026-05-08T10:00:00.000Z',

@@ -4,11 +4,13 @@
 import { postMenuHe } from './postMenu';
 import { postReportHe } from './postReport';
 import { postEditHe } from './postEdit';
+import { postUnifiedCreateHe } from './postUnifiedCreate';
 
 export const postHe = {
   ...postMenuHe,
   ...postReportHe,
   ...postEditHe,
+  ...postUnifiedCreateHe,
   give: 'לתת חפץ',
   request: 'לבקש חפץ',
   title: 'כותרת',
@@ -212,11 +214,5 @@ export const postHe = {
       support: 'תמיכה',
       thanks: 'תודה',
     },
-  },
-
-  unifiedCreate: {
-    categoryLabel: 'קטגוריה',
-    general: 'כללי',
-    headline: 'מה רוצים לפרסם?',
   },
 } as const;

@@ -8,7 +8,7 @@ const picker = {
 const manipulator = { manipulateAsync: vi.fn(), SaveFormat: { JPEG: 'jpeg' } };
 const storageBucket = {
   upload: vi.fn(),
-  getPublicUrl: vi.fn(() => ({ data: { publicUrl: 'https://cdn/x.jpg' } })),
+  getPublicUrl: vi.fn(),
 };
 const client = { storage: { from: vi.fn(() => storageBucket) } };
 
@@ -51,7 +51,9 @@ describe('uploadChatImageAndSend', () => {
     await uploadChatImageAndSend('c1', 'u1', 'file://a', send);
     expect(client.storage.from).toHaveBeenCalledWith('chat-media');
     expect(storageBucket.upload).toHaveBeenCalledWith('u1/c1/obj-1.jpg', expect.any(Uint8Array), expect.objectContaining({ contentType: 'image/jpeg', upsert: false }));
-    expect(send).toHaveBeenCalledWith({ type: 'image', path: 'u1/c1/obj-1.jpg', url: 'https://cdn/x.jpg', width: 800, height: 600 });
+    expect(send).toHaveBeenCalledWith({ type: 'image', path: 'u1/c1/obj-1.jpg', width: 800, height: 600 });
+    // The bucket is private: no public URL is ever built or stored (#1064).
+    expect(storageBucket.getPublicUrl).not.toHaveBeenCalled();
   });
 
   it('throws when encoding fails', async () => {

@@ -71,7 +71,7 @@ Usage rules for app code (`app/apps/mobile/**`):
 8. Icon sizes come from `iconSize.*` — no numeric `size={N}` on `Ionicons` (§4.2).
 9. Stacking order comes from `zIndex.*` — no raw `zIndex: <number>` (`0` is allowed).
 10. Shadows come from the `shadow.*` presets — no raw `shadowOpacity`, `shadowRadius`, `shadowOffset` or `elevation` numbers (`0`, which switches a shadow off, is allowed).
-11. Form fields use the kit `TextField` (`apps/mobile/src/components/ui/TextField.tsx`) instead of a raw `<TextInput`; a non-form input (chat composer, search bar) carries the allow-marker with its reason. Dialogs: a raw React Native `<Modal` is frozen at its current count until the shared modal exists (GitHub #1284). The UI kit folder (`apps/mobile/src/components/ui/`) is where these wrappers live, so these two rules do not apply there.
+11. Form fields use the kit `TextField` (`apps/mobile/src/components/ui/TextField.tsx`) instead of a raw `<TextInput`; a non-form input (chat composer, search bar) carries the allow-marker with its reason. Dialogs and sheets use the kit `Modal` / `BottomSheet` instead of React Native's own `Modal` (counted only where `Modal` is imported from `react-native`, so the kit `<Modal` never counts). Chips use the kit `Chip` instead of a hand-rolled `chip` style. The UI kit folder (`apps/mobile/src/components/ui/`) is where these wrappers live, so these three rules do not apply there.
 12. A justified exception (e.g. a third-party brand mark that must keep its own colour, or a circle whose radius is half its size) carries an end-of-line comment `brand-guard-allow: <reason>` and is reviewed in the PR.
 
 ### 4.1 Components
@@ -86,12 +86,45 @@ Screens are composed from shared components, not restyled per screen. Use these 
 | Loading placeholder | `Skeleton` | `@kc/ui` |
 | Desktop side column | `AsidePanel`, `useAside` | `@kc/ui` |
 | Screen frame | `Screen` | `apps/mobile/src/components/ui/` |
-| Buttons | `PrimaryButton`, `SecondaryButton`, `GhostButton` | `apps/mobile/src/components/ui/Buttons.tsx` |
+| Buttons | `PrimaryButton`, `SecondaryButton`, `GhostButton`, `DangerButton` | `apps/mobile/src/components/ui/Buttons.tsx` |
+| Chip (filter, status tag, applied value) | `Chip` | `apps/mobile/src/components/ui/Chip.tsx` |
+| Centred dialog | `Modal` | `apps/mobile/src/components/ui/Modal.tsx` |
+| Bottom sheet (menus, pickers, short forms) | `BottomSheet` | `apps/mobile/src/components/ui/BottomSheet.tsx` |
 | Card | `Card` | `apps/mobile/src/components/ui/` |
 | Section title, field label, icon tile, image, date/time field | `SectionHeading`, `FormFieldLabel`, `IconTile`, `KCImage`, `DateTimeField` | `apps/mobile/src/components/ui/` |
 | Avatar | `AvatarInitials` | `apps/mobile/src/components/` |
 
-Not built yet (GitHub epic #1061 / #1021): a shared modal (#1284), bottom sheet, chip/tag, empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+Not built yet (GitHub epic #1061 / #1021): empty state and screen header. Until each exists, new code reuses the closest existing implementation instead of adding another one.
+
+Rules for the kit controls (all on tokens; every interactive control keeps a **44pt touch target**, `MIN_TAP_TARGET`, extending a smaller visual size with `hitSlop`):
+
+| Component | Variants | Sizes | States and behaviour |
+|---|---|---|---|
+| Buttons (#1286) | `PrimaryButton` (solid `primary`), `SecondaryButton` (surface, border, `shadow.card` lift in light), `GhostButton` (text only), `DangerButton` (solid `error`, `textInverse` label — **only** for destructive actions: delete, block, remove; D94) | `size`: `lg` 56pt (default, the full-width CTA), `md` 48pt (cards, dialogs), `sm` 36pt (compact, admin §4.3) | `disabled` and `loading` block presses and fade the button; `loading` keeps the button's width, shows a spinner and is announced as busy. Optional trailing Ionicons glyph (pinned to the edge on `lg`, beside the label on `md` / `sm`). One primary button per screen area; a destructive confirm uses `DangerButton` in its place. |
+| `Chip` (#1285) | `filter` (default: outlined, solid `primary` when `selected`; a checkbox for assistive tech), `tag` (read-only status tinted by `tone`: neutral · brand · info · success · warning · error, plus the unfilled `muted` — a `borderStrong` outline with `textSecondary` text for an inactive value; squarer `radius.sm` corners), `removable` (applied value in the brand tint with a trailing ✕; the whole chip removes it, named by `removeAccessibilityLabel`) | `md` 36pt, `sm` 28pt (compact; every chip in a filter sheet — feed, search, rides — is `sm`) | `selected`, `disabled`; interactive chips are pills at least 44pt wide. Tag text is `textPrimary` on the semantic `*Light` fills (`primary` on `primarySurface` for brand, `textSecondary` for muted), so status never depends on a low-contrast tinted text; every tone is AA in both palettes (tested). Values of one tag group (e.g. a task's status) each get their own look — a different tone, or an icon where the group outgrows the tones. |
+| `Modal` (#1284) | Centred dialog: `surfaceRaised`, `radius.xl`, `shadow.modal` (outlined in dark mode), max 440pt wide | — | Header = title on the reading-start side + ✕ (named "close", 44pt) on the end side; optional `footer` for actions, stacked vertically with the main action first (`md` buttons; a destructive one is a `DangerButton`). |
+| `BottomSheet` (#1284) | Bottom-docked sheet: top corners `radius.xl`, grab handle, scrolling body (`scrollable={false}` for a body with its own list), pinned `footer`; max 640pt wide on tablets / desktop web; `maxHeight` caps a compact sheet that keeps the screen behind it in view (the feed filter, FR-FEED-004) | — | Pads above the home indicator, lifts with the keyboard on iOS, slides up (instant under reduced motion). Secondary sheet actions (e.g. "Clear all") sit in the `footer` under the primary one, not in the header: a filter sheet's footer is the primary "apply" with the ghost "clear all" below it. |
+
+Both overlays dim the screen with `colors.overlay`, stay inside the safe area, and dismiss on backdrop tap, the ✕, Android back and web Escape; `dismissible={false}` makes them blocking (no ✕, all four ignored). On open, VoiceOver / TalkBack focus moves to the title (iOS keeps it inside the surface); on web the dialog element is named by the title and focus is trapped inside. They register with the app's open-modal count, so the legal consent gate waits for them.
+
+#### 4.1.1 Migration list (phase 2 of #1284 / #1285 / #1286)
+
+Screens move onto the kit one area per PR, after the PM approves the look; tracked by `TD-243`. The brand guard keeps each count from growing. Counts as of 2026-10-31; ✅ marks a migrated item (sheets slice, 2026-11-01).
+
+**React Native `Modal` → kit (38 files, 40 uses; guard rule `rawModal`; 6 files, 8 uses left).**
+- Sheet components → `BottomSheet` (9): ✅ `PostFilterSheet/index`, ✅ `SearchFilterSheet`, ✅ `PhotoSourceSheet`, ✅ `closure/ClosureSheet`, ✅ `post/PostMenuSheet`, ✅ `features/rides/sheets/{DriverDeclarationSheet, RideFilterSheet, RideTransportLinksSheet}`. Kept raw for now: `SearchablePicker/SearchablePicker` — a fixed-height (70%) picker whose virtualized list needs a bounded parent and whose search field auto-focuses; the content-sized `BottomSheet` cannot give the list a height yet. Move it once the kit has a fixed-height sheet mode.
+- Other bottom-docked menus and forms → `BottomSheet` (12): ✅ **11 migrated** (menus and forms slice, 2026-11-01): the menus ✅ `ChatActionMenu`, ✅ `DonationLinkRowMenu`, ✅ `profile/{MyProfileOverflowMenu, ProfileOverflowMenu}` are kit `ActionMenuSheet`s of `SheetActionRow`s (a destructive row is tinted `error`; cancel is a ghost button in the footer); ✅ `GuestJoinModal` and ✅ `AddDonationLinkModal` (kit `TextField`s) put the main action first in the footer; the report flows ✅ `ReportChatModal`, ✅ `post/ReportPostModal`, ✅ `marketplace/ReportListingModal`, ✅ `profile/ReportUserModal` share `report/ReportSheet`, and ✅ `profile/BanUserModal` uses its body `report/ReasonNoteSheet` with a `DangerButton` confirm (D94). ⏳ Left: `legal/LegalConsentGate` (its page sheet), together with the `LegalConsentScreen` exit confirm below.
+- Centred dialogs → `Modal` (14): ✅ **13 migrated** (2026-11-01, actions on the kit buttons in `md`: a destructive confirm is a `DangerButton`, D94): `DeleteAccountConfirmModal`, `EnablePushModal`, `HideChatConfirmModal`, `NotifyModal`, `OnboardingSoftGateModal`, `admin/admins/{ChangeRoleModal, GrantRoleModal, ManagerPickerModal}`, `closure/{ClosureExplainerSheet, ReopenConfirmModal}` (the explainer is centred despite its name), `post/ConfirmActionModal`, `profile/KarmaBadge`, `survey/SurveyThankYouModal`. ⏳ **Left: `legal/LegalConsentScreen` (exit confirm).** The kit `Modal` registers with the app's open-modal count, and `LegalConsentGate` defers (unmounts its full-screen consent) while that count is above zero, so opening the exit confirm on the kit would close the consent screen under it. It moves with `LegalConsentGate`, once the gate stops deferring while its own consent screen is up.
+- Full-screen or side surfaces — decide per case, keep raw with the allow-marker if no kit surface fits (3 files, plus the full-screen uses in `LegalConsentGate` / `LegalConsentScreen`): `PostImageViewerModal`, `DeleteAccountSuccessOverlay`, `features/about-landing/AboutNavDrawer`.
+- In the kit: `DateTimeField`'s picker sheet moves onto `BottomSheet`.
+
+**Chip components → `Chip` (8 exported, 3 local, 2 chip groups; plus 40 files with a hand-rolled `chip` style, guard rule `adHocChip`; 30 left).** ✅ marks the chips slice (2026-11-01): 7 of the 8 exported and all 3 local chip components.
+- Exported: ✅ `PostFilterSheet/Chip` (deleted; the feed filter sections render the kit `Chip` directly, `sm` since §8.1), ✅ `search/SearchChip` (now a thin adapter over the kit `Chip`), ✅ `admin/AdminFilterChip` (thin adapter, `sm`), ✅ `admin/tasks/{TaskStatusChip, TaskPriorityChip, TaskCategoryChip}` (thin `sm` tags; `taskTagTones.ts` gives every value in a group its own look, D99: status open neutral, in progress info, blocked warning, done success, archived muted; priority low muted, medium neutral, high warning, urgent error; category moderation error, support info, engineering brand, product success, marketing warning, finance / operations neutral, other muted, and every category leads with its own icon, which tells finance from operations), ✅ `admin/admins/ChoiceChips` (a wrapping row of kit filter chips). **Kept: `chat/ChatReactionChips`** — not a filter, tag or applied value but an emoji reaction counter inside the message bubble: the kit's selected fill is `primary`, the colour of the user's own bubbles, so their own reaction would disappear there, and the 44pt-wide pills would widen every bubble. It needs a reaction pattern of its own (with the chat redesign).
+- Local: ✅ `RadiusChip` (`PostFilterSheet/LocationFilterSection`, now the kit `Chip`; its selected fill moves from `secondary` to the kit's `primary`), ✅ `Chip` in `admin/tasks/TaskAssigneeFilter` and ✅ `FilterChip` in `app/(admin)/tasks/index` (both now `AdminFilterChip`).
+- Groups that should render kit chips: `marketplace/BrowseRefineChips`, `features/rides/components/RideAdvancedChips`.
+- `chip`-style files by area: admin screens and components 20 (13 left: ✅ `AdminFilterChip`, `admins/ChoiceChips`, `tasks/{TaskStatusChip, TaskPriorityChip, TaskCategoryChip, TaskAssigneeFilter}`, `app/(admin)/tasks/index`), search / post filter / create / edit 7 (4 left: ✅ `search/searchFilterSheet.styles`, `PostFilterSheet/{Chip, LocationFilterSection}`), marketplace 4, settings 3, and one each in money, map, about, cards, chat and rides. `LayerPersonChip` is an avatar tile, not a chip: rename its style when that file is touched. Status pills named `pill` (`PostDetailStatusBadge`, `KcRowCard`, `MyRequestRow`, `MyRideRow`) are tags too, but the guard does not count `pill` because the name also covers nav tabs and separators.
+
+**Hand-rolled CTAs → buttons.** `backgroundColor: colors.primary` appears 164 times in 137 files outside the kit (CTAs plus selected chips): admin components 25 (24 files), root components 20 (18), admin screens 17 (11), rides 11 (8), tabs 10 (9), closure 8 (7), about 8 (8), marketplace 5, onboarding 5, then ≤ 4 per area. No guard yet: a precise rule for "a hand-rolled primary button" needs the press handler and the fill in one place, which a line rule cannot see.
 
 ### 4.2 Icons
 
@@ -103,6 +136,8 @@ Not built yet (GitHub epic #1061 / #1021): a shared modal (#1284), bottom sheet,
 ### 4.3 Admin surfaces (D67)
 
 Admin and team-only screens use the **same** colours, type, radius, components and rules as the rest of the app. They may be denser: one spacing step tighter, smaller type presets (`bodySmall`, `label`) and tables instead of cards. They never introduce their own colours (role badges included).
+
+**Cleanup progress (#1287).** ✅ `components/admin/admins` (13 files, incl. the hierarchy layer bands; role badges already use `avatarPalette`); ✅ shared admin components (`AdminScreenHeader`, `AdminCardActions`, `AdminFormActions`, `AdminListEmpty`, `AdminScreenGuard`, `ComingSoon`), `reports` (list, case screen, `CaseAuditTimeline`, `CaseReporterList`, `CaseTargetCard`, `ReportRow`), `tasks/{TaskRow, TaskActivityTimeline}`, the admin layout and the admin detail screen (16 files); ✅ the admin home, `money`, `whatsapp`, `time` (screen and `TimesheetEntryCard`), `crm/ContactCard` and the survey cards (8 files). Left: 23 admin files with 427 frozen findings in the brand-guard baseline, which may only shrink. `reports/CaseActions` waits for an on-`errorLight` text token (TD-130). `admins/{OrgSwitcher, UserLookupField}`, `layers/LayerPersonChip` and the task forms move with the kit `Chip` / `TextField` migrations.
 
 ### 4.4 Appearance
 
@@ -127,7 +162,7 @@ All run inside `pnpm test` (pre-push gate and CI):
 | Contrast floor | `packages/ui/src/__tests__/brandContrast.test.ts` | a required pair drops below AA, or a listed exception starts passing (stale) |
 | Brand font | `packages/ui/src/__tests__/brandFont.test.tsx` + ESLint `no-restricted-imports` | a weight stops mapping to its face, or app code imports `Text` / `TextInput` from `react-native` |
 | Icon set | ESLint `no-restricted-imports` (`app/eslint.config.mjs`) | app code imports an icon family other than `Ionicons`, or another icon library (D87) |
-| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` (rules in `brandGuardRules.ts`, pinned by `brandGuardRules.test.ts`) | a file gains a finding beyond its frozen baseline, or a new file has any. Rules: `colorLiteral`, `fontSizeLiteral`, `fontWeightLiteral`, `fontFamilyLiteral`, `radiusLiteral`, `spacingLiteral`, `physicalSide`; since D87 also `iconSizeLiteral` (numeric Ionicons `size`), `zIndexLiteral`, `shadowLiteral`, `rawTextInput` (use `TextField`) and `rawModal` (count frozen until #1284) |
+| Hard-coded style ratchet | `apps/mobile/src/__tests__/brandGuard.test.ts` (rules in `brandGuardRules.ts`, pinned by `brandGuardRules.test.ts`) | a file gains a finding beyond its frozen baseline, or a new file has any. Rules: `colorLiteral`, `fontSizeLiteral`, `fontWeightLiteral`, `fontFamilyLiteral`, `radiusLiteral`, `spacingLiteral`, `physicalSide`; since D87 also `iconSizeLiteral` (numeric Ionicons `size`), `zIndexLiteral`, `shadowLiteral`, `rawTextInput` (use `TextField`) and `rawModal` (use `Modal` / `BottomSheet`; counts only React Native's `Modal`, by its import); since #1285 also `adHocChip` (a style key named exactly `chip` — use `Chip`) |
 | Touched-file rule | `apps/mobile/src/__tests__/brandGuard.test.ts` | a file changed since the PR base still has any finding (D67) |
 | Config colours | `apps/mobile/src/__tests__/brandGuard.test.ts` | `app.json` / `+html.tsx` brand colours drift from `primaryVivid`, or the native colour scheme is forced to light |
 | Copy voice | `apps/mobile/src/__tests__/copyVoiceGuard.test.ts` | a locale file gains a voice finding (§7.5) beyond its frozen baseline, a changed locale file has any, or the key slogan leaves the Hebrew bundle (D93) |
@@ -211,6 +246,14 @@ Precision over recall: the word lists leave out words that also read as nouns, a
 2. New/changed **brand-level** value (primary colour, font, logo, name, a voice rule or slogan) needs a PM decision `D#` logged in [90](./90_decisions_log.md).
 3. After merge to `dev`, refresh Figma variables and the Claude Design project from `kc.tokens.json`.
 4. Exploratory design (new screens, components) may start in Figma or Claude Design; implementation must consume existing tokens or add new ones through step 1.
+5. Visual and UX calls inside the brand system are made by the lead designer (the agent, D99) and listed in §8.1. Explicit PM decisions (the `D#` rows above, e.g. D67, D87, D93, D94) stay binding; brand-level changes still follow step 2.
+
+### 8.1 Design-lead calls (D99)
+
+1. Filter sheets keep their actions in the footer: the primary "apply" first, the ghost "clear all" below it.
+2. Kit dialogs stack their actions vertically, main action first; a destructive action is a `DangerButton` (D94).
+3. Tags in one group are told apart by look: each value gets its own tone, the unfilled `muted` marks an inactive value, and a group with more values than tones adds an icon per value (admin task tags, §4.1.1).
+4. Chips in a filter sheet (feed, search, rides) use the compact `sm` size; `hitSlop` keeps the 44pt touch target.
 
 ## 9. Brand decisions log (D65, D66, D67, D87, D93)
 

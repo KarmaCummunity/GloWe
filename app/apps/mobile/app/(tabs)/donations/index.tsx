@@ -121,6 +121,7 @@ export default function DonationsHubScreen() {
     <Screen blobs="content">
       <TopBar />
       <ScrollView
+        testID="donations-hub"
         style={styles.scrollView}
         // RN-Web + `dir=rtl`: content can shrink-wrap and hug the inline-start
         // edge (visual right), leaving empty space on the left — stretch to viewport.
@@ -156,28 +157,6 @@ export default function DonationsHubScreen() {
             </PressableScale>
           </MotionEntry>
         ) : null}
-
-        <MotionEntry variant="bottom" delay={ENTRY_DELAY.section + 40} style={styles.blockStretch}>
-          <PressableScale
-            onPress={() => router.push('/(tabs)/donations/marketplace')}
-            accessibilityRole="button"
-            accessibilityLabel={t('donations.marketplaceHubTitle')}
-            style={styles.blockStretch}
-          >
-            <Card padding="base" style={styles.featuredCard} testID="donation-tile-marketplace">
-              <IconTile icon="storefront-outline" size="lg" />
-              <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle} numberOfLines={1}>
-                  {t('donations.marketplaceHubTitle')}
-                </Text>
-                <Text style={styles.featuredSubtitle} numberOfLines={2}>
-                  {t('donations.marketplaceHubSubtitle')}
-                </Text>
-              </View>
-              <Ionicons name="chevron-back" size={iconSize.xl} color={colors.primary} />
-            </Card>
-          </PressableScale>
-        </MotionEntry>
 
         {/* ── Giving worlds, then domains (D62) ── */}
         <HubTileGrid

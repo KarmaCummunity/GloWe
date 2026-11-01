@@ -12,7 +12,7 @@ import {
   type TimesheetEntry,
   type TimesheetStatus,
 } from '@kc/domain';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, spacing, Text, typography } from '@kc/ui';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { container } from '../../../src/lib/container';
@@ -147,6 +147,6 @@ export default function TimeScreen() {
 
 const useStyles = makeUseStyles(({ colors }) => ({
   root:        { flex: 1, backgroundColor: colors.background },
-  chips:       { paddingHorizontal: 16, gap: 8, paddingBottom: 8 },
-  totalLabel:  { paddingHorizontal: 16, paddingBottom: 8, fontSize: 11, opacity: 0.6 },
+  chips:       { paddingHorizontal: spacing.base, gap: spacing.sm, paddingBottom: spacing.sm },
+  totalLabel:  { paddingHorizontal: spacing.base, paddingBottom: spacing.sm, fontSize: typography.caption.fontSize, opacity: 0.6 },
 }));

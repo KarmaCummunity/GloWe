@@ -1,30 +1,101 @@
-// Unified create: active category (from ?category= deep link or picker) + header.
-import React, { useEffect, useState } from 'react';
+// Mapped to spec: FR-POST-001 AC1 / AC6.
+// Unified create: the active category + direction, the header that edits them, and their
+// persistence. A `?category=` deep link wins over the remembered choice; otherwise the form
+// reopens on the category and direction the user last used.
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { isMarketplaceWorldLaunchEnabled, type PostType } from '@kc/domain';
+import type { PostType } from '@kc/domain';
 import { UnifiedCreateHeader } from '../components/CreatePostForm/UnifiedCreateHeader';
-import { useRemoteAppFlags } from './useLaunchWorldFlags';
-import { findCreateCategory, visibleCreateCategories } from '../lib/unifiedCreate/createCategories';
-import { directionToPostType, postTypeToDirection } from '../lib/unifiedCreate/unifiedCreateState';
+import {
+  CREATE_CATEGORIES,
+  findCreateCategory,
+  isCreateCategoryId,
+  type CreateCategoryId,
+  type CreateDirection,
+} from '../lib/unifiedCreate/createCategories';
+import {
+  DEFAULT_CREATE_PREFERENCES,
+  directionToPostType,
+  postTypeToDirection,
+} from '../lib/unifiedCreate/unifiedCreateState';
+import {
+  loadCreatePreferences,
+  saveCreatePreferences,
+} from '../lib/unifiedCreate/createPreferencesStorage';
 
-export function useUnifiedCreateCategory(type: PostType, setType: (t: PostType) => void) {
-  const params = useLocalSearchParams<{ category?: string }>();
-  const remoteFlags = useRemoteAppFlags();
-  const categories = visibleCreateCategories((slug) => isMarketplaceWorldLaunchEnabled(slug, remoteFlags));
-  const [categoryId, setCategoryId] = useState(() => findCreateCategory(params.category).id);
+/** Expo Router may hand a repeated query key over as an array; keep the first value. */
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export function useUnifiedCreateCategory(
+  userId: string | null | undefined,
+  type: PostType,
+  setType: (t: PostType) => void,
+) {
+  const params = useLocalSearchParams<{ category?: string | string[] }>();
+  const deepLink = firstParam(params.category);
+  const [categoryId, setCategoryId] = useState<CreateCategoryId>(
+    isCreateCategoryId(deepLink) ? deepLink : DEFAULT_CREATE_PREFERENCES.categoryId,
+  );
+  // False until the remembered choice is read, so the form never flashes the default first.
+  const [ready, setReady] = useState(isCreateCategoryId(deepLink));
+  // Latest setType without making the load effect depend on its identity.
+  const setTypeRef = useRef(setType);
+  setTypeRef.current = setType;
+
+  // Restore the last used category + direction once per user (skipped for a deep link).
   useEffect(() => {
-    if (params.category) setCategoryId(findCreateCategory(params.category).id);
-  }, [params.category]);
-  const activeCategory = findCreateCategory(categoryId);
+    if (isCreateCategoryId(deepLink)) return;
+    let active = true;
+    void loadCreatePreferences(userId).then((prefs) => {
+      if (!active) return;
+      setCategoryId(prefs.categoryId);
+      setTypeRef.current(directionToPostType(prefs.direction));
+      setReady(true);
+    });
+    return () => {
+      active = false;
+    };
+    // Deep-link changes are handled by the effect below; re-reading storage there would
+    // overwrite the deep-linked category.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // A deep link that arrives while the tab is already mounted switches the category.
+  useEffect(() => {
+    if (!isCreateCategoryId(deepLink)) return;
+    setCategoryId(deepLink);
+    setReady(true);
+  }, [deepLink]);
+
   const direction = postTypeToDirection(type);
+
+  const changeCategory = useCallback(
+    (next: CreateCategoryId) => {
+      setCategoryId(next);
+      void saveCreatePreferences(userId, { categoryId: next, direction });
+    },
+    [userId, direction],
+  );
+
+  const changeDirection = useCallback(
+    (next: CreateDirection) => {
+      setType(directionToPostType(next));
+      void saveCreatePreferences(userId, { categoryId, direction: next });
+    },
+    [userId, categoryId, setType],
+  );
+
+  const activeCategory = findCreateCategory(categoryId);
   const header = (
     <UnifiedCreateHeader
-      categories={categories}
+      categories={CREATE_CATEGORIES}
       categoryId={activeCategory.id}
-      onCategoryChange={setCategoryId}
+      onCategoryChange={changeCategory}
       direction={direction}
-      onDirectionChange={(d) => setType(directionToPostType(d))}
+      onDirectionChange={changeDirection}
     />
   );
-  return { activeCategory, direction, header };
+  return { activeCategory, direction, header, ready, selectCategory: changeCategory };
 }

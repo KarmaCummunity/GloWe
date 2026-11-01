@@ -31,8 +31,10 @@ export { SupabaseUserRealtime } from './users/SupabaseUserRealtime';
 export { SupabaseFeedRealtime } from './feed/SupabaseFeedRealtime';
 export { SupabaseOnlinePresence, ONLINE_PRESENCE_TOPIC } from './realtime/SupabaseOnlinePresence';
 export { SupabaseActiveStatusRepository } from './users/SupabaseActiveStatusRepository';
-export { SupabaseMatchRepository, mapMatchRow } from './matching/SupabaseMatchRepository';
-export type { MatchSuggestion, MatchRole, MatchStatus, MatchResponse, MatchRespondResult } from './matching/SupabaseMatchRepository';
+export { SupabaseMatchRepository, mapMatchQualityRow, mapMatchRow } from './matching/SupabaseMatchRepository';
+export type {
+  MatchSuggestion, MatchRole, MatchStatus, MatchResponse, MatchRespondResult, MatchQualityByWorld,
+} from './matching/SupabaseMatchRepository';
 export type { OnlineListener } from './realtime/SupabaseOnlinePresence';
 export { SupabaseStatsRepository } from './stats/SupabaseStatsRepository';
 export { SupabaseAboutRepository } from './about/SupabaseAboutRepository';
@@ -62,6 +64,12 @@ export { SupabaseRideEmergencyRepository } from './rides/SupabaseRideEmergencyRe
 export { SupabaseRideRatingRepository } from './rides/SupabaseRideRatingRepository';
 export { SupabaseDriverDeclarationRepository } from './rides/SupabaseDriverDeclarationRepository';
 export { SupabaseRidesRealtime } from './rides/SupabaseRidesRealtime';
+export { SupabaseRideBookingRepository } from './rides/SupabaseRideBookingRepository';
+export { SupabaseRidePlaceRepository } from './rides/SupabaseRidePlaceRepository';
+export { SupabaseRidesFeedRepository } from './rides/SupabaseRidesFeedRepository';
+export { SupabaseRideSavedRoutesRepository } from './rides/SupabaseRideSavedRoutesRepository';
+export { SupabaseRideSafetyRepository } from './rides/SupabaseRideSafetyRepository';
+export { SupabaseRideLegacyLinkRepository } from './rides/SupabaseRideLegacyLinkRepository';
 export { SupabaseSurveyRepository } from './survey/SupabaseSurveyRepository';
 export { SupabaseSurveyAdminRepository } from './survey/SupabaseSurveyAdminRepository';
 export { SupabaseUserActivityRepository } from './survey/SupabaseUserActivityRepository';

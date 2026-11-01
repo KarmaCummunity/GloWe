@@ -1,13 +1,15 @@
 // Native map (Apple Maps on iOS, Google Maps on Android) with clustered pins + ride route line.
 import React, { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '@kc/ui';
+import { makeUseStyles, radius, shadow, spacing, typography, useTheme, Text } from '@kc/ui';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
 import { isValidLatLng, mapWorldColor, sanitizeRegion, sanitizeRoute } from '@kc/domain';
 import { createRegionChangeGate } from '../../lib/map/regionChangeGate';
-import { clusterGlyph, type KcMapProps } from './KcMap.types';
+import { clusterGlyph, routePath, type KcMapProps } from './KcMap.types';
 
 export function KcMap(p: Readonly<KcMapProps>) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const ref = useRef<MapView>(null);
   const onRegionChange = useRef(p.onRegionChange);
   onRegionChange.current = p.onRegionChange;
@@ -42,7 +44,7 @@ export function KcMap(p: Readonly<KcMapProps>) {
         <View
           style={[
             multi ? styles.cluster : styles.pin,
-            { backgroundColor: multi ? color : '#FFFFFF', borderColor: color },
+            { backgroundColor: multi ? color : colors.surface, borderColor: color },
             selected ? styles.selected : null,
           ]}
         >
@@ -52,19 +54,28 @@ export function KcMap(p: Readonly<KcMapProps>) {
     );
   }
   if (route) {
+    const path = routePath(route, p.routeStops);
     children.push(
       <Polyline
         key="route:line"
-        coordinates={[
-          { latitude: route.originLat, longitude: route.originLng },
-          { latitude: route.destLat, longitude: route.destLng },
-        ]}
+        coordinates={path.map((pt) => ({ latitude: pt.lat, longitude: pt.lng }))}
         strokeColor={mapWorldColor('rides')}
         strokeWidth={4}
         lineDashPattern={[8, 6]}
       />,
-      <Marker key="route:dest" coordinate={{ latitude: route.destLat, longitude: route.destLng }} pinColor="#2563EB" />,
+      <Marker key="route:dest" coordinate={{ latitude: route.destLat, longitude: route.destLng }} pinColor={colors.info} />,
     );
+    // Meeting points sit between the two ends of the path.
+    path.slice(1, -1).forEach((pt, i) => {
+      children.push(
+        <Marker key={`route:stop:${i}`} coordinate={{ latitude: pt.lat, longitude: pt.lng }} pinColor={mapWorldColor('rides')} />,
+      );
+    });
+    if (p.markRouteOrigin) {
+      children.push(
+        <Marker key="route:origin" coordinate={{ latitude: route.originLat, longitude: route.originLng }} pinColor={colors.success} />,
+      );
+    }
   }
 
   return (
@@ -87,16 +98,30 @@ export function KcMap(p: Readonly<KcMapProps>) {
   );
 }
 
-const styles = StyleSheet.create({
+// Pins are circles in the world colour; a cluster is filled and shows its count.
+const useStyles = makeUseStyles(({ colors }) => ({
   pin: {
-    width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 3,
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    borderWidth: 2,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    ...shadow.glow,
+    shadowColor: colors.shadow,
   },
   cluster: {
-    minWidth: 40, height: 40, paddingHorizontal: 6, borderRadius: 20, borderWidth: 3, alignItems: 'center',
-    justifyContent: 'center', elevation: 3,
+    minWidth: 40,
+    height: 40,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.full,
+    borderWidth: 3,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    ...shadow.glow,
+    shadowColor: colors.shadow,
   },
   selected: { transform: [{ scale: 1.25 }], borderWidth: 3 },
-  pinText: { fontSize: 18 },
-  clusterText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-});
+  pinText: { ...typography.h3 },
+  clusterText: { ...typography.button, color: colors.textInverse },
+}));

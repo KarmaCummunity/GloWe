@@ -1,4 +1,6 @@
 // KC#873 — pick + upload chat images to `chat-media` bucket, then RPC media message.
+// The bucket is private (#1064): the message stores only the object path, and viewers
+// read it through a signed URL (`chatMediaUrl.ts`).
 
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -42,14 +44,12 @@ export async function uploadChatImageAndSend(
   const { error: upErr } = await client.storage.from(BUCKET).upload(path, bytes, {
     contentType: 'image/jpeg',
     upsert: false,
-    cacheControl: 'public, max-age=31536000, immutable',
+    cacheControl: 'private, max-age=31536000, immutable',
   });
   if (upErr) throw new Error(`chat_media_upload: ${upErr.message}`);
-  const { data: pub } = client.storage.from(BUCKET).getPublicUrl(path);
   await sendRpc({
     type: 'image',
     path,
-    url: pub.publicUrl,
     width: manipulated.width,
     height: manipulated.height,
   });

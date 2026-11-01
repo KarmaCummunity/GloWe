@@ -86,7 +86,7 @@ export default function ChatListScreen() {
       />
 
       <View style={styles.searchWrap}>
-        <TextInput
+        <TextInput // brand-guard-allow: inbox search bar, not a form field (spec 17 §4.1)
           style={styles.search}
           value={q}
           onChangeText={setQ}
@@ -123,8 +123,8 @@ export default function ChatListScreen() {
                   <EmptyStateActions
                     primary={{ label: t('emptyStates.chatCta'), onPress: () => router.push('/(tabs)') }}
                     secondary={{
-                      label: t('emptyStates.chatMarketplaceCta'),
-                      onPress: () => router.push('/(tabs)/donations/marketplace'),
+                      label: t('emptyStates.chatWorldsCta'),
+                      onPress: () => router.push('/(tabs)/donations'),
                     }}
                   />
                 }

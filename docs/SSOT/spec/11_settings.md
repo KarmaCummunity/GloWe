@@ -224,6 +224,7 @@ The user permanently deletes their own account.
 - AC1. The action requires a two-step confirmation: a warning modal listing consequences, followed by typing the user's display name to confirm.
 - AC2. On confirm:
    - All `Post`s owned by the user are hard-deleted (with image assets), regardless of status.
+   - Every Storage object under the user's folder (`<user_id>/…`) is removed: the avatar and its thumb, post images and their thumbs (attached to a post or not), listing images and chat images (chat images: open question Q-8, `docs/spec/95_reconciliation.md`). Enforced by `supabase/functions/delete-account` (`purgeUserFolders`, #1065).
    - All `Chat`s and `Message`s authored by the user are kept on the counterpart side as per `D-14` ("Deleted user" placeholder).
    - The `User` row is moved to a soft-deleted state (`account_status = deleted`, anonymized fields).
    - A `DeletedIdentifier` cooldown row is created (`FR-AUTH-016`).

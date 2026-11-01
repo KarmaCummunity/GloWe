@@ -29,12 +29,12 @@ One form creates a Post: giving world first, then one domain (auto-suggested fro
 | Job (org) | no | city or remote | closing date | scope, field, link (D41) |
 | Experience | no | venue | date | type, date, seats (D45) |
 
-Tech: · FR-POST-002–007, 011, 020 · unified form #1227 with duplicated "general" chip · G14
+Tech: · FR-POST-002–007, 011, 020 · unified form #1227; since 2026-11-01 (FR-POST-001 AC6) five categories — items (post engine), rides, food, housing, time — with the last choice remembered, request / offer under the picker and curated per-type fields; no "general" chip; money / knowledge / medical / animals / environment have no form yet · G14
 
 ## 7.3 Feed, sorting, recommendations
 Main feed of all worlds plus a feed per world (D5, D36). Default sort = **Recommended** — KC's recommendation engine, aiming to be as smart as Facebook/Instagram (D27). Phase 1 weights (S33): distance, freshness, worlds the user is active in, urgency and near expiry, reliability (never shown), posts with no response yet; region weight during emergency. The user always controls: sort (recommended/new/old/near) and filters (world, domain, item subcategory, direction, people/orgs, city+radius, status). Inside a chosen sort the engine may boost ≤ 1 of every 5 items, labeled "Recommended" (S5). Sort choice persists per session; a new session returns to Recommended (S7). A **Friends / Everyone** toggle hides on scroll down and returns on scroll up, TikTok-style (D34); "Friends" = people I follow, default Everyone (S6). Emergency items go on top with a banner (D42). Hidden-for-review posts don't appear (D33). Notify only on good match or saved filter (D10).
 
-Tech: · FR-FEED-001 "no algorithm" superseded; MATCHING_V2 score ≥ 0.60 kept · `PostFilterSheet`; matching on `listings` · G15 · world hubs (items/food): item subcategory + distance-from-home filters on `browse_listings` (`0469`, KC#1102/#1111) · native items/food listings reach the feed as mirror posts (`posts.listing_id`, `0466`, D-206 — a step toward G1)
+Tech: · FR-FEED-001 "no algorithm" superseded; MATCHING_V2 score ≥ 0.60 kept · `PostFilterSheet`; matching on `listings` · G15 · world hubs (items/food): item subcategory + distance-from-home filters on `browse_listings` (`0469`, KC#1102/#1111) · native listings of every create category (items, rides, food, housing, time) reach the feed as mirror posts (`posts.listing_id`, `0466`; rides / housing / time and the card's world chip via `posts.listing_world_slug`, `0522`, FR-FEED-020 AC1; D-206 — a step toward G1)
 
 ## 7.4 Card and detail screen
 Uniform card and detail for all types (D2, D6*): image or world icon, world/direction/status chips, title, description, location & time, publisher per anonymity (D16) with verification level (D23) and **no rating** (D24), likes & comments (D25), fixed action button and report (D33). Closing button per type (D11, D17); event → register (D31); job → apply (D41); imported post → "Is this yours? Claim it" (S21). Color/icon from world config (D36). **Domain not shown on the card** — at most a tiny corner icon (D45). Needs further design depth (D6*).
@@ -73,7 +73,7 @@ All engagement earns; closed giving earns most (D12). Visible only to the owner;
 | Rating given | 2 | – |
 | Post removed by admin (existing) | −5 | – |
 
-Tech: D12,D29,D32,D43,D52 · `14_karma`, migration 0099, FR-KARMA-007/008 · `karma_ledger`, hard-coded values · G16
+Tech: D12,D29,D32,D43,D52 · `14_karma`, migration 0099, FR-KARMA-007/008 · `karma_ledger`, hard-coded values · G16 · "Rating given" 2 for handoff and ride ratings, once per rating (`0510`, KC#1306)
 
 ## 7.7 Ratings
 After each handoff both sides rate 1–5 with a note — one generic rating for all types (D15, D19). **Users never see ratings, not even their own**; only KC admins (D24). Ratings feed the trust engine.
@@ -92,7 +92,7 @@ Every registered user may offer volunteering (D22); karma is automatic (D32). Or
 Tech: · R-Time-1 superseded · none · G19
 
 ## 7.11 Notifications
-Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28). Rides are time-critical: booking changes are `important` (D73), and saved-route alerts follow their own urgency rule and daily cap (D74, S44).
+Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28). Rides are time-critical: booking changes are `important` (D73), and saved-route alerts follow their own urgency rule and daily cap (D74, D95).
 Types: match & saved filter (D10), ride booking & saved route (D73, D74), expiry & relevance (D21), like & comment (D25), event (D31), hours (D32), report & suspension (D33), emergency (D42), challenge (D43), community poll (D40), imported post awaiting claim (S21).
 Tech: · `09_notifications`, MATCHING_V2, PRD_V2 merged · `inbox.tsx` · per-type opt-out `kinds` (FR-NOTIF-017, `0460`; first type: match suggestions) · G17
 
@@ -110,4 +110,4 @@ Tech: · PRD_V2 rule 13 superseded · phone only · G10, G13
 
 ## 7.15 Reports and moderation
 Anyone can report a post, comment or user. **3 reports on a post → hidden until human review, and admins are notified; 5 on a user → suspended from actions, still sees everything and can chat with support** (D33, D61). "5" = 5 distinct reporters within 30 days; suspended user's open posts are hidden (S11). Review within 48h; malicious reports count against the reporter (S12). False emergency reports are handled with priority (D42).
-Tech: · `spec/08`, R-Food superseded · `reports`, suspects queue · G20
+Tech: · `spec/08`, R-Food superseded · `reports`, suspects queue · G20 · posts `0452`, items/food listings `0468` (KC#1298)

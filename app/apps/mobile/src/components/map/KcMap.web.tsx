@@ -4,7 +4,8 @@ import { View } from 'react-native';
 import type * as LeafletNS from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapWorldColor, type MapRegion } from '@kc/domain';
-import { clusterGlyph, type KcMapProps } from './KcMap.types';
+import { useTheme } from '@kc/ui';
+import { clusterGlyph, routePath, type KcMapProps } from './KcMap.types';
 
 type L = typeof LeafletNS;
 
@@ -24,6 +25,7 @@ function zoomForDelta(delta: number): number {
 }
 
 export function KcMap(p: Readonly<KcMapProps>) {
+  const { colors } = useTheme();
   const host = useRef<HTMLDivElement | null>(null);
   const lib = useRef<L | null>(null);
   const map = useRef<LeafletNS.Map | null>(null);
@@ -67,18 +69,23 @@ export function KcMap(p: Readonly<KcMapProps>) {
     if (!ready || !Lf || !g) return;
     g.clearLayers();
     if (p.route) {
+      const path = routePath(p.route, p.routeStops);
       Lf.polyline(
-        [
-          [p.route.originLat, p.route.originLng],
-          [p.route.destLat, p.route.destLng],
-        ],
+        path.map((pt) => [pt.lat, pt.lng] as [number, number]),
         { color: mapWorldColor('rides'), weight: 4, dashArray: '8 6' },
       ).addTo(g);
-      Lf.circleMarker([p.route.destLat, p.route.destLng], { radius: 7, color: mapWorldColor('rides') }).addTo(g);
+      Lf.circleMarker([p.route.destLat, p.route.destLng], { radius: 7, color: colors.info }).addTo(g);
+      // Meeting points sit between the two ends of the path.
+      for (const pt of path.slice(1, -1)) {
+        Lf.circleMarker([pt.lat, pt.lng], { radius: 5, color: mapWorldColor('rides'), fillOpacity: 1 }).addTo(g);
+      }
+      if (p.markRouteOrigin) {
+        Lf.circleMarker([p.route.originLat, p.route.originLng], { radius: 7, color: colors.success }).addTo(g);
+      }
     }
     if (p.userLocation) {
       Lf.circleMarker([p.userLocation.lat, p.userLocation.lng], {
-        radius: 8, color: '#FFFFFF', weight: 3, fillColor: '#2563EB', fillOpacity: 1,
+        radius: 8, color: colors.surface, weight: 3, fillColor: colors.info, fillOpacity: 1,
       }).addTo(g);
     }
     for (const c of p.clusters) {
@@ -89,7 +96,7 @@ export function KcMap(p: Readonly<KcMapProps>) {
       const html =
         `<div style="width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;` +
         `justify-content:center;border:${selected || multi ? 3 : 2}px solid ${color};` +
-        `background:${multi ? color : '#fff'};color:#fff;font-weight:700;font-size:${multi ? 15 : 18}px;` +
+        `background:${multi ? color : colors.surface};color:${colors.textInverse};font-weight:700;font-size:${multi ? 15 : 18}px;` +
         `box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer">${clusterGlyph(c)}</div>`;
       const icon = Lf.divIcon({ html, className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
       Lf.marker([c.lat, c.lng], { icon, keyboard: true, title: c.pins[0]?.title ?? '' })
@@ -99,7 +106,7 @@ export function KcMap(p: Readonly<KcMapProps>) {
         })
         .addTo(g);
     }
-  }, [ready, p.clusters, p.route, p.userLocation, p.selectedId]);
+  }, [ready, colors, p.clusters, p.route, p.routeStops, p.markRouteOrigin, p.userLocation, p.selectedId]);
 
   useEffect(() => {
     if (!p.focus || !map.current) return;
