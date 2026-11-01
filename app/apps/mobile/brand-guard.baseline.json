@@ -68,13 +68,6 @@
       "physicalSide": 1,
       "rawTextInput": 1
     },
-    "app/(admin)/tasks/index.tsx": {
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 5,
-      "radiusLiteral": 3,
-      "spacingLiteral": 17,
-      "adHocChip": 1
-    },
     "app/(admin)/tasks/new.tsx": {
       "fontSizeLiteral": 9,
       "fontWeightLiteral": 5,
@@ -475,14 +468,6 @@
       "spacingLiteral": 13,
       "shadowLiteral": 4
     },
-    "src/components/PostFilterSheet/Chip.tsx": {
-      "fontWeightLiteral": 1,
-      "adHocChip": 1
-    },
-    "src/components/PostFilterSheet/LocationFilterSection.tsx": {
-      "fontWeightLiteral": 2,
-      "adHocChip": 1
-    },
     "src/components/PostFilterSheet/SearchSection.tsx": {
       "rawTextInput": 1,
       "iconSizeLiteral": 2
@@ -531,13 +516,6 @@
       "fontWeightLiteral": 2,
       "radiusLiteral": 1,
       "spacingLiteral": 4
-    },
-    "src/components/admin/AdminFilterChip.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 2,
-      "adHocChip": 1
     },
     "src/components/admin/AdminFormActions.tsx": {
       "fontSizeLiteral": 3,
@@ -594,9 +572,6 @@
     },
     "src/components/admin/admins/AdminsTreeView.tsx": {
       "spacingLiteral": 1
-    },
-    "src/components/admin/admins/ChoiceChips.tsx": {
-      "adHocChip": 1
     },
     "src/components/admin/admins/LevelBadge.tsx": {
       "fontSizeLiteral": 1,
@@ -752,20 +727,6 @@
       "radiusLiteral": 1,
       "spacingLiteral": 5
     },
-    "src/components/admin/tasks/TaskAssigneeFilter.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 5,
-      "adHocChip": 1
-    },
-    "src/components/admin/tasks/TaskCategoryChip.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 2,
-      "adHocChip": 1
-    },
     "src/components/admin/tasks/TaskCategoryPicker.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 1,
@@ -781,25 +742,11 @@
       "physicalSide": 1,
       "rawTextInput": 2
     },
-    "src/components/admin/tasks/TaskPriorityChip.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 2,
-      "adHocChip": 1
-    },
     "src/components/admin/tasks/TaskRow.tsx": {
       "fontSizeLiteral": 3,
       "fontWeightLiteral": 2,
       "radiusLiteral": 1,
       "spacingLiteral": 6
-    },
-    "src/components/admin/tasks/TaskStatusChip.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 2,
-      "adHocChip": 1
     },
     "src/components/admin/time/TimesheetEntryCard.tsx": {
       "fontSizeLiteral": 9,
