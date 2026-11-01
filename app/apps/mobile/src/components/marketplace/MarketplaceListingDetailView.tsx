@@ -9,6 +9,7 @@ import { listingImagePublicUrl } from '../../services/listingImageUpload';
 import { useSimilarListings } from '../../hooks/useMarketplaceListingDetail';
 import { ReportListingModal } from './ReportListingModal';
 import { GivingHandoffActions } from './GivingHandoffActions';
+import { RideBookingActions } from './rides/RideBookingActions';
 import { RideRouteCard } from './RideRouteCard';
 import { RidePublishAgainButton } from './RidePublishAgainButton';
 import { isTestListingTitle } from '../../lib/displayTitle';
@@ -103,6 +104,7 @@ export function MarketplaceListingDetailView({ detail, bottomInset }: Props) {
           </Pressable>
         ) : null}
         <GivingHandoffActions detail={detail} />
+        <RideBookingActions detail={detail} />
         <ListingDetailActions detail={detail} viewerId={viewerId} onReport={() => setReportOpen(true)} />
         {similar.length > 0 ? (
           <>

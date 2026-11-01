@@ -118,6 +118,12 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
   // KC#1316 — food expiry notices open the listing.
   listing_expiring: (d) => listingRoute(d.params?.listingId),
   listing_expired: (d) => listingRoute(d.params?.listingId),
+  // D73 — ride booking changes open the ride, where the driver manages bookings.
+  ride_booking_requested: (d) => listingRoute(d.params?.listingId),
+  ride_booking_confirmed: (d) => listingRoute(d.params?.listingId),
+  ride_booking_declined: (d) => listingRoute(d.params?.listingId),
+  ride_booking_expired: (d) => listingRoute(d.params?.listingId),
+  ride_booking_cancelled: (d) => listingRoute(d.params?.listingId),
 };
 
 /** Marketplace listing detail, only for a well-formed listing id. */

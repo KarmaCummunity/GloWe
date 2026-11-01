@@ -2501,6 +2501,7 @@ export type Database = {
       }
       giving_handoffs: {
         Row: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -2521,6 +2522,7 @@ export type Database = {
           world_slug: string
         }
         Insert: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           confirm_by?: string | null
           confirmed_at?: string | null
@@ -2541,6 +2543,7 @@ export type Database = {
           world_slug: string
         }
         Update: {
+          cancel_reason?: string | null
           cancelled_at?: string | null
           confirm_by?: string | null
           confirmed_at?: string | null
@@ -9418,6 +9421,7 @@ export type Database = {
       book_knowledge_slot: {
         Args: { p_listing_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9447,6 +9451,7 @@ export type Database = {
       book_ride_seat: {
         Args: { p_listing_id: string; p_seats?: number }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9523,6 +9528,7 @@ export type Database = {
       cancel_ride_booking: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9588,6 +9594,7 @@ export type Database = {
           p_pickup_window_start?: string
         }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9658,6 +9665,7 @@ export type Database = {
       complete_knowledge_session: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9687,6 +9695,7 @@ export type Database = {
       complete_ride_trip: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9720,6 +9729,7 @@ export type Database = {
       confirm_item_handoff: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9749,6 +9759,7 @@ export type Database = {
       confirm_ride_booking: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -9906,6 +9917,36 @@ export type Database = {
       }
       cron_feed_cache_worker: { Args: never; Returns: number }
       cron_refresh_feed_open_posts_mv_if_dirty: { Args: never; Returns: number }
+      decline_ride_booking: {
+        Args: { p_handoff_id: string }
+        Returns: {
+          cancel_reason: string | null
+          cancelled_at: string | null
+          confirm_by: string | null
+          confirmed_at: string | null
+          handed_over_at: string | null
+          handoff_id: string
+          listing_id: string
+          no_show_at: string | null
+          owner_id: string
+          pickup_mode: string
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          slot_ends_at: string | null
+          slot_starts_at: string | null
+          status: string
+          world_slug: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "giving_handoffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_account_data: { Args: never; Returns: Json }
       delete_my_listing: { Args: { p_listing_id: string }; Returns: undefined }
       drop_feed_impressions_partitions_older_than: {
@@ -10337,6 +10378,20 @@ export type Database = {
           world_slug: string
         }[]
       }
+      list_ride_bookings: {
+        Args: { p_listing_id: string }
+        Returns: {
+          avatar_url: string
+          confirm_by: string
+          handoff_id: string
+          passenger_name: string
+          rated_by_me: boolean
+          recipient_id: string
+          reserved_at: string
+          seats: number
+          status: string
+        }[]
+      }
       list_ride_places: {
         Args: never
         Returns: {
@@ -10467,6 +10522,7 @@ export type Database = {
       mark_giving_handed_over: {
         Args: { p_handoff_id: string }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -10868,6 +10924,7 @@ export type Database = {
           p_pickup_window_start?: string
         }
         Returns: {
+          cancel_reason: string | null
           cancelled_at: string | null
           confirm_by: string | null
           confirmed_at: string | null
@@ -10928,6 +10985,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ride_booking_copy_key: { Args: { p_kind: string }; Returns: string }
+      ride_bookings_expire_sweep: { Args: never; Returns: number }
       ride_complete_pending_rating_cleanup: { Args: never; Returns: undefined }
       ride_details_with_place: {
         Args: { p_details: Json; p_end: string }

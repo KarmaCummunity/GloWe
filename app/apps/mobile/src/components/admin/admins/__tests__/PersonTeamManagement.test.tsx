@@ -54,6 +54,12 @@ vi.mock('../../../lists/KcFlashList', () => ({
 }));
 vi.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 vi.mock('../../../AvatarInitials', () => ({ AvatarInitials: () => null }));
+// The role and manager dialogs are kit `Modal`s with kit buttons.
+vi.mock('react-native-reanimated', async () => (await import('../../../ui/__tests__/kitDialogTestKit')).reanimatedDouble);
+vi.mock('expo-haptics', async () => (await import('../../../ui/__tests__/kitDialogTestKit')).hapticsDouble);
+vi.mock('react-native-safe-area-context', async () => (await import('../../../ui/__tests__/kitDialogTestKit')).safeAreaDouble);
+vi.mock('react-i18next', async () => (await import('../../../ui/__tests__/kitDialogTestKit')).i18nDouble);
+vi.mock('../../../../hooks/useReducedMotion', () => ({ useReducedMotion: () => false }));
 // Pin the Hebrew bundle; both accessors of the real module serve it.
 vi.mock('../../../../i18n/useLocaleBundle', async () => {
   const he = (await import('../../../../i18n/locales/he')).default;
@@ -64,6 +70,7 @@ import { PersonRolesSection } from '../PersonRolesSection';
 import { RolePermissionsSection } from '../RolePermissionsSection';
 import { GrantManagerSection } from '../GrantManagerSection';
 import { localeBundle } from '../../../../i18n/useLocaleBundle';
+import { finishModalAnimation } from '../../../ui/__tests__/kitDialogTestKit';
 
 const L = localeBundle();
 const team = L.admin.admins.team;
@@ -140,7 +147,7 @@ describe('PersonRolesSection', () => {
     ));
     fireEvent.click(screen.getByRole('button', { name: team.changeRole }));
     // An org manager may move a volunteer up to a volunteer manager (strictly below them).
-    fireEvent.click(screen.getByRole('button', { name: L.admin.roles.volunteer_manager }));
+    fireEvent.click(screen.getByRole('checkbox', { name: L.admin.roles.volunteer_manager }));
     fireEvent.click(screen.getByRole('button', { name: team.changeModal.submit }));
     await vi.waitFor(() => expect(changeMutate).toHaveBeenCalledWith({ grantId: 'g1', newRole: 'volunteer_manager' }));
   });
@@ -151,11 +158,33 @@ describe('PersonRolesSection', () => {
     render(withTheme(<PersonRolesSection userId="u-person" personName="Dana" grants={[]} />));
     expect(screen.getByText(team.rolesNone)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: team.addRole }));
-    fireEvent.click(screen.getByRole('button', { name: L.admin.roles.org_manager }));
+    fireEvent.click(screen.getByRole('checkbox', { name: L.admin.roles.org_manager }));
     fireEvent.click(screen.getByRole('button', { name: L.admin.admins.grantModal.submit }));
     await vi.waitFor(() => expect(grantMutate).toHaveBeenCalledWith({
       targetUserId: 'u-person', role: 'org_manager', scopeOrgId: 'org-a',
     }));
+  });
+
+  it('closes the change-role and grant dialogs from their cancel action without saving', () => {
+    auth.grants = [viewerGrant('g-me', 'org_manager')];
+    auth.managerOf = new Map([['g-me', null], ['g1', 'g-me']]);
+    auth.scopes = [{ scopeOrgId: 'org-a', name: 'Alpha' }];
+    render(withTheme(
+      <PersonRolesSection userId="u-person" personName="Dana" grants={[grant({ grantId: 'g1', role: 'org_volunteer' })]} />,
+    ));
+    for (const [open, dialog] of [
+      [team.changeRole, team.changeModal],
+      [team.addRole, L.admin.admins.grantModal],
+    ] as const) {
+      fireEvent.click(screen.getByRole('button', { name: open }));
+      finishModalAnimation();
+      expect(screen.getByRole('dialog', { name: dialog.title })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: dialog.cancel }));
+      finishModalAnimation();
+      expect(screen.queryByRole('dialog')).toBeNull();
+    }
+    expect(changeMutate).not.toHaveBeenCalled();
+    expect(grantMutate).not.toHaveBeenCalled();
   });
 });
 
@@ -202,6 +231,18 @@ describe('GrantManagerSection', () => {
     expect(screen.queryByText('g-side')).toBeNull();
     fireEvent.click(screen.getByText('Me'));
     await vi.waitFor(() => expect(setManagerMutate).toHaveBeenCalledWith({ grantId: 'g-vol', managerGrantId: 'g-me' }));
+  });
+
+  it('closes the manager picker from its cancel action without moving anyone', () => {
+    asOrgManager();
+    render(withTheme(<GrantManagerSection member={VOL} members={MEMBERS} canManage />));
+    fireEvent.click(screen.getByRole('button', { name: L.admin.admins.detail.changeManager }));
+    finishModalAnimation();
+    expect(screen.getByRole('dialog', { name: L.admin.admins.managerPicker.title })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: L.admin.admins.managerPicker.cancel }));
+    finishModalAnimation();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(setManagerMutate).not.toHaveBeenCalled();
   });
 
   it('offers no manager change for a grant outside the viewer\'s subtree', () => {

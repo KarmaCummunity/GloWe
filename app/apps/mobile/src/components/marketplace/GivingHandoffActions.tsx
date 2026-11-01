@@ -40,7 +40,8 @@ export function GivingHandoffActions({ detail }: Props) {
   });
 
   if (detail.direction !== 'give') return null;
-  const handoffWorlds = ['items', 'food', 'rides', 'knowledge'] as const;
+  // Rides manage many bookings per offer — see rides/RideBookingActions (D73).
+  const handoffWorlds = ['items', 'food', 'knowledge'] as const;
   if (!(handoffWorlds as readonly string[]).includes(detail.worldSlug)) return null;
   if (!userId || detail.ownerId === userId) {
     if (!handoff.data) return null;
@@ -118,17 +119,6 @@ export function GivingHandoffActions({ detail }: Props) {
         </Pressable>
       ) : null}
 
-      {!h && detail.worldSlug === 'rides' && !isOwner ? (
-        <Pressable
-          testID="giving-handoff-book-seat"
-          style={styles.btn}
-          disabled={busy}
-          onPress={() => run(async () => { await ridesKnowledgeRpcs.bookRideSeat(detail.listingId, 1); }, 'match_made')}
-        >
-          <Text style={styles.btnText}>{t('givingHandoff.bookRideSeat')}</Text>
-        </Pressable>
-      ) : null}
-
       {!h && detail.worldSlug === 'knowledge' && !isOwner ? (
         <Pressable
           testID="giving-handoff-book-slot"
@@ -147,11 +137,7 @@ export function GivingHandoffActions({ detail }: Props) {
           disabled={busy}
           onPress={() =>
             run(async () => {
-              if (detail.worldSlug === 'rides') {
-                await ridesKnowledgeRpcs.confirmRideBooking(h.handoffId);
-              } else if (detail.worldSlug === 'items' || detail.worldSlug === 'food') {
-                await givingHandoffUseCases.confirmItem().execute(h.handoffId);
-              }
+              await givingHandoffUseCases.confirmItem().execute(h.handoffId);
             })
           }
         >
@@ -167,9 +153,7 @@ export function GivingHandoffActions({ detail }: Props) {
             disabled={busy}
             onPress={() =>
               run(async () => {
-                if (detail.worldSlug === 'rides') {
-                  await ridesKnowledgeRpcs.completeRideTrip(h.handoffId);
-                } else if (detail.worldSlug === 'knowledge') {
+                if (detail.worldSlug === 'knowledge') {
                   await ridesKnowledgeRpcs.completeKnowledgeSession(h.handoffId);
                 } else {
                   await givingHandoffUseCases.markHandedOver().execute(h.handoffId);
@@ -178,11 +162,9 @@ export function GivingHandoffActions({ detail }: Props) {
             }
           >
             <Text style={styles.btnText}>
-              {detail.worldSlug === 'rides'
-                ? t('givingHandoff.completeTrip')
-                : detail.worldSlug === 'knowledge'
-                  ? t('givingHandoff.completeSession')
-                  : t('givingHandoff.markHandedOver')}
+              {detail.worldSlug === 'knowledge'
+                ? t('givingHandoff.completeSession')
+                : t('givingHandoff.markHandedOver')}
             </Text>
           </Pressable>
           <Pressable

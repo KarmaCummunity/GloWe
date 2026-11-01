@@ -41,6 +41,11 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   'member_inactive',
   'auth_required',
   'kind_not_found',
+  // D73 (0511) — ride booking management: wrong side, stale state or a vanished booking.
+  'owner_only',
+  'not_participant',
+  'invalid_status',
+  'handoff_not_found',
   // D71 (0512) — ride places come only from official catalogs; at most 3 meeting points.
   'ride_place_invalid',
   'too_many_meeting_points',

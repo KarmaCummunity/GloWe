@@ -1,9 +1,10 @@
 // app/apps/mobile/src/components/admin/admins/ChoiceChips.tsx
 // FR-ADMIN-030 — single-choice chip group used by the grant and change-role
-// modals (the grant scope and the role).
-import { Pressable, View } from 'react-native';
-import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
+// modals (the grant scope and the role), one kit filter `Chip` per option (spec 17 §4.1).
+import { View } from 'react-native';
+import { makeUseStyles, spacing } from '@kc/ui';
 import { rowDirectionStart } from '../../../lib/rtlLayout';
+import { Chip } from '../../ui/Chip';
 
 export interface ChoiceOption<K> {
   readonly key: K;
@@ -25,31 +26,18 @@ export function ChoiceChips<K>({ options, selected, onSelect }: ChoiceChipsProps
   const styles = useStyles();
   return (
     <View style={styles.row}>
-      {options.map((o) => {
-        const active = selected !== undefined && keyOf(selected) === keyOf(o.key);
-        return (
-          <Pressable
-            key={keyOf(o.key)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            onPress={() => onSelect(o.key)}
-            style={[styles.chip, active && styles.chipActive]}
-          >
-            <Text style={[styles.chipText, active && styles.chipTextActive]}>{o.label}</Text>
-          </Pressable>
-        );
-      })}
+      {options.map((o) => (
+        <Chip
+          key={keyOf(o.key)}
+          label={o.label}
+          selected={selected !== undefined && keyOf(selected) === keyOf(o.key)}
+          onPress={() => onSelect(o.key)}
+        />
+      ))}
     </View>
   );
 }
 
-const useStyles = makeUseStyles(({ colors }) => ({
-  row:  { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm,
-    backgroundColor: colors.secondaryLight,
-  },
-  chipActive:     { backgroundColor: colors.primary },
-  chipText:       { ...typography.bodySmall, ...typography.semiBold, color: colors.textPrimary },
-  chipTextActive: { color: colors.textInverse },
+const useStyles = makeUseStyles(() => ({
+  row: { flexDirection: rowDirectionStart, flexWrap: 'wrap', gap: spacing.sm },
 }));

@@ -10,13 +10,14 @@ import { rowDirectionStart } from '../../lib/rtlLayout';
 import { formatRideTime } from '../cards/ListingCard';
 import { RideRouteMap } from './RideRouteMap';
 import { RideRouteStops } from './RideRouteStops';
+import { Chip } from '../ui/Chip';
 
 interface Props {
   details: Record<string, unknown>;
   direction: 'give' | 'request';
 }
 
-type Chip = { icon: React.ComponentProps<typeof Ionicons>['name']; text: string };
+type InfoChip = { icon: React.ComponentProps<typeof Ionicons>['name']; text: string };
 
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
@@ -31,7 +32,7 @@ export function RideRouteCard({ details, direction }: Readonly<Props>) {
   const cost = num(details['cost_share_ils']);
   const isFree = details['reward_model'] === 'free' || (direction === 'give' && cost == null);
 
-  const chips: Chip[] = [];
+  const chips: InfoChip[] = [];
   if (when) chips.push({ icon: 'time-outline', text: when });
   if (seats != null) chips.push({ icon: 'people-outline', text: t(direction === 'request' ? 'cards.passengers' : 'cards.seats', { count: seats }) });
   if (direction === 'give') chips.push({ icon: 'wallet-outline', text: cost != null && cost > 0 ? t('cards.costShare', { amount: cost }) : t('cards.free') });
@@ -48,10 +49,7 @@ export function RideRouteCard({ details, direction }: Readonly<Props>) {
       {chips.length > 0 ? (
         <View style={styles.chips}>
           {chips.map((c) => (
-            <View key={c.text} style={styles.chip}>
-              <Ionicons name={c.icon} size={iconSize.xs} color={colors.textSecondary} />
-              <Text style={styles.chipText}>{c.text}</Text>
-            </View>
+            <Chip key={c.text} variant="tag" size="sm" icon={c.icon} label={c.text} />
           ))}
         </View>
       ) : null}
@@ -72,14 +70,4 @@ const useStyles = makeUseStyles(({ colors }) => ({
   badgeRow: { flexDirection: rowDirectionStart, alignItems: 'center' as const, gap: spacing.xs },
   badge: { ...typography.label, color: colors.primary },
   chips: { flexDirection: rowDirectionStart, flexWrap: 'wrap' as const, gap: spacing.sm },
-  chip: {
-    flexDirection: rowDirectionStart,
-    alignItems: 'center' as const,
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceRaised,
-  },
-  chipText: { ...typography.caption, color: colors.textPrimary },
 }));
