@@ -78,11 +78,12 @@ Last applied on kc-dev when this was written: `0239`.
 | 0468 | #1298 listing reports recorded (reporter hide, audit), reported listings hidden for review, admin restore, moderation-only review states | in review |
 | 0466 | KC#1101 / KC#1109 AC4 — native items and food listings mirror into the main feed (`posts.listing_id`, `worlds.feed_mirror`, D-206) | in review |
 | 0510 | KC#1306 "Rating given" karma (2 per handoff or ride rating) | in review |
-| 0511+ | — | free |
+| 0511–0519 | Rides end to end — `docs/spec/05_giving_worlds.md` §5.3, gaps G44–G49 (`0511` G47 driver bookings) | in progress |
+| 0520+ | — | free |
 
 ## Next free ranges
 
-`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0511+`.
+`0248–0249`, `0271–0279`, `0286–0299`, `0309`, `0310–0319`, `0404–0409`, `0414`, `0443–0444`, `0520+`.
 
 ## How to claim
 

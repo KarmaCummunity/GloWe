@@ -30,5 +30,7 @@ export const marketplaceErrors = {
   member_inactive: 'החשבון שלך אינו פעיל, ולכן אי אפשר לפרסם.',
   auth_required: 'יש להתחבר כדי לפרסם.',
   kind_not_found: 'סוג המודעה אינו זמין יותר. בחרו סוג אחר.',
+  ride_place_invalid: 'אחד המקומות בנסיעה אינו מוכר. בחרו עיר, רחוב או צומת מהרשימה.',
+  too_many_meeting_points: 'אפשר להוסיף עד 3 נקודות איסוף.',
   generic: 'הפרסום נכשל. נסו שוב.',
 } as const;

@@ -1,15 +1,17 @@
 -- kc_test rides | Rides-world builders (G38). Composes the generic listing fixture with
 -- the ride_offer detail shape the native create form stores (0391 detail schema).
 
--- Fixed reference route used across rides tests: Tel Aviv → Jerusalem city centres.
+-- Fixed reference route used across rides tests: Tel Aviv → Jerusalem, as official city
+-- places (D71, 0512). The canonical-places trigger fills label / lat / lng / city from
+-- public.cities; the labels here only name the listing title.
 create function kc_test.ride_route_tlv_jlm()
 returns jsonb
 language sql
 immutable
 as $$
   select jsonb_build_object(
-    'origin_label', 'Tel Aviv', 'origin_lat', 32.0853, 'origin_lng', 34.7818,
-    'dest_label', 'Jerusalem', 'dest_lat', 31.7683, 'dest_lng', 35.2137);
+    'origin_place_kind', 'city', 'origin_place_id', '5000', 'origin_label', 'Tel Aviv',
+    'dest_place_kind', 'city', 'dest_place_id', '3000', 'dest_label', 'Jerusalem');
 $$;
 
 -- Publishes a ride offer departing p_departs_in from now with p_seats seats.
