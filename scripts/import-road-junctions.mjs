@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Generates the seed migration of the road junctions & interchanges catalog (rides places,
- * docs/spec/05_giving_worlds.md §5.3, D71, {{D:junctions-catalog}}; gap G45).
+ * docs/spec/05_giving_worlds.md §5.3, D71, approved fill S47; gap G45).
  *
  * Source: Ministry of Transport "junction and interchange names" (data.gov.il package `zmt_names`,
  * CC BY), read through the official CKAN datastore API. Only existing places are kept
