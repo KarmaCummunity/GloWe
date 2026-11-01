@@ -31,8 +31,8 @@ vi.mock('../../store/authStore', () => ({
 }));
 // Native confirm dialogs are out of scope: confirm straight away.
 const adminActions = vi.hoisted(() => ({
-  confirmAndRun: vi.fn(({ onConfirm, onSuccess }: { onConfirm: () => Promise<void>; onSuccess: () => void }) => {
-    void onConfirm().then(onSuccess);
+  confirmAndRun: vi.fn((opts: { onConfirm: () => Promise<void>; onSuccess: () => void; onCancel?: () => void }) => {
+    void opts.onConfirm().then(opts.onSuccess);
   }),
   showAdminToast: vi.fn(),
 }));
@@ -135,6 +135,25 @@ describe('BanUserModal', () => {
     });
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(adminActions.showAdminToast).toHaveBeenCalledWith('moderation.actions.success.ban');
+  });
+
+  it('frees the sheet again when the admin cancels the confirmation (TD-251)', async () => {
+    adminActions.confirmAndRun.mockImplementationOnce(({ onCancel }: { onCancel?: () => void }) => onCancel?.());
+    const onClose = vi.fn();
+    renderInTheme(<BanUserModal targetUserId="u_target" visible onClose={onClose} />);
+    fireEvent.click(fillReport('moderation.ban.reasons.spam', 'moderation.ban.noteLabel', 'moderation.ban.submit'));
+    await flush();
+    expect(adminActions.confirmAndRun).toHaveBeenCalledTimes(1);
+    expect(container.banUser.execute).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    const submit = screen.getByRole('button', { name: 'moderation.ban.submit' });
+    expect(submit.getAttribute('aria-disabled')).not.toBe('true');
+    const cancel = screen.getByRole('button', { name: 'moderation.actions.cancel' });
+    expect(cancel.getAttribute('aria-disabled')).not.toBe('true');
+    // Not busy any more: a second submit asks for confirmation again.
+    fireEvent.click(submit);
+    await flush();
+    expect(adminActions.confirmAndRun).toHaveBeenCalledTimes(2);
   });
 
   it('dismisses from the cancel button', () => {
