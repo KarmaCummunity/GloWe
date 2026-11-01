@@ -48,6 +48,7 @@ Rules for every function:
 - Policies use `(select auth.uid())` so it is evaluated once per statement (advisor `auth_rls_initplan`, `0354`).
 - Writes that bypass RLS happen only inside SECURITY DEFINER functions that check the actor themselves.
 - New storage buckets need object policies scoped by the path's owner prefix (see `0440`, `0445`).
+- A bucket whose objects are not public content is private and read through signed URLs. `chat-media` (`0521`): an object is readable when its path names a chat `is_chat_visible_to` the caller, the same predicate as the chat's messages; the app signs `media_payload.path` (`apps/mobile/src/services/chatMediaUrl.ts`) and never stores a public URL.
 
 ### 4. Errors
 
