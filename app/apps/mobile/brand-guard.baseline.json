@@ -321,13 +321,6 @@
       "spacingLiteral": 1,
       "iconSizeLiteral": 2
     },
-    "src/components/AddDonationLinkModal.styles.ts": {
-      "physicalSide": 3
-    },
-    "src/components/AddDonationLinkModal.tsx": {
-      "rawTextInput": 3,
-      "rawModal": 1
-    },
     "src/components/AuthGate.tsx": {
       "radiusLiteral": 1,
       "spacingLiteral": 1
@@ -335,10 +328,6 @@
     "src/components/BackButton.tsx": {
       "spacingLiteral": 1,
       "iconSizeLiteral": 1
-    },
-    "src/components/ChatActionMenu.tsx": {
-      "physicalSide": 2,
-      "rawModal": 1
     },
     "src/components/ChatBadge.tsx": {
       "fontSizeLiteral": 1,
@@ -370,10 +359,6 @@
       "radiusLiteral": 1,
       "spacingLiteral": 1,
       "iconSizeLiteral": 2
-    },
-    "src/components/DonationLinkRowMenu.tsx": {
-      "physicalSide": 2,
-      "rawModal": 1
     },
     "src/components/DonationLinksList.styles.ts": {
       "radiusLiteral": 1
@@ -416,10 +401,6 @@
     "src/components/FirstPostNudge.tsx": {
       "fontWeightLiteral": 1
     },
-    "src/components/GuestJoinModal.tsx": {
-      "physicalSide": 2,
-      "rawModal": 1
-    },
     "src/components/NewPostsBanner.tsx": {
       "fontWeightLiteral": 1,
       "shadowLiteral": 4,
@@ -459,14 +440,6 @@
       "zIndexLiteral": 2,
       "rawModal": 1,
       "iconSizeLiteral": 1
-    },
-    "src/components/ReportChatModal.tsx": {
-      "colorLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "physicalSide": 2,
-      "rawTextInput": 1,
-      "rawModal": 1
     },
     "src/components/SearchablePicker/SearchablePicker.tsx": {
       "rawTextInput": 2,
@@ -913,12 +886,6 @@
     "src/components/marketplace/MarketplaceForYouSection.tsx": {
       "physicalSide": 1
     },
-    "src/components/marketplace/ReportListingModal.tsx": {
-      "radiusLiteral": 4,
-      "physicalSide": 2,
-      "rawTextInput": 1,
-      "rawModal": 1
-    },
     "src/components/marketplace/listingChipStyles.ts": {
       "adHocChip": 1
     },
@@ -979,29 +946,10 @@
       "spacingLiteral": 4,
       "iconSizeLiteral": 1
     },
-    "src/components/post/ReportPostModal.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 5,
-      "spacingLiteral": 9,
-      "physicalSide": 2,
-      "rawTextInput": 1,
-      "rawModal": 1
-    },
     "src/components/post/VisibilityChooser.tsx": {
       "fontSizeLiteral": 1,
       "fontWeightLiteral": 2,
       "radiusLiteral": 1
-    },
-    "src/components/profile/BanUserModal.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 5,
-      "spacingLiteral": 10,
-      "physicalSide": 2,
-      "rawTextInput": 1,
-      "rawModal": 1
     },
     "src/components/profile/FollowButton.tsx": {
       "fontWeightLiteral": 1,
@@ -1020,24 +968,8 @@
       "spacingLiteral": 1,
       "iconSizeLiteral": 1
     },
-    "src/components/profile/ProfileOverflowMenu.tsx": {
-      "spacingLiteral": 2,
-      "physicalSide": 2,
-      "rawModal": 1,
-      "iconSizeLiteral": 1
-    },
     "src/components/profile/ProfileStatsRow.tsx": {
       "spacingLiteral": 1
-    },
-    "src/components/profile/ReportUserModal.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 6,
-      "fontWeightLiteral": 3,
-      "radiusLiteral": 5,
-      "spacingLiteral": 9,
-      "physicalSide": 2,
-      "rawTextInput": 1,
-      "rawModal": 1
     },
     "src/components/profile/otherProfileShells.tsx": {
       "spacingLiteral": 1
