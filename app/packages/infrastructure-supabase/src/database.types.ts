@@ -1948,7 +1948,7 @@ export type Database = {
         }
         Relationships: []
       }
-      feed_impressions_y2026m10: {
+      feed_impressions_y2026m11: {
         Row: {
           impression_id: string
           post_id: string
@@ -1969,7 +1969,7 @@ export type Database = {
         }
         Relationships: []
       }
-      feed_impressions_y2026m11: {
+      feed_impressions_y2026m12: {
         Row: {
           impression_id: string
           post_id: string
