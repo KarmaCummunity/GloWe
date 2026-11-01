@@ -53,6 +53,9 @@ export const notificationsEn = {
   foodExpiringBody: '{{listingTitle}} — if it was already handed over, mark it as handed over.',
   foodExpiredTitle: 'Your food offer expired',
   foodExpiredBody: '{{listingTitle}} was taken off the list because no one collected it in time.',
+  // D74 — a new ride on a route the user follows (0516).
+  rideRouteMatchTitle: 'A new ride on your route',
+  rideRouteMatchBody: '{{origin}} → {{dest}} · {{when}}',
   markRecipientTitle: '{{ownerName}}',
   markRecipientBody: 'marked you as the recipient of {{postTitle}}',
   unmarkRecipientTitle: '{{recipientName}}',

@@ -34,5 +34,7 @@ export const marketplaceErrors = {
   too_many_meeting_points: 'You can add up to 3 pickup points.',
   ride_arrival_before_departure: 'The estimated end must come after the departure.',
   ride_time_invalid: 'One of the ride times is not valid. Please pick it again.',
+  saved_routes_limit: 'You can follow up to 10 routes. Remove one to add another.',
+  same_route: 'The origin and the destination are the same place.',
   generic: 'Publishing failed. Please try again.',
 } as const;

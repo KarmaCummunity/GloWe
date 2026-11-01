@@ -53,6 +53,9 @@ export const notificationsHe = {
   foodExpiringBody: '{{listingTitle}} — אם כבר נמסר, סמנו אותו כנמסר.',
   foodExpiredTitle: 'פג תוקף האוכל שפרסמת',
   foodExpiredBody: '{{listingTitle}} הוסר מהרשימה כי לא נאסף בזמן.',
+  // D74 — a new ride on a route the user follows (0516).
+  rideRouteMatchTitle: 'נסיעה חדשה במסלול שלך',
+  rideRouteMatchBody: '{{origin}} ← {{dest}} · {{when}}',
   markRecipientTitle: '{{ownerName}}',
   markRecipientBody: 'סימן אותך כמקבל של {{postTitle}}',
   unmarkRecipientTitle: '{{recipientName}}',
