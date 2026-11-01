@@ -2,8 +2,9 @@
 // FR-ADMIN-018 — admin tasks list screen with chip filters.
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { adminChipScroll } from '../../../src/components/admin/adminChipScroll';
+import { AdminFilterChip } from '../../../src/components/admin/AdminFilterChip';
 import {
   ADMIN_TASK_CATEGORIES,
   ADMIN_TASK_STATUSES, type AdminPermission, type AdminRole,
@@ -11,7 +12,7 @@ import {
   hasPermission,
 } from '@kc/domain';
 import type { AdminTaskListFilters } from '@kc/application';
-import { makeUseStyles, Text } from '@kc/ui';
+import { makeUseStyles, radius, spacing, Text, typography } from '@kc/ui';
 import { useAdminRoles } from '../../../src/hooks/useAdminRoles';
 import { useAdminTasksList } from '../../../src/hooks/useAdminTasks';
 import { AdminScreenHeader } from '../../../src/components/admin/AdminScreenHeader';
@@ -86,25 +87,25 @@ export default function TasksScreen() {
       <Text style={styles.filterTitle}>{L.admin.tasks.filtersTitle}</Text>
 
       <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
-        <FilterChip
+        <AdminFilterChip
           label={L.admin.tasks.filters.all}
           active={statusFilter === null && !overdueOnly}
           onPress={() => { setStatusFilter(null); setOverdueOnly(false); }}
         />
         {ADMIN_TASK_STATUSES.map((s) => (
-          <FilterChip
+          <AdminFilterChip
             key={s}
             label={L.admin.tasks.status[s]}
             active={statusFilter === s}
             onPress={() => { setStatusFilter(statusFilter === s ? null : s); }}
           />
         ))}
-        <FilterChip
+        <AdminFilterChip
           label={L.admin.tasks.filters.overdue}
           active={overdueOnly}
           onPress={() => setOverdueOnly((v) => !v)}
         />
-        <FilterChip
+        <AdminFilterChip
           label={L.admin.tasks.filters.onlyMine}
           active={onlyMine}
           onPress={() => setOnlyMine((v) => !v)}
@@ -112,13 +113,13 @@ export default function TasksScreen() {
       </ScrollView>
 
       <ScrollView horizontal style={adminChipScroll.scroll} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.chips, adminChipScroll.content]}>
-        <FilterChip
+        <AdminFilterChip
           label={L.admin.tasks.categoryFilters.all}
           active={categoryFilter === null}
           onPress={() => setCategoryFilter(null)}
         />
         {ADMIN_TASK_CATEGORIES.map((c) => (
-          <FilterChip
+          <AdminFilterChip
             key={c}
             label={L.admin.tasks.category[c]}
             active={categoryFilter === c}
@@ -180,68 +181,43 @@ export default function TasksScreen() {
   );
 }
 
-interface FilterChipProps {
-  readonly label: string;
-  readonly active: boolean;
-  readonly onPress: () => void;
-}
-
-function FilterChip({ label, active, onPress }: FilterChipProps) {
-  const styles = useStyles();
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const useStyles = makeUseStyles(({ colors }) => ({
   root:            { flex: 1, backgroundColor: colors.background },
-  center:          { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  deniedTitle:     { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
-  newBtn:          { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: colors.primary },
-  newBtnText:      { color: colors.textInverse, fontWeight: '700', fontSize: 13 },
+  center:          { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  deniedTitle:     { ...typography.h3, ...typography.bold, color: colors.textPrimary },
+  newBtn:          { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: colors.primary },
+  newBtnText:      { ...typography.bodySmall, ...typography.bold, color: colors.textInverse },
 
   listContent: {
-    paddingBottom: 96,
-    gap: 10,
+    // 96pt of room under the last row, off the spacing scale's 64 + 32.
+    paddingBottom: spacing['4xl'] + spacing['2xl'],
+    gap: spacing.sm,
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
   },
-  rowWrap: { paddingHorizontal: 16 },
+  rowWrap: { paddingHorizontal: spacing.base },
 
   filterCard: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    padding: 14,
-    gap: 10,
+    marginHorizontal: spacing.base,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    padding: spacing.md,
+    gap: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
   filterTitle: {
-    fontSize: 12,
-    fontWeight: '800',
+    ...typography.label,
+    ...typography.extraBold,
     color: colors.textSecondary,
     letterSpacing: 0.3,
     writingDirection: 'rtl',
   },
-  chips:           { gap: 8, paddingVertical: 2 },
-  chip: {
-    flexShrink: 0,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: colors.background,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border,
-  },
-  chipActive:      { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText:        { fontSize: 13, fontWeight: '600', color: colors.textPrimary },
-  chipTextActive:  { color: colors.textInverse },
-  empty:           { padding: 32, alignItems: 'center', gap: 8 },
-  emptyTitle:      { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
-  emptyHint:       { fontSize: 13, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
+  chips:           { gap: spacing.sm },
+  empty:           { padding: spacing['2xl'], alignItems: 'center', gap: spacing.sm },
+  emptyTitle:      { ...typography.h4, color: colors.textPrimary },
+  emptyHint:       { ...typography.bodySmall, opacity: 0.6, textAlign: 'center', color: colors.textSecondary },
 }));
