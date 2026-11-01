@@ -45,13 +45,13 @@ export const iconsDouble = {
  * dialog (only the animated one listens). Call after opening or closing one.
  */
 export function finishModalAnimation(): void {
-  for (const dialog of document.querySelectorAll('[aria-modal="true"]')) {
+  document.querySelectorAll('[aria-modal="true"]').forEach((dialog) => {
     let node = dialog.parentElement;
     while (node) {
       fireEvent.animationEnd(node);
       node = node.parentElement;
     }
-  }
+  });
 }
 
 /** Renders `ui` in the light theme and settles any dialog it opens. */
