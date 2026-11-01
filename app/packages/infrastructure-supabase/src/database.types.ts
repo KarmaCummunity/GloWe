@@ -6385,6 +6385,161 @@ export type Database = {
           },
         ]
       }
+      ride_route_alerts: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          listing_id: string
+          route_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          listing_id: string
+          route_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          listing_id?: string
+          route_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_route_alerts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listing_card"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "ride_saved_routes"
+            referencedColumns: ["route_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_route_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      ride_saved_routes: {
+        Row: {
+          created_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km: number
+          route_id: string
+          time_from: string | null
+          time_to: string | null
+          user_id: string
+          wants: string
+          weekdays: number | null
+        }
+        Insert: {
+          created_at?: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km?: number
+          route_id?: string
+          time_from?: string | null
+          time_to?: string | null
+          user_id?: string
+          wants?: string
+          weekdays?: number | null
+        }
+        Update: {
+          created_at?: string
+          dest_label?: string
+          dest_lat?: number
+          dest_lng?: number
+          dest_place_id?: string
+          dest_place_kind?: string
+          origin_label?: string
+          origin_lat?: number
+          origin_lng?: number
+          origin_place_id?: string
+          origin_place_kind?: string
+          radius_km?: number
+          route_id?: string
+          time_from?: string | null
+          time_to?: string | null
+          user_id?: string
+          wants?: string
+          weekdays?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "giving_user_trust_score"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ride_saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       ride_stops: {
         Row: {
           city_id: string
@@ -11097,6 +11252,35 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      ride_matching_routes: {
+        Args: { p_listing: Database["public"]["Tables"]["listings"]["Row"] }
+        Returns: {
+          created_at: string
+          dest_label: string
+          dest_lat: number
+          dest_lng: number
+          dest_place_id: string
+          dest_place_kind: string
+          origin_label: string
+          origin_lat: number
+          origin_lng: number
+          origin_place_id: string
+          origin_place_kind: string
+          radius_km: number
+          route_id: string
+          time_from: string | null
+          time_to: string | null
+          user_id: string
+          wants: string
+          weekdays: number | null
+        }[]
+        SetofOptions: {
+          from: "listings"
+          to: "ride_saved_routes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       ride_participants_expire_stale_check: { Args: never; Returns: number }
       ride_place_lookup: {
         Args: { p_id: string; p_kind: string }
@@ -11107,6 +11291,25 @@ export type Database = {
           lng: number
         }[]
       }
+      ride_point_within: {
+        Args: {
+          p_km: number
+          p_lat: number
+          p_lat2: number
+          p_lng: number
+          p_lng2: number
+        }
+        Returns: boolean
+      }
+      ride_quiet_window_end: {
+        Args: { p_at?: string; p_user: string }
+        Returns: string
+      }
+      ride_route_alert_deliver: {
+        Args: { p_listing_id: string; p_route_id: string }
+        Returns: string
+      }
+      ride_route_alerts_sweep: { Args: never; Returns: number }
       ride_templates_materialize: { Args: never; Returns: number }
       rides_expired_listings_sweep: { Args: never; Returns: number }
       role_rank: { Args: { p_role: string }; Returns: number }

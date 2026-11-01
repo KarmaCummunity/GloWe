@@ -124,6 +124,8 @@ const KIND_ROUTES: Record<NotificationKind, KindHandler> = {
   ride_booking_declined: (d) => listingRoute(d.params?.listingId),
   ride_booking_expired: (d) => listingRoute(d.params?.listingId),
   ride_booking_cancelled: (d) => listingRoute(d.params?.listingId),
+  // D74 — a new ride on a followed route opens the ride.
+  ride_route_match: (d) => listingRoute(d.params?.listingId),
 };
 
 /** Marketplace listing detail, only for a well-formed listing id. */

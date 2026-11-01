@@ -11,7 +11,7 @@ import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
 import { rideBooking } from './rideBooking';
 import { ridePlaces } from './ridePlaces';
-import { dateTimeField, rideFeed, rideSchedule } from './rideSchedule';
+import { dateTimeField, rideFeed, rideRoutes, rideSchedule } from './rideSchedule';
 import { authHe } from './modules/auth';
 import { onboardingHe } from './modules/onboarding';
 import { errorsHe } from './modules/errors';
@@ -131,6 +131,7 @@ const he = {
   rideSchedule,
   dateTimeField,
   rideFeed,
+  rideRoutes,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

@@ -31,3 +31,21 @@ export const rideFeed = {
   empty: 'No upcoming rides right now. You can publish a ride or a request.',
   error: "We couldn't load the rides. Pull down to try again.",
 } as const;
+
+// Saved routes (D74): follow a route and hear about new rides on it.
+export const rideRoutes = {
+  follow: 'Notify me about rides on this route',
+  wantsLabel: 'Notify me about',
+  wants: { offers: 'Ride offers', requests: 'Ride requests' },
+  daysLabel: 'Which days? (none — every day)',
+  weekday: { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' },
+  hoursLabel: 'Which hours?',
+  anyHour: 'Any hour',
+  window: { morning: 'Morning (06–10)', midday: 'Midday (10–15)', evening: 'Evening (15–21)' },
+  save: 'Save route',
+  saved: "Route saved. We'll let you know when a matching ride is published.",
+  saveError: "We couldn't save the route. Please try again.",
+  mine: 'My routes',
+  remove: 'Remove',
+  removeError: "We couldn't remove the route. Please try again.",
+} as const;

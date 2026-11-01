@@ -21,3 +21,5 @@ export { ListRidePlacesUseCase } from './ListRidePlacesUseCase';
 export type { IRidePlaceRepository } from '../ports/IRidePlaceRepository';
 export { ListRidesFeedUseCase } from './ListRidesFeedUseCase';
 export type { IRidesFeedRepository } from '../ports/IRidesFeedRepository';
+export { ListMyRideRoutesUseCase, SaveRideRouteUseCase, RemoveRideRouteUseCase } from './rideSavedRouteUseCases';
+export type { IRideSavedRoutesRepository } from '../ports/IRideSavedRoutesRepository';

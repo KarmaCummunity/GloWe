@@ -62,7 +62,7 @@ Stages 1, 2, 3 and 6 (`INFRA-CI-1` unified PR gate, `INFRA-CI-2` gate integrity,
 | RIDES-G45 | **Official places catalog + picker.** Import MoT junctions & interchanges (D98); one picker over cities, streets and junctions for origin, destination and ≤ 3 meeting points. Shipped: `0512`/`0513`, `RidePlaceField`, server-side place guard. | agent-fullstack | ✅ Done | §5.3 · G45 |
 | RIDES-G46 | **Map + navigate.** Ride route on the map; "navigate" to Waze / Google Maps / Apple Maps for every ride place. | agent-fe | ✅ Done | §5.3 · G46 |
 | RIDES-G49 | **Quick publish + rides feed.** Cross-platform date-time field, time shortcuts, remembered route, "publish again" (D97); feed of offers + requests by departure, departed hidden. | agent-fullstack | ✅ Done | §5.3 · G49 |
-| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (D95). | agent-fullstack | ⏳ Planned | §5.3, §7.11 · G48 |
+| RIDES-G48 | **Saved routes.** Follow a route; alerts with the rides urgency rule and cap (D95). | agent-fullstack | ✅ Done | §5.3, §7.11 · G48 |
 | RIDES-G44 | **One rides flow.** Retire legacy `ride_listings` screens; move emergency button + cost caps onto the one flow. | agent-fullstack | ⏳ Planned | §5.3 · G44 |
 
 ## FINANCE — Org finance & transparency (`spec/19_org_finance.md`)

@@ -8,8 +8,11 @@ import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
 import type { RidePlace } from '@kc/domain';
 import { worldHubBaseStyles } from './worldHubStyles';
 import { RidePlaceField } from './RidePlaceField';
+import { RideRouteFollow } from './RideRouteFollow';
+import { SavedRideRoutesList } from './SavedRideRoutesList';
 import { ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
 import { useRidePlaces } from '../../hooks/useRidePlaces';
+import { useAuthStore } from '../../store/authStore';
 import { hapticLightTap } from '../../lib/haptics';
 import { cleanDisplayTitle } from '../../lib/displayTitle';
 import { KcRowCard } from '../cards/KcRowCard';
@@ -27,6 +30,7 @@ export function RideMatchSearch() {
   const styles = useStyles();
   const router = useRouter();
   const places = useRidePlaces();
+  const signedIn = useAuthStore((s) => Boolean(s.session?.userId));
   const [a, setFrom] = useState<RidePlace | null>(null);
   const [b, setTo] = useState<RidePlace | null>(null);
   const field = {
@@ -59,6 +63,8 @@ export function RideMatchSearch() {
       <Text style={styles.title}>{t('donations.rides.matchTitle')}</Text>
       <RidePlaceField label={t('ridePlaces.fieldOrigin')} value={a} onChange={(p) => pick(setFrom, p)} {...field} />
       <RidePlaceField label={t('ridePlaces.fieldDest')} value={b} onChange={(p) => pick(setTo, p)} {...field} />
+      {a && b && signedIn ? <RideRouteFollow key={`${a.kind}:${a.id}>${b.kind}:${b.id}`} origin={a} dest={b} /> : null}
+      <SavedRideRoutesList />
       {a && b && matches.data ? (
         <View style={styles.results}>
           {matches.data.length === 0 ? <Text style={styles.label}>{t('donations.rides.empty')}</Text> : null}

@@ -52,6 +52,9 @@ export const MARKETPLACE_SERVER_ERROR_CODES = [
   // D21 / D75 (0514) — the estimated end must follow the departure.
   'ride_arrival_before_departure',
   'ride_time_invalid',
+  // D74 (0516) — saved routes: at most 10, and a route must go somewhere.
+  'saved_routes_limit',
+  'same_route',
 ] as const;
 
 export type MarketplaceServerErrorCode = (typeof MARKETPLACE_SERVER_ERROR_CODES)[number];
