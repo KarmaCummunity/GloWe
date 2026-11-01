@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { HierarchyLayer, LayerOrgGroup } from '@kc/domain';
-import { makeUseStyles, radius, spacing, Text, typography, useTheme } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, shadow, spacing, Text, typography, useTheme } from '@kc/ui';
 import { LayerPersonChip } from './LayerPersonChip';
 import { ROLE_ICON, layerAccent } from './layerVisuals';
 import { rowDirectionStart, textAlignStart } from '../../../../lib/rtlLayout';
@@ -50,7 +50,7 @@ function OrgCluster({ group, accent, isVerified, onSelect }: OrgClusterProps) {
         {isVerified && (
           <Ionicons
             name="checkmark-circle"
-            size={13}
+            size={iconSize.xs}
             color={colors.textSecondary}
             accessibilityLabel={L.admin.admins.layers.verified}
           />
@@ -94,7 +94,7 @@ export function HierarchyLayerBand({ layer, orgAccents, verifiedOrgIds, onSelect
     <View style={[styles.band, { borderTopColor: accent }]}>
       <View style={styles.header}>
         <View style={[styles.iconBubble, { backgroundColor: `${accent}1F` }]}>
-          {topRole && <Ionicons name={ROLE_ICON[topRole]} size={18} color={accent} />}
+          {topRole && <Ionicons name={ROLE_ICON[topRole]} size={iconSize.md} color={accent} />}
         </View>
         <View style={styles.headerTexts}>
           <Text style={styles.title}>{title}</Text>
@@ -127,8 +127,7 @@ const useStyles = makeUseStyles(({ colors }) => ({
     alignSelf: 'center', width: '100%',
     backgroundColor: colors.surface, borderRadius: radius.lg, borderTopWidth: 3,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.sm,
-    shadowColor: colors.shadow, shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    ...shadow.card, shadowColor: colors.shadow,
   },
   header:      { flexDirection: rowDirectionStart, alignItems: 'center', gap: spacing.sm },
   iconBubble:  { width: 34, height: 34, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },

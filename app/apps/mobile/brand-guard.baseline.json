@@ -525,73 +525,14 @@
       "radiusLiteral": 1,
       "spacingLiteral": 5
     },
-    "src/components/admin/admins/AdminManagerSections.tsx": {
-      "fontSizeLiteral": 2,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 3,
-      "iconSizeLiteral": 1
-    },
-    "src/components/admin/admins/AdminPersonCard.tsx": {
-      "fontSizeLiteral": 4,
-      "fontWeightLiteral": 2,
-      "spacingLiteral": 7,
-      "iconSizeLiteral": 1
-    },
-    "src/components/admin/admins/AdminsListView.tsx": {
-      "fontSizeLiteral": 5,
-      "fontWeightLiteral": 2,
-      "spacingLiteral": 9
-    },
-    "src/components/admin/admins/AdminsTreeView.tsx": {
-      "spacingLiteral": 1
-    },
-    "src/components/admin/admins/LevelBadge.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 2
-    },
-    "src/components/admin/admins/ManagerSummary.tsx": {
-      "colorLiteral": 1,
-      "fontSizeLiteral": 3,
-      "fontWeightLiteral": 1,
-      "spacingLiteral": 2
-    },
     "src/components/admin/admins/OrgSwitcher.tsx": {
       "adHocChip": 1
-    },
-    "src/components/admin/admins/OrgTree.tsx": {
-      "fontSizeLiteral": 1,
-      "spacingLiteral": 3
-    },
-    "src/components/admin/admins/OrgTreeRow.tsx": {
-      "fontSizeLiteral": 1,
-      "fontWeightLiteral": 1,
-      "radiusLiteral": 1,
-      "spacingLiteral": 8,
-      "iconSizeLiteral": 1
-    },
-    "src/components/admin/admins/PersonRolesSection.tsx": {
-      "iconSizeLiteral": 1
-    },
-    "src/components/admin/admins/RolePermissionsSection.tsx": {
-      "iconSizeLiteral": 1
     },
     "src/components/admin/admins/UserLookupField.tsx": {
       "rawTextInput": 1
     },
-    "src/components/admin/admins/layers/HierarchyLayerBand.tsx": {
-      "shadowLiteral": 4,
-      "iconSizeLiteral": 2
-    },
-    "src/components/admin/admins/layers/HierarchyStatsStrip.tsx": {
-      "iconSizeLiteral": 1
-    },
     "src/components/admin/admins/layers/LayerPersonChip.tsx": {
       "adHocChip": 1
-    },
-    "src/components/admin/admins/layers/MaskedCommunityBand.tsx": {
-      "iconSizeLiteral": 1
     },
     "src/components/admin/content/AuditLogRow.tsx": {
       "fontSizeLiteral": 4,

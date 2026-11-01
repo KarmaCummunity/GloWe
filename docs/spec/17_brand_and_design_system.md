@@ -137,6 +137,8 @@ Screens move onto the kit one area per PR, after the PM approves the look; track
 
 Admin and team-only screens use the **same** colours, type, radius, components and rules as the rest of the app. They may be denser: one spacing step tighter, smaller type presets (`bodySmall`, `label`) and tables instead of cards. They never introduce their own colours (role badges included).
 
+**Cleanup progress (#1287).** ✅ `components/admin/admins` (13 files, incl. the hierarchy layer bands; role badges already use `avatarPalette`). Left: 47 admin files with 765 frozen findings in the brand-guard baseline, which may only shrink; the next slices go one area per PR (`tasks`, `reports`, `org-approvals`, `crm`, `time`, …). `admins/{OrgSwitcher, UserLookupField}` and `layers/LayerPersonChip` move with the kit `Chip` / `TextField` migrations.
+
 ### 4.4 Appearance
 
 Light, dark and system appearance (FR-SETTINGS-014). The native app passes the OS colour scheme through (`app.json` `userInterfaceStyle: "automatic"`, `expo-system-ui` on Android) so "system" can resolve to dark; signed-out surfaces stay light.
