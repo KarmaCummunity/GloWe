@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet } from 'react-native';
-import { makeUseStyles, Text } from '@kc/ui';
+// Filter chip of the admin list screens: the kit `Chip` in the compact admin
+// size (spec 17 §4.1 / §4.3), keeping the callers' `active` prop.
+import { Chip } from '../ui/Chip';
 
 export interface AdminFilterChipProps {
   readonly label:   string;
@@ -8,26 +9,5 @@ export interface AdminFilterChipProps {
 }
 
 export function AdminFilterChip({ label, active, onPress }: AdminFilterChipProps) {
-  const styles = useStyles();
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text numberOfLines={1} style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
-    </Pressable>
-  );
+  return <Chip size="sm" label={label} selected={active} onPress={onPress} />;
 }
-
-const useStyles = makeUseStyles(({ colors }) => ({
-  chip: {
-    flexShrink: 0,
-    alignSelf: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: colors.secondaryLight,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  chipActive:     { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText:       { fontSize: 12, fontWeight: '600', color: colors.textPrimary },
-  chipTextActive: { color: colors.textInverse },
-}));

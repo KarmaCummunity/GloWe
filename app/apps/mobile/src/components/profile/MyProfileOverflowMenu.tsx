@@ -7,7 +7,7 @@ import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-nati
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 
 export function MyProfileOverflowMenu({ showFollowRequests }: Readonly<{ showFollowRequests: boolean }>) {
   const styles = useStyles();
@@ -31,10 +31,15 @@ export function MyProfileOverflowMenu({ showFollowRequests }: Readonly<{ showFol
         hitSlop={8}
         style={styles.trigger}
       >
-        <Ionicons name="ellipsis-vertical" size={22} color={colors.textPrimary} />
+        <Ionicons name="ellipsis-vertical" size={iconSize.xl} color={colors.textPrimary} />
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
+      <Modal // brand-guard-allow: no shared Modal in the kit yet (GitHub #1284)
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={close}
+      >
         <Pressable style={styles.backdrop} onPress={close}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
             <SheetItem label={t('settings.accountDetails')} onPress={() => go('/edit-profile')} />
@@ -48,6 +53,13 @@ export function MyProfileOverflowMenu({ showFollowRequests }: Readonly<{ showFol
             ) : null}
             <View style={styles.divider} />
             <SheetItem label={t('settings.stats')} onPress={() => go('/stats')} />
+            <View style={styles.divider} />
+            {/* Managing one's own listings (edit, pause, fulfil) — reached here since the
+                marketplace browse screen was removed (FR-DONATE-001 AC6). */}
+            <SheetItem
+              label={t('marketplace.myListingsNav')}
+              onPress={() => go('/(tabs)/donations/marketplace/my-listings')}
+            />
             <View style={styles.divider} />
             <SheetItem label={t('profile.myProfileMenuSavedPosts')} onPress={() => go('/(tabs)/profile/saved')} />
             <View style={styles.divider} />
@@ -74,13 +86,13 @@ function SheetItem({ label, onPress }: Readonly<{ label: string; onPress: () => 
   );
 }
 
-const useStyles = makeUseStyles(({ colors, isDark }) => ({
-  trigger: { paddingHorizontal: 8, paddingVertical: 4 },
+const useStyles = makeUseStyles(({ colors }) => ({
+  trigger: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopStartRadius: radius.lg,
+    borderTopEndRadius: radius.lg,
     paddingVertical: spacing.xs,
   },
   item: { paddingVertical: spacing.md, paddingHorizontal: spacing.base, alignItems: 'center' },

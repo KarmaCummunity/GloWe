@@ -1,4 +1,4 @@
-// FR-RIDE-037 — ratings route.
-import { RateRideScreen } from '../../../../../src/features/rides/screens/RateRideScreen';
+// Retired legacy ride screen (D70): old links open the ride's listing on the one rides flow.
+import { LegacyRideRedirect } from '../../../../../src/components/giving/LegacyRideRedirect';
 
-export default RateRideScreen;
+export default LegacyRideRedirect;

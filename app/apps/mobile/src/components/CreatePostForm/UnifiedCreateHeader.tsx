@@ -1,33 +1,40 @@
-// Top of the unified create form: category chips + request/offer toggle.
-// Mapped to spec: FR-POST-001 (single create form for every domain).
+// Mapped to spec: FR-POST-001 AC1 / AC6.
+// Top of the unified create form: the category picker (one equal-width tile per category,
+// no horizontal scrolling) and, under it, the request / offer toggle.
 import React from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
+import { iconSize, makeUseStyles, radius, spacing, typography, useTheme, Text } from '@kc/ui';
 import { useCreatePostStyles } from '../../screens/tabs/create.styles';
-import type { CreateCategoryConfig, CreateDirection } from '../../lib/unifiedCreate/createCategories';
+import type {
+  CreateCategoryConfig,
+  CreateCategoryId,
+  CreateDirection,
+} from '../../lib/unifiedCreate/createCategories';
 
-const useChipStyles = makeUseStyles(({ colors }) => ({
-  wrap: { gap: spacing.sm },
-  row: { flexDirection: 'row' as const, gap: spacing.sm, paddingVertical: spacing.xs },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
+const useHeaderStyles = makeUseStyles(({ colors }) => ({
+  wrap: { gap: spacing.md },
+  tiles: { flexDirection: 'row' as const, gap: spacing.xs },
+  tile: {
+    flex: 1,
+    alignItems: 'center' as const,
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
     borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  chipOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  chipText: { ...typography.body, color: colors.textPrimary },
-  chipTextOn: { color: colors.primary },
+  tileOn: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
+  tileText: { ...typography.caption, color: colors.textSecondary, textAlign: 'center' as const },
+  tileTextOn: { ...typography.bold, color: colors.primary },
 }));
 
 interface Props {
   readonly categories: readonly CreateCategoryConfig[];
-  readonly categoryId: string;
-  readonly onCategoryChange: (id: string) => void;
+  readonly categoryId: CreateCategoryId;
+  readonly onCategoryChange: (id: CreateCategoryId) => void;
   readonly direction: CreateDirection;
   readonly onDirectionChange: (d: CreateDirection) => void;
 }
@@ -42,7 +49,9 @@ export function UnifiedCreateHeader({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useCreatePostStyles();
-  const chip = useChipStyles();
+  const header = useHeaderStyles();
+
+  /** One half of the request / offer toggle. */
   const toggle = (d: CreateDirection, icon: 'search-outline' | 'gift-outline', label: string) => {
     const on = direction === d;
     const activeStyle = d === 'give' ? styles.typeBtnActiveGive : styles.typeBtnActive;
@@ -52,37 +61,40 @@ export function UnifiedCreateHeader({
         style={[styles.typeBtn, on && activeStyle]}
         onPress={() => onDirectionChange(d)}
         accessibilityRole="button"
-        accessibilityState={{ selected: on }}
+        aria-selected={on}
       >
-        <Ionicons name={icon} size={18} color={on ? colors.textInverse : colors.textPrimary} />
+        <Ionicons name={icon} size={iconSize.md} color={on ? colors.textPrimary : colors.textSecondary} />
         <Text style={[styles.typeBtnText, on && styles.typeBtnTextActive]}>{label}</Text>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={chip.wrap} testID="unified-create-header">
+    <View style={header.wrap} testID="unified-create-header">
       <Text style={styles.sectionLabel}>{t('post.unifiedCreate.categoryLabel')}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={chip.row}>
+      <View style={header.tiles} accessibilityRole="radiogroup">
         {categories.map((c) => {
           const on = c.id === categoryId;
           return (
             <TouchableOpacity
               key={c.id}
               testID={`create-category-${c.id}`}
-              style={[chip.chip, on && chip.chipOn]}
+              style={[header.tile, on && header.tileOn]}
               onPress={() => onCategoryChange(c.id)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
+              accessibilityRole="radio"
+              aria-checked={on}
             >
-              <Text style={[chip.chipText, on && chip.chipTextOn]}>{t(c.labelKey)}</Text>
+              <Ionicons name={c.icon} size={iconSize.xl} color={on ? colors.primary : colors.textSecondary} />
+              <Text style={[header.tileText, on && header.tileTextOn]} numberOfLines={1}>
+                {t(c.labelKey)}
+              </Text>
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
       <View style={styles.typeToggle}>
-        {toggle('request', 'search-outline', t('post.request'))}
-        {toggle('give', 'gift-outline', t('post.give'))}
+        {toggle('request', 'search-outline', t('post.unifiedCreate.request'))}
+        {toggle('give', 'gift-outline', t('post.unifiedCreate.offer'))}
       </View>
     </View>
   );

@@ -29,7 +29,7 @@ One form creates a Post: giving world first, then one domain (auto-suggested fro
 | Job (org) | no | city or remote | closing date | scope, field, link (D41) |
 | Experience | no | venue | date | type, date, seats (D45) |
 
-Tech: · FR-POST-002–007, 011, 020 · unified form #1227 with duplicated "general" chip · G14
+Tech: · FR-POST-002–007, 011, 020 · unified form #1227; since 2026-11-01 (FR-POST-001 AC6) five categories — items (post engine), rides, food, housing, time — with the last choice remembered, request / offer under the picker and curated per-type fields; no "general" chip; money / knowledge / medical / animals / environment have no form yet · G14
 
 ## 7.3 Feed, sorting, recommendations
 Main feed of all worlds plus a feed per world (D5, D36). Default sort = **Recommended** — KC's recommendation engine, aiming to be as smart as Facebook/Instagram (D27). Phase 1 weights (S33): distance, freshness, worlds the user is active in, urgency and near expiry, reliability (never shown), posts with no response yet; region weight during emergency. The user always controls: sort (recommended/new/old/near) and filters (world, domain, item subcategory, direction, people/orgs, city+radius, status). Inside a chosen sort the engine may boost ≤ 1 of every 5 items, labeled "Recommended" (S5). Sort choice persists per session; a new session returns to Recommended (S7). A **Friends / Everyone** toggle hides on scroll down and returns on scroll up, TikTok-style (D34); "Friends" = people I follow, default Everyone (S6). Emergency items go on top with a banner (D42). Hidden-for-review posts don't appear (D33). Notify only on good match or saved filter (D10).
@@ -92,7 +92,7 @@ Every registered user may offer volunteering (D22); karma is automatic (D32). Or
 Tech: · R-Time-1 superseded · none · G19
 
 ## 7.11 Notifications
-Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28). Rides are time-critical: booking changes are `important` (D73), and saved-route alerts follow their own urgency rule and daily cap (D74, S44).
+Rich model like Instagram/Facebook/WhatsApp (D26): notification center grouped by time and unread (D7), smart grouping ("X and 3 others liked"), badge, per-type and per-channel preferences, mute chat/post, groups `important` and `social` (S10: push for important, in-app only for social; group per post per hour), quiet hours (default 22:00–08:00), max 3/day for matches & recommendations. A third group `emergency` bypasses quiet hours only in the declared region and only if not disabled (D42, S28). Rides are time-critical: booking changes are `important` (D73), and saved-route alerts follow their own urgency rule and daily cap (D74, D95).
 Types: match & saved filter (D10), ride booking & saved route (D73, D74), expiry & relevance (D21), like & comment (D25), event (D31), hours (D32), report & suspension (D33), emergency (D42), challenge (D43), community poll (D40), imported post awaiting claim (S21).
 Tech: · `09_notifications`, MATCHING_V2, PRD_V2 merged · `inbox.tsx` · per-type opt-out `kinds` (FR-NOTIF-017, `0460`; first type: match suggestions) · G17
 

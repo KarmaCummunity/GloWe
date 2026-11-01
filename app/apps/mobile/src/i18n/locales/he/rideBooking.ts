@@ -1,0 +1,29 @@
+// Hebrew — ride seat bookings on the ride screen: the driver's passenger list and the
+// passenger's own booking (docs/spec/05_giving_worlds.md §5.3 step 3, D73, D96).
+export const rideBooking = {
+  driverTitle: 'הנוסעים בנסיעה',
+  seatSummary: 'פנויים {{free}} מתוך {{capacity}} מקומות',
+  waitingSummary: '{{count}} מקומות ממתינים לאישור שלך',
+  empty: 'עוד אין בקשות להצטרף לנסיעה.',
+  seatsCount: 'מקומות: {{count}}',
+  approveBy: 'יש לאשר עד {{time}}',
+  passengerFallback: 'נוסע/ת',
+  approve: 'אישור',
+  decline: 'דחייה',
+  completeTrip: 'הנסיעה הסתיימה',
+  cancel: 'ביטול',
+  statusLabel: {
+    reserved: 'ממתין לאישור',
+    confirmed: 'מאושר',
+    handed_over: 'הנסיעה הסתיימה',
+  },
+  passengerTitle: 'המקום שלי בנסיעה',
+  seatsToBook: 'כמה מקומות?',
+  fewerSeats: 'פחות מקומות',
+  moreSeats: 'יותר מקומות',
+  book: 'בקשה להצטרף',
+  waitingForDriver: 'הבקשה נשלחה לנהג/ת. אם לא תאושר עד {{time}}, היא תבוטל אוטומטית.',
+  confirmed: 'המקום שלך מאושר. נסיעה טובה!',
+  cancelBooking: 'ביטול ההזמנה',
+  loadError: 'לא הצלחנו לטעון את ההזמנות. הקישו כדי לנסות שוב.',
+} as const;

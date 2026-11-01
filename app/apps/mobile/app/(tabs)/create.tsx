@@ -1,7 +1,7 @@
-// Unified Create — ONE form for every domain (feed post + marketplace worlds).
-// Category picker + request/offer toggle on top; fields adapt via lib/unifiedCreate config.
-// Create Post — wired to IPostRepository (P0.4-FE).
-// Mapped to: FR-POST-001..006 (incl. FR-POST-003 visibility + FR-POST-006 followers publish confirm), FR-POST-021 (D-31 partner-surface mask + collapsible exposure settings), FR-POST-007 (local draft autosave + resume), FR-POST-010 (delete) lives elsewhere.
+// Unified Create — ONE form for every category (items post + rides / food / housing / time
+// listings). Category picker, then request / offer, then the category's own fields
+// (lib/unifiedCreate config). Items publish through IPostRepository (P0.4-FE).
+// Mapped to: FR-POST-001..006 (FR-POST-001 AC6 categories + remembered choice) (incl. FR-POST-003 visibility + FR-POST-006 followers publish confirm), FR-POST-021 (D-31 partner-surface mask + collapsible exposure settings), FR-POST-007 (local draft autosave + resume), FR-POST-010 (delete) lives elsewhere.
 // FR-AUTH-015 soft-gate preserved from #12 — Publish wraps publish.mutate() with requestSoftGate.
 // FR-NOTIF-015 AC1: push pre-prompt fires after first post published.
 import React, { useEffect, useState } from 'react';
@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { useTheme, Text } from '@kc/ui';
+import { iconSize, useTheme, Text } from '@kc/ui';
 import { Screen } from '../../src/components/ui/Screen';
 import { useAuthStore } from '../../src/store/authStore';
 import { useSoftGate } from '../../src/components/OnboardingSoftGate';
@@ -32,7 +32,7 @@ import { useCreatePostStyles } from '../../src/screens/tabs/create.styles';
 import { useCreatePostPublish } from '../../src/hooks/useCreatePostPublish';
 import { CreatePostFormScrollContent } from '../../src/components/CreatePostForm/CreatePostFormScrollContent';
 import { useUnifiedCreateCategory } from '../../src/hooks/useUnifiedCreateCategory';
-import { MarketplaceCreateForm } from '../../src/components/marketplace/MarketplaceCreateForm';
+import { ListingCreateForm } from '../../src/components/CreatePostForm/ListingCreateForm';
 
 export default function CreatePostScreen() {
   const { t } = useTranslation();
@@ -54,7 +54,7 @@ export default function CreatePostScreen() {
   } = useCreatePostAddressPrefill(ownerId);
 
   const form = useCreatePostFormState();
-  const { activeCategory, direction, header } = useUnifiedCreateCategory(form.type, form.setType);
+  const { activeCategory, direction, header, ready, selectCategory } = useUnifiedCreateCategory(ownerId, form.type, form.setType);
 
 
   const draftHydration = usePostDraftHydration(ownerId);
@@ -63,6 +63,7 @@ export default function CreatePostScreen() {
     ownerId,
     isHydrating: draftHydration.status.phase === 'pending',
     isResumePending: draftHydration.status.phase === 'ready',
+    isPostCategory: activeCategory.engine === 'post',
     type: form.type,
     title: form.title,
     description: form.description,
@@ -158,6 +159,8 @@ export default function CreatePostScreen() {
   const handleDraftContinue = () => {
     const hydrated = draftHydration.continueWithDraft();
     if (!hydrated) return;
+    // Drafts are items posts (FR-POST-007); resuming one opens the items form.
+    selectCategory('items');
     form.applyDraft(hydrated);
     if (hydrated.missingCount > 0 && !missingDraftImagesNotified) {
       setMissingDraftImagesNotified(true);
@@ -169,7 +172,7 @@ export default function CreatePostScreen() {
     <Screen blobs="off" testID="create-post-screen">
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerClose}>
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="close" size={iconSize['2xl']} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('tabs.newPost')}</Text>
         {activeCategory.engine === 'post' ? (
@@ -190,8 +193,10 @@ export default function CreatePostScreen() {
         )}
       </View>
 
-      {activeCategory.engine === 'listing' && activeCategory.worldSlug ? (
-        <MarketplaceCreateForm
+      {!ready ? (
+        <ActivityIndicator style={styles.scroll} testID="create-preferences-loading" />
+      ) : activeCategory.engine === 'listing' && activeCategory.worldSlug ? (
+        <ListingCreateForm
           key={activeCategory.worldSlug}
           worldSlug={activeCategory.worldSlug}
           header={header}

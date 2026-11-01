@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CREATE_CATEGORIES, hasCreateField } from '../createCategories';
+import { CREATE_CATEGORIES } from '../createCategories';
 import { buildListingCreatePayload, buildPostCreatePayload, type PostPayloadArgs } from '../unifiedCreatePayload';
 
 const postBase: PostPayloadArgs = {
@@ -20,7 +20,7 @@ const postBase: PostPayloadArgs = {
   hideFromCounterparty: false,
 };
 
-describe('unified create — post payload (general category)', () => {
+describe('unified create — post payload (items category)', () => {
   it('give: condition + value, no urgency, empty description -> null', () => {
     const p = buildPostCreatePayload(postBase);
     expect(p).toMatchObject({
@@ -39,23 +39,21 @@ describe('unified create — post payload (general category)', () => {
 describe('unified create — listing payload per category', () => {
   const listings = CREATE_CATEGORIES.filter((c) => c.engine === 'listing');
   it.each(listings.map((c) => [c.id, c] as const))('%s builds the listing write', (_id, c) => {
-    const routed = hasCreateField(c, 'give', 'externalBody');
     const p = buildListingCreatePayload({
       kindId: `k-${c.id}`, kindDirection: 'either', direction: 'request', title: ' כותרת ', summary: ' ',
       details: { a: 1 }, cityId: 'c1', lat: 1, lng: 2, radiusKm: 25, mediaPaths: ['m'],
-      routedWorld: routed, externalBodyId: 'org1', worldSubcategoryId: 'cat-1',
+      worldSubcategoryId: 'cat-1',
     });
     expect(p).toEqual({
       kindId: `k-${c.id}`, title: 'כותרת', summary: null, details: { a: 1 }, direction: 'request',
-      cityId: 'c1', lat: 1, lng: 2, maxRadiusKm: 25, mediaPaths: ['m'], externalBodyId: routed ? 'org1' : null,
+      cityId: 'c1', lat: 1, lng: 2, maxRadiusKm: 25, mediaPaths: ['m'], externalBodyId: null,
       categoryId: 'cat-1',
     });
   });
   it('fixed-direction kinds send null direction', () => {
     const p = buildListingCreatePayload({
       kindId: 'k', kindDirection: 'give', direction: 'give', title: 't', summary: 's', details: {},
-      cityId: null, lat: null, lng: null, radiusKm: 5, mediaPaths: [], routedWorld: false, externalBodyId: 'x',
-      worldSubcategoryId: null,
+      cityId: null, lat: null, lng: null, radiusKm: 5, mediaPaths: [], worldSubcategoryId: null,
     });
     expect(p).toMatchObject({ direction: null, summary: 's', externalBodyId: null, categoryId: null });
   });

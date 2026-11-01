@@ -11,6 +11,9 @@ import { medicalBodies } from './donations.medicalBodies';
 import { donations, marketplace, moneyPayments, search, timeVolunteer } from './donations';
 import { supportKc } from './donations.supportKc';
 import { givingHandoff } from './givingHandoff';
+import { rideBooking } from './rideBooking';
+import { ridePlaces } from './ridePlaces';
+import { dateTimeField, rideFeed, rideRoutes, rideSafety, rideSchedule } from './rideSchedule';
 import { authEn } from './modules/auth';
 import { onboardingEn } from './modules/onboarding';
 import { errorsEn } from './modules/errors';
@@ -122,6 +125,16 @@ const en = {
   timeVolunteer,
   medicalBodies,
   givingHandoff,
+  // Ride seat bookings (D73) — see rideBooking.ts
+  rideBooking,
+  // Ride places (D71) — see ridePlaces.ts
+  ridePlaces,
+  // Ride quick publish (D75) and the shared date-time field — see rideSchedule.ts
+  rideSchedule,
+  dateTimeField,
+  rideFeed,
+  rideRoutes,
+  rideSafety,
 
   // Search (D-16, FR-FEED-016) — see donations.ts
   search,

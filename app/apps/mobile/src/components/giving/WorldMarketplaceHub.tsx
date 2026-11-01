@@ -54,28 +54,15 @@ export function WorldMarketplaceHub({
   });
 
   const header = (
-    <>
-      <View style={styles.hero}>
-        <IconTile icon={icon} size="lg" />
-        <Text style={styles.body}>{t(introKey)}</Text>
-      </View>
-      <View style={styles.links}>
-        {handoffsPath ? (
-          <Pressable onPress={() => router.push(handoffsPath as never)}>
-            <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
-          </Pressable>
-        ) : null}
-        <Pressable onPress={() => router.push(createRouteFor(worldSlug))}>
-          <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
-        </Pressable>
-      </View>
-      {headerExtra}
-      {linksCategory ? (
-        <View style={styles.secondary}>
-          <DonationLinksList categorySlug={linksCategory} />
-        </View>
-      ) : null}
-    </>
+    <WorldHubHeader
+      worldSlug={worldSlug}
+      icon={icon}
+      introKey={introKey}
+      createLabelKey={createLabelKey}
+      linksCategory={linksCategory}
+      handoffsPath={handoffsPath}
+      headerExtra={headerExtra}
+    />
   );
 
   return (
@@ -100,5 +87,40 @@ export function WorldMarketplaceHub({
         }
       />
     </Screen>
+  );
+}
+
+export type WorldHubHeaderProps = Omit<WorldMarketplaceHubProps, 'rowMeta'>;
+
+/** The hub's top: intro, my-handoffs and create links, optional extra content, curated links. */
+export function WorldHubHeader({
+  worldSlug, icon, introKey, createLabelKey, linksCategory, handoffsPath, headerExtra,
+}: WorldHubHeaderProps) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const styles = useStyles();
+  return (
+    <>
+      <View style={styles.hero}>
+        <IconTile icon={icon} size="lg" />
+        <Text style={styles.body}>{t(introKey)}</Text>
+      </View>
+      <View style={styles.links}>
+        {handoffsPath ? (
+          <Pressable onPress={() => router.push(handoffsPath as never)}>
+            <Text style={styles.link}>{t('givingHandoff.myHandoffs')}</Text>
+          </Pressable>
+        ) : null}
+        <Pressable onPress={() => router.push(createRouteFor(worldSlug))}>
+          <Text style={styles.link}>{t(createLabelKey ?? 'marketplace.createListing')}</Text>
+        </Pressable>
+      </View>
+      {headerExtra}
+      {linksCategory ? (
+        <View style={styles.secondary}>
+          <DonationLinksList categorySlug={linksCategory} />
+        </View>
+      ) : null}
+    </>
   );
 }

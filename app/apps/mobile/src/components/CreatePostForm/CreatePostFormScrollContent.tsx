@@ -14,6 +14,8 @@ import { StreetPicker } from '../StreetPicker';
 import { CreatePostExposureSection } from './CreatePostExposureSection';
 import { EstimatedValueSlider } from './EstimatedValueSlider';
 import { PhotoPicker } from './PhotoPicker';
+import { Chip } from '../ui/Chip';
+import { TextField } from '../ui/TextField';
 import type { UploadedAsset } from '../../services/imageUpload';
 import { useCreatePostStyles } from '../../screens/tabs/create.styles';
 import { useShellTabBarScrollInset } from '../../navigation/useShellTabBarVisibility';
@@ -120,17 +122,12 @@ export function CreatePostFormScrollContent({
       />
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>
-          {t('post.title')} <Text style={styles.required}>*</Text>
-        </Text>
-        <TextInput
+        <TextField
           testID="create-post-title"
-          style={styles.input}
+          label={`${t('post.title')} *`}
           value={title}
           onChangeText={onTitleChange}
           placeholder={t('post.titlePlaceholder')}
-          placeholderTextColor={colors.textDisabled}
-          textAlign="right"
           maxLength={80}
         />
         <Text style={styles.charCount}>{title.length}/80</Text>
@@ -150,7 +147,7 @@ export function CreatePostFormScrollContent({
               disabled={isPublishing}
             />
           </View>
-          <TextInput
+          <TextInput // brand-guard-allow: compact house-number box inline beside the street picker; TextField stacks a label
             style={[styles.input, styles.streetInputHouse, !city ? { opacity: 0.5 } : null]}
             value={streetNumber}
             onChangeText={onStreetNumberChange}
@@ -171,15 +168,13 @@ export function CreatePostFormScrollContent({
         <Text style={styles.sectionLabel}>{t('post.categoryLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
           {ALL_CATEGORIES.map((cat) => (
-            <TouchableOpacity
+            <Chip
               key={cat}
-              style={[styles.chip, category === cat && styles.chipActive]}
+              label={t(`post.category.${cat}`)}
+              selected={category === cat}
               onPress={() => onCategoryChange(cat)}
-            >
-              <Text style={[styles.chipText, category === cat && styles.chipTextActive]}>
-                {t(`post.category.${cat}`)}
-              </Text>
-            </TouchableOpacity>
+              style={styles.chipGap}
+            />
           ))}
         </ScrollView>
       </View>
@@ -205,14 +200,11 @@ export function CreatePostFormScrollContent({
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t('post.description')}</Text>
-        <TextInput
-          style={[styles.input, styles.textarea]}
+        <TextField
+          label={t('post.description')}
           value={description}
           onChangeText={onDescriptionChange}
           placeholder={t('post.descPlaceholder')}
-          placeholderTextColor={colors.textDisabled}
-          textAlign="right"
           multiline
           maxLength={500}
         />
@@ -221,14 +213,11 @@ export function CreatePostFormScrollContent({
 
       {!isGive && (
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('post.urgency')}</Text>
-          <TextInput
-            style={styles.input}
+          <TextField
+            label={t('post.urgency')}
             value={urgency}
             onChangeText={onUrgencyChange}
             placeholder={t('post.urgencyPlaceholder')}
-            placeholderTextColor={colors.textDisabled}
-            textAlign="right"
             maxLength={100}
           />
         </View>

@@ -9,7 +9,7 @@ import {
   type PostType,
 } from '@kc/domain';
 import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
-import { Chip } from './Chip';
+import { Chip } from '../ui/Chip';
 import { rtlTextAlignStart } from '../../lib/rtlTextAlignStart';
 
 interface FiltersSectionProps {
@@ -64,9 +64,9 @@ export function FiltersSection({
       <View style={styles.section}>
         <Text style={styles.title}>{t('filters.sectionType')}</Text>
         <View style={styles.row}>
-          <Chip label={t('filters.all')} active={type === null} onPress={() => onTypeChange(null)} />
-          <Chip label={t('filters.typeGive')} active={type === 'Give'} onPress={() => onTypeChange('Give')} />
-          <Chip label={t('filters.typeRequest')} active={type === 'Request'} onPress={() => onTypeChange('Request')} />
+          <Chip label={t('filters.all')} selected={type === null} onPress={() => onTypeChange(null)} />
+          <Chip label={t('filters.typeGive')} selected={type === 'Give'} onPress={() => onTypeChange('Give')} />
+          <Chip label={t('filters.typeRequest')} selected={type === 'Request'} onPress={() => onTypeChange('Request')} />
         </View>
       </View>
 
@@ -75,14 +75,14 @@ export function FiltersSection({
         <View style={styles.row}>
           <Chip
             label={t('filters.all')}
-            active={categories.length === 0}
+            selected={categories.length === 0}
             onPress={() => onCategoriesChange([])}
           />
           {ALL_CATEGORIES.map((c) => (
             <Chip
               key={c}
               label={t(`post.category.${c}`)}
-              active={categories.includes(c)}
+              selected={categories.includes(c)}
               onPress={() => onCategoriesChange(toggleInArray(categories, c))}
             />
           ))}
@@ -95,14 +95,14 @@ export function FiltersSection({
           <View style={styles.row}>
             <Chip
               label={t('filters.all')}
-              active={itemConditions.length === 0}
+              selected={itemConditions.length === 0}
               onPress={() => onItemConditionsChange([])}
             />
             {ITEM_CONDITIONS.map((i) => (
               <Chip
                 key={i}
                 label={t(ITEM_CONDITION_KEYS[i])}
-                active={itemConditions.includes(i)}
+                selected={itemConditions.includes(i)}
                 onPress={() => onItemConditionsChange(toggleInArray(itemConditions, i))}
               />
             ))}
@@ -117,7 +117,7 @@ export function FiltersSection({
             <Chip
               key={s}
               label={t(STATUS_KEYS[s])}
-              active={statusFilter === s}
+              selected={statusFilter === s}
               onPress={() => onStatusFilterChange(s)}
             />
           ))}
@@ -129,12 +129,12 @@ export function FiltersSection({
         <View style={styles.row}>
           <Chip
             label={t('filters.all')}
-            active={!followersOnly}
+            selected={!followersOnly}
             onPress={() => onFollowersOnlyChange(false)}
           />
           <Chip
             label={t('filters.followersOnly')}
-            active={followersOnly}
+            selected={followersOnly}
             onPress={() => onFollowersOnlyChange(true)}
           />
         </View>

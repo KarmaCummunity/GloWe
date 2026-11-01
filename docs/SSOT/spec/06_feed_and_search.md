@@ -128,8 +128,9 @@ of active filters when >0; the old in-feed "X filters active" chip
 - AC2. Filters compose with AND semantics. Sort is independent of filters.
 - AC3. Changes **auto-commit** to the persisted store on every control change
    (chips immediately; search text after `FR-FEED-003` debounce). There is
-   **no** Apply button. "Clear all" resets and immediately commits the cleared
-   state. Sheet `maxHeight` is ~55–60% (compact density pass).
+   **no** Apply button. "Clear all" (the sheet footer action) resets and
+   immediately commits the cleared state. Sheet `maxHeight` is ~55–60%
+   (compact density pass; the kit `BottomSheet` `maxHeight`, spec 17 §4.1).
 - AC4. The same filter vocabulary (post-shape) is available on the Universal
    Search tab via the shared design (`FR-FEED-018`). The Search tab keeps its
    additional dimensions (`resultType`, `donationCategory`, etc.) in its own
@@ -327,7 +328,7 @@ The original AC contract is preserved in the TopBar badge:
 - visibility: shown when `activeCount > 0` (AC1 equivalent)
 - discoverability: tapping opens the filter sheet (AC2 equivalent)
 - count: rendered numerically up to 9, then `9+` (AC3 equivalent;
-  "Clear all" moves inside the sheet header).
+  "Clear all" moves inside the filter sheet, in its footer — spec 17 §4.1).
 
 ---
 
@@ -492,8 +493,25 @@ is the single source of truth for any distance computation in the system.
 
 ---
 
+## FR-FEED-020 — Main feed of every category + a feed per giving world
+
+**Description.**
+The main feed shows open posts of **every** create category (items, rides, food, housing, time), and the screen of each active giving world holds that world's own feed, search and request / offer entry points (product book `docs/spec/07` §7.3, D5, D36; PM, 2026-11-01).
+
+**Source.** PM request 2026-11-01 (create-form cleanup); `docs/spec/07_cross_cutting_systems.md` §7.3; `D-206` (feed mirror).
+
+**Acceptance Criteria.**
+- AC1. ⏳ A published open listing of rides, housing or time appears in the main feed like items and food do today (`worlds.feed_mirror`, migration `0466`), and opening it from the feed opens the listing detail.
+- AC2. ⏳ Each active world screen (items, rides, food, housing, time) shows: search within the world, a "request" and an "offer" button that open the create form preset to that category and direction, and the world's feed of open offers and requests (subcategory + distance refinements where the world has them, `BrowseRefineChips`), plus the world's own sub-screens (my handoffs, my rides, shifts…).
+- AC3. ⏳ A world whose launch flag is off stays a portal (D60) and shows no feed.
+
+**Related.** `FR-POST-001` AC6, `FR-DONATE-001` AC6, `FR-RIDE-*`, backlog `FEED-WORLDS`.
+
+---
+
 | Version | Date | Summary |
 | ------- | ---- | ------- |
 | 0.1 | 2026-05-05 | Initial draft from PRD §3.3.1–§3.3.2 and Decisions D-8, D-9, D-15. |
 | 0.2 | 2026-05-09 | Added `FR-FEED-016` (Search hub placeholder) per `D-16`. |
 | 0.3 | 2026-05-11 | P1.2 sweep: deprecated `FR-FEED-003, 007, 013`; reworked `FR-FEED-004, 006, 015`; extended `FR-FEED-005, 008, 014`; superseded `FR-FEED-016` (now Universal Search engine); added `FR-FEED-018` (shared filter vocabulary) and `FR-FEED-019` (cities-geo lookup). |
+| 0.4 | 2026-11-01 | Added `FR-FEED-020` (main feed of every create category + a feed, search and request / offer entry per giving world) — planned. |

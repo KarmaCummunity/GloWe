@@ -1,3 +1,4 @@
+// Mapped to spec: FR-POST-001 AC6.
 // Submit payload builders for the unified create form — one per write path.
 // Keeps the existing per-type DB writes (posts table vs marketplace listings).
 import type {
@@ -63,9 +64,7 @@ export interface ListingPayloadArgs {
   lng: number | null;
   radiusKm: number;
   mediaPaths: string[];
-  routedWorld: boolean;
-  externalBodyId: string | null;
-  /** The picked world subcategory (items / food), null when none (KC#1296). */
+  /** The picked world subcategory (food), null when none (KC#1296). */
   worldSubcategoryId: string | null;
 }
 
@@ -81,7 +80,9 @@ export function buildListingCreatePayload(a: ListingPayloadArgs) {
     lng: a.lng,
     maxRadiusKm: a.radiusKm,
     mediaPaths: a.mediaPaths,
-    externalBodyId: a.routedWorld ? a.externalBodyId : null,
+    // No create category is a routed world (medical / animals / environment), so no listing
+    // from this form is ever attached to an external body.
+    externalBodyId: null,
     categoryId: a.worldSubcategoryId,
   };
 }

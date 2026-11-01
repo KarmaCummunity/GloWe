@@ -12,6 +12,8 @@ export const aboutContentCopyA = {
 
   footerVersion: 'גרסה 0.1.0',
   footerRights: '© 2026 קהילת קארמה',
+  // D71 / S47 — the junctions catalog is CC BY: its source is credited here.
+  footerDataCredit: 'שמות צמתים ומחלפים: משרד התחבורה, data.gov.il (CC BY)',
 
   // Numbers — "the community in numbers" (live + permanent principles)
   numbersTitle: 'הקהילה במספרים',

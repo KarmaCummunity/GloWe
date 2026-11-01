@@ -56,6 +56,13 @@ jobs:
         # per-migration tests and the per-world lifecycle flows (G44).
         run: scripts/run-db-tests.sh
 
+      - name: Check every client RPC is granted to a client role
+        # Functions are owner/service_role-only by default (0520), so a client RPC whose
+        # migration forgot its `grant execute … to authenticated` fails here, not in the app.
+        run: |
+          set -euo pipefail
+          DB_URL="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')" node scripts/check-rpc-grants.mjs
+
       # Monthly partition children are created relative to now(), so they are
       # stripped before the diff; otherwise the check breaks on every 1st of the month.
       - name: Check database.types.ts drift

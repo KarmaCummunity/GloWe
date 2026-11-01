@@ -69,6 +69,8 @@ begin
     raise exception 'ASSERT FAILED: % raised "%" instead of %', p_label, v_raised, p_expected;
   end if;
 end $$;
+-- Called below under `set local role`: new functions are owner-only by default (0520).
+grant execute on function pg_temp.expect_error(text, text, text) to public;
 
 -- Fixture: orgs A and B; a super_admin; a platform moderator; org admins of A
 -- and B; in A a volunteer manager reporting to A's admin with one volunteer

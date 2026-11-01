@@ -1,14 +1,18 @@
-// Rides hub: pick from/to cities → PostGIS corridor match (find_ride_listing_matches, 0392).
+// Rides hub: pick from/to official places (D71) → PostGIS corridor match (find_ride_listing_matches, 0392).
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { makeUseStyles, spacing, typography, Text } from '@kc/ui';
-import type { RideEndpoint } from '@kc/domain';
-import { CityPicker } from '../CityPicker';
+import type { RidePlace } from '@kc/domain';
 import { worldHubBaseStyles } from './worldHubStyles';
-import { cityToRideEndpoint, ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
+import { RidePlaceField } from './RidePlaceField';
+import { RideRouteFollow } from './RideRouteFollow';
+import { SavedRideRoutesList } from './SavedRideRoutesList';
+import { ridesKnowledgeRpcs } from '../../services/ridesKnowledgeComposition';
+import { useRidePlaces } from '../../hooks/useRidePlaces';
+import { useAuthStore } from '../../store/authStore';
 import { hapticLightTap } from '../../lib/haptics';
 import { cleanDisplayTitle } from '../../lib/displayTitle';
 import { KcRowCard } from '../cards/KcRowCard';
@@ -21,24 +25,28 @@ const useStyles = makeUseStyles(({ colors }) => ({
   results: { marginTop: spacing.sm },
 }));
 
-type City = { id: string; name: string };
-
 export function RideMatchSearch() {
   const { t, i18n } = useTranslation();
   const styles = useStyles();
   const router = useRouter();
-  const [from, setFrom] = useState<{ city: City; point: RideEndpoint | null } | null>(null);
-  const [to, setTo] = useState<{ city: City; point: RideEndpoint | null } | null>(null);
-
-  const pick = async (set: typeof setFrom, city: City) => {
-    hapticLightTap();
-    set({ city, point: await cityToRideEndpoint(city).catch(() => null) });
+  const places = useRidePlaces();
+  const signedIn = useAuthStore((s) => Boolean(s.session?.userId));
+  const [a, setFrom] = useState<RidePlace | null>(null);
+  const [b, setTo] = useState<RidePlace | null>(null);
+  const field = {
+    places: places.data ?? null,
+    isLoading: places.isLoading,
+    error: places.error,
+    onRetry: () => void places.refetch(),
   };
 
-  const a = from?.point;
-  const b = to?.point;
+  const pick = (set: typeof setFrom, place: RidePlace) => {
+    hapticLightTap();
+    set(place);
+  };
+
   const matches = useQuery({
-    queryKey: ['ride-matches', a?.cityId, b?.cityId],
+    queryKey: ['ride-matches', a?.kind, a?.id, b?.kind, b?.id],
     enabled: Boolean(a && b),
     queryFn: () =>
       ridesKnowledgeRpcs.findMatches({
@@ -53,10 +61,10 @@ export function RideMatchSearch() {
   return (
     <View style={styles.box}>
       <Text style={styles.title}>{t('donations.rides.matchTitle')}</Text>
-      <Text style={styles.label}>{t('donations.rides.fieldOrigin')}</Text>
-      <CityPicker value={from?.city ?? null} onChange={(c) => void pick(setFrom, c)} />
-      <Text style={styles.label}>{t('donations.rides.fieldDest')}</Text>
-      <CityPicker value={to?.city ?? null} onChange={(c) => void pick(setTo, c)} />
+      <RidePlaceField label={t('ridePlaces.fieldOrigin')} value={a} onChange={(p) => pick(setFrom, p)} {...field} />
+      <RidePlaceField label={t('ridePlaces.fieldDest')} value={b} onChange={(p) => pick(setTo, p)} {...field} />
+      {a && b && signedIn ? <RideRouteFollow key={`${a.kind}:${a.id}>${b.kind}:${b.id}`} origin={a} dest={b} /> : null}
+      <SavedRideRoutesList />
       {a && b && matches.data ? (
         <View style={styles.results}>
           {matches.data.length === 0 ? <Text style={styles.label}>{t('donations.rides.empty')}</Text> : null}

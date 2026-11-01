@@ -27,7 +27,7 @@ tags: [shell, smoke]
     id: tab-donations
 - extendedWaitUntil:
     visible:
-      id: donation-tile-marketplace
+      id: donations-hub
     timeout: 15000
 - tapOn:
     id: tab-home
